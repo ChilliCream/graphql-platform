@@ -1,6 +1,8 @@
-﻿using System;
+using System;
+using System.Globalization;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
@@ -60,9 +62,8 @@ namespace HotChocolate.Types
                 return null;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "The input object type can only parse object value literals.",
+                TypeResources.InputObjectType_CannotParseLiteral,
                 nameof(literal));
         }
 
@@ -171,8 +172,10 @@ namespace HotChocolate.Types
 
             if (Fields.IsEmpty)
             {
-                context.ReportError(new SchemaError(
-                    $"The input object `{Name}` does not have any fields."));
+                context.ReportError(new SchemaError(string.Format(
+                    CultureInfo.InvariantCulture,
+                    TypeResources.InputObjectType_NoFields,
+                    Name)));
             }
         }
 

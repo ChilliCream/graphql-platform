@@ -1,5 +1,7 @@
+using System;
 using ChilliCream.Testing;
 using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Stitching.Introspection
@@ -16,7 +18,18 @@ namespace HotChocolate.Stitching.Introspection
             DocumentNode schema = IntrospectionDeserializer.Deserialize(json);
 
             // assert
-            SchemaSyntaxSerializer.Serialize(schema).Snapshot();
+            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+        }
+
+        [Fact]
+        public void JsonIsNull()
+        {
+            // arrange
+            // act
+            Action action = () => IntrospectionDeserializer.Deserialize(null);
+
+            // assert
+            Assert.Throws<ArgumentException>(action).Message.MatchSnapshot();
         }
     }
 }

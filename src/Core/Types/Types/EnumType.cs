@@ -1,15 +1,15 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
     public class EnumType
         : NamedTypeBase
-        , INamedOutputType
-        , INamedInputType
-        , ISerializableType
+        , ILeafType
     {
         private readonly Dictionary<string, EnumValue> _nameToValues =
             new Dictionary<string, EnumValue>();
@@ -89,7 +89,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                TypeResources.Scalar_Cannot_ParseLiteral(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
                     Name, literal.GetType()),
                 nameof(literal));
         }
@@ -117,7 +117,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                TypeResources.Scalar_Cannot_ParseValue(
+                TypeResourceHelper.Scalar_Cannot_ParseValue(
                     Name, value.GetType()),
                 nameof(value));
         }
@@ -144,7 +144,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                TypeResources.Scalar_Cannot_Serialize(Name));
+                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
         }
 
         public object Deserialize(object value)
@@ -155,7 +155,7 @@ namespace HotChocolate.Types
             }
 
             throw new ArgumentException(
-                TypeResources.Scalar_Cannot_Deserialize(Name));
+                TypeResourceHelper.Scalar_Cannot_Deserialize(Name));
         }
 
         public bool TryDeserialize(object serialized, out object value)
@@ -224,9 +224,11 @@ namespace HotChocolate.Types
         {
             if (!Values.Any())
             {
-                // TODO : Resources
                 context.ReportError(new SchemaError(
-                    $"The enum type `{Name}` has no values."));
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        TypeResources.EnumType_NoValues,
+                        Name)));
             }
         }
 

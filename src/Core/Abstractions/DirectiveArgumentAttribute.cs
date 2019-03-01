@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using HotChocolate.Properties;
 
 namespace HotChocolate
 {
@@ -14,9 +15,8 @@ namespace HotChocolate
         {
             if (string.IsNullOrEmpty(name))
             {
-                // TODO : Resources
-                throw new ArgumentException(
-                    "The directive argument name be cannot null or empty.",
+                throw new ArgumentException(AbstractionResources
+                    .DirectiveArgument_NameMustNotBeNullOrempty,
                     nameof(name));
             }
 

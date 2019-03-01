@@ -1,0 +1,24 @@
+type A @source(name: "A", schema: "A") {
+  b1: B
+}
+
+type B implements D @source(name: "B", schema: "A") {
+  c123: String @source(name: "c", schema: "A")
+}
+
+type B_B @source(name: "B", schema: "B") {
+  b1: String
+  b3: String
+}
+
+type C implements D @source(name: "C", schema: "A") {
+  c123: String @source(name: "c", schema: "A")
+}
+
+type B_C @source(name: "C", schema: "B") {
+  c: String
+}
+
+interface D @source(name: "D", schema: "A") {
+  c123: String @source(name: "c", schema: "A")
+}

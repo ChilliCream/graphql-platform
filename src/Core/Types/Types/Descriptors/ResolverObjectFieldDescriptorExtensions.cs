@@ -80,7 +80,15 @@ namespace HotChocolate.Types
             }
 
             return descriptor.Resolver(
-                async ctx => await resolver(ctx).ConfigureAwait(false),
+                async ctx =>
+                {
+                    Task<TResult> resolverTask = resolver(ctx);
+                    if (resolverTask == null)
+                    {
+                        return default;
+                    }
+                    return await resolverTask.ConfigureAwait(false);
+                },
                 typeof(NativeType<TResult>));
         }
 
@@ -155,7 +163,15 @@ namespace HotChocolate.Types
             }
 
             return descriptor.Resolver(
-                async ctx => await resolver().ConfigureAwait(false),
+                async ctx =>
+                {
+                    Task<TResult> resolverTask = resolver();
+                    if (resolverTask == null)
+                    {
+                        return default;
+                    }
+                    return await resolverTask.ConfigureAwait(false);
+                },
                 typeof(NativeType<TResult>));
         }
 
@@ -214,8 +230,16 @@ namespace HotChocolate.Types
             }
 
             return descriptor.Resolver(
-                async ctx => await resolver(ctx, ctx.RequestAborted)
-                    .ConfigureAwait(false),
+                 async ctx =>
+                {
+                    Task<TResult> resolverTask = resolver(
+                        ctx, ctx.RequestAborted);
+                    if (resolverTask == null)
+                    {
+                        return default;
+                    }
+                    return await resolverTask.ConfigureAwait(false);
+                },
                 typeof(NativeType<TResult>));
         }
 

@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Runtime;
 using HotChocolate.Validation;
 
@@ -37,10 +38,10 @@ namespace HotChocolate.Execution
 
             if (context.Document == null)
             {
-                // TODO : Resources
-                context.Result = QueryResult.CreateError(new QueryError(
-                    "The validation middleware expects the " +
-                    "query document to be parsed."));
+                context.Result = QueryResult.CreateError(new Error
+                {
+                    Message = CoreResources.ValidateQueryMiddleware_NoDocument
+                });
             }
             else
             {

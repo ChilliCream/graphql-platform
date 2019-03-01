@@ -2,11 +2,12 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
-using ChilliCream.Testing;
-using HotChocolate.Execution;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Xunit;
+using HotChocolate.Execution;
+using HotChocolate.Stitching.Utilities;
+using Snapshooter.Xunit;
 
 namespace HotChocolate.Stitching
 {
@@ -42,7 +43,8 @@ namespace HotChocolate.Stitching
                 HttpResponseDeserializer.Deserialize(serializedResult);
 
             // assert
-            deserializedResult.Snapshot("DeserializeQueryResult_" + type);
+            Snapshot.Match(deserializedResult,
+                "DeserializeQueryResult_" + type);
         }
 
         [Fact]
@@ -77,7 +79,7 @@ namespace HotChocolate.Stitching
                 HttpResponseDeserializer.Deserialize(serializedResult);
 
             // assert
-            deserializedResult.Snapshot();
+            Snapshot.Match(deserializedResult);
         }
 
         [Fact]
@@ -118,7 +120,7 @@ namespace HotChocolate.Stitching
                 HttpResponseDeserializer.Deserialize(serializedResult);
 
             // assert
-            deserializedResult.Snapshot();
+            Snapshot.Match(deserializedResult);
         }
 
         [Fact]
@@ -155,7 +157,7 @@ namespace HotChocolate.Stitching
                 HttpResponseDeserializer.Deserialize(serializedResult);
 
             // assert
-            deserializedResult.Snapshot();
+            Snapshot.Match(deserializedResult);
         }
     }
 }

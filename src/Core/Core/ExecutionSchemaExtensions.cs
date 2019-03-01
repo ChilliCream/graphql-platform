@@ -47,5 +47,26 @@ namespace HotChocolate
                     throw new NotSupportedException();
             }
         }
+
+        public static bool IsRootType(this ISchema schema, IType type)
+        {
+            if (type.IsObjectType())
+            {
+                return IsType(schema.QueryType, type)
+                    || IsType(schema.MutationType, type)
+                    || IsType(schema.SubscriptionType, type);
+            }
+            return false;
+        }
+
+        private static bool IsType(ObjectType left, IType right)
+        {
+            if (left == null)
+            {
+                return false;
+            }
+
+            return object.ReferenceEquals(left, right);
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types.Relay
@@ -24,7 +25,7 @@ namespace HotChocolate.Types.Relay
                 await executor.ExecuteAsync("{ id string }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         public class SomeQuery

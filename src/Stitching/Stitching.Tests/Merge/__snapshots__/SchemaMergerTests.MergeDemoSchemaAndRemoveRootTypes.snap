@@ -1,0 +1,26 @@
+interface Contract @source(name: "Contract", schema: "A") {
+  id: ID!
+}
+
+type LifeInsuranceContract implements Contract @source(name: "LifeInsuranceContract", schema: "A") {
+  id: ID!
+  premium: Float
+}
+
+type SomeOtherContract implements Contract @source(name: "SomeOtherContract", schema: "A") {
+  id: ID!
+  expiryDate: DateTime
+}
+
+type Customer @source(name: "Customer", schema: "B") {
+  id: ID!
+  name: String!
+  consultant: Consultant
+}
+
+type Consultant @source(name: "Consultant", schema: "B") {
+  id: ID!
+  name: String!
+}
+
+union CustomerOrConsultant @source(name: "CustomerOrConsultant", schema: "B") = Customer | Consultant

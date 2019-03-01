@@ -14,7 +14,7 @@ namespace HotChocolate.Stitching.Schemas.Contracts
                 .Type<NonNullType<IdType>>();
 
             descriptor.Field(t => t.CustomerId)
-                .Ignore();
+                .Type<NonNullType<IdType>>();
 
             descriptor.Field(t => t.ExpiryDate)
                 .Type<NonNullType<DateTimeType>>();

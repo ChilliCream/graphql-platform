@@ -1,0 +1,17 @@
+schema {
+  query: CustomQuery
+  mutation: CustomMutation
+  subscription: CustomSubscription
+}
+
+type CustomQuery {
+  abc: String
+}
+
+type CustomMutation {
+  abc: String
+}
+
+type CustomSubscription {
+  abc: String
+}

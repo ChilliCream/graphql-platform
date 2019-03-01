@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,24 +38,23 @@ namespace HotChocolate.AspNetCore
                 StringComparison.Ordinal);
         }
 
-        protected override async Task<QueryRequest> CreateQueryRequestAsync(
-            HttpContext context)
+        protected override async Task<IQueryRequestBuilder>
+            CreateQueryRequestAsync(HttpContext context)
         {
             QueryRequestDto request = await ReadRequestAsync(context)
                 .ConfigureAwait(false);
 #if ASPNETCLASSIC
             IServiceProvider serviceProvider = context.CreateRequestServices(
-                Services);
+                Executor.Schema.Services);
 #else
             IServiceProvider serviceProvider = context.CreateRequestServices();
 #endif
-
-            return new QueryRequest(request.Query, request.OperationName)
-            {
-                VariableValues = QueryMiddlewareUtilities
-                    .ToDictionary(request.Variables),
-                Services = serviceProvider
-            };
+            return QueryRequestBuilder.New()
+                .SetQuery(request.Query)
+                .SetOperation(request.OperationName)
+                .SetVariableValues(
+                    QueryMiddlewareUtilities.ToDictionary(request.Variables))
+                .SetServices(serviceProvider);
         }
 
         private static async Task<QueryRequestDto> ReadRequestAsync(

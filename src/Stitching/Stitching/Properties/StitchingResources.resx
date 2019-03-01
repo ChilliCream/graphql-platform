@@ -1,0 +1,310 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AddSchemaExtensionRewriter_DirectiveDoesNotExist" xml:space="preserve">
+    <value>The directive `{0}` was not specified in this schema and cannot be used.</value>
+  </data>
+  <data name="AddSchemaExtensionRewriter_DirectiveIsUnique" xml:space="preserve">
+    <value>The directive `{0}` is not marked as repeatable and can only be declared once.</value>
+  </data>
+  <data name="AddSchemaExtensionRewriter_TypeMismatch" xml:space="preserve">
+    <value>`{0}` is of type `{1}` and cannot be extended with `{2}`.</value>
+  </data>
+  <data name="ArgumentScopedVariableResolver_CannotHandleVariable" xml:space="preserve">
+    <value>This resolver can only handle argument scopes.</value>
+  </data>
+  <data name="ArgumentScopedVariableResolver_InvalidArgumentName" xml:space="preserve">
+    <value>An argument with the name `{0}` does not exist.</value>
+  </data>
+  <data name="ComputedDirectiveType_Description" xml:space="preserve">
+    <value>Specifies the fields on which a computed field is dependent on.</value>
+  </data>
+  <data name="ContextDataScopedVariableResolver_CannotHandleVariable" xml:space="preserve">
+    <value>This resolver can only handle contextData scopes.</value>
+  </data>
+  <data name="DelegateDirectiveType_Description" xml:space="preserve">
+    <value>The name of the schema to which this field shall be delegated to.</value>
+  </data>
+  <data name="DelegationMiddleware_ArgumentNotFound" xml:space="preserve">
+    <value>The path element argument `{0}` was not found.</value>
+  </data>
+  <data name="DelegationMiddleware_OnlyQueryResults" xml:space="preserve">
+    <value>Only query results are supported in the delegation middleware.</value>
+  </data>
+  <data name="DelegationMiddleware_PathElementInvalid" xml:space="preserve">
+    <value>The path element `{0}` has no corresponding field on type `{1}`.</value>
+  </data>
+  <data name="DelegationMiddleware_PathElementTypeUnexpected" xml:space="preserve">
+    <value>The scalar path elements are only allowed at the end.</value>
+  </data>
+  <data name="ExtensionsFilePath_EmptyOrNull" xml:space="preserve">
+    <value>The schema extensions file path mustn't be null or empty.</value>
+  </data>
+  <data name="Extensions_EmptyOrNull" xml:space="preserve">
+    <value>The extensions document mustn't be null or empty.</value>
+  </data>
+  <data name="FieldScopedVariableResolver_CannotHandleVariable" xml:space="preserve">
+    <value>This resolver can only handle field scopes.</value>
+  </data>
+  <data name="FieldScopedVariableResolver_InvalidFieldName" xml:space="preserve">
+    <value>A field with the name `{0}` does not exist.</value>
+  </data>
+  <data name="IntrospectionDeserializer_Json_NullOrEmpty" xml:space="preserve">
+    <value>json mustn't be null or empty.</value>
+  </data>
+  <data name="IntrospectionQuery" xml:space="preserve">
+    <value>query IntrospectionQuery {
+    __schema {
+      queryType { name }
+      mutationType { name }
+      subscriptionType { name }
+      types {
+        ...FullType
+      }
+      directives {
+        name
+        description
+        args {
+          ...InputValue
+        }
+        onOperation
+        onFragment
+        onField
+      }
+    }
+  }
+
+  fragment FullType on __Type {
+    kind
+    name
+    description
+    fields(includeDeprecated: true) {
+      name
+      description
+      args {
+        ...InputValue
+      }
+      type {
+        ...TypeRef
+      }
+      isDeprecated
+      deprecationReason
+    }
+    inputFields {
+      ...InputValue
+    }
+    interfaces {
+      ...TypeRef
+    }
+    enumValues(includeDeprecated: true) {
+      name
+      description
+      isDeprecated
+      deprecationReason
+    }
+    possibleTypes {
+      ...TypeRef
+    }
+  }
+
+  fragment InputValue on __InputValue {
+    name
+    description
+    type { ...TypeRef }
+    defaultValue
+  }
+
+  fragment TypeRef on __Type {
+    kind
+    name
+    ofType {
+      kind
+      name
+      ofType {
+        kind
+        name
+        ofType {
+          kind
+          name
+        }
+      }
+    }
+  }</value>
+  </data>
+  <data name="MergeSyntaxNodeExtensions_NoSchema" xml:space="preserve">
+    <value>No schema was specified.</value>
+  </data>
+  <data name="QueryRequestBuilder_OperationNameInvalid" xml:space="preserve">
+    <value>The specified operation `{0}` does not exist.</value>
+  </data>
+  <data name="QueryRequestBuilder_OperationNameMissing" xml:space="preserve">
+    <value>Specify an operation name in order to create a query request that contains multiple operations.</value>
+  </data>
+  <data name="QueryRequestBuilder_QueryIsNull" xml:space="preserve">
+    <value>Specify a query in order to create a query request.</value>
+  </data>
+  <data name="RemoteExecutorBuilder_NoSchema" xml:space="preserve">
+    <value>Cannot build a remote executor without a schema.</value>
+  </data>
+  <data name="RemoteExecutorBuilder_NoSchemaName" xml:space="preserve">
+    <value>Cannot build a remote executor without a schema name.</value>
+  </data>
+  <data name="RootScopedVariableResolver_ScopeNotSupported" xml:space="preserve">
+    <value>The specified scope `{0}` is not supported.</value>
+  </data>
+  <data name="ScalarType_InvalidBaseType" xml:space="preserve">
+    <value>The provided type must extend `HotChocolate.Types.ScalarType` in order to be recognised as valid scalar type.</value>
+  </data>
+  <data name="SchemaFilePath_EmptyOrNull" xml:space="preserve">
+    <value>The schema file path mustn't be null or empty.</value>
+  </data>
+  <data name="SchemaMergerExtensions_NoValidConstructor" xml:space="preserve">
+    <value>A type merge handler has to have one constructore that has only one parameter of the type MergeTypeDelegate.</value>
+  </data>
+  <data name="SchemaName_EmptyOrNull" xml:space="preserve">
+    <value>The schema name mustn't be null or empty.</value>
+  </data>
+  <data name="SchemaName_NotFound" xml:space="preserve">
+    <value>There is no schema with the given name `{0}`.</value>
+  </data>
+  <data name="Schema_EmptyOrNull" xml:space="preserve">
+    <value>The schema mustn't be null or empty.</value>
+  </data>
+  <data name="ScopedCtxDataScopedVariableResolver_CannotHandleVariable" xml:space="preserve">
+    <value>This resolver can only handle scopedContextData scopes.</value>
+  </data>
+  <data name="SelectionPathParser_StartOfFileTokenExpected" xml:space="preserve">
+    <value>The first token must be a start of file token.</value>
+  </data>
+  <data name="SourceDirectiveType_Description" xml:space="preserve">
+    <value>Annotates the original name of a type.</value>
+  </data>
+  <data name="SourceDirectiveType_Name_Description" xml:space="preserve">
+    <value>The original name of the annotated type.</value>
+  </data>
+  <data name="SourceDirectiveType_Schema_Description" xml:space="preserve">
+    <value>The name of the schema to which this type belongs to.</value>
+  </data>
+  <data name="StitchingBuilder_SchemaNameInUse" xml:space="preserve">
+    <value>The specified schema name was already beeing used.</value>
+  </data>
+  <data name="Type_NotSupported" xml:space="preserve">
+    <value>The type definition is not yet supported.</value>
+  </data>
+</root>

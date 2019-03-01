@@ -1,0 +1,16 @@
+{
+  "Data": {
+    "foo": null
+  },
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "ERROR",
+      "Code": null,
+      "Path": null,
+      "Locations": [],
+      "Exception": null,
+      "Extensions": {}
+    }
+  ]
+}

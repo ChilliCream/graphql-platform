@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -8,6 +8,7 @@ using Microsoft.Owin;
 using Microsoft.Owin.Testing;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.AspNetClassic
@@ -43,7 +44,7 @@ namespace HotChocolate.AspNetClassic
                 .DeserializeObject<ClientQueryResult>(json);
 
             Assert.Null(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -67,7 +68,7 @@ namespace HotChocolate.AspNetClassic
                 .DeserializeObject<ClientQueryResult>(json);
 
             Assert.Null(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -98,7 +99,7 @@ namespace HotChocolate.AspNetClassic
                 .DeserializeObject<ClientQueryResult>(json);
 
             Assert.Null(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -133,7 +134,7 @@ namespace HotChocolate.AspNetClassic
                 .DeserializeObject<ClientQueryResult>(json);
 
             Assert.Null(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -157,7 +158,7 @@ namespace HotChocolate.AspNetClassic
                 .DeserializeObject<ClientQueryResult>(json);
 
             Assert.Null(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -209,7 +210,7 @@ namespace HotChocolate.AspNetClassic
                 .DeserializeObject<ClientQueryResult>(json);
 
             Assert.Null(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -251,7 +252,7 @@ namespace HotChocolate.AspNetClassic
                 .DeserializeObject<ClientQueryResult>(json);
 
             Assert.Null(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -281,7 +282,7 @@ namespace HotChocolate.AspNetClassic
                 .DeserializeObject<ClientQueryResult>(json);
 
             Assert.Null(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -313,7 +314,7 @@ namespace HotChocolate.AspNetClassic
                 .DeserializeObject<ClientQueryResult>(json);
 
             Assert.Null(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -343,7 +344,7 @@ namespace HotChocolate.AspNetClassic
                 .DeserializeObject<ClientQueryResult>(json);
 
             Assert.Null(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -371,7 +372,7 @@ namespace HotChocolate.AspNetClassic
                 .DeserializeObject<ClientQueryResult>(json);
 
             Assert.Null(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -405,9 +406,9 @@ namespace HotChocolate.AspNetClassic
                 new QueryMiddlewareOptions
                 {
                     Path = new PathString(path ?? "/"),
-                    OnCreateRequest = (context, request, properties, ct) =>
+                    OnCreateRequest = (context, request, ct) =>
                     {
-                        properties["foo"] = "bar";
+                        request.AddProperty("foo", "bar");
                         return Task.CompletedTask;
                     }
                 });

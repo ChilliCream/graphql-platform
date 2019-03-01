@@ -24,16 +24,26 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="Resources\IntrospectionQuery.graphql" />
-    <EmbeddedResource Include="Resources\IntrospectionQuery.graphql" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\Core\Core\Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Http" Version="2.1.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\StitchingResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>StitchingResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\StitchingResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>StitchingResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

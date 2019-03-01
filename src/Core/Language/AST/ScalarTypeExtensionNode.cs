@@ -4,7 +4,7 @@ namespace HotChocolate.Language
 {
     public sealed class ScalarTypeExtensionNode
         : ScalarTypeDefinitionNodeBase
-        , ITypeExtensionNode
+        , INamedTypeExtensionNode
     {
         public ScalarTypeExtensionNode(
             Location location,

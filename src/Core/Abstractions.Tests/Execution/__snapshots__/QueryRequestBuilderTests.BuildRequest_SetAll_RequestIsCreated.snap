@@ -1,0 +1,14 @@
+{
+  "Query": "{ foo }",
+  "OperationName": "bar",
+  "VariableValues": {
+    "two": "bar"
+  },
+  "InitialValue": {
+    "a": "456"
+  },
+  "Properties": {
+    "one": "foo"
+  },
+  "Services": {}
+}

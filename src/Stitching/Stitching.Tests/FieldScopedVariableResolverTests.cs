@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Delegation;
 using HotChocolate.Types;
 using Moq;
 using Xunit;
@@ -39,7 +40,8 @@ namespace HotChocolate.Stitching
             // act
             var resolver = new FieldScopedVariableResolver();
             VariableValue value = resolver.Resolve(
-                context.Object, scopedVariable);
+                context.Object, scopedVariable,
+                new NamedTypeNode(new NameNode("abc")));
 
             // assert
             Assert.Null(value.DefaultValue);
@@ -84,7 +86,8 @@ namespace HotChocolate.Stitching
 
             // act
             var resolver = new FieldScopedVariableResolver();
-            Action a = () => resolver.Resolve(context.Object, scopedVariable);
+            Action a = () => resolver.Resolve(context.Object, scopedVariable,
+                new NamedTypeNode(new NameNode("abc")));
 
             // assert
             Assert.Collection(
@@ -111,7 +114,8 @@ namespace HotChocolate.Stitching
 
             // act
             var resolver = new ArgumentScopedVariableResolver();
-            Action a = () => resolver.Resolve(null, scopedVariable);
+            Action a = () => resolver.Resolve(null, scopedVariable,
+                new NamedTypeNode(new NameNode("abc")));
 
             // assert
             Assert.Equal("context",
@@ -138,7 +142,8 @@ namespace HotChocolate.Stitching
 
             // act
             var resolver = new FieldScopedVariableResolver();
-            Action a = () => resolver.Resolve(context.Object, null);
+            Action a = () => resolver.Resolve(context.Object, null,
+                new NamedTypeNode(new NameNode("abc")));
 
             // assert
             Assert.Equal("variable",
@@ -170,7 +175,8 @@ namespace HotChocolate.Stitching
 
             // act
             var resolver = new FieldScopedVariableResolver();
-            Action a = () => resolver.Resolve(context.Object, scopedVariable);
+            Action a = () => resolver.Resolve(context.Object, scopedVariable,
+                new NamedTypeNode(new NameNode("abc")));
 
             // assert
             Assert.Equal("variable",

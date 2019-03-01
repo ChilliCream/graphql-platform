@@ -1,17 +1,19 @@
 type Query {
-  customer(id: ID!): Customer @schema(name: "customer") @delegate
+  customer(id: ID!): Customer @delegate(schema: "customer")
   customerOrConsultant(id: ID!): CustomerOrConsultant
-    @schema(name: "customer")
-    @delegate
+    @delegate(schema: "customer")
   contracts(id: ID!): [Contract!]
-    @schema(name: "contract")
-    @delegate(path: "contracts(customerId:$arguments:id)")
+    @delegate(schema: "contract", path: "contracts(customerId:$arguments:id)")
   consultantName: String!
-    @schema(name: "customer")
-    @delegate(path: "customer(id:\"Q3VzdG9tZXIteDE=\").consultant.name")
+    @delegate(
+      schema: "customer"
+      path: "customer(id:\"Q3VzdG9tZXIteDE=\").consultant.name"
+    )
   consultant: Consultant
-    @schema(name: "customer")
-    @delegate(path: "customer(id:\"Q3VzdG9tZXIteDE=\").consultant")
+    @delegate(
+      schema: "customer"
+      path: "customer(id:\"Q3VzdG9tZXIteDE=\").consultant"
+    )
 }
 
 type Customer {
@@ -19,12 +21,10 @@ type Customer {
   name: String!
   consultant: Consultant
   contracts: [Contract!]
-    @schema(name: "contract")
-    @delegate(path: "contracts(customerId:$fields:id)")
+    @delegate(schema: "contract", path: "contracts(customerId:$fields:id)")
   contractIds: [ID!]
-    @schema(name: "contract")
-    @delegate(path: "contracts(customerId:$fields:id).id")
-  foo: String @dependentOn(fields: ["id", "name"])
+    @delegate(schema: "contract", path: "contracts(customerId:$fields:id).id")
+  foo: String @computed(dependantOn: ["id", "name"])
 }
 
 type Consultant {

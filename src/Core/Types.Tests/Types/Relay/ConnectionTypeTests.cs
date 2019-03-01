@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types.Relay
@@ -86,7 +87,7 @@ namespace HotChocolate.Types.Relay
                 .ExecuteAsync(new QueryRequest(query));
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         public class QueryType

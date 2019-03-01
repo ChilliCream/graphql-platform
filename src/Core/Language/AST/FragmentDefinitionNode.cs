@@ -61,12 +61,13 @@ namespace HotChocolate.Language
                 Directives, SelectionSet);
         }
 
-        public FragmentDefinitionNode WithTypeCondition(ITypeNode typeCondition)
+        public FragmentDefinitionNode WithTypeCondition(
+            NamedTypeNode typeCondition)
         {
             return new FragmentDefinitionNode(
                 Location, Name,
                 VariableDefinitions,
-                TypeCondition,
+                typeCondition,
                 Directives, SelectionSet);
         }
 
