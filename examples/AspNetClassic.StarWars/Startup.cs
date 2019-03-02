@@ -63,7 +63,9 @@ namespace StarWars
             appBuilder
                 .UseGraphQL(services, new PathString("/graphql"))
                 .UseGraphiQL(new PathString("/graphql"))
-                .UsePlayground(new PathString("/graphql"));
+                .UsePlayground(new PathString("/graphql"))
+                .UseVoyager(new PathString("/graphql"));
+            ;
         }
     }
 }
