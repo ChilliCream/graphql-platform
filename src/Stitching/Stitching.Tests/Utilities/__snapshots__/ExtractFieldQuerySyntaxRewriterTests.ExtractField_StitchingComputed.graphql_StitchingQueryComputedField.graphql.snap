@@ -1,0 +1,7 @@
+query fetch {
+  customer(id: "Q3VzdG9tZXIteDE=") {
+    id
+    name
+    __typename
+  }
+}
