@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http;
 #endif
 
 #if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic
+namespace HotChocolate.AspNetClassic.Voyager
 #else
 namespace HotChocolate.AspNetCore.Voyager
 #endif

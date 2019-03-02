@@ -16,12 +16,12 @@ using Microsoft.Extensions.FileProviders;
 #endif
 
 #if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic
+namespace HotChocolate.AspNetClassic.Voyager
 #else
 namespace HotChocolate.AspNetCore.Voyager
 #endif
 {
-    public static class VoyagerApplicationBuilderExtensions
+    public static class ApplicationBuilderExtensions
     {
 #if ASPNETCLASSIC
         private const string _resourcesNamespace =
@@ -44,7 +44,7 @@ namespace HotChocolate.AspNetCore.Voyager
             return applicationBuilder.UseVoyager(new VoyagerOptions
             {
                 QueryPath = queryPath,
-                Path = queryPath + new PathString("/playground")
+                Path = queryPath + new PathString("/voyager")
             });
         }
 
@@ -130,7 +130,7 @@ namespace HotChocolate.AspNetCore.Voyager
 #if ASPNETCLASSIC
         private static IFileSystem CreateFileSystem()
         {
-            Type type = typeof(VoyagerApplicationBuilderExtensions);
+            Type type = typeof(ApplicationBuilderExtensions);
 
             return new EmbeddedResourceFileSystem(
                 type.Assembly,
@@ -139,7 +139,7 @@ namespace HotChocolate.AspNetCore.Voyager
 #else
         private static IFileProvider CreateFileProvider()
         {
-            Type type = typeof(VoyagerApplicationBuilderExtensions);
+            Type type = typeof(ApplicationBuilderExtensions);
 
             return new EmbeddedFileProvider(
                 type.Assembly,
