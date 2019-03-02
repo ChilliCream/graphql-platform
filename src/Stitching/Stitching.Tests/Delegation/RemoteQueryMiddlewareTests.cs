@@ -17,7 +17,7 @@ using Newtonsoft.Json.Serialization;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     public class RemoteQueryMiddlewareTests
         : IClassFixture<TestServerFactory>

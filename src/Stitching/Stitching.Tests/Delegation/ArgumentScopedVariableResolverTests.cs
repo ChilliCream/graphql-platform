@@ -3,12 +3,11 @@ using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Delegation;
 using HotChocolate.Types;
 using Moq;
 using Xunit;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     public class ArgumentScopedVariableResolverTests
     {

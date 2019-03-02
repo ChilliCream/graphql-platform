@@ -9,7 +9,7 @@ using HotChocolate.Stitching.Delegation;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     public class RemoteQueryBuilderTests
     {

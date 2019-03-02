@@ -5,7 +5,7 @@ using HotChocolate.Language;
 using HotChocolate.Stitching.Delegation;
 using Xunit;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     public class SelectionPathParserTests
     {

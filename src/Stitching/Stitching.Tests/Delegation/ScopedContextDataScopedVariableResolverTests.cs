@@ -10,7 +10,7 @@ using HotChocolate.Types;
 using Moq;
 using Xunit;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     public class ScopedContextDataScopedVariableResolverTests
     {

@@ -4,7 +4,7 @@ using HotChocolate.Stitching.Delegation;
 using Moq;
 using Xunit;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Delegation
 {
     public class RemoteExecutorAccessorTests
     {
