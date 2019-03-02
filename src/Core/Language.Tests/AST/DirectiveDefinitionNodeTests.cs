@@ -161,6 +161,27 @@ namespace HotChocolate.Language
         }
 
         [Fact]
+        public void WithLocation()
+        {
+            // arrange
+            var name = new NameNode("foo");
+            var description = new StringValueNode("bar");
+            var arguments = new List<InputValueDefinitionNode>();
+            var locations = new List<NameNode>();
+
+            var directiveDefinition = new DirectiveDefinitionNode(
+                null, name, description, true,
+                arguments, locations);
+
+            // act
+            directiveDefinition = directiveDefinition
+                .WithLocation(AstTestHelper.CreateDummyLocation());
+
+            // assert
+            directiveDefinition.MatchSnapshot();
+        }
+
+        [Fact]
         public void AsUnique()
         {
             // arrange
@@ -181,7 +202,7 @@ namespace HotChocolate.Language
             directiveDefinition.MatchSnapshot();
         }
 
-         [Fact]
+        [Fact]
         public void AsRepeatable()
         {
             // arrange
