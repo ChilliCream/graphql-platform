@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language
@@ -32,6 +34,7 @@ namespace HotChocolate.Language
             Assert.Equal(name, directiveDefinition.Name);
             Assert.Equal(description, directiveDefinition.Description);
             Assert.Equal(isRepeatable, directiveDefinition.IsRepeatable);
+            Assert.NotEqual(isRepeatable, directiveDefinition.IsUnique);
             Assert.Equal(arguments, directiveDefinition.Arguments);
             Assert.Equal(locations, directiveDefinition.Locations);
         }
@@ -58,6 +61,145 @@ namespace HotChocolate.Language
             Assert.Equal(description, directiveDefinition.Description);
             Assert.Equal(arguments, directiveDefinition.Arguments);
             Assert.Equal(locations, directiveDefinition.Locations);
+            Assert.True(directiveDefinition.IsRepeatable);
+            Assert.False(directiveDefinition.IsUnique);
+        }
+
+        [Fact]
+        public void WithName()
+        {
+            // arrange
+            var name = new NameNode("foo");
+            var description = new StringValueNode("bar");
+            var arguments = new List<InputValueDefinitionNode>();
+            var locations = new List<NameNode>();
+
+            var directiveDefinition = new DirectiveDefinitionNode(
+                null, name, description, true,
+                arguments, locations);
+
+            // act
+            directiveDefinition = directiveDefinition
+                .WithName(new NameNode("bar"));
+
+            // assert
+            directiveDefinition.MatchSnapshot();
+        }
+
+        [Fact]
+        public void WithDescription()
+        {
+            // arrange
+            var name = new NameNode("foo");
+            var description = new StringValueNode("bar");
+            var arguments = new List<InputValueDefinitionNode>();
+            var locations = new List<NameNode>();
+
+            var directiveDefinition = new DirectiveDefinitionNode(
+                null, name, description, true,
+                arguments, locations);
+
+            // act
+            directiveDefinition = directiveDefinition
+                .WithDescription(new StringValueNode("qux"));
+
+            // assert
+            directiveDefinition.MatchSnapshot();
+        }
+
+        [Fact]
+        public void WithArguments()
+        {
+            // arrange
+            var name = new NameNode("foo");
+            var description = new StringValueNode("bar");
+            var arguments = new List<InputValueDefinitionNode>();
+            var locations = new List<NameNode>();
+
+            var directiveDefinition = new DirectiveDefinitionNode(
+                null, name, description, true,
+                arguments, locations);
+
+            // act
+            directiveDefinition = directiveDefinition
+                .WithArguments(new List<InputValueDefinitionNode>
+                {
+                    new InputValueDefinitionNode
+                    (
+                        null,
+                        new NameNode("arg"),
+                        null,
+                        new NamedTypeNode(new NameNode("type")),
+                        NullValueNode.Default,
+                        Array.Empty<DirectiveNode>()
+                    )
+                });
+
+            // assert
+            directiveDefinition.MatchSnapshot();
+        }
+
+        [Fact]
+        public void WithLocations()
+        {
+            // arrange
+            var name = new NameNode("foo");
+            var description = new StringValueNode("bar");
+            var arguments = new List<InputValueDefinitionNode>();
+            var locations = new List<NameNode>();
+
+            var directiveDefinition = new DirectiveDefinitionNode(
+                null, name, description, true,
+                arguments, locations);
+
+            // act
+            directiveDefinition = directiveDefinition
+                .WithLocations(new List<NameNode> { new NameNode("BAR") });
+
+            // assert
+            directiveDefinition.MatchSnapshot();
+        }
+
+        [Fact]
+        public void AsUnique()
+        {
+            // arrange
+            var name = new NameNode("foo");
+            var description = new StringValueNode("bar");
+            var arguments = new List<InputValueDefinitionNode>();
+            var locations = new List<NameNode>();
+
+            var directiveDefinition = new DirectiveDefinitionNode(
+                null, name, description, true,
+                arguments, locations);
+
+            // act
+            directiveDefinition = directiveDefinition
+                .AsUnique();
+
+            // assert
+            directiveDefinition.MatchSnapshot();
+        }
+
+         [Fact]
+        public void AsRepeatable()
+        {
+            // arrange
+            var name = new NameNode("foo");
+            var description = new StringValueNode("bar");
+            var arguments = new List<InputValueDefinitionNode>();
+            var locations = new List<NameNode>();
+
+            var directiveDefinition = new DirectiveDefinitionNode(
+                null, name, description, false,
+                arguments, locations);
+
+            // act
+            directiveDefinition = directiveDefinition
+                .AsRepeatable();
+
+            // assert
+            directiveDefinition.MatchSnapshot();
         }
     }
 }
