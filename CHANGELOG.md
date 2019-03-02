@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The stitching layer now batches requests to the remote schemas.
 - Introspection schema serializer.
 - Introduced auto-stitching capabilities with the new `StitchingBuilder`.
+- _GraphQL_ _Voyager_. Special thanks to [@drowhunter](https://github.com/drowhunter) who contributed the middleware.
 
 ### Fixed
 
