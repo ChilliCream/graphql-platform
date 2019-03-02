@@ -113,7 +113,7 @@ namespace HotChocolate.Stitching
                 new NameNode("b"));
 
             // act
-            var resolver = new ArgumentScopedVariableResolver();
+            var resolver = new FieldScopedVariableResolver();
             Action a = () => resolver.Resolve(null, scopedVariable,
                 new NamedTypeNode(new NameNode("abc")));
 
