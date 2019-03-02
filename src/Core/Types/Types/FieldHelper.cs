@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
@@ -20,7 +21,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(field));
             }
 
-            T type = default(T);
+            T type = default;
             if (typeReference != null)
             {
                 type = context.GetType<T>(typeReference);
@@ -31,7 +32,7 @@ namespace HotChocolate.Types
                 type = context.GetType<T>(typeReference);
                 INamedType namedType = field.DeclaringType as INamedType;
                 context.ReportError(new SchemaError(
-                    TypeResources.Field_Cannot_ResolveType(
+                    TypeResourceHelper.Field_Cannot_ResolveType(
                         field.DeclaringType.Name,
                         field.Name,
                         typeReference),

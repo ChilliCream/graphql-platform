@@ -15,8 +15,6 @@ namespace HotChocolate.Types
 
         IFieldCollection<IInputField> Arguments { get; }
 
-        IDirectiveCollection Directives { get; }
-
         new IComplexOutputType DeclaringType { get; }
     }
 }

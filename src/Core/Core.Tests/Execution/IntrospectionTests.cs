@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -19,7 +20,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -34,7 +35,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -49,7 +50,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -66,7 +67,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -82,7 +83,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -113,7 +114,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -136,7 +137,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -153,7 +154,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         private static Schema CreateSchema()

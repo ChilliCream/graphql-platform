@@ -1,30 +1,33 @@
-﻿using System;
+using System;
 using System.Globalization;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
     public sealed class DateType
         : DateTimeTypeBase
     {
+        private const string _dateFormat = "yyyy-MM-dd";
+
         public DateType()
             : base("Date")
         {
         }
 
         public override string Description =>
-            TypeResources.DateType_Description();
+            TypeResources.DateType_Description;
 
         public override Type ClrType => typeof(DateTime);
 
         protected override string Serialize(DateTime value)
         {
-            return value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            return value.ToString(_dateFormat, CultureInfo.InvariantCulture);
         }
 
         protected override string Serialize(DateTimeOffset value)
         {
-            return value.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            return value.ToString(_dateFormat, CultureInfo.InvariantCulture);
         }
 
         protected override bool TryParseLiteral(

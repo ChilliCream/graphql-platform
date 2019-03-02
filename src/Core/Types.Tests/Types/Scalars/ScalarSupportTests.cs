@@ -4,6 +4,8 @@ using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Snapshooter;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate
@@ -86,7 +88,7 @@ namespace HotChocolate
                     }");
 
             //assert
-            result.Snapshot("RegisterCustomExtendedScalarType" + name);
+            result.MatchSnapshot(SnapshotNameExtension.Create(name));
         }
 
         [Theory]
@@ -118,7 +120,7 @@ namespace HotChocolate
                     }");
 
             //assert
-            result.Snapshot("ShouldNotAllowSwappingOfBaseScalarType" + name);
+            result.MatchSnapshot("ShouldNotAllowSwappingOfBaseScalarType" + name);
         }
     }
 

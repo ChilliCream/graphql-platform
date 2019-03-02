@@ -4,6 +4,7 @@ using ChilliCream.Testing;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace Types.Tests.Configuration
@@ -37,7 +38,7 @@ namespace Types.Tests.Configuration
             IExecutionResult result = await executor.ExecuteAsync("{ a b }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -62,7 +63,7 @@ namespace Types.Tests.Configuration
             IExecutionResult result = await executor.ExecuteAsync("{ a b }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -88,7 +89,7 @@ namespace Types.Tests.Configuration
             IExecutionResult result = await executor.ExecuteAsync("{ a b }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         public class TestFieldMiddleware

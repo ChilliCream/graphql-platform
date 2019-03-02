@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using GreenDonut;
 using HotChocolate.DataLoader;
+using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers
@@ -38,9 +39,8 @@ namespace HotChocolate.Resolvers
 
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
+                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -64,9 +64,8 @@ namespace HotChocolate.Resolvers
 
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
+                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -111,9 +110,8 @@ namespace HotChocolate.Resolvers
 
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
+                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -138,9 +136,8 @@ namespace HotChocolate.Resolvers
 
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
+                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -184,9 +181,8 @@ namespace HotChocolate.Resolvers
 
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
+                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -210,9 +206,8 @@ namespace HotChocolate.Resolvers
 
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
+                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -255,9 +250,8 @@ namespace HotChocolate.Resolvers
 
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
+                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -281,9 +275,8 @@ namespace HotChocolate.Resolvers
 
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
+                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -310,9 +303,8 @@ namespace HotChocolate.Resolvers
 
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
+                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -354,7 +346,7 @@ namespace HotChocolate.Resolvers
                 }
             }
 
-            dataLoader = default(T);
+            dataLoader = default;
             return false;
         }
 
@@ -366,10 +358,8 @@ namespace HotChocolate.Resolvers
         {
             if (registry == null)
             {
-                // TODO : resources
-                throw new InvalidOperationException(
-                    "No DataLoader registry was registerd with your " +
-                    "dependency injection.");
+                throw new InvalidOperationException(TypeResources
+                    .DataLoaderResolverContextExtensions_RegistryIsNull);
             }
 
             if (!registry.TryGet(key, out T dataLoader))
@@ -378,10 +368,8 @@ namespace HotChocolate.Resolvers
 
                 if (!registry.TryGet(key, out dataLoader))
                 {
-                    // TODO : resources
-                    throw new InvalidOperationException(
-                        "Unable to register a DataLoader with your " +
-                        "DataLoader registry.");
+                    throw new InvalidOperationException(TypeResources
+                        .DataLoaderResolverContextExtensions_UnableToRegister);
                 }
             }
 

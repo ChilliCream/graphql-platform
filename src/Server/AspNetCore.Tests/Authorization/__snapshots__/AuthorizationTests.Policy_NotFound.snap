@@ -1,0 +1,16 @@
+{
+  "Data": {
+    "age": null
+  },
+  "Errors": [
+    {
+      "message": "The `HasAgeDefined` authorization policy does not exist.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ]
+    }
+  ]
+}

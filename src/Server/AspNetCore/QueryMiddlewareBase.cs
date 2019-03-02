@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 
@@ -66,7 +67,6 @@ namespace HotChocolate.AspNetCore
                 ?? throw new ArgumentNullException(nameof(resultSerializer));
             Options = options ??
                 throw new ArgumentNullException(nameof(options));
-            Services = Executor.Schema.Services;
         }
 
         /// <summary>
@@ -82,8 +82,6 @@ namespace HotChocolate.AspNetCore
         /// Gets the GraphQL middleware options.
         /// </summary>
         protected QueryMiddlewareOptions Options { get; }
-
-        protected IServiceProvider Services { get; }
 
 
 #if ASPNETCLASSIC
@@ -148,42 +146,44 @@ namespace HotChocolate.AspNetCore
         /// </summary>
         /// <param name="context">An OWIN context.</param>
         /// <returns>A new query request.</returns>
-        protected abstract Task<QueryRequest> CreateQueryRequestAsync(
+        protected abstract Task<IQueryRequestBuilder> CreateQueryRequestAsync(
             HttpContext context);
 
-        private async Task<QueryRequest> CreateQueryRequestInternalAsync(
-            HttpContext context)
+        private async Task<IReadOnlyQueryRequest>
+            CreateQueryRequestInternalAsync(HttpContext context)
         {
-            QueryRequest request = await CreateQueryRequestAsync(context)
-                .ConfigureAwait(false);
+            IQueryRequestBuilder builder =
+                await CreateQueryRequestAsync(context)
+                    .ConfigureAwait(false);
+
             OnCreateRequestAsync onCreateRequest = Options.OnCreateRequest
                 ?? GetService<OnCreateRequestAsync>(context);
-            var requestProperties = new Dictionary<string, object>
-            {
-                { nameof(ClaimsPrincipal), context.GetUser() }
-            };
+
+            builder.AddProperty(nameof(HttpContext), context);
+            builder.AddProperty(nameof(ClaimsPrincipal), context.GetUser());
 
             if (context.IsTracingEnabled())
             {
-                requestProperties.Add(ContextDataKeys.EnableTracing, true);
+                builder.AddProperty(ContextDataKeys.EnableTracing, true);
             }
-
-            request.Properties = requestProperties;
 
             if (onCreateRequest != null)
             {
-                await onCreateRequest(context, request, requestProperties,
-                    context.GetCancellationToken()).ConfigureAwait(false);
+                CancellationToken requestAborted =
+                    context.GetCancellationToken();
+
+                await onCreateRequest(context, builder, requestAborted)
+                    .ConfigureAwait(false);
             }
 
-            return request;
+            return builder.Create();
         }
 
         private async Task HandleRequestAsync(
             HttpContext context,
             IQueryExecutor queryExecutor)
         {
-            QueryRequest request =
+            IReadOnlyQueryRequest request =
                 await CreateQueryRequestInternalAsync(context)
                 .ConfigureAwait(false);
 

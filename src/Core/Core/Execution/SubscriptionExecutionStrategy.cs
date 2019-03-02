@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types;
@@ -104,9 +105,8 @@ namespace HotChocolate.Execution
 
             if (eventRegistry == null)
             {
-                throw new QueryException(new QueryError(
-                    "Register a event registry as service in order " +
-                    "to use subsciptions."));
+                throw new QueryException(new QueryError(CoreResources
+                    .SubscriptionExecutionStrategy_NoEventRegistry));
             }
 
             return eventRegistry.SubscribeAsync(@event);

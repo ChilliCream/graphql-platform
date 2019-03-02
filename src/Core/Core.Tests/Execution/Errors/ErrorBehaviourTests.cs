@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -21,7 +22,7 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -37,7 +38,7 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -53,7 +54,7 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -69,7 +70,7 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -84,7 +85,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -100,7 +101,7 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -116,7 +117,7 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -132,7 +133,7 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -148,7 +149,7 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -164,7 +165,7 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -180,7 +181,7 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -196,7 +197,7 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -212,7 +213,7 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -228,7 +229,7 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -246,7 +247,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -264,7 +265,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         private async Task<IExecutionResult> ExecuteQuery(

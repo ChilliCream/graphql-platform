@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate
@@ -26,7 +27,7 @@ namespace HotChocolate
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -60,7 +61,7 @@ namespace HotChocolate
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -88,7 +89,7 @@ namespace HotChocolate
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -116,7 +117,7 @@ namespace HotChocolate
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -151,7 +152,7 @@ namespace HotChocolate
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         public class Query

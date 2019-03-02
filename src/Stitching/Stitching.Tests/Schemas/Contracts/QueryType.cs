@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Schemas.Contracts
@@ -15,6 +16,14 @@ namespace HotChocolate.Stitching.Schemas.Contracts
             descriptor.Field(t => t.GetContracts(default))
                 .Argument("customerId", a => a.Type<NonNullType<IdType>>())
                 .Type<ListType<NonNullType<ContractType>>>();
+
+            descriptor.Field("extendedScalar")
+                .Argument("d", a => a.Type<DateTimeType>())
+                .Type<DateTimeType>()
+                .Resolver(ctx => { 
+                    DateTime dateTime = ctx.Argument<DateTime>("d").ToUniversalTime();
+                    return dateTime;
+                });
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using ChilliCream.Testing;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution.Instrumentation
@@ -18,7 +19,7 @@ namespace HotChocolate.Execution.Instrumentation
             string result = input.ToRfc3339DateTimeString();
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
     }
 }

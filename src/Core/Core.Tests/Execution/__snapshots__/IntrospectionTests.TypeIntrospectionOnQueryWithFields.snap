@@ -1,0 +1,17 @@
+{
+  "Data": {
+    "__type": {
+      "name": "Foo",
+      "fields": [
+        {
+          "name": "a",
+          "type": {
+            "name": "String"
+          }
+        }
+      ]
+    }
+  },
+  "Extensions": {},
+  "Errors": []
+}

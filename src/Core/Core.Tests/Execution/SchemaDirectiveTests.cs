@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -18,7 +19,7 @@ namespace HotChocolate.Execution
                 schema.MakeExecutable().Execute("{ person { phone } }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -32,7 +33,7 @@ namespace HotChocolate.Execution
                 schema.MakeExecutable().Execute("{ person { name } }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -47,7 +48,7 @@ namespace HotChocolate.Execution
                     "{ person { name @c(append:\"Baz\") } }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -69,7 +70,7 @@ namespace HotChocolate.Execution
                     "{ a @lower @upper b: a @upper @lower }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         public static ISchema CreateSchema()

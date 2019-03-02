@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Relay
 {
@@ -9,9 +10,8 @@ namespace HotChocolate.Types.Relay
         {
             if (string.IsNullOrEmpty(cursor))
             {
-                // TODO : Resources
                 throw new ArgumentException(
-                    "The cursor cannot be null or empty.",
+                    TypeResources.Edge_CursorIsNull,
                     nameof(cursor));
             }
 

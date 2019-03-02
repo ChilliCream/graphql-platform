@@ -10,18 +10,21 @@ namespace HotChocolate.Stitching.Schemas.Customers
             {
                 Id = "1",
                 Name = "Freddy Freeman",
+                Street = "Far far away 1",
                 ConsultantId = "1"
             },
             new Customer
             {
                 Id = "2",
                 Name = "Carol Danvers",
+                Street = "Far far away 2",
                 ConsultantId = "1"
             },
             new Customer
             {
                 Id = "3",
                 Name = "Walter Lawson",
+                Street = "Far far away 3",
                 ConsultantId = "2"
             }
         };

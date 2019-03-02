@@ -76,7 +76,7 @@ namespace StarWars
             passes the configured authorization rule.
             app.UseGraphQL(new QueryMiddlewareOptions
             {
-                OnCreateRequest = (ctx, request, props, ct) =>
+                OnCreateRequest = (ctx, builder, ct) =>
                 {
                     var identity = new ClaimsIdentity();
                     identity.AddClaim(new Claim(ClaimTypes.Country, "us"));

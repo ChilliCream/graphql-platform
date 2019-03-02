@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Integration.TypeConversion
@@ -45,7 +46,7 @@ namespace HotChocolate.Integration.TypeConversion
                     }", variables);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -68,7 +69,7 @@ namespace HotChocolate.Integration.TypeConversion
                     }", variables);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -93,7 +94,7 @@ namespace HotChocolate.Integration.TypeConversion
                     }", variables);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -130,7 +131,7 @@ namespace HotChocolate.Integration.TypeConversion
                     }", variables);
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         public class QueryType

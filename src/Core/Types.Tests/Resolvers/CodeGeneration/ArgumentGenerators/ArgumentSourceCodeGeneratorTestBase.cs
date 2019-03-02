@@ -1,6 +1,8 @@
 ﻿using System;
 using ChilliCream.Testing;
 using HotChocolate.Resolvers.CodeGeneration;
+using Snapshooter;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Resolvers
@@ -40,7 +42,8 @@ namespace HotChocolate.Resolvers
             string result = _generator.Generate("foo", argumentDescriptor);
 
             // assert
-            result.Snapshot($"Generate_{_validArgumentKind}_ArgumentInvocationSourceCode");
+            result.MatchSnapshot(
+                SnapshotNameExtension.Create(_validArgumentKind));
         }
 
         [Fact]

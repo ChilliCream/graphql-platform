@@ -1,5 +1,7 @@
-﻿using System;
+using System;
+using System.Globalization;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
@@ -16,7 +18,7 @@ namespace HotChocolate.Types
         }
 
         public override string Description =>
-            TypeResources.MultiplierPathType_Description();
+            TypeResources.MultiplierPathType_Description;
 
         public override Type ClrType => typeof(MultiplierPathString);
 
@@ -48,8 +50,9 @@ namespace HotChocolate.Types
                 if (!MultiplierPathString.IsValidName(stringLiteral.Value))
                 {
                     throw new ScalarSerializationException(
-                        AbstractionResources.Type_Name_IsNotValid(
-                            stringLiteral.Value));
+                        string.Format(CultureInfo.InvariantCulture,
+                            AbstractionResources.Type_NameIsNotValid,
+                            stringLiteral.Value ?? "null"));
                 }
                 return new MultiplierPathString(stringLiteral.Value);
             }
@@ -60,7 +63,7 @@ namespace HotChocolate.Types
             }
 
             throw new ScalarSerializationException(
-                TypeResources.Scalar_Cannot_ParseLiteral(
+                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
                     Name, literal.GetType()));
         }
 
@@ -77,7 +80,7 @@ namespace HotChocolate.Types
             }
 
             throw new ScalarSerializationException(
-                TypeResources.Scalar_Cannot_ParseValue(
+                TypeResourceHelper.Scalar_Cannot_ParseValue(
                     Name, value.GetType()));
         }
 
@@ -94,7 +97,7 @@ namespace HotChocolate.Types
             }
 
             throw new ScalarSerializationException(
-                TypeResources.Scalar_Cannot_Serialize(Name));
+                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
         }
 
         public override bool TryDeserialize(object serialized, out object value)

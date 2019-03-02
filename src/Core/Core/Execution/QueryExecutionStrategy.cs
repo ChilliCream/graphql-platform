@@ -19,7 +19,7 @@ namespace HotChocolate.Execution
             return ExecuteInternalAsync(executionContext, cancellationToken);
         }
 
-        private async Task<IExecutionResult> ExecuteInternalAsync(
+        private static async Task<IExecutionResult> ExecuteInternalAsync(
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {

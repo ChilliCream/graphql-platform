@@ -9,6 +9,7 @@ namespace HotChocolate.Stitching.Schemas.Contracts
         {
             descriptor.Name("Contract");
             descriptor.Field("id").Type<NonNullType<IdType>>();
+            descriptor.Field("customerId").Type<NonNullType<IdType>>();
         }
     }
 }

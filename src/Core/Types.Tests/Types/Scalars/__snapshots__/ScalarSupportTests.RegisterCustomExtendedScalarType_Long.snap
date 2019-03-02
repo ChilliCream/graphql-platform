@@ -1,0 +1,11 @@
+{
+  "Data": {
+    "__type": {
+      "name": "Long",
+      "kind": "SCALAR",
+      "description": "Overridden long"
+    }
+  },
+  "Extensions": {},
+  "Errors": []
+}

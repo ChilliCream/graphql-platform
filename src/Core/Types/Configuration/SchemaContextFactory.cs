@@ -55,6 +55,8 @@ namespace HotChocolate.Configuration
         private static void RegisterDirectives(
             ISchemaContext schemaContext)
         {
+            schemaContext.Types.RegisterType(
+                new TypeReference(typeof(MultiplierPathType)));
             schemaContext.Directives.RegisterDirectiveType(
                 new SkipDirectiveType());
             schemaContext.Directives.RegisterDirectiveType(

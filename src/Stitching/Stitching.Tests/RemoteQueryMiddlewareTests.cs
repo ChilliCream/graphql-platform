@@ -14,6 +14,7 @@ using Moq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Stitching
@@ -63,7 +64,7 @@ namespace HotChocolate.Stitching
                 });
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
     }
 }

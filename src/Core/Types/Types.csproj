@@ -36,4 +36,19 @@
     <ProjectReference Include="..\Subscriptions\Subscriptions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Properties\TypeResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>TypeResources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\TypeResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TypeResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

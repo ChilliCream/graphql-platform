@@ -37,7 +37,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
             await ConnectAsync(webSocket);
         }
 
-        [Fact(Skip = "Rewrite this test")]
+        // TODO : FIX THIS ONE
+        [Fact(Skip = "Temporarily disabled")]
         public async Task Send_Start_ReceiveDataOnMutation()
         {
             // arrange
@@ -103,12 +104,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     c.RegisterMutationType<Mutation>();
                     c.RegisterSubscriptionType<Subscription>();
                 },
-                s =>
-                {
-                    var eventRegistry = new InMemoryEventRegistry();
-                    s.AddSingleton<IEventRegistry>(eventRegistry);
-                    s.AddSingleton<IEventSender>(eventRegistry);
-                },
+                s => s.AddInMemorySubscriptionProvider(),
                 new QueryMiddlewareOptions());
         }
 

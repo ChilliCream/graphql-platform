@@ -4,6 +4,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Validation
@@ -363,13 +364,7 @@ namespace HotChocolate.Validation
 
             // assert
             Assert.True(result.HasErrors);
-            Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    "The field `field` does not exist " +
-                    "on the type `Query`.", t.Message),
-                t => Assert.Equal(
-                    "The specified directive is not valid the " +
-                    "current location.", t.Message));
+            result.Errors.MatchSnapshot();
         }
 
         [Fact]

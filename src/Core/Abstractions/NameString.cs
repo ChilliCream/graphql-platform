@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Globalization;
+using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate
@@ -24,7 +25,9 @@ namespace HotChocolate
             if (!NameUtils.IsValidName(value))
             {
                 throw new ArgumentException(
-                    AbstractionResources.Type_Name_IsNotValid(value),
+                    string.Format(CultureInfo.InvariantCulture,
+                        AbstractionResources.Type_NameIsNotValid,
+                        value ?? "null"),
                     nameof(value));
             }
             Value = value;
@@ -259,7 +262,7 @@ namespace HotChocolate
             if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    AbstractionResources.Name_Cannot_BeEmpty(),
+                    AbstractionResources.Name_MustNotBeEmpty,
                     argumentName);
             }
 

@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Utilities
 {
     internal class HttpQueryClient
     {
@@ -25,7 +25,7 @@ namespace HotChocolate.Stitching
             FetchAsync(CreateRemoteRequest(request), httpClient);
 
         public async Task<QueryResult> FetchAsync(
-            RemoteQueryRequest request,
+            HttpQueryRequest request,
             HttpClient httpClient)
         {
             string result = await FetchStringAsync(request, httpClient)
@@ -36,7 +36,7 @@ namespace HotChocolate.Stitching
         }
 
         public Task<string> FetchStringAsync(
-            RemoteQueryRequest request,
+            HttpQueryRequest request,
             HttpClient httpClient)
         {
             if (request == null)
@@ -53,7 +53,7 @@ namespace HotChocolate.Stitching
         }
 
         private async Task<string> FetchStringInternalAsync(
-            RemoteQueryRequest request,
+            HttpQueryRequest request,
             HttpClient httpClient)
         {
             var content = new StringContent(
@@ -69,10 +69,10 @@ namespace HotChocolate.Stitching
                 .ConfigureAwait(false);
         }
 
-        private RemoteQueryRequest CreateRemoteRequest(
+        private HttpQueryRequest CreateRemoteRequest(
             IReadOnlyQueryRequest request)
         {
-            return new RemoteQueryRequest
+            return new HttpQueryRequest
             {
                 Query = request.Query,
                 OperationName = request.OperationName,
@@ -81,7 +81,7 @@ namespace HotChocolate.Stitching
         }
 
         private string SerializeRemoteRequest(
-            RemoteQueryRequest remoteRequest)
+            HttpQueryRequest remoteRequest)
         {
             return JsonConvert.SerializeObject(
                 remoteRequest, _jsonSettings);
