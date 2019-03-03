@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Introduced auto-stitching capabilities with the new `StitchingBuilder`.
 - _GraphQL_ _Voyager_. Special thanks to [@drowhunter](https://github.com/drowhunter) who contributed the middleware.
 
+### Changed
+
+- The authoization directive is now more aligned how the authorize attribute in ASP.net works.
+
 ### Fixed
 
 - Introspection default values are now serialized correctly.
