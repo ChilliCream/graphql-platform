@@ -108,6 +108,22 @@ namespace HotChocolate.Execution.Tests
         }
 
         [Fact]
+        public void BuildRequest_QueryAndSetNewVariable_RequestIsCreated()
+        {
+            // arrange
+            // act
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ foo }")
+                    .SetVariableValue("one", "bar")
+                    .Create();
+
+            // assert
+            // one should be bar
+            request.MatchSnapshot();
+        }
+
+        [Fact]
         public void BuildRequest_QueryAndResetVariables_RequestIsCreated()
         {
             // arrange
@@ -171,6 +187,22 @@ namespace HotChocolate.Execution.Tests
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
                     .AddProperty("one", "foo")
+                    .SetProperty("one", "bar")
+                    .Create();
+
+            // assert
+            // one should be bar
+            request.MatchSnapshot();
+        }
+
+        [Fact]
+        public void BuildRequest_QueryAndSetNewProperty_RequestIsCreated()
+        {
+            // arrange
+            // act
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ foo }")
                     .SetProperty("one", "bar")
                     .Create();
 
