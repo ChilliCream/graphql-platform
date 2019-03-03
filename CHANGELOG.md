@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [0.8.0] - 2019-03-03
+
+### Added
+
 - The stitching layer now batches requests to the remote schemas.
 - Introspection schema serializer.
 - Introduced auto-stitching capabilities with the new `StitchingBuilder`.
