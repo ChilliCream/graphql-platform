@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
@@ -38,10 +38,18 @@ namespace HotChocolate.AspNetCore.Authorization
             AuthorizeDirective directive = context.Directive
                 .ToObject<AuthorizeDirective>();
 
-            ClaimsPrincipal principal = context
-                .CustomProperty<ClaimsPrincipal>(nameof(ClaimsPrincipal));
+            ClaimsPrincipal principal = null;
+            var allowed = false;
 
-            var allowed = IsInRoles(principal, directive.Roles);
+            if (context.ContextData.TryGetValue(
+                nameof(ClaimsPrincipal), out var o)
+                && o is ClaimsPrincipal p)
+            {
+                principal = p;
+                allowed = true;
+            }
+
+            allowed = allowed && IsInRoles(principal, directive.Roles);
 
 #if !ASPNETCLASSIC
             if (allowed && NeedsPolicyValidation(directive))
@@ -57,11 +65,13 @@ namespace HotChocolate.AspNetCore.Authorization
             }
             else if (context.Result == null)
             {
-                context.Result = QueryError.CreateFieldError(
-                    "The current user is not authorized to " +
-                    "access this resource.",
-                    context.Path,
-                    context.FieldSelection);
+                context.Result = ErrorBuilder.New()
+                    .SetMessage(
+                        "The current user is not authorized to " +
+                        "access this resource.")
+                    .SetPath(context.Path)
+                    .AddLocation(context.FieldSelection)
+                    .Build();
             }
         }
 
