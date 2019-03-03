@@ -1,6 +1,7 @@
 using System;
 using HotChocolate;
 using HotChocolate.AspNetClassic;
+using HotChocolate.AspNetClassic.Voyager;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Owin;

@@ -91,6 +91,39 @@ namespace HotChocolate.Execution.Tests
         }
 
         [Fact]
+        public void BuildRequest_QueryAndSetVariable_RequestIsCreated()
+        {
+            // arrange
+            // act
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ foo }")
+                    .AddVariableValue("one", "foo")
+                    .SetVariableValue("one", "bar")
+                    .Create();
+
+            // assert
+            // one should be bar
+            request.MatchSnapshot();
+        }
+
+        [Fact]
+        public void BuildRequest_QueryAndSetNewVariable_RequestIsCreated()
+        {
+            // arrange
+            // act
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ foo }")
+                    .SetVariableValue("one", "bar")
+                    .Create();
+
+            // assert
+            // one should be bar
+            request.MatchSnapshot();
+        }
+
+        [Fact]
         public void BuildRequest_QueryAndResetVariables_RequestIsCreated()
         {
             // arrange
@@ -141,7 +174,40 @@ namespace HotChocolate.Execution.Tests
                     .Create();
 
             // assert
-            // only three should be in the request
+            // only three should exist
+            request.MatchSnapshot();
+        }
+
+        [Fact]
+        public void BuildRequest_QueryAndSetProperty_RequestIsCreated()
+        {
+            // arrange
+            // act
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ foo }")
+                    .AddProperty("one", "foo")
+                    .SetProperty("one", "bar")
+                    .Create();
+
+            // assert
+            // one should be bar
+            request.MatchSnapshot();
+        }
+
+        [Fact]
+        public void BuildRequest_QueryAndSetNewProperty_RequestIsCreated()
+        {
+            // arrange
+            // act
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ foo }")
+                    .SetProperty("one", "bar")
+                    .Create();
+
+            // assert
+            // one should be bar
             request.MatchSnapshot();
         }
 

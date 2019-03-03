@@ -3,7 +3,6 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using ChilliCream.Testing;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -23,7 +22,6 @@ namespace HotChocolate.AspNetCore.Authorization
             TestServerFactory = testServerFactory;
         }
 
-
         private TestServerFactory TestServerFactory { get; }
 
         [Fact]
@@ -42,7 +40,72 @@ namespace HotChocolate.AspNetCore.Authorization
                 },
                 context =>
                 {
-                    // no user
+                    context.User = new ClaimsPrincipal(
+                        new ClaimsIdentity("testauth"));
+                });
+
+            var request = "{ default }";
+            var contentType = "application/graphql";
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request, contentType, null);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            var json = await message.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert
+                .DeserializeObject<ClientQueryResult>(json);
+            Assert.NotNull(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task NoAuthServices_Autheticated_True()
+        {
+            // arrange
+            TestServer server = CreateTestServer(
+                services =>
+                {
+                    services.AddGraphQL(CreateExecutor());
+                },
+                context =>
+                {
+                    context.User = new ClaimsPrincipal(
+                        new ClaimsIdentity("testauth"));
+                });
+
+            var request = "{ default }";
+            var contentType = "application/graphql";
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request, contentType, null);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            var json = await message.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert
+                .DeserializeObject<ClientQueryResult>(json);
+            Assert.Null(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task NoAuthServices_Autheticated_False()
+        {
+            // arrange
+            TestServer server = CreateTestServer(
+                services =>
+                {
+                    services.AddGraphQL(CreateExecutor());
+                },
+                context =>
+                {
+                    context.User = new ClaimsPrincipal(
+                        new ClaimsIdentity());
                 });
 
             var request = "{ default }";
@@ -81,7 +144,8 @@ namespace HotChocolate.AspNetCore.Authorization
                 },
                 context =>
                 {
-                    // no user
+                    context.User = new ClaimsPrincipal(
+                        new ClaimsIdentity("testauth"));
                 });
 
             var request = "{ age }";
@@ -120,7 +184,8 @@ namespace HotChocolate.AspNetCore.Authorization
                 },
                 context =>
                 {
-                    // no user
+                    context.User = new ClaimsPrincipal(
+                        new ClaimsIdentity("testauth"));
                 });
 
             var request = "{ age }";
@@ -159,11 +224,11 @@ namespace HotChocolate.AspNetCore.Authorization
                 },
                 context =>
                 {
-                    var identity = new ClaimsIdentity();
+                    var identity = new ClaimsIdentity("testauth");
                     identity.AddClaim(new Claim(
                         ClaimTypes.DateOfBirth,
                         "2013-05-30"));
-                    context.User.AddIdentity(identity);
+                    context.User = new ClaimsPrincipal(identity);
                 });
 
             var request = "{ age }";
@@ -194,7 +259,8 @@ namespace HotChocolate.AspNetCore.Authorization
                 },
                 context =>
                 {
-                    // no user
+                    context.User = new ClaimsPrincipal(
+                        new ClaimsIdentity("testauth"));
                 });
 
             var request = "{ roles }";
@@ -225,7 +291,7 @@ namespace HotChocolate.AspNetCore.Authorization
                 },
                 context =>
                 {
-                    var identity = new ClaimsIdentity();
+                    var identity = new ClaimsIdentity("testauth");
                     identity.AddClaim(new Claim(
                         ClaimTypes.Role,
                         "b"));
@@ -260,7 +326,7 @@ namespace HotChocolate.AspNetCore.Authorization
                 },
                 context =>
                 {
-                    var identity = new ClaimsIdentity();
+                    var identity = new ClaimsIdentity("testauth");
                     identity.AddClaim(new Claim(
                         ClaimTypes.Role,
                         "a"));
@@ -298,14 +364,14 @@ namespace HotChocolate.AspNetCore.Authorization
                 },
                 context =>
                 {
-                    var identity = new ClaimsIdentity();
+                    var identity = new ClaimsIdentity("testauth");
                     identity.AddClaim(new Claim(
                         ClaimTypes.Role,
                         "a"));
                     identity.AddClaim(new Claim(
                         ClaimTypes.Role,
                         "b"));
-                    context.User.AddIdentity(identity);
+                    context.User = new ClaimsPrincipal(identity);
                 });
 
             var request = "{ roles_ab }";
@@ -336,11 +402,11 @@ namespace HotChocolate.AspNetCore.Authorization
                 },
                 context =>
                 {
-                    var identity = new ClaimsIdentity();
+                    var identity = new ClaimsIdentity("testauth");
                     identity.AddClaim(new Claim(
                         ClaimTypes.Role,
                         "a"));
-                    context.User.AddIdentity(identity);
+                    context.User = new ClaimsPrincipal(identity);
                 });
 
             var request = "{ roles }";
@@ -384,14 +450,14 @@ namespace HotChocolate.AspNetCore.Authorization
                 },
                 context =>
                 {
-                    var identity = new ClaimsIdentity();
+                    var identity = new ClaimsIdentity("testAuth");
                     identity.AddClaim(new Claim(
                         ClaimTypes.DateOfBirth,
                         "2013-05-30"));
                     identity.AddClaim(new Claim(
                         ClaimTypes.Country,
                         "US"));
-                    context.User.AddIdentity(identity);
+                    context.User = new ClaimsPrincipal(identity);
                 });
 
             var request = "{ piped }";
@@ -435,7 +501,7 @@ namespace HotChocolate.AspNetCore.Authorization
                 },
                 context =>
                 {
-                    var identity = new ClaimsIdentity();
+                    var identity = new ClaimsIdentity("testauth");
                     identity.AddClaim(new Claim(
                         ClaimTypes.DateOfBirth,
                         "2013-05-30"));
@@ -475,6 +541,7 @@ namespace HotChocolate.AspNetCore.Authorization
                                 OnCreateRequest = (ctx, r, ct) =>
                                 {
                                     configureUser(ctx);
+                                    r.SetProperty(nameof(ClaimsPrincipal), ctx.User);
                                     return Task.CompletedTask;
                                 }
                             });
