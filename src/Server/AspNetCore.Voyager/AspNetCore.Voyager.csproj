@@ -1,10 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
-        <AssemblyName>HotChocolate.AspNetCore.Voyager</AssemblyName>
-        <RootNamespace>HotChocolate.AspNetCore.Voyager</RootNamespace>
-        <PackageId>HotChocolate.AspNetCore.Voyager</PackageId>
+      <TargetFramework>netstandard2.0</TargetFramework>
+      <AssemblyName>HotChocolate.AspNetCore.Voyager</AssemblyName>
+      <RootNamespace>HotChocolate.AspNetCore.Voyager</RootNamespace>
+      <PackageId>HotChocolate.AspNetCore.Voyager</PackageId>
+      <Description>Contains a GraphQL Voyager for ASP.net core that can be used with the Hot Chocolate GraphQL server.</Description>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

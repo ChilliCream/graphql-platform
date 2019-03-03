@@ -1,0 +1,45 @@
+{
+  "Kind": "SelectionSet",
+  "Location": {
+    "Start": 0,
+    "End": 0,
+    "StartToken": {
+      "Kind": "StartOfFile",
+      "Start": 0,
+      "End": 0,
+      "Line": 1,
+      "Column": 1,
+      "Value": null,
+      "Previous": null,
+      "Next": null
+    },
+    "EndToken": {
+      "Kind": "StartOfFile",
+      "Start": 0,
+      "End": 0,
+      "Line": 1,
+      "Column": 1,
+      "Value": null,
+      "Previous": null,
+      "Next": null
+    },
+    "Source": {
+      "Text": "foo"
+    }
+  },
+  "Selections": [
+    {
+      "Kind": "Field",
+      "Alias": null,
+      "Arguments": [],
+      "SelectionSet": null,
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "bar"
+      },
+      "Directives": []
+    }
+  ]
+}

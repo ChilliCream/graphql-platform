@@ -1,0 +1,21 @@
+{
+  "Data": {
+    "foo": [
+      {
+        "qux": {
+          "quux": 1.5
+        }
+      }
+    ],
+    "bar": [
+      1.5
+    ],
+    "baz": {
+      "qux": {
+        "quux": 1.5
+      }
+    }
+  },
+  "Extensions": {},
+  "Errors": []
+}
