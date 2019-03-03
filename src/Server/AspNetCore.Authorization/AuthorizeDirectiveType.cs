@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Security.Principal;
@@ -10,6 +11,7 @@ using HotChocolate.Types;
 namespace HotChocolate.AspNetClassic.Authorization
 #else
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore.Authorization
 #endif
@@ -46,7 +48,7 @@ namespace HotChocolate.AspNetCore.Authorization
                 && o is ClaimsPrincipal p)
             {
                 principal = p;
-                allowed = true;
+                allowed = p.Identity.IsAuthenticated;
             }
 
             allowed = allowed && IsInRoles(principal, directive.Roles);
@@ -106,10 +108,16 @@ namespace HotChocolate.AspNetCore.Authorization
             AuthorizeDirective directive,
             ClaimsPrincipal principal)
         {
-            IAuthorizationService authorizeService = context
-                .Service<IAuthorizationService>();
-            IAuthorizationPolicyProvider policyProvider = context
-                .Service<IAuthorizationPolicyProvider>();
+            IServiceProvider services = context.Service<IServiceProvider>();
+            IAuthorizationService authorizeService =
+                services.GetService<IAuthorizationService>();
+            IAuthorizationPolicyProvider policyProvider =
+                services.GetService<IAuthorizationPolicyProvider>();
+
+            if (authorizeService == null || policyProvider == null)
+            {
+                return string.IsNullOrWhiteSpace(directive.Policy);
+            }
 
             AuthorizationPolicy policy = null;
 
