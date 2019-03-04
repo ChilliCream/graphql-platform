@@ -1,5 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
+using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
@@ -27,7 +29,11 @@ namespace HotChocolate.Language
             if (context.Current.Kind != openKind)
             {
                 throw new SyntaxException(context,
-                    $"Expected a name token: {context.Current}.");
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        LangResources.ParseMany_InvalidOpenToken,
+                        openKind,
+                        context.Current));
             }
 
             var list = new List<T>();

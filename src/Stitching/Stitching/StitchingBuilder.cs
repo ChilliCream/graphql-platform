@@ -11,6 +11,7 @@ using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Stitching.Properties;
+using HotChocolate.Language;
 
 namespace HotChocolate.Stitching
 {
@@ -33,6 +34,11 @@ namespace HotChocolate.Stitching
             new List<ITypeRewriter>();
         private readonly List<IDocumentRewriter> _docRewriters =
             new List<IDocumentRewriter>();
+        private readonly List<Func<DocumentNode, DocumentNode>> _mergedDocRws =
+            new List<Func<DocumentNode, DocumentNode>>();
+        private readonly List<Action<DocumentNode>> _mergedDocVis =
+            new List<Action<DocumentNode>>();
+
         private IQueryExecutionOptionsAccessor _options;
 
         public IStitchingBuilder AddSchema(
@@ -161,6 +167,30 @@ namespace HotChocolate.Stitching
             }
 
             _docRewriters.Add(rewriter);
+            return this;
+        }
+
+        public IStitchingBuilder AddMergedDocumentRewriter(
+            Func<DocumentNode, DocumentNode> rewrite)
+        {
+            if (rewrite == null)
+            {
+                throw new ArgumentNullException(nameof(rewrite));
+            }
+
+            _mergedDocRws.Add(rewrite);
+            return this;
+        }
+
+        public IStitchingBuilder AddMergedDocumentVisitor(
+            Action<DocumentNode> visit)
+        {
+            if (visit == null)
+            {
+                throw new ArgumentNullException(nameof(visit));
+            }
+
+            _mergedDocVis.Add(visit);
             return this;
         }
 

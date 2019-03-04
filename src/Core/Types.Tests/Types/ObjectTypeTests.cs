@@ -7,6 +7,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using Moq;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -575,7 +576,7 @@ namespace HotChocolate.Types
                 });
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]

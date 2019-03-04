@@ -8,16 +8,20 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching.Utilities
 {
-    public class ExtractFieldQuerySyntaxRewriter
+    public partial class ExtractFieldQuerySyntaxRewriter
         : QuerySyntaxRewriter<ExtractFieldQuerySyntaxRewriter.Context>
     {
         private readonly ISchema _schema;
         private readonly FieldDependencyResolver _dependencyResolver;
+        private readonly IQueryDelegationRewriter[] _rewriters;
 
-        public ExtractFieldQuerySyntaxRewriter(ISchema schema)
+        public ExtractFieldQuerySyntaxRewriter(
+            ISchema schema,
+            IEnumerable<IQueryDelegationRewriter> rewriters)
         {
             _schema = schema ?? throw new ArgumentNullException(nameof(schema));
             _dependencyResolver = new FieldDependencyResolver(schema);
+            _rewriters = rewriters.ToArray();
         }
 
         protected override bool VisitFragmentDefinitions => false;
@@ -51,8 +55,9 @@ namespace HotChocolate.Stitching.Utilities
 
             sourceSchema.EnsureNotEmpty(nameof(sourceSchema));
 
-            var context = Context.New(sourceSchema,
-                declaringType, document, operation);
+            var context = new Context(
+                sourceSchema, declaringType,
+                document, operation);
 
             FieldNode rewrittenField = RewriteField(field, context);
 
@@ -63,41 +68,99 @@ namespace HotChocolate.Stitching.Utilities
         }
 
         protected override FieldNode RewriteField(
-            FieldNode node, Context context)
+            FieldNode node,
+            Context context)
         {
             FieldNode current = node;
 
             if (context.TypeContext is IComplexOutputType type
-                && type.Fields.TryGetField(node.Name.Value,
+                && type.Fields.TryGetField(current.Name.Value,
                     out IOutputField field))
             {
-                if (field.TryGetSourceDirective(context.Schema,
-                    out SourceDirective sourceDirective))
-                {
-                    if (current.Alias == null)
-                    {
-                        current = current.WithAlias(current.Name);
-                    }
-                    current = current.WithName(
-                        new NameNode(sourceDirective.Name));
-                }
+                Context cloned = context.Clone();
+                cloned.OutputField = field;
 
-                current = Rewrite(current, node.Arguments, context,
+                current = RewriteFieldName(
+                    current, field, context);
+
+                current = Rewrite(current, current.Arguments, cloned,
                     (p, c) => RewriteMany(p, c, RewriteArgument),
                     current.WithArguments);
 
-                if (node.SelectionSet != null
-                    && field.Type.NamedType() is INamedOutputType n)
+                current = RewriteFieldSelectionSet(
+                    current, field, context);
+
+                current = OnRewriteField(current, cloned);
+            }
+
+            return current;
+        }
+
+        private static FieldNode RewriteFieldName(
+            FieldNode node,
+            IOutputField field,
+            Context context)
+        {
+            FieldNode current = node;
+
+            if (field.TryGetSourceDirective(context.Schema,
+                out SourceDirective sourceDirective))
+            {
+                if (current.Alias == null)
                 {
-                    current = Rewrite
-                    (
-                        current,
-                        node.SelectionSet,
-                        context.SetTypeContext(n),
-                        RewriteSelectionSet,
-                        current.WithSelectionSet
-                    );
+                    current = current.WithAlias(current.Name);
                 }
+                current = current.WithName(
+                    new NameNode(sourceDirective.Name));
+            }
+
+            return current;
+        }
+
+        private FieldNode RewriteFieldSelectionSet(
+            FieldNode node,
+            IOutputField field,
+            Context context)
+        {
+            FieldNode current = node;
+
+            if (current.SelectionSet != null
+                && field.Type.NamedType() is INamedOutputType n)
+            {
+                Context cloned = context.Clone();
+                cloned.TypeContext = n;
+
+                current = Rewrite
+                (
+                    current,
+                    current.SelectionSet,
+                    cloned,
+                    RewriteSelectionSet,
+                    current.WithSelectionSet
+                );
+            }
+
+            return current;
+        }
+
+        private FieldNode OnRewriteField(
+            FieldNode node,
+            Context context)
+        {
+            if (_rewriters.Length == 0)
+            {
+                return node;
+            }
+
+            FieldNode current = node;
+
+            for (int i = 0; i < _rewriters.Length; i++)
+            {
+                current = _rewriters[i].OnRewriteField(
+                    context.Schema,
+                    context.TypeContext,
+                    context.OutputField,
+                    current);
             }
 
             return current;
@@ -115,13 +178,95 @@ namespace HotChocolate.Stitching.Utilities
                 _dependencyResolver.GetFieldDependencies(
                     context.Document, current, context.TypeContext);
 
-            RemoveDelegationFields(node, context, selections);
+            RemoveDelegationFields(current, context, selections);
             AddDependencies(context.TypeContext, selections, dependencies);
             selections.Add(CreateField(WellKnownFieldNames.TypeName));
-
             current = current.WithSelections(selections);
+            current = base.RewriteSelectionSet(current, context);
+            current = OnRewriteSelectionSet(current, context);
 
-            return base.RewriteSelectionSet(current, context);
+            return current;
+        }
+
+        private SelectionSetNode OnRewriteSelectionSet(
+            SelectionSetNode node,
+            Context context)
+        {
+            if (_rewriters.Length == 0)
+            {
+                return node;
+            }
+
+            SelectionSetNode current = node;
+
+            for (int i = 0; i < _rewriters.Length; i++)
+            {
+                current = _rewriters[i].OnRewriteSelectionSet(
+                    context.Schema,
+                    context.TypeContext,
+                    context.OutputField,
+                    current);
+            }
+
+            return current;
+        }
+
+        protected override ArgumentNode RewriteArgument(
+            ArgumentNode node,
+            Context context)
+        {
+            ArgumentNode current = node;
+
+            if (context.OutputField != null
+                && context.OutputField.Arguments.TryGetField(current.Name.Value,
+                out IInputField inputField))
+            {
+                Context cloned = context.Clone();
+                cloned.InputField = inputField;
+                cloned.InputType = inputField.Type;
+
+                if (inputField.TryGetSourceDirective(context.Schema,
+                    out SourceDirective sourceDirective)
+                    && !sourceDirective.Name.Equals(current.Name.Value))
+                {
+                    current = current.WithName(
+                        new NameNode(sourceDirective.Name));
+                }
+
+                return base.RewriteArgument(current, cloned);
+            }
+
+            return base.RewriteArgument(current, context);
+        }
+
+        protected override ObjectFieldNode RewriteObjectField(
+            ObjectFieldNode node,
+            Context context)
+        {
+            ObjectFieldNode current = node;
+
+            if (context.InputType != null
+                && context.InputType.NamedType() is InputObjectType inputType
+                && inputType.Fields.TryGetField(current.Name.Value,
+                out InputField inputField))
+            {
+
+                Context cloned = context.Clone();
+                cloned.InputField = inputField;
+                cloned.InputType = inputField.Type;
+
+                if (inputField.TryGetSourceDirective(context.Schema,
+                    out SourceDirective sourceDirective)
+                    && !sourceDirective.Name.Equals(current.Name.Value))
+                {
+                    current = current.WithName(
+                        new NameNode(sourceDirective.Name));
+                }
+
+                return base.RewriteObjectField(current, cloned);
+            }
+
+            return base.RewriteObjectField(current, context);
         }
 
         private static void RemoveDelegationFields(
@@ -151,7 +296,7 @@ namespace HotChocolate.Stitching.Utilities
         }
 
         private static void AddDependencies(
-            IHasName typeContext,
+            Types.IHasName typeContext,
             List<ISelectionNode> selections,
             IEnumerable<FieldDependency> dependencies)
         {
@@ -234,10 +379,10 @@ namespace HotChocolate.Stitching.Utilities
             FragmentDefinitionNode node,
             Context context)
         {
-            Context newContext = context;
+            Context currentContext = context;
             FragmentDefinitionNode current = node;
 
-            if (newContext.FragmentPath.Contains(current.Name.Value))
+            if (currentContext.FragmentPath.Contains(current.Name.Value))
             {
                 return node;
             }
@@ -246,9 +391,10 @@ namespace HotChocolate.Stitching.Utilities
                 current.TypeCondition.Name.Value,
                 out IComplexOutputType type))
             {
-                newContext = newContext
-                    .AddFragment(current.Name.Value)
-                    .SetTypeContext(type);
+                currentContext = currentContext.Clone();
+                currentContext.TypeContext = type;
+                currentContext.FragmentPath =
+                    currentContext.FragmentPath.Add(current.Name.Value);
 
                 if (type.TryGetSourceDirective(context.Schema,
                     out SourceDirective sourceDirective))
@@ -259,22 +405,22 @@ namespace HotChocolate.Stitching.Utilities
                 }
             }
 
-            return base.RewriteFragmentDefinition(current, newContext);
+            return base.RewriteFragmentDefinition(current, currentContext);
         }
 
         protected override InlineFragmentNode RewriteInlineFragment(
             InlineFragmentNode node,
             Context context)
         {
-            Context newContext = context;
+            Context currentContext = context;
             InlineFragmentNode current = node;
-
 
             if (_schema.TryGetType(
                 current.TypeCondition.Name.Value,
                 out IComplexOutputType type))
             {
-                newContext = newContext.SetTypeContext(type);
+                currentContext = currentContext.Clone();
+                currentContext.TypeContext = type;
 
                 if (type.TryGetSourceDirective(context.Schema,
                     out SourceDirective sourceDirective))
@@ -285,86 +431,7 @@ namespace HotChocolate.Stitching.Utilities
                 }
             }
 
-            return base.RewriteInlineFragment(current, newContext);
-        }
-
-
-
-        public class Context
-        {
-            private Context(
-                NameString schema,
-                INamedOutputType typeContext,
-                DocumentNode document,
-                OperationDefinitionNode operation)
-            {
-                Schema = schema;
-                Variables = new Dictionary<string, VariableDefinitionNode>();
-                Document = document;
-                Operation = operation;
-                TypeContext = typeContext;
-                Fragments = new Dictionary<string, FragmentDefinitionNode>();
-                FragmentPath = ImmutableHashSet<string>.Empty;
-            }
-
-            private Context(Context context, INamedOutputType typeContext)
-            {
-                Variables = context.Variables;
-                Document = context.Document;
-                Operation = context.Operation;
-                TypeContext = typeContext;
-                Fragments = context.Fragments;
-                FragmentPath = context.FragmentPath;
-                Schema = context.Schema;
-            }
-
-            private Context(
-                Context context,
-                ImmutableHashSet<string> fragmentPath)
-            {
-                Variables = context.Variables;
-                Document = context.Document;
-                Operation = context.Operation;
-                TypeContext = context.TypeContext;
-                Fragments = context.Fragments;
-                Schema = context.Schema;
-                FragmentPath = fragmentPath;
-            }
-
-            public NameString Schema { get; }
-
-            public DocumentNode Document { get; }
-
-            public OperationDefinitionNode Operation { get; }
-
-            public IDictionary<string, VariableDefinitionNode> Variables
-            { get; }
-
-            public INamedOutputType TypeContext { get; protected set; }
-
-            public ImmutableHashSet<string> FragmentPath { get; }
-
-            public IDictionary<string, FragmentDefinitionNode> Fragments
-            { get; }
-
-            public Context SetTypeContext(INamedOutputType type)
-            {
-                return new Context(this, type);
-            }
-
-            public Context AddFragment(string fragmentName)
-            {
-                return new Context(this, FragmentPath.Add(fragmentName));
-            }
-
-            public static Context New(
-                NameString schema,
-                INamedOutputType typeContext,
-                DocumentNode document,
-                OperationDefinitionNode operation)
-            {
-                return new Context(schema, typeContext, document, operation);
-            }
+            return base.RewriteInlineFragment(current, currentContext);
         }
     }
 }

@@ -106,7 +106,7 @@ namespace HotChocolate.Stitching.Utilities
 
         private static void CollectDelegationDependencies(
             Context context,
-            IHasName type,
+            Types.IHasName type,
             IOutputField field)
         {
             IDirective directive = field.Directives[DirectiveNames.Delegate]
@@ -153,7 +153,7 @@ namespace HotChocolate.Stitching.Utilities
 
         private static void CollectFieldNames(
             DelegateDirective directive,
-            IHasName type,
+            Types.IHasName type,
             ISet<FieldDependency> dependencies)
         {
             IImmutableStack<SelectionPathComponent> path =

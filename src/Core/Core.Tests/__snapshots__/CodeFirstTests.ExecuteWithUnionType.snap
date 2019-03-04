@@ -1,0 +1,14 @@
+{
+  "Data": {
+    "fooOrBar": [
+      {
+        "nameFoo": "foo"
+      },
+      {
+        "nameBar": "bar"
+      }
+    ]
+  },
+  "Extensions": {},
+  "Errors": []
+}

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ChilliCream.Testing;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution.Instrumentation
@@ -37,7 +38,7 @@ namespace HotChocolate.Execution.Instrumentation
             IReadOnlyCollection<object> result = path.ToCollection();
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
     }
 }

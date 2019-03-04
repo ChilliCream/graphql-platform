@@ -1,0 +1,16 @@
+{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "Exception": null,
+      "message": "The specified argument value does not match the argument type.\nArgument: `name`\nValue: `  `",
+      "locations": [
+        {
+          "line": 1,
+          "column": 16
+        }
+      ]
+    }
+  ]
+}

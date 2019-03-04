@@ -1,0 +1,11 @@
+{
+  "Data": {
+    "__type": {
+      "name": "Byte",
+      "kind": "SCALAR",
+      "description": "Overridden byte"
+    }
+  },
+  "Extensions": {},
+  "Errors": []
+}

@@ -22,6 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Core\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
+    <ProjectReference Include="..\..\src\Server\AspNetCore.Voyager\AspNetCore.Voyager.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore\AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore.Authorization\AspNetCore.Authorization.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore.GraphiQL\AspNetCore.GraphiQL.csproj" />

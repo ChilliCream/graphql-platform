@@ -1,19 +1,23 @@
-﻿using System;
+using System;
 using System.Globalization;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
     public sealed class DateTimeType
         : DateTimeTypeBase
     {
+        private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
+        private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
+
         public DateTimeType()
             : base("DateTime")
         {
         }
 
         public override string Description =>
-            TypeResources.DateTimeType_Description();
+            TypeResources.DateTimeType_Description;
 
         public override Type ClrType => typeof(DateTimeOffset);
 
@@ -22,12 +26,12 @@ namespace HotChocolate.Types
             if (value.Kind == DateTimeKind.Utc)
             {
                 return value.ToString(
-                    "yyyy-MM-ddTHH\\:mm\\:ss.fffZ",
+                    _utcFormat,
                     CultureInfo.InvariantCulture);
             }
 
             return value.ToString(
-                "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz",
+                _localFormat,
                 CultureInfo.InvariantCulture);
         }
 
@@ -36,12 +40,12 @@ namespace HotChocolate.Types
             if (value.Offset == TimeSpan.Zero)
             {
                 return value.ToString(
-                    "yyyy-MM-ddTHH\\:mm\\:ss.fffZ",
+                    _utcFormat,
                     CultureInfo.InvariantCulture);
             }
 
             return value.ToString(
-                "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz",
+                _localFormat,
                 CultureInfo.InvariantCulture);
         }
 

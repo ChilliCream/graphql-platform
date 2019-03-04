@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Utilities;
@@ -7,6 +7,8 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
+using System.Globalization;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
@@ -113,14 +115,18 @@ namespace HotChocolate.Execution
                 return value;
             }
 
-            // TODO : Resources
-            throw new QueryException(
-               QueryError.CreateFieldError(
-                    $"Could not convert argument {name} from " +
-                    $"{argumentValue.Type.ClrType.FullName} to " +
-                    $"{typeof(T).FullName}.",
-                    _resolverTask.Path,
-                    _resolverTask.FieldSelection.Selection));
+            IError error = ErrorBuilder.New()
+                .SetMessage(string.Format(
+                    CultureInfo.InvariantCulture,
+                    CoreResources.ResolverContext_ArgumentConversion,
+                    name,
+                    argumentValue.Type.ClrType.FullName,
+                    typeof(T).FullName))
+                .SetPath(_resolverTask.Path)
+                .AddLocation(_resolverTask.FieldSelection.Selection)
+                .Build();
+
+            throw new QueryException(error);
         }
 
         private bool TryConvertValue<T>(
@@ -163,15 +169,21 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(key));
             }
 
-            if (ContextData.TryGetValue(key, out object value)
-                && value is T v)
+            if (ContextData.TryGetValue(key, out object value))
             {
-                return v;
+                if (value is null)
+                {
+                    return default;
+                }
+
+                if (value is T v)
+                {
+                    return v;
+                }
             }
 
-            // TODO : Resources
             throw new ArgumentException(
-                "The specified property does not exist.");
+                CoreResources.ResolverContext_CustomPropertyNotExists);
         }
 
         public T Resolver<T>()

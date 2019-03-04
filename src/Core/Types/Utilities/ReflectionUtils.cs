@@ -1,9 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -41,7 +43,9 @@ namespace HotChocolate.Utilities
             if (member == null)
             {
                 throw new ArgumentException(
-                    TypeResources.Reflection_MemberMust_BeMethodOrProperty(
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        TypeResources.Reflection_MemberMust_BeMethodOrProperty,
                         typeof(T).FullName),
                     nameof(expression));
             }

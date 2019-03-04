@@ -53,6 +53,17 @@ namespace HotChocolate.Execution
             return this;
         }
 
+        public IQueryRequestBuilder SetVariableValue(string name, object value)
+        {
+            if (_variableValues == null)
+            {
+                _variableValues = new Dictionary<string, object>();
+            }
+
+            _variableValues[name] = value;
+            return this;
+        }
+
         public IQueryRequestBuilder AddVariableValue(
             string name, object value)
         {
@@ -69,6 +80,17 @@ namespace HotChocolate.Execution
             IDictionary<string, object> properties)
         {
             _properties = properties;
+            return this;
+        }
+
+        public IQueryRequestBuilder SetProperty(string name, object value)
+        {
+            if (_properties == null)
+            {
+                _properties = new Dictionary<string, object>();
+            }
+
+            _properties[name] = value;
             return this;
         }
 

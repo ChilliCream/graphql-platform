@@ -1,4 +1,6 @@
-﻿namespace HotChocolate.Types
+using HotChocolate.Properties;
+
+namespace HotChocolate.Types
 {
     /// <summary>
     /// The Int scalar type represents a signed 32‐bit numeric non‐fractional
@@ -17,6 +19,6 @@
         }
 
         public override string Description =>
-            TypeResources.IntType_Description();
+            TypeResources.IntType_Description;
     }
 }

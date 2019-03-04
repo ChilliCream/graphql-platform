@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -33,7 +34,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -56,7 +57,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -82,7 +83,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -107,7 +108,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -133,7 +134,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -150,7 +151,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -167,7 +168,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -184,7 +185,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -203,7 +204,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -222,7 +223,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         private Schema CreateSchema()

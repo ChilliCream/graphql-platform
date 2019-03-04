@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using HotChocolate.Types;
 namespace HotChocolate.AspNetClassic.Authorization
 #else
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore.Authorization
 #endif
@@ -38,10 +40,18 @@ namespace HotChocolate.AspNetCore.Authorization
             AuthorizeDirective directive = context.Directive
                 .ToObject<AuthorizeDirective>();
 
-            ClaimsPrincipal principal = context
-                .CustomProperty<ClaimsPrincipal>(nameof(ClaimsPrincipal));
+            ClaimsPrincipal principal = null;
+            var allowed = false;
 
-            var allowed = IsInRoles(principal, directive.Roles);
+            if (context.ContextData.TryGetValue(
+                nameof(ClaimsPrincipal), out var o)
+                && o is ClaimsPrincipal p)
+            {
+                principal = p;
+                allowed = p.Identity.IsAuthenticated;
+            }
+
+            allowed = allowed && IsInRoles(principal, directive.Roles);
 
 #if !ASPNETCLASSIC
             if (allowed && NeedsPolicyValidation(directive))
@@ -57,11 +67,13 @@ namespace HotChocolate.AspNetCore.Authorization
             }
             else if (context.Result == null)
             {
-                context.Result = QueryError.CreateFieldError(
-                    "The current user is not authorized to " +
-                    "access this resource.",
-                    context.Path,
-                    context.FieldSelection);
+                context.Result = ErrorBuilder.New()
+                    .SetMessage(
+                        "The current user is not authorized to " +
+                        "access this resource.")
+                    .SetPath(context.Path)
+                    .AddLocation(context.FieldSelection)
+                    .Build();
             }
         }
 
@@ -96,10 +108,16 @@ namespace HotChocolate.AspNetCore.Authorization
             AuthorizeDirective directive,
             ClaimsPrincipal principal)
         {
-            IAuthorizationService authorizeService = context
-                .Service<IAuthorizationService>();
-            IAuthorizationPolicyProvider policyProvider = context
-                .Service<IAuthorizationPolicyProvider>();
+            IServiceProvider services = context.Service<IServiceProvider>();
+            IAuthorizationService authorizeService =
+                services.GetService<IAuthorizationService>();
+            IAuthorizationPolicyProvider policyProvider =
+                services.GetService<IAuthorizationPolicyProvider>();
+
+            if (authorizeService == null || policyProvider == null)
+            {
+                return string.IsNullOrWhiteSpace(directive.Policy);
+            }
 
             AuthorizationPolicy policy = null;
 

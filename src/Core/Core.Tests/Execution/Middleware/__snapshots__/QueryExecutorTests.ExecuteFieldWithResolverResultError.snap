@@ -1,0 +1,35 @@
+{
+  "Data": {
+    "y": null,
+    "yasync": null
+  },
+  "Extensions": {},
+  "Errors": [
+    {
+      "Exception": null,
+      "message": "hello world y",
+      "path": [
+        "y"
+      ],
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ]
+    },
+    {
+      "Exception": null,
+      "message": "hello world yasync",
+      "path": [
+        "yasync"
+      ],
+      "locations": [
+        {
+          "line": 1,
+          "column": 5
+        }
+      ]
+    }
+  ]
+}

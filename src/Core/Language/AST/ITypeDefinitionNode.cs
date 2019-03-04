@@ -2,10 +2,8 @@
 {
     public interface ITypeDefinitionNode
         : ITypeSystemDefinitionNode
-        , IHasDirectives
+        , INamedSyntaxNode
     {
-        NameNode Name { get; }
-
         StringValueNode Description { get; }
     }
 }

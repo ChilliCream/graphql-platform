@@ -20,34 +20,43 @@ namespace HotChocolate.Validation
             DocumentNode document,
             ImmutableStack<ISyntaxNode> path)
         {
-            HashSet<string> declaredVariables = new HashSet<string>();
+            var declaredVariables = new HashSet<string>();
 
             foreach (OperationDefinitionNode operation in document.Definitions
                 .OfType<OperationDefinitionNode>())
             {
-                if (operation.VariableDefinitions.Count > 0)
+                foreach (var variableName in operation.VariableDefinitions
+                    .Select(t => t.Variable.Name.Value))
                 {
-                    foreach (var variableName in operation.VariableDefinitions
-                        .Select(t => t.Variable.Name.Value))
-                    {
-                        declaredVariables.Add(variableName);
-                    }
-
-                    VisitOperationDefinition(operation,
-                        path.Push(document));
-
-                    declaredVariables.ExceptWith(_usedVariables);
-                    if (declaredVariables.Count > 0)
-                    {
-                        Errors.Add(new ValidationError(
-                            "The following variables were not used: " +
-                            $"{string.Join(", ", declaredVariables)}.",
-                            operation));
-                    }
-
-                    declaredVariables.Clear();
-                    _usedVariables.Clear();
+                    declaredVariables.Add(variableName);
                 }
+
+                VisitOperationDefinition(operation,
+                    path.Push(document));
+
+                var unusedVariables = new HashSet<string>(
+                    declaredVariables);
+
+                unusedVariables.ExceptWith(_usedVariables);
+                if (unusedVariables.Count > 0)
+                {
+                    Errors.Add(new ValidationError(
+                        "The following variables were not used: " +
+                        $"{string.Join(", ", unusedVariables)}.",
+                        operation));
+                }
+
+                _usedVariables.ExceptWith(declaredVariables);
+                if (_usedVariables.Count > 0)
+                {
+                    Errors.Add(new ValidationError(
+                        "The following variables were not declared: " +
+                        $"{string.Join(", ", _usedVariables)}.",
+                        operation));
+                }
+
+                declaredVariables.Clear();
+                _usedVariables.Clear();
             }
         }
 

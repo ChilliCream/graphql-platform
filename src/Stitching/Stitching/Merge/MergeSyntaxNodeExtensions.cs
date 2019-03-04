@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching.Merge
 {
@@ -265,9 +266,11 @@ namespace HotChocolate.Stitching.Merge
             IEnumerable<NameString> schemaNames)
         {
             var list = new List<DirectiveNode>(directives);
+            bool hasSchemas = false;
 
             foreach (NameString schemaName in schemaNames)
             {
+                hasSchemas = true;
                 if (!list.Any(t => HasSourceDirective(t, schemaName)))
                 {
                     list.Add(new DirectiveNode
@@ -281,6 +284,13 @@ namespace HotChocolate.Stitching.Merge
                             schemaName)
                     ));
                 }
+            }
+
+            if (!hasSchemas)
+            {
+                throw new ArgumentException(
+                    StitchingResources.MergeSyntaxNodeExtensions_NoSchema,
+                    nameof(schemaNames));
             }
 
             return list;
@@ -345,7 +355,7 @@ namespace HotChocolate.Stitching.Merge
         }
 
         public static NameString GetOriginalName(
-            this ITypeDefinitionNode typeDefinition,
+            this INamedSyntaxNode typeDefinition,
             NameString schemaName)
         {
             if (typeDefinition == null)
@@ -371,8 +381,8 @@ namespace HotChocolate.Stitching.Merge
             return typeDefinition.Name.Value;
         }
 
-        internal static bool IsFromSchema(
-            this ITypeDefinitionNode typeDefinition,
+        public static bool IsFromSchema(
+            this INamedSyntaxNode typeDefinition,
             NameString schemaName)
         {
             if (typeDefinition == null)

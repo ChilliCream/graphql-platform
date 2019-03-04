@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -117,7 +117,7 @@ namespace HotChocolate.Types
         {
             if (_resolveAbstractType == null)
             {
-                // if there is now custom type resolver we will use this default
+                // if there is no custom type resolver we will use this default
                 // abstract type resolver.
                 IReadOnlyCollection<ObjectType> types = null;
                 _resolveAbstractType = (c, r) =>
@@ -135,7 +135,7 @@ namespace HotChocolate.Types
                         }
                     }
 
-                    return null; // todo: should we throw instead?
+                    return null;
                 };
             }
         }

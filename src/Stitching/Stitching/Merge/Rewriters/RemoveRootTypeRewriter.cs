@@ -8,20 +8,20 @@ namespace HotChocolate.Stitching.Merge.Rewriters
     internal class RemoveRootTypeRewriter
         : IDocumentRewriter
     {
-        private readonly NameString? _schemaName;
-
         public RemoveRootTypeRewriter()
         {
         }
 
         public RemoveRootTypeRewriter(NameString schemaName)
         {
-            _schemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
+            SchemaName = schemaName.EnsureNotEmpty(nameof(schemaName));
         }
+
+        public NameString? SchemaName { get; }
 
         public DocumentNode Rewrite(ISchemaInfo schema, DocumentNode document)
         {
-            if (_schemaName.HasValue && !_schemaName.Value.Equals(schema.Name))
+            if (SchemaName.HasValue && !SchemaName.Value.Equals(schema.Name))
             {
                 return document;
             }

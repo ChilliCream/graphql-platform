@@ -16,11 +16,10 @@ namespace HotChocolate.Stitching
 {
     public partial class StitchingBuilder
     {
-        private class StitchingFactory
+        internal class StitchingFactory
         {
             private readonly StitchingBuilder _builder;
             private readonly IReadOnlyList<IRemoteExecutorAccessor> _executors;
-            private readonly DocumentNode _mergedSchema;
             private readonly IQueryExecutionOptionsAccessor _options;
 
             private StitchingFactory(
@@ -30,9 +29,11 @@ namespace HotChocolate.Stitching
             {
                 _builder = builder;
                 _executors = executors;
-                _mergedSchema = mergedSchema;
+                MergedSchema = mergedSchema;
                 _options = _builder._options ?? new QueryExecutionOptions();
             }
+
+            public DocumentNode MergedSchema { get; }
 
             public IStitchingContext CreateStitchingContext(
                 IServiceProvider services)
@@ -44,7 +45,7 @@ namespace HotChocolate.Stitching
             public IQueryExecutor CreateStitchedQueryExecuter()
             {
                 return Schema.Create(
-                    _mergedSchema,
+                    MergedSchema,
                     c =>
                     {
                         foreach (Action<ISchemaConfiguration> configure in
@@ -95,6 +96,8 @@ namespace HotChocolate.Stitching
                 // merge schema
                 DocumentNode mergedSchema = MergeSchemas(builder, allSchemas);
                 mergedSchema = AddExtensions(mergedSchema, extensions);
+                mergedSchema = RewriteMerged(builder, mergedSchema);
+                VisitMerged(builder, mergedSchema);
 
                 // create factory
                 return new StitchingFactory(builder, executors, mergedSchema);
@@ -215,6 +218,40 @@ namespace HotChocolate.Stitching
                 }
 
                 return currentSchema;
+            }
+
+            private static DocumentNode RewriteMerged(
+                StitchingBuilder builder,
+                DocumentNode schema)
+            {
+                if (builder._mergedDocRws.Count == 0)
+                {
+                    return schema;
+                }
+
+                DocumentNode current = schema;
+
+                foreach (Func<DocumentNode, DocumentNode> rewriter in
+                    builder._mergedDocRws)
+                {
+                    current = rewriter.Invoke(current);
+                }
+
+                return current;
+            }
+
+            private static void VisitMerged(
+                StitchingBuilder builder,
+                DocumentNode schema)
+            {
+                if (builder._mergedDocVis.Count > 0)
+                {
+                    foreach (Action<DocumentNode> visitor in
+                        builder._mergedDocVis)
+                    {
+                        visitor.Invoke(schema);
+                    }
+                }
             }
         }
     }

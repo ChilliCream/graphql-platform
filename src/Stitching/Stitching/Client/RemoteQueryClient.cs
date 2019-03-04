@@ -24,8 +24,17 @@ namespace HotChocolate.Stitching.Client
             IServiceProvider services,
             IQueryExecutor executor)
         {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            Executor = executor
+                ?? throw new ArgumentNullException(nameof(executor));
             _dispatcher = new RemoteRequestDispatcher(services, executor);
         }
+
+        public IQueryExecutor Executor { get; }
 
         public int BufferSize => _bufferSize;
 

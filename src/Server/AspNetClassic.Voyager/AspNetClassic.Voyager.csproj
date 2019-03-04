@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+    <AssemblyName>HotChocolate.AspNetClassic.Voyager</AssemblyName>
+    <RootNamespace>HotChocolate.AspNetClassic.Voyager</RootNamespace>
+    <PackageId>HotChocolate.AspNetClassic.Voyager</PackageId>
+    <Description>Contains a GraphQL Voyager for ASP.net classic that can be used with the Hot Chocolate GraphQL server.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>Full</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DefineConstants>TRACE;DEBUG;ASPNETCLASSIC</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DefineConstants>TRACE;ASPNETCLASSIC</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="..\AspNetCore.Voyager\**\*.css;..\AspNetCore.Voyager\**\*.html;..\AspNetCore.Voyager\**\*.js;..\AspNetCore.Voyager\**\*.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\AspNetCore.Voyager\**\*.css;..\AspNetCore.Voyager\**\*.html;..\AspNetCore.Voyager\**\*.js;..\AspNetCore.Voyager\**\*.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Owin" Version="4.0.0" />
+    <PackageReference Include="Microsoft.Owin.StaticFiles" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Core\Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\AspNetCore.Voyager\**\*.cs" Exclude="..\AspNetCore.Voyager\bin\**\*.cs;..\AspNetCore.Voyager\obj\**\*.cs" />
+  </ItemGroup>
+
+</Project>

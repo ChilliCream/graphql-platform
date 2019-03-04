@@ -1,0 +1,20 @@
+{
+  "Data": {
+    "createCustomers": [
+      {
+        "customer": {
+          "name": "a",
+          "contracts": []
+        }
+      },
+      {
+        "customer": {
+          "name": "b",
+          "contracts": []
+        }
+      }
+    ]
+  },
+  "Extensions": {},
+  "Errors": []
+}

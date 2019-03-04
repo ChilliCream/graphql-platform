@@ -1,6 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
@@ -33,6 +35,12 @@ namespace HotChocolate.Types
         {
             return IsType<ObjectType>(type)
                 || IsType<UnionType>(type)
+                || IsType<InterfaceType>(type);
+        }
+
+        public static bool IsComplexType(this IType type)
+        {
+            return IsType<ObjectType>(type)
                 || IsType<InterfaceType>(type);
         }
 
@@ -142,7 +150,8 @@ namespace HotChocolate.Types
                 return nt.Name;
             }
 
-            throw new ArgumentException("The type structure is invalid.");
+            throw new ArgumentException(
+                TypeResources.TypeExtensions_InvalidStructure);
         }
 
         public static ListType ListType(this IType type)
@@ -157,7 +166,8 @@ namespace HotChocolate.Types
                 return nnlt;
             }
 
-            throw new ArgumentException("The type structure is invalid.");
+            throw new ArgumentException(
+                TypeResources.TypeExtensions_InvalidStructure);
         }
 
         public static INamedType NamedType(this IType type)
@@ -182,7 +192,10 @@ namespace HotChocolate.Types
                 return nt;
             }
 
-            throw new ArgumentException($"The type is not a {typeof(T).Name}.");
+            throw new ArgumentException(string.Format(
+                CultureInfo.InvariantCulture,
+                TypeResources.TypeExtensions_TypeIsNotOfT,
+                typeof(T).Name));
         }
 
         public static IType ElementType(this IType type)
@@ -198,11 +211,11 @@ namespace HotChocolate.Types
                 {
                     return nl.ElementType;
                 }
-
-                throw new InvalidOperationException("The specified type is not a valid list type.");
             }
 
-            throw new ArgumentException("The specified type is not a list type.", nameof(type));
+            throw new ArgumentException(
+                TypeResources.TypeExtensions_NoListType,
+                nameof(type));
         }
 
         public static bool IsEqualTo(this IType x, IType y)
@@ -288,7 +301,7 @@ namespace HotChocolate.Types
             }
 
             throw new NotSupportedException(
-                "The specified type kind is not supported.");
+                TypeResources.TypeExtensions_KindIsNotSupported);
         }
     }
 }
