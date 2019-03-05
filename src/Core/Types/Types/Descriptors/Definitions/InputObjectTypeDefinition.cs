@@ -1,0 +1,15 @@
+﻿using System;
+using System.Collections.Generic;
+using HotChocolate.Language;
+
+namespace HotChocolate.Types.Descriptors.Definitions
+{
+    public class InputObjectTypeDefinition
+        : TypeDescriptionBase<InputObjectTypeDefinitionNode>
+    {
+        public IBindableList<InputFieldDefinition> Fields { get; }
+            = new BindableList<InputFieldDefinition>();
+
+        public BindingBehavior FieldBindingBehavior { get; set; }
+    }
+}
