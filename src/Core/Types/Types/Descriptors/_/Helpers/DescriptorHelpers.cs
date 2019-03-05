@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
@@ -19,30 +20,30 @@ namespace HotChocolate.Types.Descriptors
         }
 
         internal static void AcquireNonNullStatus(
-            this FieldDescriptionBase fieldDescription,
+            this FieldDefinitionBase fieldDefinition,
             MemberInfo member)
         {
             if (member.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
             {
                 var attribute =
                     member.GetCustomAttribute<GraphQLNonNullTypeAttribute>();
-                fieldDescription.IsTypeNullable = attribute.IsNullable;
-                fieldDescription.IsElementTypeNullable = attribute.IsElementNullable;
+                fieldDefinition.IsTypeNullable = attribute.IsNullable;
+                fieldDefinition.IsElementTypeNullable = attribute.IsElementNullable;
             }
         }
 
         internal static void RewriteClrType(
-            this FieldDescriptionBase fieldDescription,
+            this FieldDefinitionBase fieldDefinition,
             Func<Type, TypeReference> createContext)
         {
-            if (fieldDescription.IsTypeNullable.HasValue
-                    && fieldDescription.Type.IsClrTypeReference())
+            if (fieldDefinition.IsTypeNullable.HasValue
+                    && fieldDefinition.Type.IsClrTypeReference())
             {
-                fieldDescription.Type = createContext(
+                fieldDefinition.Type = createContext(
                     DotNetTypeInfoFactory.Rewrite(
-                        fieldDescription.Type.ClrType,
-                        !fieldDescription.IsTypeNullable.Value,
-                        !fieldDescription.IsElementTypeNullable.Value));
+                        fieldDefinition.Type.ClrType,
+                        !fieldDefinition.IsTypeNullable.Value,
+                        !fieldDefinition.IsElementTypeNullable.Value));
             }
         }
 
@@ -50,7 +51,7 @@ namespace HotChocolate.Types.Descriptors
             this TDescription description,
             Type type,
             TypeContext context)
-            where TDescription : FieldDescriptionBase
+            where TDescription : FieldDefinitionBase
         {
             throw new NotImplementedException();
         }
@@ -58,7 +59,7 @@ namespace HotChocolate.Types.Descriptors
         public static ITypeReference SetMoreSpecificType<TDescription>(
             this TDescription description,
             ITypeNode typeNode)
-            where TDescription : FieldDescriptionBase
+            where TDescription : FieldDefinitionBase
         {
             throw new NotImplementedException();
         }
