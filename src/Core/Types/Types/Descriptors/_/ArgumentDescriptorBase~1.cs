@@ -5,8 +5,8 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types.Descriptors
 {
     public class ArgumentDescriptorBase<T>
-           : DescriptorBase<T>
-           where T : ArgumentDefinition, new()
+        : DescriptorBase<T>
+        where T : ArgumentDefinition, new()
     {
         protected ArgumentDescriptorBase()
         {
@@ -30,12 +30,12 @@ namespace HotChocolate.Types.Descriptors
         public void Type<TInputType>()
             where TInputType : IInputType
         {
-            Definition.Type = Definition.Type.GetMoreSpecific(
-                typeof(TInputType), TypeContext.Input);
+            Definition.SetMoreSpecificType(
+                typeof(TInputType),
+                TypeContext.Input);
         }
 
-        public void Type<TInputType>(
-            TInputType inputType)
+        public void Type<TInputType>(TInputType inputType)
             where TInputType : class, IInputType
         {
             if (inputType == null)
@@ -45,11 +45,13 @@ namespace HotChocolate.Types.Descriptors
             Definition.Type = new SchemaTypeReference(inputType);
         }
 
-        public void Type(
-            ITypeNode typeNode)
+        public void Type(ITypeNode typeNode)
         {
-            Definition.Type = Definition.Type
-                .GetMoreSpecific(typeNode);
+            if (typeNode == null)
+            {
+                throw new ArgumentNullException(nameof(typeNode));
+            }
+            Definition.SetMoreSpecificType(typeNode);
         }
 
         public void DefaultValue(IValueNode value)
@@ -75,16 +77,16 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        public void Directive<T>(T directiveInstance)
-            where T : class
+        public void Directive<TDirective>(TDirective directiveInstance)
+            where TDirective : class
         {
             Definition.AddDirective(directiveInstance);
         }
 
-        public void Directive<T>()
-            where T : class, new()
+        public void Directive<TDirective>()
+            where TDirective : class, new()
         {
-            Definition.AddDirective(new T());
+            Definition.AddDirective(new TDirective());
         }
 
         public void Directive(

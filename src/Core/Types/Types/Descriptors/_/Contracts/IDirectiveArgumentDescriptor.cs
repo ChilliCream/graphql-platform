@@ -3,7 +3,15 @@
 namespace HotChocolate.Types
 {
     public interface IDirectiveArgumentDescriptor
+        : IFluent
     {
+        /// <summary>
+        /// Associates the argument with a syntax node
+        /// of the parsed GraphQL SDL.
+        /// </summary>
+        /// <param name="inputValueDefinition">
+        /// The the type definition node.
+        /// </param>
         IDirectiveArgumentDescriptor SyntaxNode(
             InputValueDefinitionNode inputValueDefinition);
 

@@ -34,7 +34,7 @@ namespace HotChocolate.Types.Descriptors
             return Definition;
         }
 
-        public virtual void OnCreateDefinition(T definition)
+        protected virtual void OnCreateDefinition(T definition)
         {
         }
 

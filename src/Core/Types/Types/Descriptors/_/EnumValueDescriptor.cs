@@ -1,11 +1,12 @@
 ﻿using System;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
     public class EnumValueDescriptor
-        : IEnumValueDescriptor
-        , IDefinitionFactory<EnumValueDescription>
+        : DescriptorBase<EnumValueDefinition>
+        , IEnumValueDescriptor
     {
         public EnumValueDescriptor(object value)
         {
@@ -14,44 +15,38 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(value));
             }
 
-            ValueDescription.Name = value.ToString().ToUpperInvariant();
-            ValueDescription.Value = value;
+            Definition.Name = value.ToString().ToUpperInvariant();
+            Definition.Value = value;
         }
 
-        protected EnumValueDescription ValueDescription { get; } =
-            new EnumValueDescription();
-
-        public EnumValueDescription CreateDescription()
-        {
-            return ValueDescription;
-        }
-
-        DescriptionBase IDescriptionFactory.CreateDescription() =>
-            CreateDescription();
+        protected override EnumValueDefinition Definition { get; }
 
         public IEnumValueDescriptor SyntaxNode(
             EnumValueDefinitionNode enumValueDefinition)
         {
-            ValueDescription.SyntaxNode = enumValueDefinition;
+            Definition.SyntaxNode = enumValueDefinition;
             return this;
         }
 
         public IEnumValueDescriptor Name(NameString value)
         {
-            ValueDescription.Name = value.EnsureNotEmpty(nameof(value));
+            Definition.Name = value.EnsureNotEmpty(nameof(value));
             return this;
         }
 
         public IEnumValueDescriptor Description(string value)
         {
-            ValueDescription.Description = value;
+            Definition.Description = value;
             return this;
         }
 
         public IEnumValueDescriptor DeprecationReason(string value)
         {
-            ValueDescription.Description = value;
+            Definition.Description = value;
             return this;
         }
+
+        public static EnumValueDescriptor New(object value) =>
+            new EnumValueDescriptor(value);
     }
 }

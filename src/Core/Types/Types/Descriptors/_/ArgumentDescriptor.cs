@@ -10,12 +10,6 @@ namespace HotChocolate.Types.Descriptors
         : ArgumentDescriptorBase<ArgumentDefinition>
         , IArgumentDescriptor
     {
-        protected ArgumentDescriptor(ArgumentDefinition argumentDefinition)
-        {
-            Definition = argumentDefinition
-                ?? throw new ArgumentNullException(nameof(argumentDefinition));
-        }
-
         public ArgumentDescriptor(string argumentName, Type argumentType)
             : this(argumentName)
         {
@@ -24,7 +18,6 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(argumentType));
             }
 
-            Definition = new ArgumentDefinition();
             Definition.Name = argumentName;
             Definition.Type = argumentType.GetInputType();
             Definition.DefaultValue = NullValueNode.Default;
@@ -32,14 +25,9 @@ namespace HotChocolate.Types.Descriptors
 
         public ArgumentDescriptor(NameString argumentName)
         {
-            Definition = new ArgumentDefinition
-            {
-                Name = argumentName.EnsureNotEmpty(nameof(argumentName)),
-                DefaultValue = NullValueNode.Default
-            };
+            Definition.Name = argumentName.EnsureNotEmpty(nameof(argumentName));
+            Definition.DefaultValue = NullValueNode.Default;
         }
-
-        protected override ArgumentDefinition Definition { get; }
 
         public new IArgumentDescriptor SyntaxNode(
             InputValueDefinitionNode inputValueDefinition)
@@ -88,17 +76,18 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public new IArgumentDescriptor Directive<T>(T directiveInstance)
-            where T : class
+        public new IArgumentDescriptor Directive<TDirective>(
+            TDirective directiveInstance)
+            where TDirective : class
         {
             base.Directive(directiveInstance);
             return this;
         }
 
-        public new IArgumentDescriptor Directive<T>()
-            where T : class, new()
+        public new IArgumentDescriptor Directive<TDirective>()
+            where TDirective : class, new()
         {
-            base.Directive<T>();
+            base.Directive<TDirective>();
             return this;
         }
 
@@ -110,6 +99,4 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
     }
-
-
 }

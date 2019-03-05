@@ -6,198 +6,167 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using System.Linq;
 using HotChocolate.Resolvers.CodeGeneration;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal class ObjectFieldDescriptor
-        : IObjectFieldDescriptor
-        , IDefinitionFactory<ObjectFieldDescription>
+    public class ObjectFieldDescriptor
+        : OutputFieldDescriptorBase<ObjectFieldDefinition>
+        , IObjectFieldDescriptor
     {
         private bool _argumentsInitialized;
 
         public ObjectFieldDescriptor(NameString fieldName)
         {
-            FieldDescription.Name =
+            Definition.Name =
                 fieldName.EnsureNotEmpty(nameof(fieldName));
         }
 
         public ObjectFieldDescriptor(MemberInfo member, Type sourceType)
         {
-            FieldDescription.Member = member
+            Definition.Member = member
                 ?? throw new ArgumentNullException(nameof(member));
 
-            FieldDescription.Name = member.GetGraphQLName();
-            FieldDescription.Description = member.GetGraphQLDescription();
-            FieldDescription.Type = member.GetOutputType();
-            FieldDescription.AcquireNonNullStatus(member);
+            Definition.Name = member.GetGraphQLName();
+            Definition.Description = member.GetGraphQLDescription();
+            Definition.Type = member.GetOutputType();
+            Definition.AcquireNonNullStatus(member);
         }
 
-        protected ObjectFieldDescription FieldDescription { get; } =
-            new ObjectFieldDescription();
+        protected override ObjectFieldDefinition Definition { get; } =
+            new ObjectFieldDefinition();
 
-        public new ObjectFieldDescription CreateDescription()
+        protected override void OnCreateDefinition(
+            ObjectFieldDefinition definition)
         {
-            CompleteArguments();
-            FieldDescription.RewriteClrType(c => c.GetOutputType());
-            return FieldDescription;
+            CompleteArguments(definition);
+            definition.RewriteClrType(c => c.GetOutputType());
         }
 
-
-
-        protected void Resolver(FieldResolverDelegate fieldResolver)
-        {
-            FieldDescription.Resolver = fieldResolver;
-        }
-
-        protected void Resolver(
-            FieldResolverDelegate fieldResolver,
-            Type resultType)
-        {
-            FieldDescription.Resolver = fieldResolver;
-            FieldDescription.Type = FieldDescription.Type
-                .GetMoreSpecific(resultType, TypeContext.Output);
-        }
-
-        protected void Use(FieldMiddleware middleware)
-        {
-            if (middleware == null)
-            {
-                throw new ArgumentNullException(nameof(middleware));
-            }
-
-            FieldDescription.MiddlewareComponents.Add(middleware);
-        }
-
-        private void CompleteArguments()
+        private void CompleteArguments(ObjectFieldDefinition definition)
         {
             if (!_argumentsInitialized)
             {
                 FieldDescriptorUtilities.DiscoverArguments(
-                    FieldDescription.Arguments,
-                    FieldDescription.ClrMember);
+                    definition.Arguments,
+                    definition.Member);
                 _argumentsInitialized = true;
             }
         }
 
-        #region IObjectFieldDescriptor
-
-        public IObjectFieldDescriptor SyntaxNode(
+        public new IObjectFieldDescriptor SyntaxNode(
             FieldDefinitionNode fieldDefinition)
         {
-            FieldDescription.SyntaxNode = fieldDefinition;
+            base.SyntaxNode(fieldDefinition);
             return this;
         }
 
-        public IObjectFieldDescriptor Name(NameString value)
+        public new IObjectFieldDescriptor Name(NameString value)
         {
-            FieldDescription.Name = value.EnsureNotEmpty(nameof(value));
+            base.Name(value);
             return this;
         }
 
-        public IObjectFieldDescriptor Description(
-            string description)
+        public new IObjectFieldDescriptor Description(
+            string value)
         {
-            FieldDescription.Description = description;
+            base.Description(value);
             return this;
         }
 
-        public IObjectFieldDescriptor DeprecationReason(
-            string deprecationReason)
+        public new IObjectFieldDescriptor DeprecationReason(
+            string value)
         {
-            FieldDescription.DeprecationReason = deprecationReason;
+            base.DeprecationReason(value);
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Type<TOutputType>()
+        public new IObjectFieldDescriptor Type<TOutputType>()
+            where TOutputType : IOutputType
         {
-            FieldDescription.Type = FieldDescription.SetMoreSpecificType(
-                typeof(TInputType), TypeContext.Input);
+            base.Type<TOutputType>();
             return this;
         }
 
-        public IObjectFieldDescriptor Type<TOutputType>(
+        public new IObjectFieldDescriptor Type<TOutputType>(
             TOutputType outputType)
             where TOutputType : class, IOutputType
         {
-            if (outputType == null)
-            {
-                throw new ArgumentNullException(nameof(outputType));
-            }
-            FieldDescription.Type = new SchemaTypeReference(outputType);
+            base.Type(outputType);
             return this;
         }
 
-        public IObjectFieldDescriptor Type(ITypeNode typeNode)
+        public new IObjectFieldDescriptor Type(ITypeNode typeNode)
         {
-            if (typeNode == null)
-            {
-                throw new ArgumentNullException(nameof(typeNode));
-            }
-            FieldDescription.SetMoreSpecificType(typeNode);
+            base.Type(typeNode);
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Argument(
+        public new IObjectFieldDescriptor Argument(
             NameString name,
             Action<IArgumentDescriptor> argument)
         {
-            Argument(name, argument);
+            base.Argument(name, argument);
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Ignore()
+        public new IObjectFieldDescriptor Ignore()
         {
-            Ignore();
+            base.Ignore();
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Resolver(
+        public IObjectFieldDescriptor Resolver(
             FieldResolverDelegate fieldResolver)
         {
-            Resolver(fieldResolver);
+            if (fieldResolver == null)
+            {
+                throw new ArgumentNullException(nameof(fieldResolver));
+            }
+
+            Definition.Resolver = fieldResolver;
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Resolver(
+        public IObjectFieldDescriptor Resolver(
             FieldResolverDelegate fieldResolver,
             Type resultType)
         {
+            if (fieldResolver == null)
+            {
+                throw new ArgumentNullException(nameof(fieldResolver));
+            }
+
             Resolver(fieldResolver, resultType);
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Use(
-            FieldMiddleware middleware)
+        public IObjectFieldDescriptor Use(FieldMiddleware middleware)
         {
             Use(middleware);
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Directive<T>(T directive)
+        public IObjectFieldDescriptor Directive<T>(T directive)
+            where T : class
         {
-            FieldDescription.Directives.AddDirective(directive);
+
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Directive<T>()
+        public IObjectFieldDescriptor Directive<T>()
+            where T : class, new()
         {
             FieldDescription.Directives.AddDirective(new T());
             return this;
         }
 
-        IObjectFieldDescriptor IObjectFieldDescriptor.Directive(
+        public IObjectFieldDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
             FieldDescription.Directives.AddDirective(name, arguments);
             return this;
         }
-
-        DescriptionBase IDescriptionFactory.CreateDescription()
-        {
-            throw new NotImplementedException();
-        }
-
-        #endregion
     }
 }

@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Resolvers.CodeGeneration;
+using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
     internal static class FieldDescriptorUtilities
     {
         internal static void DiscoverArguments(
-            ICollection<ArgumentDescription> arguments,
+            ICollection<ArgumentDefinition> arguments,
             MemberInfo member)
         {
             if (arguments == null)

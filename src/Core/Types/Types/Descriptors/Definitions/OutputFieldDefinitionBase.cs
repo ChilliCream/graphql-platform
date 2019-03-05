@@ -3,7 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
-    public class ComplexFieldDefinitionBase
+    public class OutputFieldDefinitionBase
         : FieldDefinitionBase<FieldDefinitionNode>
         , ICanBeDeprecated
     {
