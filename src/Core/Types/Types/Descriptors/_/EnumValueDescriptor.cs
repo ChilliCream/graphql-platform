@@ -5,7 +5,7 @@ namespace HotChocolate.Types.Descriptors
 {
     public class EnumValueDescriptor
         : IEnumValueDescriptor
-        , IDescriptionFactory<EnumValueDescription>
+        , IDefinitionFactory<EnumValueDescription>
     {
         public EnumValueDescriptor(object value)
         {

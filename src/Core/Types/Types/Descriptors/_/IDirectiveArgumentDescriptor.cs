@@ -3,32 +3,25 @@
 namespace HotChocolate.Types
 {
     public interface IDirectiveArgumentDescriptor
-        : IArgumentDescriptor
     {
-        new IDirectiveArgumentDescriptor SyntaxNode(
+        IDirectiveArgumentDescriptor SyntaxNode(
             InputValueDefinitionNode inputValueDefinition);
 
-        IDirectiveArgumentDescriptor Name(
-            NameString value);
+        IDirectiveArgumentDescriptor Name(NameString value);
 
-        new IDirectiveArgumentDescriptor Description(
-            string value);
+        IDirectiveArgumentDescriptor Description(string value);
 
-        new IDirectiveArgumentDescriptor Type<TInputType>()
+        IDirectiveArgumentDescriptor Type<TInputType>()
             where TInputType : IInputType;
 
-        new IDirectiveArgumentDescriptor Type<TInputType>(
-            TInputType inputType)
+        IDirectiveArgumentDescriptor Type<TInputType>(TInputType inputType)
             where TInputType : class, IInputType;
 
-        new IDirectiveArgumentDescriptor Type(
-            ITypeNode typeNode);
+        IDirectiveArgumentDescriptor Type(ITypeNode typeNode);
 
-        new IDirectiveArgumentDescriptor DefaultValue(
-            IValueNode value);
+        IDirectiveArgumentDescriptor DefaultValue(IValueNode value);
 
-        new IDirectiveArgumentDescriptor DefaultValue(
-            object value);
+        IDirectiveArgumentDescriptor DefaultValue(object value);
 
         IDirectiveArgumentDescriptor Ignore();
     }

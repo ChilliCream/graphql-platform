@@ -4,7 +4,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Descriptors
 {
     internal class ComplexFieldDescriptorBase<TDescription>
-        : IDescriptionFactory<TDescription>
+        : IDefinitionFactory<TDescription>
         where TDescription : ComplexFieldDescriptionBase
     {
         protected ComplexFieldDescriptorBase(
@@ -77,7 +77,7 @@ namespace HotChocolate.Types.Descriptors
             var descriptor = new ArgumentDescriptor(
                 name.EnsureNotEmpty(nameof(name)));
             argument(descriptor);
-            FieldDescription.Arguments.Add(descriptor.CreateDescription());
+            FieldDescription.Arguments.Add(descriptor.CreateDefinition());
         }
 
         protected void DeprecationReason(string deprecationReason)

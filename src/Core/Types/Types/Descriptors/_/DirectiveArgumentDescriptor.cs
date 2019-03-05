@@ -1,55 +1,46 @@
 ﻿using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
     public class DirectiveArgumentDescriptor
-        : ArgumentDescriptor
+        : ArgumentDescriptorBase<DirectiveArgumentDefinition>
         , IDirectiveArgumentDescriptor
-        , IDescriptionFactory<DirectiveArgumentDescription>
     {
         public DirectiveArgumentDescriptor(string argumentName)
-            : base(new DirectiveArgumentDescription())
         {
-            InputDescription =
-                (DirectiveArgumentDescription)base.InputDescription;
-            InputDescription.Name = argumentName;
-            InputDescription.DefaultValue = NullValueNode.Default;
+            Definition.Name = argumentName;
+            Definition.DefaultValue = NullValueNode.Default;
         }
 
         public DirectiveArgumentDescriptor(
-            string argumentName, PropertyInfo property)
+            string argumentName,
+            PropertyInfo property)
             : this(argumentName)
         {
-            InputDescription.Description = property.GetGraphQLDescription();
-            InputDescription.Property = property;
-            InputDescription.Type = property.GetInputType();
-        }
-
-        protected new DirectiveArgumentDescription InputDescription { get; }
-
-        public new DirectiveArgumentDescription CreateDescription()
-        {
-            return InputDescription;
+            Definition.Description = property.GetGraphQLDescription();
+            Definition.Property = property;
+            Definition.Type = property.GetInputType();
         }
 
         public new IDirectiveArgumentDescriptor SyntaxNode(
             InputValueDefinitionNode inputValueDefinition)
         {
-            InputDescription.SyntaxNode = inputValueDefinition;
+            base.SyntaxNode(inputValueDefinition);
             return this;
         }
 
         public IDirectiveArgumentDescriptor Name(
             NameString value)
         {
-            InputDescription.Name = value.EnsureNotEmpty(nameof(value));
+            Definition.Name = value.EnsureNotEmpty(nameof(value));
             return this;
         }
         public new IDirectiveArgumentDescriptor Description(string value)
         {
-            InputDescription.Description = value;
+            base.Description(value);
             return this;
         }
 
@@ -91,7 +82,7 @@ namespace HotChocolate.Types.Descriptors
 
         public IDirectiveArgumentDescriptor Ignore()
         {
-            InputDescription.Ignore = true;
+            Definition.Ignore = true;
             return this;
         }
     }

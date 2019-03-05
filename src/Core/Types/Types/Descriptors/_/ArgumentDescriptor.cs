@@ -1,17 +1,19 @@
-﻿using System;
+﻿using System.Reflection.Emit;
+using System;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
     public class ArgumentDescriptor
-        : IArgumentDescriptor
-        , IDescriptionFactory<ArgumentDescription>
+        : ArgumentDescriptorBase<ArgumentDefinition>
+        , IArgumentDescriptor
     {
-        protected ArgumentDescriptor(ArgumentDescription argumentDescription)
+        protected ArgumentDescriptor(ArgumentDefinition argumentDefinition)
         {
-            InputDescription = argumentDescription
-                ?? throw new ArgumentNullException(nameof(argumentDescription));
+            Definition = argumentDefinition
+                ?? throw new ArgumentNullException(nameof(argumentDefinition));
         }
 
         public ArgumentDescriptor(string argumentName, Type argumentType)
@@ -22,117 +24,92 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(argumentType));
             }
 
-            InputDescription = new ArgumentDescription();
-            InputDescription.Name = argumentName;
-            InputDescription.Type = argumentType.GetInputType();
-            InputDescription.DefaultValue = NullValueNode.Default;
+            Definition = new ArgumentDefinition();
+            Definition.Name = argumentName;
+            Definition.Type = argumentType.GetInputType();
+            Definition.DefaultValue = NullValueNode.Default;
         }
 
         public ArgumentDescriptor(NameString argumentName)
         {
-            InputDescription = new ArgumentDescription
+            Definition = new ArgumentDefinition
             {
                 Name = argumentName.EnsureNotEmpty(nameof(argumentName)),
                 DefaultValue = NullValueNode.Default
             };
         }
 
-        protected ArgumentDescription InputDescription { get; }
+        protected override ArgumentDefinition Definition { get; }
 
-        public ArgumentDescription CreateDescription()
-        {
-            return InputDescription;
-        }
-
-        DescriptionBase IDescriptionFactory.CreateDescription() =>
-            CreateDescription();
-
-        public IArgumentDescriptor SyntaxNode(
+        public new IArgumentDescriptor SyntaxNode(
             InputValueDefinitionNode inputValueDefinition)
         {
-            InputDescription.SyntaxNode = inputValueDefinition;
+            base.SyntaxNode(inputValueDefinition);
             return this;
         }
 
-        public IArgumentDescriptor Description(string value)
+        public new IArgumentDescriptor Description(string value)
         {
-            InputDescription.Description = value;
+            base.Description(value);
             return this;
         }
 
-        public IArgumentDescriptor Type<TInputType>()
+        public new IArgumentDescriptor Type<TInputType>()
             where TInputType : IInputType
         {
-            InputDescription.Type = InputDescription.Type.GetMoreSpecific(
-                typeof(TInputType), TypeContext.Input);
+            base.Type<TInputType>();
             return this;
         }
 
-        public IArgumentDescriptor Type<TInputType>(
+        public new IArgumentDescriptor Type<TInputType>(
             TInputType inputType)
             where TInputType : class, IInputType
         {
-            if (inputType == null)
-            {
-                throw new ArgumentNullException(nameof(inputType));
-            }
-            InputDescription.Type = new SchemaTypeReference(inputType);
+            base.Type<TInputType>(inputType);
             return this;
         }
 
-        public IArgumentDescriptor Type(
+        public new IArgumentDescriptor Type(
             ITypeNode typeNode)
         {
-            InputDescription.Type = InputDescription.Type
-                .GetMoreSpecific(typeNode);
+            base.Type(typeNode);
             return this;
         }
 
-        public IArgumentDescriptor DefaultValue(IValueNode value)
+        public new IArgumentDescriptor DefaultValue(IValueNode value)
         {
-            InputDescription.DefaultValue =
-                value ?? NullValueNode.Default;
-            InputDescription.NativeDefaultValue = null;
+            base.DefaultValue(value);
             return this;
         }
 
-        public IArgumentDescriptor DefaultValue(object value)
+        public new IArgumentDescriptor DefaultValue(object value)
         {
-            if (value == null)
-            {
-                InputDescription.DefaultValue = NullValueNode.Default;
-                InputDescription.NativeDefaultValue = null;
-            }
-            else
-            {
-                InputDescription.Type = InputDescription.Type
-                    .GetMoreSpecific(value.GetType(), TypeContext.Input);
-                InputDescription.NativeDefaultValue = value;
-                InputDescription.DefaultValue = null;
-            }
+            base.DefaultValue(value);
             return this;
         }
 
-        public IArgumentDescriptor Directive<T>(T directiveInstance)
+        public new IArgumentDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
-            InputDescription.AddDirective(directiveInstance);
+            base.Directive(directiveInstance);
             return this;
         }
 
-        public IArgumentDescriptor Directive<T>()
+        public new IArgumentDescriptor Directive<T>()
             where T : class, new()
         {
-            InputDescription.AddDirective(new T());
+            base.Directive<T>();
             return this;
         }
 
-        public IArgumentDescriptor Directive(
+        public new IArgumentDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
-            InputDescription.AddDirective(name, arguments);
+            base.Directive(name, arguments);
             return this;
         }
     }
+
+
 }

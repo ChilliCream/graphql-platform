@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Descriptors
 {
     internal class ObjectFieldDescriptor
         : IObjectFieldDescriptor
-        , IDescriptionFactory<ObjectFieldDescription>
+        , IDefinitionFactory<ObjectFieldDescription>
     {
         private bool _argumentsInitialized;
 
