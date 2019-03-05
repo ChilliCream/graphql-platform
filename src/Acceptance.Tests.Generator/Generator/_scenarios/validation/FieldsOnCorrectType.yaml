@@ -1,0 +1,315 @@
+scenario: 'Validate: Fields on correct type'
+background:
+  schema-file: validation.schema.graphql
+tests:
+  - name: Object field selection
+    given:
+      query: |-
+        fragment objectFieldSelection on Dog {
+          __typename
+          name
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      passes: true
+  - name: Aliased object field selection
+    given:
+      query: |-
+        fragment aliasedObjectFieldSelection on Dog {
+          tn : __typename
+          otherName : name
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      passes: true
+  - name: Interface field selection
+    given:
+      query: |-
+        fragment interfaceFieldSelection on Pet {
+          __typename
+          name
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      passes: true
+  - name: Aliased interface field selection
+    given:
+      query: |-
+        fragment interfaceFieldSelection on Pet {
+          otherName : name
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      passes: true
+  - name: Lying alias selection
+    given:
+      query: |-
+        fragment lyingAliasSelection on Dog {
+          name : nickname
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      passes: true
+  - name: Ignores fields on unknown type
+    given:
+      query: |-
+        fragment unknownSelection on UnknownType {
+          unknownField
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      passes: true
+  - name: reports errors when type is known again
+    given:
+      query: |-
+        fragment typeKnownAgain on Pet {
+          unknown_pet_field {
+            ... on Cat {
+              unknown_cat_field
+            }
+          }
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      - error-count: 2
+      - error-code: undefinedField
+        args:
+          fieldName: unknown_pet_field
+          type: Pet
+        loc:
+          line: 2
+          column: 3
+      - error-code: undefinedField
+        args:
+          fieldName: unknown_cat_field
+          type: Cat
+        loc:
+          line: 4
+          column: 7
+  - name: Field not defined on fragment
+    given:
+      query: |-
+        fragment fieldNotDefined on Dog {
+          meowVolume
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      - error-count: 1
+      - error-code: undefinedField
+        args:
+          fieldName: meowVolume
+          type: Dog
+        loc:
+          line: 2
+          column: 3
+  - name: Ignores deeply unknown field
+    given:
+      query: |-
+        fragment deepFieldNotDefined on Dog {
+          unknown_field {
+            deeper_unknown_field
+          }
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      - error-count: 1
+      - error-code: undefinedField
+        args:
+          fieldName: unknown_field
+          type: Dog
+        loc:
+          line: 2
+          column: 3
+  - name: Sub-field not defined
+    given:
+      query: |-
+        fragment subFieldNotDefined on Human {
+          pets {
+            unknown_field
+          }
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      - error-count: 1
+      - error-code: undefinedField
+        args:
+          fieldName: unknown_field
+          type: Pet
+        loc:
+          line: 3
+          column: 5
+  - name: Field not defined on inline fragment
+    given:
+      query: |-
+        fragment fieldNotDefined on Pet {
+          ... on Dog {
+            meowVolume
+          }
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      - error-count: 1
+      - error-code: undefinedField
+        args:
+          fieldName: meowVolume
+          type: Dog
+        loc:
+          line: 3
+          column: 5
+  - name: Aliased field target not defined
+    given:
+      query: |-
+        fragment aliasedFieldTargetNotDefined on Dog {
+          volume : mooVolume
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      - error-count: 1
+      - error-code: undefinedField
+        args:
+          fieldName: mooVolume
+          type: Dog
+        loc:
+          line: 2
+          column: 3
+  - name: Aliased lying field target not defined
+    given:
+      query: |-
+        fragment aliasedLyingFieldTargetNotDefined on Dog {
+          barkVolume : kawVolume
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      - error-count: 1
+      - error-code: undefinedField
+        args:
+          fieldName: kawVolume
+          type: Dog
+        loc:
+          line: 2
+          column: 3
+  - name: Not defined on interface
+    given:
+      query: |-
+        fragment notDefinedOnInterface on Pet {
+          tailLength
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      - error-count: 1
+      - error-code: undefinedField
+        args:
+          fieldName: tailLength
+          type: Pet
+        loc:
+          line: 2
+          column: 3
+  - name: Defined on implementors but not on interface
+    given:
+      query: |-
+        fragment definedOnImplementorsButNotInterface on Pet {
+          nickname
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      - error-count: 1
+      - error-code: undefinedField
+        args:
+          fieldName: nickname
+          type: Pet
+        loc:
+          line: 2
+          column: 3
+  - name: Meta field selection on union
+    given:
+      query: |-
+        fragment directFieldSelectionOnUnion on CatOrDog {
+          __typename
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      passes: true
+  - name: Direct field selection on union
+    given:
+      query: |-
+        fragment directFieldSelectionOnUnion on CatOrDog {
+          directField
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      - error-count: 1
+      - error-code: undefinedField
+        args:
+          fieldName: directField
+          type: CatOrDog
+        loc:
+          line: 2
+          column: 3
+  - name: Defined on implementors queried on union
+    given:
+      query: |-
+        fragment definedOnImplementorsQueriedOnUnion on CatOrDog {
+          name
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      - error-count: 1
+      - error-code: undefinedField
+        args:
+          fieldName: name
+          type: CatOrDog
+        loc:
+          line: 2
+          column: 3
+  - name: valid field in inline fragment
+    given:
+      query: |-
+        fragment objectFieldSelection on Pet {
+          ... on Dog {
+            name
+          }
+          ... {
+            name
+          }
+        }
+    when:
+      validate:
+        - FieldsOnCorrectType
+    then:
+      passes: true

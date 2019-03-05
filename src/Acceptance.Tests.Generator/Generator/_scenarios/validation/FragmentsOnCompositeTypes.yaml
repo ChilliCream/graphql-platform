@@ -1,0 +1,136 @@
+scenario: 'Validate: Fragments on composite types'
+background:
+  schema-file: validation.schema.graphql
+tests:
+  - name: object is valid fragment type
+    given:
+      query: |-
+        fragment validFragment on Dog {
+          barks
+        }
+    when:
+      validate:
+        - FragmentsOnCompositeTypes
+    then:
+      passes: true
+  - name: interface is valid fragment type
+    given:
+      query: |-
+        fragment validFragment on Pet {
+          name
+        }
+    when:
+      validate:
+        - FragmentsOnCompositeTypes
+    then:
+      passes: true
+  - name: object is valid inline fragment type
+    given:
+      query: |-
+        fragment validFragment on Pet {
+          ... on Dog {
+            barks
+          }
+        }
+    when:
+      validate:
+        - FragmentsOnCompositeTypes
+    then:
+      passes: true
+  - name: inline fragment without type is valid
+    given:
+      query: |-
+        fragment validFragment on Pet {
+          ... {
+            name
+          }
+        }
+    when:
+      validate:
+        - FragmentsOnCompositeTypes
+    then:
+      passes: true
+  - name: union is valid fragment type
+    given:
+      query: |-
+        fragment validFragment on CatOrDog {
+          __typename
+        }
+    when:
+      validate:
+        - FragmentsOnCompositeTypes
+    then:
+      passes: true
+  - name: scalar is invalid fragment type
+    given:
+      query: |-
+        fragment scalarFragment on Boolean {
+          bad
+        }
+    when:
+      validate:
+        - FragmentsOnCompositeTypes
+    then:
+      - error-count: 1
+      - error-code: fragmentOnNonCompositeType
+        args:
+          fragmentName: scalarFragment
+          type: Boolean
+        loc:
+          line: 1
+          column: 28
+  - name: enum is invalid fragment type
+    given:
+      query: |-
+        fragment scalarFragment on FurColor {
+          bad
+        }
+    when:
+      validate:
+        - FragmentsOnCompositeTypes
+    then:
+      - error-count: 1
+      - error-code: fragmentOnNonCompositeType
+        args:
+          fragmentName: scalarFragment
+          type: FurColor
+        loc:
+          line: 1
+          column: 28
+  - name: input object is invalid fragment type
+    given:
+      query: |-
+        fragment inputFragment on ComplexInput {
+          stringField
+        }
+    when:
+      validate:
+        - FragmentsOnCompositeTypes
+    then:
+      - error-count: 1
+      - error-code: fragmentOnNonCompositeType
+        args:
+          fragmentName: inputFragment
+          type: ComplexInput
+        loc:
+          line: 1
+          column: 27
+  - name: scalar is invalid inline fragment type
+    given:
+      query: |-
+        fragment invalidFragment on Pet {
+          ... on String {
+            barks
+          }
+        }
+    when:
+      validate:
+        - FragmentsOnCompositeTypes
+    then:
+      - error-count: 1
+      - error-code: inlineFragmentOnNonCompositeType
+        args:
+          type: String
+        loc:
+          line: 2
+          column: 10

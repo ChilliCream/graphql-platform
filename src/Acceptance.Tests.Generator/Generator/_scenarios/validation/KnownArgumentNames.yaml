@@ -1,0 +1,227 @@
+scenario: 'Validate: Known argument names'
+background:
+  schema-file: validation.schema.graphql
+tests:
+  - name: single arg is known
+    given:
+      query: |-
+        fragment argOnRequiredArg on Dog {
+          doesKnowCommand(dogCommand: SIT)
+        }
+    when:
+      validate:
+        - KnownArgumentNames
+    then:
+      passes: true
+  - name: multiple args are known
+    given:
+      query: |-
+        fragment multipleArgs on ComplicatedArgs {
+          multipleReqs(req1: 1, req2: 2)
+        }
+    when:
+      validate:
+        - KnownArgumentNames
+    then:
+      passes: true
+  - name: ignores args of unknown fields
+    given:
+      query: |-
+        fragment argOnUnknownField on Dog {
+          unknownField(unknownArg: SIT)
+        }
+    when:
+      validate:
+        - KnownArgumentNames
+    then:
+      passes: true
+  - name: multiple args in reverse order are known
+    given:
+      query: |-
+        fragment multipleArgsReverseOrder on ComplicatedArgs {
+          multipleReqs(req2: 2, req1: 1)
+        }
+    when:
+      validate:
+        - KnownArgumentNames
+    then:
+      passes: true
+  - name: no args on optional arg
+    given:
+      query: |-
+        fragment noArgOnOptionalArg on Dog {
+          isHousetrained
+        }
+    when:
+      validate:
+        - KnownArgumentNames
+    then:
+      passes: true
+  - name: args are known deeply
+    given:
+      query: |-
+        {
+          dog {
+            doesKnowCommand(dogCommand: SIT)
+          }
+          human {
+            pet {
+              ... on Dog {
+                doesKnowCommand(dogCommand: SIT)
+              }
+            }
+          }
+        }
+    when:
+      validate:
+        - KnownArgumentNames
+    then:
+      passes: true
+  - name: directive args are known
+    given:
+      query: |-
+        {
+          dog @skip(if: true)
+        }
+    when:
+      validate:
+        - KnownArgumentNames
+    then:
+      passes: true
+  - name: undirective args are invalid
+    given:
+      query: |-
+        {
+          dog @skip(unless: true)
+        }
+    when:
+      validate:
+        - KnownArgumentNames
+    then:
+      - error-count: 1
+      - error-code: unknownDirectiveArgument
+        args:
+          argumentName: unless
+          directiveName: skip
+        loc:
+          line: 2
+          column: 13
+  - name: misspelled directive args are reported
+    given:
+      query: |-
+        {
+          dog @skip(iff: true)
+        }
+    when:
+      validate:
+        - KnownArgumentNames
+    then:
+      - error-count: 1
+      - error-code: unknownDirectiveArgument
+        args:
+          argumentName: iff
+          directiveName: skip
+        loc:
+          line: 2
+          column: 13
+  - name: invalid arg name
+    given:
+      query: |-
+        fragment invalidArgName on Dog {
+          doesKnowCommand(unknown: true)
+        }
+    when:
+      validate:
+        - KnownArgumentNames
+    then:
+      - error-count: 1
+      - error-code: unknownArgument
+        args:
+          argumentName: unknown
+          fieldName: doesKnowCommand
+          typeName: Dog
+        loc:
+          line: 2
+          column: 19
+  - name: misspelled arg name is reported
+    given:
+      query: |-
+        fragment invalidArgName on Dog {
+          doesKnowCommand(dogcommand: true)
+        }
+    when:
+      validate:
+        - KnownArgumentNames
+    then:
+      - error-count: 1
+      - error-code: unknownArgument
+        args:
+          argumentName: dogcommand
+          fieldName: doesKnowCommand
+          typeName: Dog
+        loc:
+          line: 2
+          column: 19
+  - name: unknown args amongst known args
+    given:
+      query: |-
+        fragment oneGoodArgOneInvalidArg on Dog {
+          doesKnowCommand(whoknows: 1, dogCommand: SIT, unknown: true)
+        }
+    when:
+      validate:
+        - KnownArgumentNames
+    then:
+      - error-count: 2
+      - error-code: unknownArgument
+        args:
+          argumentName: whoknows
+          fieldName: doesKnowCommand
+          typeName: Dog
+        loc:
+          line: 2
+          column: 19
+      - error-code: unknownArgument
+        args:
+          argumentName: unknown
+          fieldName: doesKnowCommand
+          typeName: Dog
+        loc:
+          line: 2
+          column: 49
+  - name: unknown args deeply
+    given:
+      query: |-
+        {
+          dog {
+            doesKnowCommand(unknown: true)
+          }
+          human {
+            pet {
+              ... on Dog {
+                doesKnowCommand(unknown: true)
+              }
+            }
+          }
+        }
+    when:
+      validate:
+        - KnownArgumentNames
+    then:
+      - error-count: 2
+      - error-code: unknownArgument
+        args:
+          argumentName: unknown
+          fieldName: doesKnowCommand
+          typeName: Dog
+        loc:
+          line: 3
+          column: 21
+      - error-code: unknownArgument
+        args:
+          argumentName: unknown
+          fieldName: doesKnowCommand
+          typeName: Dog
+        loc:
+          line: 8
+          column: 25

@@ -1,0 +1,59 @@
+requiredSubselection:
+  message: Field "${fieldName}" of type "${type}" must have a selection of subfields. Did you mean "${fieldName} { ... }"?
+  references:
+    spec: http://facebook.github.io/graphql/June2018/#sec-Leaf-Field-Selections
+    implementation: https://github.com/graphql/graphql-js/blob/master/src/validation/rules/ScalarLeafs.js
+
+noSubselectionAllowed:
+  message: Field "${fieldName}" must not have a selection since type "${type}" has no subfields.
+  references:
+    spec: http://facebook.github.io/graphql/June2018/#sec-Leaf-Field-Selections
+    implementation: https://github.com/graphql/graphql-js/blob/master/src/validation/rules/ScalarLeafs.js
+
+nonExecutableDefinition:
+  message: The ${defName} definition is not executable.
+  references:
+    spec: http://facebook.github.io/graphql/June2018/#sec-Executable-Definitions
+    implementation: https://github.com/graphql/graphql-js/blob/master/src/validation/rules/ExecutableDefinitions.js
+
+undefinedField:
+  message: Cannot query field "${fieldName}" on type "${type}".
+  references:
+    spec: http://facebook.github.io/graphql/June2018/#sec-Field-Selections-on-Objects-Interfaces-and-Unions-Types
+    implementation: https://github.com/graphql/graphql-js/blob/master/src/validation/rules/FieldsOnCorrectType.js
+
+fragmentOnNonCompositeType:
+  message: Fragment "${fragmentName}" cannot condition on non composite type "${type}".
+  references:
+    spec: http://facebook.github.io/graphql/June2018/#sec-Fragments-On-Composite-Types
+    implementation: https://github.com/graphql/graphql-js/blob/master/src/validation/rules/FragmentsOnCompositeTypes.js
+
+inlineFragmentOnNonCompositeType:
+  message: Fragment cannot condition on non composite type "${type}".
+  references:
+    spec: http://facebook.github.io/graphql/June2018/#sec-Fragments-On-Composite-Types
+    implementation: https://github.com/graphql/graphql-js/blob/master/src/validation/rules/FragmentsOnCompositeTypes.js
+
+unknownArgument:
+  message: Unknown argument "${argumentName}" on field "${fieldName}" of type "${typeName}".
+  references:
+    spec: http://facebook.github.io/graphql/June2018/#sec-Argument-Names
+    implementation: https://github.com/graphql/graphql-js/blob/master/src/validation/rules/KnownArgumentNames.js
+
+unknownDirectiveArgument:
+  message: Unknown argument "${argumentName}" on directive "@${directiveName}".
+  references:
+    spec: http://facebook.github.io/graphql/June2018/#sec-Argument-Names
+    implementation: https://github.com/graphql/graphql-js/blob/master/src/validation/rules/KnownArgumentNames.js
+
+unknownDirective:
+  message: Unknown directive "${directiveName}".
+  references:
+    spec: http://facebook.github.io/graphql/June2018/#sec-Directives-Are-Defined
+    implementation: https://github.com/graphql/graphql-js/blob/master/src/validation/rules/KnownDirectives.js
+
+misplacedDirective:
+  message: Directive "${directiveName}" may not be used on ${location}.
+  references:
+    spec: http://facebook.github.io/graphql/June2018/#sec-Directives-Are-In-Valid-Locations
+    implementation: https://github.com/graphql/graphql-js/blob/master/src/validation/rules/KnownDirectives.js
