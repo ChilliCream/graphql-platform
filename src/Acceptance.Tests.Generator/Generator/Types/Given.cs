@@ -2,6 +2,11 @@ namespace Generator
 {
     internal class Given
     {
+        public string InlineQuery()
+        {
+            return Query.Replace("\n", " ");
+        }
+
         public string Query { get; set; }
         public string Schema { get; set; }
         public string SchemaFile { get; set; }
