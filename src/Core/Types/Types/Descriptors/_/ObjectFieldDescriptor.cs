@@ -147,25 +147,25 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IObjectFieldDescriptor Directive<T>(T directive)
+        public new IObjectFieldDescriptor Directive<T>(T directive)
             where T : class
         {
-
+            base.Directive(directive);
             return this;
         }
 
-        public IObjectFieldDescriptor Directive<T>()
+        public new IObjectFieldDescriptor Directive<T>()
             where T : class, new()
         {
-            FieldDescription.Directives.AddDirective(new T());
+            base.Directive<T>();
             return this;
         }
 
-        public IObjectFieldDescriptor Directive(
+        public new IObjectFieldDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
-            FieldDescription.Directives.AddDirective(name, arguments);
+            base.Directive(name, arguments);
             return this;
         }
     }

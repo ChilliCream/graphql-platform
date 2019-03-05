@@ -5,28 +5,41 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
+    public delegate DocumentNode LoadSchemaDocument(IServiceProvider services);
+
+    public delegate INamedType CreateNamedType(IServiceProvider services);
+
     // TODO : work in progress new schmea builder interface
     public interface ISchemaBuilder
     {
         ISchemaBuilder Use(FieldMiddleware middleware);
 
-        ISchemaBuilder AddSource(string sourceText);
+        ISchemaBuilder AddDocument(
+            LoadSchemaDocument loadSchemaDocument);
 
-        ISchemaBuilder AddType(Type type);
+        // ISchemaBuilder AddType(Type type);
 
-        ISchemaBuilder AddRootType(Type type, OperationType operation);
+        // ISchemaBuilder AddRootType(Type type, OperationType operation);
 
-        ISchemaBuilder AddType(INamedType type);
+        ISchemaBuilder AddType(
+            CreateNamedType createNamedType);
 
-        ISchemaBuilder AddRootType(ObjectType type, OperationType operation);
+        ISchemaBuilder AddRootType(
+            CreateNamedType createNamedType,
+            OperationType operation);
 
-        ISchemaBuilder AddResolver(FieldResolver resolver);
+        ISchemaBuilder AddResolver(IFieldReference fieldReference);
 
         ISchemaBuilder AddBinding(object binding);
 
         ISchemaBuilder AddServices(IServiceProvider services);
 
         ISchema Create();
+    }
+
+    public interface ISchemaBuilderContext
+    {
+
     }
 
     internal class SchemaBuilder

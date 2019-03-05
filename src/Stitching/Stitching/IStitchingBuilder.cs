@@ -9,7 +9,6 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Stitching
 {
-    public delegate DocumentNode LoadSchemaDocument(IServiceProvider services);
     public delegate IQueryExecutor ExecutorFactory(IServiceProvider services);
 
     public interface IStitchingBuilder

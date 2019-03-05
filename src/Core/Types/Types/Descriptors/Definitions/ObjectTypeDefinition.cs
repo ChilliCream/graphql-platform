@@ -11,8 +11,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public BindingBehavior FieldBindingBehavior { get; set; }
 
-        public ICollection<TypeReference> Interfaces { get; } =
-            new List<TypeReference>();
+        public ICollection<ITypeReference> Interfaces { get; } =
+            new List<ITypeReference>();
 
         public IBindableList<ObjectFieldDefinition> Fields { get; } =
             new BindableList<ObjectFieldDefinition>();

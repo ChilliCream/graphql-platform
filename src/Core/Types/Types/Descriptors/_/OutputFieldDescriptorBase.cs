@@ -4,9 +4,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
-    public abstract class OutputFieldDescriptorBase<TDescription>
-        : DescriptorBase<TDescription>
-        where TDescription : OutputFieldDefinitionBase
+    public abstract class OutputFieldDescriptorBase<TDefinition>
+        : DescriptorBase<TDefinition>
+        where TDefinition : OutputFieldDefinitionBase
     {
         protected void SyntaxNode(FieldDefinitionNode syntaxNode)
         {
