@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Descriptors
 {
     public abstract class OutputFieldDescriptorBase<TDescription>
         : DescriptorBase<TDescription>
-        where TDescription : ComplexFieldDefinitionBase
+        where TDescription : OutputFieldDefinitionBase
     {
         protected void SyntaxNode(FieldDefinitionNode syntaxNode)
         {
