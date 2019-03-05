@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate.Types.Descriptors
+namespace HotChocolate.Types.Descriptors.Definitions
 {
     internal static class BindableListExtensions
     {

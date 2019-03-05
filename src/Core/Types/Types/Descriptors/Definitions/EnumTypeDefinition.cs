@@ -5,9 +5,9 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Descriptors.Definitions
 {
     public class EnumTypeDefinition
-        : TypeDescriptionBase<EnumTypeDefinitionNode>
+        : TypeDefinitionBase<EnumTypeDefinitionNode>
     {
-        public IBindableList<EnumValueDescription> Values { get; } =
-            new BindableList<EnumValueDescription>();
+        public IBindableList<EnumValueDefinition> Values { get; } =
+            new BindableList<EnumValueDefinition>();
     }
 }

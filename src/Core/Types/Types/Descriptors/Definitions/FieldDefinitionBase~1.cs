@@ -2,8 +2,8 @@
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
-    public abstract class FieldDescriptionBase<T>
-        : FieldDescriptionBase
+    public abstract class FieldDefinitionBase<T>
+        : FieldDefinitionBase
         , IHasSyntaxNode
         where T : class, ISyntaxNode
     {

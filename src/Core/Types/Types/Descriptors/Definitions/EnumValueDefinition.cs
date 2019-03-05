@@ -2,8 +2,8 @@
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
-    public class EnumValueDescription
-        : TypeDescriptionBase<EnumValueDefinitionNode>
+    public class EnumValueDefinition
+        : TypeDefinitionBase<EnumValueDefinitionNode>
         , ICanBeDeprecated
     {
         public string DeprecationReason { get; set; }

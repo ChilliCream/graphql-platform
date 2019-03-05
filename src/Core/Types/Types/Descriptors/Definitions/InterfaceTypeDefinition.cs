@@ -5,7 +5,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Descriptors.Definitions
 {
     public class InterfaceTypeDefinition
-        : TypeDescriptionBase<InterfaceTypeDefinitionNode>
+        : TypeDefinitionBase<InterfaceTypeDefinitionNode>
     {
         public ResolveAbstractType ResolveAbstractType { get; set; }
 

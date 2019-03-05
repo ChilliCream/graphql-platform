@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace HotChocolate.Types.Descriptors.Definitions
 {
     public sealed class DefinitionValidationResult
-        : IDescriptionValidationResult
+        : IDefinitionValidationResult
     {
         public DefinitionValidationResult(IReadOnlyList<IError> errors)
         {

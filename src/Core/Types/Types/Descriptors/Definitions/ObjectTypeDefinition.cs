@@ -5,7 +5,7 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Descriptors.Definitions
 {
     public class ObjectTypeDefinition
-        : TypeDescriptionBase<ObjectTypeDefinitionNode>
+        : TypeDefinitionBase<ObjectTypeDefinitionNode>
     {
         public IsOfType IsOfType { get; set; }
 

@@ -28,11 +28,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// Validates the description object for consitency and
         /// returns the validation results.
         /// </summary>
-        public IDescriptionValidationResult Validate()
+        public IDefinitionValidationResult Validate()
         {
             var errors = new List<IError>();
             OnValidate(errors);
-            return new DescriptionValidationResult(errors);
+            return new DefinitionValidationResult(errors);
         }
 
         protected virtual void OnValidate(ICollection<IError> errors)

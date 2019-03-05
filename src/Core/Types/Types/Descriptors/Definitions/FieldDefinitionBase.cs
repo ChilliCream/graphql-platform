@@ -5,7 +5,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 {
     public abstract class FieldDefinitionBase
         : DefinitionBase
-        , IHasDirectiveDescriptions
+        , IHasDirectiveDefinition
     {
         /// <summary>
         /// Gets the field type.
