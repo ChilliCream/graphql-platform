@@ -4,9 +4,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Delegation;
 using HotChocolate.Types;
 
-namespace HotChocolate.Stitching
+namespace HotChocolate.Stitching.Utilities
 {
     public class FieldDependencyResolver
         : QuerySyntaxWalker<FieldDependencyResolver.Context>
@@ -105,7 +106,7 @@ namespace HotChocolate.Stitching
 
         private static void CollectDelegationDependencies(
             Context context,
-            IHasName type,
+            Types.IHasName type,
             IOutputField field)
         {
             IDirective directive = field.Directives[DirectiveNames.Delegate]
@@ -125,20 +126,26 @@ namespace HotChocolate.Stitching
             IComplexOutputType type,
             IOutputField field)
         {
-            IDirective directive = field.Directives[DirectiveNames.DependentOn]
+            IDirective directive = field.Directives[DirectiveNames.Computed]
                 .FirstOrDefault();
 
             if (directive != null)
             {
-                foreach (string fieldName in directive
-                    .ToObject<DependentOnDirective>().Fields)
+                NameString[] dependantOn = directive
+                    .ToObject<ComputedDirective>()
+                    .DependantOn;
+
+                if (dependantOn != null)
                 {
-                    if (type.Fields.TryGetField(
-                        fieldName,
-                        out IOutputField dependency))
+                    foreach (string fieldName in dependantOn)
                     {
-                        context.Dependencies.Add(
-                            new FieldDependency(type.Name, dependency.Name));
+                        if (type.Fields.TryGetField(
+                            fieldName,
+                            out IOutputField dependency))
+                        {
+                            context.Dependencies.Add(new FieldDependency(
+                                type.Name, dependency.Name));
+                        }
                     }
                 }
             }
@@ -146,7 +153,7 @@ namespace HotChocolate.Stitching
 
         private static void CollectFieldNames(
             DelegateDirective directive,
-            IHasName type,
+            Types.IHasName type,
             ISet<FieldDependency> dependencies)
         {
             IImmutableStack<SelectionPathComponent> path =

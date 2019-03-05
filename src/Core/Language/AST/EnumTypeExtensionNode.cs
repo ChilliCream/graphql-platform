@@ -4,7 +4,7 @@ namespace HotChocolate.Language
 {
     public sealed class EnumTypeExtensionNode
         : EnumTypeDefinitionNodeBase
-        , ITypeExtensionNode
+        , INamedTypeExtensionNode
     {
         public EnumTypeExtensionNode(
             Location location,

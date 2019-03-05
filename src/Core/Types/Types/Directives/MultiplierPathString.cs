@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.ComponentModel;
 using System.Globalization;
+using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
@@ -25,7 +26,7 @@ namespace HotChocolate.Types
             if (!IsValidName(value))
             {
                 throw new ArgumentException(
-                    TypeResources.Type_Name_IsNotValid(value),
+                    TypeResourceHelper.Type_Name_IsNotValid(value),
                     nameof(value));
             }
             Value = value;
@@ -309,7 +310,7 @@ namespace HotChocolate.Types
             if (name.IsEmpty)
             {
                 throw new ArgumentException(
-                    TypeResources.Name_Cannot_BeEmpty(),
+                    TypeResources.Name_Cannot_BeEmpty,
                     argumentName);
             }
 

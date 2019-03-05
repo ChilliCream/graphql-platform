@@ -1,6 +1,7 @@
 using System;
 using HotChocolate;
 using HotChocolate.AspNetClassic;
+using HotChocolate.AspNetClassic.Voyager;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Owin;
@@ -63,7 +64,9 @@ namespace StarWars
             appBuilder
                 .UseGraphQL(services, new PathString("/graphql"))
                 .UseGraphiQL(new PathString("/graphql"))
-                .UsePlayground(new PathString("/graphql"));
+                .UsePlayground(new PathString("/graphql"))
+                .UseVoyager(new PathString("/graphql"));
+            ;
         }
     }
 }

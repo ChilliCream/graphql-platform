@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution.Configuration;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution.Errors
@@ -33,7 +34,7 @@ namespace HotChocolate.Execution.Errors
             IExecutionResult result = await executor.ExecuteAsync("{ foo }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -81,7 +82,7 @@ namespace HotChocolate.Execution.Errors
                 await executor.ExecuteAsync("{ foo bar }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -108,7 +109,7 @@ namespace HotChocolate.Execution.Errors
             IExecutionResult result = await executor.ExecuteAsync("{ foo }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -135,7 +136,7 @@ namespace HotChocolate.Execution.Errors
             IExecutionResult result = await executor.ExecuteAsync("{ foo }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         public class DummyErrorFilter

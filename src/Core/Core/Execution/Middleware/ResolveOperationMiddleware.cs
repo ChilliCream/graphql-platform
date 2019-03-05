@@ -1,7 +1,9 @@
-﻿using System;
+using System;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Runtime;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
@@ -85,10 +87,8 @@ namespace HotChocolate.Execution
                     return operations[0];
                 }
 
-                // TODO : Resources
                 throw new QueryException(
-                    "Only queries that contain one operation can be executed " +
-                    "without specifying the opartion name.");
+                    CoreResources.GetOperation_MultipleOperations);
             }
             else
             {
@@ -96,10 +96,10 @@ namespace HotChocolate.Execution
                     t => t.Name.Value.EqualsOrdinal(operationName));
                 if (operation == null)
                 {
-                    // TODO : Resources
-                    throw new QueryException(
-                        $"The specified operation `{operationName}` " +
-                        "does not exist.");
+                    throw new QueryException(string.Format(
+                        CultureInfo.CurrentCulture,
+                        CoreResources.GetOperation_InvalidOperationName,
+                        operationName));
                 }
                 return operation;
             }
@@ -132,9 +132,10 @@ namespace HotChocolate.Execution
 
             if (rootType == null)
             {
-                throw new QueryException(
-                    $"The specified root type `{operationType}` " +
-                    "does not exist.");
+                throw new QueryException(string.Format(
+                    CultureInfo.CurrentCulture,
+                    CoreResources.ResolveRootType_DoesNotExist,
+                    operationType));
             }
 
             return rootType;

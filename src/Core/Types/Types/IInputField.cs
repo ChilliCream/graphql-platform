@@ -18,7 +18,5 @@ namespace HotChocolate.Types
         /// Gets the default value literal of this field.
         /// </summary>
         IValueNode DefaultValue { get; }
-
-        IDirectiveCollection Directives { get; }
     }
 }

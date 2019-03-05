@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -18,7 +19,7 @@ namespace HotChocolate.Execution
                 "{ sayHello @resolve @appendString(s: \"abc\") }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -32,7 +33,7 @@ namespace HotChocolate.Execution
                 "{ sayHello @resolve @appendStringMethod(s: \"abc\") }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -46,7 +47,7 @@ namespace HotChocolate.Execution
                 "{ sayHello @resolve @appendStringMethodAsync(s: \"abc\") }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -63,7 +64,7 @@ namespace HotChocolate.Execution
                 "@appendStringMethodAsync(s: \"ghi\") }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         public static ISchema CreateSchema()

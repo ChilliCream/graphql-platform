@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Utilities.Properties;
 
 namespace HotChocolate.Utilities
 {
@@ -21,14 +22,17 @@ namespace HotChocolate.Utilities
         internal static MiddlewareFactory<TMiddleware, TRequestDelegate>
             CompileFactory<TMiddleware, TRequestDelegate>()
         {
-            var services = Expression.Parameter(typeof(IServiceProvider));
-            var nextDelegate = Expression.Parameter(typeof(TRequestDelegate));
+            ParameterExpression services =
+                Expression.Parameter(typeof(IServiceProvider));
+            ParameterExpression nextDelegate =
+                Expression.Parameter(typeof(TRequestDelegate));
 
             NewExpression createInstance = CreateMiddleware<TRequestDelegate>(
                 typeof(TMiddleware).GetTypeInfo(), services, nextDelegate);
 
-            return Expression.Lambda<MiddlewareFactory<TMiddleware, TRequestDelegate>>(
-                createInstance, services, nextDelegate)
+            return Expression
+                .Lambda<MiddlewareFactory<TMiddleware, TRequestDelegate>>(
+                    createInstance, services, nextDelegate)
                 .Compile();
         }
 
@@ -41,18 +45,18 @@ namespace HotChocolate.Utilities
 
             if (method == null)
             {
-                // TODO : Resources
                 throw new NotSupportedException(
-                    "The provided middleware type must contain " +
-                    "an invoke method.");
+                    UtilityResources.MiddlewareActivator_NoInvokeMethod);
             }
 
-            var context = Expression.Parameter(typeof(TContext));
-            var services = Expression.Parameter(typeof(IServiceProvider));
-            var middlewareInstance = Expression.Parameter(
+            ParameterExpression context =
+                Expression.Parameter(typeof(TContext));
+            ParameterExpression services =
+                Expression.Parameter(typeof(IServiceProvider));
+            ParameterExpression middlewareInstance = Expression.Parameter(
                 middlewareType.AsType());
 
-            var middlewareCall = Expression.Call(
+            MethodCallExpression middlewareCall = Expression.Call(
                 middlewareInstance,
                 method,
                 CreateParameters<TContext>(method, services, context));
@@ -75,17 +79,15 @@ namespace HotChocolate.Utilities
 
         private static ConstructorInfo CreateConstructor(TypeInfo middleware)
         {
-            var constructors = middleware.DeclaredConstructors
+            ConstructorInfo[] constructors = middleware.DeclaredConstructors
                 .Where(t => t.IsPublic).ToArray();
             if (constructors.Length == 1)
             {
                 return constructors[0];
             }
 
-            // TODO : Resources
             throw new NotSupportedException(
-                "Middleware classes must have exactly " +
-                "one public constructor.");
+                UtilityResources.MiddlewareActivator_OneConstructor);
         }
 
         private static IEnumerable<Expression> CreateParameters<TContext>(

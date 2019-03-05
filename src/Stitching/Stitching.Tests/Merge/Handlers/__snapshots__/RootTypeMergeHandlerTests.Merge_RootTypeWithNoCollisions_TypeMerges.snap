@@ -1,0 +1,4 @@
+type Query {
+  a: String @delegate(schema: "Schema_A")
+  b: String @delegate(schema: "Schema_B")
+}

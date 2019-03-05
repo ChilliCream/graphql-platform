@@ -9,12 +9,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [0.8.0] - 2019-03-03
+
+### Added
+
 - The stitching layer now batches requests to the remote schemas.
 - Introspection schema serializer.
+- Introduced auto-stitching capabilities with the new `StitchingBuilder`.
+- _GraphQL_ _Voyager_. Special thanks to [@drowhunter](https://github.com/drowhunter) who contributed the middleware.
+
+### Changed
+
+- The authoization directive is now more aligned how the authorize attribute in ASP.net works.
 
 ### Fixed
 
-- Introspection default values are no serialized correctly.
+- Introspection default values are now serialized correctly.
+- Added missing validation rule: https://facebook.github.io/graphql/June2018/#sec-All-Variable-Uses-Defined
+- The non-null value violation is now propagated correctly. https://facebook.github.io/graphql/June2018/#sec-Errors
 
 ## [0.7.0] - 2019-02-03
 

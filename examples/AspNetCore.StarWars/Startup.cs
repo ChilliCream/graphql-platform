@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using HotChocolate;
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Subscriptions;
 using Microsoft.AspNetCore.Builder;
@@ -74,7 +75,8 @@ namespace StarWars
                 .UseWebSockets()
                 .UseGraphQL("/graphql")
                 .UseGraphiQL("/graphql")
-                .UsePlayground("/graphql");
+                .UsePlayground("/graphql")
+                .UseVoyager("/graphql");
 
             /*
             Note: comment app.UseGraphQL("/graphql"); and uncomment this
@@ -84,7 +86,7 @@ namespace StarWars
             app.UseGraphQL(new GraphQLMiddlewareOptions
             {
                 Path = "/graphql",
-                OnCreateRequest = (c, r, p, ct) =>
+                OnCreateRequest = (ctx, builder, ct) =>
                 {
                     var identity = new ClaimsIdentity();
                     identity.AddClaim(new Claim(ClaimTypes.Country, "us"));

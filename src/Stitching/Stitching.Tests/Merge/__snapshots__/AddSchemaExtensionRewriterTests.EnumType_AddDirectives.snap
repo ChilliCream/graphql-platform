@@ -1,0 +1,6 @@
+enum Foo @foo {
+  BAR
+  BAZ
+}
+
+directive @foo on ENUM

@@ -13,9 +13,13 @@ namespace HotChocolate.Resolvers.CodeGeneration
             SourceResolverDescriptor resolverDescriptor,
             StringBuilder source)
         {
-            source.AppendLine($"var source = ctx.{nameof(IResolverContext.Parent)}<{resolverDescriptor.SourceType.GetTypeName()}>();");
+            source.Append($"var source = ctx.");
+            source.Append($"{nameof(IResolverContext.Parent)}<");
+            source.Append(resolverDescriptor.SourceType.GetTypeName());
+            source.AppendLine(">();");
 
-            source.Append($"return await source.{resolverDescriptor.Field.Member.Name}(");
+            source.Append("var resolverTask = source.");
+            source.Append($"{resolverDescriptor.Field.Member.Name}(");
             if (resolverDescriptor.Arguments.Count > 0)
             {
                 string arguments = string.Join(", ",
@@ -23,7 +27,16 @@ namespace HotChocolate.Resolvers.CodeGeneration
                         .Select(t => t.VariableName));
                 source.Append(arguments);
             }
-            source.AppendLine(").ConfigureAwait(false);");
+            source.AppendLine(");");
+
+            source.AppendLine("if(resolverTask == null) {");
+            source.AppendLine("return null;");
+            source.AppendLine("}");
+            source.AppendLine("else");
+            source.AppendLine("{");
+            source.AppendLine("return await resolverTask." +
+                "ConfigureAwait(false);");
+            source.AppendLine("}");
         }
 
         protected override bool CanHandle(SourceResolverDescriptor descriptor)

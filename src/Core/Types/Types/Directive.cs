@@ -113,8 +113,7 @@ namespace HotChocolate.Types
                 }
                 else
                 {
-                    return ValueDeserializer
-                        .ParseLiteral<T>(arg.Type, argValue.Value);
+                    return Type.DeserializeArgument<T>(arg, argValue.Value);
                 }
             }
 
@@ -160,12 +159,10 @@ namespace HotChocolate.Types
             if (arguments.TryGetValue(argument.Name,
                 out ArgumentNode argumentValue))
             {
-                object parsedValue = ValueDeserializer.ParseLiteral(
-                    argument.Type, property.PropertyType, argumentValue.Value);
+                object parsedValue = Type.DeserializeArgument(
+                    argument, argumentValue.Value, property.PropertyType);
 
-                ValueDeserializer.SetProperty(
-                    property, argument.Type.IsListType(),
-                    obj, parsedValue);
+                property.SetValue(obj, parsedValue);
             }
         }
 

@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using GreenDonut;
+using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.DataLoader
@@ -13,9 +14,8 @@ namespace HotChocolate.DataLoader
         {
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : Resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
+                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -36,9 +36,8 @@ namespace HotChocolate.DataLoader
         {
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : Resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
+                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -58,9 +57,8 @@ namespace HotChocolate.DataLoader
         {
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : Resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
+                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -81,9 +79,8 @@ namespace HotChocolate.DataLoader
         {
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : Resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
+                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -103,9 +100,8 @@ namespace HotChocolate.DataLoader
         {
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : Resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
+                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -126,9 +122,8 @@ namespace HotChocolate.DataLoader
         {
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : Resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
+                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -148,9 +143,8 @@ namespace HotChocolate.DataLoader
         {
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : Resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
+                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 
@@ -174,9 +168,8 @@ namespace HotChocolate.DataLoader
         {
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : Resources
                 throw new ArgumentException(
-                    "The DataLoader key cannot be null or empty.",
+                    TypeResources.DataLoaderRegistry_KeyNullOrEmpty,
                     nameof(key));
             }
 

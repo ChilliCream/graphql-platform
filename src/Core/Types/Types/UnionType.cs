@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -129,7 +129,7 @@ namespace HotChocolate.Types
                             return type;
                         }
                     }
-                    return null; // todo: should we throw instead?
+                    return null;
                 };
             }
         }

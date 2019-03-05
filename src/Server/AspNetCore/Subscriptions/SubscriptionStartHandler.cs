@@ -1,4 +1,4 @@
-﻿#if !ASPNETCLASSIC
+#if !ASPNETCLASSIC
 
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,19 +21,20 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             QueryRequestDto payload = message.Payload.ToObject<QueryRequestDto>();
 
-            var request = new QueryRequest(payload.Query, payload.OperationName)
-            {
-                VariableValues = QueryMiddlewareUtilities
-                    .ToDictionary(payload.Variables),
-                Services = context.HttpContext.CreateRequestServices()
-            };
+            IQueryRequestBuilder requestBuilder =
+                QueryRequestBuilder.New()
+                    .SetQuery(payload.Query)
+                    .SetOperation(payload.OperationName)
+                    .SetVariableValues(QueryMiddlewareUtilities
+                        .ToDictionary(payload.Variables))
+                    .SetServices(context.HttpContext.CreateRequestServices());
 
-            await context.PrepareRequestAsync(request)
+            await context.PrepareRequestAsync(requestBuilder)
                 .ConfigureAwait(false);
 
             IExecutionResult result =
                 await context.QueryExecutor.ExecuteAsync(
-                    request, cancellationToken)
+                    requestBuilder.Create(), cancellationToken)
                     .ConfigureAwait(false);
 
             if (result is IResponseStream responseStream)

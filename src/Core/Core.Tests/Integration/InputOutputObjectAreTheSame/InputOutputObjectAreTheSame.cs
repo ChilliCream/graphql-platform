@@ -2,6 +2,7 @@
 using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Integration.InputOutputObjectAreTheSame
@@ -42,7 +43,7 @@ namespace HotChocolate.Integration.InputOutputObjectAreTheSame
 
             // assert
             Assert.Empty(result.Errors);
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         private static Schema CreateSchema()

@@ -33,9 +33,14 @@ namespace HotChocolate
             }
         }
 
-        private static DocumentNode SerializeSchema(
+        public static DocumentNode SerializeSchema(
             ISchema schema)
         {
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
             var referenced = new HashSet<string>();
 
             var typeDefinitions = GetNonScalarTypes(schema)

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -26,7 +27,7 @@ namespace HotChocolate.Execution
                 "{ stringToName(name: \"  \") }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -45,7 +46,8 @@ namespace HotChocolate.Execution
                 "{ stringToFoo(name: \"  \") }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         [Fact]
@@ -64,7 +66,7 @@ namespace HotChocolate.Execution
                 "{ nameToString(name: \"  \") }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -87,7 +89,7 @@ namespace HotChocolate.Execution
                 });
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         public class Query

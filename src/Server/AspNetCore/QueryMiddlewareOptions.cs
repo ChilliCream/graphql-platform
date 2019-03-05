@@ -24,14 +24,13 @@ namespace HotChocolate.AspNetCore
 
     public delegate Task OnCreateRequestAsync(
         HttpContext context,
-        QueryRequest request,
-        IDictionary<string, object> properties,
+        IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken);
 
     public class QueryMiddlewareOptions
     {
         private PathString _path = new PathString("/");
-        private PathString _subscriptionPath;
+        private PathString _subscriptionPath = new PathString("/ws");
 
         public int QueryCacheSize { get; set; } = 100;
 

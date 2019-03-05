@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using HotChocolate.Properties;
 
 namespace HotChocolate
 {
@@ -10,9 +11,8 @@ namespace HotChocolate
         {
             if (string.IsNullOrEmpty(key))
             {
-                // TODO : Resources
-                throw new ArgumentException(
-                    "The state key cannot null or empty.",
+                throw new ArgumentException(AbstractionResources
+                    .State_KeyMustNotBeNullOrEmpty,
                     nameof(key));
             }
 

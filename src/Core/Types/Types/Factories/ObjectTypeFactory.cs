@@ -72,7 +72,9 @@ namespace HotChocolate.Types.Factories
                 fieldDescriptor.Argument(inputFieldDefinition.Name.Value,
                     a =>
                     {
-                        IArgumentDescriptor descriptor = a.Description(inputFieldDefinition.Description?.Value)
+                        IArgumentDescriptor descriptor = a
+                            .Description(
+                                inputFieldDefinition.Description?.Value)
                             .Type(inputFieldDefinition.Type)
                             .DefaultValue(inputFieldDefinition.DefaultValue)
                             .SyntaxNode(inputFieldDefinition);

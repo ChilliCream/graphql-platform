@@ -4,7 +4,7 @@ namespace HotChocolate.Language
 {
     public sealed class ObjectTypeExtensionNode
         : ObjectTypeDefinitionNodeBase
-        , ITypeExtensionNode
+        , INamedTypeExtensionNode
     {
         public ObjectTypeExtensionNode(
             Location location,

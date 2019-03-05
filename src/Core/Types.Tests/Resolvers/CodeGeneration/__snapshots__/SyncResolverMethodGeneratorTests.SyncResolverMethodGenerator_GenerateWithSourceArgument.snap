@@ -1,0 +1,7 @@
+/* Foo.bar */
+public static FieldResolverDelegate abc  = ctx => {
+var ct = ctx.RequestAborted;
+var v0_a = ctx.Parent<HotChocolate.Resolvers.GeneratorTestDummy>();
+var resolver = ctx.Resolver<HotChocolate.Resolvers.GeneratorTestDummyResolver>();
+return Task.FromResult<object>(resolver.GetFoo(v0_a));
+};

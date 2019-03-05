@@ -1,0 +1,8 @@
+input A @source(name: "A", schema: "Schema_A") @source(name: "A", schema: "Schema_C") {
+  b: String
+}
+
+input Schema_B_A @source(name: "A", schema: "Schema_B") {
+  b: String
+  c: String
+}

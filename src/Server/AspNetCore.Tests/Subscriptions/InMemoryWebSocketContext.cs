@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -52,10 +52,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
         }
 
-        public Task PrepareRequestAsync(QueryRequest request)
+        public Task PrepareRequestAsync(IQueryRequestBuilder requestBuilder)
         {
-            request.Properties = new Dictionary<string, object>(
-                RequestProperties);
+            requestBuilder.SetProperties(
+                new Dictionary<string, object>(RequestProperties));
             return Task.CompletedTask;
         }
 

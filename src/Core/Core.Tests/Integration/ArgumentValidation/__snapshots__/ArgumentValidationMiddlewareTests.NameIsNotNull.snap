@@ -1,0 +1,24 @@
+{
+  "Data": {
+    "sayHello": null
+  },
+  "Extensions": {},
+  "Errors": [
+    {
+      "Exception": null,
+      "message": "Argument is not valid.",
+      "path": [
+        "sayHello"
+      ],
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "extensions": {
+        "argumentName": "name"
+      }
+    }
+  ]
+}

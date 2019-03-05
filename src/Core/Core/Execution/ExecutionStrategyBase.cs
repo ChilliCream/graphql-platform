@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -31,6 +33,10 @@ namespace HotChocolate.Execution
                 batchOperationHandler,
                 cancellationToken)
                     .ConfigureAwait(false);
+
+            EnsureRootValueNonNullState(
+                executionContext.Result,
+                rootResolverTasks);
 
             return executionContext.Result;
         }
@@ -58,6 +64,22 @@ namespace HotChocolate.Execution
                 nextBatch.Clear();
 
                 cancellationToken.ThrowIfCancellationRequested();
+            }
+        }
+
+        protected static void EnsureRootValueNonNullState(
+            IQueryResult result,
+            IEnumerable<ResolverTask> rootResolverTasks)
+        {
+            foreach (ResolverTask resolverTask in rootResolverTasks)
+            {
+                FieldSelection selection = resolverTask.FieldSelection;
+                if (resolverTask.FieldType.IsNonNullType()
+                    && result.Data[selection.ResponseName] == null)
+                {
+                    result.Data.Clear();
+                    break;
+                }
             }
         }
 
@@ -127,26 +149,27 @@ namespace HotChocolate.Execution
             Action<ResolverTask> enqueueTask,
             CancellationToken cancellationToken)
         {
+            var completionContext = new CompleteValueContext(
+                executionContext.Services.GetTypeConversion(),
+                executionContext.FieldHelper, enqueueTask);
+
             foreach (ResolverTask resolverTask in currentBatch)
             {
                 resolverTask.ResolverResult = await resolverTask.Task
                     .ConfigureAwait(false);
 
-                // serialize and integrate result into final query result
-                var completionContext = new FieldValueCompletionContext(
-                    executionContext, resolverTask.ResolverContext,
-                    resolverTask, enqueueTask);
-
-                CompleteValue(completionContext);
+                completionContext.CompleteValue(resolverTask);
 
                 cancellationToken.ThrowIfCancellationRequested();
             }
         }
 
-        protected static IEnumerable<ResolverTask> CreateRootResolverTasks(
+        protected static IReadOnlyList<ResolverTask> CreateRootResolverTasks(
             IExecutionContext executionContext,
             IDictionary<string, object> result)
         {
+            var tasks = new List<ResolverTask>();
+
             ImmutableStack<object> source = ImmutableStack<object>.Empty
                 .Push(executionContext.Operation.RootValue);
 
@@ -157,16 +180,14 @@ namespace HotChocolate.Execution
 
             foreach (FieldSelection fieldSelection in fieldSelections)
             {
-                yield return new ResolverTask(
+                tasks.Add(new ResolverTask(
                     executionContext,
-                    executionContext.Operation.RootType,
                     fieldSelection,
-                    Path.New(fieldSelection.ResponseName),
                     source,
-                    result,
-                    ImmutableDictionary<string, object>.Empty
-                    );
+                    result));
             }
+
+            return tasks;
         }
 
         protected static BatchOperationHandler CreateBatchOperationHandler(

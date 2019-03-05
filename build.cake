@@ -128,8 +128,8 @@ Task("PublishTemplates")
         OutputDirectory = "src/Templates"
     };
 
-    ReplaceTextInFiles("src/Templates/StarWars/content/StarWars/StarWars.csproj", "0.7.0-preview.34", packageVersion);
-    ReplaceTextInFiles("src/Templates/Server/content/HotChocolate.Server.csproj", "0.7.0-preview.34", packageVersion);
+    ReplaceTextInFiles("src/Templates/StarWars/content/StarWars/StarWars.csproj", "0.8.0", packageVersion);
+    ReplaceTextInFiles("src/Templates/Server/content/HotChocolate.Server.csproj", "0.8.0", packageVersion);
     NuGetPack("src/Templates/StarWars/HotChocolate.Templates.StarWars.nuspec", nuGetPackSettings);
     NuGetPack("src/Templates/Server/HotChocolate.Templates.Server.nuspec", nuGetPackSettings);
 });
@@ -164,6 +164,19 @@ Task("Tests")
     {
         DotNetCoreTest(file.FullPath, testSettings);
     }
+});
+
+Task("TemplatesCompile")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    var buildSettings = new DotNetCoreBuildSettings
+    {
+        Configuration = "Debug"
+    };
+
+    DotNetCoreBuild("./src/Templates/Server/content", buildSettings);
+    DotNetCoreBuild("./src/Templates/StarWars/content", buildSettings);
 });
 
 Task("CoreTests")

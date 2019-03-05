@@ -1,0 +1,13 @@
+union Foo = A | B | C
+
+type A {
+  a: String
+}
+
+type B {
+  b: String
+}
+
+type C {
+  c: String
+}

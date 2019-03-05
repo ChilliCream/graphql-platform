@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Resolvers;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -35,7 +36,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync("{ a }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -57,7 +58,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync("{ a }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         [Fact]
@@ -80,7 +81,7 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync("{ a }");
 
             // assert
-            result.Snapshot();
+            result.MatchSnapshot();
         }
 
         public class ToUpperMiddleware
