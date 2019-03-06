@@ -7,5 +7,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         , IReadOnlyList<T>
     {
         BindingBehavior BindingBehavior { get; set; }
+
+        void AddRange(IEnumerable<T> items);
     }
 }

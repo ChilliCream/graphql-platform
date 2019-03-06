@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors
 {
     public class ClrTypeReference
         : TypeReferenceBase
@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public ClrTypeReference(
             Type type, TypeContext context,
             bool? isTypeNullable, bool? isElementTypeNullable)
-            : base(isTypeNullable, isElementTypeNullable)
+            : base(context, isTypeNullable, isElementTypeNullable)
         {
             if (type == null)
             {
@@ -23,10 +23,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
             }
 
             Type = type;
-            Context = context;
         }
-
-        public TypeContext Context { get; }
 
         public Type Type { get; }
     }

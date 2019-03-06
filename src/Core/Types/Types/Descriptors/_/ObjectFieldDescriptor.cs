@@ -16,21 +16,35 @@ namespace HotChocolate.Types.Descriptors
     {
         private bool _argumentsInitialized;
 
-        public ObjectFieldDescriptor(NameString fieldName)
+        public ObjectFieldDescriptor(
+            IDescriptorContext context,
+            NameString fieldName)
+            : base(context)
         {
-            Definition.Name =
-                fieldName.EnsureNotEmpty(nameof(fieldName));
+            Definition.Name = fieldName.EnsureNotEmpty(nameof(fieldName));
         }
 
-        public ObjectFieldDescriptor(MemberInfo member, Type sourceType)
+        public ObjectFieldDescriptor(
+            IDescriptorContext context,
+            MemberInfo member)
+            : this(context, member, null)
+        {
+        }
+
+        public ObjectFieldDescriptor(
+            IDescriptorContext context,
+            MemberInfo member,
+            Type resolverType)
+            : base(context)
         {
             Definition.Member = member
                 ?? throw new ArgumentNullException(nameof(member));
 
-            Definition.Name = member.GetGraphQLName();
-            Definition.Description = member.GetGraphQLDescription();
-            Definition.Type = member.GetOutputType();
-            Definition.AcquireNonNullStatus(member);
+            Definition.Name = context.Naming.GetMemberName(member);
+            Definition.Description =
+                context.Naming.GetMemberDescription(member);
+            Definition.Type = context.Inspector.GetReturnType(member);
+            Definition.ResolverType = resolverType;
         }
 
         protected override ObjectFieldDefinition Definition { get; } =
@@ -168,5 +182,21 @@ namespace HotChocolate.Types.Descriptors
             base.Directive(name, arguments);
             return this;
         }
+
+        public static ObjectFieldDescriptor New(
+            IDescriptorContext context,
+            NameString fieldName) =>
+            new ObjectFieldDescriptor(context, fieldName);
+
+        public static ObjectFieldDescriptor New(
+            IDescriptorContext context,
+            MemberInfo member) =>
+            new ObjectFieldDescriptor(context, member);
+
+        public static ObjectFieldDescriptor New(
+            IDescriptorContext context,
+            MemberInfo member,
+            Type resolverType) =>
+            new ObjectFieldDescriptor(context, member, resolverType);
     }
 }

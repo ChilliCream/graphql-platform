@@ -1,4 +1,4 @@
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors
 {
     public interface ISchemaTypeReference
         : ITypeReference

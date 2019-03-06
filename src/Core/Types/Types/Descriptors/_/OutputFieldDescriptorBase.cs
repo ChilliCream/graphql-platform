@@ -8,7 +8,13 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<TDefinition>
         where TDefinition : OutputFieldDefinitionBase
     {
-        protected void SyntaxNode(FieldDefinitionNode syntaxNode)
+        protected OutputFieldDescriptorBase(IDescriptorContext context)
+            : base(context)
+        {
+        }
+
+        protected void SyntaxNode(
+            FieldDefinitionNode syntaxNode)
         {
             Definition.SyntaxNode = syntaxNode;
         }

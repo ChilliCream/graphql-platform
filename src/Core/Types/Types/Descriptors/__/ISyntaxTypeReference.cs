@@ -1,8 +1,8 @@
 using HotChocolate.Language;
 
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors
 {
-    public interface ITypeSyntaxReference
+    public interface ISyntaxTypeReference
         : ITypeReference
     {
         ITypeNode Type { get; }

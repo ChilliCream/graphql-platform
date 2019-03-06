@@ -13,203 +13,111 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<ObjectTypeDefinition>
         , IObjectTypeDescriptor
     {
-        public ObjectTypeDescriptor(Type clrType)
+        public ObjectTypeDescriptor(IDescriptorContext context, Type clrType)
+            : base(context)
         {
             if (clrType == null)
             {
                 throw new ArgumentNullException(nameof(clrType));
             }
 
-            ObjectDescription.Name = clrType.GetGraphQLName();
-            ObjectDescription.Description = clrType.GetGraphQLDescription();
+            Definition.ClrType = clrType;
+            Definition.Name = context.Naming.GetTypeName(clrType);
+            Definition.Description = context.Naming.GetTypeDescription(clrType);
         }
 
-        public ObjectTypeDescriptor(NameString name)
+        public ObjectTypeDescriptor(IDescriptorContext context, NameString name)
+            : base(context)
         {
-            ObjectDescription.Name = name.EnsureNotEmpty(nameof(name));
+            Definition.ClrType = typeof(object);
+            Definition.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         protected override ObjectTypeDefinition Definition { get; } =
             new ObjectTypeDefinition();
 
-        protected List<ObjectFieldDescriptor> Fields { get; } =
+        protected ICollection<ObjectFieldDescriptor> Fields { get; } =
             new List<ObjectFieldDescriptor>();
 
-        protected HashSet<Type> ResolverTypes { get; } =
+        protected ICollection<Type> ResolverTypes { get; } =
             new HashSet<Type>();
 
-
-
-        public ObjectTypeDescription CreateDescription()
+        protected override void OnCreateDefinition(
+            ObjectTypeDefinition definition)
         {
-            CompleteFields();
-            return ObjectDescription;
-        }
-
-        private void CompleteFields()
-        {
-            var fields = new Dictionary<string, ObjectFieldDescription>();
+            var fields = new Dictionary<NameString, ObjectFieldDefinition>();
             var handledMembers = new HashSet<MemberInfo>();
 
-            foreach (ObjectFieldDescriptor fieldDescriptor in Fields)
+            foreach (ObjectFieldDefinition fieldDefinition in
+                Fields.Select(t => t.CreateDefinition()))
             {
-                ObjectFieldDescription fieldDescription = fieldDescriptor
-                    .CreateDescription();
-
-                if (!fieldDescription.Ignored)
+                if (!fieldDefinition.Ignore)
                 {
-                    fields[fieldDescription.Name] = fieldDescription;
+                    fields[fieldDefinition.Name] = fieldDefinition;
                 }
 
-                if (fieldDescription.ClrMember != null)
+                if (fieldDefinition.Member != null)
                 {
-                    handledMembers.Add(fieldDescription.ClrMember);
+                    handledMembers.Add(fieldDefinition.Member);
                 }
             }
 
             OnCompleteFields(fields, handledMembers);
 
-            ObjectDescription.Fields.AddRange(fields.Values);
+            Definition.Fields.AddRange(fields.Values);
         }
 
         protected virtual void OnCompleteFields(
-            IDictionary<string, ObjectFieldDescription> fields,
+            IDictionary<NameString, ObjectFieldDefinition> fields,
             ISet<MemberInfo> handledMembers)
         {
-            AddResolverTypes(fields);
+            DiscoverResolvers(fields);
         }
-
-        protected void Include(Type type)
-        {
-            if (typeof(IType).IsAssignableFrom(type))
-            {
-                throw new ArgumentException(
-                    "Schema types cannot be used as resolver types.");
-            }
-
-            ResolverTypes.Add(type);
-        }
-
-        protected void IsOfType(IsOfType isOfType)
-        {
-            ObjectDescription.IsOfType = isOfType
-                ?? throw new ArgumentNullException(nameof(isOfType));
-        }
-
-        protected ObjectFieldDescriptor Field(NameString name)
-        {
-            var fieldDescriptor = new ObjectFieldDescriptor(
-                name.EnsureNotEmpty(nameof(name)));
-            Fields.Add(fieldDescriptor);
-            return fieldDescriptor;
-        }
-
-        protected ObjectFieldDescriptor Field<TResolver>(
-            Expression<Func<TResolver, object>> propertyOrMethod)
-        {
-            if (propertyOrMethod == null)
-            {
-                throw new ArgumentNullException(nameof(propertyOrMethod));
-            }
-
-            MemberInfo member = propertyOrMethod.ExtractMember();
-            if (member is PropertyInfo || member is MethodInfo)
-            {
-                ObjectFieldDescriptor fieldDescriptor =
-                    CreateFieldDescriptor(
-                        ObjectDescription.ClrType,
-                        typeof(TResolver), member);
-                Fields.Add(fieldDescriptor);
-                return fieldDescriptor;
-            }
-
-            throw new ArgumentException(
-                "A field of an entity can only be a property or a method.",
-                nameof(member));
-        }
-
-        protected void AddResolverTypes(
-            IDictionary<string, ObjectFieldDescription> fields)
+        protected void DiscoverResolvers(
+            IDictionary<NameString, ObjectFieldDefinition> fields)
         {
             var processed = new HashSet<string>();
 
-            if (ObjectDescription.ClrType != null)
+            if (Definition.ClrType != typeof(object))
             {
-                AddResolverTypes(
-                    fields,
-                    processed,
-                    ObjectDescription.ClrType);
+                foreach (Type resolverType in Context.Inspector
+                    .GetResolverTypes(Definition.ClrType))
+                {
+                    ResolverTypes.Add(resolverType);
+                }
             }
 
             foreach (Type resolverType in ResolverTypes)
             {
-                AddResolverType(
+                AddResolvers(
                     fields,
                     processed,
-                    ObjectDescription.ClrType ?? typeof(object),
+                    Definition.ClrType ?? typeof(object),
                     resolverType);
             }
         }
 
-        protected static void AddResolverTypes(
-            IDictionary<string, ObjectFieldDescription> fields,
-            ISet<string> processed,
-            Type sourceType)
-        {
-            if (sourceType.IsDefined(typeof(GraphQLResolverAttribute)))
-            {
-                foreach (Type resolverType in sourceType
-                    .GetCustomAttributes(typeof(GraphQLResolverAttribute))
-                    .OfType<GraphQLResolverAttribute>()
-                    .SelectMany(attr => attr.ResolverTypes))
-                {
-                    AddResolverType(
-                        fields,
-                        processed,
-                        sourceType,
-                        resolverType);
-                }
-            }
-        }
-
-        protected internal static void AddResolverType(
-            IDictionary<string, ObjectFieldDescription> fields,
+        private void AddResolvers(
+            IDictionary<NameString, ObjectFieldDefinition> fields,
             ISet<string> processed,
             Type sourceType,
             Type resolverType)
         {
-            Dictionary<string, MemberInfo> members =
-                ReflectionUtils.GetMembers(resolverType);
-
-            foreach (KeyValuePair<string, MemberInfo> member in members)
+            foreach (MemberInfo member in Context.Inspector
+                .GetMembers(resolverType))
             {
-                if (IsResolverRelevant(sourceType, member.Value))
+                if (IsResolverRelevant(sourceType, member))
                 {
-                    ObjectFieldDescription description =
-                        CreateFieldDescriptor(
-                            sourceType, resolverType, member.Value)
-                        .CreateDescription();
+                    var fieldDefinition = ObjectFieldDescriptor
+                        .New(Context, member, resolverType)
+                        .CreateDefinition();
 
-                    if (processed.Add(description.Name))
+                    if (processed.Add(fieldDefinition.Name))
                     {
-                        fields[description.Name] = description;
+                        fields[fieldDefinition.Name] = fieldDefinition;
                     }
                 }
             }
-        }
-
-        protected static ObjectFieldDescriptor CreateFieldDescriptor(
-            Type sourceType, Type resolverType, MemberInfo member)
-        {
-            var fieldDescriptor = new ObjectFieldDescriptor(
-                member, sourceType);
-
-            if (resolverType != sourceType)
-            {
-                fieldDescriptor.ResolverType(resolverType);
-            }
-
-            return fieldDescriptor;
         }
 
         private static bool IsResolverRelevant(
@@ -231,7 +139,6 @@ namespace HotChocolate.Types.Descriptors
 
             return false;
         }
-
 
         public IObjectTypeDescriptor SyntaxNode(
             ObjectTypeDefinitionNode objectTypeDefinitionNode)
@@ -257,80 +164,110 @@ namespace HotChocolate.Types.Descriptors
         {
             if (typeof(TInterface) == typeof(InterfaceType))
             {
+                // TODO : resources
                 throw new ArgumentException(
                     "The interface type has to be inherited.");
             }
 
-            Definition.Interfaces.Add(
-                typeof(TInterface).GetOutputType());
+            Definition.Interfaces.Add(typeof(TInterface).GetOutputType());
             return this;
         }
 
         public IObjectTypeDescriptor Interface<TInterface>(
             TInterface interfaceType)
-            where TInterface: InterfaceType
+            where TInterface : InterfaceType
         {
-            if (type == null)
+            if (interfaceType == null)
             {
-                throw new ArgumentNullException(nameof(type));
+                throw new ArgumentNullException(nameof(interfaceType));
             }
 
-            ObjectDescription.Interfaces.Add(new TypeReference(type));
+            Definition.Interfaces.Add(new SchemaTypeReference(interfaceType));
             return this;
         }
 
         public IObjectTypeDescriptor Interface(
             NamedTypeNode namedTypeNode)
         {
-           if (type == null)
+            if (namedTypeNode == null)
             {
-                throw new ArgumentNullException(nameof(type));
+                throw new ArgumentNullException(nameof(namedTypeNode));
             }
 
-            ObjectDescription.Interfaces.Add(new TypeReference(type));
+            Definition.Interfaces.Add(new SyntaxTypeReference(
+                namedTypeNode, TypeContext.Output));
             return this;
         }
 
-        IObjectTypeDescriptor IObjectTypeDescriptor.Include<TResolver>()
+        public IObjectTypeDescriptor Include<TResolver>()
         {
-            Include(typeof(TResolver));
+            if (typeof(IType).IsAssignableFrom(typeof(TResolver)))
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "Schema types cannot be used as resolver types.");
+            }
+
+            ResolverTypes.Add(typeof(TResolver));
             return this;
         }
 
-        IObjectTypeDescriptor IObjectTypeDescriptor.IsOfType(IsOfType isOfType)
+        public IObjectTypeDescriptor IsOfType(IsOfType isOfType)
         {
-            IsOfType(isOfType);
+            Definition.IsOfType = isOfType
+                ?? throw new ArgumentNullException(nameof(isOfType));
             return this;
         }
 
-        IObjectFieldDescriptor IObjectTypeDescriptor.Field(NameString name)
+        public IObjectFieldDescriptor Field(NameString name)
         {
-            return Field(name);
+            var fieldDescriptor = new ObjectFieldDescriptor(Context, name);
+            Fields.Add(fieldDescriptor);
+            return fieldDescriptor;
         }
 
-        IObjectFieldDescriptor IObjectTypeDescriptor.Field<TResolver>(
+        public IObjectFieldDescriptor Field<TResolver>(
             Expression<Func<TResolver, object>> propertyOrMethod)
         {
-            return Field(propertyOrMethod);
+            if (propertyOrMethod == null)
+            {
+                throw new ArgumentNullException(nameof(propertyOrMethod));
+            }
+
+            MemberInfo member = propertyOrMethod.ExtractMember();
+            if (member is PropertyInfo || member is MethodInfo)
+            {
+                var fieldDescriptor = new ObjectFieldDescriptor(
+                    Context, member, typeof(TResolver));
+                Fields.Add(fieldDescriptor);
+                return fieldDescriptor;
+            }
+
+            // TODO : resources
+            throw new ArgumentException(
+                "A field of an entity can only be a property or a method.",
+                nameof(member));
         }
 
-        IObjectTypeDescriptor IObjectTypeDescriptor.Directive<T>(T directive)
+        public IObjectTypeDescriptor Directive<T>(T directive)
+            where T : class
         {
-            ObjectDescription.Directives.AddDirective(directive);
+            Definition.AddDirective(directive);
             return this;
         }
 
-        IObjectTypeDescriptor IObjectTypeDescriptor.Directive<T>()
+        public IObjectTypeDescriptor Directive<T>()
+            where T : class, new()
         {
-            ObjectDescription.Directives.AddDirective(new T());
+            Definition.AddDirective(new T());
             return this;
         }
 
-        IObjectTypeDescriptor IObjectTypeDescriptor.Directive(
+        public IObjectTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
-            ObjectDescription.Directives.AddDirective(name, arguments);
+            Definition.AddDirective(name, arguments);
             return this;
         }
     }

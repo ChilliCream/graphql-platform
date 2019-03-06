@@ -9,10 +9,10 @@ namespace HotChocolate.Types.Descriptors.Definitions
     {
         public IsOfType IsOfType { get; set; }
 
-        public BindingBehavior FieldBindingBehavior { get; set; }
-
         public ICollection<ITypeReference> Interfaces { get; } =
             new List<ITypeReference>();
+
+        public BindingBehavior FieldBindingBehavior { get; set; }
 
         public IBindableList<ObjectFieldDefinition> Fields { get; } =
             new BindableList<ObjectFieldDefinition>();

@@ -11,6 +11,14 @@ namespace HotChocolate.Types.Descriptors
     {
         private readonly List<Action<T>> _modifiers = new List<Action<T>>();
 
+        protected DescriptorBase(IDescriptorContext context)
+        {
+            Context = context
+                ?? throw new ArgumentNullException(nameof(context));
+        }
+
+        protected IDescriptorContext Context { get; }
+
         protected abstract T Definition { get; }
 
         public void Configure(Action<T> definitionModifier)

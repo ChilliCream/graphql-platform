@@ -1,6 +1,6 @@
 using System;
 
-namespace HotChocolate.Types.Descriptors.Definitions
+namespace HotChocolate.Types.Descriptors
 {
     public class SchemaTypeReference
         : TypeReferenceBase
@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public SchemaTypeReference(
             IType type, bool? isTypeNullable, bool? isElementTypeNullable)
-            : base(isTypeNullable, isElementTypeNullable)
+            : base(TypeContext.None, isTypeNullable, isElementTypeNullable)
         {
             if (type == null)
             {
