@@ -10,17 +10,21 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<EnumTypeDefinition>
         , IEnumTypeDescriptor
     {
-        public EnumTypeDescriptor(NameString name)
+        public EnumTypeDescriptor(IDescriptorContext context, NameString name)
+            : base(context)
         {
+            Definition.ClrType = typeof(object);
             Definition.Name = name.EnsureNotEmpty(nameof(name));
         }
 
-        public EnumTypeDescriptor(Type enumType)
+        public EnumTypeDescriptor(IDescriptorContext context, Type enumType)
+            : base(context)
         {
             Definition.ClrType = enumType
                 ?? throw new ArgumentNullException(nameof(enumType));
-            Definition.Name = enumType.GetGraphQLName();
-            Definition.Description = enumType.GetGraphQLDescription();
+            Definition.Name = context.Naming.GetTypeName(enumType);
+            Definition.Description =
+                context.Naming.GetTypeDescription(enumType);
         }
 
         protected override EnumTypeDefinition Definition { get; }
@@ -44,7 +48,7 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        protected static void AddImplicitValues(
+        protected void AddImplicitValues(
             EnumTypeDefinition typeDefinition,
             IDictionary<object, EnumValueDefinition> values)
         {
@@ -55,7 +59,7 @@ namespace HotChocolate.Types.Descriptors
                 foreach (object value in Enum.GetValues(typeDefinition.ClrType))
                 {
                     EnumValueDefinition valueDefinition =
-                        EnumValueDescriptor.New(value)
+                        EnumValueDescriptor.New(Context, value)
                             .CreateDefinition();
 
                     if (!values.ContainsKey(valueDefinition.Value))
@@ -99,7 +103,7 @@ namespace HotChocolate.Types.Descriptors
                 Definition.ClrType = typeof(T);
             }
 
-            var descriptor = new EnumValueDescriptor(value);
+            var descriptor = new EnumValueDescriptor(Context, value);
             Values.Add(descriptor);
             return descriptor;
         }

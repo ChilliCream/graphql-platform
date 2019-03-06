@@ -8,11 +8,11 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<T>
         where T : ArgumentDefinition, new()
     {
-        protected ArgumentDescriptorBase()
+        protected ArgumentDescriptorBase(IDescriptorContext context)
+            : base(context)
         {
             Definition = new T();
         }
-
 
         protected override T Definition { get; }
 

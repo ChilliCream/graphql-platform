@@ -9,20 +9,25 @@ namespace HotChocolate.Types.Descriptors
         : ArgumentDescriptorBase<DirectiveArgumentDefinition>
         , IDirectiveArgumentDescriptor
     {
-        public DirectiveArgumentDescriptor(string argumentName)
+        public DirectiveArgumentDescriptor(
+            IDescriptorContext context,
+            NameString argumentName)
+            : base(context)
         {
             Definition.Name = argumentName;
             Definition.DefaultValue = NullValueNode.Default;
         }
 
         public DirectiveArgumentDescriptor(
-            string argumentName,
+            IDescriptorContext context,
             PropertyInfo property)
-            : this(argumentName)
+            : base(context)
         {
-            Definition.Description = property.GetGraphQLDescription();
+            Definition.Name = context.Naming.GetMemberName(property);
+            Definition.Description =
+                context.Naming.GetMemberDescription(property);
+            Definition.Type = context.Inspector.GetInputReturnType(property);
             Definition.Property = property;
-            Definition.Type = property.GetInputType();
         }
 
         public new IDirectiveArgumentDescriptor SyntaxNode(

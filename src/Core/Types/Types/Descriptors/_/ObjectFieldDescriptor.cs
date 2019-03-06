@@ -43,7 +43,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = context.Naming.GetMemberName(member);
             Definition.Description =
                 context.Naming.GetMemberDescription(member);
-            Definition.Type = context.Inspector.GetReturnType(member);
+            Definition.Type = context.Inspector.GetOutputReturnType(member);
             Definition.ResolverType = resolverType;
         }
 
@@ -54,7 +54,6 @@ namespace HotChocolate.Types.Descriptors
             ObjectFieldDefinition definition)
         {
             CompleteArguments(definition);
-            definition.RewriteClrType(c => c.GetOutputType());
         }
 
         private void CompleteArguments(ObjectFieldDefinition definition)

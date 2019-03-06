@@ -9,8 +9,8 @@ namespace HotChocolate.Types.Descriptors
         : EnumTypeDescriptor
         , IEnumTypeDescriptor<T>
     {
-        public EnumTypeDescriptor()
-            : base(typeof(T))
+        public EnumTypeDescriptor(IDescriptorContext context)
+            : base(context, typeof(T))
         {
         }
 

@@ -10,8 +10,11 @@ namespace HotChocolate.Types.Descriptors
         : ArgumentDescriptorBase<ArgumentDefinition>
         , IArgumentDescriptor
     {
-        public ArgumentDescriptor(string argumentName, Type argumentType)
-            : this(argumentName)
+        public ArgumentDescriptor(
+            IDescriptorContext context,
+            string argumentName,
+            Type argumentType)
+            : this(context, argumentName)
         {
             if (argumentType == null)
             {
@@ -23,7 +26,10 @@ namespace HotChocolate.Types.Descriptors
             Definition.DefaultValue = NullValueNode.Default;
         }
 
-        public ArgumentDescriptor(NameString argumentName)
+        public ArgumentDescriptor(
+            IDescriptorContext context,
+            NameString argumentName)
+            : base(context)
         {
             Definition.Name = argumentName.EnsureNotEmpty(nameof(argumentName));
             Definition.DefaultValue = NullValueNode.Default;

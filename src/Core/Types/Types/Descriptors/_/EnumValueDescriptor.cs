@@ -8,14 +8,15 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<EnumValueDefinition>
         , IEnumValueDescriptor
     {
-        public EnumValueDescriptor(object value)
+        public EnumValueDescriptor(IDescriptorContext context, object value)
+            : base(context)
         {
             if (value == null)
             {
                 throw new ArgumentNullException(nameof(value));
             }
 
-            Definition.Name = value.ToString().ToUpperInvariant();
+            Definition.Name = context.Naming.GetEnumValueName(value);
             Definition.Value = value;
         }
 
@@ -46,7 +47,9 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public static EnumValueDescriptor New(object value) =>
-            new EnumValueDescriptor(value);
+        public static EnumValueDescriptor New(
+            IDescriptorContext context,
+            object value) =>
+            new EnumValueDescriptor(context, value);
     }
 }

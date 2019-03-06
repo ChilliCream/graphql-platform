@@ -73,6 +73,7 @@ namespace HotChocolate.Types.Descriptors
         {
             DiscoverResolvers(fields);
         }
+
         protected void DiscoverResolvers(
             IDictionary<NameString, ObjectFieldDefinition> fields)
         {

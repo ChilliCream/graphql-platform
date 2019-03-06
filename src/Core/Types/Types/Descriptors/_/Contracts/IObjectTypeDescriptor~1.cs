@@ -57,8 +57,7 @@ namespace HotChocolate.Types
         /// <see cref="ObjectType"/>.
         /// </summary>
         /// <typeparam name="T">The interface type.</typeparam>
-        IObjectTypeDescriptor<T> Interface<TInterface>(
-            TInterface type)
+        IObjectTypeDescriptor<T> Interface<TInterface>(TInterface type)
             where TInterface : InterfaceType;
 
         /// <summary>

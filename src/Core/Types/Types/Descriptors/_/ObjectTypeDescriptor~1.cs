@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -12,143 +13,119 @@ namespace HotChocolate.Types.Descriptors
         : ObjectTypeDescriptor
         , IObjectTypeDescriptor<T>
     {
-        public ObjectTypeDescriptor()
-            : base(typeof(T))
+        public ObjectTypeDescriptor(IDescriptorContext context)
+            : base(context, typeof(T))
         {
-            ObjectDescription.ClrType = typeof(T);
-        }
-
-        protected void BindFields(BindingBehavior bindingBehavior)
-        {
-            ObjectDescription.FieldBindingBehavior = bindingBehavior;
         }
 
         protected override void OnCompleteFields(
-            IDictionary<string, ObjectFieldDescription> fields,
+            IDictionary<NameString, ObjectFieldDefinition> fields,
             ISet<MemberInfo> handledMembers)
         {
-            if (ObjectDescription.FieldBindingBehavior ==
-                BindingBehavior.Implicit)
+            if (Definition.Fields.IsImplicitBinding())
             {
                 AddImplicitFields(fields, handledMembers);
             }
 
-            AddResolverTypes(fields);
+            base.OnCompleteFields(fields, handledMembers);
         }
 
         private void AddImplicitFields(
-            IDictionary<string, ObjectFieldDescription> fields,
+            IDictionary<NameString, ObjectFieldDefinition> fields,
             ISet<MemberInfo> handledMembers)
         {
-            foreach (KeyValuePair<MemberInfo, string> member in
-                GetAllMembers(handledMembers))
+            if (Definition.ClrType != typeof(object))
             {
-                if (!fields.ContainsKey(member.Value))
+                foreach (MemberInfo member in
+                    Context.Inspector.GetMembers(Definition.ClrType))
                 {
-                    var fieldDescriptor = new ObjectFieldDescriptor(
-                        member.Key,
-                        ObjectDescription.ClrType);
+                    ObjectFieldDefinition fieldDefinition =
+                        ObjectFieldDescriptor
+                            .New(Context, member)
+                            .CreateDefinition();
 
-                    fields[member.Value] = fieldDescriptor
-                        .CreateDescription();
+                    if (!fields.ContainsKey(fieldDefinition.Name))
+                    {
+                        fields[fieldDefinition.Name] = fieldDefinition;
+                    }
                 }
             }
         }
 
-        private Dictionary<MemberInfo, string> GetAllMembers(
-            ISet<MemberInfo> handledMembers)
+        public new IObjectTypeDescriptor<T> Name(NameString name)
         {
-            var members = new Dictionary<MemberInfo, string>();
-
-            foreach (KeyValuePair<string, MemberInfo> member in
-                ReflectionUtils.GetMembers(ObjectDescription.ClrType))
-            {
-                if (!handledMembers.Contains(member.Value))
-                {
-                    members[member.Value] = member.Key;
-                }
-            }
-
-            return members;
-        }
-
-        #region IObjectTypeDescriptor<T>
-
-        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Name(NameString name)
-        {
-            Name(name);
+            base.Name(name);
             return this;
         }
 
-        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Description(
+        public new IObjectTypeDescriptor<T> Description(
             string description)
         {
-            Description(description);
+            base.Description(description);
             return this;
         }
 
-        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.BindFields(
+        public IObjectTypeDescriptor<T> BindFields(
             BindingBehavior bindingBehavior)
         {
-            BindFields(bindingBehavior);
+            Definition.Fields.BindingBehavior = bindingBehavior;
             return this;
         }
 
-        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>
-            .Interface<TInterface>()
+        public new IObjectTypeDescriptor<T> Interface<TInterface>()
+            where TInterface : InterfaceType
         {
-            Interface<TInterface>();
+            base.Interface<TInterface>();
             return this;
         }
 
-        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>
-            .Interface<TInterface>(TInterface type)
+        public new IObjectTypeDescriptor<T> Interface<TInterface>(
+            TInterface type)
+            where TInterface : InterfaceType
         {
-            Interface<TInterface>(type);
+            base.Interface<TInterface>(type);
             return this;
         }
 
-        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Include<TResolver>()
+        public new IObjectTypeDescriptor<T> Include<TResolver>()
         {
-            Include(typeof(TResolver));
+            base.Include<TResolver>();
             return this;
         }
 
-        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.IsOfType(
-            IsOfType isOfType)
+        public new IObjectTypeDescriptor<T> IsOfType(IsOfType isOfType)
         {
-            IsOfType(isOfType);
+            base.IsOfType(isOfType);
             return this;
         }
 
-        IObjectFieldDescriptor IObjectTypeDescriptor<T>.Field(
+        public IObjectFieldDescriptor Field(
             Expression<Func<T, object>> propertyOrMethod)
         {
             return Field(propertyOrMethod);
         }
 
-        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Directive<TDirective>(
+        public new IObjectTypeDescriptor<T> Directive<TDirective>(
             TDirective directive)
+            where TDirective : class
         {
-            ObjectDescription.Directives.AddDirective(directive);
+            base.Directive<TDirective>(directive);
             return this;
         }
 
-        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>
-            .Directive<TDirective>()
+        public new IObjectTypeDescriptor<T> Directive<TDirective>()
+            where TDirective : class, new()
         {
-            ObjectDescription.Directives.AddDirective(new TDirective());
+            base.Directive<TDirective>(new TDirective());
             return this;
         }
 
-        IObjectTypeDescriptor<T> IObjectTypeDescriptor<T>.Directive(
+        public new IObjectTypeDescriptor<T> Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
-            ObjectDescription.Directives.AddDirective(name, arguments);
+            base.Directive(name, arguments);
             return this;
         }
-
-        #endregion
     }
 }

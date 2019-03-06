@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Descriptors
     {
         INamingConventions Naming { get; }
 
-        IObjectInspector Inspector { get; }
+        ITypeInspector Inspector { get; }
     }
 
 
@@ -23,17 +23,53 @@ namespace HotChocolate.Types.Descriptors
         NameString GetMemberName(MemberInfo member);
 
         string GetMemberDescription(MemberInfo member);
+
+        NameString GetEnumValueName(object value);
     }
 
-    public interface IObjectInspector
+    public class DefaultNamingConventions
+        : INamingConventions
+    {
+        public NameString GetEnumValueName(object value)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            return value.ToString().ToUpperInvariant();
+        }
+
+        public string GetMemberDescription(MemberInfo member)
+        {
+            throw new NotImplementedException();
+        }
+
+        public NameString GetMemberName(MemberInfo member)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetTypeDescription(Type type)
+        {
+            throw new NotImplementedException();
+        }
+
+        public NameString GetTypeName(Type type)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+    public interface ITypeInspector
     {
         IEnumerable<Type> GetResolverTypes(Type sourceType);
         IEnumerable<MemberInfo> GetMembers(Type type);
-        ITypeReference GetReturnType(MemberInfo member);
+        ITypeReference GetReturnType(MemberInfo member, TypeContext context);
     }
 
-    public class DefaultObjectInspector
-        : IObjectInspector
+    public class DefaultTypeInspector
+        : ITypeInspector
     {
         public IEnumerable<MemberInfo> GetMembers(Type type)
         {
@@ -52,9 +88,30 @@ namespace HotChocolate.Types.Descriptors
             return Enumerable.Empty<Type>();
         }
 
-        public ITypeReference GetReturnType(MemberInfo member)
+        public ITypeReference GetReturnType(
+            MemberInfo member,
+            TypeContext context)
         {
             throw new NotImplementedException();
+        }
+
+
+    }
+
+    public static class TypeInspectorExtensions
+    {
+        public static ITypeReference GetInputReturnType(
+            this ITypeInspector typeInspector,
+            MemberInfo member)
+        {
+            return typeInspector.GetReturnType(member, TypeContext.Input);
+        }
+
+        public static ITypeReference GetOutputReturnType(
+            this ITypeInspector typeInspector,
+            MemberInfo member)
+        {
+            return typeInspector.GetReturnType(member, TypeContext.Output);
         }
     }
 }
