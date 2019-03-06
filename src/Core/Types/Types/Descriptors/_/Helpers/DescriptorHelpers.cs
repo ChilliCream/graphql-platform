@@ -19,19 +19,6 @@ namespace HotChocolate.Types.Descriptors
             return descriptionFactory();
         }
 
-        internal static void AcquireNonNullStatus(
-            this FieldDefinitionBase fieldDefinition,
-            MemberInfo member)
-        {
-            if (member.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
-            {
-                var attribute =
-                    member.GetCustomAttribute<GraphQLNonNullTypeAttribute>();
-                fieldDefinition.IsTypeNullable = attribute.IsNullable;
-                fieldDefinition.IsElementTypeNullable = attribute.IsElementNullable;
-            }
-        }
-
         internal static void RewriteClrType(
             this FieldDefinitionBase fieldDefinition,
             Func<Type, TypeReference> createContext)

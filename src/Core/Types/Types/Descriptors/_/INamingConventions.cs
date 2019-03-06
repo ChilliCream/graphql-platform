@@ -88,11 +88,42 @@ namespace HotChocolate.Types.Descriptors
             return Enumerable.Empty<Type>();
         }
 
-        public ITypeReference GetReturnType(
+        public virtual ITypeReference GetReturnType(
             MemberInfo member,
             TypeContext context)
         {
-            throw new NotImplementedException();
+            Type returnType = GetReturnType(member);
+
+            if (member.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
+            {
+                var attribute =
+                    member.GetCustomAttribute<GraphQLNonNullTypeAttribute>();
+
+                return new ClrTypeReference(
+                    returnType,
+                    context,
+                    attribute.IsNullable,
+                    attribute.IsElementNullable);
+            }
+
+            return new ClrTypeReference(returnType, context);
+        }
+
+        protected static Type GetReturnType(MemberInfo member)
+        {
+            if (member is MethodInfo m)
+            {
+                return m.ReturnType;
+            }
+            else if (member is PropertyInfo p)
+            {
+                return p.PropertyType;
+            }
+            else
+            {
+                // TODO : resources
+                throw new ArgumentException("TODO", nameof(member));
+            }
         }
 
 
