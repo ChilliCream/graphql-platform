@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Descriptors
     {
         public ArgumentDescriptor(
             IDescriptorContext context,
-            string argumentName,
+            NameString argumentName,
             Type argumentType)
             : this(context, argumentName)
         {
