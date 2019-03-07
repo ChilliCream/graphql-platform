@@ -66,14 +66,15 @@ namespace HotChocolate.Types.Descriptors
             }
 
             var descriptor = new ArgumentDescriptor(
+                Context,
                 name.EnsureNotEmpty(nameof(name)));
             argument(descriptor);
             Definition.Arguments.Add(descriptor.CreateDefinition());
         }
 
-        protected void DeprecationReason(string deprecationReason)
+        protected void DeprecationReason(string reason)
         {
-            Definition.DeprecationReason = deprecationReason;
+            Definition.DeprecationReason = reason;
         }
 
         protected void Ignore()

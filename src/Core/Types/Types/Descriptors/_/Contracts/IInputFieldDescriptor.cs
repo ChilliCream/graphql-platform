@@ -5,11 +5,12 @@ namespace HotChocolate.Types
     public interface IInputFieldDescriptor
         : IFluent
     {
-        IInputFieldDescriptor SyntaxNode(InputValueDefinitionNode syntaxNode);
+        IInputFieldDescriptor SyntaxNode(
+            InputValueDefinitionNode inputValueDefinitionNode);
 
-        IInputFieldDescriptor Name(NameString name);
+        IInputFieldDescriptor Name(NameString value);
 
-        IInputFieldDescriptor Description(string description);
+        IInputFieldDescriptor Description(string value);
 
         IInputFieldDescriptor Type<TInputType>()
             where TInputType : IInputType;
@@ -17,15 +18,15 @@ namespace HotChocolate.Types
         IInputFieldDescriptor Type<TInputType>(TInputType inputType)
             where TInputType : class, IInputType;
 
-        IInputFieldDescriptor Type(ITypeNode type);
+        IInputFieldDescriptor Type(ITypeNode typeNode);
 
         IInputFieldDescriptor Ignore();
 
-        IInputFieldDescriptor DefaultValue(IValueNode defaultValue);
+        IInputFieldDescriptor DefaultValue(IValueNode value);
 
-        IInputFieldDescriptor DefaultValue(object defaultValue);
+        IInputFieldDescriptor DefaultValue(object value);
 
-        IInputFieldDescriptor Directive<T>(T directive)
+        IInputFieldDescriptor Directive<T>(T directiveInstance)
             where T : class;
 
         IInputFieldDescriptor Directive<T>()

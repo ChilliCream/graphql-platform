@@ -6,13 +6,14 @@ namespace HotChocolate.Types
     public interface IInterfaceFieldDescriptor
         : IFluent
     {
-        IInterfaceFieldDescriptor SyntaxNode(FieldDefinitionNode syntaxNode);
+        IInterfaceFieldDescriptor SyntaxNode(
+            FieldDefinitionNode fieldDefinitionNode);
 
-        IInterfaceFieldDescriptor Name(NameString name);
+        IInterfaceFieldDescriptor Name(NameString value);
 
-        IInterfaceFieldDescriptor Description(string description);
+        IInterfaceFieldDescriptor Description(string value);
 
-        IInterfaceFieldDescriptor DeprecationReason(string deprecationReason);
+        IInterfaceFieldDescriptor DeprecationReason(string reason);
 
         IInterfaceFieldDescriptor Type<TOutputType>()
             where TOutputType : IOutputType;
@@ -28,7 +29,7 @@ namespace HotChocolate.Types
             NameString name,
             Action<IArgumentDescriptor> argument);
 
-        IInterfaceFieldDescriptor Directive<T>(T directive)
+        IInterfaceFieldDescriptor Directive<T>(T directiveInstance)
             where T : class;
 
         IInterfaceFieldDescriptor Directive<T>()

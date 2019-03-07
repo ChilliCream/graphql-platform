@@ -5,16 +5,17 @@ namespace HotChocolate.Types
     public interface IUnionTypeDescriptor
         : IFluent
     {
-        IUnionTypeDescriptor SyntaxNode(UnionTypeDefinitionNode syntaxNode);
+        IUnionTypeDescriptor SyntaxNode(
+            UnionTypeDefinitionNode unionTypeDefinitionNode);
 
-        IUnionTypeDescriptor Name(NameString name);
+        IUnionTypeDescriptor Name(NameString value);
 
-        IUnionTypeDescriptor Description(string description);
+        IUnionTypeDescriptor Description(string value);
 
         IUnionTypeDescriptor Type<TObjectType>()
             where TObjectType : ObjectType;
 
-        IUnionTypeDescriptor Type<TObjectType>(TObjectType type)
+        IUnionTypeDescriptor Type<TObjectType>(TObjectType objectType)
             where TObjectType : ObjectType;
 
         IUnionTypeDescriptor Type(NamedTypeNode objectType);
@@ -22,7 +23,7 @@ namespace HotChocolate.Types
         IUnionTypeDescriptor ResolveAbstractType(
             ResolveAbstractType resolveAbstractType);
 
-        IUnionTypeDescriptor Directive<T>(T directive)
+        IUnionTypeDescriptor Directive<T>(T directiveInstance)
             where T : class;
 
         IUnionTypeDescriptor Directive<T>()

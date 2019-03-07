@@ -192,7 +192,7 @@ namespace HotChocolate.Types
             return this;
         }
 
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Middleware(
+        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Use(
             DirectiveMiddleware middleware)
         {
             Middleware(middleware);

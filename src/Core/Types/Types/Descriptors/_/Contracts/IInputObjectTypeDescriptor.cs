@@ -8,49 +8,21 @@ namespace HotChocolate.Types
         : IFluent
     {
         IInputObjectTypeDescriptor SyntaxNode(
-            InputObjectTypeDefinitionNode syntaxNode);
+            InputObjectTypeDefinitionNode inputObjectTypeDefinitionNode);
 
-        IInputObjectTypeDescriptor Name(NameString name);
+        IInputObjectTypeDescriptor Name(NameString value);
 
-        IInputObjectTypeDescriptor Description(string description);
+        IInputObjectTypeDescriptor Description(string value);
 
         IInputFieldDescriptor Field(NameString name);
 
-        IInputObjectTypeDescriptor Directive<T>(T directive)
+        IInputObjectTypeDescriptor Directive<T>(T directiveInstance)
             where T : class;
 
         IInputObjectTypeDescriptor Directive<T>()
             where T : class, new();
 
         IInputObjectTypeDescriptor Directive(
-            NameString name,
-            params ArgumentNode[] arguments);
-    }
-
-    public interface IInputObjectTypeDescriptor<T>
-        : IInputObjectTypeDescriptor
-    {
-        new IInputObjectTypeDescriptor<T> SyntaxNode(
-            InputObjectTypeDefinitionNode syntaxNode);
-
-        new IInputObjectTypeDescriptor<T> Name(NameString name);
-
-        new IInputObjectTypeDescriptor<T> Description(string description);
-
-        IInputObjectTypeDescriptor<T> BindFields(
-            BindingBehavior bindingBehavior);
-
-        IInputFieldDescriptor Field<TValue>(
-            Expression<Func<T, TValue>> property);
-
-        new IInputObjectTypeDescriptor<T> Directive<TDirective>(
-            TDirective directive)
-            where TDirective : class;
-
-        new IInputObjectTypeDescriptor<T> Directive<TDirective>()
-            where TDirective : class, new();
-
-        new IInputObjectTypeDescriptor<T> Directive(
             NameString name,
             params ArgumentNode[] arguments);
     }

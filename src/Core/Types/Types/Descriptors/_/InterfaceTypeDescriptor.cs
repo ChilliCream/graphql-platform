@@ -104,10 +104,10 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IInterfaceTypeDescriptor ResolveAbstractType(
-            ResolveAbstractType resolveAbstractType)
+            ResolveAbstractType typeResolver)
         {
-            Definition.ResolveAbstractType = resolveAbstractType
-                ?? throw new ArgumentNullException(nameof(resolveAbstractType));
+            Definition.ResolveAbstractType = typeResolver
+                ?? throw new ArgumentNullException(nameof(typeResolver));
             return this;
         }
 

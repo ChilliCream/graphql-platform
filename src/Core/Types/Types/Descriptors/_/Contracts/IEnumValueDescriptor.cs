@@ -12,6 +12,6 @@ namespace HotChocolate.Types
 
         IEnumValueDescriptor Description(string value);
 
-        IEnumValueDescriptor DeprecationReason(string value);
+        IEnumValueDescriptor DeprecationReason(string reason);
     }
 }

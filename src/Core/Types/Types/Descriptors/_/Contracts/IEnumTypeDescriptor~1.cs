@@ -3,7 +3,7 @@
 namespace HotChocolate.Types.Descriptors
 {
     public interface IEnumTypeDescriptor<T>
-        : IEnumTypeDescriptor
+        : IFluent
     {
         /// <summary>
         /// Associates the enum type with a syntax node
@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Descriptors
         /// <param name="enumTypeDefinition">
         /// The the type definition node.
         /// </param>
-        new IEnumTypeDescriptor<T> SyntaxNode(
+        IEnumTypeDescriptor<T> SyntaxNode(
             EnumTypeDefinitionNode enumTypeDefinition);
 
         /// <summary>
@@ -21,8 +21,7 @@ namespace HotChocolate.Types.Descriptors
         /// <param name="value">
         /// The name value.
         /// </param>
-        new IEnumTypeDescriptor<T> Name(
-            NameString value);
+        IEnumTypeDescriptor<T> Name(NameString value);
 
         /// <summary>
         /// Defines the description that the enum type shall have.
@@ -30,22 +29,20 @@ namespace HotChocolate.Types.Descriptors
         /// <param name="value">
         /// The description value.
         /// </param>
-        new IEnumTypeDescriptor<T> Description(
-            string value);
+        IEnumTypeDescriptor<T> Description(string value);
 
         IEnumTypeDescriptor<T> Item(T value);
 
-        new IEnumTypeDescriptor<T> BindItems(
-            BindingBehavior behavior);
+        IEnumTypeDescriptor<T> BindItems(BindingBehavior behavior);
 
-        new IEnumTypeDescriptor<T> Directive<TDirective>(
+        IEnumTypeDescriptor<T> Directive<TDirective>(
             TDirective directiveInstance)
             where TDirective : class;
 
-        new IEnumTypeDescriptor<T> Directive<TDirective>()
+        IEnumTypeDescriptor<T> Directive<TDirective>()
             where TDirective : class, new();
 
-        new IEnumTypeDescriptor<T> Directive(
+        IEnumTypeDescriptor<T> Directive(
             NameString name,
             params ArgumentNode[] arguments);
     }

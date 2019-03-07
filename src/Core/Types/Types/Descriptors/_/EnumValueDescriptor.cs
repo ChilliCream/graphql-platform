@@ -41,9 +41,9 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IEnumValueDescriptor DeprecationReason(string value)
+        public IEnumValueDescriptor DeprecationReason(string reason)
         {
-            Definition.Description = value;
+            Definition.Description = reason;
             return this;
         }
 

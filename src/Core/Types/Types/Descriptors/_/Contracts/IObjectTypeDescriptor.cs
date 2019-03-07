@@ -8,30 +8,31 @@ namespace HotChocolate.Types
         : IFluent
     {
         /// <summary>
-        /// Associates the specified <paramref name="syntaxNode"/>
+        /// Associates the specified <paramref name="objectTypeDefinitionNode"/>
         /// with the <see cref="ObjectType"/>.
         /// </summary>
-        /// <param name="syntaxNode">
+        /// <param name="objectTypeDefinitionNode">
         /// The <see cref="ObjectTypeDefinitionNode"/> of a parsed schema.
         /// </param>
-        IObjectTypeDescriptor SyntaxNode(ObjectTypeDefinitionNode syntaxNode);
+        IObjectTypeDescriptor SyntaxNode(
+            ObjectTypeDefinitionNode objectTypeDefinitionNode);
 
         /// <summary>
         /// Defines the name of the <see cref="ObjectType"/>.
         /// </summary>
-        /// <param name="name">The object type name.</param>
+        /// <param name="value">The object type name.</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="name"/> is <c>null</c> or
+        /// <paramref name="value"/> is <c>null</c> or
         /// <see cref="string.Empty"/>.
         /// </exception>
-        IObjectTypeDescriptor Name(NameString name);
+        IObjectTypeDescriptor Name(NameString value);
 
         /// <summary>
         /// Adds explanatory text to the <see cref="ObjectType"/>
         /// that can be accessd via introspection.
         /// </summary>
-        /// <param name="description">The object type description.</param>
-        IObjectTypeDescriptor Description(string description);
+        /// <param name="value">The object type description.</param>
+        IObjectTypeDescriptor Description(string value);
 
         /// <summary>
         /// Specifies an interface that is implemented by the
@@ -93,7 +94,7 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor Field<TResolver>(
             Expression<Func<TResolver, object>> propertyOrMethod);
 
-        IObjectTypeDescriptor Directive<T>(T directive)
+        IObjectTypeDescriptor Directive<T>(T directiveInstance)
             where T : class;
 
         IObjectTypeDescriptor Directive<T>()

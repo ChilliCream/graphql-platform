@@ -10,18 +10,18 @@ namespace HotChocolate.Types
         /// <summary>
         /// Defines the name of the <see cref="ObjectType"/>.
         /// </summary>
-        /// <param name="name">The object type name.</param>
+        /// <param name="value">The object type name.</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="name"/> is <c>null</c> or <see cref="string.Empty"/>.
+        /// <paramref name="value"/> is <c>null</c> or <see cref="string.Empty"/>.
         /// </exception>
-        IObjectTypeDescriptor<T> Name(NameString name);
+        IObjectTypeDescriptor<T> Name(NameString value);
 
         /// <summary>
         /// Adds explanatory text of the <see cref="ObjectType"/>
         /// that can be accessd via introspection.
         /// </summary>
-        /// <param name="description">The object type description.</param>
-        IObjectTypeDescriptor<T> Description(string description);
+        /// <param name="value">The object type description.</param>
+        IObjectTypeDescriptor<T> Description(string value);
 
         /// <summary>
         /// Defines the field binding behavior.
@@ -29,7 +29,7 @@ namespace HotChocolate.Types
         /// The default binding behaviour is set to
         /// <see cref="BindingBehavior.Implicit"/>.
         /// </summary>
-        /// <param name="bindingBehavior">
+        /// <param name="behavior">
         /// The binding behavior.
         ///
         /// Implicit:
@@ -42,7 +42,7 @@ namespace HotChocolate.Types
         /// <see cref="Field(Expression{Func{T, object}})"/>
         /// or <see cref="Field(string)"/>.
         /// </param>
-        IObjectTypeDescriptor<T> BindFields(BindingBehavior bindingBehavior);
+        IObjectTypeDescriptor<T> BindFields(BindingBehavior behavior);
 
         /// <summary>
         /// Specifies an interface that is implemented by the
@@ -87,7 +87,7 @@ namespace HotChocolate.Types
             Expression<Func<T, object>> propertyOrMethod);
 
         IObjectTypeDescriptor<T> Directive<TDirective>(
-            TDirective directive)
+            TDirective directiveInstance)
             where TDirective : class;
 
         IObjectTypeDescriptor<T> Directive<TDirective>()
