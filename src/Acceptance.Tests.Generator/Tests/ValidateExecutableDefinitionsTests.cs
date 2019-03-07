@@ -59,8 +59,8 @@ namespace Generated.Tests
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
             // Then
             Assert.Equal(2, result.Errors.Count);
-            Assert.Equal(1, result.Errors.Count(e => e.Code == "nonExecutableDefinition" /*&& arg:Cow, line:7, col:1*/));
-            Assert.Equal(1, result.Errors.Count(e => e.Code == "nonExecutableDefinition" /*&& arg:Dog, line:11, col:1*/));
+            Assert.Equal(1, result.Errors.Count(e => e.Code == "nonExecutableDefinition" /*&& arg:defName=Cow, loc:line=7|column=1*/));
+            Assert.Equal(1, result.Errors.Count(e => e.Code == "nonExecutableDefinition" /*&& arg:defName=Dog, loc:line=11|column=1*/));
         }
 
         [Fact]
@@ -73,9 +73,9 @@ namespace Generated.Tests
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
             // Then
             Assert.Equal(3, result.Errors.Count);
-            Assert.Equal(1, result.Errors.Count(e => e.Code == "nonExecutableDefinition" /*&& arg:schema, line:1, col:1*/));
-            Assert.Equal(1, result.Errors.Count(e => e.Code == "nonExecutableDefinition" /*&& arg:Query, line:5, col:1*/));
-            Assert.Equal(1, result.Errors.Count(e => e.Code == "nonExecutableDefinition" /*&& arg:schema, line:9, col:1*/));
+            Assert.Equal(1, result.Errors.Count(e => e.Code == "nonExecutableDefinition" /*&& arg:defName=schema, loc:line=1|column=1*/));
+            Assert.Equal(1, result.Errors.Count(e => e.Code == "nonExecutableDefinition" /*&& arg:defName=Query, loc:line=5|column=1*/));
+            Assert.Equal(1, result.Errors.Count(e => e.Code == "nonExecutableDefinition" /*&& arg:defName=schema, loc:line=9|column=1*/));
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using HotChocolate;
 using Path = System.IO.Path;
@@ -16,9 +17,8 @@ namespace Generator
             Scenario parsingScenarios = Parsing.Load(_scenariosRootDir);
             Parsing.Generate(parsingScenarios, outputPath);
 
-            Scenario validationScenario = Validation.Load(_scenariosRootDir);
-            Validation.Generate(validationScenario, outputPath);
-
+            IEnumerable<Scenario> validationScenarios = Validation.Load(_scenariosRootDir);
+            Validation.Generate(validationScenarios, outputPath);
         }
 
         private static string ResovleOutputPath()

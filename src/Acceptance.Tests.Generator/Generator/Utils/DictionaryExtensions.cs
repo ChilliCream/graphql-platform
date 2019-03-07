@@ -25,6 +25,16 @@ namespace Generator
             return defaultValue;
         }
 
+        internal static int TryGet(this Dictionary<object, object> dictionary, string key, int defaultValue)
+        {
+            if (dictionary.ContainsKey(key))
+            {
+                return int.Parse(dictionary[key] as string);
+            }
+
+            return defaultValue;
+        }
+
         internal static bool ContainsKeys(this Dictionary<object, object> dictionary, params string[] keys)
         {
             var result = false;
