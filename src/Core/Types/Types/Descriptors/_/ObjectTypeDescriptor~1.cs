@@ -44,8 +44,10 @@ namespace HotChocolate.Types.Descriptors
                             .New(Context, member)
                             .CreateDefinition();
 
-                    if (!fields.ContainsKey(fieldDefinition.Name))
+                    if (!handledMembers.Contains(member)
+                        && !fields.ContainsKey(fieldDefinition.Name))
                     {
+                        handledMembers.Add(member);
                         fields[fieldDefinition.Name] = fieldDefinition;
                     }
                 }

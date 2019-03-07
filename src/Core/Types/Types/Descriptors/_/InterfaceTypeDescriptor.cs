@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
@@ -28,146 +29,108 @@ namespace HotChocolate.Types.Descriptors
             Definition.Description = context.Naming.GetTypeDescription(clrType);
         }
 
-        public InterfaceTypeDescriptor(IDescriptorContext context, NameString name)
+        public InterfaceTypeDescriptor(
+            IDescriptorContext context,
+            NameString name)
             : base(context)
         {
             Definition.ClrType = typeof(object);
             Definition.Name = name.EnsureNotEmpty(nameof(name));
         }
 
-        protected override InterfaceTypeDefinitionNode Definition { get; } =
-            new InterfaceTypeDefinitionNode();
+        protected override InterfaceTypeDefinition Definition { get; } =
+            new InterfaceTypeDefinition();
 
         protected List<InterfaceFieldDescriptor> Fields { get; } =
             new List<InterfaceFieldDescriptor>();
 
-        protected InterfaceTypeDefinition InterfaceDescription { get; } =
-            new InterfaceTypeDefinition();
-
-
-
-        public InterfaceTypeDescription CreateDescription()
+        protected override void OnCreateDefinition(
+            InterfaceTypeDefinition definition)
         {
-            CompleteFields();
-            return InterfaceDescription;
-        }
-
-        protected virtual void CompleteFields()
-        {
-            var fields = new Dictionary<string, InterfaceFieldDescription>();
+            var fields = new Dictionary<NameString, InterfaceFieldDefinition>();
             var handledMembers = new HashSet<MemberInfo>();
 
-            foreach (InterfaceFieldDescriptor fieldDescriptor in Fields)
+            foreach (InterfaceFieldDefinition fieldDefinition in
+                Fields.Select(t => t.CreateDefinition()))
             {
-                InterfaceFieldDescription fieldDescription = fieldDescriptor
-                    .CreateDescription();
-
-                if (!fieldDescription.Ignored)
+                if (!fieldDefinition.Ignore)
                 {
-                    fields[fieldDescription.Name] = fieldDescription;
+                    fields[fieldDefinition.Name] = fieldDefinition;
                 }
 
-                if (fieldDescription.Member != null)
+                if (fieldDefinition.Member != null)
                 {
-                    handledMembers.Add(fieldDescription.Member);
+                    handledMembers.Add(fieldDefinition.Member);
                 }
             }
 
             OnCompleteFields(fields, handledMembers);
 
-            InterfaceDescription.Fields.AddRange(fields.Values);
+            Definition.Fields.AddRange(fields.Values);
         }
 
         protected virtual void OnCompleteFields(
-            IDictionary<string, InterfaceFieldDescription> fields,
+            IDictionary<NameString, InterfaceFieldDefinition> fields,
             ISet<MemberInfo> handledMembers)
         {
         }
 
-        protected void SyntaxNode(InterfaceTypeDefinitionNode syntaxNode)
+        public IInterfaceTypeDescriptor SyntaxNode(
+            InterfaceTypeDefinitionNode interfaceTypeDefinitionNode)
         {
-            InterfaceDescription.SyntaxNode = syntaxNode;
+            Definition.SyntaxNode = interfaceTypeDefinitionNode;
+            return this;
         }
 
-        protected void Name(NameString name)
+        public IInterfaceTypeDescriptor Name(NameString value)
         {
-            InterfaceDescription.Name = name.EnsureNotEmpty(nameof(name));
-        }
-        protected void Description(string description)
-        {
-            InterfaceDescription.Description = description;
+            Definition.Name = value.EnsureNotEmpty(nameof(value));
+            return this;
         }
 
-        protected InterfaceFieldDescriptor Field(NameString name)
+        public IInterfaceTypeDescriptor Description(string value)
+        {
+            Definition.Description = value;
+            return this;
+        }
+
+        public IInterfaceFieldDescriptor Field(NameString name)
         {
             var fieldDescriptor = new InterfaceFieldDescriptor(
+                Context,
                 name.EnsureNotEmpty(nameof(name)));
             Fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
 
-        protected void ResolveAbstractType(
+        public IInterfaceTypeDescriptor ResolveAbstractType(
             ResolveAbstractType resolveAbstractType)
         {
-            InterfaceDescription.ResolveAbstractType = resolveAbstractType
+            Definition.ResolveAbstractType = resolveAbstractType
                 ?? throw new ArgumentNullException(nameof(resolveAbstractType));
-        }
-
-        #region IInterfaceTypeDescriptor
-
-        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.SyntaxNode(
-            InterfaceTypeDefinitionNode syntaxNode)
-        {
-            SyntaxNode(syntaxNode);
             return this;
         }
 
-        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Name(NameString name)
+        public IInterfaceTypeDescriptor Directive<T>(T directive)
+            where T : class
         {
-            Name(name);
-            return this;
-        }
-        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Description(
-            string description)
-        {
-            Description(description);
+            Definition.AddDirective(directive);
             return this;
         }
 
-        IInterfaceFieldDescriptor IInterfaceTypeDescriptor.Field(
-            NameString name)
+        public IInterfaceTypeDescriptor Directive<T>()
+            where T : class, new()
         {
-            return Field(name);
-        }
-
-        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.ResolveAbstractType(
-            ResolveAbstractType resolveAbstractType)
-        {
-            ResolveAbstractType(resolveAbstractType);
+            Definition.AddDirective(new T());
             return this;
         }
 
-        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Directive<T>(
-            T directive)
-        {
-            InterfaceDescription.Directives.AddDirective(directive);
-            return this;
-        }
-
-        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Directive<T>()
-        {
-            InterfaceDescription.Directives.AddDirective(new T());
-            return this;
-        }
-
-        IInterfaceTypeDescriptor IInterfaceTypeDescriptor.Directive(
+        public IInterfaceTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
-            InterfaceDescription.Directives.AddDirective(name, arguments);
+            Definition.AddDirective(name, arguments);
             return this;
         }
-
-        #endregion
     }
 }

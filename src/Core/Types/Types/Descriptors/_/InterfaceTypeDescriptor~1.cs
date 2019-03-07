@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
@@ -11,59 +12,73 @@ namespace HotChocolate.Types.Descriptors
         : InterfaceTypeDescriptor
         , IInterfaceTypeDescriptor<T>
     {
-        public InterfaceTypeDescriptor()
-            : base(typeof(T))
+        public InterfaceTypeDescriptor(IDescriptorContext context)
+            : base(context, typeof(T))
         {
         }
 
         protected override void OnCompleteFields(
-            IDictionary<string, InterfaceFieldDescription> fields,
+            IDictionary<NameString, InterfaceFieldDefinition> fields,
             ISet<MemberInfo> handledMembers)
         {
-            if (InterfaceDescription.FieldBindingBehavior ==
-                BindingBehavior.Implicit)
+            if (Definition.Fields.IsImplicitBinding())
             {
                 AddImplicitFields(fields, handledMembers);
             }
         }
 
         private void AddImplicitFields(
-            IDictionary<string, InterfaceFieldDescription> fields,
+            IDictionary<NameString, InterfaceFieldDefinition> fields,
             ICollection<MemberInfo> handledMembers)
         {
-            foreach (KeyValuePair<MemberInfo, string> member in
-                GetAllMembers(handledMembers))
+            if (Definition.ClrType != typeof(object))
             {
-                if (!fields.ContainsKey(member.Value))
+                foreach (MemberInfo member in
+                    Context.Inspector.GetMembers(Definition.ClrType))
                 {
-                    var fieldDescriptor = new InterfaceFieldDescriptor(
-                        member.Key);
+                    InterfaceFieldDefinition fieldDefinition =
+                        InterfaceFieldDescriptor
+                            .New(Context, member)
+                            .CreateDefinition();
 
-                    fields[member.Value] = fieldDescriptor
-                        .CreateDescription();
+                    if (!handledMembers.Contains(member)
+                        && !fields.ContainsKey(fieldDefinition.Name))
+                    {
+                        handledMembers.Add(member);
+                        fields[fieldDefinition.Name] = fieldDefinition;
+                    }
                 }
             }
         }
 
-        private Dictionary<MemberInfo, string> GetAllMembers(
-            ICollection<MemberInfo> handledMembers)
+        public new IInterfaceTypeDescriptor<T> SyntaxNode(
+            InterfaceTypeDefinitionNode interfaceTypeDefinitionNode)
         {
-            var members = new Dictionary<MemberInfo, string>();
-
-            foreach (KeyValuePair<string, MemberInfo> member in
-                ReflectionUtils.GetMembers(InterfaceDescription.ClrType))
-            {
-                if (!handledMembers.Contains(member.Value))
-                {
-                    members[member.Value] = member.Key;
-                }
-            }
-
-            return members;
+            base.SyntaxNode(interfaceTypeDefinitionNode);
+            return this;
         }
 
-        protected InterfaceFieldDescriptor Field<TSource>(
-            Expression<Func<TSource, object>> propertyOrMethod)
+        public new IInterfaceTypeDescriptor<T> Name(NameString value)
+        {
+            base.Name(value);
+            return this;
+        }
+
+        public new IInterfaceTypeDescriptor<T> Description(string value)
+        {
+            base.Description(value);
+            return this;
+        }
+
+        public IInterfaceTypeDescriptor<T> BindFields(
+            BindingBehavior bindingBehavior)
+        {
+            Definition.Fields.BindingBehavior = bindingBehavior;
+            return this;
+        }
+
+        public IInterfaceFieldDescriptor Field(
+            Expression<Func<T, object>> propertyOrMethod)
         {
             if (propertyOrMethod == null)
             {
@@ -73,7 +88,8 @@ namespace HotChocolate.Types.Descriptors
             MemberInfo member = propertyOrMethod.ExtractMember();
             if (member is PropertyInfo || member is MethodInfo)
             {
-                var fieldDescriptor = new InterfaceFieldDescriptor(member);
+                var fieldDescriptor = new InterfaceFieldDescriptor(
+                    Context, member);
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
             }
@@ -83,70 +99,34 @@ namespace HotChocolate.Types.Descriptors
                 nameof(propertyOrMethod));
         }
 
-        #region IInterfaceTypeDescriptor<T>
-
-        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.SyntaxNode(
-            InterfaceTypeDefinitionNode syntaxNode)
+        public new IInterfaceTypeDescriptor<T> ResolveAbstractType(
+            ResolveAbstractType resolveAbstractType)
         {
-            SyntaxNode(syntaxNode);
+            base.ResolveAbstractType(resolveAbstractType);
             return this;
         }
 
-        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.Name(
-            NameString name)
+        public new IInterfaceTypeDescriptor<T> Directive<TDirective>(
+            TDirective directive)
+            where TDirective : class
         {
-            Name(name);
+            base.Directive(directive);
             return this;
         }
 
-        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.Description(
-            string description)
+        public new IInterfaceTypeDescriptor<T> Directive<TDirective>()
+            where TDirective : class, new()
         {
-            Description(description);
+            base.Directive<TDirective>();
             return this;
         }
 
-        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.BindFields(
-            BindingBehavior bindingBehavior)
-        {
-            InterfaceDescription.FieldBindingBehavior = bindingBehavior;
-            return this;
-        }
-
-        IInterfaceFieldDescriptor IInterfaceTypeDescriptor<T>.Field(
-            Expression<Func<T, object>> propertyOrMethod)
-        {
-            return Field(propertyOrMethod);
-        }
-
-        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>
-            .ResolveAbstractType(ResolveAbstractType resolveAbstractType)
-        {
-            ResolveAbstractType(resolveAbstractType);
-            return this;
-        }
-
-        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.Directive<TD>(
-            TD directive)
-        {
-            InterfaceDescription.Directives.AddDirective(directive);
-            return this;
-        }
-
-        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.Directive<TD>()
-        {
-            InterfaceDescription.Directives.AddDirective(new TD());
-            return this;
-        }
-
-        IInterfaceTypeDescriptor<T> IInterfaceTypeDescriptor<T>.Directive(
+        public new IInterfaceTypeDescriptor<T> Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
-            InterfaceDescription.Directives.AddDirective(name, arguments);
+            base.Directive(name, arguments);
             return this;
         }
-
-        #endregion
     }
 }
