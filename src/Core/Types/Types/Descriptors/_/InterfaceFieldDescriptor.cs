@@ -30,9 +30,10 @@ namespace HotChocolate.Types.Descriptors
             Definition.Member = member
                 ?? throw new ArgumentNullException(nameof(member));
 
-            Definition.Name = context.Naming.GetMemberName(member);
-            Definition.Description =
-                context.Naming.GetMemberDescription(member);
+            Definition.Name = context.Naming.GetMemberName(
+                member, MemberKind.InputObjectField);
+            Definition.Description = context.Naming.GetMemberDescription(
+                member, MemberKind.InputObjectField);
             Definition.Type = context.Inspector.GetOutputReturnType(member);
         }
 

@@ -17,15 +17,15 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = name.EnsureNotEmpty(nameof(name));
         }
 
-        public EnumTypeDescriptor(IDescriptorContext context, Type enumType)
+        public EnumTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
-            Definition.ClrType = enumType
-                ?? throw new ArgumentNullException(nameof(enumType));
+            Definition.ClrType = clrType
+                ?? throw new ArgumentNullException(nameof(clrType));
             Definition.Name = context.Naming.GetTypeName(
-                enumType, TypeKind.Enum);
+                clrType, TypeKind.Enum);
             Definition.Description = context.Naming.GetTypeDescription(
-                enumType, TypeKind.Enum);
+                clrType, TypeKind.Enum);
         }
 
         protected override EnumTypeDefinition Definition { get; }
@@ -128,5 +128,20 @@ namespace HotChocolate.Types.Descriptors
             Definition.AddDirective(name, arguments);
             return this;
         }
+
+        public EnumTypeDescriptor New(
+            IDescriptorContext context,
+            NameString name) =>
+            new EnumTypeDescriptor(context, name);
+
+        public EnumTypeDescriptor New(
+            IDescriptorContext context,
+            Type clrType) =>
+            new EnumTypeDescriptor(context, clrType);
+
+        public EnumTypeDescriptor<T> New<T>(
+            IDescriptorContext context,
+            NameString name) =>
+            new EnumTypeDescriptor<T>(context);
     }
 }

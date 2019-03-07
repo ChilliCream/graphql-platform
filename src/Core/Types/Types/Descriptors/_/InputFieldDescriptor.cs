@@ -32,7 +32,7 @@ namespace HotChocolate.Types.Descriptors
             Definition.Type = context.Inspector.GetInputReturnType(property);
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.SyntaxNode(
+        public new IInputFieldDescriptor SyntaxNode(
             InputValueDefinitionNode inputValueDefinition)
         {
             base.SyntaxNode(inputValueDefinition);
@@ -114,5 +114,15 @@ namespace HotChocolate.Types.Descriptors
             base.Directive(name, arguments);
             return this;
         }
+
+        public static InputFieldDescriptor New(
+            IDescriptorContext context,
+            NameString fieldName) =>
+            new InputFieldDescriptor(context, fieldName);
+
+        public static InputFieldDescriptor New(
+            IDescriptorContext context,
+            PropertyInfo property) =>
+            new InputFieldDescriptor(context, property);
     }
 }

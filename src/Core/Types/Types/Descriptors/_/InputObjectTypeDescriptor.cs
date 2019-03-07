@@ -130,5 +130,20 @@ namespace HotChocolate.Types.Descriptors
             Definition.AddDirective(name, arguments);
             return this;
         }
+
+        public static InputObjectTypeDescriptor New(
+            IDescriptorContext context,
+            NameString name) =>
+            new InputObjectTypeDescriptor(context, name);
+
+        public static InputObjectTypeDescriptor New(
+            IDescriptorContext context,
+            Type clrType) =>
+            new InputObjectTypeDescriptor(context, clrType);
+
+        public static InputObjectTypeDescriptor<T> New<T>(
+            IDescriptorContext context,
+            NameString name) =>
+            new InputObjectTypeDescriptor<T>(context);
     }
 }

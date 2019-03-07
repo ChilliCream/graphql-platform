@@ -91,5 +91,15 @@ namespace HotChocolate.Types.Descriptors
             Definition.Ignore = true;
             return this;
         }
+
+        public static DirectiveArgumentDescriptor New(
+            IDescriptorContext context,
+            NameString argumentName) =>
+            new DirectiveArgumentDescriptor(context, argumentName);
+
+        public static DirectiveArgumentDescriptor New(
+            IDescriptorContext context,
+            PropertyInfo property) =>
+            new DirectiveArgumentDescriptor(context, property);
     }
 }

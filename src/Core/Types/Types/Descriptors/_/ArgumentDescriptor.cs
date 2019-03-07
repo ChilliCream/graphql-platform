@@ -12,6 +12,15 @@ namespace HotChocolate.Types.Descriptors
     {
         public ArgumentDescriptor(
             IDescriptorContext context,
+            NameString argumentName)
+            : base(context)
+        {
+            Definition.Name = argumentName.EnsureNotEmpty(nameof(argumentName));
+            Definition.DefaultValue = NullValueNode.Default;
+        }
+
+        public ArgumentDescriptor(
+            IDescriptorContext context,
             NameString argumentName,
             Type argumentType)
             : this(context, argumentName)
@@ -23,15 +32,6 @@ namespace HotChocolate.Types.Descriptors
 
             Definition.Name = argumentName;
             Definition.Type = argumentType.GetInputType();
-            Definition.DefaultValue = NullValueNode.Default;
-        }
-
-        public ArgumentDescriptor(
-            IDescriptorContext context,
-            NameString argumentName)
-            : base(context)
-        {
-            Definition.Name = argumentName.EnsureNotEmpty(nameof(argumentName));
             Definition.DefaultValue = NullValueNode.Default;
         }
 
@@ -104,5 +104,16 @@ namespace HotChocolate.Types.Descriptors
             base.Directive(name, arguments);
             return this;
         }
+
+        public static ArgumentDescriptor New(
+            IDescriptorContext context,
+            NameString argumentName) =>
+            new ArgumentDescriptor(context, argumentName);
+
+        public static ArgumentDescriptor New(
+            IDescriptorContext context,
+            NameString argumentName,
+            Type argumentType) =>
+            new ArgumentDescriptor(context, argumentName, argumentType);
     }
 }

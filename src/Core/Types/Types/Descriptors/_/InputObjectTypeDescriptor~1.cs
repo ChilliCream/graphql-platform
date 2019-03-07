@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Linq;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -8,9 +9,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal class InputObjectTypeDescriptor<T>
-      : InputObjectTypeDescriptor
-      , IInputObjectTypeDescriptor<T>
+    public class InputObjectTypeDescriptor<T>
+        : InputObjectTypeDescriptor
+        , IInputObjectTypeDescriptor<T>
     {
         public InputObjectTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
@@ -33,48 +34,59 @@ namespace HotChocolate.Types.Descriptors
             IDictionary<NameString, InputFieldDefinition> fields,
             ISet<PropertyInfo> handledProperties)
         {
-            foreach (KeyValuePair<PropertyInfo, string> property in
-                GetProperties(handledProperties))
+            if (Definition.ClrType != typeof(object))
             {
-                if (!fields.ContainsKey(property.Value))
+                foreach (PropertyInfo property in
+                    Context.Inspector.GetMembers(Definition.ClrType)
+                        .OfType<PropertyInfo>())
                 {
-                    var fieldDescriptor =
-                        new InputFieldDescriptor(property.Key);
+                    InputFieldDefinition fieldDefinition =
+                        InputFieldDescriptor
+                            .New(Context, property)
+                            .CreateDefinition();
 
-                    fields[property.Value] = fieldDescriptor
-                        .CreateDescription();
+                    if (!handledProperties.Contains(property)
+                        && !fields.ContainsKey(fieldDefinition.Name))
+                    {
+                        handledProperties.Add(property);
+                        fields[fieldDefinition.Name] = fieldDefinition;
+                    }
                 }
             }
         }
 
-        private Dictionary<PropertyInfo, string> GetProperties(
-            ISet<PropertyInfo> handledProperties)
+        public new IInputObjectTypeDescriptor<T> SyntaxNode(
+            InputObjectTypeDefinitionNode inputObjectTypeDefinitionNode)
         {
-            var properties = new Dictionary<PropertyInfo, string>();
-
-            foreach (KeyValuePair<string, PropertyInfo> property in
-                ReflectionUtils.GetProperties(ObjectDescription.ClrType))
-            {
-                if (!handledProperties.Contains(property.Value))
-                {
-                    properties[property.Value] = property.Key;
-                }
-            }
-
-            return properties;
+            base.SyntaxNode(inputObjectTypeDefinitionNode);
+            return this;
         }
 
-        protected void BindFields(BindingBehavior bindingBehavior)
+        public new IInputObjectTypeDescriptor<T> Name(NameString value)
         {
-            ObjectDescription.FieldBindingBehavior = bindingBehavior;
+            base.Name(value);
+            return this;
         }
 
-        protected InputFieldDescriptor Field<TValue>(
+        public new IInputObjectTypeDescriptor<T> Description(string value)
+        {
+            Description(value);
+            return this;
+        }
+
+        public IInputObjectTypeDescriptor<T> BindFields(
+            BindingBehavior behavior)
+        {
+            Definition.FieldBindingBehavior = behavior;
+            return this;
+        }
+
+        public IInputFieldDescriptor Field<TValue>(
             Expression<Func<T, TValue>> property)
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                var field = new InputFieldDescriptor(p);
+                var field = new InputFieldDescriptor(Context, p);
                 Fields.Add(field);
                 return field;
             }
@@ -84,64 +96,27 @@ namespace HotChocolate.Types.Descriptors
                 nameof(property));
         }
 
-        #region IInputObjectTypeDescriptor<T>
-
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.SyntaxNode(
-            InputObjectTypeDefinitionNode syntaxNode)
+        public new IInputObjectTypeDescriptor<T> Directive<TDirective>(
+            TDirective directive)
+            where TDirective : class
         {
-            SyntaxNode(syntaxNode);
+            base.Directive<TDirective>(directive);
             return this;
         }
 
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Name(
-            NameString name)
+        public new IInputObjectTypeDescriptor<T> Directive<TDirective>()
+            where TDirective : class, new()
         {
-            Name(name);
+            base.Directive<TDirective>(new TDirective());
             return this;
         }
 
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Description(
-            string description)
-        {
-            Description(description);
-            return this;
-        }
-
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.BindFields(
-            BindingBehavior bindingBehavior)
-        {
-            BindFields(bindingBehavior);
-            return this;
-        }
-
-        IInputFieldDescriptor IInputObjectTypeDescriptor<T>.Field<TValue>(
-            Expression<Func<T, TValue>> property)
-        {
-            return Field(property);
-        }
-
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>
-            .Directive<TDirective>(TDirective directive)
-        {
-            ObjectDescription.Directives.AddDirective(directive);
-            return this;
-        }
-
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>
-            .Directive<TDirective>()
-        {
-            ObjectDescription.Directives.AddDirective(new TDirective());
-            return this;
-        }
-
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Directive(
+        public new IInputObjectTypeDescriptor<T> Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
-            ObjectDescription.Directives.AddDirective(name, arguments);
+            base.Directive(name, arguments);
             return this;
         }
-
-        #endregion
     }
 }
