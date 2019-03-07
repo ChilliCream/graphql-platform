@@ -13,104 +13,65 @@ namespace HotChocolate.Types.Descriptors
     internal class DirectiveTypeDescriptor<T>
         : DirectiveTypeDescriptor
         , IDirectiveTypeDescriptor<T>
+        , IHasClrType
     {
-        public DirectiveTypeDescriptor()
+
+        public DirectiveTypeDescriptor(IDescriptorContext context)
+            : base(context, typeof(T))
         {
-            DirectiveDescription.ClrType = typeof(T);
-            DirectiveDescription.Name = typeof(T).GetGraphQLName();
-            DirectiveDescription.Description =
-                typeof(T).GetGraphQLDescription();
         }
 
-        protected override void CompleteArguments()
+        Type IHasClrType.ClrType => Definition.ClrType;
+
+        protected override void OnCompleteArguments(
+            IDictionary<NameString, DirectiveArgumentDefinition> arguments,
+            ISet<PropertyInfo> handledProperties)
         {
-            base.CompleteArguments();
-
-            var descriptions =
-                new Dictionary<string, DirectiveArgumentDescription>();
-            var handledProperties = new List<PropertyInfo>();
-
-            AddExplicitArguments(descriptions, handledProperties);
-
-            if (DirectiveDescription.ArgumentBindingBehavior ==
-                BindingBehavior.Implicit)
+            if (Definition.Arguments.IsImplicitBinding())
             {
-                Dictionary<PropertyInfo, string> properties =
-                    GetPossibleImplicitArguments(handledProperties);
-                AddImplicitArguments(descriptions, properties);
+                FieldDescriptorUtilities.AddImplicitFields(
+                    this,
+                    p => DirectiveArgumentDescriptor
+                        .New(Context, p)
+                        .CreateDefinition(),
+                    arguments,
+                    handledProperties);
             }
 
-            DirectiveDescription.Arguments.Clear();
-            DirectiveDescription.Arguments.AddRange(descriptions.Values);
+            base.OnCompleteArguments(arguments, handledProperties);
         }
 
-        private void AddExplicitArguments(
-            IDictionary<string, DirectiveArgumentDescription> descriptors,
-            ICollection<PropertyInfo> handledProperties)
+
+
+        #region IDirectiveDescriptor<T>
+
+        public new IDirectiveTypeDescriptor<T> SyntaxNode(
+            DirectiveDefinitionNode directiveDefinitionNode)
         {
-            foreach (DirectiveArgumentDescription argumentDescription in
-                DirectiveDescription.Arguments)
-            {
-                if (!argumentDescription.Ignored)
-                {
-                    descriptors[argumentDescription.Name] = argumentDescription;
-                }
-
-                if (argumentDescription.Property != null)
-                {
-                    handledProperties.Add(argumentDescription.Property);
-                }
-            }
+            base.SyntaxNode(directiveDefinitionNode);
+            return this;
         }
 
-        private void AddImplicitArguments(
-            IDictionary<string, DirectiveArgumentDescription> descriptors,
-            IDictionary<PropertyInfo, string> properties)
+        public new IDirectiveTypeDescriptor<T> Name(NameString value)
         {
-            foreach (KeyValuePair<PropertyInfo, string> property in properties)
-            {
-                if (!descriptors.ContainsKey(property.Value))
-                {
-                    Type returnType = property.Key.GetReturnType();
-                    if (returnType != null)
-                    {
-                        var argDescriptor = new DirectiveArgumentDescriptor(
-                            property.Value, property.Key);
-
-                        descriptors[property.Value] = argDescriptor
-                            .CreateDescription();
-                    }
-                }
-            }
+            base.Name(value);
+            return this;
         }
 
-        private Dictionary<PropertyInfo, string> GetPossibleImplicitArguments(
-            ICollection<PropertyInfo> handledProperties)
+        public new IDirectiveTypeDescriptor<T> Description(string value)
         {
-            Dictionary<PropertyInfo, string> properties = GetProperties(
-                DirectiveDescription.ClrType);
-
-            foreach (PropertyInfo property in handledProperties)
-            {
-                properties.Remove(property);
-            }
-
-            return properties;
+            base.Description(value);
+            return this;
         }
 
-        private static Dictionary<PropertyInfo, string> GetProperties(Type type)
+        public IDirectiveTypeDescriptor<T> BindArguments(
+            BindingBehavior behavior)
         {
-            return ReflectionUtils
-                .GetProperties(type)
-                .ToDictionary(t => t.Value, t => t.Key);
+            Definition.Arguments.BindingBehavior = behavior;
+            return this;
         }
 
-        protected void BindArguments(BindingBehavior bindingBehavior)
-        {
-            DirectiveDescription.ArgumentBindingBehavior = bindingBehavior;
-        }
-
-        protected DirectiveArgumentDescriptor Argument(
+        public IDirectiveArgumentDescriptor Argument(
             Expression<Func<T, object>> property)
         {
             if (property == null)
@@ -120,83 +81,58 @@ namespace HotChocolate.Types.Descriptors
 
             if (property.ExtractMember() is PropertyInfo p)
             {
-                var descriptor = new DirectiveArgumentDescriptor(
-                    p.GetGraphQLName(), p);
-                return Argument(descriptor);
+                var descriptor = new DirectiveArgumentDescriptor(Context, p);
+                Arguments.Add(descriptor);
+                return descriptor;
             }
 
+            // TODO : resources
             throw new ArgumentException(
                 "Only properties are allowed in this expression.",
                 nameof(property));
         }
 
-        #region IDirectiveDescriptor<T>
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.SyntaxNode(
-            DirectiveDefinitionNode syntaxNode)
-        {
-            SyntaxNode(syntaxNode);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Name(
-            NameString name)
-        {
-            Name(name);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Description(
-          string description)
-        {
-            Description(description);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.BindArguments(
-            BindingBehavior bindingBehavior)
-        {
-            BindArguments(bindingBehavior);
-            return this;
-        }
-
-        IDirectiveArgumentDescriptor IDirectiveTypeDescriptor<T>.Argument(
-            Expression<Func<T, object>> property)
-        {
-            return Argument(property);
-        }
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Location(
+        public new IDirectiveTypeDescriptor<T> Location(
             DirectiveLocation location)
         {
-            Location(location);
+            base.Location(location);
             return this;
         }
 
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Middleware(
+        public new IDirectiveTypeDescriptor<T> Use(
             DirectiveMiddleware middleware)
         {
-            Middleware(middleware);
+            base.Use(middleware);
             return this;
         }
 
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Middleware<TM>(
-            Expression<Func<TM, object>> method)
+        [Obsolete("Replace Middleware with `Use`.")]
+        public new IDirectiveTypeDescriptor<T> Middleware(
+            DirectiveMiddleware middleware)
         {
-            Middleware(method);
+            base.Middleware(middleware);
             return this;
         }
 
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Middleware<TM>(
-            Expression<Action<T>> method)
+        [Obsolete("Replace Middleware with `Use`.", true)]
+        public new IDirectiveTypeDescriptor<T> Middleware<TMiddleware>(
+            Expression<Func<TMiddleware, object>> method)
         {
-            Middleware(method);
+            base.Middleware(method);
             return this;
         }
 
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Repeatable()
+        [Obsolete("Replace Middleware with `Use`.", true)]
+        public new IDirectiveTypeDescriptor<T> Middleware<TMiddleware>(
+            Expression<Action<TMiddleware>> method)
         {
-            DirectiveDescription.IsRepeatable = true;
+            base.Middleware(method);
+            return this;
+        }
+
+        public new IDirectiveTypeDescriptor<T> Repeatable()
+        {
+            base.Repeatable();
             return this;
         }
 

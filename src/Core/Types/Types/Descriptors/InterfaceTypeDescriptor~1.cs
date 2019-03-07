@@ -11,11 +11,14 @@ namespace HotChocolate.Types.Descriptors
     internal class InterfaceTypeDescriptor<T>
         : InterfaceTypeDescriptor
         , IInterfaceTypeDescriptor<T>
+        , IHasClrType
     {
         public InterfaceTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {
         }
+
+        Type IHasClrType.ClrType => Definition.ClrType;
 
         protected override void OnCompleteFields(
             IDictionary<NameString, InterfaceFieldDefinition> fields,
@@ -23,32 +26,16 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.Fields.IsImplicitBinding())
             {
-                AddImplicitFields(fields, handledMembers);
+                FieldDescriptorUtilities.AddImplicitFields(
+                    this,
+                    p => InterfaceFieldDescriptor
+                        .New(Context, p)
+                        .CreateDefinition(),
+                    fields,
+                    handledMembers);
             }
-        }
 
-        private void AddImplicitFields(
-            IDictionary<NameString, InterfaceFieldDefinition> fields,
-            ICollection<MemberInfo> handledMembers)
-        {
-            if (Definition.ClrType != typeof(object))
-            {
-                foreach (MemberInfo member in
-                    Context.Inspector.GetMembers(Definition.ClrType))
-                {
-                    InterfaceFieldDefinition fieldDefinition =
-                        InterfaceFieldDescriptor
-                            .New(Context, member)
-                            .CreateDefinition();
-
-                    if (!handledMembers.Contains(member)
-                        && !fields.ContainsKey(fieldDefinition.Name))
-                    {
-                        handledMembers.Add(member);
-                        fields[fieldDefinition.Name] = fieldDefinition;
-                    }
-                }
-            }
+            base.OnCompleteFields(fields, handledMembers);
         }
 
         public new IInterfaceTypeDescriptor<T> SyntaxNode(

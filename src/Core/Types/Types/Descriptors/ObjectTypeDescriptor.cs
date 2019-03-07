@@ -56,19 +56,11 @@ namespace HotChocolate.Types.Descriptors
             var fields = new Dictionary<NameString, ObjectFieldDefinition>();
             var handledMembers = new HashSet<MemberInfo>();
 
-            foreach (ObjectFieldDefinition fieldDefinition in
-                Fields.Select(t => t.CreateDefinition()))
-            {
-                if (!fieldDefinition.Ignore)
-                {
-                    fields[fieldDefinition.Name] = fieldDefinition;
-                }
-
-                if (fieldDefinition.Member != null)
-                {
-                    handledMembers.Add(fieldDefinition.Member);
-                }
-            }
+            FieldDescriptorUtilities.AddExplicitFields(
+                Fields.Select(t => t.CreateDefinition()),
+                f => f.Member,
+                fields,
+                handledMembers);
 
             OnCompleteFields(fields, handledMembers);
 

@@ -7,6 +7,7 @@ namespace HotChocolate.Types.Descriptors
     public abstract class DescriptorBase<T>
         : IDescriptor<T>
         , IDefinitionFactory<T>
+        , IHasDescriptorContext
         where T : DefinitionBase
     {
         private readonly List<Action<T>> _modifiers = new List<Action<T>>();
@@ -18,6 +19,8 @@ namespace HotChocolate.Types.Descriptors
         }
 
         protected IDescriptorContext Context { get; }
+
+        IDescriptorContext IHasDescriptorContext.Context => Context;
 
         protected abstract T Definition { get; }
 
@@ -48,5 +51,10 @@ namespace HotChocolate.Types.Descriptors
 
         DefinitionBase IDefinitionFactory.CreateDefinition() =>
             CreateDefinition();
+    }
+
+    internal interface IHasDescriptorContext
+    {
+        IDescriptorContext Context { get; }
     }
 }

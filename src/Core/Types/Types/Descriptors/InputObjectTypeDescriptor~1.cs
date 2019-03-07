@@ -12,11 +12,14 @@ namespace HotChocolate.Types.Descriptors
     public class InputObjectTypeDescriptor<T>
         : InputObjectTypeDescriptor
         , IInputObjectTypeDescriptor<T>
+        , IHasClrType
     {
         public InputObjectTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {
         }
+
+        Type IHasClrType.ClrType => Definition.ClrType;
 
         protected override void OnCompleteFields(
             IDictionary<NameString, InputFieldDefinition> fields,
@@ -24,35 +27,16 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.Fields.IsImplicitBinding())
             {
-                AddImplicitFields(fields, handledProperties);
+                FieldDescriptorUtilities.AddImplicitFields(
+                    this,
+                    p => InputFieldDescriptor
+                        .New(Context, p)
+                        .CreateDefinition(),
+                    fields,
+                    handledProperties);
             }
 
             base.OnCompleteFields(fields, handledProperties);
-        }
-
-        private void AddImplicitFields(
-            IDictionary<NameString, InputFieldDefinition> fields,
-            ISet<PropertyInfo> handledProperties)
-        {
-            if (Definition.ClrType != typeof(object))
-            {
-                foreach (PropertyInfo property in
-                    Context.Inspector.GetMembers(Definition.ClrType)
-                        .OfType<PropertyInfo>())
-                {
-                    InputFieldDefinition fieldDefinition =
-                        InputFieldDescriptor
-                            .New(Context, property)
-                            .CreateDefinition();
-
-                    if (!handledProperties.Contains(property)
-                        && !fields.ContainsKey(fieldDefinition.Name))
-                    {
-                        handledProperties.Add(property);
-                        fields[fieldDefinition.Name] = fieldDefinition;
-                    }
-                }
-            }
         }
 
         public new IInputObjectTypeDescriptor<T> SyntaxNode(

@@ -12,11 +12,15 @@ namespace HotChocolate.Types.Descriptors
     internal class ObjectTypeDescriptor<T>
         : ObjectTypeDescriptor
         , IObjectTypeDescriptor<T>
+        , IHasClrType
     {
+
         public ObjectTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {
         }
+
+        Type IHasClrType.ClrType => Definition.ClrType;
 
         protected override void OnCompleteFields(
             IDictionary<NameString, ObjectFieldDefinition> fields,
@@ -24,34 +28,16 @@ namespace HotChocolate.Types.Descriptors
         {
             if (Definition.Fields.IsImplicitBinding())
             {
-                AddImplicitFields(fields, handledMembers);
+                FieldDescriptorUtilities.AddImplicitFields(
+                    this,
+                    p => ObjectFieldDescriptor
+                        .New(Context, p)
+                        .CreateDefinition(),
+                    fields,
+                    handledMembers);
             }
 
             base.OnCompleteFields(fields, handledMembers);
-        }
-
-        private void AddImplicitFields(
-            IDictionary<NameString, ObjectFieldDefinition> fields,
-            ISet<MemberInfo> handledMembers)
-        {
-            if (Definition.ClrType != typeof(object))
-            {
-                foreach (MemberInfo member in
-                    Context.Inspector.GetMembers(Definition.ClrType))
-                {
-                    ObjectFieldDefinition fieldDefinition =
-                        ObjectFieldDescriptor
-                            .New(Context, member)
-                            .CreateDefinition();
-
-                    if (!handledMembers.Contains(member)
-                        && !fields.ContainsKey(fieldDefinition.Name))
-                    {
-                        handledMembers.Add(member);
-                        fields[fieldDefinition.Name] = fieldDefinition;
-                    }
-                }
-            }
         }
 
         public new IObjectTypeDescriptor<T> Name(NameString name)

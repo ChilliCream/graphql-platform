@@ -53,23 +53,15 @@ namespace HotChocolate.Types.Descriptors
                 new Dictionary<NameString, DirectiveArgumentDefinition>();
             var handledMembers = new HashSet<PropertyInfo>();
 
-            foreach (DirectiveArgumentDefinition argumentDefinition in
-                Arguments.Select(t => t.CreateDefinition()))
-            {
-                if (!argumentDefinition.Ignore)
-                {
-                    arguments[argumentDefinition.Name] = argumentDefinition;
-                }
-
-                if (argumentDefinition.Property != null)
-                {
-                    handledMembers.Add(argumentDefinition.Property);
-                }
-            }
+            FieldDescriptorUtilities.AddExplicitFields(
+                Arguments.Select(t => t.CreateDefinition()),
+                f => f.Property,
+                arguments,
+                handledMembers);
 
             OnCompleteArguments(arguments, handledMembers);
 
-            Definition.Arguments.AddRange(arguments.Values);
+            definition.Arguments.AddRange(arguments.Values);
         }
 
         protected virtual void OnCompleteArguments(

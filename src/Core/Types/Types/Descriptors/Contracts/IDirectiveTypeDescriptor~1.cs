@@ -84,7 +84,7 @@ namespace HotChocolate.Types
         // TODO : DOCU
         [Obsolete]
         IDirectiveTypeDescriptor<T> Middleware<TMiddleware>(
-            Expression<Action<T>> method);
+            Expression<Action<TMiddleware>> method);
 
         IDirectiveTypeDescriptor<T> Use(
             DirectiveMiddleware middleware);

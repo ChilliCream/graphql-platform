@@ -56,19 +56,11 @@ namespace HotChocolate.Types.Descriptors
             var fields = new Dictionary<NameString, InputFieldDefinition>();
             var handledProperties = new HashSet<PropertyInfo>();
 
-            foreach (InputFieldDefinition fieldDefinition in
-                Fields.Select(t => t.CreateDefinition()))
-            {
-                if (!fieldDefinition.Ignore)
-                {
-                    fields[fieldDefinition.Name] = fieldDefinition;
-                }
-
-                if (fieldDefinition.Property != null)
-                {
-                    handledProperties.Add(fieldDefinition.Property);
-                }
-            }
+            FieldDescriptorUtilities.AddExplicitFields(
+                Fields.Select(t => t.CreateDefinition()),
+                f => f.Property,
+                fields,
+                handledProperties);
 
             OnCompleteFields(fields, handledProperties);
 
