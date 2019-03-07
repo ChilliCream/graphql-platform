@@ -23,7 +23,7 @@ namespace Generator
         }
 
 
-        public Block CreateBlock(Statement header)
+        public Block CreateBlock()
         {
             var queryValidatorDefinition = new Statement(
                 "IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();");
@@ -33,7 +33,6 @@ namespace Generator
 
             return new Block
             {
-                header,
                 queryValidatorDefinition,
                 queryValidatorAction
             };

@@ -26,6 +26,7 @@ namespace Generator
                     "System",
                     "System.Collections.Generic",
                     "System.IO",
+                    "System.Linq",
                     "HotChocolate",
                     "HotChocolate.Execution",
                     "HotChocolate.Validation",
@@ -33,9 +34,9 @@ namespace Generator
                     "Xunit")
                 .WithNamespace("Generated.Tests")
                 .WithFields(
-                    new Statement("private IQueryParser _parser;"),
-                    new Statement("private Schema _schema;"),
-                    new Statement("private ServiceProvider _serviceProvider;"))
+                    new Statement("private readonly IQueryParser _parser;"),
+                    new Statement("private readonly Schema _schema;"),
+                    new Statement("private readonly ServiceProvider _serviceProvider;"))
                 .WithConstructor(
                     new Statement("_parser = new DefaultQueryParser();"),
                     new Statement("var schemaContent = File.ReadAllText(\"validation.schema.graphql\");"),

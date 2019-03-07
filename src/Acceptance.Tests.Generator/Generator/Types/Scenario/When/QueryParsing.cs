@@ -12,11 +12,10 @@ namespace Generator
             _parse = parse;
         }
 
-        public Block CreateBlock(Statement header)
+        public Block CreateBlock()
         {
             return new Block
             {
-                header,
                 new Statement("DocumentNode document = _parser.Parse(query);")
             };
         }

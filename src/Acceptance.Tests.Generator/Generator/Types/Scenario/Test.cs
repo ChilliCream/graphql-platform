@@ -28,14 +28,22 @@ namespace Generator
             // TODO: Create context with fields names
             var testBlock = new Block
             {
-                _given.CreateBlock(new Statement("// Given"))
+                new Statement("// Given"),
+                _given.CreateBlock()
             };
 
-            Block whenBlock = _when.CreateBlock(new Statement("// When"));
-            Block thenBlock = new Block();
+            Block whenBlock = new Block
+            {
+                new Statement("// When"),
+                _when.CreateBlock()
+            };
+            Block thenBlock = new Block
+            {
+                new Statement("// Then")
+            };
             foreach (IAssertion then in _then)
             {
-                thenBlock.Add(then.CreateBlock(new Statement("// Then")));
+                thenBlock.Add(then.CreateBlock());
             }
 
             if (!thenBlock.Replace(Statement.WhenPlaceholder, whenBlock))

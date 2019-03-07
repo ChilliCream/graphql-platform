@@ -29,12 +29,10 @@ namespace Generator
             return new ParsingIsSuccessful(value);
         }
 
-        public Block CreateBlock(Statement header)
+        public Block CreateBlock()
         {
             return new Block
             {
-                Statement.WhenPlaceholder,
-                header,
                 new Statement("Assert.NotNull(document);")
             };
         }

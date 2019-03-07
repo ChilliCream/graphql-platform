@@ -26,11 +26,10 @@ namespace Generator
             return new ParsingSyntaxError(value);
         }
 
-        public Block CreateBlock(Statement header)
+        public Block CreateBlock()
         {
             return new Block
             {
-                header,
                 new Statement("Assert.Throws<SyntaxException>(() =>"),
                 new Statement("{"),
                 Statement.WhenPlaceholder,

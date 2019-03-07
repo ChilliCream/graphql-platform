@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Generator.ClassGenerator;
 
@@ -9,9 +10,11 @@ namespace Generator
     internal class ErrorCount : IAssertion
     {
         private static readonly string _errorCountKey = "error-count";
+        private readonly int _errorCounts;
 
         private ErrorCount(Dictionary<object, object> value)
         {
+            _errorCounts = int.Parse(value[_errorCountKey] as string);
         }
 
         public static (bool, CreateAssertion) TryCreate(
@@ -26,9 +29,9 @@ namespace Generator
             return new ErrorCount(value);
         }
 
-        public Block CreateBlock(Statement header)
+        public Block CreateBlock()
         {
-            return new Block(new Statement("throw new NotImplementedException();"));
+            return new Block(new Statement($"Assert.Equal({_errorCounts}, result.Errors.Count);"));
         }
     }
 }

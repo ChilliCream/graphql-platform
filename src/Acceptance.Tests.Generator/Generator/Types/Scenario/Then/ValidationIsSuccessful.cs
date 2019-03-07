@@ -28,12 +28,10 @@ namespace Generator
             return new ValidationIsSuccessful(value);
         }
 
-        public Block CreateBlock(Statement header)
+        public Block CreateBlock()
         {
             return new Block
             {
-                Statement.WhenPlaceholder,
-                header,
                 new Statement("Assert.False(result.HasErrors);")
             };
         }

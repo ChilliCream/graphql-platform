@@ -20,9 +20,9 @@ namespace Generator
         public static void Generate(Scenario definition, string outputDir)
         {
             ClassBuilder classBuilder = ClassBuilder.Init(definition.Name)
-                .WithUsings("System", "HotChocolate", "HotChocolate.Language", "HotChocolate.Execution", "Xunit")
+                .WithUsings("HotChocolate.Language", "HotChocolate.Execution", "Xunit")
                 .WithNamespace("Generated.Tests")
-                .WithFields(new Statement("private IQueryParser _parser;"))
+                .WithFields(new Statement("private readonly IQueryParser _parser;"))
                 .WithConstructor(new Statement("_parser = new DefaultQueryParser();"))
                 .WithMethods(definition.Tests.Select(t =>
                     new ClassMethod("void", t.Name, t.CreateBlock())).ToArray());

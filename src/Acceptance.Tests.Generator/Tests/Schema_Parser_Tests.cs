@@ -1,5 +1,3 @@
-using System;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Execution;
 using Xunit;
@@ -8,7 +6,7 @@ namespace Generated.Tests
 {
     public class Schema_Parser
     {
-        private IQueryParser _parser;
+        private readonly IQueryParser _parser;
         public Schema_Parser()
         {
             _parser = new DefaultQueryParser();
@@ -18,7 +16,7 @@ namespace Generated.Tests
         public void Simple_type()
         {
             // Given
-            string query = @"type Hello {   world: String } ";
+            string query = @"type Hello { world: String } ";
             // When
             DocumentNode document = _parser.Parse(query);
             // Then
@@ -29,7 +27,7 @@ namespace Generated.Tests
         public void Simple_extension()
         {
             // Given
-            string query = @"extend type Hello {   world: String } ";
+            string query = @"extend type Hello { world: String } ";
             // When
             DocumentNode document = _parser.Parse(query);
             // Then
@@ -40,7 +38,7 @@ namespace Generated.Tests
         public void Simple_nonnull_type()
         {
             // Given
-            string query = @"type Hello {   world: String! } ";
+            string query = @"type Hello { world: String! } ";
             // When
             DocumentNode document = _parser.Parse(query);
             // Then
@@ -95,7 +93,7 @@ namespace Generated.Tests
         public void Simple_interface()
         {
             // Given
-            string query = @"interface Hello {   world: String } ";
+            string query = @"interface Hello { world: String } ";
             // When
             DocumentNode document = _parser.Parse(query);
             // Then
@@ -106,7 +104,7 @@ namespace Generated.Tests
         public void Simple_field_with_arg()
         {
             // Given
-            string query = @"type Hello {   world(flag: Boolean): String } ";
+            string query = @"type Hello { world(flag: Boolean): String } ";
             // When
             DocumentNode document = _parser.Parse(query);
             // Then
@@ -117,7 +115,7 @@ namespace Generated.Tests
         public void Simple_field_with_arg_with_default_value()
         {
             // Given
-            string query = @"type Hello {   world(flag: Boolean = true): String } ";
+            string query = @"type Hello { world(flag: Boolean = true): String } ";
             // When
             DocumentNode document = _parser.Parse(query);
             // Then
@@ -128,7 +126,7 @@ namespace Generated.Tests
         public void Simple_field_with_list_arg()
         {
             // Given
-            string query = @"type Hello {   world(things: [String]): String } ";
+            string query = @"type Hello { world(things: [String]): String } ";
             // When
             DocumentNode document = _parser.Parse(query);
             // Then
@@ -139,7 +137,7 @@ namespace Generated.Tests
         public void Simple_field_with_two_args()
         {
             // Given
-            string query = @"type Hello {   world(argOne: Boolean, argTwo: Int): String } ";
+            string query = @"type Hello { world(argOne: Boolean, argTwo: Int): String } ";
             // When
             DocumentNode document = _parser.Parse(query);
             // Then
@@ -183,7 +181,7 @@ namespace Generated.Tests
         public void Simple_input_object()
         {
             // Given
-            string query = @"input Hello {   world: String } ";
+            string query = @"input Hello { world: String } ";
             // When
             DocumentNode document = _parser.Parse(query);
             // Then
@@ -194,7 +192,7 @@ namespace Generated.Tests
         public void Simple_input_object_with_args_should_fail()
         {
             // Given
-            string query = @"input Hello {   world(foo: Int): String } ";
+            string query = @"input Hello { world(foo: Int): String } ";
             // Then
             Assert.Throws<SyntaxException>(() =>
             {

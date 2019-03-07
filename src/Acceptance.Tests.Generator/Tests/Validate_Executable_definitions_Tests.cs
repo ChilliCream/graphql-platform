@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Validation;
@@ -11,9 +12,9 @@ namespace Generated.Tests
 {
     public class Validate_Executable_definitions
     {
-        private IQueryParser _parser;
-        private Schema _schema;
-        private ServiceProvider _serviceProvider;
+        private readonly IQueryParser _parser;
+        private readonly Schema _schema;
+        private readonly ServiceProvider _serviceProvider;
         public Validate_Executable_definitions()
         {
             _parser = new DefaultQueryParser();
@@ -29,7 +30,7 @@ namespace Generated.Tests
         public void with_only_operation()
         {
             // Given
-            string query = @"query Foo {   dog {     name   } }";
+            string query = @"query Foo { dog { name } }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -41,7 +42,7 @@ namespace Generated.Tests
         public void with_operation_and_fragment()
         {
             // Given
-            string query = @"query Foo {   dog {     name     ...Frag   } }  fragment Frag on Dog {   name }";
+            string query = @"query Foo { dog { name ...Frag } } fragment Frag on Dog { name }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -53,34 +54,29 @@ namespace Generated.Tests
         public void with_type_definition()
         {
             // Given
-            string query = @"query Foo {   dog {     name   } }  type Cow {   name: String }  extend type Dog {   color: String }";
+            string query = @"query Foo { dog { name } } type Cow { name: String } extend type Dog { color: String }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
-            throw new NotImplementedException();
-            throw new NotImplementedException();
-            throw new NotImplementedException();
-            throw new NotImplementedException();
-            throw new NotImplementedException();
-            throw new NotImplementedException();
+            // Then
+            Assert.Equal(2, result.Errors.Count);
+            Assert.Equal(1, result.Errors.Count(e => e.Code == "nonExecutableDefinition" /*&& arg:Cow, line:7, col:1*/));
+            Assert.Equal(1, result.Errors.Count(e => e.Code == "nonExecutableDefinition" /*&& arg:Dog, line:11, col:1*/));
         }
 
         [Fact]
         public void with_schema_definition()
         {
             // Given
-            string query = @"schema {   query: Query }  type Query {   test: String }  extend schema @directive";
+            string query = @"schema { query: Query } type Query { test: String } extend schema @directive";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
-            throw new NotImplementedException();
-            throw new NotImplementedException();
-            throw new NotImplementedException();
-            throw new NotImplementedException();
-            throw new NotImplementedException();
-            throw new NotImplementedException();
-            throw new NotImplementedException();
-            throw new NotImplementedException();
+            // Then
+            Assert.Equal(3, result.Errors.Count);
+            Assert.Equal(1, result.Errors.Count(e => e.Code == "nonExecutableDefinition" /*&& arg:schema, line:1, col:1*/));
+            Assert.Equal(1, result.Errors.Count(e => e.Code == "nonExecutableDefinition" /*&& arg:Query, line:5, col:1*/));
+            Assert.Equal(1, result.Errors.Count(e => e.Code == "nonExecutableDefinition" /*&& arg:schema, line:9, col:1*/));
         }
     }
 }

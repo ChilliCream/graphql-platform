@@ -30,7 +30,7 @@ namespace Generator
             return new ErrorContainsMatch(value);
         }
 
-        public Block CreateBlock(Statement header)
+        public Block CreateBlock()
         {
             return new Block(new Statement("throw new NotImplementedException();"));
         }

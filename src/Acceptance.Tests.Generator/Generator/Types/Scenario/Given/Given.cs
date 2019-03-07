@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 using Generator.ClassGenerator;
 
 namespace Generator
@@ -12,7 +13,8 @@ namespace Generator
             object testData,
             string testDataFile)
         {
-            Query = query.Replace("\n", " ");
+            var inlineQuery = query.Replace("\n", " ");
+            Query = Regex.Replace(inlineQuery, @"\s+", " ");
             Schema = schema;
             SchemaFile = schemaFile;
             TestData = testData;
@@ -25,11 +27,10 @@ namespace Generator
         public object TestData { get; }
         public string TestDataFile { get; }
 
-        public Block CreateBlock(Statement header)
+        public Block CreateBlock()
         {
             return new Block
             {
-                header,
                 new Statement($"string query = @\"{Query}\";")
             };
         }

@@ -5,7 +5,7 @@ namespace Generator
 {
     internal interface IAction
     {
-        Block CreateBlock(Statement header);
+        Block CreateBlock();
     }
 
     internal enum Actions
