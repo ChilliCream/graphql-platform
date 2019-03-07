@@ -54,6 +54,8 @@ namespace Generator
             private static readonly string _fieldNameKey = "fieldName";
             private static readonly string _typeKey = "type";
             private static readonly string _fragmentNameKey = "fragmentName";
+            private static readonly string _argumentNameKey = "argumentName";
+            private static readonly string _directiveNameKey = "directiveName";
 
             public Args(Dictionary<object, object> value)
             {
@@ -68,12 +70,16 @@ namespace Generator
                 FieldName = argsValue.TryGet(_fieldNameKey, string.Empty);
                 Type = argsValue.TryGet(_typeKey, string.Empty);
                 FragmentName = argsValue.TryGet(_fragmentNameKey, string.Empty);
+                ArgumentName = argsValue.TryGet(_argumentNameKey, string.Empty);
+                DirectiveName = argsValue.TryGet(_directiveNameKey, string.Empty);
             }
 
             public string DefName { get; }
             public string FieldName { get; }
             public string Type { get; }
             public string FragmentName { get; }
+            public string ArgumentName { get; }
+            public string DirectiveName { get; }
 
             public string Create()
             {
@@ -97,6 +103,16 @@ namespace Generator
                 if (!string.IsNullOrEmpty(FragmentName))
                 {
                     values.Add($"{_fragmentNameKey}={FragmentName}");
+                }
+
+                if (!string.IsNullOrEmpty(ArgumentName))
+                {
+                    values.Add($"{_argumentNameKey}={ArgumentName}");
+                }
+
+                if (!string.IsNullOrEmpty(DirectiveName))
+                {
+                    values.Add($"{_directiveNameKey}={DirectiveName}");
                 }
 
                 return string.Join("|", values);
