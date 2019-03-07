@@ -9,9 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Added `INaminingConventions` which can now be injected to control how names are inferred from types and members.
+- Added `ITypeInspector` which can be used to control how field definitions are inferred from types etc.
+
 ### Changed
 
 - The default complexity calculation methods are now exposed through the new static class `Complexity`.
+- The descriptor type are now public.
 
 ### Deprecated
 
