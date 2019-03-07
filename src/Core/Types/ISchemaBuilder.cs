@@ -15,26 +15,12 @@ namespace HotChocolate
     public delegate INamedType CreateNamedType(IServiceProvider services);
 
 
-    public interface ITypeSystemObject
+    internal interface ITypeSystemObject
         : Types.IHasName
         , Types.IHasDescription
     {
-        /// <summary>
-        /// Register dependencies.
-        /// </summary>
-        void Initialize(IInitializationContext context);
-
-        /// <summary>
-        /// Completes the name of this object.
-        /// </summary>
-        void CompleteName(ICompletionContext context);
-
-        /// <summary>
-        /// Completes the object and makes the object immutable.
-        /// </summary>
-        void CompleteObject(ICompletionContext context);
     }
-^
+
     public interface ITypeSystemObjectContext
     {
         ITypeSystemObject Type { get; }
@@ -63,7 +49,10 @@ namespace HotChocolate
 
         void RegisterDependency(IDirectiveReference reference);
 
-        void RegisterResolver(IFieldReference reference);
+        void RegisterResolver(
+            IFieldReference reference,
+            Type sourceType,
+            Type resolverType);
 
         void RegisterMiddleware(
             IFieldReference reference,
@@ -73,7 +62,9 @@ namespace HotChocolate
     public interface ICompletionContext
         : ITypeSystemObjectContext
     {
-        INamedType GetType(ITypeReference reference);
+        bool TryGetType<T>(ITypeReference reference, out T type) where T : IType;
+
+        T GetType<T>(ITypeReference reference) where T : IType;
 
         IDirective GetDirective(IDirectiveReference reference);
 

@@ -16,5 +16,19 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public IBindableList<ObjectFieldDefinition> Fields { get; } =
             new BindableList<ObjectFieldDefinition>();
+
+        public IEnumerable<ITypeReference> GetDependencies()
+        {
+            var dependencies = new List<ITypeReference>();
+
+            dependencies.AddRange(Interfaces);
+
+            foreach (ObjectFieldDefinition field in Fields)
+            {
+                dependencies.AddRange(field.GetDependencies());
+            }
+
+            return dependencies;
+        }
     }
 }

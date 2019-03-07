@@ -6,17 +6,17 @@ using System.Linq;
 namespace HotChocolate.Types
 {
     internal sealed class DirectiveCollection
-        : TypeSystemBase
+        : TypeSystemObjectBase
         , IDirectiveCollection
     {
         private readonly List<IDirective> _directives = new List<IDirective>();
-        private readonly TypeSystemBase _source;
+        private readonly TypeSystemObjectBase _source;
         private readonly DirectiveLocation _location;
         private readonly IReadOnlyCollection<DirectiveDescription> _descs;
         private ILookup<NameString, IDirective> _lookup;
 
         internal DirectiveCollection(
-            TypeSystemBase source,
+            TypeSystemObjectBase source,
             DirectiveLocation location,
             IReadOnlyCollection<DirectiveDescription> directiveDescriptions)
         {

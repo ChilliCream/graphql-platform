@@ -11,7 +11,17 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public bool IsDeprecated => !string.IsNullOrEmpty(DeprecationReason);
 
-        public ICollection<ArgumentDefinition> Arguments { get; set; } =
+        public ICollection<ArgumentDefinition> Arguments { get; } =
             new List<ArgumentDefinition>();
+
+        public IEnumerable<ITypeReference> GetDependencies()
+        {
+            yield return Type;
+
+            foreach (ArgumentDefinition argument in Arguments)
+            {
+                yield return argument.Type;
+            }
+        }
     }
 }

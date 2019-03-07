@@ -9,7 +9,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types
 {
     public class DirectiveType
-        : TypeSystemBase
+        : TypeSystemObjectBase
         , IHasName
         , IHasDescription
     {

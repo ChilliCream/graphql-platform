@@ -10,9 +10,292 @@ using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Types
 {
+
+
+    public class ObjectType_NEW
+        : NamedTypeBase<ObjectTypeDefinition>
+        , IComplexOutputType
+        , IHasClrType
+        , IHasSyntaxNode
+    {
+        private readonly Dictionary<NameString, InterfaceType> _interfaces =
+            new Dictionary<NameString, InterfaceType>();
+        private readonly Action<IObjectTypeDescriptor> _configure;
+        private IFieldCollection<IOutputField> _fields;
+        private IsOfType _isOfType;
+        private ObjectTypeBinding _typeBinding;
+
+        protected ObjectType_NEW()
+        {
+            _configure = Configure;
+        }
+
+        public ObjectType_NEW(Action<IObjectTypeDescriptor> configure)
+        {
+            _configure = configure;
+        }
+
+        public override TypeKind Kind => TypeKind.Object;
+
+        public ObjectTypeDefinitionNode SyntaxNode { get; private set; }
+
+        ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
+
+        public Type ClrType => Definition.ClrType;
+
+        public IFieldCollection<IOutputField> Fields
+        {
+            get => _fields;
+            set
+            {
+                if (IsCompleted)
+                {
+                    // TODO : exception type
+                    // TODO : resources
+                    throw new InvalidOperationException(
+                        "The type is initialize bla bla ...");
+                }
+
+                _fields = value
+                    ?? throw new ArgumentNullException(nameof(value));
+            }
+        }
+
+
+        protected override void OnInitialize(IInitializationContext context)
+        {
+            ObjectTypeDescriptor descriptor = ObjectTypeDescriptor.New(
+                DescriptorContext.Create(context.Services),
+                GetType());
+            _configure(descriptor);
+            Definition = descriptor.CreateDefinition();
+            RegisterDependencies(context, Definition);
+        }
+
+        protected virtual void Configure(IObjectTypeDescriptor descriptor) { }
+
+        protected void RegisterDependencies(
+            IInitializationContext context,
+            ObjectTypeDefinition definition)
+        {
+            context.RegisterDependencyRange(
+                Definition.GetDependencies(),
+                TypeDependencyKind.Default);
+
+            foreach (ObjectFieldDefinition field in definition.Fields)
+            {
+                if (TryCreateFieldReference(definition, field,
+                    out IFieldReference fieldReference))
+                {
+                    context.RegisterResolver(
+                        fieldReference,
+                        definition.ClrType,
+                        field.ResolverType);
+                }
+            }
+        }
+
+        public static bool TryCreateFieldReference(
+            ObjectTypeDefinition typeDefinition,
+            ObjectFieldDefinition fieldDefinition,
+            out IFieldReference fieldReference)
+        {
+            if (fieldDefinition.Resolver != null)
+            {
+                fieldReference = new FieldResolver(
+                    typeDefinition.Name,
+                    fieldDefinition.Name,
+                    fieldDefinition.Resolver);
+                return true;
+            }
+
+            if (fieldDefinition.Member != null)
+            {
+                // ? resolver type
+                fieldReference = new FieldMember(
+                    typeDefinition.Name,
+                    fieldDefinition.Name,
+                    fieldDefinition.Member);
+                return true;
+            }
+
+            fieldReference = null;
+            return false;
+        }
+
+        protected override void OnCompleteObject(ICompletionContext context)
+        {
+            _isOfType = Definition.IsOfType;
+            SyntaxNode = Definition.SyntaxNode;
+
+            CompleteInterfaces(context);
+        }
+
+
+        private void CompleteInterfaces(
+           ICompletionContext context)
+        {
+            if (ClrType != typeof(object))
+            {
+                Type[] possibleInterfaceTypes = ClrType.GetInterfaces();
+                foreach (Type interfaceType in ClrType.GetInterfaces())
+                {
+                    if (context.TryGetType<InterfaceType>(
+                        new ClrTypeReference(interfaceType, TypeContext.Output),
+                        out InterfaceType type))
+                    {
+                        _interfaces[type.Name] = type;
+                    }
+                }
+            }
+
+            foreach (ITypeReference interfaceRef in Definition.Interfaces)
+            {
+                if (!context.TryGetType<InterfaceType>(
+                    interfaceRef,
+                    out InterfaceType type))
+                {
+                    // TODO : resources
+                    context.ReportError(new SchemaError(
+                        "COULD NOT RESOLVE INTERFACE"));
+                }
+
+                _interfaces[type.Name] = type;
+            }
+        }
+
+        private void ValidateInterfaceImplementation(
+            ITypeInitializationContext context)
+        {
+            if (_interfaces.Count > 0)
+            {
+                foreach (IGrouping<NameString, InterfaceField> fieldGroup in
+                    _interfaces.Values
+                        .SelectMany(t => t.Fields)
+                        .GroupBy(t => t.Name))
+                {
+                    ValidateField(context, fieldGroup);
+                }
+            }
+        }
+
+        private void ValidateField(
+            ITypeInitializationContext context,
+            IGrouping<NameString, InterfaceField> interfaceField)
+        {
+            InterfaceField first = interfaceField.First();
+            if (ValidateInterfaceFieldGroup(context, first, interfaceField))
+            {
+                ValidateObjectField(context, first);
+            }
+        }
+
+        private bool ValidateInterfaceFieldGroup(
+            ITypeInitializationContext context,
+            InterfaceField first,
+            IGrouping<NameString, InterfaceField> interfaceField)
+        {
+            if (interfaceField.Count() == 1)
+            {
+                return true;
+            }
+
+            foreach (InterfaceField field in interfaceField)
+            {
+                if (!field.Type.IsEqualTo(first.Type))
+                {
+                    context.ReportError(new SchemaError(
+                        "The return type of the interface field " +
+                        $"{first.Name} from interface " +
+                        $"{first.DeclaringType.Name} and " +
+                        $"{field.DeclaringType.Name} do not match " +
+                        $"and are implemented by object type {Name}.",
+                        this));
+                    return false;
+                }
+
+                if (!ArgumentsAreEqual(field.Arguments, first.Arguments))
+                {
+                    context.ReportError(new SchemaError(
+                        $"The arguments of the interface field {first.Name} " +
+                        $"from interface {first.DeclaringType.Name} and " +
+                        $"{field.DeclaringType.Name} do not match " +
+                        $"and are implemented by object type {Name}.",
+                        this));
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private void ValidateObjectField(
+            ITypeInitializationContext context,
+            InterfaceField first)
+        {
+            if (Fields.TryGetField(first.Name, out ObjectField field))
+            {
+                if (!field.Type.IsEqualTo(first.Type))
+                {
+                    context.ReportError(new SchemaError(
+                        "The return type of the interface field " +
+                        $"{first.Name} does not match the field declared " +
+                        $"by object type {Name}.",
+                        this));
+                }
+
+                if (!ArgumentsAreEqual(field.Arguments, first.Arguments))
+                {
+                    context.ReportError(new SchemaError(
+                        $"Object type {Name} does not implement " +
+                        $"all arguments of field {first.Name} " +
+                        $"from interface {first.DeclaringType.Name}.",
+                        this));
+                }
+            }
+            else
+            {
+                context.ReportError(new SchemaError(
+                    $"Object type {Name} does not implement the " +
+                    $"field {first.Name} " +
+                    $"from interface {first.DeclaringType.Name}.",
+                    this));
+            }
+        }
+
+        private bool ArgumentsAreEqual(
+            FieldCollection<InputField> x,
+            FieldCollection<InputField> y)
+        {
+            if (x.Count != y.Count)
+            {
+                return false;
+            }
+
+            foreach (InputField xfield in x)
+            {
+                if (!y.TryGetField(xfield.Name, out InputField yfield)
+                    || !xfield.Type.IsEqualTo(yfield.Type))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        private void CompleteFields(ITypeInitializationContext context)
+        {
+            foreach (INeedsInitialization field in
+                Fields.Cast<INeedsInitialization>())
+            {
+                field.CompleteType(context);
+            }
+        }
+    }
+
     public class ObjectType
         : NamedTypeBase
-        , ITypeSystemObject
         , IComplexOutputType
         , IHasClrType
     {
@@ -69,82 +352,7 @@ namespace HotChocolate.Types
         public bool IsOfType(IResolverContext context, object resolverResult)
             => _isOfType(context, resolverResult);
 
-        void ITypeSystemObject.Initialize(IInitializationContext context) =>
-            OnInitialize(context);
 
-        protected virtual void OnInitialize(IInitializationContext context)
-        {
-            ObjectTypeDescriptor descriptor = ObjectTypeDescriptor.New(
-                DescriptorContext.Create(context.Services),
-                GetType());
-            _configure(descriptor);
-            Definition = descriptor.CreateDefinition();
-        }
-
-        protected void RegisterDependencies(
-            IInitializationContext context,
-            ObjectTypeDefinition definition)
-        {
-            context.RegisterDependencyRange(
-                definition.Interfaces,
-                TypeDependencyKind.Default);
-
-            Fields = new FieldCollection<ObjectField>(
-                definition.Fields.Select(t => new ObjectField(t)));
-
-            foreach ()
-        }
-
-
-
-        public static bool TryCreateFieldReference(
-            ObjectTypeDefinition typeDefinition,
-            ObjectFieldDefinition fieldDefinition,
-            out IFieldReference fieldReference)
-        {
-            if (fieldDefinition.Resolver != null)
-            {
-                fieldReference = new FieldResolver(
-                    typeDefinition.Name,
-                    fieldDefinition.Name,
-                    fieldDefinition.Resolver);
-                return true;
-            }
-
-            if (fieldDefinition.Member != null)
-            {
-                // ? resolver type
-                fieldReference = new FieldMember(
-                    typeDefinition.Name,
-                    fieldDefinition.Name,
-                    fieldDefinition.Member);
-                return true;
-            }
-
-            fieldReference = null;
-            return false;
-        }
-
-
-        void ITypeSystemObject.CompleteName(ICompletionContext context)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected virtual void OnCompleteName(ICompletionContext context)
-        {
-
-        }
-
-        void ITypeSystemObject.CompleteObject(ICompletionContext context)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected void OnCompleteObject(ICompletionContext context)
-        {
-            throw new NotImplementedException();
-        }
 
         protected virtual void Configure(IObjectTypeDescriptor descriptor) { }
 
@@ -289,21 +497,6 @@ namespace HotChocolate.Types
             CompleteFields(context);
 
             ValidateInterfaceImplementation(context);
-        }
-
-        private void CompleteClrType(
-            ITypeInitializationContext context)
-        {
-            if (ClrType == null
-                && context.TryGetNativeType(this, out Type clrType))
-            {
-                ClrType = clrType;
-            }
-
-            if (ClrType == null)
-            {
-                ClrType = typeof(object);
-            }
         }
 
         private void CompleteIsOfType(ITypeInitializationContext context)

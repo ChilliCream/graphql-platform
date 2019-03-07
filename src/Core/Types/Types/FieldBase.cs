@@ -3,7 +3,7 @@
 namespace HotChocolate.Types
 {
     public class FieldBase<T>
-        : TypeSystemBase
+        : TypeSystemObjectBase
         , IField
         , IHasDirectives
         where T : IType

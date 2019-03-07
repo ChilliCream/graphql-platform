@@ -10,6 +10,7 @@ namespace HotChocolate.Types
         : NamedTypeBase
         , IComplexOutputType
         , IHasClrType
+        , INamedType
     {
         private ResolveAbstractType _resolveAbstractType;
 

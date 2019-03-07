@@ -4,40 +4,44 @@ using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Types
 {
     public class ObjectType<T>
-        : ObjectType
+        : ObjectType_NEW
     {
+        private readonly Action<IObjectTypeDescriptor<T>> _configure;
+
         public ObjectType()
         {
-            ClrType = typeof(T);
+            _configure = Configure;
         }
 
         public ObjectType(Action<IObjectTypeDescriptor<T>> configure)
-            : base(d => configure((IObjectTypeDescriptor<T>)d))
         {
-            ClrType = typeof(T);
+            _configure = configure
+                ?? throw new ArgumentNullException(nameof(configure));
         }
 
-        #region Configuration
-
-        internal sealed override ObjectTypeDescriptor CreateDescriptor() =>
-            new ObjectTypeDescriptor<T>();
-
-        protected sealed override void Configure(
-            IObjectTypeDescriptor descriptor)
+        protected override void OnInitialize(IInitializationContext context)
         {
-            Configure((IObjectTypeDescriptor<T>)descriptor);
+            ObjectTypeDescriptor<T> descriptor = ObjectTypeDescriptor.New<T>(
+                DescriptorContext.Create(context.Services));
+            _configure(descriptor);
+            Definition = descriptor.CreateDefinition();
         }
 
         protected virtual void Configure(IObjectTypeDescriptor<T> descriptor)
         {
-
         }
 
-        #endregion
+        protected sealed override void Configure(
+            IObjectTypeDescriptor descriptor)
+        {
+            // TODO : resources
+            throw new NotSupportedException();
+        }
     }
 }
