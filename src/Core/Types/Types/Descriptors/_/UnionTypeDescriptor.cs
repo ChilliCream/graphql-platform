@@ -18,8 +18,10 @@ namespace HotChocolate.Types.Descriptors
             }
 
             Definition.ClrType = clrType;
-            Definition.Name = context.Naming.GetTypeName(clrType);
-            Definition.Description = context.Naming.GetTypeDescription(clrType);
+            Definition.Name =
+                context.Naming.GetTypeName(clrType, TypeKind.Union);
+            Definition.Description =
+                context.Naming.GetTypeDescription(clrType, TypeKind.Union);
         }
 
         public UnionTypeDescriptor(IDescriptorContext context, NameString name)

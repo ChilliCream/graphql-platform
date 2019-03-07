@@ -33,7 +33,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IEnumTypeDescriptor<T> BindItems(BindingBehavior behavior)
+        public new IEnumTypeDescriptor<T> BindItems(BindingBehavior behavior)
         {
             base.BindItems(behavior);
             return this;

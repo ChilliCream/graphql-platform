@@ -6,13 +6,13 @@ namespace HotChocolate.Types.Descriptors
 {
     public interface INamingConventions
     {
-        NameString GetTypeName(Type type);
+        NameString GetTypeName(Type type, TypeKind kind);
 
-        string GetTypeDescription(Type type);
+        string GetTypeDescription(Type type, TypeKind kind);
 
-        NameString GetMemberName(MemberInfo member);
+        NameString GetMemberName(MemberInfo member, MemberKind kind);
 
-        string GetMemberDescription(MemberInfo member);
+        string GetMemberDescription(MemberInfo member, MemberKind kind);
 
         NameString GetEnumValueName(object value);
     }

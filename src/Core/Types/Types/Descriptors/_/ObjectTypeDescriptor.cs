@@ -22,8 +22,10 @@ namespace HotChocolate.Types.Descriptors
             }
 
             Definition.ClrType = clrType;
-            Definition.Name = context.Naming.GetTypeName(clrType);
-            Definition.Description = context.Naming.GetTypeDescription(clrType);
+            Definition.Name =
+                context.Naming.GetTypeName(clrType, TypeKind.Object);
+            Definition.Description =
+                context.Naming.GetTypeDescription(clrType, TypeKind.Object);
         }
 
         public ObjectTypeDescriptor(IDescriptorContext context, NameString name)
@@ -31,6 +33,12 @@ namespace HotChocolate.Types.Descriptors
         {
             Definition.ClrType = typeof(object);
             Definition.Name = name.EnsureNotEmpty(nameof(name));
+        }
+
+        public ObjectTypeDescriptor(IDescriptorContext context)
+            : base(context)
+        {
+            Definition.ClrType = typeof(object);
         }
 
         protected override ObjectTypeDefinition Definition { get; } =

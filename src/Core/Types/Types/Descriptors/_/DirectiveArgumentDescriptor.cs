@@ -23,9 +23,10 @@ namespace HotChocolate.Types.Descriptors
             PropertyInfo property)
             : base(context)
         {
-            Definition.Name = context.Naming.GetMemberName(property);
-            Definition.Description =
-                context.Naming.GetMemberDescription(property);
+            Definition.Name = context.Naming.GetMemberName(
+                property, MemberKind.DirectiveArgument);
+            Definition.Description = context.Naming.GetMemberDescription(
+                property, MemberKind.DirectiveArgument);
             Definition.Type = context.Inspector.GetInputReturnType(property);
             Definition.Property = property;
         }

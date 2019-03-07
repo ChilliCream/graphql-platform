@@ -25,9 +25,10 @@ namespace HotChocolate.Types.Descriptors
         {
             Definition.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
-            Definition.Name = context.Naming.GetMemberName(property);
-            Definition.Description =
-                context.Naming.GetMemberDescription(property);
+            Definition.Name = context.Naming.GetMemberName(
+                property, MemberKind.InputObjectField);
+            Definition.Description = context.Naming.GetMemberDescription(
+                property, MemberKind.InputObjectField);
             Definition.Type = context.Inspector.GetInputReturnType(property);
         }
 

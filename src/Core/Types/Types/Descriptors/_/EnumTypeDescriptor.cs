@@ -22,9 +22,10 @@ namespace HotChocolate.Types.Descriptors
         {
             Definition.ClrType = enumType
                 ?? throw new ArgumentNullException(nameof(enumType));
-            Definition.Name = context.Naming.GetTypeName(enumType);
-            Definition.Description =
-                context.Naming.GetTypeDescription(enumType);
+            Definition.Name = context.Naming.GetTypeName(
+                enumType, TypeKind.Enum);
+            Definition.Description = context.Naming.GetTypeDescription(
+                enumType, TypeKind.Enum);
         }
 
         protected override EnumTypeDefinition Definition { get; }
@@ -52,11 +53,10 @@ namespace HotChocolate.Types.Descriptors
             EnumTypeDefinition typeDefinition,
             IDictionary<object, EnumValueDefinition> values)
         {
-            if (typeDefinition.Values.IsImplicitBinding()
-                && typeDefinition.ClrType != typeof(object)
-                && typeDefinition.ClrType.IsEnum)
+            if (typeDefinition.Values.IsImplicitBinding())
             {
-                foreach (object value in Enum.GetValues(typeDefinition.ClrType))
+                foreach (object value in Context.Inspector
+                    .GetEnumValues(typeDefinition.ClrType))
                 {
                     EnumValueDefinition valueDefinition =
                         EnumValueDescriptor.New(Context, value)
