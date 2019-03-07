@@ -13,6 +13,7 @@ namespace Generator
         {
             "ExecutableDefinitions.yaml",
             "FieldsOnCorrectType.yaml",
+            "FragmentsOnCompositeTypes.yaml",
         };
 
         public static IEnumerable<Scenario> Load(string sourceDir)

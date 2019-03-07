@@ -53,6 +53,7 @@ namespace Generator
             private static readonly string _defNameKey = "defName";
             private static readonly string _fieldNameKey = "fieldName";
             private static readonly string _typeKey = "type";
+            private static readonly string _fragmentNameKey = "fragmentName";
 
             public Args(Dictionary<object, object> value)
             {
@@ -66,11 +67,13 @@ namespace Generator
                 DefName = argsValue.TryGet(_defNameKey, string.Empty);
                 FieldName = argsValue.TryGet(_fieldNameKey, string.Empty);
                 Type = argsValue.TryGet(_typeKey, string.Empty);
+                FragmentName = argsValue.TryGet(_fragmentNameKey, string.Empty);
             }
 
             public string DefName { get; }
             public string FieldName { get; }
             public string Type { get; }
+            public string FragmentName { get; }
 
             public string Create()
             {
@@ -89,6 +92,11 @@ namespace Generator
                 if (!string.IsNullOrEmpty(Type))
                 {
                     values.Add($"{_typeKey}={Type}");
+                }
+
+                if (!string.IsNullOrEmpty(FragmentName))
+                {
+                    values.Add($"{_fragmentNameKey}={FragmentName}");
                 }
 
                 return string.Join("|", values);
