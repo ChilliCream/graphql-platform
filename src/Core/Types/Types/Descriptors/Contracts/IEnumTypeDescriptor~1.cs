@@ -1,6 +1,6 @@
 ﻿using HotChocolate.Language;
 
-namespace HotChocolate.Types.Descriptors
+namespace HotChocolate.Types
 {
     public interface IEnumTypeDescriptor<T>
         : IFluent
