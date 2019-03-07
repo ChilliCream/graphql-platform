@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+- The default complexity calculation methods are now exposed through the new static class `Complexity`.
+
+### Deprecated
+
+- IDirectiveTypeDescriptor.Middleware is no longer supported and is replaced with IDirectiveTypeDescriptor.Use. With this all field middleware declarations work now the same.
+
 ## [0.8.0] - 2019-03-03
 
 ### Added
