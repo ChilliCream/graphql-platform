@@ -60,10 +60,8 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-
-
-
-        internal static void DiscoverArguments(
+        public static void DiscoverArguments(
+            IDescriptorContext context,
             ICollection<ArgumentDefinition> arguments,
             MemberInfo member)
         {
@@ -72,28 +70,24 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(arguments));
             }
 
-            var processed = new HashSet<NameString>();
-
-            foreach (ArgumentDescription description in arguments)
-            {
-                processed.Add(description.Name);
-            }
-
             if (member is MethodInfo method)
             {
+                var processed = new HashSet<NameString>(
+                    arguments.Select(t => t.Name));
+
                 foreach (ParameterInfo parameter in method.GetParameters())
                 {
-                    string argumentName = parameter.GetGraphQLName();
-                    if (IsArgumentType(method, parameter)
-                        && processed.Add(argumentName))
+                    if (IsArgumentType(method, parameter))
                     {
-                        var argumentDescriptor = new ArgumentDescriptor(
-                            argumentName, parameter.ParameterType);
+                        var argumentDefinition =
+                            ArgumentDescriptor
+                                .New(context, parameter)
+                                .CreateDefinition();
 
-                        argumentDescriptor.Description(
-                            parameter.GetGraphQLDescription());
-
-                        arguments.Add(argumentDescriptor.CreateDescription());
+                        if (processed.Add(argumentDefinition.Name))
+                        {
+                            arguments.Add(argumentDefinition);
+                        }
                     }
                 }
             }
@@ -103,9 +97,9 @@ namespace HotChocolate.Types.Descriptors
             MemberInfo member,
             ParameterInfo parameter)
         {
-            return (ArgumentHelper
+            return ArgumentHelper
                 .LookupKind(parameter, member.ReflectedType) ==
-                    ArgumentKind.Argument);
+                    ArgumentKind.Argument;
         }
     }
 }

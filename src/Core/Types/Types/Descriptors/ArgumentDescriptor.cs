@@ -1,4 +1,5 @@
-﻿using System.Reflection.Emit;
+﻿using System.Reflection;
+using System.Reflection.Emit;
 using System;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
@@ -32,6 +33,20 @@ namespace HotChocolate.Types.Descriptors
 
             Definition.Name = argumentName;
             Definition.Type = argumentType.GetInputType();
+            Definition.DefaultValue = NullValueNode.Default;
+        }
+
+        public ArgumentDescriptor(
+            IDescriptorContext context,
+            ParameterInfo parameter)
+            : base(context)
+        {
+            Definition.Name =
+                context.Naming.GetArgumentName(parameter);
+            Definition.Description =
+                context.Naming.GetArgumentDescription(parameter);
+            Definition.Type = new ClrTypeReference(
+                parameter.ParameterType, TypeContext.Input);
             Definition.DefaultValue = NullValueNode.Default;
         }
 
@@ -115,5 +130,10 @@ namespace HotChocolate.Types.Descriptors
             NameString argumentName,
             Type argumentType) =>
             new ArgumentDescriptor(context, argumentName, argumentType);
+
+        public static ArgumentDescriptor New(
+            IDescriptorContext context,
+            ParameterInfo parameter) =>
+            new ArgumentDescriptor(context, parameter);
     }
 }

@@ -6,6 +6,16 @@ namespace HotChocolate.Types.Descriptors
     public class DefaultNamingConventions
         : INamingConventions
     {
+        public string GetArgumentDescription(ParameterInfo parameter)
+        {
+            throw new NotImplementedException();
+        }
+
+        public NameString GetArgumentName(ParameterInfo parameter)
+        {
+            throw new NotImplementedException();
+        }
+
         public NameString GetEnumValueName(object value)
         {
             if (value == null)

@@ -51,6 +51,7 @@ namespace HotChocolate.Types.Descriptors
             if (!_argumentsInitialized)
             {
                 FieldDescriptorUtilities.DiscoverArguments(
+                    Context,
                     definition.Arguments,
                     definition.Member);
                 _argumentsInitialized = true;
@@ -106,7 +107,7 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IInterfaceFieldDescriptor Argument(
+        public new IInterfaceFieldDescriptor Argument(
             NameString name,
             Action<IArgumentDescriptor> argument)
         {

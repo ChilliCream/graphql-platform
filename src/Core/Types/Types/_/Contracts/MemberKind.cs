@@ -5,7 +5,6 @@ namespace HotChocolate.Types
         InterfaceField,
         ObjectField,
         InputObjectField,
-        Argument,
         DirectiveArgument
     }
 }
