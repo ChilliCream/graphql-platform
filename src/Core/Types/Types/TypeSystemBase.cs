@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace HotChocolate.Types
 {
@@ -9,6 +10,8 @@ namespace HotChocolate.Types
             new List<INeedsInitialization>();
 
         private TypeStatus _status = TypeStatus.Created;
+
+        protected bool IsSealed => throw new NotImplementedException();
 
         private void RegisterDependencies(
             ITypeInitializationContext context)

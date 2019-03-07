@@ -126,5 +126,19 @@ namespace HotChocolate.Types.Descriptors
             Definition.AddDirective(name, arguments);
             return this;
         }
+
+        public static InterfaceTypeDescriptor New(
+            IDescriptorContext context,
+            Type clrType) =>
+            new InterfaceTypeDescriptor(context, clrType);
+
+        public static InterfaceTypeDescriptor New(
+            IDescriptorContext context,
+            NameString name) =>
+            new InterfaceTypeDescriptor(context, name);
+
+        public static InterfaceTypeDescriptor<T> New<T>(
+            IDescriptorContext context) =>
+            new InterfaceTypeDescriptor<T>(context);
     }
 }

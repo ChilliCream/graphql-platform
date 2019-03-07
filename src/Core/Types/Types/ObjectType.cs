@@ -4,18 +4,24 @@ using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Types
 {
     public class ObjectType
         : NamedTypeBase
+        , ITypeSystemObject
         , IComplexOutputType
         , IHasClrType
     {
         private readonly Dictionary<NameString, InterfaceType> _interfaceMap =
             new Dictionary<NameString, InterfaceType>();
-        private ObjectTypeDescription _description;
+        private ObjectTypeDefinition _definition;
+        private readonly Action<IObjectTypeDescriptor> _configure;
+
+
         private IsOfType _isOfType;
         private List<TypeReference> _interfaces;
         private ObjectTypeBinding _typeBinding;
@@ -23,15 +29,32 @@ namespace HotChocolate.Types
         protected ObjectType()
             : base(TypeKind.Object)
         {
-            Initialize(Configure);
+            _configure = Configure;
         }
 
         public ObjectType(Action<IObjectTypeDescriptor> configure)
             : base(TypeKind.Object)
         {
-            Initialize(configure);
+            _configure = configure;
         }
 
+        protected ObjectTypeDefinition Definition
+        {
+            get => _definition;
+            set
+            {
+                if (_definition != null)
+                {
+                    // TODO : resources
+                    throw new NotSupportedException(
+                        "It is not allowed to change the type definition " +
+                        "once it is set.");
+                }
+
+                _definition = value
+                    ?? throw new ArgumentNullException(nameof(value));
+            }
+        }
         public ObjectTypeDefinitionNode SyntaxNode { get; private set; }
 
         public Type ClrType { get; protected set; }
@@ -46,14 +69,85 @@ namespace HotChocolate.Types
         public bool IsOfType(IResolverContext context, object resolverResult)
             => _isOfType(context, resolverResult);
 
-        #region Configuration
+        void ITypeSystemObject.Initialize(IInitializationContext context) =>
+            OnInitialize(context);
 
-        internal virtual ObjectTypeDescriptor CreateDescriptor() =>
-            new ObjectTypeDescriptor(GetType());
+        protected virtual void OnInitialize(IInitializationContext context)
+        {
+            ObjectTypeDescriptor descriptor = ObjectTypeDescriptor.New(
+                DescriptorContext.Create(context.Services),
+                GetType());
+            _configure(descriptor);
+            Definition = descriptor.CreateDefinition();
+        }
+
+        protected void RegisterDependencies(
+            IInitializationContext context,
+            ObjectTypeDefinition definition)
+        {
+            context.RegisterDependencyRange(
+                definition.Interfaces,
+                TypeDependencyKind.Default);
+
+            Fields = new FieldCollection<ObjectField>(
+                definition.Fields.Select(t => new ObjectField(t)));
+
+            foreach ()
+        }
+
+
+
+        public static bool TryCreateFieldReference(
+            ObjectTypeDefinition typeDefinition,
+            ObjectFieldDefinition fieldDefinition,
+            out IFieldReference fieldReference)
+        {
+            if (fieldDefinition.Resolver != null)
+            {
+                fieldReference = new FieldResolver(
+                    typeDefinition.Name,
+                    fieldDefinition.Name,
+                    fieldDefinition.Resolver);
+                return true;
+            }
+
+            if (fieldDefinition.Member != null)
+            {
+                // ? resolver type
+                fieldReference = new FieldMember(
+                    typeDefinition.Name,
+                    fieldDefinition.Name,
+                    fieldDefinition.Member);
+                return true;
+            }
+
+            fieldReference = null;
+            return false;
+        }
+
+
+        void ITypeSystemObject.CompleteName(ICompletionContext context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected virtual void OnCompleteName(ICompletionContext context)
+        {
+
+        }
+
+        void ITypeSystemObject.CompleteObject(ICompletionContext context)
+        {
+            throw new NotImplementedException();
+        }
+
+        protected void OnCompleteObject(ICompletionContext context)
+        {
+            throw new NotImplementedException();
+        }
 
         protected virtual void Configure(IObjectTypeDescriptor descriptor) { }
 
-        #endregion
 
         #region Initialization
 
@@ -415,38 +509,9 @@ namespace HotChocolate.Types
             }
         }
 
-        #endregion
-    }
 
-    public class ObjectType<T>
-        : ObjectType
-    {
-        public ObjectType()
-        {
-            ClrType = typeof(T);
-        }
 
-        public ObjectType(Action<IObjectTypeDescriptor<T>> configure)
-            : base(d => configure((IObjectTypeDescriptor<T>)d))
-        {
-            ClrType = typeof(T);
-        }
 
-        #region Configuration
-
-        internal sealed override ObjectTypeDescriptor CreateDescriptor() =>
-            new ObjectTypeDescriptor<T>();
-
-        protected sealed override void Configure(
-            IObjectTypeDescriptor descriptor)
-        {
-            Configure((IObjectTypeDescriptor<T>)descriptor);
-        }
-
-        protected virtual void Configure(IObjectTypeDescriptor<T> descriptor)
-        {
-
-        }
 
         #endregion
     }

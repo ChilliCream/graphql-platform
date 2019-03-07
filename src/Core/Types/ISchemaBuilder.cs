@@ -5,6 +5,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate
@@ -16,29 +17,24 @@ namespace HotChocolate
 
     public interface ITypeSystemObject
         : Types.IHasName
-        , ITypeSystemObjectEvents
-    {
-
-    }
-
-    public interface ITypeSystemObjectEvents
+        , Types.IHasDescription
     {
         /// <summary>
         /// Register dependencies.
         /// </summary>
-        void OnInitialize(IInitializationContext context);
+        void Initialize(IInitializationContext context);
 
         /// <summary>
         /// Completes the name of this object.
         /// </summary>
-        void OnCompleteName();
+        void CompleteName(ICompletionContext context);
 
         /// <summary>
         /// Completes the object and makes the object immutable.
         /// </summary>
-        void OnCompleteObject();
+        void CompleteObject(ICompletionContext context);
     }
-
+^
     public interface ITypeSystemObjectContext
     {
         ITypeSystemObject Type { get; }
@@ -59,6 +55,10 @@ namespace HotChocolate
     {
         void RegisterDependency(
             ITypeReference reference,
+            TypeDependencyKind kind);
+
+        void RegisterDependencyRange(
+            IEnumerable<ITypeReference> references,
             TypeDependencyKind kind);
 
         void RegisterDependency(IDirectiveReference reference);

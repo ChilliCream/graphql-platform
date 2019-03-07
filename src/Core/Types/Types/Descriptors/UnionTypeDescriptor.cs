@@ -112,5 +112,15 @@ namespace HotChocolate.Types.Descriptors
             Definition.AddDirective(name, arguments);
             return this;
         }
+
+        public static UnionTypeDescriptor New(
+            IDescriptorContext context,
+            Type clrType) =>
+            new UnionTypeDescriptor(context, clrType);
+
+        public static UnionTypeDescriptor New(
+            IDescriptorContext context,
+            NameString name) =>
+            new UnionTypeDescriptor(context, name);
     }
 }

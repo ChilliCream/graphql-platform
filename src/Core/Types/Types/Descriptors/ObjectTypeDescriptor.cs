@@ -271,5 +271,19 @@ namespace HotChocolate.Types.Descriptors
             Definition.AddDirective(name, arguments);
             return this;
         }
+
+        public static ObjectTypeDescriptor New(
+            IDescriptorContext context,
+            Type clrType) =>
+            new ObjectTypeDescriptor(context, clrType);
+
+        public static ObjectTypeDescriptor New(
+            IDescriptorContext context,
+            NameString name) =>
+            new ObjectTypeDescriptor(context, name);
+
+        public static ObjectTypeDescriptor<T> New<T>(
+            IDescriptorContext context) =>
+            new ObjectTypeDescriptor<T>(context);
     }
 }

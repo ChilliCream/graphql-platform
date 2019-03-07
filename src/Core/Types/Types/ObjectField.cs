@@ -4,12 +4,14 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     public class ObjectField
         : ObjectFieldBase
         , IObjectField
+        , ITypeSystemObject
     {
         private readonly List<InterfaceField> _interfaceFields =
             new List<InterfaceField>();
@@ -19,6 +21,12 @@ namespace HotChocolate.Types
         private readonly Type _sourceType;
         private readonly Type _resolverType;
         private readonly MemberInfo _member;
+
+        internal ObjectField(ObjectFieldDefinition fieldDefinition)
+        {
+
+        }
+
 
         internal ObjectField(NameString fieldName,
             Action<IObjectFieldDescriptor> configure)
