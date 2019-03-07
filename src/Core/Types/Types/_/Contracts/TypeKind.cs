@@ -9,6 +9,7 @@
         Enum = 8,
         Scalar = 16,
         List = 32,
-        NonNull = 64
+        NonNull = 64,
+        Directive = 128
     }
 }

@@ -39,7 +39,7 @@ namespace HotChocolate.Types
         /// Specifies a directive argument.
         /// </summary>
         /// <param name="name">The name of the argument.</param>
-        IArgumentDescriptor Argument(NameString name);
+        IDirectiveArgumentDescriptor Argument(NameString name);
 
         /// <summary>
         /// Specifies in which location the directive belongs in.
@@ -48,17 +48,17 @@ namespace HotChocolate.Types
         IDirectiveTypeDescriptor Location(DirectiveLocation value);
 
         // TODO : DOCU
-        [Obsolete]
+        [Obsolete("Replace Middleware with `Use`.")]
         IDirectiveTypeDescriptor Middleware(
             DirectiveMiddleware middleware);
 
         // TODO : DOCU
-        [Obsolete]
+        [Obsolete("Replace Middleware with `Use`.", true)]
         IDirectiveTypeDescriptor Middleware<T>(
             Expression<Func<T, object>> method);
 
         // TODO : DOCU
-        [Obsolete]
+        [Obsolete("Replace Middleware with `Use`.", true)]
         IDirectiveTypeDescriptor Middleware<T>(
             Expression<Action<T>> method);
 

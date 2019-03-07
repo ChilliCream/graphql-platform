@@ -35,9 +35,10 @@ namespace HotChocolate.Types.Descriptors.Definitions
         }
 
         /// <summary>
-        /// Gets or sets the associated field middleware.
+        /// Gets or the associated middleware components.
         /// </summary>
-        public IDirectiveMiddleware Middleware { get; set; }
+        public ICollection<DirectiveMiddleware> MiddlewareComponents { get; } =
+            new List<DirectiveMiddleware>();
 
         /// <summary>
         /// Defines the location on which a directive can be annotated.
