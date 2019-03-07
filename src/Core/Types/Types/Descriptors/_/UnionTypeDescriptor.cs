@@ -1,143 +1,114 @@
 ﻿using System;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
     internal class UnionTypeDescriptor
-        : IUnionTypeDescriptor
-        , IDescriptionFactory<UnionTypeDescription>
+        : DescriptorBase<UnionTypeDefinition>
+        , IUnionTypeDescriptor
     {
-        public UnionTypeDescriptor(Type clrType)
+        public UnionTypeDescriptor(IDescriptorContext context, Type clrType)
+            : base(context)
         {
             if (clrType == null)
             {
                 throw new ArgumentNullException(nameof(clrType));
             }
 
-            UnionDescription.Name = clrType.GetGraphQLName();
-            UnionDescription.Description = clrType.GetGraphQLDescription();
+            Definition.ClrType = clrType;
+            Definition.Name = context.Naming.GetTypeName(clrType);
+            Definition.Description = context.Naming.GetTypeDescription(clrType);
         }
 
-        protected UnionTypeDescription UnionDescription { get; } =
-            new UnionTypeDescription();
-
-        public UnionTypeDescription CreateDescription()
+        public UnionTypeDescriptor(IDescriptorContext context, NameString name)
+            : base(context)
         {
-            return UnionDescription;
+            Definition.ClrType = typeof(object);
+            Definition.Name = name.EnsureNotEmpty(nameof(name));
         }
 
-        public void SyntaxNode(UnionTypeDefinitionNode syntaxNode)
+        protected override UnionTypeDefinition Definition { get; } =
+            new UnionTypeDefinition();
+
+        public IUnionTypeDescriptor SyntaxNode(
+            UnionTypeDefinitionNode unionTypeDefinitionNode)
         {
-            UnionDescription.SyntaxNode = syntaxNode;
+            Definition.SyntaxNode = unionTypeDefinitionNode;
+            return this;
         }
 
-        public void Name(NameString name)
+        public IUnionTypeDescriptor Name(NameString value)
         {
-            UnionDescription.Name = name.EnsureNotEmpty(nameof(name));
+            Definition.Name = value.EnsureNotEmpty(nameof(value));
+            return this;
         }
 
-        public void Description(string description)
+        public IUnionTypeDescriptor Description(string value)
         {
-            UnionDescription.Description = description;
+            Definition.Description = value;
+            return this;
         }
 
-        public void Type<TObjectType>()
+        public IUnionTypeDescriptor Type<TObjectType>()
             where TObjectType : ObjectType
         {
-            UnionDescription.Types.Add(typeof(TObjectType).GetOutputType());
+            Definition.Types.Add(new ClrTypeReference(
+                typeof(TObjectType), TypeContext.Output));
+            return this;
         }
 
-        public void Type<TObjectType>(TObjectType type)
+        public IUnionTypeDescriptor Type<TObjectType>(TObjectType objectType)
             where TObjectType : ObjectType
         {
-            if (type == null)
+            if (objectType == null)
             {
-                throw new ArgumentNullException(nameof(type));
+                throw new ArgumentNullException(nameof(objectType));
             }
-
-            UnionDescription.Types.Add(new TypeReference(type));
+            Definition.Types.Add(new SchemaTypeReference(objectType));
+            return this;
         }
 
-        public void Type(NamedTypeNode objectType)
+        public IUnionTypeDescriptor Type(NamedTypeNode objectType)
         {
-            UnionDescription.Types.Add(new TypeReference(objectType));
+            if (objectType == null)
+            {
+                throw new ArgumentNullException(nameof(objectType));
+            }
+            Definition.Types.Add(new SyntaxTypeReference(
+                objectType, TypeContext.Output));
+            return this;
         }
 
-        public void ResolveAbstractType(
+        public IUnionTypeDescriptor ResolveAbstractType(
             ResolveAbstractType resolveAbstractType)
         {
-            UnionDescription.ResolveAbstractType = resolveAbstractType
-                ?? throw new ArgumentNullException(nameof(resolveAbstractType));
-        }
-
-        #region IUnionTypeDescriptor
-
-        IUnionTypeDescriptor IUnionTypeDescriptor.SyntaxNode(
-            UnionTypeDefinitionNode syntaxNode)
-        {
-            SyntaxNode(syntaxNode);
+            Definition.ResolveAbstractType = resolveAbstractType
+               ?? throw new ArgumentNullException(nameof(resolveAbstractType));
             return this;
         }
 
-        IUnionTypeDescriptor IUnionTypeDescriptor.Name(NameString name)
+        public IUnionTypeDescriptor Directive<T>(T directiveInstance)
+            where T : class
         {
-            Name(name);
+            Definition.AddDirective(directiveInstance);
             return this;
         }
 
-        IUnionTypeDescriptor IUnionTypeDescriptor.Description(string description)
+        public IUnionTypeDescriptor Directive<T>()
+            where T : class, new()
         {
-            Description(description);
+            Definition.AddDirective(new T());
             return this;
         }
 
-        IUnionTypeDescriptor IUnionTypeDescriptor.Type<TObjectType>()
-        {
-            Type<TObjectType>();
-            return this;
-        }
-
-        IUnionTypeDescriptor IUnionTypeDescriptor.Type<TObjectType>(
-            TObjectType type)
-        {
-            Type<TObjectType>(type);
-            return this;
-        }
-
-        IUnionTypeDescriptor IUnionTypeDescriptor.Type(NamedTypeNode objectType)
-        {
-            Type(objectType);
-            return this;
-        }
-
-        IUnionTypeDescriptor IUnionTypeDescriptor.ResolveAbstractType(
-            ResolveAbstractType resolveAbstractType)
-        {
-            ResolveAbstractType(resolveAbstractType);
-            return this;
-        }
-
-        IUnionTypeDescriptor IUnionTypeDescriptor.Directive<T>(T directive)
-        {
-            UnionDescription.Directives.AddDirective(directive);
-            return this;
-        }
-
-        IUnionTypeDescriptor IUnionTypeDescriptor.Directive<T>()
-        {
-            UnionDescription.Directives.AddDirective(new T());
-            return this;
-        }
-
-        IUnionTypeDescriptor IUnionTypeDescriptor.Directive(
+        public IUnionTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
-            UnionDescription.Directives.AddDirective(name, arguments);
+            Definition.AddDirective(name, arguments);
             return this;
         }
-
-        #endregion
     }
 }
