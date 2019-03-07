@@ -195,10 +195,10 @@ namespace Generated.Tests
         {
             // Given
             string query = @"input Hello {   world(foo: Int): String } ";
-            // When
             // Then
             Assert.Throws<SyntaxException>(() =>
             {
+                // When
                 DocumentNode document = _parser.Parse(query);
             }
 

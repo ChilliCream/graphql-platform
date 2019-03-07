@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Generator.ClassGenerator
 {
@@ -13,6 +15,8 @@ namespace Generator.ClassGenerator
         private ClassConstructor _constructor = ClassConstructor.Empty;
         private readonly List<ClassMethod> _methods = new List<ClassMethod>();
         private readonly List<Statement> _fields = new List<Statement>();
+
+        private string _content = string.Empty;
 
         private ClassBuilder(string className)
         {
@@ -67,39 +71,60 @@ namespace Generator.ClassGenerator
             return this;
         }
 
+        public Compilation Compile()
+        {
+            return new Compilation
+            {
+                Errors = SyntaxFactory
+                    .ParseCompilationUnit(Build())
+                    .GetDiagnostics()
+                    .Select(d => d.GetMessage())
+                    .ToList(),
+                Source = _content
+            };
+        }
+
         public string Build()
         {
-            StringBuilder builder = new StringBuilder();
-
-            builder.AppendLine(_usings.Generate());
-            builder.AppendLine();
-            builder.AppendLine(_namespace);
-            builder.AppendLine("{");
-
-            builder.AppendLine($"public class {_className}");
-            builder.AppendLine("{");
-
-            foreach (Statement field in _fields)
+            if (string.IsNullOrEmpty(_content))
             {
-                builder.AppendLine(field.Generate());
-            }
+                StringBuilder builder = new StringBuilder();
 
-            if (_fields.Any())
-            {
+                builder.AppendLine(_usings.Generate());
                 builder.AppendLine();
+                builder.AppendLine(_namespace);
+                builder.AppendLine("{");
+
+                builder.AppendLine($"public class {_className}");
+                builder.AppendLine("{");
+
+                foreach (Statement field in _fields)
+                {
+                    builder.AppendLine(field.Generate());
+                }
+
+                if (_fields.Any())
+                {
+                    builder.AppendLine();
+                }
+
+                builder.AppendLine(_constructor.Generate());
+
+                foreach (ClassMethod classMethod in _methods)
+                {
+                    builder.AppendLine(classMethod.Generate());
+                }
+
+                builder.AppendLine("}");
+                builder.AppendLine("}");
+
+                _content = SyntaxFactory
+                    .ParseCompilationUnit(builder.ToString())
+                    .NormalizeWhitespace()
+                    .ToFullString();
             }
-            
-            builder.AppendLine(_constructor.Generate());
 
-            foreach (ClassMethod classMethod in _methods)
-            {
-                builder.AppendLine(classMethod.Generate());
-            }
-
-            builder.AppendLine("}");
-            builder.AppendLine("}");
-
-            return builder.ToString();
+            return _content;
         }
     }
 }

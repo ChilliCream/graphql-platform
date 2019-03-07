@@ -17,4 +17,10 @@
     <ProjectReference Include="..\..\Core\Types\Types.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="validation.schema.graphql">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
