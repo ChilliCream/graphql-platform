@@ -5,7 +5,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal class UnionTypeDescriptor
+    public class UnionTypeDescriptor
         : DescriptorBase<UnionTypeDefinition>
         , IUnionTypeDescriptor
     {
