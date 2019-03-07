@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Generator
 {
     internal delegate IAssertion CreateAssertion(Dictionary<object, object> value);
-    internal delegate (bool canCreate, CreateAssertion create) TryCreateAssertion(Dictionary<object, object> value);
+    internal delegate (bool canCreate, CreateAssertion create) TryCreateAssertion(Dictionary<object, object> value, TestContext context);
 
     /// <summary>
     /// https://github.com/graphql-cats/graphql-cats#assertions
@@ -13,7 +13,8 @@ namespace Generator
     {
         private static readonly List<TryCreateAssertion> _assertions = new List<TryCreateAssertion>
         {
-            ValidationOrParsingIsSuccessful.TryCreate,
+            ParsingIsSuccessful.TryCreate,
+            ValidationIsSuccessful.TryCreate,
             ParsingSyntaxError.TryCreate,
             DataMatch.TryCreate,
             ErrorCount.TryCreate,
@@ -24,11 +25,11 @@ namespace Generator
             ExecutionExceptionRegexMatch.TryCreate
         };
 
-        public static IAssertion Create(Dictionary<object, object> then)
+        public static IAssertion Create(Dictionary<object, object> then, TestContext context)
         {
             foreach (TryCreateAssertion assertion in _assertions)
             {
-                (bool canCreate, CreateAssertion create) assertionResult = assertion(then);
+                (bool canCreate, CreateAssertion create) assertionResult = assertion(then, context);
                 if (assertionResult.canCreate)
                 {
                     return assertionResult.create(then);

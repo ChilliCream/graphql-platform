@@ -32,10 +32,18 @@ namespace Generator
             };
 
             Block whenBlock = _when.CreateBlock(new Statement("// When"));
+            Block thenBlock = new Block();
             foreach (IAssertion then in _then)
             {
-                testBlock.Add(then.CreateBlock(new Statement("// Then"), whenBlock));
+                thenBlock.Add(then.CreateBlock(new Statement("// Then")));
             }
+
+            if (!thenBlock.Replace(Statement.WhenPlaceholder, whenBlock))
+            {
+                testBlock.Add(whenBlock);
+            }
+
+            testBlock.Add(thenBlock);
 
             return testBlock;
         }

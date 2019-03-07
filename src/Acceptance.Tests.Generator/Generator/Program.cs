@@ -13,8 +13,8 @@ namespace Generator
         {
             var outputPath = ResovleOutputPath();
 
-            Scenario parsingScenarios = Parsing.Load(_scenariosRootDir);
-            Parsing.Generate(parsingScenarios, outputPath);
+            //Scenario parsingScenarios = Parsing.Load(_scenariosRootDir);
+            //Parsing.Generate(parsingScenarios, outputPath);
 
             Scenario validationScenario = Validation.Load(_scenariosRootDir);
             Validation.Generate(validationScenario, outputPath);

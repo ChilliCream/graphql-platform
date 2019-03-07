@@ -2,6 +2,13 @@ interface Being {
  name: String
 }
 
+type Alien implements Being & Intelligent {
+  name(surname: Boolean): String
+  iq: Int
+  numEyes: Int
+}
+
+
 interface Pet {
   name: String
 }

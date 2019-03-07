@@ -7,4 +7,11 @@ namespace Generator
     {
         Block CreateBlock(Statement header);
     }
+
+    internal enum Actions
+    {
+        Parsing,
+        Validation,
+        Execution
+    }
 }

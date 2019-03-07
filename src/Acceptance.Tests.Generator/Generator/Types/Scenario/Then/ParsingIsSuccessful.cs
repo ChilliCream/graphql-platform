@@ -7,11 +7,11 @@ namespace Generator
     /// <summary>
     /// passes - Boolean
     /// </summary>
-    internal class ValidationIsSuccessful : IAssertion
+    internal class ParsingIsSuccessful : IAssertion
     {
         private static readonly string _passesKey = "passes";
 
-        private ValidationIsSuccessful(Dictionary<object, object> value)
+        private ParsingIsSuccessful(Dictionary<object, object> value)
         {
         }
 
@@ -20,12 +20,13 @@ namespace Generator
             TestContext context)
         {
             return (value.ContainsKey(_passesKey)
-                    && context.Action == Actions.Validation, Create);
+                    && context.Action == Actions.Parsing, Create);
         }
 
-        public static IAssertion Create(Dictionary<object, object> value)
+        public static IAssertion Create(
+            Dictionary<object, object> value)
         {
-            return new ValidationIsSuccessful(value);
+            return new ParsingIsSuccessful(value);
         }
 
         public Block CreateBlock(Statement header)
@@ -34,7 +35,7 @@ namespace Generator
             {
                 Statement.WhenPlaceholder,
                 header,
-                new Statement("Assert.False(result.HasErrors);")
+                new Statement("Assert.NotNull(document);")
             };
         }
     }

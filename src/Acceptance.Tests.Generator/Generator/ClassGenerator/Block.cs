@@ -1,5 +1,7 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Generator.ClassGenerator
 {
@@ -30,6 +32,25 @@ namespace Generator.ClassGenerator
         IEnumerator IEnumerable.GetEnumerator()
         {
             return ((IEnumerable)_statements).GetEnumerator();
+        }
+
+        public Statement this[int index] => _statements.ElementAt(index);
+
+        public bool Replace(Statement placeholder, Block whenBlock)
+        {
+            var placeholderIndex = _statements.IndexOf(placeholder);
+            if (placeholderIndex != -1)
+            {
+                _statements.RemoveAt(placeholderIndex);
+                for (int i = 0; i < whenBlock.Count(); i++)
+                {
+                    _statements.Insert(placeholderIndex + i, whenBlock[i]);
+                }
+
+                return true;
+            }
+
+            return false;
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Generator
         /// test-data - Object (optional) - test data used for query execution and directives
         /// test-data-file - String (optional) - test data file path relative to the scenario file. File can be in either JSON or YAML format.
         /// </summary>
-        internal static Given Resolve(object value)
+        internal static Given Resolve(object value, TestContext testContext)
         {
             var given = value as Dictionary<object, object>;
             if (given == null)

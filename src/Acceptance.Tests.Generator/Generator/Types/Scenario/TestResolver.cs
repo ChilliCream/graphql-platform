@@ -3,6 +3,11 @@ using System.Collections.Generic;
 
 namespace Generator
 {
+    internal class TestContext
+    {
+        public Actions Action { get; set; }
+    }
+
     internal static class TestResolver
     {
         internal static IEnumerable<Test> Resolve(object value)
@@ -21,11 +26,11 @@ namespace Generator
                     throw new InvalidOperationException("Invalid test structure");
                 }
 
-
                 var name = test["name"] as string;
-                Given given = GivenResolver.Resolve(test["given"]);
-                IAction when = WhenResolver.Resolve(test["when"]);
-                IEnumerable<IAssertion> then = ThenResolver.Resolve(test["then"]);
+                var testContext = new TestContext();
+                Given given = GivenResolver.Resolve(test["given"], testContext);
+                IAction when = WhenResolver.Resolve(test["when"], testContext);
+                IEnumerable<IAssertion> then = ThenResolver.Resolve(test["then"], testContext);
 
                 yield return new Test(name, given, when, then);
             }

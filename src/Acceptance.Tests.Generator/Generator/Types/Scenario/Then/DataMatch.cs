@@ -14,7 +14,9 @@ namespace Generator
         {
         }
 
-        public static (bool, CreateAssertion) TryCreate(Dictionary<object, object> value)
+        public static (bool, CreateAssertion) TryCreate(
+            Dictionary<object, object> value,
+            TestContext context)
         {
             return (value.ContainsKey(_dataKey), Create);
         }
@@ -24,7 +26,7 @@ namespace Generator
             return new DataMatch(value);
         }
 
-        public Block CreateBlock(Statement header, Block whenBlock)
+        public Block CreateBlock(Statement header)
         {
             return new Block(new Statement("throw new NotImplementedException();"));
         }

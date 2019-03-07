@@ -12,20 +12,23 @@ namespace Generator
     ///     execute - Boolean | Object - executes a query
     internal static class ActionFactory
     {
-        internal static IAction Create(Dictionary<object, object> when)
+        internal static IAction Create(Dictionary<object, object> when, TestContext testContext)
         {
             if (when.ContainsKey("parse"))
             {
+                testContext.Action = Actions.Parsing;
                 return new QueryParsing(bool.Parse(when["parse"] as string));
             }
 
             if (when.ContainsKey("validate"))
             {
+                testContext.Action = Actions.Validation;
                 return new QueryValidation(when["validate"]);
             }
 
             if (when.ContainsKey("execute"))
             {
+                testContext.Action = Actions.Execution;
                 return new QueryExecution(when["execute"]);
             }
 

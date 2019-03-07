@@ -14,7 +14,9 @@ namespace Generator
         {
         }
 
-        public static (bool, CreateAssertion) TryCreate(Dictionary<object, object> value)
+        public static (bool, CreateAssertion) TryCreate(
+            Dictionary<object, object> value,
+            TestContext context)
         {
             return (value.ContainsKey(_syntaxErrorKey), Create);
         }
@@ -24,14 +26,14 @@ namespace Generator
             return new ParsingSyntaxError(value);
         }
 
-        public Block CreateBlock(Statement header, Block whenBlock)
+        public Block CreateBlock(Statement header)
         {
             return new Block
             {
                 header,
                 new Statement("Assert.Throws<SyntaxException>(() =>"),
                 new Statement("{"),
-                whenBlock,
+                Statement.WhenPlaceholder,
                 new Statement("});")
             };
         }

@@ -22,15 +22,28 @@ namespace Generator
         public static void Generate(Scenario definition, string outputDir)
         {
             ClassBuilder classBuilder = ClassBuilder.Init(definition.Name)
-                .WithUsings("System", "System.IO", "HotChocolate", "HotChocolate.Language", "HotChocolate.Execution", "Xunit")
+                .WithUsings(
+                    "System",
+                    "System.Collections.Generic",
+                    "System.IO",
+                    "HotChocolate",
+                    "HotChocolate.Execution",
+                    "HotChocolate.Validation",
+                    "Microsoft.Extensions.DependencyInjection",
+                    "Xunit")
                 .WithNamespace("Generated.Tests")
                 .WithFields(
                     new Statement("private IQueryParser _parser;"),
-                    new Statement("private Schema _schema;"))
+                    new Statement("private Schema _schema;"),
+                    new Statement("private ServiceProvider _serviceProvider;"))
                 .WithConstructor(
                     new Statement("_parser = new DefaultQueryParser();"),
                     new Statement("var schemaContent = File.ReadAllText(\"validation.schema.graphql\");"),
-                    new Statement("_schema = Schema.Create(schemaContent, c => c.Use(next => context => throw new NotImplementedException()));"))
+                    new Statement("_schema = Schema.Create(schemaContent, c => c.Use(next => context => throw new NotImplementedException()));"),
+                    new Statement("var serviceCollection = new ServiceCollection();"),
+                    new Statement("serviceCollection.AddDefaultValidationRules();"),
+                    new Statement("serviceCollection.AddQueryValidation();"),
+                    new Statement("_serviceProvider = serviceCollection.BuildServiceProvider();"))
                 .WithMethods(definition.Tests.Select(t =>
                     new ClassMethod("void", t.Name, t.CreateBlock())).ToArray());
 

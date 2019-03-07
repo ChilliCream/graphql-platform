@@ -8,7 +8,7 @@ namespace Generator
         /// <summary>
         /// Object - action that should be performed in the test. See the Actions section for a list of available actions.
         /// </summary>
-        internal static IAction Resolve(object value)
+        internal static IAction Resolve(object value, TestContext testContext)
         {
             var when = value as Dictionary<object, object>;
             if (when == null)
@@ -16,7 +16,7 @@ namespace Generator
                 throw new InvalidOperationException("Invalid when structure");
             }
 
-            return ActionFactory.Create(when);
+            return ActionFactory.Create(when, testContext);
         }
     }
 }

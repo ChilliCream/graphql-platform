@@ -4,6 +4,6 @@ namespace Generator
 {
     internal interface IAssertion
     {
-        Block CreateBlock(Statement header, Block whenBlock);
+        Block CreateBlock(Statement header);
     }
 }
