@@ -3,7 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
-    internal class UnionTypeDefinition
+    public class UnionTypeDefinition
         : TypeDefinitionBase<UnionTypeDefinitionNode>
     {
         public ResolveAbstractType ResolveAbstractType { get; set; }
