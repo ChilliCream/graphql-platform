@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Generator
 {
@@ -8,9 +9,11 @@ namespace Generator
 
         public Scenario(string name, IEnumerable<Test> tests)
         {
-            Name = name
-                .Replace(" ", "_")
-                .Replace(":", "");
+            Name = string.Join("", name
+                .Split(':', ' ')
+                .Where(l => !string.IsNullOrEmpty(l))
+                .Select(l => l.UpperFirstLetter()));
+
             Tests = tests;
         }
 

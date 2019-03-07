@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using HotChocolate;
@@ -10,12 +9,12 @@ using Xunit;
 
 namespace Generated.Tests
 {
-    public class Validate_Executable_definitions
+    public class ValidateExecutableDefinitions
     {
         private readonly IQueryParser _parser;
         private readonly Schema _schema;
         private readonly ServiceProvider _serviceProvider;
-        public Validate_Executable_definitions()
+        public ValidateExecutableDefinitions()
         {
             _parser = new DefaultQueryParser();
             var schemaContent = File.ReadAllText("validation.schema.graphql");
@@ -27,7 +26,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void with_only_operation()
+        public void WithOnlyOperation()
         {
             // Given
             string query = @"query Foo { dog { name } }";
@@ -39,7 +38,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void with_operation_and_fragment()
+        public void WithOperationAndFragment()
         {
             // Given
             string query = @"query Foo { dog { name ...Frag } } fragment Frag on Dog { name }";
@@ -51,7 +50,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void with_type_definition()
+        public void WithTypeDefinition()
         {
             // Given
             string query = @"query Foo { dog { name } } type Cow { name: String } extend type Dog { color: String }";
@@ -65,7 +64,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void with_schema_definition()
+        public void WithSchemaDefinition()
         {
             // Given
             string query = @"schema { query: Query } type Query { test: String } extend schema @directive";

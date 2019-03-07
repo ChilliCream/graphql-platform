@@ -4,16 +4,16 @@ using Xunit;
 
 namespace Generated.Tests
 {
-    public class Schema_Parser
+    public class SchemaParser
     {
         private readonly IQueryParser _parser;
-        public Schema_Parser()
+        public SchemaParser()
         {
             _parser = new DefaultQueryParser();
         }
 
         [Fact]
-        public void Simple_type()
+        public void SimpleType()
         {
             // Given
             string query = @"type Hello { world: String } ";
@@ -24,7 +24,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void Simple_extension()
+        public void SimpleExtension()
         {
             // Given
             string query = @"extend type Hello { world: String } ";
@@ -35,7 +35,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void Simple_nonnull_type()
+        public void SimpleNonNullType()
         {
             // Given
             string query = @"type Hello { world: String! } ";
@@ -46,7 +46,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void Simple_type_inheriting_interface()
+        public void SimpleTypeInheritingInterface()
         {
             // Given
             string query = @"type Hello implements World";
@@ -57,7 +57,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void Simple_type_inheriting_multiple_interfaces()
+        public void SimpleTypeInheritingMultipleInterfaces()
         {
             // Given
             string query = @"type Hello implements Wo & rld";
@@ -68,7 +68,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void Single_value_enum()
+        public void SingleValueEnum()
         {
             // Given
             string query = @"enum Hello { WORLD }";
@@ -79,7 +79,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void Double_value_enum()
+        public void DoubleValueEnum()
         {
             // Given
             string query = @"enum Hello { WO, RLD }";
@@ -90,7 +90,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void Simple_interface()
+        public void SimpleInterface()
         {
             // Given
             string query = @"interface Hello { world: String } ";
@@ -101,7 +101,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void Simple_field_with_arg()
+        public void SimpleFieldWithArg()
         {
             // Given
             string query = @"type Hello { world(flag: Boolean): String } ";
@@ -112,7 +112,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void Simple_field_with_arg_with_default_value()
+        public void SimpleFieldWithArgWithDefaultValue()
         {
             // Given
             string query = @"type Hello { world(flag: Boolean = true): String } ";
@@ -123,7 +123,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void Simple_field_with_list_arg()
+        public void SimpleFieldWithListArg()
         {
             // Given
             string query = @"type Hello { world(things: [String]): String } ";
@@ -134,7 +134,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void Simple_field_with_two_args()
+        public void SimpleFieldWithTwoArgs()
         {
             // Given
             string query = @"type Hello { world(argOne: Boolean, argTwo: Int): String } ";
@@ -145,7 +145,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void Simple_union()
+        public void SimpleUnion()
         {
             // Given
             string query = @"union Hello = World";
@@ -156,7 +156,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void Union_with_two_types()
+        public void UnionWithTwoTypes()
         {
             // Given
             string query = @"union Hello = Wo | Rld";
@@ -178,7 +178,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void Simple_input_object()
+        public void SimpleInputObject()
         {
             // Given
             string query = @"input Hello { world: String } ";
@@ -189,7 +189,7 @@ namespace Generated.Tests
         }
 
         [Fact]
-        public void Simple_input_object_with_args_should_fail()
+        public void SimpleInputObjectWithArgsShouldFail()
         {
             // Given
             string query = @"input Hello { world(foo: Int): String } ";

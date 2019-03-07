@@ -24,7 +24,6 @@ namespace Generator
             ClassBuilder classBuilder = ClassBuilder.Init(definition.Name)
                 .WithUsings(
                     "System",
-                    "System.Collections.Generic",
                     "System.IO",
                     "System.Linq",
                     "HotChocolate",
@@ -56,7 +55,7 @@ namespace Generator
 
             builder.AppendLine(compilation.Source);
 
-            var errorsFilePath = Path.Combine(outputDir, $"{definition.Name}_Tests.cs");
+            var errorsFilePath = Path.Combine(outputDir, $"{definition.Name}Tests.cs");
             File.WriteAllText(errorsFilePath, builder.ToString());
         }
     }

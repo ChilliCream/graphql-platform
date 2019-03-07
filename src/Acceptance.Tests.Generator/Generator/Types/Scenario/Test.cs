@@ -12,9 +12,10 @@ namespace Generator
 
         public Test(string name, Given given, IAction when, IEnumerable<IAssertion> then)
         {
-            Name = name
-                .Replace("-", "")
-                .Replace(" ", "_");
+            Name = string.Join("", name
+                .Split('-', ' ')
+                .Where(l => !string.IsNullOrEmpty(l))
+                .Select(l => l.UpperFirstLetter()));
 
             _given = given;
             _when = when;

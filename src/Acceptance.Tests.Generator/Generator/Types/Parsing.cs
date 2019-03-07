@@ -28,23 +28,15 @@ namespace Generator
                     new ClassMethod("void", t.Name, t.CreateBlock())).ToArray());
 
             Compilation compilation = classBuilder.Compile();
-            if (compilation.Errors.Any())
-            {
-                StringBuilder builder = new StringBuilder();
+            StringBuilder builder = new StringBuilder();
 
-                compilation.Errors
-                    .ForEach(error => builder.AppendLine(error));
+            compilation.Errors
+                .ForEach(error => builder.AppendLine($"// {error}"));
 
-                builder.AppendLine(compilation.Source);
+            builder.AppendLine(compilation.Source);
 
-                var errorsFilePath = Path.Combine(outputDir, $"{definition.Name}_Errors.txt");
-                File.WriteAllText(errorsFilePath, builder.ToString());
-            }
-            else
-            {
-                var testFilePath = Path.Combine(outputDir, $"{definition.Name}_Tests.cs");
-                File.WriteAllText(testFilePath, classBuilder.Build());
-            }
+            var errorsFilePath = Path.Combine(outputDir, $"{definition.Name}Tests.cs");
+            File.WriteAllText(errorsFilePath, builder.ToString());
         }
     }
 }
