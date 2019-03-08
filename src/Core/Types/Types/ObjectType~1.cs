@@ -25,12 +25,12 @@ namespace HotChocolate.Types
                 ?? throw new ArgumentNullException(nameof(configure));
         }
 
-        protected override void OnInitialize(IInitializationContext context)
+        protected override CreateDefinition(IInitializationContext context)
         {
             ObjectTypeDescriptor<T> descriptor = ObjectTypeDescriptor.New<T>(
                 DescriptorContext.Create(context.Services));
             _configure(descriptor);
-            Definition = descriptor.CreateDefinition();
+            return descriptor.CreateDefinition();
         }
 
         protected virtual void Configure(IObjectTypeDescriptor<T> descriptor)

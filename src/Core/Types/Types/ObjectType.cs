@@ -41,7 +41,7 @@ namespace HotChocolate.Types
 
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
 
-        public Type ClrType => Definition.ClrType;
+        public Type ClrType { get; private set; }
 
         public IFieldCollection<IOutputField> Fields
         {
@@ -61,25 +61,24 @@ namespace HotChocolate.Types
             }
         }
 
-
-        protected override void OnInitialize(IInitializationContext context)
+        protected override ObjectTypeDefinition CreateDefinition(
+            IInitializationContext context)
         {
             ObjectTypeDescriptor descriptor = ObjectTypeDescriptor.New(
                 DescriptorContext.Create(context.Services),
                 GetType());
             _configure(descriptor);
-            Definition = descriptor.CreateDefinition();
-            RegisterDependencies(context, Definition);
+            return descriptor.CreateDefinition();
         }
 
         protected virtual void Configure(IObjectTypeDescriptor descriptor) { }
 
-        protected void RegisterDependencies(
+        protected override void OnRegisterDependencies(
             IInitializationContext context,
             ObjectTypeDefinition definition)
         {
             context.RegisterDependencyRange(
-                Definition.GetDependencies(),
+                definition.GetDependencies(),
                 TypeDependencyKind.Default);
 
             foreach (ObjectFieldDefinition field in definition.Fields)

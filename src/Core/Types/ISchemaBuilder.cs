@@ -15,7 +15,7 @@ namespace HotChocolate
     public delegate INamedType CreateNamedType(IServiceProvider services);
 
 
-    internal interface ITypeSystemObject
+    public interface ITypeSystemObject
         : Types.IHasName
         , Types.IHasDescription
     {

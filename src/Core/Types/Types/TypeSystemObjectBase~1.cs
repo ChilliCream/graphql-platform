@@ -5,7 +5,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
-    public class TypeSystemObjectBase<TDefinition>
+    public abstract class TypeSystemObjectBase<TDefinition>
         : TypeSystemObjectBase
         where TDefinition : DefinitionBase
     {
@@ -13,36 +13,39 @@ namespace HotChocolate.Types
 
         protected TypeSystemObjectBase() { }
 
-        protected TDefinition Definition
+        internal sealed override void Initialize(IInitializationContext context)
         {
-            get => _definition;
-            set
+            _definition = CreateDefinition(context);
+            if (_definition == null)
             {
-                if (IsInitialized)
-                {
-                    // TODO : exception type
-                    // TODO : resources
-                    throw new InvalidOperationException(
-                        "The type is initialize bla bla ...");
-                }
-
-                if (_definition != null)
-                {
-                    // TODO : exception type
-                    // TODO : resources
-                    throw new NotSupportedException(
-                        "It is not allowed to change the type definition " +
-                        "once it is set.");
-                }
-
-                _definition = value
-                    ?? throw new ArgumentNullException(nameof(value));
+                // TODO : exception type
+                // TODO : resources
+                throw new InvalidOperationException();
             }
+            OnRegisterDependencies(context, _definition);
+            base.Initialize(context);
         }
 
-        protected override void OnCompleteName(ICompletionContext context)
+        protected abstract TDefinition CreateDefinition(
+            IInitializationContext context);
+
+        protected virtual void OnRegisterDependencies(
+            IInitializationContext context,
+            TDefinition definition)
         {
-            if (Definition == null)
+        }
+
+        internal sealed override void CompleteName(ICompletionContext context)
+        {
+            OnCompleteName(context, _definition);
+            base.CompleteName(context);
+        }
+
+        protected virtual void OnCompleteName(
+            ICompletionContext context,
+            TDefinition definition)
+        {
+            if (definition.Name.IsEmpty)
             {
                 // TODO : exception type
                 // TODO : resources
@@ -50,15 +53,20 @@ namespace HotChocolate.Types
                     "The type is initialize bla bla ...");
             }
 
-            if (Definition.Name.IsEmpty)
-            {
-                // TODO : exception type
-                // TODO : resources
-                throw new InvalidOperationException(
-                    "The type is initialize bla bla ...");
-            }
+            Name = definition.Name;
+        }
 
-            Name = Definition.Name;
+        internal sealed override void CompleteObject(ICompletionContext context)
+        {
+            OnCompleteObject(context, _definition);
+            base.CompleteObject(context);
+            _definition = null;
+        }
+
+        protected virtual void OnCompleteObject(
+            ICompletionContext context,
+            TDefinition definition)
+        {
         }
     }
 }

@@ -1,11 +1,12 @@
 ﻿using System;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     public class EnumValue
     {
-        internal EnumValue(EnumValueDescription description)
+        internal EnumValue(EnumValueDefinition description)
         {
             if (description == null)
             {

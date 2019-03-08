@@ -60,35 +60,19 @@ namespace HotChocolate.Types
             || _status == TypeStatus.Named
             || _status == TypeStatus.Completed;
 
-
-        internal void Initialize(IInitializationContext context)
+        internal virtual void Initialize(IInitializationContext context)
         {
-            OnInitialize(context);
             _status = TypeStatus.Initialized;
         }
 
-        protected virtual void OnInitialize(IInitializationContext context)
+        internal virtual void CompleteName(ICompletionContext context)
         {
-        }
-
-        internal void CompleteName(ICompletionContext context)
-        {
-            OnCompleteName(context);
             _status = TypeStatus.Named;
         }
 
-        protected virtual void OnCompleteName(ICompletionContext context)
+        internal virtual void CompleteObject(ICompletionContext context)
         {
-        }
-
-        internal void CompleteObject(ICompletionContext context)
-        {
-            OnCompleteObject(context);
             _status = TypeStatus.Completed;
-        }
-
-        protected virtual void OnCompleteObject(ICompletionContext context)
-        {
         }
 
         private enum TypeStatus
