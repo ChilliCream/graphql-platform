@@ -116,126 +116,14 @@ namespace HotChocolate.Types
 
         protected override void OnCompleteType(
             ICompletionContext context,
-            InterfaceTypeDefinition definition)
+            InputObjectTypeDefinition definition)
         {
             SyntaxNode = definition.SyntaxNode;
             ClrType = definition.ClrType;
-            Fields = new FieldCollection<InterfaceField>(
-                definition.Fields.Select(t => new InterfaceField(t)));
-
-            CompleteFields(context);
-            CompleteAbstractTypeResolver(
-                context,
-                definition.ResolveAbstractType);
-        }
-
-        private void CompleteFields(
-            ICompletionContext context)
-        {
-            foreach (InterfaceField field in Fields)
-            {
-                field.CompleteField(context);
-            }
-
-            if (Fields.Count == 0)
-            {
-                // TODO : RESOURCES
-                context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage($"Interface `{Name}` has no fields declared.")
-                    .SetCode(TypeErrorCodes.MissingType)
-                    .SetTypeSystemObject(context.Type)
-                    .AddSyntaxNode(SyntaxNode)
-                    .Build());
-            }
-        }
-
-        private void Initialize(Action<IInputObjectTypeDescriptor> configure)
-        {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            InputObjectTypeDescriptor descriptor = CreateDescriptor();
-            configure(descriptor);
-
-            InputObjectTypeDescription description =
-                descriptor.CreateDescription();
-            ClrType = description.ClrType;
-            SyntaxNode = description.SyntaxNode;
             Fields = new FieldCollection<InputField>(
-                description.Fields.Select(t => new InputField(t)));
+                definition.Fields.Select(t => new InputField(t)));
 
-            Initialize(description.Name, description.Description,
-                new DirectiveCollection(this,
-                    DirectiveLocation.InputObject,
-                    description.Directives));
-        }
-
-        protected override void OnRegisterDependencies(
-            ITypeInitializationContext context)
-        {
-            base.OnRegisterDependencies(context);
-
-            foreach (INeedsInitialization field in Fields
-                .Cast<INeedsInitialization>())
-            {
-                field.RegisterDependencies(context);
-            }
-        }
-
-        protected override void OnCompleteType(
-            ITypeInitializationContext context)
-        {
-            ITypeConversion converter = context.Services.GetTypeConversion();
-
-            _objectToValueConverter =
-                new InputObjectToObjectValueConverter(converter);
-            _valueToObjectConverter =
-                new ObjectValueToInputObjectConverter(converter);
-
-            base.OnCompleteType(context);
-
-            CompleteClrType(context);
-            CompleteFields(context);
-        }
-
-        private void CompleteClrType(
-            ITypeInitializationContext context)
-        {
-            if (ClrType == null
-                && context.TryGetNativeType(this, out Type clrType))
-            {
-                ClrType = clrType;
-            }
-
-            if (ClrType == null)
-            {
-                ClrType = typeof(object);
-            }
-        }
-
-        private void CompleteFields(
-            ITypeInitializationContext context)
-        {
-            foreach (INeedsInitialization field in Fields
-                .Cast<INeedsInitialization>())
-            {
-                field.CompleteType(context);
-            }
-
-            if (Fields.IsEmpty)
-            {
-                context.ReportError(new SchemaError(string.Format(
-                    CultureInfo.InvariantCulture,
-                    TypeResources.InputObjectType_NoFields,
-                    Name)));
-            }
-        }
-
-        protected override InputObjectTypeDefinition CreateDefinition(IInitializationContext context)
-        {
-            throw new NotImplementedException();
+            FieldInitHelper.CompleteFields(context, definition, Fields);
         }
 
         #endregion

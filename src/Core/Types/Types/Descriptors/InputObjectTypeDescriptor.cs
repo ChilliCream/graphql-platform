@@ -134,8 +134,7 @@ namespace HotChocolate.Types.Descriptors
             new InputObjectTypeDescriptor(context, clrType);
 
         public static InputObjectTypeDescriptor<T> New<T>(
-            IDescriptorContext context,
-            NameString name) =>
+            IDescriptorContext context) =>
             new InputObjectTypeDescriptor<T>(context);
     }
 }

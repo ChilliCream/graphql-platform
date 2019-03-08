@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
@@ -11,26 +12,42 @@ namespace HotChocolate.Types
     public class InputObjectType<T>
         : InputObjectType
     {
+        private readonly Action<IInputObjectTypeDescriptor<T>> _configure;
+
         public InputObjectType()
         {
+            _configure = Configure;
         }
 
         public InputObjectType(Action<IInputObjectTypeDescriptor<T>> configure)
-            : base(d => configure((IInputObjectTypeDescriptor<T>)d))
         {
+            _configure = configure
+                ?? throw new ArgumentNullException(nameof(configure));
         }
 
         #region Configuration
 
-        internal sealed override InputObjectTypeDescriptor CreateDescriptor() =>
-            new InputObjectTypeDescriptor<T>();
-
-        protected sealed override void Configure(IInputObjectTypeDescriptor descriptor)
+        protected override InputObjectTypeDefinition CreateDefinition(
+            IInitializationContext context)
         {
-            Configure((IInputObjectTypeDescriptor<T>)descriptor);
+            InputObjectTypeDescriptor<T> descriptor =
+                InputObjectTypeDescriptor.New<T>(
+                    DescriptorContext.Create(context.Services));
+            _configure(descriptor);
+            return descriptor.CreateDefinition();
         }
 
-        protected virtual void Configure(IInputObjectTypeDescriptor<T> descriptor) { }
+        protected virtual void Configure(
+            IInputObjectTypeDescriptor<T> descriptor)
+        {
+        }
+
+        protected sealed override void Configure(
+            IInputObjectTypeDescriptor descriptor)
+        {
+            // TODO : resources
+            throw new NotSupportedException();
+        }
 
         #endregion
     }
