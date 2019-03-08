@@ -18,7 +18,8 @@ namespace HotChocolate.Validation
         {
             _options = options
                 ?? throw new ArgumentNullException(nameof(options));
-            _calculateComplexity = calculateComplexity ?? DefaultComplexity;
+            _calculateComplexity = calculateComplexity
+                ?? Complexity.MultiplierCalculation;
         }
 
         public QueryValidationResult Validate(
@@ -63,11 +64,6 @@ namespace HotChocolate.Validation
             }
 
             return _options.MaxOperationComplexity.HasValue;
-        }
-
-        private static int DefaultComplexity(ComplexityContext context)
-        {
-            return context.Cost.Complexity;
         }
     }
 }

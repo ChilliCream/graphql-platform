@@ -22,7 +22,8 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(next));
             _options = options
                 ?? throw new ArgumentNullException(nameof(options));
-            _calculation = complexityCalculation ?? DefaultComplexity;
+            _calculation = complexityCalculation
+                ?? Complexity.MultiplierCalculation;
         }
 
         public Task InvokeAsync(IQueryContext context)
@@ -74,32 +75,6 @@ namespace HotChocolate.Execution
             }
 
             return _next(context);
-        }
-
-        private static int DefaultComplexity(ComplexityContext context)
-        {
-            if (context.Cost.Multipliers.Count == 0)
-            {
-                return context.Cost.Complexity;
-            }
-
-            int complexity = 0;
-
-            for (int i = 0; i < context.Cost.Multipliers.Count; i++)
-            {
-                if (MultiplierHelper.TryGetMultiplierValue(
-                    context.FieldSelection, context.Variables,
-                    context.Cost.Multipliers[i], out int multiplier))
-                {
-                    complexity += context.Cost.Complexity * multiplier;
-                }
-                else
-                {
-                    complexity += context.Cost.Complexity;
-                }
-            }
-
-            return complexity;
         }
 
         private bool IsAllowedComplexity(int complexity)

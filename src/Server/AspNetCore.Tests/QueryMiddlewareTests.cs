@@ -7,6 +7,7 @@ using HotChocolate.Types;
 using Microsoft.AspNetCore.TestHost;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -361,6 +362,47 @@ namespace HotChocolate.AspNetCore
 
             // assert
             Assert.Equal(HttpStatusCode.BadRequest, message.StatusCode);
+        }
+
+        [InlineData("/", null, HttpStatusCode.OK)]
+        [InlineData("/", "/", HttpStatusCode.OK)]
+        [InlineData("/graphql", "/graphql/", HttpStatusCode.OK)]
+        [InlineData("/graphql", "/graphql", HttpStatusCode.OK)]
+        [InlineData("/graphql/", "/graphql", HttpStatusCode.OK)]
+        [InlineData("/graphql/", "/graphql/", HttpStatusCode.OK)]
+        [InlineData("/graphql", "/graphql/foo", HttpStatusCode.NotFound)]
+        [InlineData("/graphql/foo", "/graphql/foo/", HttpStatusCode.OK)]
+        [InlineData("/graphql/foo", "/graphql/foo", HttpStatusCode.OK)]
+        [Theory]
+        public async Task HttpPost_Path(
+            string path,
+            string requestPath,
+            HttpStatusCode httpStatus)
+        {
+            // arrange
+            TestServer server = CreateTestServer(path);
+            var request = new ClientQueryRequest
+            {
+                Query = @"
+                {
+                    customProperty
+                }"
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendRequestAsync(request, requestPath);
+
+            // assert
+            Assert.Equal(httpStatus, message.StatusCode);
+
+            if (message.StatusCode == HttpStatusCode.OK)
+            {
+                string result = await message.Content.ReadAsStringAsync();
+                result.MatchSnapshot(new SnapshotNameExtension(
+                    path?.Replace("/", "_Slash_"),
+                    requestPath?.Replace("/", "_Slash_")));
+            }
         }
 
         private TestServer CreateTestServer(string path = null)
