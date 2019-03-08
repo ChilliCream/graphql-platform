@@ -1,6 +1,7 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using HotChocolate;
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Subscriptions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -69,6 +70,7 @@ namespace StarWars
             app.UseGraphQL();
             app.UseGraphiQL();
             app.UsePlayground();
+            app.UseVoyager();
 
             /*
             Note: comment app.UseGraphQL("/graphql"); and uncomment this
@@ -76,11 +78,13 @@ namespace StarWars
             passes the configured authorization rule.
             app.UseGraphQL(new QueryMiddlewareOptions
             {
+                Path = "/graphql",
                 OnCreateRequest = (ctx, builder, ct) =>
                 {
-                    var identity = new ClaimsIdentity();
+                    var identity = new ClaimsIdentity("abc");
                     identity.AddClaim(new Claim(ClaimTypes.Country, "us"));
-                    ctx.User.AddIdentity(identity);
+                    ctx.User = new ClaimsPrincipal(identity);
+                    builder.SetProperty(nameof(ClaimsPrincipal), ctx.User);
                     return Task.CompletedTask;
                 }
             });
