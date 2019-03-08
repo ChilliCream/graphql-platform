@@ -10,6 +10,16 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public IBindableList<InputFieldDefinition> Fields { get; }
             = new BindableList<InputFieldDefinition>();
 
-        public BindingBehavior FieldBindingBehavior { get; set; }
+        public IEnumerable<ITypeReference> GetDependencies()
+        {
+            var dependencies = new List<ITypeReference>();
+
+            foreach (InputFieldDefinition field in Fields)
+            {
+                dependencies.Add(field.Type);
+            }
+
+            return dependencies;
+        }
     }
 }

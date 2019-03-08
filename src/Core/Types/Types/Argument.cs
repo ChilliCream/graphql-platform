@@ -26,7 +26,7 @@ namespace HotChocolate.Types
             ArgumentDefinition definition)
         {
             base.OnCompleteField(context, definition);
-            DefaultValue = InputFieldHelper.CreateDefaultValue(
+            DefaultValue = FieldHelper.CreateDefaultValue(
                 context, definition, Type);
         }
     }

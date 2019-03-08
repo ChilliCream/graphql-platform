@@ -3,7 +3,7 @@
 namespace HotChocolate.Types
 {
     public interface IFieldCollection<out T>
-        : IEnumerable<T>
+        : IReadOnlyCollection<T>
         where T : IField
     {
         T this[string fieldName] { get; }
@@ -19,7 +19,7 @@ namespace HotChocolate.Types
             out T field)
             where T : IField
         {
-            if(collection.ContainsField(fieldName))
+            if (collection.ContainsField(fieldName))
             {
                 field = collection[fieldName];
                 return true;

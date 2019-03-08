@@ -3,34 +3,38 @@ using System.Globalization;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
     public class InputObjectType
-        : NamedTypeBase
+        : NamedTypeBase<InputObjectTypeDefinition>
         , INamedInputType
     {
+        private readonly Action<IInputObjectTypeDescriptor> _configure;
         private InputObjectToObjectValueConverter _objectToValueConverter;
         private ObjectValueToInputObjectConverter _valueToObjectConverter;
 
         internal InputObjectType()
-            : base(TypeKind.InputObject)
         {
-            Initialize(Configure);
+            _configure = Configure;
         }
 
         internal InputObjectType(Action<IInputObjectTypeDescriptor> configure)
-            : base(TypeKind.InputObject)
         {
-            Initialize(configure);
+            _configure = configure
+                ?? throw new ArgumentNullException(nameof(configure));
         }
+
+        public override TypeKind Kind => TypeKind.InputObject;
 
         public InputObjectTypeDefinitionNode SyntaxNode { get; private set; }
 
-        public FieldCollection<InputField> Fields { get; private set; }
-
         public Type ClrType { get; private set; }
+
+        public FieldCollection<InputField> Fields { get; private set; }
 
         #region IInputType
 
@@ -84,16 +88,66 @@ namespace HotChocolate.Types
 
         #endregion
 
-        #region Configuration
-
-        internal virtual InputObjectTypeDescriptor CreateDescriptor() =>
-            new InputObjectTypeDescriptor();
-
-        protected virtual void Configure(IInputObjectTypeDescriptor descriptor) { }
-
-        #endregion
-
         #region Initialization
+
+        protected override InputObjectTypeDefinition CreateDefinition(
+            IInitializationContext context)
+        {
+            InputObjectTypeDescriptor descriptor =
+                InputObjectTypeDescriptor.New(
+                    DescriptorContext.Create(context.Services),
+                    GetType());
+            _configure(descriptor);
+            return descriptor.CreateDefinition();
+        }
+
+        protected virtual void Configure(IInputObjectTypeDescriptor descriptor)
+        {
+        }
+
+        protected override void OnRegisterDependencies(
+            IInitializationContext context,
+            InputObjectTypeDefinition definition)
+        {
+            context.RegisterDependencyRange(
+                definition.GetDependencies(),
+                TypeDependencyKind.Default);
+        }
+
+        protected override void OnCompleteType(
+            ICompletionContext context,
+            InterfaceTypeDefinition definition)
+        {
+            SyntaxNode = definition.SyntaxNode;
+            ClrType = definition.ClrType;
+            Fields = new FieldCollection<InterfaceField>(
+                definition.Fields.Select(t => new InterfaceField(t)));
+
+            CompleteFields(context);
+            CompleteAbstractTypeResolver(
+                context,
+                definition.ResolveAbstractType);
+        }
+
+        private void CompleteFields(
+            ICompletionContext context)
+        {
+            foreach (InterfaceField field in Fields)
+            {
+                field.CompleteField(context);
+            }
+
+            if (Fields.Count == 0)
+            {
+                // TODO : RESOURCES
+                context.ReportError(SchemaErrorBuilder.New()
+                    .SetMessage($"Interface `{Name}` has no fields declared.")
+                    .SetCode(TypeErrorCodes.MissingType)
+                    .SetTypeSystemObject(context.Type)
+                    .AddSyntaxNode(SyntaxNode)
+                    .Build());
+            }
+        }
 
         private void Initialize(Action<IInputObjectTypeDescriptor> configure)
         {
@@ -179,32 +233,10 @@ namespace HotChocolate.Types
             }
         }
 
-        #endregion
-    }
-
-    public class InputObjectType<T>
-        : InputObjectType
-    {
-        public InputObjectType()
+        protected override InputObjectTypeDefinition CreateDefinition(IInitializationContext context)
         {
+            throw new NotImplementedException();
         }
-
-        public InputObjectType(Action<IInputObjectTypeDescriptor<T>> configure)
-            : base(d => configure((IInputObjectTypeDescriptor<T>)d))
-        {
-        }
-
-        #region Configuration
-
-        internal sealed override InputObjectTypeDescriptor CreateDescriptor() =>
-            new InputObjectTypeDescriptor<T>();
-
-        protected sealed override void Configure(IInputObjectTypeDescriptor descriptor)
-        {
-            Configure((IInputObjectTypeDescriptor<T>)descriptor);
-        }
-
-        protected virtual void Configure(IInputObjectTypeDescriptor<T> descriptor) { }
 
         #endregion
     }

@@ -84,7 +84,7 @@ namespace HotChocolate.Types
             Fields = new FieldCollection<InterfaceField>(
                 definition.Fields.Select(t => new InterfaceField(t)));
 
-            CompleteFields(context);
+            FieldInitHelper.CompleteFields(context, definition, Fields);
             CompleteAbstractTypeResolver(
                 context,
                 definition.ResolveAbstractType);
