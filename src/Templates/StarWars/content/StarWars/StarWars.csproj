@@ -17,6 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="HotChocolate.AspNetCore.Voyager" Version="0.8.0" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="0.8.0" />
     <PackageReference Include="HotChocolate.AspNetCore.GraphiQL" Version="0.8.0" />
