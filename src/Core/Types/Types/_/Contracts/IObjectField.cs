@@ -6,7 +6,7 @@ namespace HotChocolate.Types
     public interface IObjectField
         : IOutputField
     {
-        MemberInfo ClrMember { get; }
+        MemberInfo Member { get; }
 
         FieldDelegate Middleware { get; }
 

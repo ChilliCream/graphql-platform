@@ -9,7 +9,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types
 {
     public class ObjectField
-        : OutputFieldBase
+        : OutputFieldBase<ObjectFieldDefinition>
         , IObjectField
     {
         private readonly List<InterfaceField> _interfaceFields =
@@ -35,19 +35,11 @@ namespace HotChocolate.Types
             ExecutableDirectives = _executableDirectives.AsReadOnly();
         }
 
-        private static ObjectFieldDescription ExecuteConfigure(
-            NameString fieldName,
-            Action<IObjectFieldDescriptor> configure)
+        internal ObjectField(ObjectFieldDefinition definition)
+            : base(definition)
         {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            var descriptor = new ObjectFieldDescriptor(fieldName);
-            configure(descriptor);
-            return descriptor.CreateDescription();
         }
+
 
         public new ObjectType DeclaringType => (ObjectType)base.DeclaringType;
 
@@ -75,39 +67,40 @@ namespace HotChocolate.Types
         /// Gets the associated .net type member of this field.
         /// This member can be <c>null</c>.
         /// </summary>
-        public MemberInfo ClrMember => _member;
+        public MemberInfo Member => _member;
 
-        protected override void OnRegisterDependencies(
-            ITypeInitializationContext context)
+        [Obsolete("Use Member.")]
+        public MemberInfo ClrMember => Member;
+
+        protected override void OnCompleteField(
+            ICompletionContext context,
+            ObjectFieldDefinition definition)
         {
-            base.OnRegisterDependencies(context);
+            base.OnCompleteField(context, definition);
 
-            if (_member != null)
-            {
-                context.RegisterResolver(
-                    _sourceType, _resolverType, Name, _member);
-            }
+            CompleteInterfaceFields(context);
         }
+
+
 
         protected override void OnCompleteType(
             ITypeInitializationContext context)
         {
             base.OnCompleteType(context);
 
-            CompleteInterfaceFields(context);
             CompleteExecutableDirectives(context);
             CompleteResolver(context);
         }
 
         private void CompleteInterfaceFields(
-            ITypeInitializationContext context)
+            ICompletionContext context)
         {
             if (context.Type is ObjectType ot && ot.Interfaces.Count > 0)
             {
                 foreach (InterfaceType interfaceType in ot.Interfaces.Values)
                 {
-                    if (interfaceType.Fields
-                        .TryGetField(Name, out InterfaceField field))
+                    if (interfaceType.Fields.TryGetField(Name,
+                        out InterfaceField field))
                     {
                         _interfaceFields.Add(field);
                     }
@@ -146,17 +139,19 @@ namespace HotChocolate.Types
         }
 
         private void CompleteResolver(
-            ITypeInitializationContext context)
+            ICompletionContext context,
+            ObjectFieldDefinition definition)
         {
-            if (Resolver == null)
-            {
-                Resolver = context.GetResolver(Name);
-            }
+            var fieldReference = new FieldReference(
+                context.Type.Name, definition.Name);
 
-            Middleware = context.CreateMiddleware(
-                _middlewareComponents, Resolver,
-                IsIntrospectionField
-                || DeclaringType.IsIntrospectionType());
+            FieldResolver fieldResolver = context.GetResolver(fieldReference);
+            Resolver = fieldResolver.Resolver;
+
+            if (!IsIntrospectionField && !DeclaringType.IsIntrospectionType())
+            {
+                Middleware = context.GetCompiledMiddleware(fieldReference);
+            }
 
             if (Resolver == null && Middleware == null)
             {
