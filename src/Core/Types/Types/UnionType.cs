@@ -3,48 +3,75 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     public class UnionType
-        : NamedTypeBase
+        : NamedTypeBase<UnionTypeDefinition>
         , INamedOutputType
     {
+        private readonly Action<IUnionTypeDescriptor> _configure;
         private readonly Dictionary<NameString, ObjectType> _typeMap =
             new Dictionary<NameString, ObjectType>();
-        private List<TypeReference> _types;
         private ResolveAbstractType _resolveAbstractType;
 
         protected UnionType()
-            : base(TypeKind.Union)
         {
-            Initialize(Configure);
+            _configure = Configure;
         }
 
         public UnionType(Action<IUnionTypeDescriptor> configure)
-            : base(TypeKind.Union)
         {
-            Initialize(configure);
+            _configure = configure
+                ?? throw new ArgumentNullException(nameof(configure));
         }
+
+        public override TypeKind Kind => TypeKind.Union;
 
         public UnionTypeDefinitionNode SyntaxNode { get; private set; }
 
         public IReadOnlyDictionary<NameString, ObjectType> Types => _typeMap;
 
+
         public ObjectType ResolveType(
             IResolverContext context, object resolverResult)
             => _resolveAbstractType(context, resolverResult);
 
-        #region Configuration
+        #region Initialization
+
+        protected override UnionTypeDefinition CreateDefinition(IInitializationContext context)
+        {
+            UnionTypeDescriptor descriptor = UnionTypeDescriptor.New(
+                DescriptorContext.Create(context.Services),
+                GetType());
+            _configure(descriptor);
+            return descriptor.CreateDefinition();
+        }
 
         protected virtual void Configure(IUnionTypeDescriptor descriptor) { }
 
-        #endregion
+        protected override void OnRegisterDependencies(
+            IInitializationContext context,
+            UnionTypeDefinition definition)
+        {
+            base.OnRegisterDependencies(context, definition);
 
-        #region Initialization
+            context.RegisterDependencyRange(
+                definition.Types,
+                TypeDependencyKind.Default);
+        }
 
-        internal virtual UnionTypeDescriptor CreateDescriptor() =>
-            new UnionTypeDescriptor(GetType());
+        protected override void OnCompleteObject(
+            ICompletionContext context,
+            UnionTypeDefinition definition)
+        {
+            base.OnCompleteObject(context, definition);
+
+            Description = definition.Description;
+            definition.
+        }
 
         private void Initialize(Action<IUnionTypeDescriptor> configure)
         {
@@ -58,7 +85,6 @@ namespace HotChocolate.Types
 
             UnionTypeDescription description = descriptor.CreateDescription();
 
-            _types = description.Types;
             _resolveAbstractType = description.ResolveAbstractType;
 
             Initialize(description.Name, description.Description,
@@ -67,16 +93,7 @@ namespace HotChocolate.Types
                     description.Directives));
         }
 
-        protected override void OnRegisterDependencies(
-            ITypeInitializationContext context)
-        {
-            base.OnRegisterDependencies(context);
 
-            foreach (TypeReference typeReference in _types)
-            {
-                context.RegisterType(typeReference);
-            }
-        }
 
         protected override void OnCompleteType(
             ITypeInitializationContext context)
@@ -106,12 +123,31 @@ namespace HotChocolate.Types
             }
         }
 
-        protected virtual ISet<ObjectType> CreateUnionTypeSet(
-            ITypeInitializationContext context)
+        protected virtual ISet<ObjectType> OnCompleteTypeSet(
+            ICompletionContext context,
+            UnionTypeDefinition definition)
         {
-            return new HashSet<ObjectType>(_types
-                .Select(t => context.GetType<ObjectType>(t))
-                .Where(t => t != null));
+            var typeSet = new HashSet<ObjectType>();
+
+            foreach (ITypeReference typeReference in definition.Types)
+            {
+                if (context.TryGetType(typeReference, out ObjectType ot))
+                {
+                    typeSet.Add(ot);
+                }
+                else
+                {
+                    // TODO : RESOURCES
+                    context.ReportError(SchemaErrorBuilder.New()
+                        .SetMessage("")
+                        .SetCode(TypeErrorCodes.MissingType)
+                        .SetTypeSystemObject(this)
+                        .AddSyntaxNode(SyntaxNode)
+                        .Build());
+                }
+            }
+
+            return typeSet;
         }
 
         private void CompleteResolveAbstractType()
@@ -133,6 +169,8 @@ namespace HotChocolate.Types
                 };
             }
         }
+
+
 
         #endregion
     }

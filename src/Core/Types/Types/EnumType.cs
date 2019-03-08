@@ -203,7 +203,6 @@ namespace HotChocolate.Types
         {
             SyntaxNode = definition.SyntaxNode;
             ClrType = definition.ClrType;
-            Description = definition.Description;
 
             foreach (EnumValue enumValue in definition.Values
                 .Select(t => new EnumValue(t)))
@@ -218,6 +217,7 @@ namespace HotChocolate.Types
                     SchemaErrorBuilder.New()
                         .SetMessage(TypeResources.EnumType_NoValues, Name)
                         .SetCode(TypeErrorCodes.NoEnumValues)
+                        .SetTypeSystemObject(this)
                         .AddSyntaxNode(SyntaxNode)
                         .Build());
             }

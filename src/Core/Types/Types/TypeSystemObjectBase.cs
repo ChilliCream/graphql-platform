@@ -5,7 +5,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
-    public class TypeSystemObjectBase
+    public abstract class TypeSystemObjectBase
         : ITypeSystemObject
     {
         private TypeStatus _status;
@@ -47,6 +47,8 @@ namespace HotChocolate.Types
                 _description = value;
             }
         }
+
+        public abstract IReadOnlyDictionary<string, object> ContextData { get; }
 
         protected bool IsCompleted =>
             _status == TypeStatus.Completed;

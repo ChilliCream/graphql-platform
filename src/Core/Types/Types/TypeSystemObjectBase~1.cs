@@ -10,8 +10,12 @@ namespace HotChocolate.Types
         where TDefinition : DefinitionBase
     {
         private TDefinition _definition;
+        private Dictionary<string, object> _contextData;
 
         protected TypeSystemObjectBase() { }
+
+        public override IReadOnlyDictionary<string, object> ContextData =>
+            _contextData;
 
         internal sealed override void Initialize(IInitializationContext context)
         {
@@ -58,9 +62,15 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteObject(ICompletionContext context)
         {
+            Description = _definition.Description;
+
             OnCompleteObject(context, _definition);
-            base.CompleteObject(context);
+
+            _contextData = new Dictionary<string, object>(
+                _definition.ContextData);
             _definition = null;
+
+            base.CompleteObject(context);
         }
 
         protected virtual void OnCompleteObject(
