@@ -22,9 +22,13 @@ namespace HotChocolate.Validation
         }
 
         public IOutputField FieldDefinition { get; }
+
         public FieldNode FieldSelection { get; }
+
         public ICollection<IOutputField> Path { get; }
+
         public IVariableCollection Variables { get; }
+
         public CostDirective Cost { get; }
     }
 }
