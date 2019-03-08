@@ -22,8 +22,6 @@ namespace HotChocolate.Types
         private readonly MemberInfo _member;
 
 
-
-
         internal ObjectField(ObjectFieldDescription fieldDescription)
             : base(fieldDescription)
         {

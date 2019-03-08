@@ -7,6 +7,7 @@ namespace HotChocolate.Types
     public abstract class FieldBase<TType, TDefinition>
         : IField
         , IHasDirectives
+        , IHasClrType
         where TType : IType
         where TDefinition : FieldDefinitionBase
     {
@@ -41,10 +42,16 @@ namespace HotChocolate.Types
 
         public IDirectiveCollection Directives { get; private set; }
 
+        public virtual Type ClrType { get; private set; }
+
         internal void CompleteField(ICompletionContext context)
         {
             DeclaringType = context.Type;
             Type = context.GetType<TType>(_definition.Type);
+            ClrType = Type.NamedType() is IHasClrType hasClrType
+                ? hasClrType.ClrType
+                : typeof(object);
+
             OnCompleteField(context, _definition);
             _definition = null;
         }
