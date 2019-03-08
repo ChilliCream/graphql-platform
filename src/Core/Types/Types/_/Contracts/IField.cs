@@ -8,6 +8,6 @@
         /// <summary>
         /// The type of which declares this field.
         /// </summary>
-        IHasName DeclaringType { get; }
+        ITypeSystemObject DeclaringType { get; }
     }
 }

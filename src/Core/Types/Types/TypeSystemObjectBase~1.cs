@@ -60,20 +60,20 @@ namespace HotChocolate.Types
             Name = definition.Name;
         }
 
-        internal sealed override void CompleteObject(ICompletionContext context)
+        internal sealed override void CompleteType(ICompletionContext context)
         {
             Description = _definition.Description;
 
-            OnCompleteObject(context, _definition);
+            OnCompleteType(context, _definition);
 
             _contextData = new Dictionary<string, object>(
                 _definition.ContextData);
             _definition = null;
 
-            base.CompleteObject(context);
+            base.CompleteType(context);
         }
 
-        protected virtual void OnCompleteObject(
+        protected virtual void OnCompleteType(
             ICompletionContext context,
             TDefinition definition)
         {

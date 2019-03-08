@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
     public class InputField
-        : FieldBase<IInputType>
+        : FieldBase<IInputType, InputFieldDefinition>
         , IInputField
         , IHasClrType
     {

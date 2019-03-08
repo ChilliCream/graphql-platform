@@ -63,11 +63,11 @@ namespace HotChocolate.Types
                 TypeDependencyKind.Default);
         }
 
-        protected override void OnCompleteObject(
+        protected override void OnCompleteType(
             ICompletionContext context,
             UnionTypeDefinition definition)
         {
-            base.OnCompleteObject(context, definition);
+            base.OnCompleteType(context, definition);
 
             CompleteTypeSet(context, definition);
             CompleteResolveAbstractType(definition.ResolveAbstractType);

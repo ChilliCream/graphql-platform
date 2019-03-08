@@ -72,7 +72,7 @@ namespace HotChocolate.Types
             _status = TypeStatus.Named;
         }
 
-        internal virtual void CompleteObject(ICompletionContext context)
+        internal virtual void CompleteType(ICompletionContext context)
         {
             _status = TypeStatus.Completed;
         }

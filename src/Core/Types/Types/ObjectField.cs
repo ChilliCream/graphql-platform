@@ -9,9 +9,8 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types
 {
     public class ObjectField
-        : ObjectFieldBase
+        : OutputFieldBase
         , IObjectField
-        , ITypeSystemObject
     {
         private readonly List<InterfaceField> _interfaceFields =
             new List<InterfaceField>();
@@ -22,22 +21,8 @@ namespace HotChocolate.Types
         private readonly Type _resolverType;
         private readonly MemberInfo _member;
 
-        internal ObjectField(ObjectFieldDefinition fieldDefinition)
-        {
-
-        }
 
 
-        internal ObjectField(NameString fieldName,
-            Action<IObjectFieldDescriptor> configure)
-            : this(() => ExecuteConfigure(fieldName, configure))
-        {
-        }
-
-        internal ObjectField(Func<ObjectFieldDescription> descriptionFactory)
-            : this(DescriptorHelpers.ExecuteFactory(descriptionFactory))
-        {
-        }
 
         internal ObjectField(ObjectFieldDescription fieldDescription)
             : base(fieldDescription)

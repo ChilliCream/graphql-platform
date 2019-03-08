@@ -1,86 +1,58 @@
-﻿using System;
+﻿using System.Reflection.Metadata;
+using System;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
-    public class FieldBase<T>
-        : TypeSystemObjectBase
-        , IField
+    public abstract class FieldBase<TType, TDefinition>
+        : IField
         , IHasDirectives
-        where T : IType
+        where TType : IType
+        where TDefinition : FieldDefinitionBase
     {
-        protected FieldBase(
-            FieldDescriptionBase description,
-            DirectiveLocation location)
+        private TDefinition _definition;
+
+        protected FieldBase(TDefinition definition)
         {
-            if (description == null)
+            if (definition == null)
             {
-                throw new ArgumentNullException(nameof(description));
+                throw new ArgumentNullException(nameof(definition));
             }
 
-            if (string.IsNullOrEmpty(description.Name))
+            if (string.IsNullOrEmpty(definition.Name))
             {
                 throw new ArgumentException(
                     "The name of a field mustn't be null or empty.",
-                    nameof(description));
+                    nameof(definition));
             }
 
-            Name = description.Name;
-            Description = description.Description;
-            TypeReference = description.Type;
-
-            var directives = new DirectiveCollection(
-                this,
-                location,
-                description.Directives);
-            RegisterForInitialization(directives);
-
-            Directives = directives;
+            _definition = definition;
+            Name = definition.Name;
+            Description = definition.Description;
         }
 
-        public IHasName DeclaringType { get; private set; }
+        public ITypeSystemObject DeclaringType { get; private set; }
 
         public NameString Name { get; }
 
         public string Description { get; }
 
-        public T Type { get; private set; }
+        public TType Type { get; private set; }
 
-        public IDirectiveCollection Directives { get; }
+        public IDirectiveCollection Directives { get; private set; }
 
-        protected TypeReference TypeReference { get; }
-
-        protected override void OnRegisterDependencies(
-            ITypeInitializationContext context)
+        internal void CompleteField(ICompletionContext context)
         {
-            base.OnRegisterDependencies(context);
-
-            if (context.Type == null)
-            {
-                throw new InvalidOperationException(
-                    "It is not allowed to initialize a field without " +
-                    "a type context.");
-            }
-
-            if (TypeReference != null)
-            {
-                context.RegisterType(TypeReference);
-            }
+            DeclaringType = context.Type;
+            Type = context.GetType<TType>(_definition.Type);
+            OnCompleteField(context, _definition);
+            _definition = null;
         }
 
-        protected override void OnCompleteType(
-            ITypeInitializationContext context)
+        protected virtual void OnCompleteField(
+            ICompletionContext context,
+            TDefinition definition)
         {
-            base.OnCompleteType(context);
-
-            if (context.Type == null)
-            {
-                throw new InvalidOperationException(
-                    "It is not allowed to initialize a field without " +
-                    "a type context.");
-            }
-
-            DeclaringType = context.Type;
-            Type = context.ResolveFieldType<T>(this, TypeReference);
         }
     }
 }

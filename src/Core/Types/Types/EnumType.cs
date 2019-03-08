@@ -197,7 +197,7 @@ namespace HotChocolate.Types
 
         protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
 
-        protected override void OnCompleteObject(
+        protected override void OnCompleteType(
             ICompletionContext context,
             EnumTypeDefinition definition)
         {
