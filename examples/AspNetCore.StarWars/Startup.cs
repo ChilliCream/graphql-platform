@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Voyager;
@@ -72,11 +73,8 @@ namespace StarWars
             }
 
             app
-                .UseWebSockets()
-                .UseGraphQL("/graphql")
-                .UseGraphiQL("/graphql")
-                .UsePlayground("/graphql")
-                .UseVoyager("/graphql");
+
+                .UseGraphQL("/graphql");
 
             /*
             Note: comment app.UseGraphQL("/graphql"); and uncomment this

@@ -14,7 +14,7 @@ namespace HotChocolate.AspNetCore
             return SendPostRequestAsync(
                 testServer,
                 JsonConvert.SerializeObject(requestBody),
-                path);
+                path?.TrimStart('/'));
         }
 
         public static Task<HttpResponseMessage> SendPostRequestAsync(
