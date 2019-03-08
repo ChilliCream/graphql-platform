@@ -214,41 +214,13 @@ namespace HotChocolate.Types
 
             if (!Values.Any())
             {
-                context.ReportError(new SchemaError(
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        TypeResources.EnumType_NoValues,
-                        Name)));
+                context.ReportError(
+                    SchemaErrorBuilder.New()
+                        .SetMessage(TypeResources.EnumType_NoValues, Name)
+                        .SetCode(TypeErrorCodes.NoEnumValues)
+                        .AddSyntaxNode(SyntaxNode)
+                        .Build());
             }
-        }
-
-        #endregion
-    }
-
-    public class EnumType<T>
-        : EnumType
-    {
-        public EnumType()
-        {
-        }
-
-        public EnumType(Action<IEnumTypeDescriptor<T>> configure)
-            : base(d => configure((IEnumTypeDescriptor<T>)d))
-        {
-        }
-
-        #region Configuration
-
-        internal sealed override EnumTypeDescriptor CreateDescriptor() =>
-            new EnumTypeDescriptor<T>();
-
-        protected sealed override void Configure(IEnumTypeDescriptor descriptor)
-        {
-            Configure((IEnumTypeDescriptor<T>)descriptor);
-        }
-
-        protected virtual void Configure(IEnumTypeDescriptor<T> descriptor)
-        {
         }
 
         #endregion

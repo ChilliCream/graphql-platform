@@ -140,8 +140,7 @@ namespace HotChocolate.Types.Descriptors
             new EnumTypeDescriptor(context, clrType);
 
         public static EnumTypeDescriptor<T> New<T>(
-            IDescriptorContext context,
-            NameString name) =>
+            IDescriptorContext context) =>
             new EnumTypeDescriptor<T>(context);
     }
 }

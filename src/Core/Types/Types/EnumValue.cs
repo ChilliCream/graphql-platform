@@ -6,28 +6,30 @@ namespace HotChocolate.Types
 {
     public class EnumValue
     {
-        internal EnumValue(EnumValueDefinition description)
+        public EnumValue(EnumValueDefinition enumValueDefinition)
         {
-            if (description == null)
+            if (enumValueDefinition == null)
             {
-                throw new ArgumentNullException(nameof(description));
+                throw new ArgumentNullException(nameof(enumValueDefinition));
             }
 
-            if (description.Value == null)
+            if (enumValueDefinition.Value == null)
             {
+                // TODO : resources
                 throw new ArgumentException(
                     "The inner value of enum value cannot be null or empty.",
-                    nameof(description));
+                    nameof(enumValueDefinition));
             }
 
-            SyntaxNode = description.SyntaxNode;
-            Name = string.IsNullOrEmpty(description.Name)
-                ? description.Value.ToString()
-                : description.Name;
-            Description = description.Description;
-            DeprecationReason = description.DeprecationReason;
-            IsDeprecated = !string.IsNullOrEmpty(description.DeprecationReason);
-            Value = description.Value;
+            SyntaxNode = enumValueDefinition.SyntaxNode;
+            Name = enumValueDefinition.Name.HasValue
+                ? enumValueDefinition.Name
+                : (NameString)enumValueDefinition.Value.ToString();
+            Description = enumValueDefinition.Description;
+            DeprecationReason = enumValueDefinition.DeprecationReason;
+            IsDeprecated = !string.IsNullOrEmpty(
+                enumValueDefinition.DeprecationReason);
+            Value = enumValueDefinition.Value;
         }
 
         public EnumValueDefinitionNode SyntaxNode { get; }

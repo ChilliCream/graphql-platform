@@ -87,4 +87,89 @@ namespace HotChocolate
         /// </summary>
         Exception Exception { get; }
     }
+
+
+    public interface ISchemaErrorBuilder
+    {
+        ISchemaErrorBuilder SetMessage(string message);
+
+        ISchemaErrorBuilder SetCode(string code);
+
+        ISchemaErrorBuilder SetPath(IReadOnlyCollection<object> path);
+
+        ISchemaErrorBuilder SetPath(Path path);
+
+        ISchemaErrorBuilder SetTypeSystemObject(ITypeSystemObject typeSystemObject);
+
+        ISchemaErrorBuilder AddSyntaxNode(ISyntaxNode syntaxNode);
+
+        ISchemaErrorBuilder SetException(Exception exception);
+
+        ISchemaErrorBuilder SetExtension(string key, object value);
+
+        ISchemaError Build();
+    }
+
+    public class SchemaErrorBuilder
+        : ISchemaErrorBuilder
+    {
+        public ISchemaErrorBuilder AddSyntaxNode(ISyntaxNode syntaxNode)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ISchemaError Build()
+        {
+            throw new NotImplementedException();
+        }
+
+        public ISchemaErrorBuilder SetCode(string code)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ISchemaErrorBuilder SetException(Exception exception)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ISchemaErrorBuilder SetExtension(string key, object value)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ISchemaErrorBuilder SetMessage(string message)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ISchemaErrorBuilder SetPath(IReadOnlyCollection<object> path)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ISchemaErrorBuilder SetPath(Path path)
+        {
+            throw new NotImplementedException();
+        }
+
+        public ISchemaErrorBuilder SetTypeSystemObject(ITypeSystemObject typeSystemObject)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static SchemaErrorBuilder New() => new SchemaErrorBuilder();
+    }
+
+    public static class SchemaErrorBuilderExtensions
+    {
+        public static ISchemaErrorBuilder SetMessage(
+            this ISchemaErrorBuilder builder,
+            string format,
+            params object[] args)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
 }
