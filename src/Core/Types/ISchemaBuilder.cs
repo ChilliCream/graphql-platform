@@ -74,8 +74,9 @@ namespace HotChocolate
         FieldDelegate GetCompiledMiddleware(IFieldReference reference);
 
         IReadOnlyCollection<ObjectType> GetPossibleTypes();
-    }
 
+        Func<ISchema> GetSchemaResolver();
+    }
 
     public enum TypeDependencyKind
     {
