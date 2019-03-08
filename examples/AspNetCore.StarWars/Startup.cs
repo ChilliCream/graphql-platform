@@ -73,8 +73,21 @@ namespace StarWars
             }
 
             app
-
-                .UseGraphQL("/graphql");
+                .UseWebSockets()
+                .UseGraphQL(new QueryMiddlewareOptions
+                {
+                    Path = "/graphql",
+                    OnCreateRequest = (ctx, builder, ct) =>
+                    {
+                        var identity = new ClaimsIdentity();
+                        identity.AddClaim(new Claim(ClaimTypes.Country, "us"));
+                        ctx.User.AddIdentity(identity);
+                        return Task.CompletedTask;
+                    }
+                })
+                .UseGraphiQL("/graphql")
+                .UsePlayground("/graphql")
+                .UseVoyager("/graphql");
 
             /*
             Note: comment app.UseGraphQL("/graphql"); and uncomment this
