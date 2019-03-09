@@ -16,28 +16,21 @@ namespace HotChocolate.Types
             new List<InterfaceField>();
         private readonly List<IDirective> _executableDirectives =
             new List<IDirective>();
-        private List<FieldMiddleware> _middlewareComponents;
-        private readonly Type _sourceType;
+        private readonly List<FieldMiddleware> _middlewareComponents;
         private readonly Type _resolverType;
         private readonly MemberInfo _member;
-
-
-        internal ObjectField(ObjectFieldDescription fieldDescription)
-            : base(fieldDescription)
-        {
-            _sourceType = fieldDescription.SourceType ?? typeof(object);
-            _resolverType = fieldDescription.ResolverType;
-            _member = fieldDescription.ClrMember;
-            _middlewareComponents = fieldDescription.MiddlewareComponents;
-
-            Resolver = fieldDescription.Resolver;
-            InterfaceFields = _interfaceFields.AsReadOnly();
-            ExecutableDirectives = _executableDirectives.AsReadOnly();
-        }
 
         internal ObjectField(ObjectFieldDefinition definition)
             : base(definition)
         {
+            _resolverType = definition.ResolverType;
+            _member = definition.Member;
+            _middlewareComponents = new List<FieldMiddleware>(
+                definition.MiddlewareComponents);
+
+            Resolver = definition.Resolver;
+            InterfaceFields = _interfaceFields.AsReadOnly();
+            ExecutableDirectives = _executableDirectives.AsReadOnly();
         }
 
 
@@ -79,17 +72,8 @@ namespace HotChocolate.Types
             base.OnCompleteField(context, definition);
 
             CompleteInterfaceFields(context);
-        }
-
-
-
-        protected override void OnCompleteType(
-            ITypeInitializationContext context)
-        {
-            base.OnCompleteType(context);
-
             CompleteExecutableDirectives(context);
-            CompleteResolver(context);
+            CompleteResolver(context, definition);
         }
 
         private void CompleteInterfaceFields(
@@ -109,7 +93,7 @@ namespace HotChocolate.Types
         }
 
         private void CompleteExecutableDirectives(
-            ITypeInitializationContext context)
+            ICompletionContext context)
         {
             var processed = new HashSet<string>();
 

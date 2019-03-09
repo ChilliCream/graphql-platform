@@ -12,7 +12,7 @@ namespace HotChocolate.Types
 {
 
 
-    public class ObjectType_NEW
+    public class ObjectType
         : NamedTypeBase<ObjectTypeDefinition>
         , IComplexOutputType
         , IHasClrType
@@ -25,12 +25,12 @@ namespace HotChocolate.Types
         private IsOfType _isOfType;
         private ObjectTypeBinding _typeBinding;
 
-        protected ObjectType_NEW()
+        protected ObjectType()
         {
             _configure = Configure;
         }
 
-        public ObjectType_NEW(Action<IObjectTypeDescriptor> configure)
+        public ObjectType(Action<IObjectTypeDescriptor> configure)
         {
             _configure = configure;
         }
@@ -42,6 +42,9 @@ namespace HotChocolate.Types
         ISyntaxNode IHasSyntaxNode.SyntaxNode => SyntaxNode;
 
         public Type ClrType { get; private set; }
+
+        public IReadOnlyDictionary<NameString, InterfaceType> Interfaces =>
+            _interfaces;
 
         public IFieldCollection<IOutputField> Fields
         {
@@ -293,7 +296,7 @@ namespace HotChocolate.Types
         }
     }
 
-    public class ObjectType
+    public class ObjectType_OLD
         : NamedTypeBase
         , IComplexOutputType
         , IHasClrType
