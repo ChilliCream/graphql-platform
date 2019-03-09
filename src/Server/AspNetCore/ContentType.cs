@@ -9,5 +9,7 @@ namespace HotChocolate.AspNetCore
         public const string GraphQL = "application/graphql";
 
         public const string Json = "application/json";
+
+        public const string Multipart = "multipart/form-data";
     }
 }

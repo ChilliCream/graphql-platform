@@ -23,16 +23,26 @@ namespace HotChocolate.AspNetCore
 
         private TestServerFactory TestServerFactory { get; set; }
 
-        [Fact]
-        public async Task HttpPost_BasicTest()
+        [InlineData(true)]
+        [InlineData(false)]
+        [Theory]
+        public async Task HttpPost_BasicTest(bool multipart)
         {
             // arrange
             TestServer server = CreateTestServer("/foo");
             var request = new ClientQueryRequest { Query = "{ basic { a } }" };
 
             // act
-            HttpResponseMessage message =
-                await server.SendRequestAsync(request, "foo");
+            HttpResponseMessage message;
+
+            if (multipart)
+            {
+                message = await server.SendRequestAsync(request, "foo");
+            }
+            else
+            {
+                message = await server.SendMultipartRequestAsync(request, "foo");
+            }
 
             // assert
             Assert.Equal(HttpStatusCode.OK, message.StatusCode);

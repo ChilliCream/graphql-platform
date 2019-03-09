@@ -27,7 +27,7 @@ namespace HotChocolate.AspNetCore
                 .UseGraphQL(serviceProvider, new QueryMiddlewareOptions());
         }
 #else
-        
+
         public static IApplicationBuilder UseGraphQL(
             this IApplicationBuilder applicationBuilder)
         {
@@ -94,6 +94,7 @@ namespace HotChocolate.AspNetCore
                 ?? new JsonQueryResultSerializer();
 
             return applicationBuilder
+                .Use<MultipartQueryMiddleware>(executor, serializer, options)
                 .Use<PostQueryMiddleware>(executor, serializer, options)
                 .Use<GetQueryMiddleware>(executor, serializer, options)
                 //.Use<SubscriptionMiddleware>(executor, options)
@@ -115,6 +116,7 @@ namespace HotChocolate.AspNetCore
             }
 
             return applicationBuilder
+                .UseMiddleware<MultipartQueryMiddleware>(options)
                 .UseMiddleware<PostQueryMiddleware>(options)
                 .UseMiddleware<GetQueryMiddleware>(options)
                 .UseMiddleware<SubscriptionMiddleware>(options)
