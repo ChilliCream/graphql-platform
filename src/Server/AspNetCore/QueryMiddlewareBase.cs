@@ -34,6 +34,9 @@ namespace HotChocolate.AspNetCore
         private const int _ok = 200;
 
         private readonly IQueryResultSerializer _resultSerializer;
+        private readonly Func<HttpContext, bool> _isPathValid;
+
+
 
         /// <summary>
         /// Instantiates the base query middleware with an optional pointer to
@@ -67,6 +70,17 @@ namespace HotChocolate.AspNetCore
                 ?? throw new ArgumentNullException(nameof(resultSerializer));
             Options = options ??
                 throw new ArgumentNullException(nameof(options));
+
+            if (Options.Path.Value.Length > 1)
+            {
+                var path1 = new PathString(options.Path.Value.TrimEnd('/'));
+                PathString path2 = path1.Add(new PathString("/"));
+                _isPathValid = ctx => ctx.IsValidPath(path1, path2);
+            }
+            else
+            {
+                _isPathValid = ctx => ctx.IsValidPath(options.Path);
+            }
         }
 
         /// <summary>
@@ -96,7 +110,7 @@ namespace HotChocolate.AspNetCore
         public async Task InvokeAsync(HttpContext context)
 #endif
         {
-            if (context.IsValidPath(Options.Path) && CanHandleRequest(context))
+            if (_isPathValid(context) && CanHandleRequest(context))
             {
                 try
                 {
