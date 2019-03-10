@@ -14,7 +14,8 @@ namespace Generator
             string testDataFile)
         {
             var inlineQuery = query.Replace("\n", " ");
-            Query = Regex.Replace(inlineQuery, @"\s+", " ");
+            var normalizeSpace =  Regex.Replace(inlineQuery, @"\s+", " ");
+            Query = normalizeSpace.Replace("\"", "\\\"");
             Schema = schema;
             SchemaFile = schemaFile;
             TestData = testData;
@@ -31,7 +32,7 @@ namespace Generator
         {
             return new Block
             {
-                new Statement($"string query = @\"{Query}\";")
+                new Statement($"string query = \"{Query}\";")
             };
         }
     }

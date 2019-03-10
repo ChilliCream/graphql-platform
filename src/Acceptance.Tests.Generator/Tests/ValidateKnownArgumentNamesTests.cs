@@ -29,7 +29,7 @@ namespace Generated.Tests
         public void SingleArgIsKnown()
         {
             // Given
-            string query = @"fragment argOnRequiredArg on Dog { doesKnowCommand(dogCommand: SIT) }";
+            string query = "fragment argOnRequiredArg on Dog { doesKnowCommand(dogCommand: SIT) }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -41,7 +41,7 @@ namespace Generated.Tests
         public void MultipleArgsAreKnown()
         {
             // Given
-            string query = @"fragment multipleArgs on ComplicatedArgs { multipleReqs(req1: 1, req2: 2) }";
+            string query = "fragment multipleArgs on ComplicatedArgs { multipleReqs(req1: 1, req2: 2) }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -53,7 +53,7 @@ namespace Generated.Tests
         public void IgnoresArgsOfUnknownFields()
         {
             // Given
-            string query = @"fragment argOnUnknownField on Dog { unknownField(unknownArg: SIT) }";
+            string query = "fragment argOnUnknownField on Dog { unknownField(unknownArg: SIT) }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -65,7 +65,7 @@ namespace Generated.Tests
         public void MultipleArgsInReverseOrderAreKnown()
         {
             // Given
-            string query = @"fragment multipleArgsReverseOrder on ComplicatedArgs { multipleReqs(req2: 2, req1: 1) }";
+            string query = "fragment multipleArgsReverseOrder on ComplicatedArgs { multipleReqs(req2: 2, req1: 1) }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -77,7 +77,7 @@ namespace Generated.Tests
         public void NoArgsOnOptionalArg()
         {
             // Given
-            string query = @"fragment noArgOnOptionalArg on Dog { isHousetrained }";
+            string query = "fragment noArgOnOptionalArg on Dog { isHousetrained }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -89,7 +89,7 @@ namespace Generated.Tests
         public void ArgsAreKnownDeeply()
         {
             // Given
-            string query = @"{ dog { doesKnowCommand(dogCommand: SIT) } human { pet { ... on Dog { doesKnowCommand(dogCommand: SIT) } } } }";
+            string query = "{ dog { doesKnowCommand(dogCommand: SIT) } human { pet { ... on Dog { doesKnowCommand(dogCommand: SIT) } } } }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -101,7 +101,7 @@ namespace Generated.Tests
         public void DirectiveArgsAreKnown()
         {
             // Given
-            string query = @"{ dog @skip(if: true) }";
+            string query = "{ dog @skip(if: true) }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -113,7 +113,7 @@ namespace Generated.Tests
         public void UndirectiveArgsAreInvalid()
         {
             // Given
-            string query = @"{ dog @skip(unless: true) }";
+            string query = "{ dog @skip(unless: true) }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -126,7 +126,7 @@ namespace Generated.Tests
         public void MisspelledDirectiveArgsAreReported()
         {
             // Given
-            string query = @"{ dog @skip(iff: true) }";
+            string query = "{ dog @skip(iff: true) }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -139,7 +139,7 @@ namespace Generated.Tests
         public void InvalidArgName()
         {
             // Given
-            string query = @"fragment invalidArgName on Dog { doesKnowCommand(unknown: true) }";
+            string query = "fragment invalidArgName on Dog { doesKnowCommand(unknown: true) }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -152,7 +152,7 @@ namespace Generated.Tests
         public void MisspelledArgNameIsReported()
         {
             // Given
-            string query = @"fragment invalidArgName on Dog { doesKnowCommand(dogcommand: true) }";
+            string query = "fragment invalidArgName on Dog { doesKnowCommand(dogcommand: true) }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -165,7 +165,7 @@ namespace Generated.Tests
         public void UnknownArgsAmongstKnownArgs()
         {
             // Given
-            string query = @"fragment oneGoodArgOneInvalidArg on Dog { doesKnowCommand(whoknows: 1, dogCommand: SIT, unknown: true) }";
+            string query = "fragment oneGoodArgOneInvalidArg on Dog { doesKnowCommand(whoknows: 1, dogCommand: SIT, unknown: true) }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -179,7 +179,7 @@ namespace Generated.Tests
         public void UnknownArgsDeeply()
         {
             // Given
-            string query = @"{ dog { doesKnowCommand(unknown: true) } human { pet { ... on Dog { doesKnowCommand(unknown: true) } } } }";
+            string query = "{ dog { doesKnowCommand(unknown: true) } human { pet { ... on Dog { doesKnowCommand(unknown: true) } } } }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));

@@ -29,7 +29,7 @@ namespace Generated.Tests
         public void WithOnlyOperation()
         {
             // Given
-            string query = @"query Foo { dog { name } }";
+            string query = "query Foo { dog { name } }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -41,7 +41,7 @@ namespace Generated.Tests
         public void WithOperationAndFragment()
         {
             // Given
-            string query = @"query Foo { dog { name ...Frag } } fragment Frag on Dog { name }";
+            string query = "query Foo { dog { name ...Frag } } fragment Frag on Dog { name }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -53,7 +53,7 @@ namespace Generated.Tests
         public void WithTypeDefinition()
         {
             // Given
-            string query = @"query Foo { dog { name } } type Cow { name: String } extend type Dog { color: String }";
+            string query = "query Foo { dog { name } } type Cow { name: String } extend type Dog { color: String }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -67,7 +67,7 @@ namespace Generated.Tests
         public void WithSchemaDefinition()
         {
             // Given
-            string query = @"schema { query: Query } type Query { test: String } extend schema @directive";
+            string query = "schema { query: Query } type Query { test: String } extend schema @directive";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));

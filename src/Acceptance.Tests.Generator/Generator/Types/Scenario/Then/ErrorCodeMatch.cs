@@ -57,6 +57,7 @@ namespace Generator
             private static readonly string _fragmentNameKey = "fragmentName";
             private static readonly string _argumentNameKey = "argumentName";
             private static readonly string _directiveNameKey = "directiveName";
+            private static readonly string _locationKey = "location";
 
             public Args(Dictionary<object, object> value)
             {
@@ -75,7 +76,8 @@ namespace Generator
                     _fragmentNameKey,
                     _argumentNameKey,
                     _directiveNameKey,
-                    _typeNameKey))
+                    _typeNameKey,
+                    _locationKey))
                 {
                     throw new InvalidOperationException($"Unknown arg: {arg}");
                 }
@@ -87,6 +89,7 @@ namespace Generator
                 FragmentName = argsValue.TryGet(_fragmentNameKey, string.Empty);
                 ArgumentName = argsValue.TryGet(_argumentNameKey, string.Empty);
                 DirectiveName = argsValue.TryGet(_directiveNameKey, string.Empty);
+                Location = argsValue.TryGet(_locationKey, string.Empty);
             }
 
             public string DefName { get; }
@@ -96,6 +99,7 @@ namespace Generator
             public string ArgumentName { get; }
             public string DirectiveName { get; }
             public string TypeName { get; }
+            public string Location { get; }
 
             public string Create()
             {
@@ -134,6 +138,11 @@ namespace Generator
                 if (!string.IsNullOrEmpty(TypeName))
                 {
                     values.Add($"{_typeNameKey}={TypeName}");
+                }
+
+                if (!string.IsNullOrEmpty(Location))
+                {
+                    values.Add($"{_locationKey}={Location}");
                 }
 
                 return string.Join("|", values);

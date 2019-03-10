@@ -29,7 +29,7 @@ namespace Generated.Tests
         public void ObjectFieldSelection()
         {
             // Given
-            string query = @"fragment objectFieldSelection on Dog { __typename name }";
+            string query = "fragment objectFieldSelection on Dog { __typename name }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -41,7 +41,7 @@ namespace Generated.Tests
         public void AliasedObjectFieldSelection()
         {
             // Given
-            string query = @"fragment aliasedObjectFieldSelection on Dog { tn : __typename otherName : name }";
+            string query = "fragment aliasedObjectFieldSelection on Dog { tn : __typename otherName : name }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -53,7 +53,7 @@ namespace Generated.Tests
         public void InterfaceFieldSelection()
         {
             // Given
-            string query = @"fragment interfaceFieldSelection on Pet { __typename name }";
+            string query = "fragment interfaceFieldSelection on Pet { __typename name }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -65,7 +65,7 @@ namespace Generated.Tests
         public void AliasedInterfaceFieldSelection()
         {
             // Given
-            string query = @"fragment interfaceFieldSelection on Pet { otherName : name }";
+            string query = "fragment interfaceFieldSelection on Pet { otherName : name }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -77,7 +77,7 @@ namespace Generated.Tests
         public void LyingAliasSelection()
         {
             // Given
-            string query = @"fragment lyingAliasSelection on Dog { name : nickname }";
+            string query = "fragment lyingAliasSelection on Dog { name : nickname }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -89,7 +89,7 @@ namespace Generated.Tests
         public void IgnoresFieldsOnUnknownType()
         {
             // Given
-            string query = @"fragment unknownSelection on UnknownType { unknownField }";
+            string query = "fragment unknownSelection on UnknownType { unknownField }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -101,7 +101,7 @@ namespace Generated.Tests
         public void ReportsErrorsWhenTypeIsKnownAgain()
         {
             // Given
-            string query = @"fragment typeKnownAgain on Pet { unknown_pet_field { ... on Cat { unknown_cat_field } } }";
+            string query = "fragment typeKnownAgain on Pet { unknown_pet_field { ... on Cat { unknown_cat_field } } }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -115,7 +115,7 @@ namespace Generated.Tests
         public void FieldNotDefinedOnFragment()
         {
             // Given
-            string query = @"fragment fieldNotDefined on Dog { meowVolume }";
+            string query = "fragment fieldNotDefined on Dog { meowVolume }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -128,7 +128,7 @@ namespace Generated.Tests
         public void IgnoresDeeplyUnknownField()
         {
             // Given
-            string query = @"fragment deepFieldNotDefined on Dog { unknown_field { deeper_unknown_field } }";
+            string query = "fragment deepFieldNotDefined on Dog { unknown_field { deeper_unknown_field } }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -141,7 +141,7 @@ namespace Generated.Tests
         public void SubFieldNotDefined()
         {
             // Given
-            string query = @"fragment subFieldNotDefined on Human { pets { unknown_field } }";
+            string query = "fragment subFieldNotDefined on Human { pets { unknown_field } }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -154,7 +154,7 @@ namespace Generated.Tests
         public void FieldNotDefinedOnInlineFragment()
         {
             // Given
-            string query = @"fragment fieldNotDefined on Pet { ... on Dog { meowVolume } }";
+            string query = "fragment fieldNotDefined on Pet { ... on Dog { meowVolume } }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -167,7 +167,7 @@ namespace Generated.Tests
         public void AliasedFieldTargetNotDefined()
         {
             // Given
-            string query = @"fragment aliasedFieldTargetNotDefined on Dog { volume : mooVolume }";
+            string query = "fragment aliasedFieldTargetNotDefined on Dog { volume : mooVolume }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -180,7 +180,7 @@ namespace Generated.Tests
         public void AliasedLyingFieldTargetNotDefined()
         {
             // Given
-            string query = @"fragment aliasedLyingFieldTargetNotDefined on Dog { barkVolume : kawVolume }";
+            string query = "fragment aliasedLyingFieldTargetNotDefined on Dog { barkVolume : kawVolume }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -193,7 +193,7 @@ namespace Generated.Tests
         public void NotDefinedOnInterface()
         {
             // Given
-            string query = @"fragment notDefinedOnInterface on Pet { tailLength }";
+            string query = "fragment notDefinedOnInterface on Pet { tailLength }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -206,7 +206,7 @@ namespace Generated.Tests
         public void DefinedOnImplementorsButNotOnInterface()
         {
             // Given
-            string query = @"fragment definedOnImplementorsButNotInterface on Pet { nickname }";
+            string query = "fragment definedOnImplementorsButNotInterface on Pet { nickname }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -219,7 +219,7 @@ namespace Generated.Tests
         public void MetaFieldSelectionOnUnion()
         {
             // Given
-            string query = @"fragment directFieldSelectionOnUnion on CatOrDog { __typename }";
+            string query = "fragment directFieldSelectionOnUnion on CatOrDog { __typename }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -231,7 +231,7 @@ namespace Generated.Tests
         public void DirectFieldSelectionOnUnion()
         {
             // Given
-            string query = @"fragment directFieldSelectionOnUnion on CatOrDog { directField }";
+            string query = "fragment directFieldSelectionOnUnion on CatOrDog { directField }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -244,7 +244,7 @@ namespace Generated.Tests
         public void DefinedOnImplementorsQueriedOnUnion()
         {
             // Given
-            string query = @"fragment definedOnImplementorsQueriedOnUnion on CatOrDog { name }";
+            string query = "fragment definedOnImplementorsQueriedOnUnion on CatOrDog { name }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -257,7 +257,7 @@ namespace Generated.Tests
         public void ValidFieldInInlineFragment()
         {
             // Given
-            string query = @"fragment objectFieldSelection on Pet { ... on Dog { name } ... { name } }";
+            string query = "fragment objectFieldSelection on Pet { ... on Dog { name } ... { name } }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));

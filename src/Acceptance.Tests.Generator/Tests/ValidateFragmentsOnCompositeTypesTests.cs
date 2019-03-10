@@ -29,7 +29,7 @@ namespace Generated.Tests
         public void ObjectIsValidFragmentType()
         {
             // Given
-            string query = @"fragment validFragment on Dog { barks }";
+            string query = "fragment validFragment on Dog { barks }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -41,7 +41,7 @@ namespace Generated.Tests
         public void InterfaceIsValidFragmentType()
         {
             // Given
-            string query = @"fragment validFragment on Pet { name }";
+            string query = "fragment validFragment on Pet { name }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -53,7 +53,7 @@ namespace Generated.Tests
         public void ObjectIsValidInlineFragmentType()
         {
             // Given
-            string query = @"fragment validFragment on Pet { ... on Dog { barks } }";
+            string query = "fragment validFragment on Pet { ... on Dog { barks } }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -65,7 +65,7 @@ namespace Generated.Tests
         public void InlineFragmentWithoutTypeIsValid()
         {
             // Given
-            string query = @"fragment validFragment on Pet { ... { name } }";
+            string query = "fragment validFragment on Pet { ... { name } }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -77,7 +77,7 @@ namespace Generated.Tests
         public void UnionIsValidFragmentType()
         {
             // Given
-            string query = @"fragment validFragment on CatOrDog { __typename }";
+            string query = "fragment validFragment on CatOrDog { __typename }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -89,7 +89,7 @@ namespace Generated.Tests
         public void ScalarIsInvalidFragmentType()
         {
             // Given
-            string query = @"fragment scalarFragment on Boolean { bad }";
+            string query = "fragment scalarFragment on Boolean { bad }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -102,7 +102,7 @@ namespace Generated.Tests
         public void EnumIsInvalidFragmentType()
         {
             // Given
-            string query = @"fragment scalarFragment on FurColor { bad }";
+            string query = "fragment scalarFragment on FurColor { bad }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -115,7 +115,7 @@ namespace Generated.Tests
         public void InputObjectIsInvalidFragmentType()
         {
             // Given
-            string query = @"fragment inputFragment on ComplexInput { stringField }";
+            string query = "fragment inputFragment on ComplexInput { stringField }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
@@ -128,7 +128,7 @@ namespace Generated.Tests
         public void ScalarIsInvalidInlineFragmentType()
         {
             // Given
-            string query = @"fragment invalidFragment on Pet { ... on String { barks } }";
+            string query = "fragment invalidFragment on Pet { ... on String { barks } }";
             // When
             IQueryValidator validator = _serviceProvider.GetService<IQueryValidator>();
             QueryValidationResult result = validator.Validate(_schema, _parser.Parse(query));
