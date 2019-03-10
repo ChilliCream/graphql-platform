@@ -8,10 +8,12 @@ namespace Generator
 {
     internal class Parsing
     {
+        private static string _category = "parsing";
+
         public static Scenario Load(string sourceDir)
         {
             var fileContent = File.ReadAllText(
-                Path.Combine(sourceDir, "parsing", "SchemaParser.yaml"));
+                Path.Combine(sourceDir, _category, "SchemaParser.yaml"));
 
             return Deserializer
                 .Deserialize(fileContent);
@@ -35,7 +37,8 @@ namespace Generator
 
             builder.AppendLine(compilation.Source);
 
-            var errorsFilePath = Path.Combine(outputDir, $"{definition.Name}Tests.cs");
+            DirectoryInfo directory = Directory.CreateDirectory(Path.Combine(outputDir, _category));
+            var errorsFilePath = Path.Combine(directory.FullName, $"{definition.Name}Tests.cs");
             File.WriteAllText(errorsFilePath, builder.ToString());
         }
     }

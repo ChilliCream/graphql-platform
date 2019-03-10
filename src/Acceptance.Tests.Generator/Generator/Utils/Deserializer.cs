@@ -29,9 +29,10 @@ namespace Generator
             }
 
             var name = scenario["scenario"] as string;
+            Background background = BackgroundResolver.Resolve(scenario.TryGet<string, object>("background", null));
             IEnumerable<Test> tests = TestResolver.Resolve(scenario["tests"]);
 
-            return new Scenario(name, tests);
+            return new Scenario(name, background, tests);
         }
     }
 }

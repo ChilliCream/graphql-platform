@@ -5,7 +5,7 @@ namespace Generator
 {
     internal static class DictionaryExtensions
     {
-        internal static T TryGet<T>(this Dictionary<object, object> dictionary, string key, T defaultValue)
+        internal static T TryGet<TKey, T>(this Dictionary<TKey, object> dictionary, TKey key, T defaultValue)
             where T : class
         {
             if (dictionary.ContainsKey(key))

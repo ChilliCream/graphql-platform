@@ -18,12 +18,14 @@ namespace Generator
             "ScalarLeafs.yaml",
         };
 
+        private static readonly string _category = "validation";
+
         public static IEnumerable<Scenario> Load(string sourceDir)
         {
             foreach (var file in _files)
             {
                 var fileContent = File.ReadAllText(
-                    Path.Combine(sourceDir, "validation", file));
+                    Path.Combine(sourceDir, _category, file));
 
                 yield return Deserializer
                     .Deserialize(fileContent);
@@ -68,7 +70,8 @@ namespace Generator
 
                 builder.AppendLine(compilation.Source);
 
-                var errorsFilePath = Path.Combine(outputDir, $"{definition.Name}Tests.cs");
+                DirectoryInfo directory = Directory.CreateDirectory(Path.Combine(outputDir, _category));
+                var errorsFilePath = Path.Combine(directory.FullName, $"{definition.Name}Tests.cs");
                 File.WriteAllText(errorsFilePath, builder.ToString());
             }
         }

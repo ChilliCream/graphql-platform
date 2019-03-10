@@ -7,17 +7,18 @@ namespace Generator
     {
         public string Name { get; }
 
-        public Scenario(string name, IEnumerable<Test> tests)
+        public Scenario(string name, Background background, IEnumerable<Test> tests)
         {
             Name = string.Join("", name
                 .Split(':', ' ')
                 .Where(l => !string.IsNullOrEmpty(l))
                 .Select(l => l.UpperFirstLetter()));
 
+            Background = background;
             Tests = tests;
         }
 
-        public object Background { get; set; }
+        public Background Background { get; set; }
 
         public IEnumerable<Test> Tests { get; }
     }
