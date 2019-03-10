@@ -94,5 +94,29 @@ namespace HotChocolate.AspNetCore
             return context.Request.Path.Equals(path,
                 StringComparison.OrdinalIgnoreCase);
         }
+
+        public static bool IsValidPath(
+            this HttpContext context,
+            PathString path1, PathString path2)
+        {
+            return context.Request.Path.Equals(path1,
+                StringComparison.OrdinalIgnoreCase)
+                || context.Request.Path.Equals(path2,
+                StringComparison.OrdinalIgnoreCase);
+        }
+
+        public static bool IsValidPath(
+            this HttpContext context,
+            params PathString[] paths)
+        {
+            for (int i = 0; i < paths.Length; i++)
+            {
+                if(!IsValidPath(context, paths[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
     }
 }
