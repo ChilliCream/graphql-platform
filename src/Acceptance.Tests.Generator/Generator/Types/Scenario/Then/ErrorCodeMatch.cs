@@ -53,6 +53,7 @@ namespace Generator
             private static readonly string _defNameKey = "defName";
             private static readonly string _fieldNameKey = "fieldName";
             private static readonly string _typeKey = "type";
+            private static readonly string _typeNameKey = "typeName"; // TODO: The same as type ?
             private static readonly string _fragmentNameKey = "fragmentName";
             private static readonly string _argumentNameKey = "argumentName";
             private static readonly string _directiveNameKey = "directiveName";
@@ -66,9 +67,23 @@ namespace Generator
                         "Error code match, args should be an object");
                 }
 
+                if (argsValue.ContainsAdditionalKeysExcept(
+                    out var arg,
+                    _defNameKey,
+                    _fieldNameKey,
+                    _typeKey,
+                    _fragmentNameKey,
+                    _argumentNameKey,
+                    _directiveNameKey,
+                    _typeNameKey))
+                {
+                    throw new InvalidOperationException($"Unknown arg: {arg}");
+                }
+
                 DefName = argsValue.TryGet(_defNameKey, string.Empty);
                 FieldName = argsValue.TryGet(_fieldNameKey, string.Empty);
                 Type = argsValue.TryGet(_typeKey, string.Empty);
+                TypeName = argsValue.TryGet(_typeNameKey, string.Empty);
                 FragmentName = argsValue.TryGet(_fragmentNameKey, string.Empty);
                 ArgumentName = argsValue.TryGet(_argumentNameKey, string.Empty);
                 DirectiveName = argsValue.TryGet(_directiveNameKey, string.Empty);
@@ -80,6 +95,7 @@ namespace Generator
             public string FragmentName { get; }
             public string ArgumentName { get; }
             public string DirectiveName { get; }
+            public string TypeName { get; }
 
             public string Create()
             {
@@ -113,6 +129,11 @@ namespace Generator
                 if (!string.IsNullOrEmpty(DirectiveName))
                 {
                     values.Add($"{_directiveNameKey}={DirectiveName}");
+                }
+
+                if (!string.IsNullOrEmpty(TypeName))
+                {
+                    values.Add($"{_typeNameKey}={TypeName}");
                 }
 
                 return string.Join("|", values);

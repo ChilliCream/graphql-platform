@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Generator
 {
@@ -45,6 +46,21 @@ namespace Generator
             }
 
             return result;
+        }
+
+        internal static bool ContainsAdditionalKeysExcept(this Dictionary<object, object> dictionary, out string value, params string[] keys)
+        {
+            foreach (KeyValuePair<object, object> pair in dictionary)
+            {
+                if (!keys.Contains(pair.Key))
+                {
+                    value = pair.Key as string;
+                    return true;
+                }
+            }
+
+            value = string.Empty;
+            return false;
         }
     }
 }
