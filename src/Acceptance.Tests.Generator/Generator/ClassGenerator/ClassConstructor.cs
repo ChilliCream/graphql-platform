@@ -13,7 +13,7 @@ namespace Generator.ClassGenerator
 
         public ClassConstructor(
             string className,
-            params Statement[] statements)
+            IEnumerable<Statement> statements)
         {
             _className = className;
             _statements.AddRange(statements);

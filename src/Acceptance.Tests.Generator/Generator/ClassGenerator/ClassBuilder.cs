@@ -34,7 +34,7 @@ namespace Generator.ClassGenerator
             return new ClassBuilder(className);
         }
 
-        public ClassBuilder WithUsings(params string[] namespaces)
+        public ClassBuilder WithUsings(IEnumerable<string> namespaces)
         {
             _usings.AddRange(namespaces);
             return this;
@@ -53,13 +53,13 @@ namespace Generator.ClassGenerator
             return this;
         }
 
-        public ClassBuilder WithConstructor(params Statement[] statements)
+        public ClassBuilder WithConstructor(IEnumerable<Statement> statements)
         {
             _constructor = new ClassConstructor(_className, statements);
             return this;
         }
 
-        public ClassBuilder WithFields(params Statement[] statement)
+        public ClassBuilder WithFields(IEnumerable<Statement> statement)
         {
             _fields.AddRange(statement);
             return this;

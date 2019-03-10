@@ -13,7 +13,7 @@ namespace Generator
                 .WithNamingConvention(new HyphenatedNamingConvention())
                 .Build();
 
-        public static Scenario Deserialize(string value)
+        public static ScenarioDefinition Deserialize(string value)
         {
             Dictionary<string, object> scenario = _deserializer
                 .Deserialize<Dictionary<string, object>>(value);
@@ -32,7 +32,7 @@ namespace Generator
             Background background = BackgroundResolver.Resolve(scenario.TryGet<string, object>("background", null));
             IEnumerable<Test> tests = TestResolver.Resolve(scenario["tests"]);
 
-            return new Scenario(name, background, tests);
+            return new ScenarioDefinition(name, background, tests);
         }
     }
 }

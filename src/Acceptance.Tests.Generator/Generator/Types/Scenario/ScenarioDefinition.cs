@@ -3,11 +3,11 @@ using System.Linq;
 
 namespace Generator
 {
-    internal class Scenario
+    internal class ScenarioDefinition
     {
         public string Name { get; }
 
-        public Scenario(string name, Background background, IEnumerable<Test> tests)
+        public ScenarioDefinition(string name, Background background, IEnumerable<Test> tests)
         {
             Name = string.Join("", name
                 .Split(':', ' ')

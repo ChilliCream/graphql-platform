@@ -8,7 +8,7 @@ namespace Generator.ClassGenerator
     {
         public List<string> _usings = new List<string>();
 
-        public void AddRange(params string[] namespaces)
+        public void AddRange(IEnumerable<string> namespaces)
         {
             foreach (var namespaceValue in namespaces)
             {
