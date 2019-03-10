@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.AspNetCore.WebUtilities;
 using Newtonsoft.Json;
 
 namespace HotChocolate.AspNetCore
@@ -67,9 +68,13 @@ namespace HotChocolate.AspNetCore
         public static Task<HttpResponseMessage> SendPostMultipartRequestAsync(
             this TestServer testServer, string requestBody, string path = null)
         {
-            var content = new MultipartContent("form-data")
+            var boundary = Guid.NewGuid().ToString("N");
+            var content = new MultipartFormDataContent(boundary)
             {
-                new StringContent(requestBody, Encoding.UTF8, "application/json")
+                {
+                    new StringContent(requestBody, Encoding.UTF8, "application/json"),
+                    "operations"
+                }
             };
 
             return SendPostRequestAsync(

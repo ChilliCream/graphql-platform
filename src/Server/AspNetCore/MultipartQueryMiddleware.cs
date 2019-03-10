@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -72,13 +73,18 @@ namespace HotChocolate.AspNetCore
             var content = new MultipartFormDataContent(boundary);
             foreach (var item in content)
             {
-                var name = item.Headers.GetValues("name").SingleOrDefault();
-                if (string.IsNullOrEmpty(name))
+                var contentDispositionStr = item.Headers.GetValues("Content-Disposition").FirstOrDefault();
+                if (string.IsNullOrEmpty(contentDispositionStr))
                 {
                     continue;
                 }
 
-                var filename = item.Headers.GetValues("filename").SingleOrDefault();
+                var contentDisposition = new ContentDisposition(contentDispositionStr);
+
+                var name = contentDisposition.Parameters.ContainsKey("name")
+                    ? contentDisposition.Parameters["name"]
+                    : string.Empty;
+                var filename = contentDisposition.FileName;
 
                 if (name == "operations")
                 {
@@ -97,12 +103,17 @@ namespace HotChocolate.AspNetCore
             {
                 section = await reader.ReadNextSectionAsync();
 
-                if (section == null || !section.Headers.ContainsKey("name")) continue;
+                if (section == null || !section.Headers.ContainsKey("Content-Disposition")) continue;
 
-                var name = section.Headers["name"];
-                var filename = section.Headers.ContainsKey("filename")
-                    ? section.Headers["filename"].FirstOrDefault()
+                var contentDisposition =
+                    new ContentDisposition(
+                        section.Headers["Content-Disposition"].FirstOrDefault()
+                        ?? string.Empty);
+
+                var name = contentDisposition.Parameters.ContainsKey("name")
+                    ? contentDisposition.Parameters["name"]
                     : string.Empty;
+                var filename = contentDisposition.FileName;
 
                 if (name == "operations")
                 {

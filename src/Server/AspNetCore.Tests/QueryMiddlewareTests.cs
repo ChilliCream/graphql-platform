@@ -23,8 +23,8 @@ namespace HotChocolate.AspNetCore
 
         private TestServerFactory TestServerFactory { get; set; }
 
-        [InlineData(true)]
         [InlineData(false)]
+        [InlineData(true)]
         [Theory]
         public async Task HttpPost_BasicTest(bool multipart)
         {
@@ -37,11 +37,11 @@ namespace HotChocolate.AspNetCore
 
             if (multipart)
             {
-                message = await server.SendRequestAsync(request, "foo");
+                message = await server.SendMultipartRequestAsync(request, "foo");
             }
             else
             {
-                message = await server.SendMultipartRequestAsync(request, "foo");
+                message = await server.SendRequestAsync(request, "foo");
             }
 
             // assert
