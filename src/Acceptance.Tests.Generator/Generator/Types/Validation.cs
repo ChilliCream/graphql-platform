@@ -15,6 +15,7 @@ namespace Generator
             "FieldsOnCorrectType.yaml",
             "FragmentsOnCompositeTypes.yaml",
             "KnownArgumentNames.yaml",
+            "ScalarLeafs.yaml",
         };
 
         public static IEnumerable<Scenario> Load(string sourceDir)
