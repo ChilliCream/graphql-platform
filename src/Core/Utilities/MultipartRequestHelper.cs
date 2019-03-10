@@ -13,9 +13,15 @@ namespace HotChocolate.Utilities
         {
             var boundary = contentType
                 .Split(';')
+                .Select(x => x.Trim())
                 .FirstOrDefault(x => x.StartsWith("boundary=", StringComparison.Ordinal))
-                ?.Substring(0, 9)
+                ?.Substring(9)
                 ?.Trim('\"');
+
+            if (string.IsNullOrWhiteSpace(boundary))
+            {
+                throw new InvalidDataException("Missing content-type boundary.");
+            }
 
             return boundary;
         }

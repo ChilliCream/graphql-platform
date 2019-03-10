@@ -1,4 +1,5 @@
-﻿using System.Net.Http;
+﻿using System;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Owin.Testing;
@@ -34,10 +35,18 @@ namespace HotChocolate.AspNetClassic
             this TestServer testServer, string requestBody,
             string contentType, string path)
         {
-            return testServer.HttpClient
-                .PostAsync(CreateUrl(path),
+            return SendPostRequestAsync(
+                    testServer,
                     new StringContent(requestBody,
-                        Encoding.UTF8, contentType));
+                        Encoding.UTF8, contentType),
+                    path);
+        }
+
+        public static Task<HttpResponseMessage> SendPostRequestAsync(
+            this TestServer testServer, HttpContent content, string path)
+        {
+            return testServer.HttpClient
+                .PostAsync(CreateUrl(path), content);
         }
 
         public static Task<HttpResponseMessage> SendGetRequestAsync(
@@ -51,6 +60,31 @@ namespace HotChocolate.AspNetClassic
 
             return testServer.HttpClient
                 .GetAsync($"{CreateUrl(path)}?query={normalizedQuery}");
+        }
+
+        public static Task<HttpResponseMessage> SendMultipartRequestAsync<TObject>(
+            this TestServer testServer, TObject requestBody, string path = null)
+        {
+            return SendPostMultipartRequestAsync(
+                testServer,
+                JsonConvert.SerializeObject(requestBody),
+                path?.TrimStart('/'));
+        }
+
+        public static Task<HttpResponseMessage> SendPostMultipartRequestAsync(
+            this TestServer testServer, string requestBody, string path = null)
+        {
+            var boundary = Guid.NewGuid().ToString("N");
+            var content = new MultipartFormDataContent(boundary)
+            {
+                {
+                    new StringContent(requestBody, Encoding.UTF8, "application/json"),
+                    "operations"
+                }
+            };
+
+            return SendPostRequestAsync(
+                testServer, content, path);
         }
 
         private static string CreateUrl(string path)
