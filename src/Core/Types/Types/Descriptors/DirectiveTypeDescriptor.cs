@@ -150,5 +150,19 @@ namespace HotChocolate.Types.Descriptors
             Definition.IsRepeatable = true;
             return this;
         }
+
+        public static DirectiveTypeDescriptor New(
+            IDescriptorContext context,
+            Type clrType) =>
+            new DirectiveTypeDescriptor(context, clrType);
+
+        public static DirectiveTypeDescriptor New(
+            IDescriptorContext context,
+            NameString name) =>
+            new DirectiveTypeDescriptor(context, name);
+
+        public static DirectiveTypeDescriptor<T> New<T>(
+            IDescriptorContext context) =>
+            new DirectiveTypeDescriptor<T>(context);
     }
 }

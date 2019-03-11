@@ -81,7 +81,7 @@ namespace HotChocolate.Types
                 ILookup<string, PropertyInfo> properties = type.GetProperties()
                     .ToLookup(t => t.Name, StringComparer.OrdinalIgnoreCase);
 
-                foreach (InputField argument in Type.Arguments)
+                foreach (Argument argument in Type.Arguments)
                 {
                     PropertyInfo property =
                         properties[argument.Name].FirstOrDefault();
@@ -106,7 +106,7 @@ namespace HotChocolate.Types
 
             Dictionary<string, ArgumentNode> arguments = GetArguments();
             if (arguments.TryGetValue(argumentName, out ArgumentNode argValue)
-                && Type.Arguments.TryGetField(argumentName, out InputField arg))
+                && Type.Arguments.TryGetField(argumentName, out Argument arg))
             {
                 if (typeof(T).IsAssignableFrom(arg.Type.ClrType))
                 {
@@ -137,7 +137,7 @@ namespace HotChocolate.Types
                 typeof(T).GetProperties()
                     .ToLookup(t => t.Name, StringComparer.OrdinalIgnoreCase);
 
-            foreach (InputField argument in Type.Arguments)
+            foreach (Argument argument in Type.Arguments)
             {
                 PropertyInfo property = properties[argument.Name]
                     .FirstOrDefault();
@@ -152,7 +152,7 @@ namespace HotChocolate.Types
         }
 
         private void SetProperty(
-            InputField argument,
+            Argument argument,
             object obj,
             PropertyInfo property)
         {

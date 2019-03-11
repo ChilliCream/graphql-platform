@@ -10,12 +10,11 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal class DirectiveTypeDescriptor<T>
+    public class DirectiveTypeDescriptor<T>
         : DirectiveTypeDescriptor
         , IDirectiveTypeDescriptor<T>
         , IHasClrType
     {
-
         public DirectiveTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {

@@ -52,6 +52,9 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public IBindableList<DirectiveArgumentDefinition> Arguments
         { get; } = new BindableList<DirectiveArgumentDefinition>();
 
+        public IEnumerable<ITypeReference> GetDependencies() =>
+            Arguments.Select(t => t.Type);
+
         protected override void OnValidate(ICollection<IError> errors)
         {
             base.OnValidate(errors);
