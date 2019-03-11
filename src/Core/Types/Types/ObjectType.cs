@@ -155,9 +155,13 @@ namespace HotChocolate.Types
                     interfaceRef,
                     out InterfaceType type))
                 {
-                    // TODO : resources
-                    context.ReportError(new SchemaError(
-                        "COULD NOT RESOLVE INTERFACE"));
+                    context.ReportError(SchemaErrorBuilder.New()
+                        .SetMessage(
+                           "COULD NOT RESOLVE INTERFACE")
+                        .SetCode(TypeErrorCodes.MissingType)
+                        .SetTypeSystemObject(this)
+                        .AddSyntaxNode(SyntaxNode)
+                        .Build());
                 }
 
                 _interfaces[type.Name] = type;
@@ -204,24 +208,34 @@ namespace HotChocolate.Types
             {
                 if (!field.Type.IsEqualTo(first.Type))
                 {
-                    context.ReportError(new SchemaError(
-                        "The return type of the interface field " +
-                        $"{first.Name} from interface " +
-                        $"{first.DeclaringType.Name} and " +
-                        $"{field.DeclaringType.Name} do not match " +
-                        $"and are implemented by object type {Name}.",
-                        this));
+                    // TODO : RESOURCES
+                    context.ReportError(SchemaErrorBuilder.New()
+                        .SetMessage(
+                           "The return type of the interface field " +
+                            $"{first.Name} from interface " +
+                            $"{first.DeclaringType.Name} and " +
+                            $"{field.DeclaringType.Name} do not match " +
+                            $"and are implemented by object type {Name}.")
+                        .SetCode(TypeErrorCodes.MissingType)
+                        .SetTypeSystemObject(this)
+                        .AddSyntaxNode(SyntaxNode)
+                        .Build());
                     return false;
                 }
 
                 if (!ArgumentsAreEqual(field.Arguments, first.Arguments))
                 {
-                    context.ReportError(new SchemaError(
-                        $"The arguments of the interface field {first.Name} " +
-                        $"from interface {first.DeclaringType.Name} and " +
-                        $"{field.DeclaringType.Name} do not match " +
-                        $"and are implemented by object type {Name}.",
-                        this));
+                    // TODO : RESOURCES
+                    context.ReportError(SchemaErrorBuilder.New()
+                        .SetMessage(
+                            $"The arguments of the interface field {first.Name} " +
+                            $"from interface {first.DeclaringType.Name} and " +
+                            $"{field.DeclaringType.Name} do not match " +
+                            $"and are implemented by object type {Name}.")
+                        .SetCode(TypeErrorCodes.MissingType)
+                        .SetTypeSystemObject(this)
+                        .AddSyntaxNode(SyntaxNode)
+                        .Build());
                     return false;
                 }
             }
@@ -237,44 +251,59 @@ namespace HotChocolate.Types
             {
                 if (!field.Type.IsEqualTo(first.Type))
                 {
-                    context.ReportError(new SchemaError(
-                        "The return type of the interface field " +
-                        $"{first.Name} does not match the field declared " +
-                        $"by object type {Name}.",
-                        this));
+                    // TODO : RESOURCES
+                    context.ReportError(SchemaErrorBuilder.New()
+                        .SetMessage(
+                            "The return type of the interface field " +
+                            $"{first.Name} does not match the field declared " +
+                            $"by object type {Name}.")
+                        .SetCode(TypeErrorCodes.MissingType)
+                        .SetTypeSystemObject(this)
+                        .AddSyntaxNode(SyntaxNode)
+                        .Build());
                 }
 
                 if (!ArgumentsAreEqual(field.Arguments, first.Arguments))
                 {
-                    context.ReportError(new SchemaError(
-                        $"Object type {Name} does not implement " +
-                        $"all arguments of field {first.Name} " +
-                        $"from interface {first.DeclaringType.Name}.",
-                        this));
+                    // TODO : RESOURCES
+                    context.ReportError(SchemaErrorBuilder.New()
+                        .SetMessage(
+                            $"Object type {Name} does not implement " +
+                            $"all arguments of field {first.Name} " +
+                            $"from interface {first.DeclaringType.Name}.")
+                        .SetCode(TypeErrorCodes.MissingType)
+                        .SetTypeSystemObject(this)
+                        .AddSyntaxNode(SyntaxNode)
+                        .Build());
                 }
             }
             else
             {
-                context.ReportError(new SchemaError(
-                    $"Object type {Name} does not implement the " +
-                    $"field {first.Name} " +
-                    $"from interface {first.DeclaringType.Name}.",
-                    this));
+                // TODO : RESOURCES
+                context.ReportError(SchemaErrorBuilder.New()
+                    .SetMessage(
+                        $"Object type {Name} does not implement the " +
+                        $"field {first.Name} " +
+                        $"from interface {first.DeclaringType.Name}.")
+                    .SetCode(TypeErrorCodes.MissingType)
+                    .SetTypeSystemObject(this)
+                    .AddSyntaxNode(SyntaxNode)
+                    .Build());
             }
         }
 
         private bool ArgumentsAreEqual(
-            FieldCollection<InputField> x,
-            FieldCollection<InputField> y)
+            FieldCollection<Argument> x,
+            FieldCollection<Argument> y)
         {
             if (x.Count != y.Count)
             {
                 return false;
             }
 
-            foreach (InputField xfield in x)
+            foreach (Argument xfield in x)
             {
-                if (!y.TryGetField(xfield.Name, out InputField yfield)
+                if (!y.TryGetField(xfield.Name, out Argument yfield)
                     || !xfield.Type.IsEqualTo(yfield.Type))
                 {
                     return false;
