@@ -76,13 +76,5 @@ namespace HotChocolate.Types
         {
             _status = TypeStatus.Completed;
         }
-
-        private enum TypeStatus
-        {
-            Initializing,
-            Initialized,
-            Named,
-            Completed
-        }
     }
 }

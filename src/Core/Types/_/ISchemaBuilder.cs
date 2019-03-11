@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate
@@ -20,62 +18,6 @@ namespace HotChocolate
         , Types.IHasDescription
         , Types.IHasContextData
     {
-    }
-
-    public interface ITypeSystemObjectContext
-    {
-        ITypeSystemObject Type { get; }
-
-        bool IsType { get; }
-
-        bool IsIntrospectionType { get; }
-
-        bool IsDirective { get; }
-
-        IServiceProvider Services { get; }
-
-        void ReportError(ISchemaError error);
-    }
-
-    public interface IInitializationContext
-        : ITypeSystemObjectContext
-    {
-        void RegisterDependency(
-            ITypeReference reference,
-            TypeDependencyKind kind);
-
-        void RegisterDependencyRange(
-            IEnumerable<ITypeReference> references,
-            TypeDependencyKind kind);
-
-        void RegisterDependency(IDirectiveReference reference);
-
-        void RegisterResolver(
-            IFieldReference reference,
-            Type sourceType,
-            Type resolverType);
-
-        void RegisterMiddleware(
-            IFieldReference reference,
-            IEnumerable<FieldMiddleware> components);
-    }
-
-    public interface ICompletionContext
-        : ITypeSystemObjectContext
-    {
-        bool TryGetType<T>(ITypeReference reference, out T type) where T : IType;
-
-        T GetType<T>(ITypeReference reference) where T : IType;
-
-        DirectiveType GetDirectiveType(IDirectiveReference reference);
-
-        FieldResolver GetResolver(IFieldReference reference);
-
-        FieldDelegate GetCompiledMiddleware(IFieldReference reference);
-
-        IReadOnlyCollection<ObjectType> GetPossibleTypes();
-
-        Func<ISchema> GetSchemaResolver();
     }
 
     public enum TypeDependencyKind
@@ -125,10 +67,6 @@ namespace HotChocolate
         ISchema Create();
     }
 
-    public interface ISchemaBuilderContext
-    {
-
-    }
 
 
 

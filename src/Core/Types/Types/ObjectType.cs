@@ -313,15 +313,6 @@ namespace HotChocolate.Types
             return true;
         }
 
-        private void CompleteFields(ITypeInitializationContext context)
-        {
-            foreach (INeedsInitialization field in
-                Fields.Cast<INeedsInitialization>())
-            {
-                field.CompleteType(context);
-            }
-        }
-
         #endregion
     }
 }
