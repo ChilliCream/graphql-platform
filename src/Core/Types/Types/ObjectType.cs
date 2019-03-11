@@ -128,7 +128,7 @@ namespace HotChocolate.Types
 
             CompleteInterfaces(context, definition);
             FieldInitHelper.CompleteFields(context, definition, Fields);
-            ValidateInterfaceImplementation(context, definition);
+            ValidateInterfaceImplementation(context);
         }
 
         private void CompleteInterfaces(

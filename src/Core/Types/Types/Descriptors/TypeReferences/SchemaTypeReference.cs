@@ -2,7 +2,7 @@ using System;
 
 namespace HotChocolate.Types.Descriptors
 {
-    public class SchemaTypeReference
+    public sealed class SchemaTypeReference
         : TypeReferenceBase
         , ISchemaTypeReference
     {

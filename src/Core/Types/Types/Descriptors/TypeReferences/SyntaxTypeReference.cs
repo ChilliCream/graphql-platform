@@ -3,7 +3,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors
 {
-    public class SyntaxTypeReference
+    public sealed class SyntaxTypeReference
         : TypeReferenceBase
         , ISyntaxTypeReference
     {

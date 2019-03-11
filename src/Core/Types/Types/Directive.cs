@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
@@ -211,7 +212,7 @@ namespace HotChocolate.Types
 
         internal static Directive FromDescription(
             DirectiveType directiveType,
-            DirectiveDescription description,
+            DirectiveDefinition definition,
             object source)
         {
             if (directiveType == null)
@@ -219,9 +220,9 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(directiveType));
             }
 
-            if (description == null)
+            if (definition == null)
             {
-                throw new ArgumentNullException(nameof(description));
+                throw new ArgumentNullException(nameof(definition));
             }
 
             if (source == null)
@@ -229,16 +230,16 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(source));
             }
 
-            if (description.CustomDirective is null)
+            if (definition.CustomDirective is null)
             {
                 return new Directive(directiveType,
-                    description.ParsedDirective,
+                    definition.ParsedDirective,
                     source);
             }
             else
             {
                 return new Directive(directiveType,
-                    description.CustomDirective,
+                    definition.CustomDirective,
                     source);
             }
         }

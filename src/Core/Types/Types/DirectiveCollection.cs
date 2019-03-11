@@ -2,30 +2,30 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     internal sealed class DirectiveCollection
-        : TypeSystemObjectBase
-        , IDirectiveCollection
+        : IDirectiveCollection
     {
+        private readonly object _source;
         private readonly List<IDirective> _directives = new List<IDirective>();
-        private readonly TypeSystemObjectBase _source;
         private readonly DirectiveLocation _location;
-        private readonly IReadOnlyCollection<DirectiveDescription> _descs;
+        private IReadOnlyCollection<DirectiveDefinition> _definitions;
         private ILookup<NameString, IDirective> _lookup;
 
-        internal DirectiveCollection(
-            TypeSystemObjectBase source,
-            DirectiveLocation location,
-            IReadOnlyCollection<DirectiveDescription> directiveDescriptions)
+        public DirectiveCollection(
+            object source,
+            IReadOnlyCollection<DirectiveDefinition> directiveDefinitions)
         {
             _source = source
                 ?? throw new ArgumentNullException(nameof(source));
-            _location = location;
-            _descs = directiveDescriptions
+            _definitions = directiveDefinitions
                 ?? throw new ArgumentNullException(
-                    nameof(directiveDescriptions));
+                    nameof(directiveDefinitions));
+            _location = DirectiveHelper.InferDirectiveLocation(source);
         }
 
         public int Count => _directives.Count;
@@ -34,26 +34,26 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        protected override void OnCompleteType(
-            ITypeInitializationContext context)
+        internal void CompleteCollection(ICompletionContext context)
         {
             var processed = new HashSet<string>();
 
-            foreach (DirectiveDescription description in _descs)
+            foreach (DirectiveDefinition description in _definitions)
             {
                 CompleteDirective(context, description, processed);
             }
 
             _lookup = _directives.ToLookup(t => t.Name);
+            _definitions = null;
         }
 
         private void CompleteDirective(
-            ITypeInitializationContext context,
-            DirectiveDescription description,
+            ICompletionContext context,
+            DirectiveDefinition definition,
             ISet<string> processed)
         {
-            DirectiveReference reference =
-                DirectiveReference.FromDescription(description);
+            IDirectiveReference reference =
+                DirectiveReference.FromDescription(definition);
 
             DirectiveType directiveType =
                 context.GetDirectiveType(reference);
@@ -63,23 +63,33 @@ namespace HotChocolate.Types
                 if (!processed.Add(directiveType.Name)
                     && !directiveType.IsRepeatable)
                 {
-                    context.ReportError(new SchemaError(
-                        $"The specified directive `@{directiveType.Name}` " +
-                        "is unique and cannot be added twice.",
-                        context.Type as INamedType));
+                    // TODO : resources
+                    context.ReportError(SchemaErrorBuilder.New()
+                        .SetMessage(
+                            $"The specified directive `@{directiveType.Name}` " +
+                            "is unique and cannot be added twice.")
+                        .SetCode(TypeErrorCodes.MissingType)
+                        .SetTypeSystemObject(context.Type)
+                        .AddSyntaxNode(definition.ParsedDirective)
+                        .Build());
                 }
                 else if (directiveType.Locations.Contains(_location))
                 {
                     _directives.Add(Directive.FromDescription(
-                        directiveType, description, _source));
+                        directiveType, definition, _source));
                 }
                 else
                 {
-                    context.ReportError(new SchemaError(
-                        $"The specified directive `@{directiveType.Name}` " +
-                        "is not allowed on the current location " +
-                        $"`{_location}`.",
-                        context.Type as INamedType));
+                    // TODO : resources
+                    context.ReportError(SchemaErrorBuilder.New()
+                        .SetMessage(
+                            $"The specified directive `@{directiveType.Name}` " +
+                            "is not allowed on the current location " +
+                            $"`{_location}`.")
+                        .SetCode(TypeErrorCodes.MissingType)
+                        .SetTypeSystemObject(context.Type)
+                        .AddSyntaxNode(definition.ParsedDirective)
+                        .Build());
                 }
             }
         }

@@ -67,7 +67,7 @@ namespace HotChocolate
 
         T GetType<T>(ITypeReference reference) where T : IType;
 
-        IDirective GetDirective(IDirectiveReference reference);
+        DirectiveType GetDirectiveType(IDirectiveReference reference);
 
         FieldResolver GetResolver(IFieldReference reference);
 

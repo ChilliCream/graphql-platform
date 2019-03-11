@@ -2,7 +2,7 @@ using System;
 
 namespace HotChocolate.Types.Descriptors
 {
-    public class ClrTypeReference
+    public sealed class ClrTypeReference
         : TypeReferenceBase
         , IClrTypeReference
     {
