@@ -116,6 +116,8 @@ namespace HotChocolate.Types
         {
             if (resolveAbstractType == null)
             {
+                Func<ISchema> schemaResolver = context.GetSchemaResolver();
+
                 // if there is no custom type resolver we will use this default
                 // abstract type resolver.
                 IReadOnlyCollection<ObjectType> types = null;
@@ -123,7 +125,8 @@ namespace HotChocolate.Types
                 {
                     if (types == null)
                     {
-                        types = context.GetPossibleTypes(this);
+                        ISchema schema = schemaResolver.Invoke();
+                        types = schema.GetPossibleTypes(this);
                     }
 
                     foreach (ObjectType type in types)

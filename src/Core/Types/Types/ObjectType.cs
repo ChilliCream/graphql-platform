@@ -165,7 +165,7 @@ namespace HotChocolate.Types
         }
 
         private void ValidateInterfaceImplementation(
-            ITypeInitializationContext context)
+            ICompletionContext context)
         {
             if (_interfaces.Count > 0)
             {
@@ -180,7 +180,7 @@ namespace HotChocolate.Types
         }
 
         private void ValidateField(
-            ITypeInitializationContext context,
+            ICompletionContext context,
             IGrouping<NameString, InterfaceField> interfaceField)
         {
             InterfaceField first = interfaceField.First();
@@ -191,7 +191,7 @@ namespace HotChocolate.Types
         }
 
         private bool ValidateInterfaceFieldGroup(
-            ITypeInitializationContext context,
+            ICompletionContext context,
             InterfaceField first,
             IGrouping<NameString, InterfaceField> interfaceField)
         {
@@ -230,7 +230,7 @@ namespace HotChocolate.Types
         }
 
         private void ValidateObjectField(
-            ITypeInitializationContext context,
+            ICompletionContext context,
             InterfaceField first)
         {
             if (Fields.TryGetField(first.Name, out ObjectField field))
@@ -292,5 +292,7 @@ namespace HotChocolate.Types
                 field.CompleteType(context);
             }
         }
+
+        #endregion
     }
 }
