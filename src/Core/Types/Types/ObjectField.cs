@@ -16,7 +16,6 @@ namespace HotChocolate.Types
             new List<InterfaceField>();
         private readonly List<IDirective> _executableDirectives =
             new List<IDirective>();
-        private readonly List<FieldMiddleware> _middlewareComponents;
         private readonly Type _resolverType;
         private readonly MemberInfo _member;
 
@@ -25,8 +24,6 @@ namespace HotChocolate.Types
         {
             _resolverType = definition.ResolverType;
             _member = definition.Member;
-            _middlewareComponents = new List<FieldMiddleware>(
-                definition.MiddlewareComponents);
 
             Resolver = definition.Resolver;
             InterfaceFields = _interfaceFields.AsReadOnly();
@@ -145,13 +142,16 @@ namespace HotChocolate.Types
                 }
                 else
                 {
-                    context.ReportError(new SchemaError(
-                        $"The field `{context.Type.Name}.{Name}` " +
-                        "has no resolver.", (INamedType)context.Type));
+                    context.ReportError(SchemaErrorBuilder.New()
+                        .SetMessage(
+                            $"The field `{context.Type.Name}.{Name}` " +
+                            "has no resolver.")
+                        .SetCode(TypeErrorCodes.NoResolver)
+                        .SetTypeSystemObject(context.Type)
+                        .AddSyntaxNode(definition.SyntaxNode)
+                        .Build());
                 }
             }
-
-            _middlewareComponents = null;
         }
     }
 }
