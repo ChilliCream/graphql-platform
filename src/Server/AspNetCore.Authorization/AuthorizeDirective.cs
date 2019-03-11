@@ -53,13 +53,21 @@ namespace HotChocolate.AspNetCore.Authorization
                 ArgumentNode rolesArgument = node.Arguments
                     .FirstOrDefault(t => t.Name.Value == "roles");
 
-                Roles = (rolesArgument != null
-                    && rolesArgument.Value is ListValueNode lv)
-                    ? lv.Items.OfType<StringValueNode>()
-                        .Select(t => t.Value?.Trim())
-                        .Where(s => !string.IsNullOrEmpty(s))
-                        .ToArray()
-                    : Array.Empty<string>();
+                Roles = Array.Empty<string>();
+                if (rolesArgument != null)
+                {
+                    if (rolesArgument.Value is ListValueNode lv)
+                    {
+                        Roles = lv.Items.OfType<StringValueNode>()
+                            .Select(t => t.Value?.Trim())
+                            .Where(s => !string.IsNullOrEmpty(s))
+                            .ToArray();
+                    }
+                    else if (rolesArgument.Value is StringValueNode svn)
+                    {
+                        Roles = new[] { svn.Value };
+                    }
+                }
             }
         }
 
