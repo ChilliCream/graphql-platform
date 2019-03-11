@@ -158,6 +158,7 @@ namespace HotChocolate.Configuration
             INamedType type,
             string queryTypeName)
         {
+            /*
             if (type is INeedsInitialization initializer)
             {
                 bool isQueryType = string.Equals(queryTypeName,
@@ -169,6 +170,7 @@ namespace HotChocolate.Configuration
 
                 initializer.RegisterDependencies(initializationContext);
             }
+             */
         }
 
         private void EnqueueUnprocessedTypes(ITypeRegistry types)
@@ -184,15 +186,17 @@ namespace HotChocolate.Configuration
 
         private void RegisterDirectiveDependencies(ISchemaContext schemaContext)
         {
-            foreach (DirectiveType directive in schemaContext.Directives
-                .GetDirectiveTypes())
-            {
-                var initializationContext = new TypeInitializationContext(
-                    schemaContext, e => _errors.Add(e), directive, false);
+            /*
+           foreach (DirectiveType directive in schemaContext.Directives
+               .GetDirectiveTypes())
+           {
+               var initializationContext = new TypeInitializationContext(
+                   schemaContext, e => _errors.Add(e), directive, false);
 
-                ((INeedsInitialization)directive)
-                    .RegisterDependencies(initializationContext);
-            }
+               ((INeedsInitialization)directive)
+                   .RegisterDependencies(initializationContext);
+           }
+            */
         }
     }
 }

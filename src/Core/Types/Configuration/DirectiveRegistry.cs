@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration
 {
@@ -52,8 +53,9 @@ namespace HotChocolate.Configuration
         }
 
         public DirectiveType GetDirectiveType(
-            DirectiveReference directiveReference)
+            IDirectiveReference directiveReference)
         {
+            /*
             if (directiveReference.Name != null
                 && _nameLookup.TryGetValue(
                     directiveReference.Name, out DirectiveType d))
@@ -69,6 +71,8 @@ namespace HotChocolate.Configuration
             }
 
             return null;
+             */
+            throw new NotImplementedException();
         }
     }
 }

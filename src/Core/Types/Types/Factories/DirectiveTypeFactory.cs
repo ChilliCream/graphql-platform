@@ -30,17 +30,12 @@ namespace HotChocolate.Types.Factories
         {
             foreach (InputValueDefinitionNode inputField in node.Arguments)
             {
-                IArgumentDescriptor descriptor = typeDescriptor
+                IDirectiveArgumentDescriptor descriptor = typeDescriptor
                     .Argument(inputField.Name.Value)
                     .Description(inputField.Description?.Value)
                     .Type(inputField.Type)
                     .DefaultValue(inputField.DefaultValue)
                     .SyntaxNode(inputField);
-
-                foreach (DirectiveNode directive in inputField.Directives)
-                {
-                    descriptor.Directive(directive);
-                }
             }
         }
 

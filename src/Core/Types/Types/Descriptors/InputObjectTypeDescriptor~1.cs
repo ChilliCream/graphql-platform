@@ -61,7 +61,7 @@ namespace HotChocolate.Types.Descriptors
         public IInputObjectTypeDescriptor<T> BindFields(
             BindingBehavior behavior)
         {
-            Definition.FieldBindingBehavior = behavior;
+            Definition.Fields.BindingBehavior = behavior;
             return this;
         }
 

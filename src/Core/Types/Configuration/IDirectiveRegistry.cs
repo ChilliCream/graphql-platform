@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration
 {
@@ -15,6 +16,6 @@ namespace HotChocolate.Configuration
 
         IReadOnlyCollection<DirectiveType> GetDirectiveTypes();
 
-        DirectiveType GetDirectiveType(DirectiveReference directiveReference);
+        DirectiveType GetDirectiveType(IDirectiveReference directiveReference);
     }
 }

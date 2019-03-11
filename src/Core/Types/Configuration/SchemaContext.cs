@@ -65,6 +65,7 @@ namespace HotChocolate.Configuration
             ISet<INamedType> processed,
             ICollection<SchemaError> errors)
         {
+            /*
             foreach (INamedType namedType in types)
             {
                 if (processed.Add(namedType)
@@ -75,11 +76,14 @@ namespace HotChocolate.Configuration
                     init.CompleteType(initializationContext);
                 }
             }
+             */
+            throw new NotImplementedException();
         }
 
         private void CompleteDirectives(
             ICollection<SchemaError> errors)
         {
+            /*
             foreach (DirectiveType directive in
                 _directiveRegistry.GetDirectiveTypes())
             {
@@ -88,6 +92,8 @@ namespace HotChocolate.Configuration
                 ((INeedsInitialization)directive)
                     .CompleteType(initializationContext);
             }
+              */
+            throw new NotImplementedException();
         }
 
         public void RegisterServiceProvider(IServiceProvider services)

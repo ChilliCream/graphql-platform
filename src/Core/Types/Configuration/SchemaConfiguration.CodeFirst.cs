@@ -75,9 +75,10 @@ namespace HotChocolate.Configuration
                     "name and attributes."));
             }
 
-            TypeReference typeReference = type.GetOutputType();
-            _typeRegistry.RegisterType(typeReference);
-            return _typeRegistry.GetType<INamedType>(typeReference);
+            // TypeReference typeReference = type.GetOutputType();
+            // _typeRegistry.RegisterType(typeReference);
+            // return _typeRegistry.GetType<INamedType>(typeReference);
+            throw new NotImplementedException();
         }
 
         #endregion

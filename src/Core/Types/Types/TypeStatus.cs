@@ -2,7 +2,7 @@ namespace HotChocolate.Types
 {
     internal enum TypeStatus
     {
-        Initializing,
+        Uninitialized,
         Initialized,
         Named,
         Completed
