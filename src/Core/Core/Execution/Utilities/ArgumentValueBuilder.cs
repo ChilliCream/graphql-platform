@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
                     .Where(t => t.Value != null)
                     .ToDictionary(t => t.Name.Value, t => t.Value);
 
-            foreach (InputField argument in fieldSelection.Field.Arguments)
+            foreach (Argument argument in fieldSelection.Field.Arguments)
             {
                 coercedArgumentValues[argument.Name] = CreateArgumentValue(
                     argument, argumentValues, variables,
@@ -37,7 +37,7 @@ namespace HotChocolate.Execution
         }
 
         private static ArgumentValue CreateArgumentValue(
-            InputField argument,
+            IInputField argument,
             IDictionary<string, IValueNode> argumentValues,
             IVariableCollection variables,
             Func<string, IError> createError)
@@ -65,7 +65,7 @@ namespace HotChocolate.Execution
         }
 
         private static object CoerceArgumentValue(
-            InputField argument,
+            IInputField argument,
             IVariableCollection variables,
             IDictionary<string, IValueNode> argumentValues)
         {

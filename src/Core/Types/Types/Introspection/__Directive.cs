@@ -3,6 +3,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Introspection
 {
+    // TODO : resources
     [Introspection]
     internal sealed class __Directive
         : ObjectType

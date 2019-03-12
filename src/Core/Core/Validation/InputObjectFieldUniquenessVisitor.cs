@@ -37,7 +37,7 @@ namespace HotChocolate.Validation
 
         private void VisitInputField(
             ISet<string> visitedFields,
-            FieldBase<IInputType> field,
+            IInputField field,
             ObjectFieldNode fieldValue)
         {
             if (visitedFields.Add(field.Name))

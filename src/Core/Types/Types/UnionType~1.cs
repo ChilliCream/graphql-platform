@@ -28,14 +28,18 @@ namespace HotChocolate.Types
             base.OnCompleteTypeSet(context, definition, typeSet);
 
 
-            Type markerType = typeof(T);
+            Type markerType = definition.ClrType;
 
-            foreach (IType type in context.GetTypes())
+            if (markerType != typeof(object))
             {
-                if (type is ObjectType objectType
-                    && markerType.IsAssignableFrom(objectType.ClrType))
+                foreach (IType type in context.GetTypes())
                 {
-                    typeSet.Add(objectType);
+                    if (type is ObjectType objectType
+                        && objectType.ClrType != typeof(object)
+                        && markerType.IsAssignableFrom(objectType.ClrType))
+                    {
+                        typeSet.Add(objectType);
+                    }
                 }
             }
         }

@@ -8,6 +8,7 @@ namespace HotChocolate.Types.Descriptors
             bool? isTypeNullable,
             bool? isElementTypeNullable)
         {
+            Context = context;
             IsTypeNullable = isTypeNullable;
             IsElementTypeNullable = isElementTypeNullable;
         }
@@ -17,6 +18,8 @@ namespace HotChocolate.Types.Descriptors
         public bool? IsTypeNullable { get; }
 
         public bool? IsElementTypeNullable { get; }
+
+
     }
 
 }

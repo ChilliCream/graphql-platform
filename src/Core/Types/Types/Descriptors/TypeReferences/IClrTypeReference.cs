@@ -6,5 +6,7 @@ namespace HotChocolate.Types.Descriptors
         : ITypeReference
     {
         Type Type { get; }
+
+        IClrTypeReference Compile();
     }
 }

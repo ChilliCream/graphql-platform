@@ -1,10 +1,13 @@
 using System;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
     public sealed class ClrTypeReference
         : TypeReferenceBase
         , IClrTypeReference
+        , IEquatable<ClrTypeReference>
+        , IEquatable<IClrTypeReference>
     {
         public ClrTypeReference(
             Type type, TypeContext context)
@@ -26,5 +29,96 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public Type Type { get; }
+
+        public IClrTypeReference Compile()
+        {
+            if (IsTypeNullable.HasValue || IsElementTypeNullable.HasValue)
+            {
+                Type rewritten = DotNetTypeInfoFactory.Rewrite(
+                    Type,
+                    IsTypeNullable ?? false,
+                    IsElementTypeNullable ?? false);
+                return new ClrTypeReference(rewritten, Context);
+            }
+            return this;
+        }
+
+        public bool Equals(ClrTypeReference other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return Type.Equals(other.Type)
+                && Context == other.Context
+                && IsTypeNullable.Equals(other.IsTypeNullable)
+                && IsElementTypeNullable.Equals(other.IsElementTypeNullable);
+        }
+
+        public bool Equals(IClrTypeReference other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return Type.Equals(other.Type)
+                && Context == other.Context
+                && IsTypeNullable.Equals(other.IsTypeNullable)
+                && IsElementTypeNullable.Equals(other.IsElementTypeNullable);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            if (obj is ClrTypeReference c)
+            {
+                return Equals(c);
+            }
+
+            if (obj is IClrTypeReference ic)
+            {
+                return Equals(ic);
+            }
+
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                int hash = Type.GetHashCode() * 397;
+                hash = hash ^ (Context.GetHashCode() * 7);
+                hash = hash ^ (IsTypeNullable?.GetHashCode() ?? 0 * 11);
+                hash = hash ^ (IsElementTypeNullable?.GetHashCode() ?? 0 * 13);
+                return hash;
+            }
+        }
+
+        public override string ToString()
+        {
+            return $"{Context}: ${Compile().Type.FullName}";
+        }
     }
 }
