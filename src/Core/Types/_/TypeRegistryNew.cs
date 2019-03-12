@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Runtime;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -12,11 +13,26 @@ namespace HotChocolate
         private readonly TypeInspector _typeInspector = new TypeInspector();
         private readonly ServiceFactory _serviceFactory = new ServiceFactory();
         private readonly DescriptorContext _descriptorContext;
+        private readonly List<InitializationContext> _initContexts =
+            new List<InitializationContext>();
         private readonly List<ITypeReference> _unregistered;
 
-        public TypeRegistrar_new(IEnumerable<ITypeReference> types)
+        public TypeRegistrar_new(
+            IEnumerable<ITypeReference> types,
+            IServiceProvider services)
         {
+            if (types == null)
+            {
+                throw new ArgumentNullException(nameof(types));
+            }
 
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            _unregistered = types.ToList();
+            _serviceFactory.Services = services;
         }
 
         public ICollection<IClrTypeReference> Unresolved { get; } =
@@ -30,8 +46,27 @@ namespace HotChocolate
 
         public void Complete()
         {
+            InitializeTypes();
 
 
+        }
+
+        private void InitializeTypes()
+        {
+            foreach (ITypeReference typeReference in _unregistered.ToList())
+            {
+                if(typeReference is IClrTypeReference ctr)
+                {
+                    RegisterClrType(ctr);
+                }
+                else if(typeReference is ISchemaTypeReference str
+                    && str is TypeSystemObjectBase tso)
+                {
+                    RegisterTypeSystemObject(tso);
+                }
+
+                _unregistered.Remove(typeReference);
+            }
         }
 
         private void RegisterClrType(IClrTypeReference typeReference)
@@ -105,14 +140,6 @@ namespace HotChocolate
                     }
                 }
             }
-        }
-
-
-
-        public void CompleteNames()
-        {
-
-
         }
 
         private bool IsTypeResolved(IClrTypeReference typeReference) =>
