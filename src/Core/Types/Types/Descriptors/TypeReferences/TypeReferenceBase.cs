@@ -18,8 +18,5 @@ namespace HotChocolate.Types.Descriptors
         public bool? IsTypeNullable { get; }
 
         public bool? IsElementTypeNullable { get; }
-
-
     }
-
 }

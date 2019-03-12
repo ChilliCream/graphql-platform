@@ -118,7 +118,7 @@ namespace HotChocolate.Types.Descriptors
 
         public override string ToString()
         {
-            return $"{Context}: ${Compile().Type.FullName}";
+            return $"{Context}: {Type.FullName}";
         }
     }
 }
