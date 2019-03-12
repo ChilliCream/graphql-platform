@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reflection;
 using System;
 
@@ -6,17 +7,25 @@ namespace HotChocolate.Types.Descriptors
     public class DefaultNamingConventions
         : INamingConventions
     {
-        public string GetArgumentDescription(ParameterInfo parameter)
+        public virtual NameString GetArgumentName(ParameterInfo parameter)
         {
-            throw new NotImplementedException();
+            if (parameter == null)
+            {
+                throw new ArgumentNullException(nameof(parameter));
+            }
+            return parameter.GetGraphQLName();
         }
 
-        public NameString GetArgumentName(ParameterInfo parameter)
+        public virtual string GetArgumentDescription(ParameterInfo parameter)
         {
-            throw new NotImplementedException();
+            if (parameter == null)
+            {
+                throw new ArgumentNullException(nameof(parameter));
+            }
+            return parameter.GetGraphQLDescription();
         }
 
-        public NameString GetEnumValueName(object value)
+        public virtual NameString GetEnumValueName(object value)
         {
             if (value == null)
             {
@@ -26,24 +35,33 @@ namespace HotChocolate.Types.Descriptors
             return value.ToString().ToUpperInvariant();
         }
 
-        public string GetMemberDescription(MemberInfo member, MemberKind kind)
+        public virtual NameString GetMemberName(
+            MemberInfo member,
+            MemberKind kind)
         {
-            throw new NotImplementedException();
+            if (member == null)
+            {
+                throw new ArgumentNullException(nameof(member));
+            }
+
+            return member.GetGraphQLName();
         }
 
-        public NameString GetMemberName(MemberInfo member, MemberKind kind)
+        public virtual string GetMemberDescription(
+            MemberInfo member,
+            MemberKind kind)
         {
-            throw new NotImplementedException();
+            if (member == null)
+            {
+                throw new ArgumentNullException(nameof(member));
+            }
+
+            return member.GetGraphQLDescription();
         }
 
-        public string GetTypeDescription(Type type, TypeKind kind)
+        public virtual NameString GetTypeName(Type type, TypeKind kind)
         {
-            throw new NotImplementedException();
-        }
-
-        public NameString GetTypeName(Type type, TypeKind kind)
-        {
-            string name = null;
+            string name = type.GetGraphQLName();
 
             if (kind == TypeKind.InputObject)
             {
@@ -53,7 +71,12 @@ namespace HotChocolate.Types.Descriptors
                 }
             }
 
-            throw new NotImplementedException();
+            return name;
+        }
+
+        public string GetTypeDescription(Type type, TypeKind kind)
+        {
+            return type.GetGraphQLDescription();
         }
     }
 }

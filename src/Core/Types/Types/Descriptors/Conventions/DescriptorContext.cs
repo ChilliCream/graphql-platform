@@ -1,0 +1,56 @@
+using System;
+
+namespace HotChocolate.Types.Descriptors
+{
+    internal sealed class DescriptorContext
+        : IDescriptorContext
+    {
+        private DescriptorContext(
+            INamingConventions naming,
+            ITypeInspector inspector)
+        {
+            if (naming == null)
+            {
+                throw new ArgumentNullException(nameof(naming));
+            }
+
+            if (inspector == null)
+            {
+                throw new ArgumentNullException(nameof(inspector));
+            }
+
+            Naming = naming;
+            Inspector = inspector;
+        }
+
+        public INamingConventions Naming { get; }
+
+        public ITypeInspector Inspector { get; }
+
+        public static DescriptorContext Create(IServiceProvider services)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            INamingConventions naming =
+                (INamingConventions)services.GetService(
+                    typeof(INamingConventions));
+            if (naming == null)
+            {
+                naming = new DefaultNamingConventions();
+            }
+
+            ITypeInspector inspector =
+                (ITypeInspector)services.GetService(
+                    typeof(ITypeInspector));
+            if (inspector == null)
+            {
+                inspector = new DefaultTypeInspector();
+            }
+
+            return new DescriptorContext(naming, inspector);
+        }
+    }
+}

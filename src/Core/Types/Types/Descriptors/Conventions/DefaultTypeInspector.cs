@@ -3,19 +3,49 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Resolvers.CodeGeneration;
+using HotChocolate.Utilities;
+using System.Threading.Tasks;
 
 namespace HotChocolate.Types.Descriptors
 {
     public class DefaultTypeInspector
         : ITypeInspector
     {
-        public IEnumerable<MemberInfo> GetMembers(Type type)
+        public virtual IEnumerable<MemberInfo> GetMembers(Type type)
         {
-            throw new NotImplementedException();
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            foreach (MethodInfo method in type.GetMethods(
+                BindingFlags.Instance | BindingFlags.Public)
+                    .Where(m => !IsIgnored(m)
+                        && !m.IsSpecialName
+                        && m.DeclaringType != typeof(object)
+                        && m.ReturnType != typeof(void)
+                        && m.ReturnType != typeof(Task)))
+            {
+                yield return method;
+            }
+
+            foreach (PropertyInfo property in type.GetProperties(
+                BindingFlags.Instance | BindingFlags.Public)
+                .Where(p => !IsIgnored(p)
+                    && p.CanRead
+                    && p.DeclaringType != typeof(object)))
+            {
+                yield return property;
+            }
         }
 
-        public IEnumerable<Type> GetResolverTypes(Type sourceType)
+        public virtual IEnumerable<Type> GetResolverTypes(Type sourceType)
         {
+            if (sourceType == null)
+            {
+                throw new ArgumentNullException(nameof(sourceType));
+            }
+
             if (sourceType.IsDefined(typeof(GraphQLResolverAttribute)))
             {
                 return sourceType
@@ -30,6 +60,11 @@ namespace HotChocolate.Types.Descriptors
             MemberInfo member,
             TypeContext context)
         {
+            if (member == null)
+            {
+                throw new ArgumentNullException(nameof(member));
+            }
+
             Type returnType = GetReturnType(member);
 
             if (member.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
@@ -64,13 +99,23 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
-        public IEnumerable<object> GetEnumValues(Type enumType)
+        public virtual IEnumerable<object> GetEnumValues(Type enumType)
         {
+            if (enumType == null)
+            {
+                throw new ArgumentNullException(nameof(enumType));
+            }
+
             if (enumType != typeof(object) && enumType.IsEnum)
             {
                 return Enum.GetValues(enumType).Cast<object>();
             }
             return Enumerable.Empty<object>();
+        }
+
+        private static bool IsIgnored(MemberInfo member)
+        {
+            return member.IsDefined(typeof(GraphQLIgnoreAttribute));
         }
     }
 }

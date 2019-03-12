@@ -47,7 +47,7 @@ namespace HotChocolate
     {
         private readonly TypeInspector _typeInspector = new TypeInspector();
         private readonly ServiceFactory _serviceFactory = new ServiceFactory();
-
+        private readonly DescriptorContext _descriptorContext;
 
         public TypeRegistryNew(IServiceProvider services)
         {
@@ -57,6 +57,7 @@ namespace HotChocolate
             }
 
             _serviceFactory.Services = services;
+            _descriptorContext = DescriptorContext.Create(services);
         }
 
         public IDictionary<IClrTypeReference, RegisteredType> Types { get; } =
@@ -73,6 +74,16 @@ namespace HotChocolate
             ITypeReference reference,
             TypeDependencyKind kind)
         {
+            if (dependant == null)
+            {
+                throw new ArgumentNullException(nameof(dependant));
+            }
+
+            if (reference == null)
+            {
+                throw new ArgumentNullException(nameof(reference));
+            }
+
             switch (reference)
             {
                 case IClrTypeReference clr:
@@ -128,7 +139,9 @@ namespace HotChocolate
                 return internalReference;
             }
 
-            var registeredType = new RegisteredType(CreateInstance(type));
+            TypeSystemObjectBase typeObject = CreateInstance(type);
+            typeObject.Initialize()
+            var registeredType = new RegisteredType();
             Types.Add(internalReference, registeredType);
 
             if (registeredType.ClrType != typeof(object))
