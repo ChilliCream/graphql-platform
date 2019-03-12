@@ -24,5 +24,11 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IType Type { get; }
+
+
+        public static TypeContext InferTypeContext(IType type)
+        {
+
+        }
     }
 }
