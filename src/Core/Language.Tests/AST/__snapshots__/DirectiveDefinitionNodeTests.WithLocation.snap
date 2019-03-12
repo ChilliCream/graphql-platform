@@ -1,0 +1,45 @@
+{
+  "Kind": "DirectiveDefinition",
+  "Location": {
+    "Start": 0,
+    "End": 0,
+    "StartToken": {
+      "Kind": "StartOfFile",
+      "Start": 0,
+      "End": 0,
+      "Line": 1,
+      "Column": 1,
+      "Value": null,
+      "Previous": null,
+      "Next": null
+    },
+    "EndToken": {
+      "Kind": "StartOfFile",
+      "Start": 0,
+      "End": 0,
+      "Line": 1,
+      "Column": 1,
+      "Value": null,
+      "Previous": null,
+      "Next": null
+    },
+    "Source": {
+      "Text": "foo"
+    }
+  },
+  "Name": {
+    "Kind": "Name",
+    "Location": null,
+    "Value": "foo"
+  },
+  "Description": {
+    "Kind": "StringValue",
+    "Location": null,
+    "Value": "bar",
+    "Block": false
+  },
+  "IsRepeatable": true,
+  "IsUnique": false,
+  "Arguments": [],
+  "Locations": []
+}

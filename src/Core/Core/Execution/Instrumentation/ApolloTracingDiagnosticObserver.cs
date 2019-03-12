@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 using Microsoft.Extensions.DiagnosticAdapter;
 
@@ -14,6 +15,14 @@ namespace HotChocolate.Execution.Instrumentation
             _builder = new AsyncLocal<ApolloTracingResultBuilder>();
         private const string _extensionKey = "tracing";
         private const string _startTimestampKey = "startTimestamp";
+
+        private readonly TracingPreference _tracingPreference;
+
+        internal ApolloTracingDiagnosticObserver(
+            TracingPreference tracingPreference)
+        {
+            _tracingPreference = tracingPreference;
+        }
 
         private static ApolloTracingResultBuilder Builder
         {
@@ -28,21 +37,29 @@ namespace HotChocolate.Execution.Instrumentation
         public void QueryExecute() { /* enables query activity */ }
 
         [DiagnosticName(DiagnosticNames.StartQuery)]
-        public void BeginQueryExecute()
+        public void BeginQueryExecute(IQueryContext context)
         {
-            Builder.SetRequestStartTime(
-                Activity.Current.StartTimeUtc,
-                Timestamp.GetNowInNanoseconds());
+            if (IsEnabled(context))
+            {
+                Builder.SetRequestStartTime(
+                    Activity.Current.StartTimeUtc,
+                    Timestamp.GetNowInNanoseconds());
+            }
         }
 
         [DiagnosticName(DiagnosticNames.StopQuery)]
-        public void EndQueryExecute(IExecutionResult result)
+        public void EndQueryExecute(
+            IQueryContext context,
+            IExecutionResult result)
         {
-            Builder.SetRequestDuration(Activity.Current.Duration);
-
-            if (result is IQueryResult queryResult)
+            if (IsEnabled(context))
             {
-                queryResult.Extensions.Add(_extensionKey, Builder.Build());
+                Builder.SetRequestDuration(Activity.Current.Duration);
+
+                if (result is IQueryResult queryResult)
+                {
+                    queryResult.Extensions.Add(_extensionKey, Builder.Build());
+                }
             }
         }
 
@@ -50,59 +67,77 @@ namespace HotChocolate.Execution.Instrumentation
         public void QueryParsing() { /* enables parsing activity */ }
 
         [DiagnosticName(DiagnosticNames.StartParsing)]
-        public void BeginQueryParsing()
+        public void BeginQueryParsing(IQueryContext context)
         {
-            SetStartTimestamp(Timestamp.GetNowInNanoseconds());
+            if (IsEnabled(context))
+            {
+                SetStartTimestamp(Timestamp.GetNowInNanoseconds());
+            }
         }
 
         [DiagnosticName(DiagnosticNames.StopParsing)]
-        public void EndQueryParsing()
+        public void EndQueryParsing(IQueryContext context)
         {
-            long stopTimestamp = Timestamp.GetNowInNanoseconds();
-            long startTimestamp = GetStartTimestamp();
+            if (IsEnabled(context))
+            {
+                long stopTimestamp = Timestamp.GetNowInNanoseconds();
+                long startTimestamp = GetStartTimestamp();
 
-            Builder.SetParsingResult(startTimestamp, stopTimestamp);
+                Builder.SetParsingResult(startTimestamp, stopTimestamp);
+            }
         }
 
         [DiagnosticName(DiagnosticNames.Validation)]
         public void QueryValidation() { /* enables validation activity */ }
 
         [DiagnosticName(DiagnosticNames.StartValidation)]
-        public void BeginQueryValidation()
+        public void BeginQueryValidation(IQueryContext context)
         {
-            SetStartTimestamp(Timestamp.GetNowInNanoseconds());
+            if (IsEnabled(context))
+            {
+                SetStartTimestamp(Timestamp.GetNowInNanoseconds());
+            }
         }
 
         [DiagnosticName(DiagnosticNames.StopValidation)]
-        public void EndQueryValidation()
+        public void EndQueryValidation(IQueryContext context)
         {
-            long stopTimestamp = Timestamp.GetNowInNanoseconds();
-            long startTimestamp = GetStartTimestamp();
+            if (IsEnabled(context))
+            {
+                long stopTimestamp = Timestamp.GetNowInNanoseconds();
+                long startTimestamp = GetStartTimestamp();
 
-            Builder.SetValidationResult(startTimestamp, stopTimestamp);
+                Builder.SetValidationResult(startTimestamp, stopTimestamp);
+            }
         }
 
         [DiagnosticName(DiagnosticNames.Resolver)]
         public void ResolveFieldExecute() { /* enables resolver activity */ }
 
         [DiagnosticName(DiagnosticNames.StartResolver)]
-        public void BeginResolveField()
+        public void BeginResolveField(IResolverContext context)
         {
-            SetStartTimestamp(Timestamp.GetNowInNanoseconds());
+            if (IsEnabled(context))
+            {
+                SetStartTimestamp(Timestamp.GetNowInNanoseconds());
+            }
         }
 
         [DiagnosticName(DiagnosticNames.StopResolver)]
         public void EndResolveField(IResolverContext context)
         {
-            long stopTimestamp = Timestamp.GetNowInNanoseconds();
-            long startTimestamp = GetStartTimestamp();
+            if (IsEnabled(context))
+            {
+                long stopTimestamp = Timestamp.GetNowInNanoseconds();
+                long startTimestamp = GetStartTimestamp();
 
-            Builder.AddResolverResult(
-                new ApolloTracingResolverRecord(context)
-                {
-                    StartTimestamp = startTimestamp,
-                    EndTimestamp = stopTimestamp
-                });
+                Builder.AddResolverResult(
+                    new ApolloTracingResolverRecord(context)
+                    {
+                        StartTimestamp = startTimestamp,
+                        EndTimestamp = stopTimestamp
+                    });
+            }
         }
 
         private static void SetStartTimestamp(long timestamp)
@@ -114,6 +149,15 @@ namespace HotChocolate.Execution.Instrumentation
         {
             return Convert.ToInt64(Activity.Current.Tags
                 .First(t => t.Key == _startTimestampKey).Value);
+        }
+
+        private bool IsEnabled(object context)
+        {
+            return (_tracingPreference == TracingPreference.Always ||
+                (_tracingPreference == TracingPreference.OnDemand &&
+                    context is IHasContextData data &&
+                    data.ContextData.ContainsKey(
+                        ContextDataKeys.EnableTracing)));
         }
     }
 }

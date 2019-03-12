@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;

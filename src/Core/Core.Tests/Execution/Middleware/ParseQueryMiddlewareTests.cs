@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
@@ -30,8 +29,7 @@ namespace HotChocolate.Execution
 
             var diagnostics = new QueryExecutionDiagnostics(
                 new DiagnosticListener("Foo"),
-                new IDiagnosticObserver[0],
-                TracingPreference.Never);
+                new IDiagnosticObserver[0]);
 
             var middleware = new ParseQueryMiddleware(
                 c => Task.CompletedTask,
@@ -65,8 +63,7 @@ namespace HotChocolate.Execution
 
             var diagnostics = new QueryExecutionDiagnostics(
                 new DiagnosticListener("Foo"),
-                new IDiagnosticObserver[0],
-                TracingPreference.Never);
+                new IDiagnosticObserver[0]);
 
             var middleware = new ParseQueryMiddleware(
                 c => Task.CompletedTask,

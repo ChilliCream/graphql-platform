@@ -87,13 +87,13 @@ namespace HotChocolate.Execution
                 .AddSingleton<DiagnosticSource>(listener)
                 .AddSingleton(sp => new QueryExecutionDiagnostics(
                     sp.GetRequiredService<DiagnosticListener>(),
-                    sp.GetServices<IDiagnosticObserver>(),
-                    tracingPreference));
+                    sp.GetServices<IDiagnosticObserver>()));
 
             if (tracingPreference != TracingPreference.Never)
             {
                 builder
-                    .AddDiagnosticObserver<ApolloTracingDiagnosticObserver>();
+                    .AddDiagnosticObserver(new ApolloTracingDiagnosticObserver(
+                        tracingPreference));
             }
 
             return builder.Use<InstrumentationMiddleware>();

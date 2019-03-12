@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using Snapshooter.Xunit;

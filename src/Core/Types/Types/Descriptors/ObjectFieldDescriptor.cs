@@ -1,11 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using System.Linq;
-using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Types
 {

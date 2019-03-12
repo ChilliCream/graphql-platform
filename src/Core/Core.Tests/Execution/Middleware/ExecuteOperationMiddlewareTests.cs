@@ -85,8 +85,7 @@ namespace HotChocolate.Execution
 
             var diagnostics = new QueryExecutionDiagnostics(
                 new DiagnosticListener("Foo"),
-                new IDiagnosticObserver[0],
-                TracingPreference.Never);
+                new IDiagnosticObserver[0]);
 
             var middleware = new ExecuteOperationMiddleware(
                 c => Task.CompletedTask,
