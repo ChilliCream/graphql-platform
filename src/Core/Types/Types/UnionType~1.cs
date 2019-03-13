@@ -27,7 +27,6 @@ namespace HotChocolate.Types
         {
             base.OnCompleteTypeSet(context, definition, typeSet);
 
-
             Type markerType = definition.ClrType;
 
             if (markerType != typeof(object))

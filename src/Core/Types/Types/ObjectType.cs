@@ -19,9 +19,7 @@ namespace HotChocolate.Types
         private readonly Dictionary<NameString, InterfaceType> _interfaces =
             new Dictionary<NameString, InterfaceType>();
         private readonly Action<IObjectTypeDescriptor> _configure;
-        private IFieldCollection<IOutputField> _fields;
         private IsOfType _isOfType;
-        private ObjectTypeBinding _typeBinding;
 
         protected ObjectType()
         {
@@ -34,8 +32,6 @@ namespace HotChocolate.Types
         }
 
         public override TypeKind Kind => TypeKind.Object;
-
-        public Type ClrType { get; private set; }
 
         public ObjectTypeDefinitionNode SyntaxNode { get; private set; }
 
@@ -69,6 +65,8 @@ namespace HotChocolate.Types
             IInitializationContext context,
             ObjectTypeDefinition definition)
         {
+            base.OnRegisterDependencies(context, definition);
+
             context.RegisterDependencyRange(
                 definition.GetDependencies(),
                 TypeDependencyKind.Default);
@@ -121,7 +119,6 @@ namespace HotChocolate.Types
             base.OnCompleteType(context, definition);
 
             _isOfType = definition.IsOfType;
-            ClrType = definition.ClrType;
             SyntaxNode = definition.SyntaxNode;
             Fields = new FieldCollection<ObjectField>(
                definition.Fields.Select(t => new ObjectField(t)));

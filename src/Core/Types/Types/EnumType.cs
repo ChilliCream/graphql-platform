@@ -32,8 +32,6 @@ namespace HotChocolate.Types
 
         public override TypeKind Kind => TypeKind.Enum;
 
-        public Type ClrType { get; private set; }
-
         public EnumTypeDefinitionNode SyntaxNode { get; private set; }
 
         public IReadOnlyCollection<EnumValue> Values => _nameToValues.Values;
@@ -202,7 +200,6 @@ namespace HotChocolate.Types
             EnumTypeDefinition definition)
         {
             SyntaxNode = definition.SyntaxNode;
-            ClrType = definition.ClrType;
 
             foreach (EnumValue enumValue in definition.Values
                 .Select(t => new EnumValue(t)))

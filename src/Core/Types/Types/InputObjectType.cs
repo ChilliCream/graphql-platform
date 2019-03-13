@@ -32,8 +32,6 @@ namespace HotChocolate.Types
 
         public InputObjectTypeDefinitionNode SyntaxNode { get; private set; }
 
-        public Type ClrType { get; private set; }
-
         public FieldCollection<InputField> Fields { get; private set; }
 
         #region IInputType
@@ -109,6 +107,8 @@ namespace HotChocolate.Types
             IInitializationContext context,
             InputObjectTypeDefinition definition)
         {
+            base.OnRegisterDependencies(context, definition);
+
             context.RegisterDependencyRange(
                 definition.GetDependencies(),
                 TypeDependencyKind.Default);
@@ -118,8 +118,9 @@ namespace HotChocolate.Types
             ICompletionContext context,
             InputObjectTypeDefinition definition)
         {
+            base.OnCompleteType(context, definition);
+
             SyntaxNode = definition.SyntaxNode;
-            ClrType = definition.ClrType;
             Fields = new FieldCollection<InputField>(
                 definition.Fields.Select(t => new InputField(t)));
 

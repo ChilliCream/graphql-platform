@@ -32,8 +32,6 @@ namespace HotChocolate.Types
 
         public InterfaceTypeDefinitionNode SyntaxNode { get; private set; }
 
-        public Type ClrType { get; private set; }
-
         public FieldCollection<InterfaceField> Fields { get; private set; }
 
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
@@ -70,6 +68,8 @@ namespace HotChocolate.Types
             IInitializationContext context,
             InterfaceTypeDefinition definition)
         {
+            base.OnRegisterDependencies(context, definition);
+
             context.RegisterDependencyRange(
                 definition.GetDependencies(),
                 TypeDependencyKind.Default);
@@ -79,8 +79,9 @@ namespace HotChocolate.Types
             ICompletionContext context,
             InterfaceTypeDefinition definition)
         {
+            base.OnCompleteType(context, definition);
+
             SyntaxNode = definition.SyntaxNode;
-            ClrType = definition.ClrType;
             Fields = new FieldCollection<InterfaceField>(
                 definition.Fields.Select(t => new InterfaceField(t)));
 

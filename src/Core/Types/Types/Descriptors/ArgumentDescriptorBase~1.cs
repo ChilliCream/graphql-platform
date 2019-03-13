@@ -51,7 +51,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 throw new ArgumentNullException(nameof(typeNode));
             }
-            Definition.SetMoreSpecificType(typeNode);
+            Definition.SetMoreSpecificType(typeNode, TypeContext.Input);
         }
 
         public void DefaultValue(IValueNode value)
@@ -70,8 +70,9 @@ namespace HotChocolate.Types.Descriptors
             }
             else
             {
-                Definition.Type = Definition.Type
-                    .GetMoreSpecific(value.GetType(), TypeContext.Input);
+                Definition.SetMoreSpecificType(
+                    value.GetType(),
+                    TypeContext.Input);
                 Definition.NativeDefaultValue = value;
                 Definition.DefaultValue = null;
             }

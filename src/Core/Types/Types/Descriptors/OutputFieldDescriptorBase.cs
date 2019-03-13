@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 throw new ArgumentNullException(nameof(typeNode));
             }
-            Definition.SetMoreSpecificType(typeNode);
+            Definition.SetMoreSpecificType(typeNode, TypeContext.Output);
         }
 
         protected void Argument(

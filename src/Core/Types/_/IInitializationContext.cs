@@ -112,7 +112,7 @@ namespace HotChocolate
             IFieldReference reference,
             IEnumerable<FieldMiddleware> components)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void RegisterResolver(
@@ -120,7 +120,7 @@ namespace HotChocolate
             Type sourceType,
             Type resolverType)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
 
         public void ReportError(ISchemaError error)
