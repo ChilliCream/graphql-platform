@@ -55,11 +55,11 @@ namespace HotChocolate
         {
             foreach (ITypeReference typeReference in _unregistered.ToList())
             {
-                if(typeReference is IClrTypeReference ctr)
+                if (typeReference is IClrTypeReference ctr)
                 {
                     RegisterClrType(ctr);
                 }
-                else if(typeReference is ISchemaTypeReference str
+                else if (typeReference is ISchemaTypeReference str
                     && str is TypeSystemObjectBase tso)
                 {
                     RegisterTypeSystemObject(tso);
@@ -140,146 +140,6 @@ namespace HotChocolate
                     }
                 }
             }
-        }
-
-        private bool IsTypeResolved(IClrTypeReference typeReference) =>
-            ClrTypes.ContainsKey(typeReference);
-
-        private TypeSystemObjectBase CreateInstance(Type type) =>
-            (TypeSystemObjectBase)_serviceFactory.CreateInstance(type);
-
-        private static bool IsTypeSystemObject(Type type) =>
-            typeof(TypeSystemObjectBase).IsAssignableFrom(type);
-    }
-
-    internal class TypeRegistryNew
-    {
-        private readonly TypeInspector _typeInspector = new TypeInspector();
-        private readonly ServiceFactory _serviceFactory = new ServiceFactory();
-        private readonly DescriptorContext _descriptorContext;
-
-        public TypeRegistryNew(IServiceProvider services)
-        {
-            if (services == null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
-
-            _serviceFactory.Services = services;
-            _descriptorContext = DescriptorContext.Create(services);
-        }
-
-        public IDictionary<IClrTypeReference, RegisteredType> Types { get; } =
-            new Dictionary<IClrTypeReference, RegisteredType>();
-
-        public IDictionary<IClrTypeReference, IClrTypeReference> ClrTypes
-        { get; } = new Dictionary<IClrTypeReference, IClrTypeReference>();
-
-        public ISet<IClrTypeReference> Unresolved { get; } =
-            new HashSet<IClrTypeReference>();
-
-        public void RegisterDependency(
-            INamedType dependant,
-            ITypeReference reference,
-            TypeDependencyKind kind)
-        {
-            if (dependant == null)
-            {
-                throw new ArgumentNullException(nameof(dependant));
-            }
-
-            if (reference == null)
-            {
-                throw new ArgumentNullException(nameof(reference));
-            }
-
-            switch (reference)
-            {
-                case IClrTypeReference clr:
-                    RegisterClrDependency(dependant, clr, kind);
-                    break;
-
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
-        private void RegisterClrDependency(
-            INamedType dependant,
-            IClrTypeReference reference,
-            TypeDependencyKind kind)
-        {
-            if (!BaseTypes.IsNonGenericBaseType(reference.Type)
-                && _typeInspector.TryCreate(reference.Type,
-                    out TypeInfo typeInfo))
-            {
-                IClrTypeReference normalizedTypeRef;
-
-                if (IsTypeSystemObject(typeInfo.ClrType))
-                {
-                    normalizedTypeRef = RegisterTypeSystemObject(
-                        typeInfo.ClrType,
-                        reference.Context);
-                }
-                else
-                {
-                    normalizedTypeRef = new ClrTypeReference(
-                        typeInfo.ClrType, reference.Context);
-
-                    if (!IsTypeResolved(normalizedTypeRef))
-                    {
-                        Unresolved.Add(normalizedTypeRef);
-                    }
-                }
-
-                RegisteredType registeredType = GetRegisterdType(dependant);
-                registeredType?.Dependencies.Add(new TypeDependency(
-                    normalizedTypeRef, kind));
-            }
-        }
-
-        private IClrTypeReference RegisterTypeSystemObject(
-            Type type,
-            TypeContext typeContext)
-        {
-            var internalReference = new ClrTypeReference(type, typeContext);
-            if (Types.ContainsKey(internalReference))
-            {
-                return internalReference;
-            }
-
-            TypeSystemObjectBase typeObject = CreateInstance(type);
-            typeObject.Initialize()
-            var registeredType = new RegisteredType();
-            Types.Add(internalReference, registeredType);
-
-            if (registeredType.ClrType != typeof(object))
-            {
-                var clrTypeRef = new ClrTypeReference(
-                    registeredType.ClrType,
-                    typeContext);
-
-                Unresolved.Remove(clrTypeRef);
-
-                if (!ClrTypes.ContainsKey(clrTypeRef))
-                {
-                    ClrTypes.Add(clrTypeRef, internalReference);
-                }
-            }
-
-            return internalReference;
-        }
-
-        private RegisteredType GetRegisterdType(INamedType dependant)
-        {
-            foreach (RegisteredType registeredType in Types.Values)
-            {
-                if (ReferenceEquals(registeredType.Type, dependant))
-                {
-                    return registeredType;
-                }
-            }
-            return null;
         }
 
         private bool IsTypeResolved(IClrTypeReference typeReference) =>

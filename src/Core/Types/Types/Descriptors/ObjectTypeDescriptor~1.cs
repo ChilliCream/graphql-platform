@@ -90,7 +90,7 @@ namespace HotChocolate.Types.Descriptors
         public IObjectFieldDescriptor Field(
             Expression<Func<T, object>> propertyOrMethod)
         {
-            return Field(propertyOrMethod);
+            return base.Field(propertyOrMethod);
         }
 
         public new IObjectTypeDescriptor<T> Directive<TDirective>(

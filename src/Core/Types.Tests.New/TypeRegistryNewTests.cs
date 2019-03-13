@@ -7,47 +7,55 @@ using Xunit;
 
 namespace HotChocolate
 {
-    public class TypeRegistryTests
+    public class TypeRegistrarTests
     {
         [Fact]
         public void Test123()
         {
             // arrange
+            var initialTypes = new List<ITypeReference>();
+            initialTypes.Add(new ClrTypeReference(
+                typeof(FooType),
+                TypeContext.Output));
+
             var serviceProvider = new EmptyServiceProvider();
-            var typeRegistry = new TypeRegistryNew(serviceProvider);
-            var namedType = new MockType();
-            typeRegistry.Types.Add(
-                new ClrTypeReference(
-                    typeof(MockType),
-                    TypeContext.None),
-                new RegisteredType(namedType));
+
+            var typeRegistrar = new TypeRegistrar_new(
+                initialTypes,
+                serviceProvider);
 
             // act
-            typeRegistry.RegisterDependency(
-                namedType,
-                new ClrTypeReference(
-                    typeof(ObjectType<Foo>),
-                    TypeContext.Output),
-                TypeDependencyKind.Completed);
+            typeRegistrar.Complete();
 
             // assert
-            Assert.Empty(typeRegistry.ClrTypes);
+            Assert.Empty(typeRegistrar.ClrTypes);
 
         }
 
-        private class MockType
-            : TypeSystemObjectBase
-            , INamedType
-        {
-            public TypeKind Kind => TypeKind.Object;
 
-            public override IReadOnlyDictionary<string, object> ContextData =>
-                throw new System.NotImplementedException();
+        public class FooType
+            : ObjectType<Foo>
+        {
+            protected override void Configure(
+                IObjectTypeDescriptor<Foo> descriptor)
+            {
+                descriptor.Field(t => t.Bar).Type<NonNullType<BarType>>();
+            }
+        }
+
+        public class BarType
+            : ObjectType<Bar>
+        {
         }
 
         public class Foo
         {
-            public string Bar { get; set; }
+            public Bar Bar { get; }
+        }
+
+        public class Bar
+        {
+            public string Baz { get; }
         }
     }
 }
