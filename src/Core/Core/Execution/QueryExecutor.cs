@@ -33,10 +33,15 @@ namespace HotChocolate.Execution
 
             if (Schema.Services != null)
             {
-                var diagnosticEvents = _applicationServices
-                    .GetService<QueryExecutionDiagnostics>();
-                diagnosticEvents.Subscribe(Schema.Services
-                    .GetService<IEnumerable<IDiagnosticObserver>>());
+                IEnumerable<IDiagnosticObserver> observers = Schema.Services
+                    .GetService<IEnumerable<IDiagnosticObserver>>();
+
+                if (observers != null)
+                {
+                    var diagnosticEvents = _applicationServices
+                        .GetService<QueryExecutionDiagnostics>();
+                    diagnosticEvents.Subscribe(observers);
+                }
             }
 
             _fieldMiddlewareCompiler = new FieldMiddlewareCompiler(

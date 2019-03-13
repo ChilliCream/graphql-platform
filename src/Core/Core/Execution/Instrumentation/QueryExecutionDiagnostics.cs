@@ -30,18 +30,26 @@ namespace HotChocolate.Execution.Instrumentation
             IEnumerable<IDiagnosticObserver> observers,
             ISet<IDiagnosticObserver> handled)
         {
-            if (observers == null)
+            if (observable == null)
             {
-                return;
+                throw new ArgumentNullException(nameof(observable));
             }
 
-            lock (_sync)
+            if (handled == null)
             {
-                foreach (IDiagnosticObserver observer in observers)
+                throw new ArgumentNullException(nameof(observable));
+            }
+
+            if (observers != null)
+            {
+                lock (_sync)
                 {
-                    if (handled.Add(observer))
+                    foreach (IDiagnosticObserver observer in observers)
                     {
-                        observable.SubscribeWithAdapter(observer);
+                        if (handled.Add(observer))
+                        {
+                            observable.SubscribeWithAdapter(observer);
+                        }
                     }
                 }
             }
