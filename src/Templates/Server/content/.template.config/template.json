@@ -7,7 +7,7 @@
     "Demos"
   ],
   "identity": "HotChocolate.Templates.Server",
-  "name": "Hot HotChocolate GraphQL Server",
+  "name": "HotChocolate GraphQL Server",
   "shortName": "graphql-server",
   "tags": {
     "language": "C#",
