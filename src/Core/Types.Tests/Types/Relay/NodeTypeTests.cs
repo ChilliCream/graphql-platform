@@ -1,12 +1,6 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using ChilliCream.Testing;
 using HotChocolate.Configuration;
-using HotChocolate.Execution;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
-using Moq;
 using Xunit;
 
 namespace HotChocolate.Types

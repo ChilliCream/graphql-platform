@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {

@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using ChilliCream.Testing;
 using Snapshooter.Xunit;
 using Xunit;
 
