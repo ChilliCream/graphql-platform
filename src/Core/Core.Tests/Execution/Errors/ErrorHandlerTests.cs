@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using ChilliCream.Testing;
 using HotChocolate.Execution.Configuration;
 using Snapshooter.Xunit;
 using Xunit;

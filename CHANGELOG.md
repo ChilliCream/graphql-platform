@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Fixed
+
+- Custom diagnostic observer registration issue [#629](https://github.com/ChilliCream/hotchocolate/issues/629).
+
 ## [0.8.0] - 2019-03-03
 
 ### Added

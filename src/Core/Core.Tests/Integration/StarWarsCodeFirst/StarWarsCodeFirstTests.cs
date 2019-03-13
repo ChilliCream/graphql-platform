@@ -8,9 +8,7 @@ using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Subscriptions;
-using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Snapshooter.Xunit;
 using Xunit;
 

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;

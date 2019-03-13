@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
