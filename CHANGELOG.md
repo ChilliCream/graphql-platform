@@ -9,9 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+### Changed
+
+- Default complexity calculation functions are now public.
+
 ### Fixed
 
 - Custom diagnostic observer registration issue [#629](https://github.com/ChilliCream/hotchocolate/issues/629).
+- Authorization argument coercion is now fixed. https://github.com/ChilliCream/hotchocolate/issues/624
+- The request path is now compared correctly.
 
 ## [0.8.0] - 2019-03-03
 
