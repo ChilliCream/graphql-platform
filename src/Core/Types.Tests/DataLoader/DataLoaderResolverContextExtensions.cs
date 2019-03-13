@@ -2,9 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using GreenDonut;
 using HotChocolate.DataLoader;
-using HotChocolate.Utilities;
 using Moq;
 using Xunit;
 

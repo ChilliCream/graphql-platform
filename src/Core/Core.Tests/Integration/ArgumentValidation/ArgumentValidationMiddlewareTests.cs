@@ -1,5 +1,4 @@
-﻿using ChilliCream.Testing;
-using HotChocolate.Execution;
+﻿using HotChocolate.Execution;
 using Snapshooter.Xunit;
 using Xunit;
 

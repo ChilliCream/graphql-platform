@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+<<<<<<< HEAD
 - Added `INaminingConventions` which can now be injected to control how names are inferred from types and members.
 - Added `ITypeInspector` which can be used to control how field definitions are inferred from types etc.
 
@@ -20,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Deprecated
 
 - IDirectiveTypeDescriptor.Middleware is no longer supported and is replaced with IDirectiveTypeDescriptor.Use. With this all field middleware declarations work now the same.
+=======
+### Fixed
+
+- Custom diagnostic observer registration issue [#629](https://github.com/ChilliCream/hotchocolate/issues/629).
+>>>>>>> master
 
 ## [0.8.0] - 2019-03-03
 

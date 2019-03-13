@@ -49,7 +49,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stitching", "..\src\Stitchi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stitching.Tests", "..\src\Stitching\Stitching.Tests\Stitching.Tests.csproj", "{39CDB45E-CD22-41B1-92BB-D1F3C6B74090}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Diagnostics.Tests", "..\src\Core\Core.Diagnostics.Tests\Core.Diagnostics.Tests.csproj", "{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Diagnostics.ApolloTracing.Tests", "..\src\Core\Core.Diagnostics.ApolloTracing.Tests\Core.Diagnostics.ApolloTracing.Tests.csproj", "{6A3CB093-3F3D-4D53-9365-34EE7F0B3AF7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Diagnostics.CustomObserver.Tests", "..\src\Core\Core.Diagnostics.CustomObserver.Tests\Core.Diagnostics.CustomObserver.Tests.csproj", "{C63190DB-ABD3-43A1-ACDE-F0C374326A74}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -340,17 +342,29 @@ Global
 		{39CDB45E-CD22-41B1-92BB-D1F3C6B74090}.Release|x64.Build.0 = Release|Any CPU
 		{39CDB45E-CD22-41B1-92BB-D1F3C6B74090}.Release|x86.ActiveCfg = Release|Any CPU
 		{39CDB45E-CD22-41B1-92BB-D1F3C6B74090}.Release|x86.Build.0 = Release|Any CPU
-		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Debug|x64.Build.0 = Debug|Any CPU
-		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Debug|x86.Build.0 = Debug|Any CPU
-		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Release|x64.ActiveCfg = Release|Any CPU
-		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Release|x64.Build.0 = Release|Any CPU
-		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Release|x86.ActiveCfg = Release|Any CPU
-		{5A41DAF7-C295-4A0B-9046-79D8A5C90A2D}.Release|x86.Build.0 = Release|Any CPU
+		{6A3CB093-3F3D-4D53-9365-34EE7F0B3AF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6A3CB093-3F3D-4D53-9365-34EE7F0B3AF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6A3CB093-3F3D-4D53-9365-34EE7F0B3AF7}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{6A3CB093-3F3D-4D53-9365-34EE7F0B3AF7}.Debug|x64.Build.0 = Debug|Any CPU
+		{6A3CB093-3F3D-4D53-9365-34EE7F0B3AF7}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{6A3CB093-3F3D-4D53-9365-34EE7F0B3AF7}.Debug|x86.Build.0 = Debug|Any CPU
+		{6A3CB093-3F3D-4D53-9365-34EE7F0B3AF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6A3CB093-3F3D-4D53-9365-34EE7F0B3AF7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6A3CB093-3F3D-4D53-9365-34EE7F0B3AF7}.Release|x64.ActiveCfg = Release|Any CPU
+		{6A3CB093-3F3D-4D53-9365-34EE7F0B3AF7}.Release|x64.Build.0 = Release|Any CPU
+		{6A3CB093-3F3D-4D53-9365-34EE7F0B3AF7}.Release|x86.ActiveCfg = Release|Any CPU
+		{6A3CB093-3F3D-4D53-9365-34EE7F0B3AF7}.Release|x86.Build.0 = Release|Any CPU
+		{C63190DB-ABD3-43A1-ACDE-F0C374326A74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C63190DB-ABD3-43A1-ACDE-F0C374326A74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C63190DB-ABD3-43A1-ACDE-F0C374326A74}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{C63190DB-ABD3-43A1-ACDE-F0C374326A74}.Debug|x64.Build.0 = Debug|Any CPU
+		{C63190DB-ABD3-43A1-ACDE-F0C374326A74}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{C63190DB-ABD3-43A1-ACDE-F0C374326A74}.Debug|x86.Build.0 = Debug|Any CPU
+		{C63190DB-ABD3-43A1-ACDE-F0C374326A74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C63190DB-ABD3-43A1-ACDE-F0C374326A74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C63190DB-ABD3-43A1-ACDE-F0C374326A74}.Release|x64.ActiveCfg = Release|Any CPU
+		{C63190DB-ABD3-43A1-ACDE-F0C374326A74}.Release|x64.Build.0 = Release|Any CPU
+		{C63190DB-ABD3-43A1-ACDE-F0C374326A74}.Release|x86.ActiveCfg = Release|Any CPU
+		{C63190DB-ABD3-43A1-ACDE-F0C374326A74}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

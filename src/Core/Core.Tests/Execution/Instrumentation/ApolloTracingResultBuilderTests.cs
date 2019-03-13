@@ -1,5 +1,4 @@
 ﻿using System;
-using ChilliCream.Testing;
 using Snapshooter.Xunit;
 using Xunit;
 

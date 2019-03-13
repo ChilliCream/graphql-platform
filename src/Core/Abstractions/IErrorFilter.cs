@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace HotChocolate
+﻿namespace HotChocolate
 {
     /// <summary>
     /// An error filter can handle and rewrite errors that occured

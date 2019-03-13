@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Instrumentation
@@ -9,28 +8,15 @@ namespace HotChocolate.Execution.Instrumentation
     public sealed class QueryExecutionDiagnostics
     {
         private readonly DiagnosticSource _source;
-        private readonly TracingPreference _tracingPreference;
 
         internal QueryExecutionDiagnostics(
             DiagnosticListener observable,
-            IEnumerable<IDiagnosticObserver> observers,
-            TracingPreference tracingPreference)
+            IEnumerable<IDiagnosticObserver> observers)
         {
             _source = observable ??
                 throw new ArgumentNullException(nameof(observable));
-            _tracingPreference = tracingPreference;
 
             Subscribe(observable, observers);
-        }
-
-        private bool IsEnabled(string name, object payload, object context)
-        {
-            return _source.IsEnabled(name, payload) &&
-                (_tracingPreference == TracingPreference.Always ||
-                (_tracingPreference == TracingPreference.OnDemand &&
-                    context is IHasContextData data &&
-                    data.ContextData.ContainsKey(
-                        ContextDataKeys.EnableTracing)));
         }
 
         private static void Subscribe(
@@ -50,7 +36,7 @@ namespace HotChocolate.Execution.Instrumentation
                 context
             };
 
-            if (IsEnabled(DiagnosticNames.Parsing, payload, context))
+            if (_source.IsEnabled(DiagnosticNames.Parsing, payload))
             {
                 var activity = new Activity(DiagnosticNames.Parsing);
 
@@ -69,7 +55,7 @@ namespace HotChocolate.Execution.Instrumentation
                 context
             };
 
-            if (IsEnabled(DiagnosticNames.Query, payload, context))
+            if (_source.IsEnabled(DiagnosticNames.Query, payload))
             {
                 var activity = new Activity(DiagnosticNames.Query);
 
@@ -89,7 +75,7 @@ namespace HotChocolate.Execution.Instrumentation
                 context
             };
 
-            if (IsEnabled(DiagnosticNames.Resolver, payload, context))
+            if (_source.IsEnabled(DiagnosticNames.Resolver, payload))
             {
                 var activity = new Activity(DiagnosticNames.Resolver);
 
@@ -108,7 +94,7 @@ namespace HotChocolate.Execution.Instrumentation
                 context
             };
 
-            if (IsEnabled(DiagnosticNames.Validation, payload, context))
+            if (_source.IsEnabled(DiagnosticNames.Validation, payload))
             {
                 var activity = new Activity(DiagnosticNames.Validation);
 
@@ -129,7 +115,7 @@ namespace HotChocolate.Execution.Instrumentation
                     context
                 };
 
-                if (IsEnabled(DiagnosticNames.Parsing, payload, context))
+                if (_source.IsEnabled(DiagnosticNames.Parsing, payload))
                 {
                     _source.StopActivity(activity, payload);
                 }
@@ -146,7 +132,7 @@ namespace HotChocolate.Execution.Instrumentation
                     result = context.Result
                 };
 
-                if (IsEnabled(DiagnosticNames.Query, payload, context))
+                if (_source.IsEnabled(DiagnosticNames.Query, payload))
                 {
                     _source.StopActivity(activity, payload);
                 }
@@ -166,7 +152,7 @@ namespace HotChocolate.Execution.Instrumentation
                     result
                 };
 
-                if (IsEnabled(DiagnosticNames.Resolver, payload, context))
+                if (_source.IsEnabled(DiagnosticNames.Resolver, payload))
                 {
                     _source.StopActivity(activity, payload);
                 }
@@ -185,7 +171,7 @@ namespace HotChocolate.Execution.Instrumentation
                     result = context.ValidationResult
                 };
 
-                if (IsEnabled(DiagnosticNames.Validation, payload, context))
+                if (_source.IsEnabled(DiagnosticNames.Validation, payload))
                 {
                     _source.StopActivity(activity, payload);
                 }
@@ -200,7 +186,7 @@ namespace HotChocolate.Execution.Instrumentation
                 exception = context.Exception
             };
 
-            if (IsEnabled(DiagnosticNames.QueryError, payload, context))
+            if (_source.IsEnabled(DiagnosticNames.QueryError, payload))
             {
                 _source.Write(DiagnosticNames.QueryError, payload);
             }
@@ -223,7 +209,7 @@ namespace HotChocolate.Execution.Instrumentation
                 errors
             };
 
-            if (IsEnabled(DiagnosticNames.ResolverError, payload, context))
+            if (_source.IsEnabled(DiagnosticNames.ResolverError, payload))
             {
                 _source.Write(DiagnosticNames.ResolverError, payload);
             }
@@ -237,7 +223,7 @@ namespace HotChocolate.Execution.Instrumentation
                 errors = context.ValidationResult.Errors
             };
 
-            if (IsEnabled(DiagnosticNames.ValidationError, payload, context))
+            if (_source.IsEnabled(DiagnosticNames.ValidationError, payload))
             {
                 _source.Write(DiagnosticNames.ValidationError, payload);
             }

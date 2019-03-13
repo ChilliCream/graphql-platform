@@ -1,9 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Language;
+<<<<<<< HEAD
 using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Types.Descriptors.Definitions;
+=======
+>>>>>>> master
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors

@@ -5,8 +5,11 @@ using System.Reflection;
 using System.Runtime.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+<<<<<<< HEAD
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
+=======
+>>>>>>> master
 
 namespace HotChocolate.Types
 {
