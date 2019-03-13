@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Default complexity calculation functions are now public.
+- Diagnostic observers can now be defined as schema services.
 
 ### Fixed
 
