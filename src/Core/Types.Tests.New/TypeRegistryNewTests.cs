@@ -10,7 +10,7 @@ namespace HotChocolate
     public class TypeRegistrarTests
     {
         [Fact]
-        public void Test123()
+        public void Register_SchemaType_ClrTypeExists()
         {
             // arrange
             var initialTypes = new List<ITypeReference>();
@@ -28,8 +28,16 @@ namespace HotChocolate
             typeRegistrar.Complete();
 
             // assert
-            Assert.Empty(typeRegistrar.ClrTypes);
+            Assert.Collection(typeRegistrar.Registerd,
+                t => Assert.Equal(typeof(Foo),
+                    ((IHasClrType)t.Value.Type).ClrType),
+                t => Assert.Equal(typeof(Bar),
+                    ((IHasClrType)t.Value.Type).ClrType));
 
+            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
+                new ClrTypeReference(typeof(Foo), TypeContext.Output)));
+            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
+                new ClrTypeReference(typeof(Bar), TypeContext.Output)));
         }
 
 

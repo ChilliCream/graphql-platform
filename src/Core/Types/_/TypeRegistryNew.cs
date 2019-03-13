@@ -15,6 +15,8 @@ namespace HotChocolate
         private readonly DescriptorContext _descriptorContext;
         private readonly List<InitializationContext> _initContexts =
             new List<InitializationContext>();
+        private readonly HashSet<InitializationContext> _handledContexts =
+            new HashSet<InitializationContext>();
         private readonly List<ITypeReference> _unregistered;
 
         public TypeRegistrar_new(
@@ -46,9 +48,11 @@ namespace HotChocolate
 
         public void Complete()
         {
-            InitializeTypes();
-
-
+            while (_unregistered.Any())
+            {
+                InitializeTypes();
+                EnqueueUnhandled();
+            }
         }
 
         private void InitializeTypes()
@@ -66,6 +70,18 @@ namespace HotChocolate
                 }
 
                 _unregistered.Remove(typeReference);
+            }
+        }
+
+        private void EnqueueUnhandled()
+        {
+            foreach (InitializationContext context in _initContexts)
+            {
+                if (_handledContexts.Add(context))
+                {
+                    _unregistered.AddRange(
+                        context.TypeDependencies.Select(t => t.TypeReference));
+                }
             }
         }
 
@@ -117,14 +133,8 @@ namespace HotChocolate
 
             if (!Registerd.ContainsKey(internalReference))
             {
-                var initializationContext = new InitializationContext(
-                    typeSystemObject,
-                    _serviceFactory.Services);
-                typeSystemObject.Initialize(initializationContext);
-
-                var registeredType = new RegisteredType(typeSystemObject);
-
-                Registerd.Add(internalReference, registeredType);
+                RegisteredType registeredType =
+                    InitializeAndRegister(internalReference, typeSystemObject);
 
                 if (registeredType.ClrType != typeof(object))
                 {
@@ -140,6 +150,22 @@ namespace HotChocolate
                     }
                 }
             }
+        }
+
+        private RegisteredType InitializeAndRegister(
+            IClrTypeReference internalReference,
+            TypeSystemObjectBase typeSystemObject)
+        {
+            var initializationContext = new InitializationContext(
+                typeSystemObject,
+                _serviceFactory.Services);
+            typeSystemObject.Initialize(initializationContext);
+            _initContexts.Add(initializationContext);
+
+            var registeredType = new RegisteredType(typeSystemObject);
+            Registerd.Add(internalReference, registeredType);
+
+            return registeredType;
         }
 
         private bool IsTypeResolved(IClrTypeReference typeReference) =>
