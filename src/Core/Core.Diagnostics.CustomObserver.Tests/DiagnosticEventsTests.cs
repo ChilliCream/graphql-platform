@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DiagnosticAdapter;
 using Xunit;
 
@@ -13,20 +14,35 @@ namespace HotChocolate
         public async Task VerifyCustomDignosticObserverIsWorkingProper()
         {
             // arrange
-            var events = new List<string>();
+            var eventsa = new List<string>();
+            var eventsb = new List<string>();
+
             Schema schema = CreateSchema();
+
+            var services = new ServiceCollection();
+            services.AddDiagnosticObserver(
+                new CustomDiagnosticsObserver(eventsa));
+
             IQueryExecutor executor = QueryExecutionBuilder.New()
                 .UseDefaultPipeline()
-                .AddDiagnosticObserver(new CustomDiagnosticsObserver(events))
+                .AddDiagnosticObserver(new CustomDiagnosticsObserver(eventsb))
                 .Build(schema);
-            var request = new QueryRequest("{ a }");
+
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ a }")
+                    .SetServices(services.BuildServiceProvider())
+                    .Create();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);
 
             // assert
             Assert.Empty(result.Extensions);
-            Assert.Collection(events,
+            Assert.Collection(eventsa,
+                i => Assert.Equal("foo", i),
+                i => Assert.Equal("bar", i));
+            Assert.Collection(eventsb,
                 i => Assert.Equal("foo", i),
                 i => Assert.Equal("bar", i));
         }
