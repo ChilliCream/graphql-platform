@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -17,11 +18,11 @@ namespace HotChocolate
             var eventsa = new List<string>();
             var eventsb = new List<string>();
 
-            Schema schema = CreateSchema();
-
             var services = new ServiceCollection();
             services.AddDiagnosticObserver(
                 new CustomDiagnosticsObserver(eventsa));
+
+            Schema schema = CreateSchema(services.BuildServiceProvider());
 
             IQueryExecutor executor = QueryExecutionBuilder.New()
                 .UseDefaultPipeline()
@@ -31,7 +32,6 @@ namespace HotChocolate
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ a }")
-                    .SetServices(services.BuildServiceProvider())
                     .Create();
 
             // act
@@ -47,7 +47,7 @@ namespace HotChocolate
                 i => Assert.Equal("bar", i));
         }
 
-        private Schema CreateSchema()
+        private Schema CreateSchema(IServiceProvider services)
         {
             return Schema.Create(@"
                 type Query {
@@ -60,6 +60,8 @@ namespace HotChocolate
                 }
                 ", c =>
             {
+                c.RegisterServiceProvider(services);
+
                 c.BindResolver(() => "hello world a")
                     .To("Query", "a");
                 c.BindResolver(
