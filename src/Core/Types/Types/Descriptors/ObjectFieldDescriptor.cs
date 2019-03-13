@@ -3,12 +3,9 @@ using System.Reflection;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-<<<<<<< HEAD
 using System.Linq;
 using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Types.Descriptors.Definitions;
-=======
->>>>>>> master
 
 namespace HotChocolate.Types.Descriptors
 {
