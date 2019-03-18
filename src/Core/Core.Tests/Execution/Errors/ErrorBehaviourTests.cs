@@ -21,7 +21,8 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.MatchSnapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         [Fact]
@@ -37,7 +38,8 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.MatchSnapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         [Fact]
@@ -53,7 +55,8 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.MatchSnapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         [Fact]
@@ -69,7 +72,8 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.MatchSnapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         [Fact]
@@ -84,7 +88,8 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(result.Errors);
-            result.MatchSnapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         [Fact]
@@ -100,7 +105,8 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.MatchSnapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         [Fact]
@@ -116,7 +122,8 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.MatchSnapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         [Fact]
@@ -132,7 +139,8 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.MatchSnapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         [Fact]
@@ -148,7 +156,8 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.MatchSnapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         [Fact]
@@ -164,7 +173,8 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.MatchSnapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         [Fact]
@@ -180,7 +190,8 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.MatchSnapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         [Fact]
@@ -196,7 +207,8 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.MatchSnapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         [Fact]
@@ -212,7 +224,8 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.MatchSnapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         [Fact]
@@ -228,7 +241,8 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(result.Errors);
             Assert.Equal(1, i);
-            result.MatchSnapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         [Fact]
@@ -246,7 +260,8 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            result.MatchSnapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         [Fact]
@@ -264,7 +279,8 @@ namespace HotChocolate.Execution
             IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
-            result.MatchSnapshot();
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
         }
 
         private async Task<IExecutionResult> ExecuteQuery(
