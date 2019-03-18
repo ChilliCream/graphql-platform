@@ -1,0 +1,37 @@
+{
+  "Data": {
+    "error14": null
+  },
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "Value cannot be null.\nParameter name: Error14",
+      "Code": null,
+      "Path": [
+        "error14"
+      ],
+      "Locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "Exception": {
+        "ClassName": "System.ArgumentNullException",
+        "Message": "Value cannot be null.",
+        "Data": null,
+        "InnerException": null,
+        "HelpURL": null,
+        "StackTraceString": "   at HotChocolate.Execution.ErrorBehaviourTests.Query.get_Error14() in /Users/michael/local/hotchocolate/src/Core/Core.Tests/Execution/Errors/ErrorBehaviourTests.cs:line 407\n   at HotChocolate.Resolvers.CodeGeneration.___CompiledResolvers__efe4cc33f3b646969dac4dc67c8e4ce8.<>c.<.cctor>b__32_24(IResolverContext ctx)\n   at HotChocolate.Configuration.ResolverRegistry.<>c__DisplayClass21_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in /Users/michael/local/hotchocolate/src/Core/Types/Configuration/ResolverRegistry.cs:line 227\n--- End of stack trace from previous location where exception was thrown ---\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteFieldMiddlewareAsync(ResolverTask resolverTask) in /Users/michael/local/hotchocolate/src/Core/Core/Execution/ExecutionStrategyBase.Resolver.cs:line 91\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteMiddlewareAsync(ResolverTask resolverTask, IErrorHandler errorHandler) in /Users/michael/local/hotchocolate/src/Core/Core/Execution/ExecutionStrategyBase.Resolver.cs:line 51",
+        "RemoteStackTraceString": null,
+        "RemoteStackIndex": 0,
+        "ExceptionMethod": null,
+        "HResult": -2147467261,
+        "Source": "HotChocolate.Core.Tests",
+        "WatsonBuckets": null,
+        "ParamName": "Error14"
+      },
+      "Extensions": {}
+    }
+  ]
+}

@@ -283,6 +283,32 @@ namespace HotChocolate.Execution
                 options.IgnoreField("Errors[0].Exception"));
         }
 
+        [Fact]
+        public async Task ErrorFilterHandlesException()
+        {
+            // arrange
+            string query = "{ error14 }";
+
+            ISchema schema = CreateSchema();
+            IQueryExecutor executor = schema.MakeExecutable(b =>
+                b.AddErrorFilter(error =>
+                {
+                    if (error.Exception is ArgumentException ex)
+                    {
+                        return error.WithMessage(ex.Message);
+                    }
+                    return error;
+                })
+                .UseDefaultPipeline());
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
+        }
+
         private async Task<IExecutionResult> ExecuteQuery(
             string query,
             Action errorHandled)
@@ -377,6 +403,8 @@ namespace HotChocolate.Execution
             public object Error12 => new QueryError("query error 12");
 
             public Foo Error13 => new Foo();
+
+            public string Error14 => throw new ArgumentNullException("Error14");
         }
 
         public class Foo
