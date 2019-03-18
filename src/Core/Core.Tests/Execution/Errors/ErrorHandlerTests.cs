@@ -83,7 +83,8 @@ namespace HotChocolate.Execution.Errors
 
             // assert
             result.MatchSnapshot(o =>
-                o.IgnoreField("Errors[0].Exception"));
+                o.IgnoreField("Errors[0].Exception")
+                .IgnoreField("Errors[1].Exception"));
         }
 
         [Fact]
