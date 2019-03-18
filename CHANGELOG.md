@@ -17,8 +17,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Custom diagnostic observer registration issue [#629](https://github.com/ChilliCream/hotchocolate/issues/629).
-- Authorization argument coercion is now fixed. https://github.com/ChilliCream/hotchocolate/issues/624
+- Authorization argument coercion is now fixed. [#624](https://github.com/ChilliCream/hotchocolate/issues/624)
 - The request path is now compared correctly.
+- IErrorFilter is not given the exception unless IncludeExceptionDetails is enabled. [#637](https://github.com/ChilliCream/hotchocolate/issues/638)
 
 ## [0.8.0] - 2019-03-03
 
