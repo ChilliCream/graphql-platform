@@ -299,7 +299,10 @@ namespace HotChocolate.Execution
                     }
                     return error;
                 })
-                .UseDefaultPipeline());
+                .UseDefaultPipeline(new QueryExecutionOptions
+                {
+                    IncludeExceptionDetails = false
+                }));
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(query);
