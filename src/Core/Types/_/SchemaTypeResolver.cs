@@ -64,7 +64,8 @@ namespace HotChocolate
             return (unresolvedType.Type.IsClass
                     && !unresolvedType.Type.IsAbstract
                     && (unresolvedType.Type.IsPublic
-                        || unresolvedType.Type.IsNestedPublic));
+                        || unresolvedType.Type.IsNestedPublic))
+                    && unresolvedType.Type != typeof(string);
         }
 
         private static bool IsEnumType(IClrTypeReference unresolvedType)
