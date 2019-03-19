@@ -72,8 +72,6 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(configure));
             }
 
-
-
             IErrorBuilder builder = CreateErrorFromException(exception);
             configure(builder);
 
@@ -96,11 +94,12 @@ namespace HotChocolate.Execution
         private IErrorBuilder CreateErrorFromException(Exception exception)
         {
             IErrorBuilder builder = ErrorBuilder.New()
-                .SetMessage("Unexpected Execution Error");
+                .SetMessage("Unexpected Execution Error")
+                .SetException(exception);
 
             if (_includeExceptionDetails)
             {
-                builder.SetException(exception)
+                builder
                     .SetExtension("message", exception.Message)
                     .SetExtension("stackTrace", exception.StackTrace);
             }

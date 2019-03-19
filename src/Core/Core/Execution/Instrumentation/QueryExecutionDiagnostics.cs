@@ -7,7 +7,10 @@ namespace HotChocolate.Execution.Instrumentation
 {
     public sealed class QueryExecutionDiagnostics
     {
-        private readonly DiagnosticSource _source;
+        private static readonly object _sync = new object();
+        private readonly DiagnosticListener _source;
+        private readonly HashSet<IDiagnosticObserver> _handled =
+            new HashSet<IDiagnosticObserver>();
 
         internal QueryExecutionDiagnostics(
             DiagnosticListener observable,
@@ -16,16 +19,39 @@ namespace HotChocolate.Execution.Instrumentation
             _source = observable ??
                 throw new ArgumentNullException(nameof(observable));
 
-            Subscribe(observable, observers);
+            Subscribe(observable, observers, _handled);
         }
+
+        internal void Subscribe(IEnumerable<IDiagnosticObserver> observers) =>
+            Subscribe(_source, observers, _handled);
 
         private static void Subscribe(
             DiagnosticListener observable,
-            IEnumerable<IDiagnosticObserver> observers)
+            IEnumerable<IDiagnosticObserver> observers,
+            ISet<IDiagnosticObserver> handled)
         {
-            foreach (IDiagnosticObserver observer in observers)
+            if (observable == null)
             {
-                observable.SubscribeWithAdapter(observer);
+                throw new ArgumentNullException(nameof(observable));
+            }
+
+            if (handled == null)
+            {
+                throw new ArgumentNullException(nameof(observable));
+            }
+
+            if (observers != null)
+            {
+                lock (_sync)
+                {
+                    foreach (IDiagnosticObserver observer in observers)
+                    {
+                        if (handled.Add(observer))
+                        {
+                            observable.SubscribeWithAdapter(observer);
+                        }
+                    }
+                }
             }
         }
 

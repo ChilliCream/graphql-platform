@@ -7,7 +7,7 @@
     "Demos"
   ],
   "identity": "HotChocolate.Templates.StarWars",
-  "name": "Hot HotChocolate GraphQL Star Wars Demo",
+  "name": "HotChocolate GraphQL Star Wars Demo",
   "shortName": "starwars",
   "tags": {
     "type": "Solution"
