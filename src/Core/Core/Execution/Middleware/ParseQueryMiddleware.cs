@@ -45,9 +45,18 @@ namespace HotChocolate.Execution
                 }
                 else
                 {
+                    bool documentRetrievedFromCache = true;
+
                     context.Document = _queryCache.GetOrCreate(
                         context.Request.Query,
-                        () => ParseDocument(context.Request.Query));
+                        () =>
+                        {
+                            documentRetrievedFromCache = false;
+                            return ParseDocument(context.Request.Query);
+                        });
+
+                    context.ContextData[ContextDataKeys.DocumentCached] =
+                        documentRetrievedFromCache;
 
                     await _next(context).ConfigureAwait(false);
                 }
