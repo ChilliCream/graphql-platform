@@ -34,22 +34,28 @@ namespace HotChocolate.Execution
         {
             Activity activity = _diagnosticEvents.BeginParsing(context);
 
-            if (IsContextIncomplete(context))
+            try
             {
-                context.Result = QueryResult.CreateError(new QueryError(
-                   "The parse query middleware expects " +
-                   "a valid query request."));
+                if (IsContextIncomplete(context))
+                {
+                    // TODO : resources
+                    context.Result = QueryResult.CreateError(new QueryError(
+                       "The parse query middleware expects " +
+                       "a valid query request."));
+                }
+                else
+                {
+                    context.Document = _queryCache.GetOrCreate(
+                        context.Request.Query,
+                        () => ParseDocument(context.Request.Query));
+
+                    await _next(context).ConfigureAwait(false);
+                }
             }
-            else
+            finally
             {
-                context.Document = _queryCache.GetOrCreate(
-                    context.Request.Query,
-                    () => ParseDocument(context.Request.Query));
-
-                await _next(context).ConfigureAwait(false);
+                _diagnosticEvents.EndParsing(activity, context);
             }
-
-            _diagnosticEvents.EndParsing(activity, context);
         }
 
         private DocumentNode ParseDocument(string queryText)
