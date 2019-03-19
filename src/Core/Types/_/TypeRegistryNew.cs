@@ -48,11 +48,40 @@ namespace HotChocolate
 
         public void Complete()
         {
+            bool resolved = false;
+            do
+            {
+                CompleteSchemaTypes();
+                resolved = InferSchemaTypesFromUnresolved();
+            }
+            while (resolved);
+        }
+
+        private void CompleteSchemaTypes()
+        {
             while (_unregistered.Any())
             {
                 InitializeTypes();
                 EnqueueUnhandled();
             }
+        }
+
+        private bool InferSchemaTypesFromUnresolved()
+        {
+            bool resolved = false;
+
+            foreach (IClrTypeReference unresolvedType in Unresolved)
+            {
+                if (SchemaTypeResolver.TryInferSchemaType(
+                    unresolvedType,
+                    out IClrTypeReference schemaType))
+                {
+                    resolved = true;
+                    _unregistered.Add(schemaType);
+                }
+            }
+
+            return resolved;
         }
 
         private void InitializeTypes()

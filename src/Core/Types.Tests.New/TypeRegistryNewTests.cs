@@ -40,6 +40,37 @@ namespace HotChocolate
                 new ClrTypeReference(typeof(Bar), TypeContext.Output)));
         }
 
+        [Fact]
+        public void Register_ClrType_InferSchemaTypes()
+        {
+            // arrange
+            var initialTypes = new List<ITypeReference>();
+            initialTypes.Add(new ClrTypeReference(
+                typeof(Foo),
+                TypeContext.Output));
+
+            var serviceProvider = new EmptyServiceProvider();
+
+            var typeRegistrar = new TypeRegistrar_new(
+                initialTypes,
+                serviceProvider);
+
+            // act
+            typeRegistrar.Complete();
+
+            // assert
+            Assert.Collection(typeRegistrar.Registerd,
+                t => Assert.Equal(typeof(Foo),
+                    ((IHasClrType)t.Value.Type).ClrType),
+                t => Assert.Equal(typeof(Bar),
+                    ((IHasClrType)t.Value.Type).ClrType));
+
+            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
+                new ClrTypeReference(typeof(Foo), TypeContext.Output)));
+            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
+                new ClrTypeReference(typeof(Bar), TypeContext.Output)));
+        }
+
 
         public class FooType
             : ObjectType<Foo>
