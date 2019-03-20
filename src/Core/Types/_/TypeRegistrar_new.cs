@@ -1,3 +1,4 @@
+using System.Security.AccessControl;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -222,7 +223,10 @@ namespace HotChocolate
             typeSystemObject.Initialize(initializationContext);
             _initContexts.Add(initializationContext);
 
-            var registeredType = new RegisteredType(typeSystemObject);
+            var registeredType = new RegisteredType(
+                internalReference,
+                typeSystemObject,
+                initializationContext.TypeDependencies);
             Registerd.Add(internalReference, registeredType);
 
             return registeredType;

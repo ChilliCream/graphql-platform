@@ -1,16 +1,28 @@
+using System.ComponentModel.Design;
 using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate
 {
     internal sealed class RegisteredType
         : IHasClrType
     {
-        public RegisteredType(TypeSystemObjectBase type)
+        public RegisteredType(
+            ITypeReference reference,
+            TypeSystemObjectBase type,
+            IReadOnlyList<TypeDependency> dependencies)
         {
-            Type = type ?? throw new ArgumentNullException(nameof(type));
+            Reference = reference
+                ?? throw new ArgumentNullException(nameof(reference));
+            Type = type
+                ?? throw new ArgumentNullException(nameof(type));
+            Dependencies = dependencies
+                ?? throw new ArgumentNullException(nameof(dependencies));
         }
+
+        public ITypeReference Reference { get; }
 
         public TypeSystemObjectBase Type { get; }
 
@@ -26,7 +38,6 @@ namespace HotChocolate
             }
         }
 
-        public ICollection<TypeDependency> Dependencies { get; } =
-            new List<TypeDependency>();
+        public IReadOnlyList<TypeDependency> Dependencies { get; }
     }
 }

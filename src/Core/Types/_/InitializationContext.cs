@@ -47,7 +47,7 @@ namespace HotChocolate
 
         public IServiceProvider Services { get; }
 
-        public ICollection<TypeDependency> TypeDependencies =>
+        public IReadOnlyList<TypeDependency> TypeDependencies =>
             _typeDependencies;
 
         public ICollection<IDirectiveReference> DirectiveReferences =>

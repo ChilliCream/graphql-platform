@@ -3,17 +3,26 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
+using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate
 {
     internal class TypeInitializer
     {
+        private static readonly TypeInspector _typeInspector =
+            new TypeInspector();
         private readonly List<InitializationContext> _initContexts =
             new List<InitializationContext>();
+        private readonly Dictionary<RegisteredType, CompletionContext> _cmpCtx =
+            new Dictionary<RegisteredType, CompletionContext>();
         private readonly Dictionary<ITypeReference, RegisteredType> _types =
             new Dictionary<ITypeReference, RegisteredType>();
         private readonly Dictionary<ITypeReference, ITypeReference> _clrTypes =
             new Dictionary<ITypeReference, ITypeReference>();
+        private readonly Dictionary<NameString, ITypeReference> _named =
+            new Dictionary<NameString, ITypeReference>();
         private readonly Dictionary<FieldReference, RegisteredResolver> _res =
             new Dictionary<FieldReference, RegisteredResolver>();
         private readonly List<FieldMiddleware> _globalComps =
@@ -23,6 +32,7 @@ namespace HotChocolate
 
         private readonly IServiceProvider _services;
         private readonly List<ITypeReference> _initialTypes;
+        private Func<TypeSystemObjectBase, bool> _isQueryType;
 
         private bool RegisterTypes()
         {
@@ -60,5 +70,190 @@ namespace HotChocolate
 
         private void CompileResolvers() =>
             ResolverCompiler.Compile(_res);
+
+        private bool CompleteNames()
+        {
+            return CompleteTypes(TypeDependencyKind.Named, registeredType =>
+            {
+                InitializationContext initializationContext =
+                    _initContexts.First(t => t.Type == registeredType.Type);
+                var completionContext = new CompletionContext(
+                    initializationContext, _globalComps);
+                _cmpCtx[registeredType] = completionContext;
+
+                registeredType.Type.CompleteName(completionContext);
+
+                if (_named.ContainsKey(registeredType.Type.Name))
+                {
+                    // TODO : resources
+                    _errors.Add(SchemaErrorBuilder.New()
+                        .SetMessage("Duplicate name!")
+                        .SetTypeSystemObject(registeredType.Type)
+                        .Build());
+                    return false;
+                }
+
+                _named[registeredType.Type.Name] = registeredType.Reference;
+                return true;
+            });
+        }
+
+        private bool CompleteTypes()
+        {
+            return CompleteTypes(TypeDependencyKind.Completed, registeredType =>
+            {
+                CompletionContext context = _cmpCtx[registeredType];
+                context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
+                registeredType.Type.CompleteType(context);
+                return true;
+            });
+        }
+
+        private bool CompleteTypes(
+            TypeDependencyKind kind,
+            Func<RegisteredType, bool> action)
+        {
+            var processed = new HashSet<ITypeReference>();
+            var batch = new List<RegisteredType>(
+                GetInitialBatch(kind));
+
+            while (processed.Count < _types.Count && batch.Count > 0)
+            {
+                foreach (RegisteredType registeredType in batch)
+                {
+                    if (!action(registeredType))
+                    {
+                        return false;
+                    }
+                    processed.Add(registeredType.Reference);
+                }
+
+                batch.Clear();
+                batch.AddRange(GetNextBatch(processed, kind));
+            }
+
+            // TODO : resources
+            if (processed.Count < _types.Count)
+            {
+                _errors.Add(SchemaErrorBuilder.New()
+                    .SetMessage("Unable to resolve dependencies")
+                    .Build());
+                return false;
+            }
+
+            return _errors.Count == 0;
+        }
+
+        private IEnumerable<RegisteredType> GetInitialBatch(
+            TypeDependencyKind kind)
+        {
+            return _types.Values.Where(t =>
+                t.Dependencies.All(d => d.Kind != kind));
+        }
+
+        private IEnumerable<RegisteredType> GetNextBatch(
+            ISet<ITypeReference> processed,
+            TypeDependencyKind kind)
+        {
+            foreach (RegisteredType type in _types.Values)
+            {
+                if (!processed.Contains(type.Reference))
+                {
+                    IEnumerable<ITypeReference> references =
+                        type.Dependencies.Where(t => t.Kind == kind)
+                            .Select(t => t.TypeReference);
+
+                    if (TryNormalizeDependencies(
+                        type,
+                        references,
+                        out IReadOnlyList<ITypeReference> normalized))
+                    {
+                        yield return type;
+                    }
+                }
+            }
+        }
+
+
+        private bool TryNormalizeDependencies(
+            RegisteredType registeredType,
+            IEnumerable<ITypeReference> dependencies,
+            out IReadOnlyList<ITypeReference> normalized)
+        {
+            var n = new List<ITypeReference>();
+
+            foreach (ITypeReference reference in dependencies)
+            {
+                switch (reference)
+                {
+                    case IClrTypeReference r:
+                        if (!TryNormalizeClrDependency(
+                            r, out IClrTypeReference cnr))
+                        {
+                            normalized = null;
+                            return false;
+                        }
+                        n.Add(cnr);
+                        break;
+
+                    case ISchemaTypeReference r:
+                        var internalReference = new ClrTypeReference(
+                            r.Type.GetType(), r.Context);
+                        n.Add(internalReference);
+                        break;
+
+                    case ISyntaxTypeReference r:
+                        if (!_named.TryGetValue(
+                            r.Type.NamedType().Name.Value,
+                            out ITypeReference nr))
+                        {
+                            normalized = null;
+                            return false;
+                        }
+                        n.Add(nr);
+                        break;
+                }
+            }
+
+            normalized = n;
+            return true;
+        }
+
+        private bool TryNormalizeClrDependency(
+            IClrTypeReference typeReference,
+            out IClrTypeReference normalized)
+        {
+            if (!BaseTypes.IsNonGenericBaseType(typeReference.Type)
+                && _typeInspector.TryCreate(typeReference.Type,
+                    out TypeInfo typeInfo))
+            {
+                if (IsTypeSystemObject(typeInfo.ClrType))
+                {
+                    normalized = new ClrTypeReference(
+                        typeInfo.ClrType,
+                        typeReference.Context);
+                    return true;
+                }
+                else
+                {
+                    normalized = new ClrTypeReference(
+                        typeInfo.ClrType,
+                        typeReference.Context);
+
+                    if (_clrTypes.TryGetValue(normalized, out ITypeReference r)
+                        && r is IClrTypeReference cr)
+                    {
+                        normalized = cr;
+                        return true;
+                    }
+                }
+            }
+
+            normalized = null;
+            return false;
+        }
+
+        private static bool IsTypeSystemObject(Type type) =>
+            typeof(TypeSystemObjectBase).IsAssignableFrom(type);
     }
 }
