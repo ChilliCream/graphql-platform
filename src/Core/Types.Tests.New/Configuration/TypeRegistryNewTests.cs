@@ -32,12 +32,16 @@ namespace HotChocolate
                 t => Assert.Equal(typeof(Foo),
                     ((IHasClrType)t.Value.Type).ClrType),
                 t => Assert.Equal(typeof(Bar),
+                    ((IHasClrType)t.Value.Type).ClrType),
+                t => Assert.Equal(typeof(string),
                     ((IHasClrType)t.Value.Type).ClrType));
 
             Assert.True(typeRegistrar.ClrTypes.ContainsKey(
                 new ClrTypeReference(typeof(Foo), TypeContext.Output)));
             Assert.True(typeRegistrar.ClrTypes.ContainsKey(
                 new ClrTypeReference(typeof(Bar), TypeContext.Output)));
+            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
+                new ClrTypeReference(typeof(string), TypeContext.None)));
         }
 
         [Fact]
@@ -63,12 +67,16 @@ namespace HotChocolate
                 t => Assert.Equal(typeof(Foo),
                     ((IHasClrType)t.Value.Type).ClrType),
                 t => Assert.Equal(typeof(Bar),
+                    ((IHasClrType)t.Value.Type).ClrType),
+                t => Assert.Equal(typeof(string),
                     ((IHasClrType)t.Value.Type).ClrType));
 
             Assert.True(typeRegistrar.ClrTypes.ContainsKey(
                 new ClrTypeReference(typeof(Foo), TypeContext.Output)));
             Assert.True(typeRegistrar.ClrTypes.ContainsKey(
                 new ClrTypeReference(typeof(Bar), TypeContext.Output)));
+            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
+                new ClrTypeReference(typeof(string), TypeContext.None)));
         }
 
 

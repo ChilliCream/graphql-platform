@@ -12,7 +12,6 @@ namespace HotChocolate
     {
         private readonly TypeInspector _typeInspector = new TypeInspector();
         private readonly ServiceFactory _serviceFactory = new ServiceFactory();
-        private readonly DescriptorContext _descriptorContext;
         private readonly List<InitializationContext> _initContexts =
             new List<InitializationContext>();
         private readonly HashSet<InitializationContext> _handledContexts =
@@ -70,14 +69,16 @@ namespace HotChocolate
         {
             bool resolved = false;
 
-            foreach (IClrTypeReference unresolvedType in Unresolved)
+            foreach (IClrTypeReference unresolvedType in Unresolved.ToList())
             {
-                if (SchemaTypeResolver.TryInferSchemaType(
-                    unresolvedType,
-                    out IClrTypeReference schemaType))
+                if (Scalars.TryGetScalar(unresolvedType.Type,
+                    out IClrTypeReference schemaType)
+                    || SchemaTypeResolver.TryInferSchemaType(unresolvedType,
+                    out schemaType))
                 {
                     resolved = true;
                     _unregistered.Add(schemaType);
+                    Unresolved.Remove(unresolvedType);
                 }
             }
 
@@ -171,13 +172,26 @@ namespace HotChocolate
                         registeredType.ClrType,
                         typeContext);
 
-                    Unresolved.Remove(clrTypeRef);
+                    RemoveUnresolvedType(clrTypeRef);
 
                     if (!ClrTypes.ContainsKey(clrTypeRef))
                     {
                         ClrTypes.Add(clrTypeRef, internalReference);
                     }
                 }
+            }
+        }
+
+        private void RemoveUnresolvedType(IClrTypeReference clrTypeRef)
+        {
+            Unresolved.Remove(clrTypeRef);
+
+            if (clrTypeRef.Context == TypeContext.None)
+            {
+                Unresolved.Remove(new ClrTypeReference(
+                    clrTypeRef.Type, TypeContext.Input));
+                Unresolved.Remove(new ClrTypeReference(
+                    clrTypeRef.Type, TypeContext.Output));
             }
         }
 

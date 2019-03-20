@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -10,8 +11,12 @@ namespace HotChocolate.Types
     /// the leaves on these trees are GraphQL scalars.
     /// </summary>
     public abstract class ScalarType
-        : ILeafType
+        : TypeSystemObjectBase
+        , ILeafType
     {
+        private readonly Dictionary<string, object> _contextData =
+            new Dictionary<string, object>();
+
         /// <summary>
         /// Initializes a new instance of the
         /// <see cref="T:HotChocolate.Types.ScalarType"/> class.
@@ -28,20 +33,12 @@ namespace HotChocolate.Types
         public TypeKind Kind { get; } = TypeKind.Scalar;
 
         /// <summary>
-        /// Gets the GraphQL type name of this scalar.
-        /// </summary>
-        public NameString Name { get; }
-
-        /// <summary>
-        /// Gets the optional description of this scalar type.
-        /// </summary>
-        /// <value></value>
-        public virtual string Description { get; }
-
-        /// <summary>
         /// The .net type representation of this scalar.
         /// </summary>
         public abstract Type ClrType { get; }
+
+        public override IReadOnlyDictionary<string, object> ContextData =>
+            _contextData;
 
         /// <summary>
         /// Defines if the specified <paramref name="literal" />
@@ -162,5 +159,41 @@ namespace HotChocolate.Types
         /// </returns>
         public abstract bool TryDeserialize(
             object serialized, out object value);
+
+        internal sealed override void Initialize(IInitializationContext context)
+        {
+            OnRegisterDependencies(context, _contextData);
+            base.Initialize(context);
+        }
+
+        protected virtual void OnRegisterDependencies(
+            IInitializationContext context,
+            IDictionary<string, object> contextData)
+        {
+        }
+
+        internal sealed override void CompleteName(ICompletionContext context)
+        {
+            OnCompleteName(context, _contextData);
+            base.CompleteName(context);
+        }
+
+        protected virtual void OnCompleteName(
+            ICompletionContext context,
+            IDictionary<string, object> contextData)
+        {
+        }
+
+        internal sealed override void CompleteType(ICompletionContext context)
+        {
+            OnCompleteType(context, _contextData);
+            base.CompleteType(context);
+        }
+
+        protected virtual void OnCompleteType(
+            ICompletionContext context,
+            IDictionary<string, object> contextData)
+        {
+        }
     }
 }

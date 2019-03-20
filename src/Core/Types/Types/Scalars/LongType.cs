@@ -9,10 +9,8 @@ namespace HotChocolate.Types
         public LongType()
             : base("Long")
         {
+            Description = TypeResources.LongType_Description;
         }
-
-        public override string Description =>
-            TypeResources.LongType_Description;
 
         protected override bool TryParseValue(string s, out long value) =>
             long.TryParse(

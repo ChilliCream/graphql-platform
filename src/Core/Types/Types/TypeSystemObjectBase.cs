@@ -14,6 +14,9 @@ namespace HotChocolate.Types
 
         protected TypeSystemObjectBase() { }
 
+        /// <summary>
+        /// Gets the GraphQL type name.
+        /// </summary>
         public NameString Name
         {
             get => _name;
@@ -32,6 +35,9 @@ namespace HotChocolate.Types
             }
         }
 
+        /// <summary>
+        /// Gets the optional description of this scalar type.
+        /// </summary>
         public string Description
         {
             get => _description;

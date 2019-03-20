@@ -28,7 +28,8 @@ namespace HotChocolate.Types.Descriptors
                 clrType, TypeKind.Enum);
         }
 
-        protected override EnumTypeDefinition Definition { get; }
+        protected override EnumTypeDefinition Definition { get; } =
+            new EnumTypeDefinition();
 
         protected ICollection<EnumValueDescriptor> Values { get; } =
             new List<EnumValueDescriptor>();

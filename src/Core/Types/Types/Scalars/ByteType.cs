@@ -9,10 +9,8 @@ namespace HotChocolate.Types
         public ByteType()
             : base("Byte")
         {
+            Description = TypeResources.ByteType_Description;
         }
-
-        public override string Description =>
-            TypeResources.ByteType_Description;
 
         protected override bool TryParseValue(string s, out byte value) =>
             byte.TryParse(

@@ -45,7 +45,8 @@ namespace HotChocolate.Types.Descriptors
             Definition.ClrType = typeof(object);
         }
 
-        protected override InputObjectTypeDefinition Definition { get; }
+        protected override InputObjectTypeDefinition Definition { get; } =
+            new InputObjectTypeDefinition();
 
         protected List<InputFieldDescriptor> Fields { get; } =
             new List<InputFieldDescriptor>();
