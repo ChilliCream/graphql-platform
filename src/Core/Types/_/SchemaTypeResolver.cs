@@ -25,13 +25,13 @@ namespace HotChocolate
             {
                 schemaType = new ClrTypeReference(typeof(InputObjectType<>)
                     .MakeGenericType(unresolvedType.Type),
-                    TypeContext.Output);
+                    TypeContext.Input);
             }
             else if (IsEnumType(unresolvedType))
             {
                 schemaType = new ClrTypeReference(typeof(EnumType<>)
                     .MakeGenericType(unresolvedType.Type),
-                    TypeContext.Output);
+                    unresolvedType.Context);
             }
             else
             {
@@ -44,13 +44,15 @@ namespace HotChocolate
         private static bool IsObjectType(IClrTypeReference unresolvedType)
         {
             return IsComplexType(unresolvedType)
-                && unresolvedType.Context == TypeContext.Output;
+                && (unresolvedType.Context == TypeContext.Output
+                    || unresolvedType.Context == TypeContext.None);
         }
 
         private static bool IsInterfaceType(IClrTypeReference unresolvedType)
         {
             return unresolvedType.Type.IsInterface
-                && unresolvedType.Context == TypeContext.Output;
+                && (unresolvedType.Context == TypeContext.Output
+                    || unresolvedType.Context == TypeContext.None);
         }
 
         private static bool IsInputObjectType(IClrTypeReference unresolvedType)
