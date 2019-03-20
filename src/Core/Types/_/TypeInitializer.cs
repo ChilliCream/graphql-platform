@@ -184,42 +184,55 @@ namespace HotChocolate
 
             foreach (ITypeReference reference in dependencies)
             {
-                switch (reference)
+                if (!TryNormalizeReference(reference, out ITypeReference nr))
                 {
-                    case IClrTypeReference r:
-                        if (!TryNormalizeClrDependency(
-                            r, out IClrTypeReference cnr))
-                        {
-                            normalized = null;
-                            return false;
-                        }
-                        n.Add(cnr);
-                        break;
-
-                    case ISchemaTypeReference r:
-                        var internalReference = new ClrTypeReference(
-                            r.Type.GetType(), r.Context);
-                        n.Add(internalReference);
-                        break;
-
-                    case ISyntaxTypeReference r:
-                        if (!_named.TryGetValue(
-                            r.Type.NamedType().Name.Value,
-                            out ITypeReference nr))
-                        {
-                            normalized = null;
-                            return false;
-                        }
-                        n.Add(nr);
-                        break;
+                    normalized = null;
+                    return false;
                 }
+                n.Add(nr);
             }
 
             normalized = n;
             return true;
         }
 
-        private bool TryNormalizeClrDependency(
+        private bool TryNormalizeReference(
+            ITypeReference typeReference,
+            out ITypeReference normalized)
+        {
+            switch (typeReference)
+            {
+                case IClrTypeReference r:
+                    if (TryNormalizeClrReference(
+                        r, out IClrTypeReference cnr))
+                    {
+                        normalized = cnr;
+                        return true;
+                    }
+                    break;
+
+                case ISchemaTypeReference r:
+                    var internalReference = new ClrTypeReference(
+                        r.Type.GetType(), r.Context);
+                    normalized = internalReference;
+                    return true;
+
+                case ISyntaxTypeReference r:
+                    if (_named.TryGetValue(
+                        r.Type.NamedType().Name.Value,
+                        out ITypeReference nr))
+                    {
+                        normalized = nr;
+                        return true;
+                    }
+                    break;
+            }
+
+            normalized = null;
+            return false;
+        }
+
+        private bool TryNormalizeClrReference(
             IClrTypeReference typeReference,
             out IClrTypeReference normalized)
         {

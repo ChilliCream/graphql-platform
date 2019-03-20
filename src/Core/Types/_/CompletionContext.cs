@@ -47,33 +47,56 @@ namespace HotChocolate
         public bool TryGetType<T>(ITypeReference reference, out T type)
             where T : IType
         {
-            throw new NotImplementedException();
+
         }
 
         public DirectiveType GetDirectiveType(IDirectiveReference reference)
         {
+            if (Status == TypeStatus.Initialized)
+            {
+                throw new NotSupportedException();
+            }
+
             throw new NotImplementedException();
         }
 
         public IReadOnlyCollection<ObjectType> GetPossibleTypes()
         {
+            if (Status == TypeStatus.Initialized)
+            {
+                throw new NotSupportedException();
+            }
+
             throw new NotImplementedException();
         }
 
         public FieldResolver GetResolver(IFieldReference reference)
         {
+            if (Status == TypeStatus.Initialized)
+            {
+                throw new NotSupportedException();
+            }
+
             throw new NotImplementedException();
         }
 
         public Func<ISchema> GetSchemaResolver()
         {
+            if (Status == TypeStatus.Initialized)
+            {
+                throw new NotSupportedException();
+            }
+
             throw new NotImplementedException();
         }
 
-
-
         public IEnumerable<IType> GetTypes()
         {
+            if (Status == TypeStatus.Initialized)
+            {
+                throw new NotSupportedException();
+            }
+
             throw new NotImplementedException();
         }
 
