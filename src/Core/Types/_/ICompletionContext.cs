@@ -9,6 +9,10 @@ namespace HotChocolate
     public interface ICompletionContext
         : ITypeSystemObjectContext
     {
+        bool? IsQueryType { get; }
+
+        IReadOnlyList<FieldMiddleware> GlobalComponents { get; }
+
         bool TryGetType<T>(ITypeReference reference, out T type) where T : IType;
 
         T GetType<T>(ITypeReference reference) where T : IType;
@@ -18,8 +22,6 @@ namespace HotChocolate
         DirectiveType GetDirectiveType(IDirectiveReference reference);
 
         FieldResolver GetResolver(IFieldReference reference);
-
-        FieldDelegate GetCompiledMiddleware(IFieldReference reference);
 
         IReadOnlyCollection<ObjectType> GetPossibleTypes();
 

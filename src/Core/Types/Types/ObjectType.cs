@@ -73,43 +73,15 @@ namespace HotChocolate.Types
 
             foreach (ObjectFieldDefinition field in definition.Fields)
             {
-                if (TryCreateFieldReference(definition, field,
-                    out IFieldReference fieldReference))
+                if (field.Member != null)
                 {
                     context.RegisterResolver(
-                        fieldReference,
+                        field.Name,
+                        field.Member,
                         definition.ClrType,
                         field.ResolverType);
                 }
             }
-        }
-
-        public static bool TryCreateFieldReference(
-            ObjectTypeDefinition typeDefinition,
-            ObjectFieldDefinition fieldDefinition,
-            out IFieldReference fieldReference)
-        {
-            if (fieldDefinition.Resolver != null)
-            {
-                fieldReference = new FieldResolver(
-                    typeDefinition.Name,
-                    fieldDefinition.Name,
-                    fieldDefinition.Resolver);
-                return true;
-            }
-
-            if (fieldDefinition.Member != null)
-            {
-                // ? resolver type
-                fieldReference = new FieldMember(
-                    typeDefinition.Name,
-                    fieldDefinition.Name,
-                    fieldDefinition.Member);
-                return true;
-            }
-
-            fieldReference = null;
-            return false;
         }
 
         protected override void OnCompleteType(
@@ -120,12 +92,32 @@ namespace HotChocolate.Types
 
             _isOfType = definition.IsOfType;
             SyntaxNode = definition.SyntaxNode;
-            Fields = new FieldCollection<ObjectField>(
-               definition.Fields.Select(t => new ObjectField(t)));
+
+            var fields = new List<ObjectField>();
+            AddIntrospectionFields(context, fields);
+            fields.AddRange(definition.Fields.Select(t => new ObjectField(t)));
+
+            Fields = new FieldCollection<ObjectField>(fields);
 
             CompleteInterfaces(context, definition);
             FieldInitHelper.CompleteFields(context, definition, Fields);
             ValidateInterfaceImplementation(context);
+        }
+
+        private void AddIntrospectionFields(
+            ICompletionContext context,
+            ICollection<ObjectField> fields)
+        {
+            IDescriptorContext descriptorContext =
+                DescriptorContext.Create(context.Services);
+
+            if (context.IsQueryType ?? false)
+            {
+                fields.Add(new __SchemaField(descriptorContext));
+                fields.Add(new __TypeField(descriptorContext));
+            }
+
+            fields.Add(new __TypeNameField(descriptorContext));
         }
 
         private void CompleteInterfaces(

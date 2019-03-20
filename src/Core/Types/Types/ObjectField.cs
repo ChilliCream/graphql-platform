@@ -123,16 +123,27 @@ namespace HotChocolate.Types
             ICompletionContext context,
             ObjectFieldDefinition definition)
         {
-            var fieldReference = new FieldReference(
-                context.Type.Name, definition.Name);
+            bool isIntrospectionField = IsIntrospectionField
+                || DeclaringType.IsIntrospectionType();
 
-            FieldResolver fieldResolver = context.GetResolver(fieldReference);
-            Resolver = fieldResolver.Resolver;
+            Resolver = definition.Resolver;
 
-            if (!IsIntrospectionField && !DeclaringType.IsIntrospectionType())
+            if (!isIntrospectionField)
             {
-                Middleware = context.GetCompiledMiddleware(fieldReference);
+                var fieldReference = new FieldReference(
+                    context.Type.Name, definition.Name);
+                FieldResolver resolver = context.GetResolver(fieldReference);
+                if (resolver != null)
+                {
+                    Resolver = resolver.Resolver;
+                }
             }
+
+            Middleware = FieldMiddlewareCompiler.Compile(
+                context.GlobalComponents,
+                definition.MiddlewareComponents.ToArray(),
+                Resolver,
+                isIntrospectionField);
 
             if (Resolver == null && Middleware == null)
             {

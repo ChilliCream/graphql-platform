@@ -16,6 +16,7 @@ namespace HotChocolate
             new List<InitializationContext>();
         private readonly HashSet<InitializationContext> _handledContexts =
             new HashSet<InitializationContext>();
+        private readonly List<ISchemaError> _errors = new List<ISchemaError>();
         private readonly List<ITypeReference> _unregistered;
 
         public TypeRegistrar_new(
@@ -48,6 +49,8 @@ namespace HotChocolate
         public IDictionary<ITypeReference, ITypeReference> ClrTypes { get; } =
             new Dictionary<ITypeReference, ITypeReference>();
 
+        public ICollection<ISchemaError> Errors => _errors;
+
         public bool Complete()
         {
             const int max = 10000;
@@ -62,7 +65,12 @@ namespace HotChocolate
             }
             while (resolved && tries < max);
 
-            return Unresolved.Count == 0;
+            foreach (InitializationContext context in _initContexts)
+            {
+                _errors.AddRange(context.Errors);
+            }
+
+            return Unresolved.Count == 0 && _errors.Count == 0;
         }
 
         private void CompleteSchemaTypes()

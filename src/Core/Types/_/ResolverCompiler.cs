@@ -6,25 +6,19 @@ using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate
 {
-    internal sealed class ResolverCompiler
+    internal static class ResolverCompiler
     {
-        private Dictionary<FieldReference, RegisteredResolver> Resolvers
-        { get; } = new Dictionary<FieldReference, RegisteredResolver>();
-
-        public void AddResolvers(
+        public static void Compile(
             IDictionary<FieldReference, RegisteredResolver> resolvers)
         {
             if (resolvers == null)
             {
                 throw new ArgumentNullException(nameof(resolvers));
             }
-        }
 
-        public IDictionary<FieldReference, RegisteredResolver> Compile()
-        {
             var resolverBuilder = new ResolverBuilder();
 
-            foreach (RegisteredResolver resolver in Resolvers.Values.ToList())
+            foreach (RegisteredResolver resolver in resolvers.Values)
             {
                 if (resolver.Field is FieldMember member)
                 {
@@ -51,17 +45,13 @@ namespace HotChocolate
             foreach (FieldResolver resolver in result.Resolvers)
             {
                 FieldReference reference = resolver.ToFieldReference();
-                if (Resolvers.TryGetValue(reference,
+                if (resolvers.TryGetValue(reference,
                     out RegisteredResolver registered))
                 {
-                    Resolvers[reference] = new RegisteredResolver(
-                        registered.ResolverType,
-                        registered.SourceType,
-                        resolver);
+                    resolvers[reference] = registered.WithField(resolver);
                 }
             }
-
-            return Resolvers;
         }
     }
+
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 
@@ -19,12 +20,9 @@ namespace HotChocolate
         void RegisterDependency(IDirectiveReference reference);
 
         void RegisterResolver(
-            IFieldReference reference,
+            NameString fieldName,
+            MemberInfo member,
             Type sourceType,
             Type resolverType);
-
-        void RegisterMiddleware(
-            IFieldReference reference,
-            IEnumerable<FieldMiddleware> components);
     }
 }

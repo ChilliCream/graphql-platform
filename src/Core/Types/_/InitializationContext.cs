@@ -1,3 +1,4 @@
+using System.Reflection;
 using System;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
@@ -30,7 +31,11 @@ namespace HotChocolate
                 IsType = true;
                 IsIntrospectionType = nt.IsIntrospectionType();
             }
+
+            InternalName = "Type_" + Guid.NewGuid().ToString("N");
         }
+
+        public NameString InternalName { get; }
 
         public ITypeSystemObject Type { get; }
 
@@ -47,9 +52,6 @@ namespace HotChocolate
 
         public ICollection<IDirectiveReference> DirectiveReferences =>
             _directiveReferences;
-
-        public IDictionary<FieldReference, IList<FieldMiddleware>> Components
-        { get; } = new Dictionary<FieldReference, IList<FieldMiddleware>>();
 
         public IDictionary<FieldReference, RegisteredResolver> Resolvers
         { get; } = new Dictionary<FieldReference, RegisteredResolver>();
@@ -94,43 +96,15 @@ namespace HotChocolate
             _directiveReferences.Add(reference);
         }
 
-        public void RegisterMiddleware(
-            IFieldReference reference,
-            IEnumerable<FieldMiddleware> components)
-        {
-            if (reference == null)
-            {
-                throw new ArgumentNullException(nameof(reference));
-            }
-
-            if (components == null)
-            {
-                throw new ArgumentNullException(nameof(components));
-            }
-
-            FieldReference normalized = Normalize(reference);
-
-            if (!Components.TryGetValue(normalized,
-                out IList<FieldMiddleware> comps))
-            {
-                comps = new List<FieldMiddleware>();
-                Components[normalized] = comps;
-            }
-
-            foreach (FieldMiddleware component in components)
-            {
-                comps.Add(component);
-            }
-        }
-
         public void RegisterResolver(
-            IFieldReference reference,
+            NameString fieldName,
+            MemberInfo member,
             Type sourceType,
             Type resolverType)
         {
-            if (reference == null)
+            if (member == null)
             {
-                throw new ArgumentNullException(nameof(reference));
+                throw new ArgumentNullException(nameof(member));
             }
 
             if (sourceType == null)
@@ -138,9 +112,13 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(sourceType));
             }
 
-            Resolvers[Normalize(reference)] = resolverType == null
-                ? new RegisteredResolver(sourceType, reference)
-                : new RegisteredResolver(resolverType, sourceType, reference);
+            fieldName.EnsureNotEmpty(nameof(fieldName));
+
+            var fieldMember = new FieldMember(InternalName, fieldName, member);
+
+            Resolvers[fieldMember.ToFieldReference()] = resolverType == null
+                ? new RegisteredResolver(sourceType, fieldMember)
+                : new RegisteredResolver(resolverType, sourceType, fieldMember);
         }
 
         public void ReportError(ISchemaError error)

@@ -26,8 +26,23 @@ namespace HotChocolate
         }
 
         public Type ResolverType { get; }
+
         public Type SourceType { get; }
+
         public IFieldReference Field { get; }
+
         public bool IsSourceResolver => ResolverType == SourceType;
+
+        public RegisteredResolver WithField(IFieldReference field)
+        {
+            if (field == null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            return new RegisteredResolver(
+                ResolverType, SourceType,
+                field);
+        }
     }
 }
