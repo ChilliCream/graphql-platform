@@ -21,12 +21,12 @@ namespace HotChocolate
         private readonly List<ITypeReference> _unregistered;
 
         public TypeRegistrar_new(
-            IEnumerable<ITypeReference> types,
-            IServiceProvider services)
+            IServiceProvider services,
+            IEnumerable<ITypeReference> initialTypes)
         {
-            if (types == null)
+            if (initialTypes == null)
             {
-                throw new ArgumentNullException(nameof(types));
+                throw new ArgumentNullException(nameof(initialTypes));
             }
 
             if (services == null)
@@ -34,7 +34,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(services));
             }
 
-            _unregistered = types.ToList();
+            _unregistered = initialTypes.ToList();
             _serviceFactory.Services = services;
         }
 

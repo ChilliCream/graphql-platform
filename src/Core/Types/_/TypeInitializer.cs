@@ -23,6 +23,8 @@ namespace HotChocolate
             new Dictionary<ITypeReference, ITypeReference>();
         private readonly Dictionary<NameString, ITypeReference> _named =
             new Dictionary<NameString, ITypeReference>();
+        private readonly Dictionary<ITypeReference, ITypeReference> _depsLup =
+            new Dictionary<ITypeReference, ITypeReference>();
         private readonly Dictionary<FieldReference, RegisteredResolver> _res =
             new Dictionary<FieldReference, RegisteredResolver>();
         private readonly List<FieldMiddleware> _globalComps =
@@ -32,7 +34,24 @@ namespace HotChocolate
 
         private readonly IServiceProvider _services;
         private readonly List<ITypeReference> _initialTypes;
-        private Func<TypeSystemObjectBase, bool> _isQueryType;
+        private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
+
+        public TypeInitializer(
+            IServiceProvider services,
+            IEnumerable<ITypeReference> initialTypes,
+            Func<TypeSystemObjectBase, bool> isQueryType)
+        {
+            if (initialTypes == null)
+            {
+                throw new ArgumentNullException(nameof(initialTypes));
+            }
+
+            _services = services
+                ?? throw new ArgumentNullException(nameof(services));
+            _isQueryType = isQueryType
+                ?? throw new ArgumentNullException(nameof(isQueryType));
+            _initialTypes = initialTypes.ToList();
+        }
 
         private bool RegisterTypes()
         {
@@ -73,29 +92,51 @@ namespace HotChocolate
 
         private bool CompleteNames()
         {
-            return CompleteTypes(TypeDependencyKind.Named, registeredType =>
-            {
-                InitializationContext initializationContext =
-                    _initContexts.First(t => t.Type == registeredType.Type);
-                var completionContext = new CompletionContext(
-                    initializationContext, _globalComps);
-                _cmpCtx[registeredType] = completionContext;
-
-                registeredType.Type.CompleteName(completionContext);
-
-                if (_named.ContainsKey(registeredType.Type.Name))
+            bool success = CompleteTypes(TypeDependencyKind.Named,
+                registeredType =>
                 {
-                    // TODO : resources
-                    _errors.Add(SchemaErrorBuilder.New()
-                        .SetMessage("Duplicate name!")
-                        .SetTypeSystemObject(registeredType.Type)
-                        .Build());
-                    return false;
-                }
+                    InitializationContext initializationContext =
+                        _initContexts.First(t =>
+                            t.Type == registeredType.Type);
+                    var completionContext = new CompletionContext(
+                        initializationContext, _globalComps,
+                        _depsLup, _types);
+                    _cmpCtx[registeredType] = completionContext;
 
-                _named[registeredType.Type.Name] = registeredType.Reference;
-                return true;
-            });
+                    registeredType.Type.CompleteName(completionContext);
+
+                    if (_named.ContainsKey(registeredType.Type.Name))
+                    {
+                        // TODO : resources
+                        _errors.Add(SchemaErrorBuilder.New()
+                            .SetMessage("Duplicate name!")
+                            .SetTypeSystemObject(registeredType.Type)
+                            .Build());
+                        return false;
+                    }
+
+                    _named[registeredType.Type.Name] = registeredType.Reference;
+                    return true;
+                });
+
+            if (success)
+            {
+                UpdateDependencyLookup();
+            }
+
+            return success;
+        }
+
+        private void UpdateDependencyLookup()
+        {
+            foreach (RegisteredType registeredType in _types.Values)
+            {
+                TryNormalizeDependencies(
+                    registeredType,
+                    registeredType.Dependencies
+                        .Select(t => t.TypeReference),
+                    out _);
+            }
         }
 
         private bool CompleteTypes()
@@ -174,7 +215,6 @@ namespace HotChocolate
             }
         }
 
-
         private bool TryNormalizeDependencies(
             RegisteredType registeredType,
             IEnumerable<ITypeReference> dependencies,
@@ -184,11 +224,13 @@ namespace HotChocolate
 
             foreach (ITypeReference reference in dependencies)
             {
-                if (!TryNormalizeReference(reference, out ITypeReference nr))
+                if (!_depsLup.TryGetValue(reference, out ITypeReference nr)
+                    && !TryNormalizeReference(reference, out nr))
                 {
                     normalized = null;
                     return false;
                 }
+                _depsLup[reference] = nr;
                 n.Add(nr);
             }
 
