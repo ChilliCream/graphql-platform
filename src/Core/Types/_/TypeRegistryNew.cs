@@ -36,6 +36,9 @@ namespace HotChocolate
             _serviceFactory.Services = services;
         }
 
+        public ICollection<InitializationContext> InitializationContexts =>
+            _initContexts;
+
         public ICollection<IClrTypeReference> Unresolved { get; } =
             new List<IClrTypeReference>();
 
@@ -45,15 +48,21 @@ namespace HotChocolate
         public IDictionary<ITypeReference, ITypeReference> ClrTypes { get; } =
             new Dictionary<ITypeReference, ITypeReference>();
 
-        public void Complete()
+        public bool Complete()
         {
+            const int max = 10000;
+            int tries = 0;
             bool resolved = false;
+
             do
             {
+                tries++;
                 CompleteSchemaTypes();
                 resolved = InferSchemaTypesFromUnresolved();
             }
-            while (resolved);
+            while (resolved && tries < max);
+
+            return Unresolved.Count == 0;
         }
 
         private void CompleteSchemaTypes()

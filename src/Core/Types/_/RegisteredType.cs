@@ -1,30 +1,9 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate
 {
-
-
-    internal sealed class TypeDependency
-    {
-        public TypeDependency(
-            ITypeReference typeReference,
-            TypeDependencyKind kind)
-        {
-            TypeReference = typeReference
-                ?? throw new ArgumentNullException(nameof(typeReference));
-            Kind = kind;
-        }
-
-        public TypeDependencyKind Kind { get; }
-
-        public ITypeReference TypeReference { get; }
-    }
-
-
     internal sealed class RegisteredType
         : IHasClrType
     {
@@ -50,5 +29,4 @@ namespace HotChocolate
         public ICollection<TypeDependency> Dependencies { get; } =
             new List<TypeDependency>();
     }
-
 }
