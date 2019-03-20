@@ -7,7 +7,7 @@ using Xunit;
 
 namespace HotChocolate
 {
-    public class TypeRegistrarTests
+    public class TypeInitializerTests
     {
         [Fact]
         public void Register_SchemaType_ClrTypeExists()
@@ -20,27 +20,22 @@ namespace HotChocolate
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var typeRegistrar = new TypeRegistrar_new(
-                serviceProvider, initialTypes);
+            var typeInitializer = new TypeInitializer(
+                serviceProvider,
+                initialTypes,
+                t => t is FooType);
 
             // act
-            typeRegistrar.Complete();
+            typeInitializer.Initialize();
 
             // assert
-            Assert.Collection(typeRegistrar.Registerd,
+            Assert.Collection(typeInitializer.Types,
                 t => Assert.Equal(typeof(Foo),
                     ((IHasClrType)t.Value.Type).ClrType),
                 t => Assert.Equal(typeof(Bar),
                     ((IHasClrType)t.Value.Type).ClrType),
                 t => Assert.Equal(typeof(string),
                     ((IHasClrType)t.Value.Type).ClrType));
-
-            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
-                new ClrTypeReference(typeof(Foo), TypeContext.Output)));
-            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
-                new ClrTypeReference(typeof(Bar), TypeContext.Output)));
-            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
-                new ClrTypeReference(typeof(string), TypeContext.None)));
         }
 
         [Fact]
@@ -54,27 +49,22 @@ namespace HotChocolate
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var typeRegistrar = new TypeRegistrar_new(
-                serviceProvider, initialTypes);
+            var typeInitializer = new TypeInitializer(
+                serviceProvider,
+                initialTypes,
+                t => t is ObjectType<Foo>);
 
             // act
-            typeRegistrar.Complete();
+            typeInitializer.Initialize();
 
             // assert
-            Assert.Collection(typeRegistrar.Registerd,
+            Assert.Collection(typeInitializer.Types,
                 t => Assert.Equal(typeof(Foo),
                     ((IHasClrType)t.Value.Type).ClrType),
                 t => Assert.Equal(typeof(Bar),
                     ((IHasClrType)t.Value.Type).ClrType),
                 t => Assert.Equal(typeof(string),
                     ((IHasClrType)t.Value.Type).ClrType));
-
-            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
-                new ClrTypeReference(typeof(Foo), TypeContext.Output)));
-            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
-                new ClrTypeReference(typeof(Bar), TypeContext.Output)));
-            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
-                new ClrTypeReference(typeof(string), TypeContext.None)));
         }
 
 

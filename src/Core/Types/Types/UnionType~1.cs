@@ -31,13 +31,12 @@ namespace HotChocolate.Types
 
             if (markerType != typeof(object))
             {
-                foreach (IType type in context.GetTypes())
+                foreach (ObjectType type in context.GetTypes<ObjectType>())
                 {
-                    if (type is ObjectType objectType
-                        && objectType.ClrType != typeof(object)
-                        && markerType.IsAssignableFrom(objectType.ClrType))
+                    if (type.ClrType != typeof(object)
+                        && markerType.IsAssignableFrom(type.ClrType))
                     {
-                        typeSet.Add(objectType);
+                        typeSet.Add(type);
                     }
                 }
             }

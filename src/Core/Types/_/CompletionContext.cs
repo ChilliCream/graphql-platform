@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -10,25 +11,20 @@ namespace HotChocolate
         : ICompletionContext
     {
         private readonly InitializationContext _initializationContext;
+        private readonly TypeInitializer _typeInitializer;
         private readonly Dictionary<ITypeReference, TypeDependencyKind> _deps =
             new Dictionary<ITypeReference, TypeDependencyKind>();
-        private readonly IDictionary<ITypeReference, ITypeReference> _depsLup;
-        private readonly IDictionary<ITypeReference, RegisteredType> _types;
 
         public CompletionContext(
             InitializationContext initializationContext,
-            IReadOnlyList<FieldMiddleware> globalComponents,
-            IDictionary<ITypeReference, ITypeReference> dependencyLookup,
-            IDictionary<ITypeReference, RegisteredType> types)
+            TypeInitializer typeInitializer)
         {
             _initializationContext = initializationContext
-                ?? throw new ArgumentNullException(nameof(initializationContext));
-            GlobalComponents = globalComponents
-                ?? throw new ArgumentNullException(nameof(globalComponents));
-            _depsLup = dependencyLookup
-                ?? throw new ArgumentNullException(nameof(dependencyLookup));
-            _types = types
-                ?? throw new ArgumentNullException(nameof(types));
+                ?? throw new ArgumentNullException(
+                    nameof(initializationContext));
+            _typeInitializer = typeInitializer
+                ?? throw new ArgumentNullException(
+                    nameof(typeInitializer));
 
             foreach (TypeDependency dependency in
                 _initializationContext.TypeDependencies)
@@ -40,7 +36,7 @@ namespace HotChocolate
             }
         }
 
-        public TypeStatus Status { get; } = TypeStatus.Initialized;
+        public TypeStatus Status { get; set; } = TypeStatus.Initialized;
 
         public bool? IsQueryType { get; set; }
 
@@ -88,8 +84,10 @@ namespace HotChocolate
                         "This dependency is registered for the completed stage!");
                 }
 
-                if (_depsLup.TryGetValue(reference, out ITypeReference nr)
-                    && _types.TryGetValue(nr, out RegisteredType rt)
+                if (_typeInitializer.DependencyLookup.TryGetValue(
+                    reference, out ITypeReference nr)
+                    && _typeInitializer.Types.TryGetValue(
+                        nr, out RegisteredType rt)
                     && rt.Type is T t)
                 {
                     type = t;
@@ -111,16 +109,6 @@ namespace HotChocolate
             throw new NotImplementedException();
         }
 
-        public IReadOnlyCollection<ObjectType> GetPossibleTypes()
-        {
-            if (Status == TypeStatus.Initialized)
-            {
-                throw new NotSupportedException();
-            }
-
-            throw new NotImplementedException();
-        }
-
         public FieldResolver GetResolver(IFieldReference reference)
         {
             if (Status == TypeStatus.Initialized)
@@ -128,7 +116,20 @@ namespace HotChocolate
                 throw new NotSupportedException();
             }
 
-            throw new NotImplementedException();
+            if ((_typeInitializer.Resolvers.TryGetValue(
+                new FieldReference(reference.TypeName, reference.FieldName),
+                out RegisteredResolver resolver)
+                || _typeInitializer.Resolvers.TryGetValue(
+                new FieldReference(
+                    _initializationContext.InternalName,
+                    reference.FieldName),
+                out resolver))
+                && resolver.Field is FieldResolver res)
+            {
+                return res;
+            }
+
+            return null;
         }
 
         public Func<ISchema> GetSchemaResolver()
@@ -141,18 +142,25 @@ namespace HotChocolate
             throw new NotImplementedException();
         }
 
-        public IEnumerable<IType> GetTypes()
+        public IEnumerable<T> GetTypes<T>()
+            where T : IType
         {
             if (Status == TypeStatus.Initialized)
             {
                 throw new NotSupportedException();
             }
 
-            throw new NotImplementedException();
+            return _typeInitializer.Types.Values
+                .Select(t => t.Type).OfType<T>();
         }
 
         public void ReportError(ISchemaError error)
         {
+            if (error == null)
+            {
+                throw new ArgumentNullException(nameof(error));
+            }
+
             _initializationContext.ReportError(error);
         }
     }

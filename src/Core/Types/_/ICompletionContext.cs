@@ -17,13 +17,11 @@ namespace HotChocolate
 
         T GetType<T>(ITypeReference reference) where T : IType;
 
-        IEnumerable<IType> GetTypes();
+        IEnumerable<T> GetTypes<T>() where T : IType;
 
         DirectiveType GetDirectiveType(IDirectiveReference reference);
 
         FieldResolver GetResolver(IFieldReference reference);
-
-        IReadOnlyCollection<ObjectType> GetPossibleTypes();
 
         Func<ISchema> GetSchemaResolver();
     }

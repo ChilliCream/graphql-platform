@@ -53,9 +53,27 @@ namespace HotChocolate
             _initialTypes = initialTypes.ToList();
         }
 
+        public IList<FieldMiddleware> GlobalComponents => _globalComps;
+
+        public IDictionary<ITypeReference, ITypeReference> DependencyLookup =>
+            _depsLup;
+
+        public IDictionary<ITypeReference, RegisteredType> Types => _types;
+
+        public IDictionary<FieldReference, RegisteredResolver> Resolvers =>
+            _res;
+
+        public void Initialize()
+        {
+            RegisterTypes();
+            CompileResolvers();
+            CompleteNames();
+            CompleteTypes();
+        }
+
         private bool RegisterTypes()
         {
-            var typeRegistrar = new TypeRegistrar_new(_initialTypes, _services);
+            var typeRegistrar = new TypeRegistrar_new(_services, _initialTypes);
             if (typeRegistrar.Complete())
             {
                 foreach (InitializationContext context in
@@ -99,8 +117,7 @@ namespace HotChocolate
                         _initContexts.First(t =>
                             t.Type == registeredType.Type);
                     var completionContext = new CompletionContext(
-                        initializationContext, _globalComps,
-                        _depsLup, _types);
+                        initializationContext, this);
                     _cmpCtx[registeredType] = completionContext;
 
                     registeredType.Type.CompleteName(completionContext);
@@ -144,6 +161,7 @@ namespace HotChocolate
             return CompleteTypes(TypeDependencyKind.Completed, registeredType =>
             {
                 CompletionContext context = _cmpCtx[registeredType];
+                context.Status = TypeStatus.Named;
                 context.IsQueryType = _isQueryType.Invoke(registeredType.Type);
                 registeredType.Type.CompleteType(context);
                 return true;
