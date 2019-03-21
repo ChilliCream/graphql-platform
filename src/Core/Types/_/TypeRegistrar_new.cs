@@ -6,6 +6,7 @@ using HotChocolate.Runtime;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
+using HotChocolate.Types.Introspection;
 
 namespace HotChocolate
 {
@@ -18,7 +19,8 @@ namespace HotChocolate
         private readonly HashSet<InitializationContext> _handledContexts =
             new HashSet<InitializationContext>();
         private readonly List<ISchemaError> _errors = new List<ISchemaError>();
-        private readonly List<ITypeReference> _unregistered;
+        private readonly List<ITypeReference> _unregistered =
+            new List<ITypeReference>();
 
         public TypeRegistrar_new(
             IServiceProvider services,
@@ -34,7 +36,8 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(services));
             }
 
-            _unregistered = initialTypes.ToList();
+            _unregistered.AddRange(IntrospectionTypes.All);
+            _unregistered.AddRange(initialTypes);
             _serviceFactory.Services = services;
         }
 

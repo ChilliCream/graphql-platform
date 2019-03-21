@@ -151,13 +151,23 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(fieldResolver));
             }
 
-            Resolver(fieldResolver, resultType);
+            Definition.Resolver = fieldResolver;
+
+            if (resultType != null)
+            {
+                Definition.SetMoreSpecificType(resultType, TypeContext.Output);
+            }
             return this;
         }
 
         public IObjectFieldDescriptor Use(FieldMiddleware middleware)
         {
-            Use(middleware);
+            if (middleware == null)
+            {
+                throw new ArgumentNullException(nameof(middleware));
+            }
+
+            Definition.MiddlewareComponents.Add(middleware);
             return this;
         }
 

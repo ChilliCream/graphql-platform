@@ -20,7 +20,8 @@ namespace HotChocolate.Types.Descriptors
             Definition.Value = value;
         }
 
-        protected override EnumValueDefinition Definition { get; }
+        protected override EnumValueDefinition Definition { get; } =
+            new EnumValueDefinition();
 
         public IEnumValueDescriptor SyntaxNode(
             EnumValueDefinitionNode enumValueDefinition)
