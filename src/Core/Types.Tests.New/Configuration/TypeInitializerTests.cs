@@ -1,8 +1,10 @@
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using Moq;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate
@@ -29,13 +31,15 @@ namespace HotChocolate
             typeInitializer.Initialize();
 
             // assert
-            Assert.Collection(typeInitializer.Types,
-                t => Assert.Equal(typeof(Foo),
-                    ((IHasClrType)t.Value.Type).ClrType),
-                t => Assert.Equal(typeof(Bar),
-                    ((IHasClrType)t.Value.Type).ClrType),
-                t => Assert.Equal(typeof(string),
-                    ((IHasClrType)t.Value.Type).ClrType));
+            bool exists = typeInitializer.Types.TryGetValue(
+                new ClrTypeReference(typeof(FooType), TypeContext.Output),
+                out RegisteredType type);
+
+            Assert.True(exists);
+            Assert.IsType<FooType>(type.Type).Fields.ToDictionary(
+                t => t.Name.ToString(),
+                t => TypeVisualizer.Visualize(t.Type))
+                .MatchSnapshot();
         }
 
         [Fact]
@@ -58,13 +62,17 @@ namespace HotChocolate
             typeInitializer.Initialize();
 
             // assert
-            Assert.Collection(typeInitializer.Types,
-                t => Assert.Equal(typeof(Foo),
-                    ((IHasClrType)t.Value.Type).ClrType),
-                t => Assert.Equal(typeof(Bar),
-                    ((IHasClrType)t.Value.Type).ClrType),
-                t => Assert.Equal(typeof(string),
-                    ((IHasClrType)t.Value.Type).ClrType));
+            bool exists = typeInitializer.Types.TryGetValue(
+                new ClrTypeReference(
+                    typeof(ObjectType<Foo>),
+                    TypeContext.Output),
+                out RegisteredType type);
+
+            Assert.True(exists);
+            Assert.IsType<ObjectType<Foo>>(type.Type).Fields.ToDictionary(
+                t => t.Name.ToString(),
+                t => TypeVisualizer.Visualize(t.Type))
+                .MatchSnapshot();
         }
 
 

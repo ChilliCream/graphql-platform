@@ -19,6 +19,9 @@ namespace HotChocolate
 
         void RegisterDependency(IDirectiveReference reference);
 
+        void RegisterDependencyRange(
+            IEnumerable<IDirectiveReference> references);
+
         void RegisterResolver(
             NameString fieldName,
             MemberInfo member,

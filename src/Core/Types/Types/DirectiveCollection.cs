@@ -13,18 +13,21 @@ namespace HotChocolate.Types
         private readonly object _source;
         private readonly List<IDirective> _directives = new List<IDirective>();
         private readonly DirectiveLocation _location;
-        private IReadOnlyCollection<DirectiveDefinition> _definitions;
+        private List<DirectiveDefinition> _definitions;
         private ILookup<NameString, IDirective> _lookup;
 
         public DirectiveCollection(
             object source,
-            IReadOnlyCollection<DirectiveDefinition> directiveDefinitions)
+            IEnumerable<DirectiveDefinition> directiveDefinitions)
         {
+            if (directiveDefinitions == null)
+            {
+                throw new ArgumentNullException(nameof(directiveDefinitions));
+            }
+
             _source = source
                 ?? throw new ArgumentNullException(nameof(source));
-            _definitions = directiveDefinitions
-                ?? throw new ArgumentNullException(
-                    nameof(directiveDefinitions));
+            _definitions = directiveDefinitions.ToList();
             _location = DirectiveHelper.InferDirectiveLocation(source);
         }
 
@@ -52,11 +55,8 @@ namespace HotChocolate.Types
             DirectiveDefinition definition,
             ISet<string> processed)
         {
-            IDirectiveReference reference =
-                DirectiveReference.FromDescription(definition);
-
             DirectiveType directiveType =
-                context.GetDirectiveType(reference);
+                context.GetDirectiveType(definition.Reference);
 
             if (directiveType != null)
             {

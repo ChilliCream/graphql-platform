@@ -96,6 +96,17 @@ namespace HotChocolate
             _directiveReferences.Add(reference);
         }
 
+        public void RegisterDependencyRange(
+            IEnumerable<IDirectiveReference> references)
+        {
+            if (references == null)
+            {
+                throw new ArgumentNullException(nameof(references));
+            }
+
+            _directiveReferences.AddRange(references);
+        }
+
         public void RegisterResolver(
             NameString fieldName,
             MemberInfo member,

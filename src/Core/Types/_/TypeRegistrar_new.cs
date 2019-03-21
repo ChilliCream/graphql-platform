@@ -37,6 +37,7 @@ namespace HotChocolate
             }
 
             _unregistered.AddRange(IntrospectionTypes.All);
+            _unregistered.AddRange(BuiltInDirectives.All);
             _unregistered.AddRange(initialTypes);
             _serviceFactory.Services = services;
         }
