@@ -21,6 +21,10 @@ namespace HotChocolate.Execution.Instrumentation
         public const string StartValidation = Validation + _startPrefix;
         public const string StopValidation = Validation + _stopPrefix;
 
+        public const string Operation = Listener + ".Operation";
+        public const string StartOperation = Operation + _startPrefix;
+        public const string StopOperation = Operation + _stopPrefix;
+
         public const string Resolver = Listener + ".Resolver";
         public const string ResolverError = Resolver + ".Error";
         public const string StartResolver = Resolver + _startPrefix;
