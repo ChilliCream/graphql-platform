@@ -6,14 +6,18 @@ namespace HotChocolate.Types.Descriptors
         : TypeReferenceBase
         , ISchemaTypeReference
     {
-        public SchemaTypeReference(IType type)
+        public SchemaTypeReference(ITypeSystemObject type)
             : this(type, null, null)
         {
         }
 
         public SchemaTypeReference(
-            IType type, bool? isTypeNullable, bool? isElementTypeNullable)
-            : base(InferTypeContext(type), isTypeNullable, isElementTypeNullable)
+            ITypeSystemObject type,
+            bool? isTypeNullable,
+            bool? isElementTypeNullable)
+            : base(InferTypeContext(type),
+                isTypeNullable,
+                isElementTypeNullable)
         {
             if (type == null)
             {
@@ -23,7 +27,7 @@ namespace HotChocolate.Types.Descriptors
             Type = type;
         }
 
-        public IType Type { get; }
+        public ITypeSystemObject Type { get; }
 
         public ISyntaxTypeReference Compile()
         {
@@ -42,10 +46,15 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            return Type.IsEqualTo(other.Type)
-                && Context == other.Context
-                && IsTypeNullable.Equals(other.IsTypeNullable)
-                && IsElementTypeNullable.Equals(other.IsElementTypeNullable);
+            if (Type == other.Type
+                || (Type is IType a && other.Type is IType b && a.IsEqualTo(b)))
+            {
+                return Context == other.Context
+                    && IsTypeNullable.Equals(other.IsTypeNullable)
+                    && IsElementTypeNullable.Equals(other.IsElementTypeNullable);
+            }
+
+            return false;
         }
 
         public bool Equals(ISchemaTypeReference other)
@@ -60,10 +69,15 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            return Type.IsEqualTo(other.Type)
-                && Context == other.Context
-                && IsTypeNullable.Equals(other.IsTypeNullable)
-                && IsElementTypeNullable.Equals(other.IsElementTypeNullable);
+            if (Type == other.Type
+                || (Type is IType a && other.Type is IType b && a.IsEqualTo(b)))
+            {
+                return Context == other.Context
+                    && IsTypeNullable.Equals(other.IsTypeNullable)
+                    && IsElementTypeNullable.Equals(other.IsElementTypeNullable);
+            }
+
+            return false;
         }
 
         public override bool Equals(object obj)
@@ -108,30 +122,41 @@ namespace HotChocolate.Types.Descriptors
             return $"{Context}: {Type}";
         }
 
-        public static TypeContext InferTypeContext(IType type)
+        public static TypeContext InferTypeContext(ITypeSystemObject type)
         {
-            INamedType namedType = type.NamedType();
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
 
-            if (namedType.IsInputType() && namedType.IsOutputType())
+            if (type is IType t)
             {
-                return TypeContext.None;
+                INamedType namedType = t.NamedType();
+
+                if (namedType.IsInputType() && namedType.IsOutputType())
+                {
+                    return TypeContext.None;
+                }
+                else if (namedType.IsOutputType())
+                {
+                    return TypeContext.Output;
+                }
+                else if (namedType.IsInputType())
+                {
+                    return TypeContext.Input;
+                }
             }
-            else if (namedType.IsOutputType())
-            {
-                return TypeContext.Output;
-            }
-            else if (namedType.IsInputType())
-            {
-                return TypeContext.Input;
-            }
-            else
-            {
-                return TypeContext.None;
-            }
+
+            return TypeContext.None;
         }
 
         public static TypeContext InferTypeContext(Type type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (typeof(IInputType).IsAssignableFrom(type)
                 && typeof(IOutputType).IsAssignableFrom(type))
             {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace HotChocolate
 {

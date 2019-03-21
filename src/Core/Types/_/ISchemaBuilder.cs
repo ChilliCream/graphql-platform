@@ -1,98 +1,49 @@
-﻿using System;
-using System.Reflection;
+using System;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate
 {
-    public delegate DocumentNode LoadSchemaDocument(IServiceProvider services);
-
-    public delegate INamedType CreateNamedType(IServiceProvider services);
-
-
-    public interface ITypeSystemObject
-        : Types.IHasName
-        , Types.IHasDescription
-        , Types.IHasContextData
-    {
-    }
-
-    public enum TypeDependencyKind
-    {
-        /// <summary>
-        /// The dependency instance does not be completed.
-        /// </summary>
-        Default,
-
-        /// <summary>
-        /// The dependency instance needs to have it`s name completed.
-        /// </summary>
-        Named,
-
-        /// <summary>
-        /// The dependency instance needs to be fully completed.
-        /// </summary>
-        Completed
-    }
-
-
-    // TODO : work in progress new schmea builder interface
     public interface ISchemaBuilder
     {
+        ISchemaBuilder SetDescription(string description);
+
+        ISchemaBuilder SetOptions(IReadOnlySchemaOptions options);
+
+        ISchemaBuilder AddDirective<T>(T directiveInstance)
+            where T : class;
+
+        ISchemaBuilder AddDirective<T>()
+            where T : class, new();
+        ISchemaBuilder AddDirective(
+            NameString name,
+            params ArgumentNode[] arguments);
+
         ISchemaBuilder Use(FieldMiddleware middleware);
 
         ISchemaBuilder AddDocument(
             LoadSchemaDocument loadSchemaDocument);
 
-        // ISchemaBuilder AddType(Type type);
+        ISchemaBuilder AddType(Type type);
 
-        // ISchemaBuilder AddRootType(Type type, OperationType operation);
-
-        ISchemaBuilder AddType(
-            CreateNamedType createNamedType);
+        ISchemaBuilder AddType(ITypeSystemObject type);
 
         ISchemaBuilder AddRootType(
-            CreateNamedType createNamedType,
+            Type type,
             OperationType operation);
 
-        ISchemaBuilder AddResolver(IFieldReference fieldReference);
+        ISchemaBuilder AddRootType(
+            ObjectType type,
+            OperationType operation);
 
-        ISchemaBuilder AddBinding(object binding);
+        ISchemaBuilder AddResolver(FieldResolver fieldResolver);
+
+        // ISchemaBuilder AddBinding(object binding);
 
         ISchemaBuilder AddServices(IServiceProvider services);
 
         ISchema Create();
-    }
-
-
-
-
-    internal static class SchemaBuilderExtensions
-    {
-        public static ISchemaBuilder AddQueryType(
-            this ISchemaBuilder builder,
-            Type type)
-        {
-            return builder;
-            // return builder.AddRootType(type, OperationType.Query);
-        }
-
-        public static ISchemaBuilder AddQueryType(
-            this ISchemaBuilder builder,
-            ObjectType queryType)
-        {
-            return builder;
-            // return builder.AddRootType(queryType, OperationType.Query);
-        }
-
-        public static ISchemaBuilder AddQueryType<TQuery>(
-            this ISchemaBuilder builder)
-        {
-            return builder;
-            // return builder.AddRootType(typeof(TQuery), OperationType.Query);
-        }
     }
 }

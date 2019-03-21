@@ -94,10 +94,14 @@ namespace HotChocolate
                 throw new SchemaException(errors);
             }
 
-            return new Schema(
-                context.Services ?? new EmptyServiceProvider(),
-                context,
-                options);
+            throw new NotImplementedException();
+
+            /*
+                        return new Schema(
+                            context.Services ?? new EmptyServiceProvider(),
+                            context,
+                            options);
+                             */
         }
 
         private static IReadOnlySchemaOptions ExecuteSchemaConfiguration(

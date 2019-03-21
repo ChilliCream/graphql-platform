@@ -175,9 +175,8 @@ namespace HotChocolate
         private void RegisterTypeSystemObject(
             TypeSystemObjectBase typeSystemObject)
         {
-            TypeContext typeContext = typeSystemObject is IType type
-                ? SchemaTypeReference.InferTypeContext(type)
-                : TypeContext.None;
+            TypeContext typeContext =
+                SchemaTypeReference.InferTypeContext(typeSystemObject);
 
             var internalReference = new ClrTypeReference(
                 typeSystemObject.GetType(),

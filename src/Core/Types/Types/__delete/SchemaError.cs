@@ -4,6 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
+    [Obsolete]
     public class SchemaError
     {
         public SchemaError(
