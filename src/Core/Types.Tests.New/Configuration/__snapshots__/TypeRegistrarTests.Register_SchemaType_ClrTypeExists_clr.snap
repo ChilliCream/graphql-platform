@@ -1,0 +1,13 @@
+{
+  "None: HotChocolate.Types.DirectiveLocation": "None: HotChocolate.Types.Introspection.__DirectiveLocation",
+  "Output: HotChocolate.Types.EnumValue": "Output: HotChocolate.Types.Introspection.__EnumValue",
+  "Output: HotChocolate.Types.IOutputField": "Output: HotChocolate.Types.Introspection.__Field",
+  "Output: HotChocolate.Types.InputField": "Output: HotChocolate.Types.Introspection.__InputValue",
+  "Output: HotChocolate.ISchema": "Output: HotChocolate.Types.Introspection.__Schema",
+  "Output: HotChocolate.Types.IType": "Output: HotChocolate.Types.Introspection.__Type",
+  "None: HotChocolate.Types.TypeKind": "None: HotChocolate.Types.Introspection.__TypeKind",
+  "Output: HotChocolate.TypeRegistrarTests+Foo": "Output: HotChocolate.TypeRegistrarTests+FooType",
+  "None: System.String": "None: HotChocolate.Types.StringType",
+  "None: System.Boolean": "None: HotChocolate.Types.BooleanType",
+  "Output: HotChocolate.TypeRegistrarTests+Bar": "Output: HotChocolate.TypeRegistrarTests+BarType"
+}
