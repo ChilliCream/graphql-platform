@@ -1,5 +1,4 @@
 ﻿using System;
-using ChilliCream.Testing;
 using HotChocolate.Resolvers.CodeGeneration;
 using Snapshooter;
 using Snapshooter.Xunit;

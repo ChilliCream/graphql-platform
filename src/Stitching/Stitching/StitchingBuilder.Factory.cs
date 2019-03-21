@@ -42,7 +42,8 @@ namespace HotChocolate.Stitching
                 return new StitchingContext(services, _executors);
             }
 
-            public IQueryExecutor CreateStitchedQueryExecuter()
+            public IQueryExecutor CreateStitchedQueryExecuter(
+                IServiceProvider serviceProvider)
             {
                 return Schema.Create(
                     MergedSchema,
@@ -55,6 +56,7 @@ namespace HotChocolate.Stitching
                         }
                         c.RegisterExtendedScalarTypes();
                         c.UseSchemaStitching();
+                        c.RegisterServiceProvider(serviceProvider);
                     })
                     .MakeExecutable(b =>
                     {

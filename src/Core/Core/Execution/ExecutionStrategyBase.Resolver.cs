@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
@@ -17,26 +16,33 @@ namespace HotChocolate.Execution
         {
             Activity activity = resolverTask.Diagnostics.BeginResolveField(
                 resolverTask.ResolverContext);
+            object result = null;
 
-            object result = await ExecuteMiddlewareAsync(
-                resolverTask, errorHandler)
-                .ConfigureAwait(false);
-
-            if (result is IEnumerable<IError> errors)
+            try
             {
-                resolverTask.Diagnostics.ResolverError(
-                    resolverTask.ResolverContext, errors);
-            }
-            else if (result is IError error)
-            {
-                resolverTask.Diagnostics.ResolverError(
-                    resolverTask.ResolverContext, error);
-            }
+                result = await ExecuteMiddlewareAsync(
+                    resolverTask, errorHandler)
+                    .ConfigureAwait(false);
 
-            resolverTask.Diagnostics.EndResolveField(
-                activity,
-                resolverTask.ResolverContext,
-                result);
+                if (result is IEnumerable<IError> errors)
+                {
+                    resolverTask.Diagnostics.ResolverError(
+                        resolverTask.ResolverContext, errors);
+                }
+                else if (result is IError error)
+                {
+                    resolverTask.Diagnostics.ResolverError(
+                        resolverTask.ResolverContext,
+                        new IError[] { error });
+                }
+            }
+            finally
+            {
+                resolverTask.Diagnostics.EndResolveField(
+                    activity,
+                    resolverTask.ResolverContext,
+                    result);
+            }
 
             return result;
         }

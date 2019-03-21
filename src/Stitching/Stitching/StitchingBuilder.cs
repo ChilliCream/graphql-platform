@@ -231,9 +231,8 @@ namespace HotChocolate.Stitching
 
             serviceCollection.TryAddSingleton<IQueryExecutor>(
                 services => new LazyQueryExecutor(() =>
-
                     services.GetRequiredService<StitchingFactory>()
-                                .CreateStitchedQueryExecuter()));
+                        .CreateStitchedQueryExecuter(services)));
 
             serviceCollection.TryAddSingleton(services =>
                 services.GetRequiredService<IQueryExecutor>()

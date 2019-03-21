@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using ChilliCream.Testing;
 using HotChocolate.Resolvers;
 using Snapshooter.Xunit;
 using Xunit;

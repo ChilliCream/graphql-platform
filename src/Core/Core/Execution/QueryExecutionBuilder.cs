@@ -50,7 +50,7 @@ namespace HotChocolate.Execution
             }
 
             IServiceProvider services = CopyServiceCollection()
-                .AddSingleton<ISchema>(schema)
+                .AddSingleton(schema)
                 .BuildServiceProvider();
 
             return new QueryExecutor
@@ -79,7 +79,7 @@ namespace HotChocolate.Execution
         {
             QueryDelegate next = context => Task.CompletedTask;
 
-            for (int i = components.Count - 1; i >= 0; i--)
+            for (var i = components.Count - 1; i >= 0; i--)
             {
                 next = components[i].Invoke(next);
             }
@@ -94,7 +94,7 @@ namespace HotChocolate.Execution
             {
                 FieldDelegate next = first;
 
-                for (int i = components.Count - 1; i >= 0; i--)
+                for (var i = components.Count - 1; i >= 0; i--)
                 {
                     next = components[i].Invoke(next);
                 }

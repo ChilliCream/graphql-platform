@@ -32,24 +32,39 @@ namespace HotChocolate.Execution
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            Activity activity = _diagnosticEvents.BeginParsing(context);
-
             if (IsContextIncomplete(context))
             {
+                // TODO : resources
                 context.Result = QueryResult.CreateError(new QueryError(
                    "The parse query middleware expects " +
                    "a valid query request."));
             }
             else
             {
-                context.Document = _queryCache.GetOrCreate(
-                    context.Request.Query,
-                    () => ParseDocument(context.Request.Query));
+                Activity activity = _diagnosticEvents.BeginParsing(context);
 
-                await _next(context).ConfigureAwait(false);
+                try
+                {
+                    bool documentRetrievedFromCache = true;
+
+                    context.Document = _queryCache.GetOrCreate(
+                        context.Request.Query,
+                        () =>
+                        {
+                            documentRetrievedFromCache = false;
+                            return ParseDocument(context.Request.Query);
+                        });
+
+                    context.ContextData[ContextDataKeys.DocumentCached] =
+                        documentRetrievedFromCache;
+                }
+                finally
+                {
+                    _diagnosticEvents.EndParsing(activity, context);
+                }
             }
 
-            _diagnosticEvents.EndParsing(activity, context);
+            await _next(context).ConfigureAwait(false);
         }
 
         private DocumentNode ParseDocument(string queryText)

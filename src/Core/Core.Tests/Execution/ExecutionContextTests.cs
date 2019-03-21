@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using Moq;
@@ -91,8 +90,7 @@ namespace HotChocolate.Execution
 
             var diagnostics = new QueryExecutionDiagnostics(
                 new DiagnosticListener("Foo"),
-                new IDiagnosticObserver[0],
-                TracingPreference.Never);
+                new IDiagnosticObserver[0]);
 
             var requestContext = new RequestContext(
                 serviceScope,
