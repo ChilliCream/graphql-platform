@@ -39,5 +39,11 @@ namespace HotChocolate
         }
 
         public IReadOnlyList<TypeDependency> Dependencies { get; }
+
+        public RegisteredType WithDependencies(
+            IReadOnlyList<TypeDependency> dependencies)
+        {
+            return new RegisteredType(Reference, Type, Dependencies);
+        }
     }
 }

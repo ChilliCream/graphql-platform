@@ -4,6 +4,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using Moq;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -39,7 +40,17 @@ namespace HotChocolate
             Assert.IsType<FooType>(type.Type).Fields.ToDictionary(
                 t => t.Name.ToString(),
                 t => TypeVisualizer.Visualize(t.Type))
-                .MatchSnapshot();
+                .MatchSnapshot(new SnapshotNameExtension("FooType"));
+
+            exists = typeInitializer.Types.TryGetValue(
+                new ClrTypeReference(typeof(BarType), TypeContext.Output),
+                out type);
+
+            Assert.True(exists);
+            Assert.IsType<BarType>(type.Type).Fields.ToDictionary(
+                t => t.Name.ToString(),
+                t => TypeVisualizer.Visualize(t.Type))
+                .MatchSnapshot(new SnapshotNameExtension("BarType"));
         }
 
         [Fact]
@@ -72,7 +83,17 @@ namespace HotChocolate
             Assert.IsType<ObjectType<Foo>>(type.Type).Fields.ToDictionary(
                 t => t.Name.ToString(),
                 t => TypeVisualizer.Visualize(t.Type))
-                .MatchSnapshot();
+                .MatchSnapshot(new SnapshotNameExtension("FooType"));
+
+            exists = typeInitializer.Types.TryGetValue(
+                new ClrTypeReference(typeof(ObjectType<Bar>), TypeContext.Output),
+                out type);
+
+            Assert.True(exists);
+            Assert.IsType<ObjectType<Bar>>(type.Type).Fields.ToDictionary(
+                t => t.Name.ToString(),
+                t => TypeVisualizer.Visualize(t.Type))
+                .MatchSnapshot(new SnapshotNameExtension("BarType"));
         }
 
 

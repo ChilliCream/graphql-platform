@@ -53,6 +53,8 @@ namespace HotChocolate
             _initialTypes = initialTypes.ToList();
         }
 
+        public TypeInspector TypeInspector => _typeInspector;
+
         public IList<FieldMiddleware> GlobalComponents => _globalComps;
 
         public IDictionary<ITypeReference, ITypeReference> DependencyLookup =>
@@ -67,6 +69,7 @@ namespace HotChocolate
         {
             RegisterTypes();
             CompileResolvers();
+            RegisterImplicitInterfaceDependencies();
             CompleteNames();
             CompleteTypes();
         }
@@ -107,6 +110,42 @@ namespace HotChocolate
 
         private void CompileResolvers() =>
             ResolverCompiler.Compile(_res);
+
+        private void RegisterImplicitInterfaceDependencies()
+        {
+            List<RegisteredType> withClrType =
+                _types.Values.Where(t => t.ClrType != typeof(object)).ToList();
+            List<RegisteredType> interfaceTypes =
+                withClrType.Where(t => t.Type is InterfaceType).ToList();
+            List<RegisteredType> objectTypes =
+                withClrType.Where(t => t.Type is ObjectType).ToList();
+
+            var dependencies = new List<TypeDependency>();
+
+            foreach (RegisteredType objectType in objectTypes)
+            {
+                foreach (RegisteredType interfaceType in interfaceTypes)
+                {
+                    if (interfaceType.ClrType.IsAssignableFrom(
+                        objectType.ClrType))
+                    {
+                        dependencies.Add(new TypeDependency(
+                            new ClrTypeReference(
+                                interfaceType.ClrType,
+                                TypeContext.Output),
+                            TypeDependencyKind.Completed));
+                    }
+                }
+
+                if (dependencies.Count > 0)
+                {
+                    dependencies.AddRange(objectType.Dependencies);
+                    _types[objectType.Reference] =
+                        objectType.WithDependencies(dependencies);
+                    dependencies = new List<TypeDependency>();
+                }
+            }
+        }
 
         private bool CompleteNames()
         {
@@ -242,8 +281,7 @@ namespace HotChocolate
 
             foreach (ITypeReference reference in dependencies)
             {
-                if (!_depsLup.TryGetValue(reference, out ITypeReference nr)
-                    && !TryNormalizeReference(reference, out nr))
+                if (!TryNormalizeReference(reference, out ITypeReference nr))
                 {
                     normalized = null;
                     return false;
@@ -256,16 +294,23 @@ namespace HotChocolate
             return true;
         }
 
-        private bool TryNormalizeReference(
+        internal bool TryNormalizeReference(
             ITypeReference typeReference,
             out ITypeReference normalized)
         {
+            if (_depsLup.TryGetValue(typeReference, out ITypeReference nr))
+            {
+                normalized = nr;
+                return true;
+            }
+
             switch (typeReference)
             {
                 case IClrTypeReference r:
                     if (TryNormalizeClrReference(
                         r, out IClrTypeReference cnr))
                     {
+                        _depsLup[typeReference] = cnr;
                         normalized = cnr;
                         return true;
                     }
@@ -274,15 +319,17 @@ namespace HotChocolate
                 case ISchemaTypeReference r:
                     var internalReference = new ClrTypeReference(
                         r.Type.GetType(), r.Context);
+                    _depsLup[typeReference] = internalReference;
                     normalized = internalReference;
                     return true;
 
                 case ISyntaxTypeReference r:
                     if (_named.TryGetValue(
                         r.Type.NamedType().Name.Value,
-                        out ITypeReference nr))
+                        out ITypeReference snr))
                     {
-                        normalized = nr;
+                        _depsLup[typeReference] = snr;
+                        normalized = snr;
                         return true;
                     }
                     break;
@@ -313,7 +360,10 @@ namespace HotChocolate
                         typeInfo.ClrType,
                         typeReference.Context);
 
-                    if (_clrTypes.TryGetValue(normalized, out ITypeReference r)
+                    if ((_clrTypes.TryGetValue(
+                            normalized, out ITypeReference r)
+                        || _clrTypes.TryGetValue(
+                            normalized.WithoutContext(), out r))
                         && r is IClrTypeReference cr)
                     {
                         normalized = cr;

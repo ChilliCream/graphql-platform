@@ -120,5 +120,12 @@ namespace HotChocolate.Types.Descriptors
         {
             return $"{Context}: {Type.FullName}";
         }
+
+        public IClrTypeReference WithoutContext()
+        {
+            return new ClrTypeReference(
+                Type, TypeContext.None,
+                IsTypeNullable, IsElementTypeNullable);
+        }
     }
 }

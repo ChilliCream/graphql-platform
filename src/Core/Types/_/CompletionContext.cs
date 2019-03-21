@@ -5,6 +5,7 @@ using System.Linq;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 
 namespace HotChocolate
 {
@@ -13,9 +14,6 @@ namespace HotChocolate
     {
         private readonly InitializationContext _initializationContext;
         private readonly TypeInitializer _typeInitializer;
-        private readonly Dictionary<ITypeReference, TypeDependencyKind> _deps =
-            new Dictionary<ITypeReference, TypeDependencyKind>();
-
         public CompletionContext(
             InitializationContext initializationContext,
             TypeInitializer typeInitializer)
@@ -29,15 +27,6 @@ namespace HotChocolate
 
             GlobalComponents = new ReadOnlyCollection<FieldMiddleware>(
                 _typeInitializer.GlobalComponents);
-
-            foreach (TypeDependency dependency in
-                _initializationContext.TypeDependencies)
-            {
-                if (!_deps.ContainsKey(dependency.TypeReference))
-                {
-                    _deps.Add(dependency.TypeReference, dependency.Kind);
-                }
-            }
         }
 
         public TypeStatus Status { get; set; } = TypeStatus.Initialized;
@@ -77,27 +66,25 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(reference));
             }
 
-            if (_deps.TryGetValue(reference, out TypeDependencyKind kind))
+            if (_typeInitializer.TryNormalizeReference(
+                reference, out ITypeReference nr)
+                && _typeInitializer.Types.TryGetValue(
+                    nr, out RegisteredType rt)
+                && rt.Type is T t)
             {
-                if (Status == TypeStatus.Initialized &&
-                    (kind == TypeDependencyKind.Completed
-                    || kind == TypeDependencyKind.Default))
+                if (reference is IClrTypeReference cr
+                    && _typeInitializer.TypeInspector.TryCreate(
+                        cr.Type, out TypeInfo typeInfo))
                 {
-                    // TODO : resources
-                    throw new InvalidOperationException(
-                        "This dependency is registered for the completed stage!");
+                    type = (T)typeInfo.TypeFactory.Invoke(t);
                 }
-
-                if (_typeInitializer.DependencyLookup.TryGetValue(
-                    reference, out ITypeReference nr)
-                    && _typeInitializer.Types.TryGetValue(
-                        nr, out RegisteredType rt)
-                    && rt.Type is T t)
+                else
                 {
                     type = t;
-                    return true;
                 }
+                return true;
             }
+
 
             type = default;
             return false;

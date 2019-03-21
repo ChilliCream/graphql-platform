@@ -103,7 +103,7 @@ namespace HotChocolate.Types
                 definition.Arguments.Select(t => new Argument(t)));
             IsExecutable = _components.Any();
 
-            if (Locations.Any())
+            if (!Locations.Any())
             {
                 // TODO : resources
                 context.ReportError(SchemaErrorBuilder.New()
