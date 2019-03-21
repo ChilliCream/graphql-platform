@@ -1,7 +1,7 @@
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     internal static class SchemaTypeResolver
     {

@@ -2,7 +2,7 @@ using System;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     internal sealed class TypeDependency
     {

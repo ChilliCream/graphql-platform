@@ -7,7 +7,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     internal sealed class CompletionContext
         : ICompletionContext

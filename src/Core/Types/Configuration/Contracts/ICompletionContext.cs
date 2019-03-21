@@ -4,7 +4,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     public interface ICompletionContext
         : ITypeSystemObjectContext

@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;

@@ -1,7 +1,7 @@
 using System;
 using HotChocolate.Resolvers;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     internal sealed class RegisteredResolver
     {

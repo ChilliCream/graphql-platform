@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Configuration;
 
 namespace HotChocolate.Types
 {

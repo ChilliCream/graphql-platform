@@ -4,7 +4,7 @@ using System.Linq;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.CodeGeneration;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     internal static class ResolverCompiler
     {

@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Configuration;
 
 namespace HotChocolate.Types
 {

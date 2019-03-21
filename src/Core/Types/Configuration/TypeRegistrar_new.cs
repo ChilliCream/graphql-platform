@@ -8,7 +8,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Types.Introspection;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     internal sealed class TypeRegistrar_new
     {

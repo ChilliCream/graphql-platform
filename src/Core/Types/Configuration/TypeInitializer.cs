@@ -7,7 +7,7 @@ using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     internal class TypeInitializer
     {

@@ -4,7 +4,7 @@ using System.Reflection;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     public interface IInitializationContext
         : ITypeSystemObjectContext

@@ -1,4 +1,4 @@
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     public enum TypeDependencyKind
     {
