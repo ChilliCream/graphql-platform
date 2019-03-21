@@ -20,7 +20,7 @@ namespace HotChocolate.Types
         {
             base.OnRegisterDependencies(context, definition);
 
-            ClrType = definition is IHasClrType clr
+            ClrType = definition is IHasClrType clr && clr.ClrType != GetType()
                 ? clr.ClrType
                 : typeof(object);
         }

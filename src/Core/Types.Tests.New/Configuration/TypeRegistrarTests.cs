@@ -1,9 +1,12 @@
+using System.Linq;
 using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using Moq;
 using Xunit;
+using Snapshooter.Xunit;
+using Snapshooter;
 
 namespace HotChocolate
 {
@@ -27,20 +30,18 @@ namespace HotChocolate
             typeRegistrar.Complete();
 
             // assert
-            Assert.Collection(typeRegistrar.Registerd,
-                t => Assert.Equal(typeof(Foo),
-                    ((IHasClrType)t.Value.Type).ClrType),
-                t => Assert.Equal(typeof(Bar),
-                    ((IHasClrType)t.Value.Type).ClrType),
-                t => Assert.Equal(typeof(string),
-                    ((IHasClrType)t.Value.Type).ClrType));
+            typeRegistrar.Registerd
+                .Select(t => t.Value.Type)
+                .OfType<IHasClrType>()
+                .ToDictionary(
+                    t => t.GetType().FullName,
+                    t => t.ClrType.FullName)
+                .MatchSnapshot(new SnapshotNameExtension("registered"));
 
-            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
-                new ClrTypeReference(typeof(Foo), TypeContext.Output)));
-            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
-                new ClrTypeReference(typeof(Bar), TypeContext.Output)));
-            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
-                new ClrTypeReference(typeof(string), TypeContext.None)));
+            typeRegistrar.ClrTypes.ToDictionary(
+                t => t.Key.ToString(),
+                t => t.Value.ToString())
+                .MatchSnapshot(new SnapshotNameExtension("clr"));
         }
 
         [Fact]
@@ -61,20 +62,18 @@ namespace HotChocolate
             typeRegistrar.Complete();
 
             // assert
-            Assert.Collection(typeRegistrar.Registerd,
-                t => Assert.Equal(typeof(Foo),
-                    ((IHasClrType)t.Value.Type).ClrType),
-                t => Assert.Equal(typeof(Bar),
-                    ((IHasClrType)t.Value.Type).ClrType),
-                t => Assert.Equal(typeof(string),
-                    ((IHasClrType)t.Value.Type).ClrType));
+            typeRegistrar.Registerd
+                .Select(t => t.Value.Type)
+                .OfType<IHasClrType>()
+                .ToDictionary(
+                    t => t.GetType().FullName,
+                    t => t.ClrType.FullName)
+                .MatchSnapshot(new SnapshotNameExtension("registered"));
 
-            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
-                new ClrTypeReference(typeof(Foo), TypeContext.Output)));
-            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
-                new ClrTypeReference(typeof(Bar), TypeContext.Output)));
-            Assert.True(typeRegistrar.ClrTypes.ContainsKey(
-                new ClrTypeReference(typeof(string), TypeContext.None)));
+            typeRegistrar.ClrTypes.ToDictionary(
+                t => t.Key.ToString(),
+                t => t.Value.ToString())
+                .MatchSnapshot(new SnapshotNameExtension("clr"));
         }
 
 
