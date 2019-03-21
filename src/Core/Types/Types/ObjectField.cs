@@ -128,7 +128,7 @@ namespace HotChocolate.Types
 
             Resolver = definition.Resolver;
 
-            if (!isIntrospectionField)
+            if (Resolver == null || !isIntrospectionField)
             {
                 var fieldReference = new FieldReference(
                     context.Type.Name, definition.Name);

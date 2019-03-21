@@ -3,10 +3,6 @@
     public sealed class SkipDirectiveType
         : DirectiveType
     {
-        internal SkipDirectiveType()
-        {
-        }
-
         protected override void Configure(IDirectiveTypeDescriptor descriptor)
         {
             descriptor.Name("skip");

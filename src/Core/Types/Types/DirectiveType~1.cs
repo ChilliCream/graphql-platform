@@ -14,16 +14,17 @@ namespace HotChocolate.Types
         : DirectiveType
         where TDirective : class
     {
-        private readonly Action<IDirectiveTypeDescriptor> _configure;
+        private readonly Action<IDirectiveTypeDescriptor<TDirective>> _conf;
 
         protected DirectiveType()
         {
-            _configure = Configure;
+            _conf = Configure;
         }
 
-        public DirectiveType(Action<IDirectiveTypeDescriptor> configure)
+        public DirectiveType(
+            Action<IDirectiveTypeDescriptor<TDirective>> configure)
         {
-            _configure = configure
+            _conf = configure
                 ?? throw new ArgumentNullException(nameof(configure));
         }
 
@@ -33,7 +34,7 @@ namespace HotChocolate.Types
             DirectiveTypeDescriptor<TDirective> descriptor =
                 DirectiveTypeDescriptor.New<TDirective>(
                     DescriptorContext.Create(context.Services));
-            _configure(descriptor);
+            _conf(descriptor);
             return descriptor.CreateDefinition();
         }
 

@@ -3,10 +3,6 @@
     public sealed class CostDirectiveType
         : DirectiveType<CostDirective>
     {
-        internal CostDirectiveType()
-        {
-        }
-
         protected override void Configure(
             IDirectiveTypeDescriptor<CostDirective> descriptor)
         {

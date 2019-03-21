@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -25,6 +26,9 @@ namespace HotChocolate
             _typeInitializer = typeInitializer
                 ?? throw new ArgumentNullException(
                     nameof(typeInitializer));
+
+            GlobalComponents = new ReadOnlyCollection<FieldMiddleware>(
+                _typeInitializer.GlobalComponents);
 
             foreach (TypeDependency dependency in
                 _initializationContext.TypeDependencies)

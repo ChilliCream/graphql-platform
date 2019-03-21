@@ -52,6 +52,11 @@ namespace HotChocolate.Types
                 ? hasClrType.ClrType
                 : typeof(object);
 
+            var directives = new DirectiveCollection(
+                this, _definition.Directives);
+            directives.CompleteCollection(context);
+            Directives = directives;
+
             OnCompleteField(context, _definition);
             _definition = null;
         }

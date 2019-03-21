@@ -3,10 +3,6 @@
     public sealed class IncludeDirectiveType
         : DirectiveType
     {
-        internal IncludeDirectiveType()
-        {
-        }
-
         protected override void Configure(IDirectiveTypeDescriptor descriptor)
         {
             descriptor.Name("include");
