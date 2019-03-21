@@ -68,7 +68,8 @@ namespace HotChocolate.Types.Descriptors
             {
                 throw new ArgumentNullException(nameof(objectType));
             }
-            Definition.Types.Add(new SchemaTypeReference(objectType));
+            Definition.Types.Add(new SchemaTypeReference(
+                (ITypeSystemObject)objectType));
             return this;
         }
 

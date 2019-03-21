@@ -11,6 +11,11 @@ namespace HotChocolate.Types.Descriptors
         {
         }
 
+        public SchemaTypeReference(IType type)
+            : this(type, null, null)
+        {
+        }
+
         public SchemaTypeReference(
             ITypeSystemObject type,
             bool? isTypeNullable,
@@ -27,7 +32,23 @@ namespace HotChocolate.Types.Descriptors
             Type = type;
         }
 
-        public ITypeSystemObject Type { get; }
+        public SchemaTypeReference(
+            IType type,
+            bool? isTypeNullable,
+            bool? isElementTypeNullable)
+            : base(InferTypeContext(type),
+                isTypeNullable,
+                isElementTypeNullable)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            Type = type;
+        }
+
+        public object Type { get; }
 
         public ISyntaxTypeReference Compile()
         {
@@ -122,13 +143,8 @@ namespace HotChocolate.Types.Descriptors
             return $"{Context}: {Type}";
         }
 
-        public static TypeContext InferTypeContext(ITypeSystemObject type)
+        internal static TypeContext InferTypeContext(object type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
             if (type is IType t)
             {
                 INamedType namedType = t.NamedType();
@@ -150,7 +166,7 @@ namespace HotChocolate.Types.Descriptors
             return TypeContext.None;
         }
 
-        public static TypeContext InferTypeContext(Type type)
+        internal static TypeContext InferTypeContext(Type type)
         {
             if (type == null)
             {

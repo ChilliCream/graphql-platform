@@ -114,9 +114,32 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(type));
             }
 
-            var reference = new ClrTypeReference(
-                type,
-                SchemaTypeReference.InferTypeContext(type));
+            if (!type.IsClass)
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "Root type must be a class",
+                     nameof(type));
+            }
+
+            if (BaseTypes.IsNonGenericBaseType(type))
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "Non-generic schema types are not allowed.",
+                     nameof(type));
+            }
+
+            if (BaseTypes.IsSchemaType(type)
+                && !typeof(ObjectType).IsAssignableFrom(type))
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "must be object type",
+                     nameof(type));
+            }
+
+            var reference = new ClrTypeReference(type, TypeContext.Output);
             _operations.Add(operation, reference);
             _types.Add(reference);
             return this;
@@ -131,7 +154,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(type));
             }
 
-            var reference = new SchemaTypeReference(type);
+            var reference = new SchemaTypeReference((ITypeSystemObject)type);
             _operations.Add(operation, reference);
             _types.Add(reference);
             return this;
@@ -222,7 +245,15 @@ namespace HotChocolate
             TypeInitializer initializer,
             OperationType operation)
         {
-            if (_operations.TryGetValue(operation,
+            if (!_operations.ContainsKey(operation))
+            {
+                NameString typeName = operation.ToString();
+                return initializer.Types.Values
+                    .Select(t => t.Type)
+                    .OfType<ObjectType>()
+                    .FirstOrDefault(t => t.Name.Equals(typeName));
+            }
+            else if (_operations.TryGetValue(operation,
                 out ITypeReference reference)
                 && initializer.TryNormalizeReference(reference,
                 out ITypeReference normalized)
@@ -249,6 +280,12 @@ namespace HotChocolate
                 {
                     return cr.Type == type.GetType();
                 }
+            }
+            else
+            {
+                // TODO : query to constant
+                return type is ObjectType
+                    && type.Name.Equals("Query");
             }
 
             return false;

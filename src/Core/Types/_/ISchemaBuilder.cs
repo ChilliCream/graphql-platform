@@ -6,6 +6,8 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
+    public delegate DocumentNode LoadSchemaDocument(IServiceProvider services);
+
     public interface ISchemaBuilder
     {
         ISchemaBuilder SetDescription(string description);

@@ -183,7 +183,8 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(interfaceType));
             }
 
-            Definition.Interfaces.Add(new SchemaTypeReference(interfaceType));
+            Definition.Interfaces.Add(new SchemaTypeReference(
+                (ITypeSystemObject)interfaceType));
             return this;
         }
 
