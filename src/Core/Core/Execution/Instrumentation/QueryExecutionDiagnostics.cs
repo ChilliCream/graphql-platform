@@ -55,6 +55,25 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
+        public Activity BeginQuery(IQueryContext context)
+        {
+            var payload = new
+            {
+                context
+            };
+
+            if (_source.IsEnabled(DiagnosticNames.Query, payload))
+            {
+                var activity = new Activity(DiagnosticNames.Query);
+
+                _source.StartActivity(activity, payload);
+
+                return activity;
+            }
+
+            return null;
+        }
+
         public Activity BeginParsing(IQueryContext context)
         {
             var payload = new
@@ -74,16 +93,35 @@ namespace HotChocolate.Execution.Instrumentation
             return null;
         }
 
-        public Activity BeginQuery(IQueryContext context)
+        public Activity BeginValidation(IQueryContext context)
         {
             var payload = new
             {
                 context
             };
 
-            if (_source.IsEnabled(DiagnosticNames.Query, payload))
+            if (_source.IsEnabled(DiagnosticNames.Validation, payload))
             {
-                var activity = new Activity(DiagnosticNames.Query);
+                var activity = new Activity(DiagnosticNames.Validation);
+
+                _source.StartActivity(activity, payload);
+
+                return activity;
+            }
+
+            return null;
+        }
+
+        public Activity BeginOperation(IQueryContext context)
+        {
+            var payload = new
+            {
+                context
+            };
+
+            if (_source.IsEnabled(DiagnosticNames.Operation, payload))
+            {
+                var activity = new Activity(DiagnosticNames.Operation);
 
                 _source.StartActivity(activity, payload);
 
@@ -113,23 +151,42 @@ namespace HotChocolate.Execution.Instrumentation
             return null;
         }
 
-        public Activity BeginValidation(IQueryContext context)
+
+
+        public void EndQuery(Activity activity, IQueryContext context)
         {
-            var payload = new
+            if (activity != null)
             {
-                context
-            };
+                var payload = new
+                {
+                    context,
+                    result = context.Result
+                };
 
-            if (_source.IsEnabled(DiagnosticNames.Validation, payload))
-            {
-                var activity = new Activity(DiagnosticNames.Validation);
-
-                _source.StartActivity(activity, payload);
-
-                return activity;
+                if (_source.IsEnabled(DiagnosticNames.Query, payload))
+                {
+                    _source.StopActivity(activity, payload);
+                }
             }
+        }
 
-            return null;
+        public void EndValidation(
+            Activity activity,
+            IQueryContext context)
+        {
+            if (activity != null)
+            {
+                var payload = new
+                {
+                    context,
+                    result = context.ValidationResult
+                };
+
+                if (_source.IsEnabled(DiagnosticNames.Validation, payload))
+                {
+                    _source.StopActivity(activity, payload);
+                }
+            }
         }
 
         public void EndParsing(Activity activity, IQueryContext context)
@@ -148,7 +205,7 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public void EndQuery(Activity activity, IQueryContext context)
+        public void EndOperation(Activity activity, IQueryContext context)
         {
             if (activity != null)
             {
@@ -158,7 +215,7 @@ namespace HotChocolate.Execution.Instrumentation
                     result = context.Result
                 };
 
-                if (_source.IsEnabled(DiagnosticNames.Query, payload))
+                if (_source.IsEnabled(DiagnosticNames.Operation, payload))
                 {
                     _source.StopActivity(activity, payload);
                 }
@@ -185,25 +242,6 @@ namespace HotChocolate.Execution.Instrumentation
             }
         }
 
-        public void EndValidation(
-            Activity activity,
-            IQueryContext context)
-        {
-            if (activity != null)
-            {
-                var payload = new
-                {
-                    context,
-                    result = context.ValidationResult
-                };
-
-                if (_source.IsEnabled(DiagnosticNames.Validation, payload))
-                {
-                    _source.StopActivity(activity, payload);
-                }
-            }
-        }
-
         public void QueryError(IQueryContext context)
         {
             var payload = new
@@ -216,13 +254,6 @@ namespace HotChocolate.Execution.Instrumentation
             {
                 _source.Write(DiagnosticNames.QueryError, payload);
             }
-        }
-
-        public void ResolverError(
-            IResolverContext context,
-            IError error)
-        {
-            ResolverError(context, new IError[] { error });
         }
 
         public void ResolverError(
