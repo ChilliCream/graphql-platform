@@ -129,5 +129,26 @@ namespace HotChocolate.Types.Descriptors
                 return TypeContext.None;
             }
         }
+
+        public static TypeContext InferTypeContext(Type type)
+        {
+            if (typeof(IInputType).IsAssignableFrom(type)
+                && typeof(IOutputType).IsAssignableFrom(type))
+            {
+                return TypeContext.None;
+            }
+            else if (typeof(IOutputType).IsAssignableFrom(type))
+            {
+                return TypeContext.Output;
+            }
+            else if (typeof(IInputType).IsAssignableFrom(type))
+            {
+                return TypeContext.Input;
+            }
+            else
+            {
+                return TypeContext.None;
+            }
+        }
     }
 }

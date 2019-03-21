@@ -304,7 +304,7 @@ namespace HotChocolate
                 {
                     normalized = new ClrTypeReference(
                         typeInfo.ClrType,
-                        typeReference.Context);
+                        SchemaTypeReference.InferTypeContext(typeInfo.ClrType));
                     return true;
                 }
                 else
