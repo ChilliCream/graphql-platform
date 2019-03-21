@@ -34,20 +34,28 @@ namespace HotChocolate.Execution
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            Activity activity = _diagnostics.BeginValidation(context);
 
             if (context.Document == null)
             {
                 context.Result = QueryResult.CreateError(new Error
                 {
-                    Message = CoreResources.ValidateQueryMiddleware_NoDocument
+                    Message = CoreResources
+                        .ValidateQueryMiddleware_NoDocument
                 });
             }
             else
             {
-                context.ValidationResult = _validatorCache.GetOrCreate(
-                    context.Request.Query,
-                    () => Validate(context.Schema, context.Document));
+                Activity activity = _diagnostics.BeginValidation(context);
+                try
+                {
+                    context.ValidationResult = _validatorCache.GetOrCreate(
+                        context.Request.Query,
+                        () => Validate(context.Schema, context.Document));
+                }
+                finally
+                {
+                    _diagnostics.EndValidation(activity, context);
+                }
 
                 if (context.ValidationResult.HasErrors)
                 {
@@ -61,7 +69,6 @@ namespace HotChocolate.Execution
                 }
             }
 
-            _diagnostics.EndValidation(activity, context);
         }
 
         private QueryValidationResult Validate(

@@ -183,17 +183,19 @@ namespace HotChocolate
                 IQueryResultSerializer,
                 JsonQueryResultSerializer>();
 
-            IQueryExecutor executor = Schema.Create(
-                schema,
-                c =>
-                {
-                    configure(c);
-                    c.UseSchemaStitching();
-                })
-                .MakeExecutable(b => b.UseStitchingPipeline(options));
-
-            return services.AddSingleton(executor)
-                .AddSingleton(executor.Schema);
+            return services.AddSingleton(sp =>
+            {
+                return Schema.Create(
+                    schema,
+                    c =>
+                    {
+                        configure(c);
+                        c.UseSchemaStitching();
+                        c.RegisterServiceProvider(sp);
+                    })
+                    .MakeExecutable(b => b.UseStitchingPipeline(options));
+            })
+            .AddSingleton(sp => sp.GetRequiredService<IQueryExecutor>().Schema);
         }
 
         public static IServiceCollection AddStitchedSchema(
