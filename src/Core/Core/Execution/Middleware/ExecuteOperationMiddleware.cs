@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Runtime;
@@ -10,13 +11,13 @@ namespace HotChocolate.Execution
         private readonly QueryDelegate _next;
         private readonly IExecutionStrategyResolver _strategyResolver;
         private readonly Cache<DirectiveMiddlewareCompiler> _cache;
-        private readonly QueryExecutionDiagnostics _diagnostics;
+        private readonly QueryExecutionDiagnostics _diagnosticEvents;
 
         public ExecuteOperationMiddleware(
             QueryDelegate next,
             IExecutionStrategyResolver strategyResolver,
             Cache<DirectiveMiddlewareCompiler> directiveCache,
-            QueryExecutionDiagnostics diagnostics)
+            QueryExecutionDiagnostics diagnosticEvents)
         {
             _next = next ??
                 throw new ArgumentNullException(nameof(next));
@@ -24,14 +25,15 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(strategyResolver));
             _cache = directiveCache ??
                 throw new ArgumentNullException(nameof(directiveCache));
-            _diagnostics = diagnostics ??
-                throw new ArgumentNullException(nameof(diagnostics));
+            _diagnosticEvents = diagnosticEvents ??
+                throw new ArgumentNullException(nameof(diagnosticEvents));
         }
 
         public async Task InvokeAsync(IQueryContext context)
         {
             if (IsContextIncomplete(context))
             {
+                // TODO : resources
                 context.Result = QueryResult.CreateError(new QueryError(
                     "The execute operation middleware expects the " +
                     "query document to be parsed and the operation to " +
@@ -39,14 +41,23 @@ namespace HotChocolate.Execution
             }
             else
             {
-                IExecutionStrategy strategy = _strategyResolver
-                    .Resolve(context.Operation.Type);
-                IExecutionContext executionContext =
-                    CreateExecutionContext(context);
+                Activity activity = _diagnosticEvents.BeginOperation(context);
 
-                context.Result = await strategy.ExecuteAsync(
-                    executionContext, executionContext.RequestAborted)
-                    .ConfigureAwait(false);
+                try
+                {
+                    IExecutionStrategy strategy = _strategyResolver
+                        .Resolve(context.Operation.Type);
+                    IExecutionContext executionContext =
+                        CreateExecutionContext(context);
+
+                    context.Result = await strategy.ExecuteAsync(
+                        executionContext, executionContext.RequestAborted)
+                        .ConfigureAwait(false);
+                }
+                finally
+                {
+                    _diagnosticEvents.EndOperation(activity, context);
+                }
             }
 
             await _next(context).ConfigureAwait(false);
@@ -66,7 +77,7 @@ namespace HotChocolate.Execution
                 fs => directives.GetOrCreateMiddleware(fs,
                     () => context.MiddlewareResolver.Invoke(fs)),
                 context.ContextData,
-                _diagnostics
+                _diagnosticEvents
             );
 
             return new ExecutionContext
