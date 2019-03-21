@@ -220,13 +220,6 @@ namespace HotChocolate.Execution.Instrumentation
 
         public void ResolverError(
             IResolverContext context,
-            IError error)
-        {
-            ResolverError(context, new IError[] { error });
-        }
-
-        public void ResolverError(
-            IResolverContext context,
             IEnumerable<IError> errors)
         {
             var payload = new

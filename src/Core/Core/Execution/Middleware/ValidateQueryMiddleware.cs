@@ -34,39 +34,41 @@ namespace HotChocolate.Execution
 
         public async Task InvokeAsync(IQueryContext context)
         {
-            Activity activity = _diagnostics.BeginValidation(context);
-            try
+
+            if (context.Document == null)
             {
-                if (context.Document == null)
+                context.Result = QueryResult.CreateError(new Error
                 {
-                    context.Result = QueryResult.CreateError(new Error
-                    {
-                        Message = CoreResources
-                            .ValidateQueryMiddleware_NoDocument
-                    });
-                }
-                else
+                    Message = CoreResources
+                        .ValidateQueryMiddleware_NoDocument
+                });
+            }
+            else
+            {
+                Activity activity = _diagnostics.BeginValidation(context);
+                try
                 {
                     context.ValidationResult = _validatorCache.GetOrCreate(
                         context.Request.Query,
                         () => Validate(context.Schema, context.Document));
+                }
+                finally
+                {
+                    _diagnostics.EndValidation(activity, context);
+                }
 
-                    if (context.ValidationResult.HasErrors)
-                    {
-                        context.Result = QueryResult.CreateError(
-                            context.ValidationResult.Errors);
-                        _diagnostics.ValidationError(context);
-                    }
-                    else
-                    {
-                        await _next(context).ConfigureAwait(false);
-                    }
+                if (context.ValidationResult.HasErrors)
+                {
+                    context.Result = QueryResult.CreateError(
+                        context.ValidationResult.Errors);
+                    _diagnostics.ValidationError(context);
+                }
+                else
+                {
+                    await _next(context).ConfigureAwait(false);
                 }
             }
-            finally
-            {
-                _diagnostics.EndValidation(activity, context);
-            }
+
         }
 
         private QueryValidationResult Validate(
