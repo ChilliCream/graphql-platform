@@ -30,7 +30,7 @@ namespace HotChocolate
 
         ISchemaBuilder AddType(Type type);
 
-        ISchemaBuilder AddType(ITypeSystemObject type);
+        ISchemaBuilder AddType(INamedType type);
 
         ISchemaBuilder AddRootType(
             Type type,
@@ -39,6 +39,8 @@ namespace HotChocolate
         ISchemaBuilder AddRootType(
             ObjectType type,
             OperationType operation);
+
+        ISchemaBuilder AddDirectiveType(DirectiveType type);
 
         ISchemaBuilder AddResolver(FieldResolver fieldResolver);
 

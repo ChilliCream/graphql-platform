@@ -1,7 +1,7 @@
 using System;
 using HotChocolate.Configuration;
 
-namespace HotChocolate
+namespace HotChocolate.Configuration
 {
     public interface ISchemaConfiguration
         : ISchemaFirstConfiguration
