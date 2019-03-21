@@ -18,22 +18,27 @@ namespace HotChocolate
         private readonly SchemaTypes _types;
         private readonly Dictionary<NameString, DirectiveType> _directiveTypes;
 
-        private Schema(
-            IServiceProvider services,
-            ISchemaContext context,
-            IReadOnlySchemaOptions options)
+        internal Schema(SchemaDefinition definition)
         {
-            Services = services;
-            _types = SchemaTypes.Create(
-                context.Types.GetTypes(),
-                context.Types.GetTypeBindings(),
-                options);
-            _directiveTypes = context.Directives
-                .GetDirectiveTypes()
-                .ToDictionary(t => t.Name);
-            DirectiveTypes = _directiveTypes.Values;
-            Options = options;
+            if (definition == null)
+            {
+                throw new ArgumentNullException(nameof(definition));
+            }
+
+            Description = definition.Description;
+            Directives = definition.Directives;
+            Services = definition.Services;
+            Options = definition.Options;
+            DirectiveTypes = definition.DirectiveTypes;
+
+            _types = new SchemaTypes(definition);
+            _directiveTypes = DirectiveTypes.ToDictionary(t => t.Name);
         }
+
+        public string Description { get; }
+
+        public IDirectiveCollection Directives { get; }
+
 
         /// <summary>
         /// Gets the schema options.

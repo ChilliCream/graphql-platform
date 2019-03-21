@@ -11,6 +11,8 @@ namespace HotChocolate
     /// the entry points for query, mutation, and subscription operations.
     /// </summary>
     public interface ISchema
+        : IHasDirectives
+        , IHasDescription
     {
         /// <summary>
         /// Gets the schema options.
