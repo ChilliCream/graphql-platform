@@ -33,7 +33,7 @@ namespace HotChocolate.Types.Factories
 
                 if (bindingInfo.SourceType != null)
                 {
-                    d.Type(bindingInfo.SourceType);
+                    d.Configure(t => t.ClrType = bindingInfo.SourceType);
                 }
 
                 foreach (DirectiveNode directive in node.Directives)

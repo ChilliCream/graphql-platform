@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Factories
@@ -6,13 +7,33 @@ namespace HotChocolate.Types.Factories
     internal sealed class DirectiveTypeFactory
         : ITypeFactory<DirectiveDefinitionNode, DirectiveType>
     {
-        public DirectiveType Create(DirectiveDefinitionNode node)
+        public DirectiveType Create(
+            IBindingLookup bindingLookup,
+            DirectiveDefinitionNode node)
         {
+            if (bindingLookup == null)
+            {
+                throw new ArgumentNullException(nameof(bindingLookup));
+            }
+
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
+            ITypeBindingInfo bindingInfo =
+                bindingLookup.GetBindingInfo(node.Name.Value);
+
             return new DirectiveType(c =>
             {
                 c.Name(node.Name.Value);
                 c.Description(node.Description?.Value);
                 c.SyntaxNode(node);
+
+                if (bindingInfo.SourceType != null)
+                {
+                    c.Configure(t => t.ClrType = bindingInfo.SourceType);
+                }
 
                 if (node.IsRepeatable)
                 {

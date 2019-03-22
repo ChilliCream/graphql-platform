@@ -1,5 +1,7 @@
-﻿using System;
+﻿using System.Net;
+using System;
 using System.Collections.Generic;
+using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 
@@ -33,7 +35,7 @@ namespace HotChocolate.Types.Factories
 
                 if (bindingInfo.SourceType != null)
                 {
-                    d.Type(bindingInfo.SourceType);
+                    d.Configure(t => t.ClrType = bindingInfo.SourceType);
                 }
 
                 foreach (DirectiveNode directive in node.Directives)
@@ -58,19 +60,26 @@ namespace HotChocolate.Types.Factories
         }
 
         private static void DeclareFields(
-            ITypeBindingInfo bindingLookup,
+            ITypeBindingInfo bindingInfo,
             IObjectTypeDescriptor typeDescriptor,
             IReadOnlyCollection<FieldDefinitionNode> fieldDefinitions)
         {
             foreach (FieldDefinitionNode fieldDefinition in fieldDefinitions)
             {
-                bindingLookup.TrackField(fieldDefinition.Name.Value);
+                bindingInfo.TrackField(fieldDefinition.Name.Value);
 
                 IObjectFieldDescriptor fieldDescriptor = typeDescriptor
                     .Field(fieldDefinition.Name.Value)
                     .Description(fieldDefinition.Description?.Value)
                     .Type(fieldDefinition.Type)
                     .SyntaxNode(fieldDefinition);
+
+                if (bindingInfo.TryGetFieldMember(
+                    fieldDefinition.Name.Value,
+                    out MemberInfo member))
+                {
+                    fieldDescriptor.Configure(t => t.Member = member);
+                }
 
                 foreach (DirectiveNode directive in fieldDefinition.Directives)
                 {

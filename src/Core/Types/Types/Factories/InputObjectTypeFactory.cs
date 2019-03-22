@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 
@@ -32,7 +33,7 @@ namespace HotChocolate.Types.Factories
 
                 if (bindingInfo.SourceType != null)
                 {
-                    d.Type(bindingInfo.SourceType);
+                    d.Configure(t => t.ClrType = bindingInfo.SourceType);
                 }
 
                 foreach (DirectiveNode directive in node.Directives)
@@ -40,22 +41,33 @@ namespace HotChocolate.Types.Factories
                     d.Directive(directive);
                 }
 
-                DeclareFields(d, node);
+                DeclareFields(bindingInfo, d, node);
             });
         }
 
         private static void DeclareFields(
+            ITypeBindingInfo bindingInfo,
             IInputObjectTypeDescriptor typeDescriptor,
             InputObjectTypeDefinitionNode node)
         {
             foreach (InputValueDefinitionNode inputField in node.Fields)
             {
+                bindingInfo.TrackField(inputField.Name.Value);
+
                 IInputFieldDescriptor descriptor = typeDescriptor
                     .Field(inputField.Name.Value)
                     .Description(inputField.Description?.Value)
                     .Type(inputField.Type)
                     .DefaultValue(inputField.DefaultValue)
                     .SyntaxNode(inputField);
+
+                if (bindingInfo.TryGetFieldMember(
+                    inputField.Name.Value,
+                    out MemberInfo member)
+                    && member is PropertyInfo p)
+                {
+                    descriptor.Configure(t => t.Property = p);
+                }
 
                 foreach (DirectiveNode directive in inputField.Directives)
                 {
