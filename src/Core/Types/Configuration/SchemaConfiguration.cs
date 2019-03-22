@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using HotChocolate.Configuration.Bindings;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Configuration
@@ -7,18 +8,30 @@ namespace HotChocolate.Configuration
     internal partial class SchemaConfiguration
         : ISchemaConfiguration
     {
+        private readonly ISchemaBuilder _builder = SchemaBuilder.New();
+
         public SchemaConfiguration()
         {
-            Builder.SetOptions(Options);
+            _builder.SetOptions(Options);
         }
 
         public ISchemaOptions Options { get; set; } = new SchemaOptions();
 
-        public ISchemaBuilder Builder { get; } = SchemaBuilder.New();
+        public ISchemaBuilder CreateBuilder()
+        {
+            foreach (IBindingBuilder bindingBuilder in _bindingBuilders)
+            {
+                if (bindingBuilder.IsComplete())
+                {
+                    _builder.AddBinding(bindingBuilder.Create());
+                }
+            }
+            return _builder;
+        }
 
         public void RegisterServiceProvider(IServiceProvider serviceProvider)
         {
-            Builder.AddServices(serviceProvider);
+            _builder.AddServices(serviceProvider);
         }
 
         public IMiddlewareConfiguration Use(FieldMiddleware middleware)
@@ -28,7 +41,7 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(middleware));
             }
 
-            Builder.Use(middleware);
+            _builder.Use(middleware);
             return this;
         }
     }

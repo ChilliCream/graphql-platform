@@ -9,17 +9,28 @@ namespace HotChocolate.Configuration
 {
     internal partial class SchemaConfiguration
     {
+        private List<IBindingBuilder> _bindingBuilders =
+            new List<IBindingBuilder>();
+
         public IBindResolverDelegate BindResolver(
             FieldResolverDelegate fieldResolver)
         {
-            return new BindResolverDelegate(bindingInfo);
+            IResolverBindingBuilder builder =
+                ResolverBindingBuilder.New()
+                    .SetResolver(fieldResolver);
+            _bindingBuilders.Add(builder);
+            return new BindResolverDelegate(builder);
         }
 
         public IBindResolver<TResolver> BindResolver<TResolver>(
             BindingBehavior bindingBehavior)
             where TResolver : class
         {
-
+            IResolverTypeBindingBuilder builder =
+                ResolverTypeBindingBuilder.New()
+                    .SetResolverType(typeof(TResolver));
+            _bindingBuilders.Add(builder);
+            return new BindResolver<TResolver>(builder);
         }
 
         public IBindType<T> BindType<T>(
