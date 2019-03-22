@@ -242,7 +242,8 @@ namespace HotChocolate
         public Schema Create()
         {
             var services = _services ?? new EmptyServiceProvider();
-            IBindingLookup bindingLookup = _bindingCompiler.Compile();
+            IBindingLookup bindingLookup =
+                _bindingCompiler.Compile(DescriptorContext.Create(services));
 
             var types = new List<ITypeReference>(_types);
 
