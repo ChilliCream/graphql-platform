@@ -5,7 +5,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
-    public static class ResolverObjectFieldDescriptorExtensions
+    public static partial class ResolverObjectFieldDescriptorExtensions
     {
         // Resolver(IResolverContext)
 

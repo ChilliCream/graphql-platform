@@ -1,4 +1,5 @@
-﻿using HotChocolate.Language;
+﻿using HotChocolate.Configuration;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types.Factories
 {
@@ -6,6 +7,6 @@ namespace HotChocolate.Types.Factories
         where TNode : ISyntaxNode
         where TType : IHasName
     {
-        TType Create(TNode node);
+        TType Create(IBindingLookup bindingLookup, TNode node);
     }
 }

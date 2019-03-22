@@ -9,6 +9,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Bindings;
+using HotChocolate.Types.Factories;
 
 namespace HotChocolate
 {
@@ -25,8 +26,7 @@ namespace HotChocolate
             new Dictionary<OperationType, ITypeReference>();
         private readonly Dictionary<FieldReference, FieldResolver> _resolvers =
             new Dictionary<FieldReference, FieldResolver>();
-        private readonly List<IBindingInfo> _bindings =
-            new List<IBindingInfo>();
+        private readonly IBindingCompiler _bindingCompiler;
         private string _description;
         private IReadOnlySchemaOptions _options = new SchemaOptions();
         private IsOfTypeFallback _isOfType;
@@ -198,11 +198,19 @@ namespace HotChocolate
             {
                 // TODO : resources
                 throw new ArgumentException(
-                    "binidng is not valid",
+                    "binding is not valid",
                     nameof(binding));
             }
 
-            _bindings.Add(binding);
+            if (!_bindingCompiler.CanHandle(binding))
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "cannot handle binding",
+                    nameof(binding));
+            }
+
+            _bindingCompiler.AddBinding(binding);
             return this;
         }
 
@@ -233,17 +241,50 @@ namespace HotChocolate
 
         public Schema Create()
         {
-            TypeInitializer initializer = InitializeTypes();
+            var services = _services ?? new EmptyServiceProvider();
+            IBindingLookup bindingLookup = _bindingCompiler.Compile();
+
+            var types = new List<ITypeReference>(_types);
+
+            if (_documents.Count > 0)
+            {
+                types.AddRange(ParseDocuments(services, bindingLookup));
+            }
+
+            TypeInitializer initializer =
+                InitializeTypes(services, bindingLookup, types);
             SchemaDefinition definition = CreateSchemaDefinition(initializer);
             return new Schema(definition);
         }
 
         ISchema ISchemaBuilder.Create() => Create();
 
-        private TypeInitializer InitializeTypes()
+        private IEnumerable<ITypeReference> ParseDocuments(
+            IServiceProvider services,
+            IBindingLookup bindingLookup)
         {
-            var service = _services ?? new EmptyServiceProvider();
-            var initializer = new TypeInitializer(service, _types, IsQueryType);
+            var types = new List<ITypeReference>();
+
+            foreach (LoadSchemaDocument fetchSchema in _documents)
+            {
+                // TODO: retrieve root type names
+                DocumentNode schemaDocument = fetchSchema(services);
+
+                var visitor = new SchemaSyntaxVisitor(bindingLookup);
+                visitor.Visit(schemaDocument, null);
+                types.AddRange(visitor.Types);
+            }
+
+            return types;
+        }
+
+        private TypeInitializer InitializeTypes(
+            IServiceProvider services,
+            IBindingLookup bindingLookup,
+            IEnumerable<ITypeReference> types)
+        {
+
+            var initializer = new TypeInitializer(services, types, IsQueryType);
 
             foreach (FieldMiddleware component in _globalComponents)
             {
@@ -254,6 +295,15 @@ namespace HotChocolate
             {
                 initializer.Resolvers[reference] = new RegisteredResolver(
                     typeof(object), _resolvers[reference]);
+            }
+
+            foreach (RegisteredResolver resolver in bindingLookup.Bindings
+                .SelectMany(t => t.CreateResolvers()))
+            {
+                var reference = new FieldReference(
+                    resolver.Field.TypeName,
+                    resolver.Field.FieldName);
+                initializer.Resolvers[reference] = resolver;
             }
 
             initializer.Initialize();

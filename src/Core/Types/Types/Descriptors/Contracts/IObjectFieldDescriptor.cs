@@ -1,11 +1,13 @@
 ﻿using System;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     public interface IObjectFieldDescriptor
-        : IFluent
+        : IDescriptor<ObjectFieldDefinition>
+        , IFluent
     {
         IObjectFieldDescriptor SyntaxNode(
             FieldDefinitionNode fieldDefinition);

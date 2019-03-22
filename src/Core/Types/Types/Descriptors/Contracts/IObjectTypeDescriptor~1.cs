@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     public interface IObjectTypeDescriptor<T>
-        : IFluent
+        : IDescriptor<ObjectTypeDefinition>
+        , IFluent
     {
         /// <summary>
         /// Defines the name of the <see cref="ObjectType"/>.

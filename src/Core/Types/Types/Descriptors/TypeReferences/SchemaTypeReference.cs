@@ -1,3 +1,4 @@
+using System.Data;
 using System;
 
 namespace HotChocolate.Types.Descriptors
@@ -190,6 +191,12 @@ namespace HotChocolate.Types.Descriptors
             {
                 return TypeContext.None;
             }
+        }
+
+        internal static SchemaTypeReference Create<T>(T type)
+            where T : TypeSystemObjectBase
+        {
+            return new SchemaTypeReference(type);
         }
     }
 }

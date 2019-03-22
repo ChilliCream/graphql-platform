@@ -1,9 +1,11 @@
 ﻿using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     public interface IEnumTypeDescriptor<T>
-        : IFluent
+        : IDescriptor<EnumTypeDefinition>
+        , IFluent
     {
         /// <summary>
         /// Associates the enum type with a syntax node

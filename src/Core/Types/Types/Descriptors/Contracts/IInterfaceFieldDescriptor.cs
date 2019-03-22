@@ -1,10 +1,12 @@
 ﻿using System;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     public interface IInterfaceFieldDescriptor
-        : IFluent
+        : IDescriptor<InterfaceFieldDefinition>
+        , IFluent
     {
         IInterfaceFieldDescriptor SyntaxNode(
             FieldDefinitionNode fieldDefinitionNode);

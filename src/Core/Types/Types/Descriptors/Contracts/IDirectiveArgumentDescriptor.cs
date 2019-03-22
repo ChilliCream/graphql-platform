@@ -1,9 +1,11 @@
 ﻿using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     public interface IDirectiveArgumentDescriptor
-        : IFluent
+        : IDescriptor<DirectiveArgumentDefinition>
+        , IFluent
     {
         /// <summary>
         /// Associates the argument with a syntax node

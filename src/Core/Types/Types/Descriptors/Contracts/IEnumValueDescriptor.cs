@@ -1,9 +1,11 @@
 ﻿using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     public interface IEnumValueDescriptor
-        : IFluent
+        : IDescriptor<EnumValueDefinition>
+        , IFluent
     {
         IEnumValueDescriptor SyntaxNode(
             EnumValueDefinitionNode enumValueDefinition);

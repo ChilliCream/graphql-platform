@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Factories
@@ -6,13 +8,33 @@ namespace HotChocolate.Types.Factories
     internal sealed class ObjectTypeFactory
         : ITypeFactory<ObjectTypeDefinitionNode, ObjectType>
     {
-        public ObjectType Create(ObjectTypeDefinitionNode node)
+        public ObjectType Create(
+            IBindingLookup bindingLookup,
+            ObjectTypeDefinitionNode node)
         {
+            if (bindingLookup == null)
+            {
+                throw new ArgumentNullException(nameof(bindingLookup));
+            }
+
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
+            ITypeBindingInfo bindingInfo =
+                bindingLookup.GetBindingInfo(node.Name.Value);
+
             return new ObjectType(d =>
             {
                 d.SyntaxNode(node)
                     .Name(node.Name.Value)
                     .Description(node.Description?.Value);
+
+                if (bindingInfo.SourceType != null)
+                {
+                    d.Type(bindingInfo.SourceType);
+                }
 
                 foreach (DirectiveNode directive in node.Directives)
                 {
@@ -21,7 +43,7 @@ namespace HotChocolate.Types.Factories
 
                 DeclareInterfaces(d, node.Interfaces);
 
-                DeclareFields(d, node.Fields);
+                DeclareFields(bindingInfo, d, node.Fields);
             });
         }
 
@@ -36,11 +58,14 @@ namespace HotChocolate.Types.Factories
         }
 
         private static void DeclareFields(
+            ITypeBindingInfo bindingLookup,
             IObjectTypeDescriptor typeDescriptor,
             IReadOnlyCollection<FieldDefinitionNode> fieldDefinitions)
         {
             foreach (FieldDefinitionNode fieldDefinition in fieldDefinitions)
             {
+                bindingLookup.TrackField(fieldDefinition.Name.Value);
+
                 IObjectFieldDescriptor fieldDescriptor = typeDescriptor
                     .Field(fieldDefinition.Name.Value)
                     .Description(fieldDefinition.Description?.Value)

@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     public interface IInputObjectTypeDescriptor
-        : IFluent
+        : IDescriptor<InputObjectTypeDefinition>
+        , IFluent
     {
         IInputObjectTypeDescriptor SyntaxNode(
             InputObjectTypeDefinitionNode inputObjectTypeDefinitionNode);

@@ -2,11 +2,13 @@
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     public interface IDirectiveTypeDescriptor
-        : IFluent
+        : IDescriptor<DirectiveTypeDefinition>
+        , IFluent
     {
         /// <summary>
         /// Associates the specified <paramref name="directiveDefinitionNode"/>

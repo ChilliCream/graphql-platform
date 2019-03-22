@@ -1,9 +1,11 @@
 ﻿using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     public interface IInputFieldDescriptor
-        : IFluent
+        : IDescriptor<InputFieldDefinition>
+        , IFluent
     {
         IInputFieldDescriptor SyntaxNode(
             InputValueDefinitionNode inputValueDefinitionNode);

@@ -1,15 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Factories;
 
-namespace HotChocolate
+namespace HotChocolate.Types.Factories
 {
     internal class SchemaSyntaxVisitor
         : SchemaSyntaxWalker<object>
     {
-        private readonly ITypeRegistry _typeRegistry;
-        private readonly IDirectiveRegistry _directiveRegistry;
         private readonly ObjectTypeFactory _objectTypeFactory =
             new ObjectTypeFactory();
         private readonly InterfaceTypeFactory _interfaceTypeFactory =
@@ -23,68 +23,79 @@ namespace HotChocolate
         private readonly DirectiveTypeFactory _directiveTypeFactory =
             new DirectiveTypeFactory();
 
+        private readonly List<ITypeReference> _types =
+            new List<ITypeReference>();
+
+        private readonly IBindingLookup _bindingLookup;
+
+        public SchemaSyntaxVisitor(IBindingLookup bindingLookup)
+        {
+            _bindingLookup = bindingLookup
+                ?? throw new ArgumentNullException(nameof(bindingLookup));
+        }
+
         public string QueryTypeName { get; private set; }
+
         public string MutationTypeName { get; private set; }
+
         public string SubscriptionTypeName { get; private set; }
 
-        public SchemaSyntaxVisitor(
-            ITypeRegistry typeRegistry,
-            IDirectiveRegistry directiveRegistry)
-        {
-            _typeRegistry = typeRegistry
-                ?? throw new ArgumentNullException(nameof(typeRegistry));
-            _directiveRegistry = directiveRegistry
-                ?? throw new ArgumentNullException(nameof(directiveRegistry));
-        }
+        public IReadOnlyList<ITypeReference> Types => _types;
 
         protected override void VisitObjectTypeDefinition(
             ObjectTypeDefinitionNode node,
             object context)
         {
-            _typeRegistry.RegisterType(_objectTypeFactory.Create(node));
+            _types.Add(SchemaTypeReference.Create(
+                _objectTypeFactory.Create(_bindingLookup, node)));
         }
 
         protected override void VisitInterfaceTypeDefinition(
             InterfaceTypeDefinitionNode node,
             object context)
         {
-            _typeRegistry.RegisterType(_interfaceTypeFactory.Create(node));
+            _types.Add(SchemaTypeReference.Create(
+                _interfaceTypeFactory.Create(_bindingLookup, node)));
         }
 
         protected override void VisitUnionTypeDefinition(
             UnionTypeDefinitionNode node,
             object context)
         {
-            _typeRegistry.RegisterType(_unionTypeFactory.Create(node));
+            _types.Add(SchemaTypeReference.Create(
+                _unionTypeFactory.Create(_bindingLookup, node)));
         }
 
         protected override void VisitInputObjectTypeDefinition(
             InputObjectTypeDefinitionNode node,
             object context)
         {
-            _typeRegistry.RegisterType(_inputObjectTypeFactory.Create(node));
+            _types.Add(SchemaTypeReference.Create(
+                _inputObjectTypeFactory.Create(_bindingLookup, node)));
         }
 
         protected override void VisitEnumTypeDefinition(
             EnumTypeDefinitionNode node,
             object context)
         {
-            _typeRegistry.RegisterType(_enumTypeFactory.Create(node));
+            _types.Add(SchemaTypeReference.Create(
+                _enumTypeFactory.Create(_bindingLookup, node)));
         }
 
         protected override void VisitDirectiveDefinition(
             DirectiveDefinitionNode node,
             object context)
         {
-            _directiveRegistry.RegisterDirectiveType(
-                _directiveTypeFactory.Create(node));
+            _types.Add(SchemaTypeReference.Create(
+                _directiveTypeFactory.Create(_bindingLookup, node)));
         }
 
         protected override void VisitSchemaDefinition(
             SchemaDefinitionNode node,
             object context)
         {
-            foreach (OperationTypeDefinitionNode operationType in node.OperationTypes)
+            foreach (OperationTypeDefinitionNode operationType in
+                node.OperationTypes)
             {
                 switch (operationType.Operation)
                 {
@@ -98,7 +109,9 @@ namespace HotChocolate
                         SubscriptionTypeName = operationType.Type.Name.Value;
                         break;
                     default:
-                        throw new InvalidOperationException("Unknown operation type.");
+                        // TODO : resources
+                        throw new InvalidOperationException(
+                            "Unknown operation type.");
                 }
             }
         }
