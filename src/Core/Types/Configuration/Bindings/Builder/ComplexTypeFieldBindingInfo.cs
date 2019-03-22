@@ -11,7 +11,7 @@ namespace HotChocolate.Configuration.Bindings
 
         public bool IsValid()
         {
-            return Name.HasValue && Member != null;
+            return Member != null;
         }
 
         public ComplexTypeFieldBindingInfo Clone()

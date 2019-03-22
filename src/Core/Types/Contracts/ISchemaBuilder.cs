@@ -49,6 +49,8 @@ namespace HotChocolate
 
         ISchemaBuilder AddServices(IServiceProvider services);
 
+        ISchemaBuilder SetTypeResolver(IsOfTypeFallback isOfType);
+
         ISchema Create();
     }
 }

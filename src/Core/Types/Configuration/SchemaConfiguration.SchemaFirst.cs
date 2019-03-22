@@ -15,6 +15,11 @@ namespace HotChocolate.Configuration
         public IBindResolverDelegate BindResolver(
             FieldResolverDelegate fieldResolver)
         {
+            if (fieldResolver == null)
+            {
+                throw new ArgumentNullException(nameof(fieldResolver));
+            }
+
             IResolverBindingBuilder builder =
                 ResolverBindingBuilder.New()
                     .SetResolver(fieldResolver);
@@ -28,6 +33,7 @@ namespace HotChocolate.Configuration
         {
             IResolverTypeBindingBuilder builder =
                 ResolverTypeBindingBuilder.New()
+                    .SetFieldBinding(bindingBehavior)
                     .SetResolverType(typeof(TResolver));
             _bindingBuilders.Add(builder);
             return new BindResolver<TResolver>(builder);
@@ -37,11 +43,17 @@ namespace HotChocolate.Configuration
             BindingBehavior bindingBehavior)
             where T : class
         {
-
+            IComplexTypeBindingBuilder builder =
+                ComplexTypeBindingBuilder.New()
+                    .SetFieldBinding(bindingBehavior)
+                    .SetType(typeof(T));
+            _bindingBuilders.Add(builder);
+            return new BindType<T>(builder);
         }
 
         public void RegisterIsOfType(IsOfTypeFallback isOfType)
         {
+            _builder.SetTypeResolver(isOfType);
         }
     }
 }
