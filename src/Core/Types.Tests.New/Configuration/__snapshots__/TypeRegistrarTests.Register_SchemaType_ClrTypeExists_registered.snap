@@ -10,5 +10,7 @@
   "HotChocolate.TypeRegistrarTests+FooType": "HotChocolate.TypeRegistrarTests+Foo",
   "HotChocolate.Types.StringType": "System.String",
   "HotChocolate.Types.BooleanType": "System.Boolean",
+  "HotChocolate.Types.IntType": "System.Int32",
+  "HotChocolate.Types.MultiplierPathType": "HotChocolate.Types.MultiplierPathString",
   "HotChocolate.TypeRegistrarTests+BarType": "HotChocolate.TypeRegistrarTests+Bar"
 }
