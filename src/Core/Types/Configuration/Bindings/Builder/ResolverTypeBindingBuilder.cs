@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration.Bindings
@@ -83,12 +84,30 @@ namespace HotChocolate.Configuration.Bindings
 
         public bool IsComplete()
         {
-            return _bindingInfo.IsValid();
+            if (_bindingInfo.Behavior == BindingBehavior.Explicit
+                && _bindingInfo.Fields.Count == 0)
+            {
+                return false;
+            }
+
+            if (_bindingInfo.ResolverType == null)
+            {
+                return false;
+            }
+
+            return _bindingInfo.Fields.All(t => t.IsValid());
         }
 
         public IBindingInfo Create()
         {
-            return _bindingInfo.Clone();
+            ResolverTypeBindingInfo cloned = _bindingInfo.Clone();
+
+            if (IsComplete() && !cloned.IsValid())
+            {
+                cloned.SourceType = cloned.ResolverType;
+            }
+
+            return cloned;
         }
 
         public static ResolverTypeBindingBuilder New() =>
