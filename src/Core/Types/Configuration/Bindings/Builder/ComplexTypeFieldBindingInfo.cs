@@ -2,7 +2,7 @@ using System.Reflection;
 
 namespace HotChocolate.Configuration.Bindings
 {
-    internal class ComplextTypeFieldBindingInfo
+    internal class ComplexTypeFieldBindingInfo
         : IBindingInfo
     {
         public NameString Name { get; set; }
@@ -14,9 +14,9 @@ namespace HotChocolate.Configuration.Bindings
             return Name.HasValue && Member != null;
         }
 
-        public ComplextTypeFieldBindingInfo Clone()
+        public ComplexTypeFieldBindingInfo Clone()
         {
-            return (ComplextTypeFieldBindingInfo)MemberwiseClone();
+            return (ComplexTypeFieldBindingInfo)MemberwiseClone();
         }
 
         IBindingInfo IBindingInfo.Clone() => Clone();

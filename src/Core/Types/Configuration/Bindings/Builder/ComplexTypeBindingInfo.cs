@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace HotChocolate.Configuration.Bindings
 {
-    internal class ComplextTypeBindingInfo
+    internal class ComplexTypeBindingInfo
         : IBindingInfo
     {
         public NameString Name { get; set; }
@@ -14,8 +14,8 @@ namespace HotChocolate.Configuration.Bindings
 
         public BindingBehavior BindingBehavior { get; set; }
 
-        public ImmutableList<ComplextTypeFieldBindingInfo> Fields
-        { get; set; } = ImmutableList<ComplextTypeFieldBindingInfo>.Empty;
+        public ImmutableList<ComplexTypeFieldBindingInfo> Fields
+        { get; set; } = ImmutableList<ComplexTypeFieldBindingInfo>.Empty;
 
         public bool IsValid()
         {
@@ -30,17 +30,12 @@ namespace HotChocolate.Configuration.Bindings
                 return false;
             }
 
-            if (Name.HasValue)
-            {
-                return Fields.All(t => t.IsValid());
-            }
-
             return false;
         }
 
-        public ComplextTypeBindingInfo Clone()
+        public ComplexTypeBindingInfo Clone()
         {
-            return (ComplextTypeBindingInfo)MemberwiseClone();
+            return (ComplexTypeBindingInfo)MemberwiseClone();
         }
 
         IBindingInfo IBindingInfo.Clone() => Clone();

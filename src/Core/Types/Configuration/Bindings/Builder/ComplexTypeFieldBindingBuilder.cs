@@ -3,19 +3,19 @@ using System.Reflection;
 
 namespace HotChocolate.Configuration.Bindings
 {
-    public class ComplextTypeFieldBindingBuilder
-        : IComplextTypeFieldBindingBuilder
+    public class ComplexTypeFieldBindingBuilder
+        : IComplexTypeFieldBindingBuilder
     {
-        private readonly ComplextTypeFieldBindingInfo _bindingInfo =
-            new ComplextTypeFieldBindingInfo();
+        private readonly ComplexTypeFieldBindingInfo _bindingInfo =
+            new ComplexTypeFieldBindingInfo();
 
-        public IComplextTypeFieldBindingBuilder SetName(NameString name)
+        public IComplexTypeFieldBindingBuilder SetName(NameString name)
         {
             _bindingInfo.Name = name.EnsureNotEmpty(nameof(name));
             return this;
         }
 
-        public IComplextTypeFieldBindingBuilder SetMember(MemberInfo member)
+        public IComplexTypeFieldBindingBuilder SetMember(MemberInfo member)
         {
             if (member == null)
             {
@@ -32,7 +32,7 @@ namespace HotChocolate.Configuration.Bindings
             return _bindingInfo.IsValid();
         }
 
-        internal ComplextTypeFieldBindingInfo Create()
+        internal ComplexTypeFieldBindingInfo Create()
         {
             return _bindingInfo.Clone();
         }
@@ -42,7 +42,7 @@ namespace HotChocolate.Configuration.Bindings
             return _bindingInfo.Clone();
         }
 
-        public static ComplextTypeFieldBindingBuilder New() =>
-            new ComplextTypeFieldBindingBuilder();
+        public static ComplexTypeFieldBindingBuilder New() =>
+            new ComplexTypeFieldBindingBuilder();
     }
 }
