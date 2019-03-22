@@ -1,25 +1,21 @@
-﻿using System.Collections.Immutable;
-using System.Runtime.InteropServices.ComTypes;
+using System.Collections.Immutable;
 using System;
-using System.Collections.Generic;
 using HotChocolate.Types;
 using System.Linq;
 
 namespace HotChocolate.Configuration.Bindings
 {
-    internal class ResolverTypeBindingInfo
+    internal class ComplextTypeBindingInfo
         : IBindingInfo
     {
-        public Type ResolverType { get; set; }
+        public NameString Name { get; set; }
 
-        public Type SourceType { get; set; }
-
-        public NameString TypeName { get; set; }
+        public Type Type { get; set; }
 
         public BindingBehavior BindingBehavior { get; set; }
 
-        public ImmutableList<ResolverFieldBindingInfo> Fields { get; set; } =
-            ImmutableList<ResolverFieldBindingInfo>.Empty;
+        public ImmutableList<ComplextTypeFieldBindingInfo> Fields
+        { get; set; } = ImmutableList<ComplextTypeFieldBindingInfo>.Empty;
 
         public bool IsValid()
         {
@@ -29,12 +25,12 @@ namespace HotChocolate.Configuration.Bindings
                 return false;
             }
 
-            if (ResolverType == null)
+            if (Type == null)
             {
                 return false;
             }
 
-            if (SourceType != null || TypeName.HasValue)
+            if (Name.HasValue)
             {
                 return Fields.All(t => t.IsValid());
             }
@@ -42,9 +38,9 @@ namespace HotChocolate.Configuration.Bindings
             return false;
         }
 
-        public ResolverTypeBindingInfo Clone()
+        public ComplextTypeBindingInfo Clone()
         {
-            return (ResolverTypeBindingInfo)MemberwiseClone();
+            return (ComplextTypeBindingInfo)MemberwiseClone();
         }
 
         IBindingInfo IBindingInfo.Clone() => Clone();

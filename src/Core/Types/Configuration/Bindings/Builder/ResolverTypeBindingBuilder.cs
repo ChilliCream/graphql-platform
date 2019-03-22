@@ -33,7 +33,7 @@ namespace HotChocolate.Configuration.Bindings
         public IResolverTypeBindingBuilder SetFieldBinding(
             BindingBehavior behavior)
         {
-            _bindingInfo.Behavior = behavior;
+            _bindingInfo.BindingBehavior = behavior;
             return this;
         }
 
@@ -84,7 +84,7 @@ namespace HotChocolate.Configuration.Bindings
 
         public bool IsComplete()
         {
-            if (_bindingInfo.Behavior == BindingBehavior.Explicit
+            if (_bindingInfo.BindingBehavior == BindingBehavior.Explicit
                 && _bindingInfo.Fields.Count == 0)
             {
                 return false;
