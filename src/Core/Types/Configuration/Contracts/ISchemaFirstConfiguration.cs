@@ -1,4 +1,5 @@
-﻿using HotChocolate.Resolvers;
+﻿using HotChocolate.Configuration.Bindings;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq.Expressions;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration.Bindings
 {
     public interface IBoundType<T>
        : IFluent

@@ -27,7 +27,7 @@ namespace HotChocolate.Configuration
 
         public IBoundResolver<TResolver> To(NameString typeName)
         {
-            _bindingInfo.ObjectTypeName =
+            _bindingInfo.TypeName =
                 typeName.EnsureNotEmpty(nameof(typeName));
             return this;
         }
@@ -35,7 +35,7 @@ namespace HotChocolate.Configuration
         public IBoundResolver<TResolver, TObjectType> To<TObjectType>()
             where TObjectType : class
         {
-            _bindingInfo.ObjectType = typeof(TObjectType);
+            _bindingInfo.SourceType = typeof(TObjectType);
             return new BoundResolver<TResolver, TObjectType>(_bindingInfo);
         }
     }

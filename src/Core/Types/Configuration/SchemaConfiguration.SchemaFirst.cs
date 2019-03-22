@@ -1,6 +1,9 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System;
+using HotChocolate.Configuration.Bindings;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {
@@ -9,17 +12,6 @@ namespace HotChocolate.Configuration
         public IBindResolverDelegate BindResolver(
             FieldResolverDelegate fieldResolver)
         {
-            if (fieldResolver == null)
-            {
-                throw new ArgumentNullException(nameof(fieldResolver));
-            }
-
-            var bindingInfo =
-                new ResolverDelegateBindingInfo
-                {
-                    FieldResolver = fieldResolver
-                };
-            _resolverBindings.Add(bindingInfo);
             return new BindResolverDelegate(bindingInfo);
         }
 
@@ -27,32 +19,18 @@ namespace HotChocolate.Configuration
             BindingBehavior bindingBehavior)
             where TResolver : class
         {
-            var bindingInfo =
-                new ResolverCollectionBindingInfo
-                {
-                    Behavior = bindingBehavior,
-                    ResolverType = typeof(TResolver)
-                };
-            _resolverBindings.Add(bindingInfo);
-            return new BindResolver<TResolver>(bindingInfo);
+
         }
 
         public IBindType<T> BindType<T>(
             BindingBehavior bindingBehavior)
             where T : class
         {
-            var bindingInfo = new TypeBindingInfo
-            {
-                Behavior = bindingBehavior,
-                Type = typeof(T)
-            };
-            _typeBindings.Add(bindingInfo);
-            return new BindType<T>(bindingInfo);
+
         }
 
         public void RegisterIsOfType(IsOfTypeFallback isOfType)
         {
-            _typeRegistry.IsOfType = isOfType;
         }
     }
 }

@@ -22,7 +22,7 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(resolverBindings));
             }
             _bindings = resolverBindings
-                .ToLookup(t => t.ObjectTypeName);
+                .ToLookup(t => t.TypeName);
         }
 
         public void ApplyBinding(
@@ -31,9 +31,9 @@ namespace HotChocolate.Configuration
         {
             if (resolverBindingInfo is ResolverCollectionBindingInfo b)
             {
-                if (b.ObjectType == null)
+                if (b.SourceType == null)
                 {
-                    b.ObjectType = typeof(object);
+                    b.SourceType = typeof(object);
                 }
 
                 List<IFieldResolverDescriptor> descriptors =
@@ -69,8 +69,8 @@ namespace HotChocolate.Configuration
             {
                 descriptors.AddRange(FieldResolverDiscoverer.DiscoverResolvers(
                     resolverBinding.ResolverType,
-                    resolverBinding.ObjectType,
-                    resolverBinding.ObjectTypeName,
+                    resolverBinding.SourceType,
+                    resolverBinding.TypeName,
                     m => LookupFieldName(typeRegistry, m)));
             }
 
@@ -82,13 +82,13 @@ namespace HotChocolate.Configuration
                 IEnumerable<FieldMember> selectedResolvers =
                     resolverBinding.Fields.Select(
                         t => new FieldMember(
-                            resolverBinding.ObjectTypeName,
+                            resolverBinding.TypeName,
                             t.FieldName, t.ResolverMember)).ToArray();
 
                 foreach (IFieldResolverDescriptor explicitDescriptor in
                     FieldResolverDiscoverer.CreateResolverDescriptors(
                         resolverBinding.ResolverType,
-                        resolverBinding.ObjectType,
+                        resolverBinding.SourceType,
                         selectedResolvers))
                 {
                     // remove implicit declared descriptos for the

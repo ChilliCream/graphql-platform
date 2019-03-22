@@ -94,7 +94,18 @@ namespace HotChocolate
             return this;
         }
 
-        public ISchemaBuilder AddType(ITypeSystemObject type)
+        public ISchemaBuilder AddType(INamedType type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            _types.Add(new SchemaTypeReference(type));
+            return this;
+        }
+
+        public ISchemaBuilder AddDirectiveType(DirectiveType type)
         {
             if (type == null)
             {

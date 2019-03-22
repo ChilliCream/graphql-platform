@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Configuration;
+using HotChocolate.Configuration.Bindings;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -44,7 +45,7 @@ namespace HotChocolate
 
         ISchemaBuilder AddResolver(FieldResolver fieldResolver);
 
-        // ISchemaBuilder AddBinding(object binding);
+        ISchemaBuilder AddBinding(IBindingInfo binding);
 
         ISchemaBuilder AddServices(IServiceProvider services);
 

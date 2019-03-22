@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Configuration
+﻿namespace HotChocolate.Configuration.Bindings
 {
     public interface IBindResolver<TResolver>
         : IBoundResolver<TResolver>

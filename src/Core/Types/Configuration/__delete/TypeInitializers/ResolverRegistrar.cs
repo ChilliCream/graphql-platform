@@ -63,29 +63,29 @@ namespace HotChocolate.Configuration
             foreach (ResolverCollectionBindingInfo binding in _resolverBindings
                 .OfType<ResolverCollectionBindingInfo>())
             {
-                if (binding.ObjectType == null
-                    && binding.ObjectTypeName.IsEmpty)
+                if (binding.SourceType == null
+                    && binding.TypeName.IsEmpty)
                 {
-                    binding.ObjectType = binding.ResolverType;
+                    binding.SourceType = binding.ResolverType;
                 }
 
                 ObjectTypeBinding typeBinding = null;
-                if (binding.ObjectType == null && typeRegistry
-                    .TryGetTypeBinding(binding.ObjectTypeName, out typeBinding))
+                if (binding.SourceType == null && typeRegistry
+                    .TryGetTypeBinding(binding.TypeName, out typeBinding))
                 {
-                    binding.ObjectType = typeBinding.Type;
+                    binding.SourceType = typeBinding.Type;
                 }
 
-                if (binding.ObjectTypeName.IsEmpty && typeRegistry
-                    .TryGetTypeBinding(binding.ObjectType, out typeBinding))
+                if (binding.TypeName.IsEmpty && typeRegistry
+                    .TryGetTypeBinding(binding.SourceType, out typeBinding))
                 {
-                    binding.ObjectTypeName = typeBinding.Name;
+                    binding.TypeName = typeBinding.Name;
                 }
 
-                if (binding.ObjectTypeName.IsEmpty)
+                if (binding.TypeName.IsEmpty)
                 {
-                    binding.ObjectTypeName =
-                        binding.ObjectType.GetGraphQLName();
+                    binding.TypeName =
+                        binding.SourceType.GetGraphQLName();
                 }
 
                 // TODO : error handling if object type cannot be resolverd

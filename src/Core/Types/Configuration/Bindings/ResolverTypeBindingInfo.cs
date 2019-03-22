@@ -4,13 +4,13 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
-    internal class ResolverCollectionBindingInfo
-        : ResolverBindingInfo
+    internal class ResolverTypeBindingInfo
     {
         public Type ResolverType { get; set; }
+        public Type SourceType { get; set; }
+        public NameString TypeName { get; set; }
         public BindingBehavior Behavior { get; set; }
-        public List<FieldResolverBindungInfo> Fields { get; } =
+        public ICollection<FieldResolverBindungInfo> Fields { get; } =
             new List<FieldResolverBindungInfo>();
-        public bool IsSourceResolver { get; set; }
     }
 }

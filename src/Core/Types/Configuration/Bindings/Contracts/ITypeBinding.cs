@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration.Bindings
 {
     public interface ITypeBinding
     {
