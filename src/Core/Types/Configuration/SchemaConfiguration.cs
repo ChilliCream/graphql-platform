@@ -8,7 +8,7 @@ namespace HotChocolate.Configuration
     internal partial class SchemaConfiguration
         : ISchemaConfiguration
     {
-        private readonly ISchemaBuilder _builder = SchemaBuilder.New();
+        private readonly SchemaBuilder _builder = SchemaBuilder.New();
 
         public SchemaConfiguration()
         {
@@ -17,7 +17,7 @@ namespace HotChocolate.Configuration
 
         public ISchemaOptions Options { get; set; } = new SchemaOptions();
 
-        public ISchemaBuilder CreateBuilder()
+        public SchemaBuilder CreateBuilder()
         {
             foreach (IBindingBuilder bindingBuilder in _bindingBuilders)
             {

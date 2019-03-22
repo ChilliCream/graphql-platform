@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
+using HotChocolate.Configuration.Bindings;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 

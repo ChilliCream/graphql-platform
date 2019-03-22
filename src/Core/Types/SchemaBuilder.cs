@@ -1,3 +1,4 @@
+using System.Net;
 using System.Linq;
 using System;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Configuration;
+using HotChocolate.Configuration.Bindings;
 
 namespace HotChocolate
 {
@@ -23,8 +25,11 @@ namespace HotChocolate
             new Dictionary<OperationType, ITypeReference>();
         private readonly Dictionary<FieldReference, FieldResolver> _resolvers =
             new Dictionary<FieldReference, FieldResolver>();
+        private readonly List<IBindingInfo> _bindings =
+            new List<IBindingInfo>();
         private string _description;
         private IReadOnlySchemaOptions _options = new SchemaOptions();
+        private IsOfTypeFallback _isOfType;
         private IServiceProvider _services;
 
         public ISchemaBuilder SetDescription(string description)
@@ -182,6 +187,31 @@ namespace HotChocolate
             return this;
         }
 
+        public ISchemaBuilder AddBinding(IBindingInfo binding)
+        {
+            if (binding == null)
+            {
+                throw new ArgumentNullException(nameof(binding));
+            }
+
+            if (!binding.IsValid())
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "binidng is not valid",
+                    nameof(binding));
+            }
+
+            _bindings.Add(binding);
+            return this;
+        }
+
+        public ISchemaBuilder SetTypeResolver(IsOfTypeFallback isOfType)
+        {
+            _isOfType = isOfType;
+            return this;
+        }
+
         public ISchemaBuilder AddServices(IServiceProvider services)
         {
             if (services == null)
@@ -201,12 +231,14 @@ namespace HotChocolate
             return this;
         }
 
-        public ISchema Create()
+        public Schema Create()
         {
             TypeInitializer initializer = InitializeTypes();
             SchemaDefinition definition = CreateSchemaDefinition(initializer);
             return new Schema(definition);
         }
+
+        ISchema ISchemaBuilder.Create() => Create();
 
         private TypeInitializer InitializeTypes()
         {
