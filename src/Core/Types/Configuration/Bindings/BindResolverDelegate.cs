@@ -35,20 +35,4 @@ namespace HotChocolate.Configuration.Bindings
                 .SetField(resolver.ExtractMember());
         }
     }
-
-    internal class BindFieldResolver<TResolver, TObjectType>
-        : IBindFieldResolver<TResolver, TObjectType>
-        where TResolver : class
-        where TObjectType : class
-    {
-
-
-        public IBoundResolver<TResolver, TObjectType> With<TPropertyType>(
-            Expression<Func<TResolver, TPropertyType>> resolver)
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-
 }
