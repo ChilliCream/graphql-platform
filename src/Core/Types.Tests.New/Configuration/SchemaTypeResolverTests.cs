@@ -1,3 +1,4 @@
+using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using Xunit;

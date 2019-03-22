@@ -7,6 +7,7 @@ using Moq;
 using Xunit;
 using Snapshooter.Xunit;
 using Snapshooter;
+using HotChocolate.Configuration;
 
 namespace HotChocolate
 {
@@ -23,7 +24,7 @@ namespace HotChocolate
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var typeRegistrar = new TypeRegistrar_new(
+            var typeRegistrar = new TypeRegistrar(
                 serviceProvider, initialTypes);
 
             // act
@@ -55,7 +56,7 @@ namespace HotChocolate
 
             var serviceProvider = new EmptyServiceProvider();
 
-            var typeRegistrar = new TypeRegistrar_new(
+            var typeRegistrar = new TypeRegistrar(
                 serviceProvider, initialTypes);
 
             // act

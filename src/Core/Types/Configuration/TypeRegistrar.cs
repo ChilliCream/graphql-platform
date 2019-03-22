@@ -10,7 +10,7 @@ using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Configuration
 {
-    internal sealed class TypeRegistrar_new
+    internal sealed class TypeRegistrar
     {
         private readonly TypeInspector _typeInspector = new TypeInspector();
         private readonly ServiceFactory _serviceFactory = new ServiceFactory();
@@ -22,7 +22,7 @@ namespace HotChocolate.Configuration
         private readonly List<ITypeReference> _unregistered =
             new List<ITypeReference>();
 
-        public TypeRegistrar_new(
+        public TypeRegistrar(
             IServiceProvider services,
             IEnumerable<ITypeReference> initialTypes)
         {

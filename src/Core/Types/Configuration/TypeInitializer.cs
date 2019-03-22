@@ -76,7 +76,7 @@ namespace HotChocolate.Configuration
 
         private bool RegisterTypes()
         {
-            var typeRegistrar = new TypeRegistrar_new(_services, _initialTypes);
+            var typeRegistrar = new TypeRegistrar(_services, _initialTypes);
             if (typeRegistrar.Complete())
             {
                 foreach (InitializationContext context in
