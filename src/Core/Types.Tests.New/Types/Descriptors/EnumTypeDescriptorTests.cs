@@ -1,26 +1,29 @@
 ﻿using System;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using Xunit;
 
 namespace HotChocolate.Types
 {
     public class EnumTypeDescriptorTests
+        : DescriptorTestBase
     {
         [Fact]
         public void InitialName()
         {
             // act
-            var descriptor = new EnumTypeDescriptor("Foo");
+            var descriptor = new EnumTypeDescriptor(Context, "Foo");
 
             // assert
-            Assert.Equal("Foo", descriptor.CreateDescription().Name);
+            Assert.Equal("Foo", descriptor.CreateDefinition().Name);
         }
 
         [Fact]
         public void NoNameProvided()
         {
             // act
-            Action a = () => new EnumTypeDescriptor((string)null);
+            Action a = () => new EnumTypeDescriptor(Context, (string)null);
 
             // assert
             Assert.Throws<ArgumentException>(a);
@@ -30,17 +33,17 @@ namespace HotChocolate.Types
         public void InferNameFromType()
         {
             // act
-            var descriptor = new EnumTypeDescriptor(typeof(FooEnum));
+            var descriptor = new EnumTypeDescriptor(Context, typeof(FooEnum));
 
             // assert
-            Assert.Equal("FooEnum", descriptor.CreateDescription().Name);
+            Assert.Equal("FooEnum", descriptor.CreateDefinition().Name);
         }
 
         [Fact]
         public void NoTypeProvided()
         {
             // act
-            Action a = () => new EnumTypeDescriptor((Type)null);
+            Action a = () => new EnumTypeDescriptor(Context, (Type)null);
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
@@ -50,10 +53,10 @@ namespace HotChocolate.Types
         public void InferValuesFromType()
         {
             // act
-            var descriptor = new EnumTypeDescriptor(typeof(FooEnum));
+            var descriptor = new EnumTypeDescriptor(Context, typeof(FooEnum));
 
             // assert
-            EnumTypeDescription description = descriptor.CreateDescription();
+            EnumTypeDefinition description = descriptor.CreateDefinition();
             Assert.Collection(description.Values,
                 t =>
                 {
@@ -71,14 +74,14 @@ namespace HotChocolate.Types
         public void SpecifyOneValueInferTheOthers()
         {
             // arrange
-            var descriptor = new EnumTypeDescriptor(typeof(FooEnum));
+            var descriptor = new EnumTypeDescriptor(Context, typeof(FooEnum));
 
             // act
             IEnumTypeDescriptor desc = descriptor;
             desc.Item(FooEnum.Bar1).Name("FOOBAR");
 
             // assert
-            EnumTypeDescription description = descriptor.CreateDescription();
+            EnumTypeDefinition description = descriptor.CreateDefinition();
             Assert.Collection(description.Values,
                 t =>
                 {
@@ -96,7 +99,7 @@ namespace HotChocolate.Types
         public void ExplicitValueBinding()
         {
             // arrange
-            var descriptor = new EnumTypeDescriptor(typeof(FooEnum));
+            var descriptor = new EnumTypeDescriptor(Context, typeof(FooEnum));
 
             // act
             IEnumTypeDescriptor desc = descriptor;
@@ -104,7 +107,7 @@ namespace HotChocolate.Types
             desc.BindItems(BindingBehavior.Explicit);
 
             // assert
-            EnumTypeDescription description = descriptor.CreateDescription();
+            EnumTypeDefinition description = descriptor.CreateDefinition();
             Assert.Collection(description.Values,
                 t =>
                 {
@@ -117,14 +120,14 @@ namespace HotChocolate.Types
         public void AddDirective()
         {
             // arrange
-            var descriptor = new EnumTypeDescriptor("Foo");
+            var descriptor = new EnumTypeDescriptor(Context, "Foo");
 
             // act
             IEnumTypeDescriptor desc = descriptor;
             desc.Directive(new NameString("Bar"));
 
             // assert
-            EnumTypeDescription description = descriptor.CreateDescription();
+            EnumTypeDefinition description = descriptor.CreateDefinition();
             Assert.Collection(description.Directives,
                 t => Assert.Equal("Bar", t.ParsedDirective.Name.Value));
         }
@@ -133,14 +136,14 @@ namespace HotChocolate.Types
         public void AddDirectiveWithDirectiveNode()
         {
             // arrange
-            var descriptor = new EnumTypeDescriptor("Foo");
+            var descriptor = new EnumTypeDescriptor(Context, "Foo");
 
             // act
             IEnumTypeDescriptor desc = descriptor;
             desc.Directive(new DirectiveNode("Bar"));
 
             // assert
-            EnumTypeDescription description = descriptor.CreateDescription();
+            EnumTypeDefinition description = descriptor.CreateDefinition();
             Assert.Collection(description.Directives,
                 t => Assert.Equal("Bar", t.ParsedDirective.Name.Value));
         }
@@ -149,7 +152,7 @@ namespace HotChocolate.Types
         public void AddDirectiveWithArgument()
         {
             // arrange
-            var descriptor = new EnumTypeDescriptor("Foo");
+            var descriptor = new EnumTypeDescriptor(Context, "Foo");
 
             // act
             IEnumTypeDescriptor desc = descriptor;
@@ -157,7 +160,7 @@ namespace HotChocolate.Types
                 new ArgumentNode("a", new StringValueNode("b")));
 
             // assert
-            EnumTypeDescription description = descriptor.CreateDescription();
+            EnumTypeDefinition description = descriptor.CreateDefinition();
             Assert.Collection(description.Directives,
                 t =>
                 {
