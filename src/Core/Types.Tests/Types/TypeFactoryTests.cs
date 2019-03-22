@@ -25,9 +25,9 @@ namespace HotChocolate.Types
 
             // act
             var factory = new ObjectTypeFactory();
-            ObjectType type = factory.Create(typeDefinition);
-            CompleteType(type,
-                s => s.Resolvers.RegisterResolver(resolverBinding));
+            ObjectType type = null; //  factory.Create(typeDefinition);
+                                    // CompleteType(type,
+                                    // s => s.Resolvers.RegisterResolver(resolverBinding));
 
             // assert
             Assert.Equal("Simple", type.Name);
@@ -61,8 +61,8 @@ namespace HotChocolate.Types
 
             // act
             var factory = new ObjectTypeFactory();
-            ObjectType type = factory.Create(typeDefinition);
-            CompleteType(type);
+            ObjectType type = null; //factory.Create(typeDefinition);
+            // CompleteType(type);
 
             // assert
             Assert.True(type.Fields["a"].IsDeprecated);
@@ -79,8 +79,8 @@ namespace HotChocolate.Types
 
             // act
             var factory = new InterfaceTypeFactory();
-            InterfaceType type = factory.Create(typeDefinition);
-            CompleteType(type);
+            InterfaceType type = null; // factory.Create(typeDefinition);
+            // CompleteType(type);
 
             // assert
             Assert.Equal("Simple", type.Name);
@@ -111,8 +111,8 @@ namespace HotChocolate.Types
 
             // act
             var factory = new InterfaceTypeFactory();
-            InterfaceType type = factory.Create(typeDefinition);
-            CompleteType(type);
+            InterfaceType type = null;// factory.Create(typeDefinition);
+            // CompleteType(type);
 
             // assert
             Assert.True(type.Fields["a"].IsDeprecated);
@@ -134,12 +134,12 @@ namespace HotChocolate.Types
 
             // act
             var factory = new UnionTypeFactory();
-            UnionType type = factory.Create(typeDefinition);
-            CompleteType(type, s =>
-            {
-                s.Types.RegisterType(objectTypeA);
-                s.Types.RegisterType(objectTypeB);
-            });
+            UnionType type = null; // factory.Create(typeDefinition);
+                                   // CompleteType(type, s =>
+                                   // {
+                                   // s.Types.RegisterType(objectTypeA);
+                                   // s.Types.RegisterType(objectTypeB);
+                                   // });
 
             // assert
             Assert.Equal("X", type.Name);
@@ -158,8 +158,8 @@ namespace HotChocolate.Types
 
             // act
             var factory = new EnumTypeFactory();
-            EnumType type = factory.Create(typeDefinition);
-            CompleteType(type);
+            EnumType type = null; // factory.Create(typeDefinition);
+            // CompleteType(type);
 
             // assert
             Assert.Equal("Abc", type.Name);
@@ -183,8 +183,8 @@ namespace HotChocolate.Types
 
             // act
             var factory = new EnumTypeFactory();
-            EnumType type = factory.Create(typeDefinition);
-            CompleteType(type);
+            EnumType type = null; // factory.Create(typeDefinition);
+            // CompleteType(type);
 
             // assert
             EnumValue value = type.Values.FirstOrDefault(t => t.Name == "B");
@@ -276,26 +276,6 @@ namespace HotChocolate.Types
                     Assert.Equal("a", t.Name);
                     Assert.IsType<StringType>(t.Type);
                 });
-        }
-
-        private void CompleteType(
-            INamedType namedType,
-            Action<SchemaContext> configure = null)
-        {
-            var schemaContext = new SchemaContext();
-            schemaContext.Types.RegisterType(new StringType());
-            schemaContext.Types.RegisterType(namedType);
-
-            if (configure != null)
-            {
-                configure(schemaContext);
-            }
-
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, error => { }, namedType, false);
-            ((INeedsInitialization)namedType)
-                .RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
         }
 
         private T CreateTypeDefinition<T>(string schema)
