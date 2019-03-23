@@ -31,7 +31,7 @@ namespace HotChocolate.Types.Factories
             {
                 IEnumValueDescriptor valueDescriptor =
                     typeDescriptor.Item(value.Name.Value)
-                        .Description(value.Description.Value);
+                        .Description(value.Description?.Value);
 
                 string deprecactionReason = value.DeprecationReason();
                 if (!string.IsNullOrEmpty(deprecactionReason))
