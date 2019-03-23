@@ -1,0 +1,53 @@
+"""
+Line 1
+Line 2
+"""
+type Query {
+  """
+  Line 1
+  Line 2
+  """
+  translate(
+    """
+    Line 1
+    Line 2
+    """
+    fromLanguage: Language
+
+    """
+    Line 1
+    Line 2
+    """
+    toLanguage: Language
+
+    """
+    Line 1
+    Line 2
+    """
+    text: String
+  ): String
+}
+
+"""
+Line 1
+Line 2
+"""
+enum Language {
+  """
+  Line 1
+  Line 2
+  """
+  EN
+
+  """
+  Line 1
+  Line 2
+  """
+  FR
+
+  """
+  Line 1
+  Line 2
+  """
+  CH
+}
