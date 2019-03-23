@@ -108,5 +108,19 @@ interface C {
   ): String
 }
 
+"""
+foo
+Line 1
+Line 2
+"""
+input Foo {
+  """
+  bar
+  Line 1
+  Line 2
+  """
+  bar: String
+}
+
 type A { a: String }
 type B { b: String }
