@@ -1,0 +1,126 @@
+"""
+Query
+Line 1
+Line 2
+"""
+type Query {
+  """
+  translate
+  Line 1
+  Line 2
+  """
+  translate(
+    """
+    fromLanguage
+    Line 1
+    Line 2
+    """
+    fromLanguage: Language
+
+    """
+    toLanguage
+    Line 1
+    Line 2
+    """
+    toLanguage: Language
+
+    """
+    text
+    Line 1
+    Line 2
+    """
+    text: String
+  ): String
+}
+
+"""
+Language
+Line 1
+Line 2
+"""
+enum Language {
+  """
+  EN
+  Line 1
+  Line 2
+  """
+  EN
+
+  """
+  FR
+  Line 1
+  Line 2
+  """
+  FR
+
+  """
+  CH
+  Line 1
+  Line 2
+  """
+  CH
+}
+
+"""
+AandB
+Line 1
+Line 2
+"""
+union AandB = A | B
+
+"""
+interface
+C
+Line 1
+Line 2
+"""
+interface C {
+  """
+  interface
+  translate
+  Line 1
+  Line 2
+  """
+  translate(
+    """
+    interface
+    fromLanguage
+    Line 1
+    Line 2
+    """
+    fromLanguage: Language
+
+    """
+    interface
+    toLanguage
+    Line 1
+    Line 2
+    """
+    toLanguage: Language
+
+    """
+    interface
+    text
+    Line 1
+    Line 2
+    """
+    text: String
+  ): String
+}
+
+"""
+foo
+Line 1
+Line 2
+"""
+input Foo {
+  """
+  bar
+  Line 1
+  Line 2
+  """
+  bar: String
+}
+
+type A { a: String }
+type B { b: String }
