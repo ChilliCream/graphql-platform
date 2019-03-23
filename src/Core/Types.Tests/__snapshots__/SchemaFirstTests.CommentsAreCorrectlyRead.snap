@@ -915,15 +915,15 @@
         {
           "kind": "OBJECT",
           "name": "Query",
-          "description": "Line 1\nLine 2",
+          "description": "Query\nLine 1\nLine 2",
           "fields": [
             {
               "name": "translate",
-              "description": "Line 1\nLine 2",
+              "description": "translate\nLine 1\nLine 2",
               "args": [
                 {
                   "name": "fromLanguage",
-                  "description": "Line 1\nLine 2",
+                  "description": "fromLanguage\nLine 1\nLine 2",
                   "type": {
                     "kind": "ENUM",
                     "name": "Language",
@@ -933,7 +933,7 @@
                 },
                 {
                   "name": "toLanguage",
-                  "description": "Line 1\nLine 2",
+                  "description": "toLanguage\nLine 1\nLine 2",
                   "type": {
                     "kind": "ENUM",
                     "name": "Language",
@@ -943,7 +943,7 @@
                 },
                 {
                   "name": "text",
-                  "description": "Line 1\nLine 2",
+                  "description": "text\nLine 1\nLine 2",
                   "type": {
                     "kind": "SCALAR",
                     "name": "String",
@@ -969,30 +969,151 @@
         {
           "kind": "ENUM",
           "name": "Language",
-          "description": "Line 1\nLine 2",
+          "description": "Language\nLine 1\nLine 2",
           "fields": null,
           "inputFields": null,
           "interfaces": null,
           "enumValues": [
             {
               "name": "EN",
-              "description": null,
+              "description": "EN\nLine 1\nLine 2",
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "FR",
-              "description": null,
+              "description": "FR\nLine 1\nLine 2",
               "isDeprecated": false,
               "deprecationReason": null
             },
             {
               "name": "CH",
-              "description": null,
+              "description": "CH\nLine 1\nLine 2",
               "isDeprecated": false,
               "deprecationReason": null
             }
           ],
+          "possibleTypes": null
+        },
+        {
+          "kind": "UNION",
+          "name": "AandB",
+          "description": "AandB\nLine 1\nLine 2",
+          "fields": null,
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": [
+            {
+              "kind": "OBJECT",
+              "name": "A",
+              "ofType": null
+            },
+            {
+              "kind": "OBJECT",
+              "name": "B",
+              "ofType": null
+            }
+          ]
+        },
+        {
+          "kind": "INTERFACE",
+          "name": "C",
+          "description": "interface\nC\nLine 1\nLine 2",
+          "fields": [
+            {
+              "name": "translate",
+              "description": "interface\ntranslate\nLine 1\nLine 2",
+              "args": [
+                {
+                  "name": "fromLanguage",
+                  "description": "interface\nfromLanguage\nLine 1\nLine 2",
+                  "type": {
+                    "kind": "ENUM",
+                    "name": "Language",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "toLanguage",
+                  "description": "interface\ntoLanguage\nLine 1\nLine 2",
+                  "type": {
+                    "kind": "ENUM",
+                    "name": "Language",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                },
+                {
+                  "name": "text",
+                  "description": "interface\ntext\nLine 1\nLine 2",
+                  "type": {
+                    "kind": "SCALAR",
+                    "name": "String",
+                    "ofType": null
+                  },
+                  "defaultValue": null
+                }
+              ],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": null,
+          "enumValues": null,
+          "possibleTypes": []
+        },
+        {
+          "kind": "OBJECT",
+          "name": "A",
+          "description": null,
+          "fields": [
+            {
+              "name": "a",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [],
+          "enumValues": null,
+          "possibleTypes": null
+        },
+        {
+          "kind": "OBJECT",
+          "name": "B",
+          "description": null,
+          "fields": [
+            {
+              "name": "b",
+              "description": null,
+              "args": [],
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "isDeprecated": false,
+              "deprecationReason": null
+            }
+          ],
+          "inputFields": null,
+          "interfaces": [],
+          "enumValues": null,
           "possibleTypes": null
         }
       ],
