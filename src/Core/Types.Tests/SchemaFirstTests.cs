@@ -9,7 +9,7 @@ namespace HotChocolate
 {
     public class SchemaFirstTests
     {
-         [Fact]
+        [Fact]
         public async Task CommentsAreCorrectlyRead()
         {
             // arrange
@@ -28,7 +28,7 @@ namespace HotChocolate
 
             // assert
             IQueryExecutor executor = schema.MakeExecutable();
-            IExecutionResult result =  await executor.ExecuteAsync(query);
+            IExecutionResult result = await executor.ExecuteAsync(query);
             result.MatchSnapshot();
         }
     }
