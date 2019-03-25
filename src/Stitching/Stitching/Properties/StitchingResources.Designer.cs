@@ -214,26 +214,6 @@ namespace HotChocolate.Stitching.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] IntrospectionPhase1 {
-            get {
-                object obj = ResourceManager.GetObject("IntrospectionPhase1", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized resource of type System.Byte[].
-        /// </summary>
-        internal static byte[] IntrospectionPhase2 {
-            get {
-                object obj = ResourceManager.GetObject("IntrospectionPhase2", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to No schema was specified..
         /// </summary>
         internal static string MergeSyntaxNodeExtensions_NoSchema {
