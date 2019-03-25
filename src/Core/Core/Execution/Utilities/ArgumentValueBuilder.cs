@@ -56,10 +56,13 @@ namespace HotChocolate.Execution
 
             if (argument.Type is NonNullType && argumentValue == null)
             {
+                // TODO : resources
                 throw new QueryException(createError(
-                    $"The argument type of '{argument.Name}' " +
-                    "is a non-null type."));
+                    "Variable `{0}` of non-null type `{1}` must not be null."));
             }
+
+            InputTypeNonNullCheck.CheckForNullValueViolation(
+                argument.SyntaxNode)
 
             return new ArgumentValue(argument.Type, argumentValue);
         }
