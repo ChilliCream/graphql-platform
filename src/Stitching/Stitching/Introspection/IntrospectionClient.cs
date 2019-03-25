@@ -63,10 +63,12 @@ namespace HotChocolate.Stitching.Introspection
 
             var request = new HttpQueryRequest
             {
-                Query = Encoding.UTF8.GetString(StitchingResources.IntrospectionPhase1)
+                Query = Encoding.UTF8.GetString(
+                    StitchingResources.IntrospectionPhase1)
             };
 
-            string json = await queryClient.FetchStringAsync(request, httpClient)
+            string json = await queryClient.FetchStringAsync(
+                request, httpClient)
                 .ConfigureAwait(false);
 
             IntrospectionResult result =
@@ -93,16 +95,19 @@ namespace HotChocolate.Stitching.Introspection
                 Query = QuerySyntaxSerializer.Serialize(query)
             };
 
-            string json = await queryClient.FetchStringAsync(request, httpClient)
+            string json = await queryClient.FetchStringAsync(
+                request, httpClient)
                 .ConfigureAwait(false);
 
             return IntrospectionDeserializer.Deserialize(json);
         }
 
-        private static DocumentNode CreateIntrospectionQuery(SchemaFeatures features)
+        private static DocumentNode CreateIntrospectionQuery(
+            SchemaFeatures features)
         {
             DocumentNode query = Parser.Default.Parse(
-                Encoding.UTF8.GetString(StitchingResources.IntrospectionPhase2));
+                Encoding.UTF8.GetString(
+                    StitchingResources.IntrospectionPhase2));
 
             OperationDefinitionNode operation =
                 query.Definitions.OfType<OperationDefinitionNode>().First();
@@ -112,9 +117,10 @@ namespace HotChocolate.Stitching.Introspection
 
             FieldNode directives =
                 schema.SelectionSet.Selections.OfType<FieldNode>().First(t =>
-                    t.Name.Value.Equals(_directivesField, StringComparison.Ordinal));
+                    t.Name.Value.Equals(_directivesField
+                        , StringComparison.Ordinal));
 
-            var selections = new List<ISelectionNode>(directives.SelectionSet.Selections);
+            var selections = directives.SelectionSet.Selections.ToList();
 
             if (features.HasDirectiveLocations)
             {
@@ -135,14 +141,14 @@ namespace HotChocolate.Stitching.Introspection
             FieldNode newField = directives.WithSelectionSet(
                 directives.SelectionSet.WithSelections(selections));
 
-            selections = new List<ISelectionNode>(schema.SelectionSet.Selections);
+            selections = schema.SelectionSet.Selections.ToList();
             selections.Remove(directives);
             selections.Add(newField);
 
             newField = schema.WithSelectionSet(
                 schema.SelectionSet.WithSelections(selections));
 
-            selections = new List<ISelectionNode>(operation.SelectionSet.Selections);
+            selections = operation.SelectionSet.Selections.ToList();
             selections.Remove(schema);
             selections.Add(newField);
 
