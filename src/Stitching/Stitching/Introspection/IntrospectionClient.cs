@@ -176,23 +176,23 @@ namespace HotChocolate.Stitching.Introspection
             Stream stream = typeof(IntrospectionClient).Assembly
                 .GetManifestResourceStream($"{_resourceNamespace}.{fileName}");
 
-            if (stream == null)
+            if (stream != null)
             {
-                return null;
-            }
-
-            try
-            {
-                var buffer = new byte[stream.Length];
-                if (stream.Read(buffer, 0, buffer.Length) > 0)
+                try
                 {
-                    return Encoding.UTF8.GetString(buffer);
+                    var buffer = new byte[stream.Length];
+                    if (stream.Read(buffer, 0, buffer.Length) > 0)
+                    {
+                        return Encoding.UTF8.GetString(buffer);
+                    }
+                }
+                finally
+                {
+                    stream.Dispose();
                 }
             }
-            finally
-            {
-                stream.Dispose();
-            }
+
+            return null;
         }
     }
 }
