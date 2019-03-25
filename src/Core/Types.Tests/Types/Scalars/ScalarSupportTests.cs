@@ -78,7 +78,7 @@ namespace HotChocolate
             IExecutionResult result =
                 await schema.MakeExecutable().ExecuteAsync(
                     @"{
-                        __type(type: """ + name + @""")
+                        __type(name: """ + name + @""")
                         {
                             name
                             kind
@@ -110,7 +110,7 @@ namespace HotChocolate
             IExecutionResult result =
                 await schema.MakeExecutable().ExecuteAsync(
                     @"{
-                        __type(type: """ + name + @""")
+                        __type(name: """ + name + @""")
                         {
                             name
                             kind
