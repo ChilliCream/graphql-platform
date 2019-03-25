@@ -42,7 +42,7 @@ namespace HotChocolate.Execution
         public async Task TypeIntrospectionOnQuery()
         {
             // arrange
-            string query = "{ __type (type: \"Foo\") { name } }";
+            string query = "{ __type (name: \"Foo\") { name } }";
             IQueryExecutor executor = CreateSchema().MakeExecutable();
 
             // act
@@ -58,7 +58,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             string query =
-                "{ __type (type: \"Foo\") " +
+                "{ __type (name: \"Foo\") " +
                 "{ name fields { name type { name } } } }";
             IQueryExecutor executor = CreateSchema().MakeExecutable();
 

@@ -214,43 +214,6 @@ namespace HotChocolate.Stitching.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to query IntrospectionQuery {
-        ///    __schema {
-        ///      queryType { name }
-        ///      mutationType { name }
-        ///      subscriptionType { name }
-        ///      types {
-        ///        ...FullType
-        ///      }
-        ///      directives {
-        ///        name
-        ///        description
-        ///        args {
-        ///          ...InputValue
-        ///        }
-        ///        onOperation
-        ///        onFragment
-        ///        onField
-        ///      }
-        ///    }
-        ///  }
-        ///
-        ///  fragment FullType on __Type {
-        ///    kind
-        ///    name
-        ///    description
-        ///    fields(includeDeprecated: true) {
-        ///      name
-        ///      description
-        ///      a [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string IntrospectionQuery {
-            get {
-                return ResourceManager.GetString("IntrospectionQuery", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to No schema was specified..
         /// </summary>
         internal static string MergeSyntaxNodeExtensions_NoSchema {

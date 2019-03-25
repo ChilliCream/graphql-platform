@@ -15,9 +15,6 @@ namespace HotChocolate.Stitching
 {
     public static class StitchingBuilderExtensions
     {
-        private static readonly string _introspectionQuery =
-            StitchingResources.IntrospectionQuery;
-
         public static IStitchingBuilder AddSchema(
             this IStitchingBuilder builder,
             NameString name,
@@ -104,17 +101,7 @@ namespace HotChocolate.Stitching
                 HttpClient httpClient =
                     s.GetRequiredService<IHttpClientFactory>()
                         .CreateClient(name);
-
-                var request = new HttpQueryRequest
-                {
-                    Query = _introspectionQuery
-                };
-
-                var queryClient = new HttpQueryClient();
-                string result = Task.Factory.StartNew(
-                    () => queryClient.FetchStringAsync(request, httpClient))
-                    .Unwrap().GetAwaiter().GetResult();
-                return IntrospectionDeserializer.Deserialize(result);
+                return IntrospectionClient.LoadSchema(httpClient);
             });
 
             return builder;
