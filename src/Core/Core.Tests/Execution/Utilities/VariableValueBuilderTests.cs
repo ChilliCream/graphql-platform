@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -341,14 +342,157 @@ namespace HotChocolate.Execution
             Assert.Equal(0.0001m, result);
         }
 
+        [Fact]
+        public void Variable_InputObjectAsClrType_NonNullFieldNull()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            OperationDefinitionNode operation = CreateQuery(
+                "query test($test: BazInput) { a }");
+            var variableValues = new Dictionary<string, object>
+            {
+                { "test", new Baz { Bar = "bar" } }
+            };
+
+            // act
+            var resolver = new VariableValueBuilder(schema, operation);
+            Action action = () => resolver.CreateValues(variableValues);
+
+            // assert
+            Assert.Throws<QueryException>(action);
+        }
+
+        [Fact]
+        public void Variable_InputObjectAsDict_NonNullFieldNull()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            OperationDefinitionNode operation = CreateQuery(
+                "query test($test: BazInput) { a }");
+            var variableValues = new Dictionary<string, object>
+            {
+                { "test",  new Dictionary<string, object>
+                    {
+                        { "bar", "bar" }
+                    }
+                }
+            };
+
+            // act
+            var resolver = new VariableValueBuilder(schema, operation);
+            Action action = () => resolver.CreateValues(variableValues);
+
+            // assert
+            Assert.Throws<QueryException>(action);
+        }
+
+        [Fact]
+        public void Variable_InputObjectAsClrType_NonNullListItemNull()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            OperationDefinitionNode operation = CreateQuery(
+                "query test($test: BazInput) { a }");
+            var variableValues = new Dictionary<string, object>
+            {
+                { "test", new Baz
+                    {
+                        Foo = "foo",
+                        Quox = new string[] { null }
+                    }
+                }
+            };
+
+            // act
+            var resolver = new VariableValueBuilder(schema, operation);
+            Action action = () => resolver.CreateValues(variableValues);
+
+            // assert
+            Assert.Throws<QueryException>(action);
+        }
+
+        [Fact]
+        public void Variable_InputObjectAsDict_NonNullListItemNull()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            OperationDefinitionNode operation = CreateQuery(
+                "query test($test: BazInput) { a }");
+            var variableValues = new Dictionary<string, object>
+            {
+                { "test",  new Dictionary<string, object>
+                    {
+                        { "foo", "foo" },
+                        { "quox", new List<object>
+                            {
+                                null
+                            }
+                        }
+                    }
+                }
+            };
+
+            // act
+            var resolver = new VariableValueBuilder(schema, operation);
+            Action action = () => resolver.CreateValues(variableValues);
+
+            // assert
+            Assert.Throws<QueryException>(action);
+        }
+
+        [Fact]
+        public void Variable_List_NonNullListItemNull()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            OperationDefinitionNode operation = CreateQuery(
+                "query test($test: [String!]) { a }");
+            var variableValues = new Dictionary<string, object>
+            {
+                { "test",  new List<string> { null }
+
+                }
+            };
+
+            // act
+            var resolver = new VariableValueBuilder(schema, operation);
+            Action action = () => resolver.CreateValues(variableValues);
+
+            // assert
+            Assert.Throws<QueryException>(action);
+        }
+
+        [Fact]
+        public void Variable_List_NonNullListItemHasValue()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            OperationDefinitionNode operation = CreateQuery(
+                "query test($test: [String!]) { a }");
+            var variableValues = new Dictionary<string, object>
+            {
+                { "test",  new List<string> { "abc" } }
+            };
+
+            // act
+            var resolver = new VariableValueBuilder(schema, operation);
+            VariableCollection variables =
+                resolver.CreateValues(variableValues);
+
+            // assert
+            variables.GetVariable<List<string>>("test").MatchSnapshot();
+        }
+
         private Schema CreateSchema()
         {
             return Schema.Create(
-                "type Query { foo: Foo } type Foo { a: String } ",
+                "type Query { foo: Foo } " +
+                "type Foo { a: String b(a: Bar): String } ",
                 c =>
                 {
                     c.RegisterType<BarType>();
                     c.RegisterType<FooType>();
+                    c.RegisterType<BazType>();
                     c.RegisterType<BarEnumType>();
                     c.RegisterExtendedScalarTypes();
                     c.Options.StrictValidation = false;
@@ -360,6 +504,19 @@ namespace HotChocolate.Execution
             var parser = new Parser();
             return parser.Parse(query)
                 .Definitions.OfType<OperationDefinitionNode>().First();
+        }
+
+        public class BazType
+            : InputObjectType<Baz>
+        {
+            protected override void Configure(
+                IInputObjectTypeDescriptor<Baz> descriptor)
+            {
+                descriptor.Field(t => t.Foo)
+                    .Type<NonNullType<StringType>>();
+                descriptor.Field(t => t.Quox)
+                    .Type<ListType<NonNullType<StringType>>>();
+            }
         }
 
         public class BarType
@@ -391,6 +548,13 @@ namespace HotChocolate.Execution
         {
             A,
             B
+        }
+
+        public class Baz
+        {
+            public string Foo { get; set; }
+            public string Bar { get; set; }
+            public string[] Quox { get; set; }
         }
     }
 }

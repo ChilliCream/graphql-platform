@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -52,7 +53,8 @@ namespace HotChocolate.Execution
                 _operation.VariableDefinitions)
             {
                 Variable variable = CreateVariable(variableDefinition);
-                variable = CoerceVariableValue(values, variable);
+                variable = CoerceVariableValue(
+                    variableDefinition, values, variable);
                 coercedValues[variable.Name] = variable.Value;
             }
 
@@ -81,6 +83,7 @@ namespace HotChocolate.Execution
         }
 
         private Variable CoerceVariableValue(
+            VariableDefinitionNode variableDefinition,
             IReadOnlyDictionary<string, object> variableValues,
             Variable variable)
         {
@@ -91,7 +94,7 @@ namespace HotChocolate.Execution
 
             variable = variable.WithValue(value);
 
-            CheckForNullValueViolation(variable);
+            CheckForNullValueViolation(variableDefinition, variable);
             CheckForInvalidValueType(variable);
 
             return variable;
@@ -148,13 +151,113 @@ namespace HotChocolate.Execution
             return value;
         }
 
-        private void CheckForNullValueViolation(Variable variable)
+        private void CheckForNullValueViolation(
+            VariableDefinitionNode variableDefinition,
+            Variable variable)
         {
             if (variable.Type.IsNonNullType() && variable.Value is null)
             {
                 throw new QueryException(QueryError.CreateVariableError(
                     "The variable value cannot be null.",
                     variable.Name));
+            }
+
+            if (variable.Type.IsListType())
+            {
+                CheckForNullValueViolation(
+                    variableDefinition,
+                    variable.Type.ListType(),
+                    variable.Value,
+                    new HashSet<object>());
+            }
+
+            if (variable.Type.IsInputObjectType()
+                && variable.Type.NamedType() is InputObjectType type)
+            {
+                CheckForNullValueViolation(
+                    variableDefinition,
+                    type,
+                    variable.Value,
+                    new HashSet<object>());
+            }
+        }
+
+        private void CheckForNullValueViolation(
+            VariableDefinitionNode variableDefinition,
+            InputObjectType type,
+            object value,
+            ISet<object> processed)
+        {
+            if (!processed.Add(value))
+            {
+                return;
+            }
+
+            foreach (InputField field in type.Fields)
+            {
+                object fieldValue = field.GetValue(value);
+
+                if (field.Type.IsNonNullType() && fieldValue is null)
+                {
+                    throw new QueryException(
+                        ErrorBuilder.New()
+                            .SetMessage(
+                                "The variable value cannot be null.")
+                            .AddLocation(variableDefinition)
+                            .Build());
+                }
+
+                if (field.Type.IsListType())
+                {
+                    CheckForNullValueViolation(
+                        variableDefinition,
+                        field.Type.ListType(),
+                        fieldValue,
+                        new HashSet<object>());
+                }
+
+                if (field.Type.IsInputObjectType()
+                    && field.Type.NamedType() is InputObjectType t)
+                {
+                    CheckForNullValueViolation(
+                        variableDefinition,
+                        t,
+                        fieldValue,
+                        new HashSet<object>());
+                }
+            }
+        }
+
+        private void CheckForNullValueViolation(
+            VariableDefinitionNode variableDefinition,
+            ListType type,
+            object value,
+            ISet<object> processed)
+        {
+            bool isNonNullElement =
+                type.ElementType().IsNonNullType();
+            bool isInputObject =
+                type.NamedType().IsInputObjectType();
+            InputObjectType elementType =
+                type.NamedType() as InputObjectType;
+
+            foreach (object item in (IEnumerable)value)
+            {
+                if (isNonNullElement && item is null)
+                {
+                    throw new QueryException(
+                            ErrorBuilder.New()
+                                .SetMessage(
+                                    "The variable value cannot be null.")
+                                .AddLocation(variableDefinition)
+                                .Build());
+                }
+
+                if (isInputObject && item != null)
+                {
+                    CheckForNullValueViolation(
+                        variableDefinition, elementType, item, processed);
+                }
             }
         }
 
