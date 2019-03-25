@@ -1,0 +1,20 @@
+
+type Query {
+  foo(a: FooInput): String
+  bar(a: String!): String
+}
+
+input FooInput {
+  a: BarInput
+}
+
+input BarInput {
+  bar_a: Int!
+  bar_b: Int
+  bar_c: BazInput
+}
+
+input BazInput {
+  baz_a: Int!
+  baz_b: Int
+}

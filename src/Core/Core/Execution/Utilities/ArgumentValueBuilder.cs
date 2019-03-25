@@ -1,7 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -14,13 +16,11 @@ namespace HotChocolate.Execution
             IVariableCollection variables,
             Path path)
         {
-            Dictionary<string, ArgumentValue> coercedArgumentValues =
-                new Dictionary<string, ArgumentValue>();
+            var coercedArgumentValues = new Dictionary<string, ArgumentValue>();
 
-            Dictionary<string, IValueNode> argumentValues =
-                fieldSelection.Selection.Arguments
-                    .Where(t => t.Value != null)
-                    .ToDictionary(t => t.Name.Value, t => t.Value);
+            var argumentValues = fieldSelection.Selection.Arguments
+                .Where(t => t.Value != null)
+                .ToDictionary(t => t.Name.Value, t => t.Value);
 
             foreach (InputField argument in fieldSelection.Field.Arguments)
             {
@@ -42,7 +42,7 @@ namespace HotChocolate.Execution
             IVariableCollection variables,
             Func<string, IError> createError)
         {
-            object argumentValue = null;
+            object argumentValue;
 
             try
             {
@@ -56,10 +56,15 @@ namespace HotChocolate.Execution
 
             if (argument.Type is NonNullType && argumentValue == null)
             {
-                throw new QueryException(createError(
-                    $"The argument type of '{argument.Name}' " +
-                    "is a non-null type."));
+                throw new QueryException(createError(string.Format(
+                    CultureInfo.InvariantCulture,
+                    TypeResources.ArgumentValueBuilder_NonNull,
+                    argument.Name,
+                    TypeVisualizer.Visualize(argument.Type))));
             }
+
+            InputTypeNonNullCheck.CheckForNullValueViolation(
+                argument.Type, argumentValue, createError);
 
             return new ArgumentValue(argument.Type, argumentValue);
         }
