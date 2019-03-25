@@ -57,10 +57,10 @@ namespace HotChocolate.Execution
             if (argument.Type is NonNullType && argumentValue == null)
             {
                 throw new QueryException(createError(string.Format(
-                        CultureInfo.InvariantCulture,
-                        TypeResources.ArgumentValueBuilder_NonNull,
-                        argument.Name,
-                        TypeVisualizer.Visualize(argument.Type))));
+                    CultureInfo.InvariantCulture,
+                    TypeResources.ArgumentValueBuilder_NonNull,
+                    argument.Name,
+                    TypeVisualizer.Visualize(argument.Type))));
             }
 
             InputTypeNonNullCheck.CheckForNullValueViolation(

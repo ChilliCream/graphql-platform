@@ -119,10 +119,5 @@ namespace HotChocolate
         {
             return new ErrorBuilder(error);
         }
-
-        internal string SetMessage(IError error)
-        {
-            throw new NotImplementedException();
-        }
     }
 }
