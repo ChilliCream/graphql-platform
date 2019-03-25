@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Default complexity calculation functions are now public.
 - Diagnostic observers can now be defined as schema services.
+- auto-stitching diagnostic call is now implemented in two phases.
 
 ### Fixed
 
@@ -24,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - IErrorFilter is not given the exception unless IncludeExceptionDetails is enabled. [#637](https://github.com/ChilliCream/hotchocolate/issues/638)
 - Parse and validation event tracked wrong duration.
 - Schema-First descriptions are now correctly included into the schema. [#647](https://github.com/ChilliCream/hotchocolate/issues/647)
+- __type argument was named `type` instead of `name`. [spec](https://facebook.github.io/graphql/June2018/#sec-Introspection)
+- The server template is now working again. [#657](https://github.com/ChilliCream/hotchocolate/issues/657)
+- Non-nullable types are now validated when query uses variables. [#651](https://github.com/ChilliCream/hotchocolate/issues/651)
 
 ## [0.8.0] - 2019-03-03
 

@@ -1,0 +1,18 @@
+[
+  {
+    "Exception": null,
+    "message": "The input value of type `Int!` must not be null.",
+    "path": [
+      "bar"
+    ],
+    "locations": [
+      {
+        "line": 1,
+        "column": 3
+      }
+    ],
+    "extensions": {
+      "argumentName": "a"
+    }
+  }
+]

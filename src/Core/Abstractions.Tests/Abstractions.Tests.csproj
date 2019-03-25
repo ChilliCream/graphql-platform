@@ -36,8 +36,4 @@
     </None>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Execution\__snapshots__\__mismatch__\" />
-  </ItemGroup>
-
 </Project>

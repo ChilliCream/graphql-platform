@@ -23,10 +23,10 @@ namespace HotChocolate.Types.Introspection
 
             descriptor.Description(
                 "Request the type information of a single type.")
-                .Argument("type", a => a.Type<NonNullType<StringType>>())
+                .Argument("name", a => a.Type<NonNullType<StringType>>())
                 .Type<__Type>()
                 .Resolver(ctx => ctx.Schema.GetType<INamedType>(
-                    ctx.Argument<string>("type")));
+                    ctx.Argument<string>("name")));
 
             return descriptor.CreateDefinition();
         }
