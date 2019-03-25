@@ -15,7 +15,8 @@ namespace HotChocolate.Stitching.Introspection
 {
     public static class IntrospectionClient
     {
-        private const string _resourceNamespace = "HotChocolate.Stitching.Resources";
+        private const string _resourceNamespace =
+            "HotChocolate.Stitching.Resources";
         private const string _phase1 = "introspection_phase_1.graphql";
         private const string _phase2 = "introspection_phase_2.graphql";
 
@@ -30,7 +31,6 @@ namespace HotChocolate.Stitching.Introspection
         public static DocumentNode LoadSchema(
             HttpClient httpClient)
         {
-            var queryClient = new HttpQueryClient();
             return Task.Factory.StartNew(
                 () => LoadSchemaAsync(httpClient))
                 .Unwrap().GetAwaiter().GetResult();
@@ -109,7 +109,8 @@ namespace HotChocolate.Stitching.Introspection
         private static DocumentNode CreateIntrospectionQuery(
             SchemaFeatures features)
         {
-            DocumentNode query = Parser.Default.Parse(GetIntrospectionQuery(_phase2));
+            DocumentNode query = Parser.Default.Parse(
+                GetIntrospectionQuery(_phase2));
 
             OperationDefinitionNode operation =
                 query.Definitions.OfType<OperationDefinitionNode>().First();
@@ -183,8 +184,10 @@ namespace HotChocolate.Stitching.Introspection
             try
             {
                 var buffer = new byte[stream.Length];
-                stream.Read(buffer, 0, buffer.Length);
-                return Encoding.UTF8.GetString(buffer);
+                if (stream.Read(buffer, 0, buffer.Length) > 0)
+                {
+                    return Encoding.UTF8.GetString(buffer);
+                }
             }
             finally
             {
