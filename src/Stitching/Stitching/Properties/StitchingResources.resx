@@ -168,84 +168,12 @@
   <data name="IntrospectionDeserializer_Json_NullOrEmpty" xml:space="preserve">
     <value>json mustn't be null or empty.</value>
   </data>
-  <data name="IntrospectionQuery" xml:space="preserve">
-    <value>query IntrospectionQuery {
-    __schema {
-      queryType { name }
-      mutationType { name }
-      subscriptionType { name }
-      types {
-        ...FullType
-      }
-      directives {
-        name
-        description
-        args {
-          ...InputValue
-        }
-        onOperation
-        onFragment
-        onField
-      }
-    }
-  }
-
-  fragment FullType on __Type {
-    kind
-    name
-    description
-    fields(includeDeprecated: true) {
-      name
-      description
-      args {
-        ...InputValue
-      }
-      type {
-        ...TypeRef
-      }
-      isDeprecated
-      deprecationReason
-    }
-    inputFields {
-      ...InputValue
-    }
-    interfaces {
-      ...TypeRef
-    }
-    enumValues(includeDeprecated: true) {
-      name
-      description
-      isDeprecated
-      deprecationReason
-    }
-    possibleTypes {
-      ...TypeRef
-    }
-  }
-
-  fragment InputValue on __InputValue {
-    name
-    description
-    type { ...TypeRef }
-    defaultValue
-  }
-
-  fragment TypeRef on __Type {
-    kind
-    name
-    ofType {
-      kind
-      name
-      ofType {
-        kind
-        name
-        ofType {
-          kind
-          name
-        }
-      }
-    }
-  }</value>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="IntrospectionPhase1" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\introspection_phase_1.graphql;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="IntrospectionPhase2" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\resources\introspection_phase_2.graphql;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="MergeSyntaxNodeExtensions_NoSchema" xml:space="preserve">
     <value>No schema was specified.</value>

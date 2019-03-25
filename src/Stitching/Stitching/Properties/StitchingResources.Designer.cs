@@ -214,39 +214,22 @@ namespace HotChocolate.Stitching.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to query IntrospectionQuery {
-        ///    __schema {
-        ///      queryType { name }
-        ///      mutationType { name }
-        ///      subscriptionType { name }
-        ///      types {
-        ///        ...FullType
-        ///      }
-        ///      directives {
-        ///        name
-        ///        description
-        ///        args {
-        ///          ...InputValue
-        ///        }
-        ///        onOperation
-        ///        onFragment
-        ///        onField
-        ///      }
-        ///    }
-        ///  }
-        ///
-        ///  fragment FullType on __Type {
-        ///    kind
-        ///    name
-        ///    description
-        ///    fields(includeDeprecated: true) {
-        ///      name
-        ///      description
-        ///      a [rest of string was truncated]&quot;;.
+        ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
-        internal static string IntrospectionQuery {
+        internal static byte[] IntrospectionPhase1 {
             get {
-                return ResourceManager.GetString("IntrospectionQuery", resourceCulture);
+                object obj = ResourceManager.GetObject("IntrospectionPhase1", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] IntrospectionPhase2 {
+            get {
+                object obj = ResourceManager.GetObject("IntrospectionPhase2", resourceCulture);
+                return ((byte[])(obj));
             }
         }
         
