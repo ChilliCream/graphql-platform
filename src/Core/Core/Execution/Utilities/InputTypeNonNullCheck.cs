@@ -8,7 +8,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal class InputTypeNonNullCheck
+    internal static class InputTypeNonNullCheck
     {
         public static void CheckForNullValueViolation(
             IType type,
