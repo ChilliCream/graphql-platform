@@ -262,7 +262,24 @@ namespace HotChocolate.Stitching.Introspection
         private static DirectiveDefinitionNode CreateDirectiveDefinition(
             Directive directive)
         {
-            // TODO : we should switch to to new locations property if available
+            IReadOnlyList<NameNode> locations = directive.Locations == null
+                ? InferDirectiveLocation(directive)
+                : directive.Locations.Select(t => new NameNode(t)).ToList();
+
+            return new DirectiveDefinitionNode
+            (
+                null,
+                new NameNode(directive.Name),
+                CreateDescription(directive.Description),
+                directive.IsRepeatable,
+                CreateInputVals(directive.Args),
+                locations
+            );
+        }
+
+        private static IReadOnlyList<NameNode> InferDirectiveLocation(
+            Directive directive)
+        {
             var locations = new List<NameNode>();
 
             if (directive.OnField)
@@ -291,15 +308,7 @@ namespace HotChocolate.Stitching.Introspection
                     DirectiveLocation.Subscription.ToString()));
             }
 
-            return new DirectiveDefinitionNode
-            (
-                null,
-                new NameNode(directive.Name),
-                CreateDescription(directive.Description),
-                false, // TODO : enable repeatable directives
-                CreateInputVals(directive.Args),
-                locations
-            );
+            return locations;
         }
 
         private static IReadOnlyList<NamedTypeNode> CreateNamedTypeRefs(
