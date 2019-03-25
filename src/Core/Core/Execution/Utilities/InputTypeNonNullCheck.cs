@@ -1,8 +1,9 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using HotChocolate;
+using System.Globalization;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution
@@ -14,16 +15,11 @@ namespace HotChocolate.Execution
             object value,
             Func<string, IError> createError)
         {
-            if (type.IsNonNullType() && value is null)
-            {
-                throw CreateError(type, value, createError);
-            }
-
             CheckForNullValueViolation(
                 type, value, new HashSet<object>(), createError);
         }
 
-        public static void CheckForNullValueViolation(
+        private static void CheckForNullValueViolation(
             IType type,
             object value,
             ISet<object> processed,
@@ -31,34 +27,34 @@ namespace HotChocolate.Execution
         {
             if (type.IsNonNullType() && value is null)
             {
-                throw CreateError(syntaxNode, type, value);
+                throw CreateError(createError, type);
             }
 
             if (type.IsListType())
             {
                 CheckForNullListViolation(
-                    syntaxNode,
                     type.ListType(),
                     value,
-                    processed);
+                    processed,
+                    createError);
             }
 
             if (type.IsInputObjectType()
                 && type.NamedType() is InputObjectType t)
             {
                 CheckForNullFieldViolation(
-                    syntaxNode,
                     t,
                     value,
-                    processed);
+                    processed,
+                    createError);
             }
         }
 
         private static void CheckForNullFieldViolation(
-            ISyntaxNode syntaxNode,
             InputObjectType type,
             object value,
-            ISet<object> processed)
+            ISet<object> processed,
+            Func<string, IError> createError)
         {
             if (!processed.Add(value))
             {
@@ -69,31 +65,34 @@ namespace HotChocolate.Execution
             {
                 object fieldValue = field.GetValue(value);
                 CheckForNullValueViolation(
-                    syntaxNode, field.Type, fieldValue, processed);
+                    field.Type, fieldValue, processed, createError);
             }
         }
 
         private static void CheckForNullListViolation(
-            ISyntaxNode syntaxNode,
             ListType type,
             object value,
-            ISet<object> processed)
+            ISet<object> processed,
+            Func<string, IError> createError)
         {
             IType elementType = type.ElementType();
 
             foreach (object item in (IEnumerable)value)
             {
                 CheckForNullValueViolation(
-                    syntaxNode, elementType, item, processed);
+                    elementType, item, processed, createError);
             }
         }
 
         private static QueryException CreateError(
-            Func<string, IError> createError)
+            Func<string, IError> createError,
+            IType type)
         {
-            // TODO : resources
             return new QueryException(
-                createError("The input value cannot be null."));
+                createError(string.Format(
+                    CultureInfo.InvariantCulture,
+                    TypeResources.InputTypeNonNullCheck_ValueIsNull,
+                    TypeVisualizer.Visualize(type))));
         }
     }
 }

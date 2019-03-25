@@ -61,6 +61,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Argument `{0}` of non-null type `{1}` must not be null..
+        /// </summary>
+        internal static string ArgumentValueBuilder_NonNull {
+            get {
+                return ResourceManager.GetString("ArgumentValueBuilder_NonNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The `Boolean` scalar type represents `true` or `false`..
         /// </summary>
         internal static string BooleanType_Description {
@@ -201,6 +210,15 @@ namespace HotChocolate.Properties {
         internal static string InputObjectType_NoFields {
             get {
                 return ResourceManager.GetString("InputObjectType_NoFields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The input value of type `{0}` must not be null..
+        /// </summary>
+        internal static string InputTypeNonNullCheck_ValueIsNull {
+            get {
+                return ResourceManager.GetString("InputTypeNonNullCheck_ValueIsNull", resourceCulture);
             }
         }
         
@@ -363,6 +381,51 @@ namespace HotChocolate.Properties {
         internal static string TypeResourceHelper_TypeNameEmptyOrNull {
             get {
                 return ResourceManager.GetString("TypeResourceHelper_TypeNameEmptyOrNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variable `{0}` of type `{1}` must be an input type..
+        /// </summary>
+        internal static string VariableValueBuilder_InputType {
+            get {
+                return ResourceManager.GetString("VariableValueBuilder_InputType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variable `{0}` got invalid value..
+        /// </summary>
+        internal static string VariableValueBuilder_InvalidValue {
+            get {
+                return ResourceManager.GetString("VariableValueBuilder_InvalidValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type node kind is not supported..
+        /// </summary>
+        internal static string VariableValueBuilder_NodeKind {
+            get {
+                return ResourceManager.GetString("VariableValueBuilder_NodeKind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variable `{0}` of non-null type `{1}` must not be null..
+        /// </summary>
+        internal static string VariableValueBuilder_NonNull {
+            get {
+                return ResourceManager.GetString("VariableValueBuilder_NonNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variable name mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string VariableValueBuilder_VarNameEmpty {
+            get {
+                return ResourceManager.GetString("VariableValueBuilder_VarNameEmpty", resourceCulture);
             }
         }
     }

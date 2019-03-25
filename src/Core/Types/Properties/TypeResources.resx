@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ArgumentValueBuilder_NonNull" xml:space="preserve">
+    <value>Argument `{0}` of non-null type `{1}` must not be null.</value>
+  </data>
   <data name="BooleanType_Description" xml:space="preserve">
     <value>The `Boolean` scalar type represents `true` or `false`.</value>
   </data>
@@ -164,6 +167,9 @@
   </data>
   <data name="InputObjectType_NoFields" xml:space="preserve">
     <value>The input object `{0}` does not have any fields.</value>
+  </data>
+  <data name="InputTypeNonNullCheck_ValueIsNull" xml:space="preserve">
+    <value>The input value of type `{0}` must not be null.</value>
   </data>
   <data name="IntType_Description" xml:space="preserve">
     <value>The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.</value>
@@ -218,5 +224,20 @@
   </data>
   <data name="TypeResourceHelper_TypeNameEmptyOrNull" xml:space="preserve">
     <value>The typeName mustn't be null or empty.</value>
+  </data>
+  <data name="VariableValueBuilder_InputType" xml:space="preserve">
+    <value>Variable `{0}` of type `{1}` must be an input type.</value>
+  </data>
+  <data name="VariableValueBuilder_InvalidValue" xml:space="preserve">
+    <value>Variable `{0}` got invalid value.</value>
+  </data>
+  <data name="VariableValueBuilder_NodeKind" xml:space="preserve">
+    <value>The type node kind is not supported.</value>
+  </data>
+  <data name="VariableValueBuilder_NonNull" xml:space="preserve">
+    <value>Variable `{0}` of non-null type `{1}` must not be null.</value>
+  </data>
+  <data name="VariableValueBuilder_VarNameEmpty" xml:space="preserve">
+    <value>Variable name mustn't be null or empty.</value>
   </data>
 </root>

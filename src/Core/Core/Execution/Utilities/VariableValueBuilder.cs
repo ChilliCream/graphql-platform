@@ -1,7 +1,8 @@
-﻿using System;
-using System.Collections;
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
@@ -76,10 +77,14 @@ namespace HotChocolate.Execution
                 return new Variable(variableName, type, defaultValue);
             }
 
-            throw new QueryException(QueryError.CreateVariableError(
-                $"The variable type ({variableType.ToString()}) " +
-                "must be an input object type.",
-                variableName));
+            throw new QueryException(ErrorBuilder.New()
+                .SetMessage(string.Format(
+                    CultureInfo.InvariantCulture,
+                    TypeResources.VariableValueBuilder_InputType,
+                    variableName,
+                    TypeVisualizer.Visualize(variableType)))
+                .AddLocation(variableDefinition)
+                .Build());
         }
 
         private Variable CoerceVariableValue(
@@ -89,28 +94,38 @@ namespace HotChocolate.Execution
         {
             var value = variableValues.TryGetValue(
                 variable.Name, out var rawValue)
-                ? Normalize(variable, rawValue)
+                ? Normalize(variableDefinition, variable, rawValue)
                 : variable.DefaultValue;
 
             variable = variable.WithValue(value);
 
             if (variable.Type.IsNonNullType() && variable.Value is null)
             {
-                // TODO : resources
                 throw new QueryException(ErrorBuilder.New()
-                    .SetMessage("Variable `{0}` of non-null type `{1}` must not be null.")
+                    .SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        TypeResources.VariableValueBuilder_NonNull,
+                        variable.Name,
+                        TypeVisualizer.Visualize(variable.Type)))
                     .AddLocation(variableDefinition)
                     .Build());
             }
 
             InputTypeNonNullCheck.CheckForNullValueViolation(
-                variableDefinition, variable.Type, variable.Value);
-            CheckForInvalidValueType(variable);
+                variable.Type, variable.Value,
+                message => ErrorBuilder.New()
+                    .SetMessage(message)
+                    .AddLocation(variableDefinition)
+                    .Build());
+            CheckForInvalidValueType(variableDefinition, variable);
 
             return variable;
         }
 
-        private object Normalize(Variable variable, object rawValue)
+        private object Normalize(
+            VariableDefinitionNode variableDefinition,
+            Variable variable,
+            object rawValue)
         {
             object value = rawValue;
 
@@ -121,7 +136,8 @@ namespace HotChocolate.Execution
 
             if (value is IValueNode literal)
             {
-                CheckForInvalidValueType(variable, literal);
+                CheckForInvalidValueType(
+                    variableDefinition, variable, literal);
                 value = variable.Type.ParseLiteral(literal);
             }
 
@@ -161,25 +177,37 @@ namespace HotChocolate.Execution
             return value;
         }
 
-        private void CheckForInvalidValueType(Variable variable)
+        private void CheckForInvalidValueType(
+            VariableDefinitionNode variableDefinition,
+            Variable variable)
         {
             if (variable.Value != null
                 && !variable.Type.IsInstanceOfType(variable.Value))
             {
-                throw new QueryException(QueryError.CreateVariableError(
-                    "The variable value is not of the correct type.",
-                    variable.Name));
+                throw new QueryException(ErrorBuilder.New()
+                    .SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        TypeResources.VariableValueBuilder_InvalidValue,
+                        variable.Name))
+                    .AddLocation(variableDefinition)
+                    .Build());
             }
         }
 
         private void CheckForInvalidValueType(
-            Variable variable, IValueNode value)
+            VariableDefinitionNode variableDefinition,
+            Variable variable,
+            IValueNode value)
         {
             if (!variable.Type.IsInstanceOfType(value))
             {
-                throw new QueryException(QueryError.CreateVariableError(
-                    "The variable value is not of the correct type.",
-                    variable.Name));
+                throw new QueryException(ErrorBuilder.New()
+                    .SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        TypeResources.VariableValueBuilder_InvalidValue,
+                        variable.Name))
+                    .AddLocation(variableDefinition)
+                    .Build());
             }
         }
 
@@ -201,7 +229,7 @@ namespace HotChocolate.Execution
             }
 
             throw new NotSupportedException(
-                "The type node kind is not supported.");
+                TypeResources.VariableValueBuilder_NodeKind);
         }
 
         private class Variable
@@ -223,7 +251,7 @@ namespace HotChocolate.Execution
                 if (string.IsNullOrEmpty(name))
                 {
                     throw new ArgumentException(
-                        "Variables cannot have an empty name.",
+                        TypeResources.VariableValueBuilder_VarNameEmpty,
                         nameof(name));
                 }
 
