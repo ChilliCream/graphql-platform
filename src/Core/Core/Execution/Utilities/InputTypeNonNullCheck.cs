@@ -25,9 +25,13 @@ namespace HotChocolate.Execution
             ISet<object> processed,
             Func<string, IError> createError)
         {
-            if (type.IsNonNullType() && value is null)
+            if (value is null)
             {
-                throw CreateError(createError, type);
+                if (type.IsNonNullType())
+                {
+                    throw CreateError(createError, type);
+                }
+                return;
             }
 
             if (type.IsListType())
