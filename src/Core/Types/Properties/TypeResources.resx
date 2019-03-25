@@ -141,6 +141,9 @@
   <data name="DecimalType_Description" xml:space="preserve">
     <value>The built-in `Decimal` scalar type.</value>
   </data>
+  <data name="DirectiveTypeFactory_LocationNotSupported" xml:space="preserve">
+    <value>The specified location `{0}` is not supported.</value>
+  </data>
   <data name="DirectiveType_UnableToConvert" xml:space="preserve">
     <value>Unable to convert the argument value to the specified type.</value>
   </data>
