@@ -72,7 +72,7 @@ namespace HotChocolate
         public Exception Exception { get; set; }
 
         IReadOnlyDictionary<string, object> IError.Extensions =>
-            Extensions.Count == 0 ? null : Extensions;
+            _extensions.Count == 0 ? null : _extensions;
 
         public OrderedDictionary<string, object> Extensions
         {
