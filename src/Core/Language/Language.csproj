@@ -25,10 +25,12 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.4'">
     <PackageReference Include="System.ValueTuple" Version="4.4.0" />
+    <PackageReference Include="System.Memory" Version="4.5.2" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <PackageReference Include="System.ValueTuple" Version="4.4.0" />
+    <PackageReference Include="System.Memory" Version="4.5.2" />
   </ItemGroup>
 
   <ItemGroup>
