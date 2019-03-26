@@ -7,7 +7,6 @@ namespace HotChocolate.Execution
     public class OrderedDictionary
         : OrderedDictionary<string, object>
     {
-
     }
 
     public class OrderedDictionary<TKey, TValue>
@@ -88,8 +87,7 @@ namespace HotChocolate.Execution
 
         public void Add(TKey key, TValue value)
         {
-            _map.Add(key, value);
-            _order.Add(new KeyValuePair<TKey, TValue>(key, value));
+            Add(new KeyValuePair<TKey, TValue>(key, value));
         }
 
         public void Add(KeyValuePair<TKey, TValue> item)
