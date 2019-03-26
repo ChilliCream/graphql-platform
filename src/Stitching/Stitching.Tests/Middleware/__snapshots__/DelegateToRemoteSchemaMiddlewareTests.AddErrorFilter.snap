@@ -34,7 +34,6 @@
       ],
       "Exception": null,
       "Extensions": {
-        "code": "ERROR_CODE",
         "EXT_KEY": "EXT_VALUE",
         "remote": {
           "Exception": null,
@@ -44,10 +43,11 @@
             "error"
           ],
           "extensions": {
-            "code": "ERROR_CODE",
-            "EXT_KEY": "EXT_VALUE"
+            "EXT_KEY": "EXT_VALUE",
+            "code": "ERROR_CODE"
           }
         },
+        "code": "ERROR_CODE",
         "STITCH": "SOMETHING"
       }
     },
@@ -67,7 +67,6 @@
       ],
       "Exception": null,
       "Extensions": {
-        "code": "ERROR_CODE",
         "EXT_KEY": "EXT_VALUE",
         "remote": {
           "Exception": null,
@@ -77,10 +76,11 @@
             "error"
           ],
           "extensions": {
-            "code": "ERROR_CODE",
-            "EXT_KEY": "EXT_VALUE"
+            "EXT_KEY": "EXT_VALUE",
+            "code": "ERROR_CODE"
           }
         },
+        "code": "ERROR_CODE",
         "STITCH": "SOMETHING"
       }
     }
