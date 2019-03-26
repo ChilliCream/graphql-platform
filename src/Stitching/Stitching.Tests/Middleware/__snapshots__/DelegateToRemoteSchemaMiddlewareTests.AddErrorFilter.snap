@@ -34,7 +34,6 @@
       ],
       "Exception": null,
       "Extensions": {
-        "STITCH": "SOMETHING",
         "code": "ERROR_CODE",
         "EXT_KEY": "EXT_VALUE",
         "remote": {
@@ -48,7 +47,8 @@
             "code": "ERROR_CODE",
             "EXT_KEY": "EXT_VALUE"
           }
-        }
+        },
+        "STITCH": "SOMETHING"
       }
     },
     {
@@ -67,7 +67,6 @@
       ],
       "Exception": null,
       "Extensions": {
-        "STITCH": "SOMETHING",
         "code": "ERROR_CODE",
         "EXT_KEY": "EXT_VALUE",
         "remote": {
@@ -81,7 +80,8 @@
             "code": "ERROR_CODE",
             "EXT_KEY": "EXT_VALUE"
           }
-        }
+        },
+        "STITCH": "SOMETHING"
       }
     }
   ]
