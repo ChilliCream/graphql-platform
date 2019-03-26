@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System.Security.Cryptography;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace HotChocolate.Execution
@@ -6,17 +7,48 @@ namespace HotChocolate.Execution
     public class OrderedDictionary
         : OrderedDictionary<string, object>
     {
-
     }
 
     public class OrderedDictionary<TKey, TValue>
         : IDictionary<TKey, TValue>
         , IReadOnlyDictionary<TKey, TValue>
     {
-        private readonly List<KeyValuePair<TKey, TValue>> _order =
-            new List<KeyValuePair<TKey, TValue>>();
-        private readonly Dictionary<TKey, TValue> _map =
-            new Dictionary<TKey, TValue>();
+        private readonly List<KeyValuePair<TKey, TValue>> _order;
+        private readonly Dictionary<TKey, TValue> _map;
+
+        public OrderedDictionary()
+        {
+            _order = new List<KeyValuePair<TKey, TValue>>();
+            _map = new Dictionary<TKey, TValue>();
+        }
+
+        public OrderedDictionary(IEnumerable<KeyValuePair<TKey, TValue>> values)
+        {
+            if (values == null)
+            {
+                throw new System.ArgumentNullException(nameof(values));
+            }
+
+            _order = new List<KeyValuePair<TKey, TValue>>();
+            _map = new Dictionary<TKey, TValue>();
+
+            foreach (KeyValuePair<TKey, TValue> item in values)
+            {
+                _map.Add(item.Key, item.Value);
+                _order.Add(item);
+            }
+        }
+
+        private OrderedDictionary(OrderedDictionary<TKey, TValue> source)
+        {
+            if (source == null)
+            {
+                throw new System.ArgumentNullException(nameof(source));
+            }
+
+            _order = new List<KeyValuePair<TKey, TValue>>(source._order);
+            _map = new Dictionary<TKey, TValue>(source._map);
+        }
 
         public TValue this[TKey key]
         {
@@ -55,8 +87,7 @@ namespace HotChocolate.Execution
 
         public void Add(TKey key, TValue value)
         {
-            _map.Add(key, value);
-            _order.Add(new KeyValuePair<TKey, TValue>(key, value));
+            Add(new KeyValuePair<TKey, TValue>(key, value));
         }
 
         public void Add(KeyValuePair<TKey, TValue> item)
@@ -88,9 +119,13 @@ namespace HotChocolate.Execution
 
         public bool Remove(TKey key)
         {
-            bool success = _map.Remove(key);
-            _order.RemoveAt(IndexOfKey(key));
-            return success;
+            if (_map.ContainsKey(key))
+            {
+                _map.Remove(key);
+                _order.RemoveAt(IndexOfKey(key));
+                return true;
+            }
+            return false;
         }
 
         public bool Remove(KeyValuePair<TKey, TValue> item)
@@ -131,5 +166,8 @@ namespace HotChocolate.Execution
         {
             return _order.GetEnumerator();
         }
+
+        public OrderedDictionary<TKey, TValue> Clone() =>
+            new OrderedDictionary<TKey, TValue>(this);
     }
 }

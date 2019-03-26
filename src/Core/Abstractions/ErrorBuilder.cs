@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using HotChocolate.Execution;
 
 namespace HotChocolate
 {
@@ -25,8 +26,8 @@ namespace HotChocolate
             _error.Exception = error.Exception;
             if (error.Extensions != null && error.Extensions.Count > 0)
             {
-                _error.Extensions = ImmutableDictionary
-                    .CreateRange(error.Extensions);
+                _error.Extensions =
+                    new OrderedDictionary<string, object>(error.Extensions);
             }
             if (error.Locations != null && error.Locations.Count > 0)
             {
@@ -53,7 +54,7 @@ namespace HotChocolate
             return this;
         }
 
-        public IErrorBuilder SetPath(IReadOnlyCollection<object> path)
+        public IErrorBuilder SetPath(IReadOnlyList<object> path)
         {
             _error.Path = path;
             return this;
@@ -91,6 +92,13 @@ namespace HotChocolate
             return this;
         }
 
+        public IErrorBuilder ClearLocations()
+        {
+            _error.Locations = _error.Locations.Clear();
+            return this;
+        }
+
+
         public IErrorBuilder SetException(Exception exception)
         {
             _error.Exception = exception;
@@ -99,7 +107,19 @@ namespace HotChocolate
 
         public IErrorBuilder SetExtension(string key, object value)
         {
-            _error.Extensions = _error.Extensions.SetItem(key, value);
+            _error.Extensions[key] = value;
+            return this;
+        }
+
+        public IErrorBuilder RemoveExtension(string key)
+        {
+            _error.Extensions.Remove(key);
+            return this;
+        }
+
+        public IErrorBuilder ClearExtensions()
+        {
+            _error.Extensions.Clear();
             return this;
         }
 

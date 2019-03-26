@@ -210,7 +210,6 @@ namespace HotChocolate.Stitching.Client
             {
                 path.AddRange(error.Path.Skip(1));
             }
-
             return error.WithPath(path);
         }
 

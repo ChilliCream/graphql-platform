@@ -87,6 +87,7 @@ type LifeInsuranceContract implements Contract @source(name: "LifeInsuranceContr
   id: ID!
   customerId: ID!
   foo(bar: String): String
+  error: String
   premium: Float!
 }
 

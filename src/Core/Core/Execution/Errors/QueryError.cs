@@ -25,14 +25,14 @@ namespace HotChocolate.Execution
         }
 
         public QueryError(
-            string message, IReadOnlyCollection<Location> locations,
+            string message, IReadOnlyList<Location> locations,
             params ErrorProperty[] extensions)
             : this(message, (Path)null, locations, extensions)
         {
         }
 
         public QueryError(string message, Path path,
-            IReadOnlyCollection<Location> locations,
+            IReadOnlyList<Location> locations,
             params ErrorProperty[] extensions)
             : this(message, path?.ToCollection(), locations,
                 extensions?.ToImmutableDictionary(p => p.Name, p => p.Value))
@@ -40,8 +40,8 @@ namespace HotChocolate.Execution
         }
 
         internal QueryError(string message,
-            IReadOnlyCollection<object> path,
-            IReadOnlyCollection<Location> locations,
+            IReadOnlyList<object> path,
+            IReadOnlyList<Location> locations,
             ImmutableDictionary<string, object> extensions)
         {
             if (string.IsNullOrEmpty(message))
@@ -105,12 +105,12 @@ namespace HotChocolate.Execution
         [JsonProperty("path",
             Order = 2,
             NullValueHandling = NullValueHandling.Ignore)]
-        public IReadOnlyCollection<object> Path { get; }
+        public IReadOnlyList<object> Path { get; }
 
         [JsonProperty("locations",
            Order = 3,
            NullValueHandling = NullValueHandling.Ignore)]
-        public IReadOnlyCollection<Location> Locations { get; }
+        public IReadOnlyList<Location> Locations { get; }
 
         [JsonProperty("extensions",
             Order = int.MaxValue,
@@ -291,7 +291,7 @@ namespace HotChocolate.Execution
             };
         }
 
-        protected internal static IReadOnlyCollection<Location> CreateLocations(
+        protected internal static IReadOnlyList<Location> CreateLocations(
             params Language.ISyntaxNode[] syntaxNodes)
         {
             if (syntaxNodes?.Length == 0)
@@ -326,7 +326,7 @@ namespace HotChocolate.Execution
                 _extensions);
         }
 
-        public IError WithPath(IReadOnlyCollection<object> path)
+        public IError WithPath(IReadOnlyList<object> path)
         {
             return new QueryError(
                 Message,
@@ -335,7 +335,7 @@ namespace HotChocolate.Execution
                 _extensions);
         }
 
-        public IError WithLocations(IReadOnlyCollection<Location> locations)
+        public IError WithLocations(IReadOnlyList<Location> locations)
         {
             return new QueryError(Message, Path, locations, _extensions);
         }
