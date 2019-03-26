@@ -527,7 +527,7 @@ namespace HotChocolate.Stitching
             Snapshot.Match(result);
         }
 
-        [Fact(Skip = "Fix this issue")]
+        [Fact]
         public async Task ExtendedScalarAsInAndOutputType()
         {
             // arrange
@@ -611,7 +611,7 @@ namespace HotChocolate.Stitching
                 }");
                 request.VariableValues = new Dictionary<string, object>
                 {
-                    {"d", "2019-01-01T01:00"}
+                    {"d", "2018-01-01T01:00:00.000Z"}
                 };
                 request.Services = scope.ServiceProvider;
 

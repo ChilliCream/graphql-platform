@@ -4,6 +4,8 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -11,6 +13,7 @@ using HotChocolate.Stitching.Delegation;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching
 {
@@ -90,7 +93,7 @@ namespace HotChocolate.Stitching
 
             var requestBuilder = new RemoteQueryRequestBuilder();
 
-            AddVariables(context.Schema, schemaName,
+            AddVariables(context, schemaName,
                 requestBuilder, query, variableValues);
 
             requestBuilder.SetQuery(query);
@@ -292,12 +295,17 @@ namespace HotChocolate.Stitching
         }
 
         private static void AddVariables(
-            ISchema schema,
+            IMiddlewareContext context,
             NameString schemaName,
             IRemoteQueryRequestBuilder builder,
             DocumentNode query,
             IEnumerable<VariableValue> variableValues)
         {
+            ITypeConversion typeConversion =
+                context.Service<IServiceProvider>()
+                    .GetService<ITypeConversion>()
+                    ?? TypeConversion.Default;
+
             OperationDefinitionNode operation =
                 query.Definitions.OfType<OperationDefinitionNode>().First();
             var usedVariables = new HashSet<string>(
@@ -310,14 +318,15 @@ namespace HotChocolate.Stitching
                 {
                     object value = variableValue.Value;
 
-                    if (schema.TryGetType(
+                    if (context.Schema.TryGetType(
                         variableValue.Type.NamedType().Name.Value,
                         out InputObjectType inputType))
                     {
+                        var wrapped = WrapType(inputType, variableValue.Type);
                         value = ObjectVariableRewriter.RewriteVariable(
+                            typeConversion,
                             schemaName,
-                            WrapType(inputType,
-                            variableValue.Type),
+                            wrapped,
                             value);
                     }
 
