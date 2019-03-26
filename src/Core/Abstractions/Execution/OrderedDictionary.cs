@@ -121,9 +121,13 @@ namespace HotChocolate.Execution
 
         public bool Remove(TKey key)
         {
-            bool success = _map.Remove(key);
-            _order.RemoveAt(IndexOfKey(key));
-            return success;
+            if (_map.ContainsKey(key))
+            {
+                _map.Remove(key);
+                _order.RemoveAt(IndexOfKey(key));
+                return true;
+            }
+            return false;
         }
 
         public bool Remove(KeyValuePair<TKey, TValue> item)

@@ -48,6 +48,52 @@ namespace HotChocolate
         }
 
         [Fact]
+        public void FromError_ClearExtensions()
+        {
+            // arrange
+            IError error = new Error
+            {
+                Message = "123",
+                Extensions = new OrderedDictionary<string, object>
+                {
+                    {"foo", "bar"}
+                }
+            };
+
+            // act
+            error = ErrorBuilder.FromError(error).ClearExtensions().Build();
+
+            // assert
+            Assert.Equal("123", error.Message);
+            Assert.Null(error.Extensions);
+        }
+
+        [Fact]
+        public void FromError_RemoveExtension()
+        {
+            // arrange
+            IError error = new Error
+            {
+                Message = "123",
+                Extensions = new OrderedDictionary<string, object>
+                {
+                    {"foo", "bar"},
+                    {"bar", "foo"}
+                }
+            };
+
+            // act
+            error = ErrorBuilder.FromError(error)
+                .RemoveExtension("bar")
+                .Build();
+
+            // assert
+            Assert.Equal("123", error.Message);
+            Assert.Collection(error.Extensions,
+                t => Assert.Equal("bar", t.Value));
+        }
+
+        [Fact]
         public void FromError_WithLocations()
         {
             // arrange
@@ -67,6 +113,26 @@ namespace HotChocolate
             Assert.Equal("123", error.Message);
             Assert.Collection(error.Locations,
                 t => Assert.Equal(1, t.Line));
+        }
+
+        [Fact]
+        public void FromError_ClearLocations()
+        {
+            // arrange
+            IError error = new Error
+            {
+                Message = "123",
+                Locations = ImmutableList<Location>
+                    .Empty
+                    .Add(new Location(1, 2))
+            };
+
+            // act
+            error = ErrorBuilder.FromError(error).ClearLocations().Build();
+
+            // assert
+            Assert.Equal("123", error.Message);
+            Assert.Null(error.Locations);
         }
 
         [Fact]
