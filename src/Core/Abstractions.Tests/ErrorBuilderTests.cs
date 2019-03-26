@@ -1,8 +1,10 @@
+using System.Collections.Specialized;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Xunit;
+using HotChocolate.Execution;
 
 namespace HotChocolate
 {
@@ -29,9 +31,10 @@ namespace HotChocolate
             IError error = new Error
             {
                 Message = "123",
-                Extensions = ImmutableDictionary<string, object>
-                    .Empty
-                    .Add("foo", "bar")
+                Extensions = new OrderedDictionary<string, object>
+                {
+                    {"foo", "bar"}
+                }
             };
 
             // act

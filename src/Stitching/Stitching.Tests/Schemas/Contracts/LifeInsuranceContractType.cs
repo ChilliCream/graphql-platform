@@ -20,7 +20,6 @@ namespace HotChocolate.Stitching.Schemas.Contracts
                     .SetMessage("Error_Message")
                     .SetCode("ERROR_CODE")
                     .SetPath(ctx.Path)
-                    .SetExtension("EXT_KEY", "EXT_VALUE")
                     .Build());
         }
     }

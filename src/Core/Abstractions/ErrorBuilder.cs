@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using HotChocolate.Execution;
 
 namespace HotChocolate
 {
@@ -25,8 +26,8 @@ namespace HotChocolate
             _error.Exception = error.Exception;
             if (error.Extensions != null && error.Extensions.Count > 0)
             {
-                _error.Extensions = ImmutableDictionary
-                    .CreateRange(error.Extensions);
+                _error.Extensions =
+                    new OrderedDictionary<string, object>(error.Extensions);
             }
             if (error.Locations != null && error.Locations.Count > 0)
             {
@@ -106,19 +107,19 @@ namespace HotChocolate
 
         public IErrorBuilder SetExtension(string key, object value)
         {
-            _error.Extensions = _error.Extensions.SetItem(key, value);
+            _error.Extensions[key] = value;
             return this;
         }
 
         public IErrorBuilder RemoveExtension(string key)
         {
-            _error.Extensions = _error.Extensions.Remove(key);
+            _error.Extensions.Remove(key);
             return this;
         }
 
         public IErrorBuilder ClearExtensions()
         {
-            _error.Extensions = _error.Extensions.Clear();
+            _error.Extensions.Clear();
             return this;
         }
 

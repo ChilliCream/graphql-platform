@@ -1,6 +1,8 @@
+using System.Collections.Specialized;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using HotChocolate.Execution;
 
 namespace HotChocolate
 {
@@ -8,8 +10,9 @@ namespace HotChocolate
         : IError
     {
         private const string _code = "code";
-        private IImmutableDictionary<string, object> _extensions =
-            ImmutableDictionary<string, object>.Empty;
+        private OrderedDictionary<string, object> _extensions =
+            new OrderedDictionary<string, object>();
+        private bool _needsCopy;
 
         private string _message;
 
@@ -47,9 +50,15 @@ namespace HotChocolate
             }
             internal set
             {
-                _extensions = (value == null)
-                    ? _extensions.Remove(_code)
-                    : _extensions.SetItem(_code, value);
+                MakeWritable();
+                if (value == null)
+                {
+                    _extensions.Remove(_code);
+                }
+                else
+                {
+                    _extensions[_code] = value;
+                }
             }
         }
 
@@ -65,10 +74,31 @@ namespace HotChocolate
         IReadOnlyDictionary<string, object> IError.Extensions =>
             Extensions.Count == 0 ? null : Extensions;
 
-        public IImmutableDictionary<string, object> Extensions
+        public OrderedDictionary<string, object> Extensions
         {
-            get => _extensions;
-            internal set => _extensions = value;
+            get
+            {
+                MakeWritable();
+                return _extensions;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                _needsCopy = false;
+                _extensions = value;
+            }
+        }
+
+        private void MakeWritable()
+        {
+            if (_needsCopy)
+            {
+                _extensions = _extensions.Clone();
+                _needsCopy = false;
+            }
         }
 
         public IError WithCode(string code)
@@ -89,21 +119,22 @@ namespace HotChocolate
             IReadOnlyDictionary<string, object> extensions)
         {
             Error error = Copy();
-            error.Extensions = ImmutableDictionary.CreateRange(extensions);
+            error.Extensions =
+                new OrderedDictionary<string, object>(extensions);
             return error;
         }
 
         public IError AddExtension(string key, object value)
         {
             Error error = Copy();
-            error.Extensions = error.Extensions.Add(key, value);
+            error.Extensions.Add(key, value);
             return error;
         }
 
         public IError RemoveExtension(string key)
         {
             Error error = Copy();
-            error.Extensions = error.Extensions.Remove(key);
+            error.Extensions.Remove(key);
             return error;
         }
 
@@ -149,6 +180,7 @@ namespace HotChocolate
             {
                 Message = Message,
                 _extensions = _extensions,
+                _needsCopy = true,
                 Path = Path,
                 Locations = Locations,
                 Exception = Exception
