@@ -50,7 +50,7 @@ namespace HotChocolate
             }
             internal set
             {
-                MakeWritable();
+                CopyExtensions();
                 if (value == null)
                 {
                     _extensions.Remove(_code);
@@ -78,7 +78,7 @@ namespace HotChocolate
         {
             get
             {
-                MakeWritable();
+                CopyExtensions();
                 return _extensions;
             }
             set
@@ -92,7 +92,7 @@ namespace HotChocolate
             }
         }
 
-        private void MakeWritable()
+        private void CopyExtensions()
         {
             if (_needsCopy)
             {
