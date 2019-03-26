@@ -175,21 +175,20 @@ namespace HotChocolate.Stitching
         {
             Path current = path;
 
-            if (error.Path.Count > 0)
+            if (error.Path.Count > 0
+                && error.Path[0] is string s
+                && current.Name.Equals(s))
             {
-                if (error.Path[0] is string s && current.Name.Equals(s))
+                for (int i = 1; i < error.Path.Count; i++)
                 {
-                    for (int i = 1; i < error.Path.Count; i++)
+                    if (error.Path[i] is string name)
                     {
-                        if (error.Path[i] is string name)
-                        {
-                            current = current.Append(name);
-                        }
+                        current = current.Append(name);
+                    }
 
-                        if (error.Path[i] is int index)
-                        {
-                            current = current.Append(index);
-                        }
+                    if (error.Path[i] is int index)
+                    {
+                        current = current.Append(index);
                     }
                 }
             }
