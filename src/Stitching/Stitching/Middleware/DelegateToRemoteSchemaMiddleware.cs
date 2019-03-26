@@ -156,16 +156,18 @@ namespace HotChocolate.Stitching
         {
             foreach (IError error in errors)
             {
-                Path path = RewriteErrorPath(error, context.Path);
+                IErrorBuilder builder = ErrorBuilder.FromError(error)
+                    .SetExtension("remote", error);
 
-                IError rewritten = ErrorBuilder.FromError(error)
-                    .SetExtension("remote", error)
-                    .SetPath(path)
-                    .ClearLocations()
-                    .AddLocation(context.FieldSelection)
-                    .Build();
+                if (error.Path != null)
+                {
+                    Path path = RewriteErrorPath(error, context.Path);
+                    builder.SetPath(path)
+                        .ClearLocations()
+                        .AddLocation(context.FieldSelection);
+                }
 
-                context.ReportError(rewritten);
+                context.ReportError(builder.Build());
             }
         }
 
