@@ -154,12 +154,45 @@ namespace HotChocolate.Stitching
             IResolverContext context,
             IEnumerable<IError> errors)
         {
-            IReadOnlyCollection<object> path = context.Path.ToCollection();
-
             foreach (IError error in errors)
             {
-                context.ReportError(error.AddExtension("remote", path));
+                Path path = RewriteErrorPath(error, context.Path);
+
+                IError rewritten = ErrorBuilder.FromError(error)
+                    .SetExtension("remote", error)
+                    .SetPath(path)
+                    .ClearLocations()
+                    .AddLocation(context.FieldSelection)
+                    .Build();
+
+                context.ReportError(rewritten);
             }
+        }
+
+        private static Path RewriteErrorPath(IError error, Path path)
+        {
+            Path current = path;
+
+            if (error.Path.Count > 0)
+            {
+                if (error.Path[0] is string s && current.Name.Equals(s))
+                {
+                    for (int i = 1; i < error.Path.Count; i++)
+                    {
+                        if (error.Path[i] is string name)
+                        {
+                            current = current.Append(name);
+                        }
+
+                        if (error.Path[i] is int index)
+                        {
+                            current = current.Append(index);
+                        }
+                    }
+                }
+            }
+
+            return current;
         }
 
         private static IReadOnlyCollection<VariableValue> CreateVariableValues(

@@ -891,6 +891,57 @@ namespace HotChocolate.Stitching
             Snapshot.Match(result);
         }
 
+        [Fact]
+        public async Task AddErrorFilter()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .AddExtensionsFromString(
+                        FileResource.Open("StitchingExtensions.graphql"))
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>())
+                    .AddExecutionConfiguration(b =>
+                    {
+                        b.AddErrorFilter(error =>
+                            error.AddExtension("STITCH", "SOMETHING"));
+                    }));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                {
+                    customer(id: ""Q3VzdG9tZXIteDE="") {
+                        contracts {
+                            id
+                            ... on LifeInsuranceContract {
+                                error
+                            }
+                        }
+                    }
+                }");
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
         public async Task<IExecutionResult>
             ExecutedMutationWithRenamedInputField(
                 IQueryRequestBuilder requestBuilder)

@@ -53,9 +53,9 @@ namespace HotChocolate
             }
         }
 
-        public IReadOnlyCollection<object> Path { get; set; }
+        public IReadOnlyList<object> Path { get; set; }
 
-        IReadOnlyCollection<Location> IError.Locations =>
+        IReadOnlyList<Location> IError.Locations =>
             Locations.Count == 0 ? null : Locations;
 
         public IImmutableList<Location> Locations { get; set; }
@@ -108,7 +108,7 @@ namespace HotChocolate
         }
 
 
-        public IError WithLocations(IReadOnlyCollection<Location> locations)
+        public IError WithLocations(IReadOnlyList<Location> locations)
         {
             Error error = Copy();
             error.Locations = ImmutableList.CreateRange(locations);
@@ -136,7 +136,7 @@ namespace HotChocolate
             return error;
         }
 
-        public IError WithPath(IReadOnlyCollection<object> path)
+        public IError WithPath(IReadOnlyList<object> path)
         {
             Error error = Copy();
             error.Path = path;

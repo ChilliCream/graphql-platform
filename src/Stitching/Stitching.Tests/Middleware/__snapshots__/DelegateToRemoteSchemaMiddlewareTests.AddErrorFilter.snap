@@ -1,0 +1,33 @@
+{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "Unexpected token: a.",
+      "Code": null,
+      "Path": null,
+      "Locations": [
+        {
+          "line": 2,
+          "column": 21
+        }
+      ],
+      "Exception": {
+        "Position": 20,
+        "Line": 2,
+        "Column": 21,
+        "SourceText": "\n                   a: customer(id: \"Q3VzdG9tZXIteDE=\") {\n                        bar: foo\n                        contracts {\n                            id\n                            ... on LifeInsuranceContract {\n                                error\n                            }\n                        }\n                    }",
+        "Message": "Unexpected token: a.",
+        "Data": {},
+        "InnerException": null,
+        "StackTrace": "   at HotChocolate.Language.Parser.ParseDefinition(ParserContext context) in /Users/michael/Local/hotchocolate/src/Core/Language/Parser/Parser.cs:line 114\n   at HotChocolate.Language.Parser.ParseDocument(ISource source, SyntaxToken start, ParserOptions options) in /Users/michael/Local/hotchocolate/src/Core/Language/Parser/Parser.cs:line 66\n   at HotChocolate.Language.Parser.Parse(ISource source, ParserOptions options) in /Users/michael/Local/hotchocolate/src/Core/Language/Parser/Parser.cs:line 50\n   at HotChocolate.Language.Parser.Parse(ISource source) in /Users/michael/Local/hotchocolate/src/Core/Language/Parser/Parser.cs:line 27\n   at HotChocolate.Language.ParserExtensions.Parse(Parser parser, String sourceText) in /Users/michael/Local/hotchocolate/src/Core/Language/Parser/ParserExtensions.cs:line 7\n   at HotChocolate.Execution.DefaultQueryParser.Parse(String queryText) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Services/DefaultQueryParser.cs:line 10\n   at HotChocolate.Execution.ParseQueryMiddleware.ParseDocument(String queryText) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Middleware/ParseQueryMiddleware.cs:line 72\n   at HotChocolate.Execution.ParseQueryMiddleware.<>c__DisplayClass5_1.<InvokeAsync>b__0() in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Middleware/ParseQueryMiddleware.cs:line 55\n   at HotChocolate.Runtime.Cache`1.GetOrCreate(String key, Func`1 create) in /Users/michael/Local/hotchocolate/src/Core/Runtime/Cache.cs:line 35\n   at HotChocolate.Execution.ParseQueryMiddleware.InvokeAsync(IQueryContext context) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Middleware/ParseQueryMiddleware.cs:line 50\n   at HotChocolate.Execution.ExceptionMiddleware.InvokeAsync(IQueryContext context) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Middleware/ExceptionMiddleware.cs:line 26",
+        "HelpLink": null,
+        "Source": "HotChocolate.Language",
+        "HResult": -2146233088
+      },
+      "Extensions": {
+        "STITCH": "SOMETHING"
+      }
+    }
+  ]
+}
