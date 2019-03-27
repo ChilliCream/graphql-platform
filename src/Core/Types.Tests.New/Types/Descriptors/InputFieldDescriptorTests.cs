@@ -1,77 +1,86 @@
 ﻿using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using Xunit;
 
 namespace HotChocolate.Types
 {
     public class InputFieldDescriptorTests
+        : DescriptorTestBase
     {
         [Fact]
         public void DotNetTypesDoNotOverwriteSchemaTypes()
         {
             // arrange
-            var descriptor = new InputFieldDescriptor(
+            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+                Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
             // act
-            ((IInputFieldDescriptor)descriptor)
+            descriptor
                 .Type<ListType<StringType>>()
                 .Type<NativeType<IReadOnlyDictionary<string, string>>>();
 
             // assert
-            InputFieldDescription description = descriptor.CreateDescription();
-            TypeReference typeRef = description.Type;
-            Assert.Equal(typeof(ListType<StringType>), typeRef.ClrType);
+            InputFieldDefinition description = descriptor.CreateDefinition();
+            ITypeReference typeRef = description.Type;
+            Assert.Equal(typeof(ListType<StringType>),
+                Assert.IsType<ClrTypeReference>(typeRef).Type);
         }
 
         [Fact]
         public void SchemaTypesOverwriteDotNetTypes()
         {
             // arrange
-            var descriptor = new InputFieldDescriptor(
+            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+                Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
             // act
-            ((IInputFieldDescriptor)descriptor)
+            descriptor
                 .Type<NativeType<IReadOnlyDictionary<string, string>>>()
                 .Type<ListType<StringType>>();
 
             // assert
-            InputFieldDescription description = descriptor.CreateDescription();
-            TypeReference typeRef = description.Type;
-            Assert.Equal(typeof(ListType<StringType>), typeRef.ClrType);
+            InputFieldDefinition description = descriptor.CreateDefinition();
+            ITypeReference typeRef = description.Type;
+            Assert.Equal(typeof(ListType<StringType>),
+                Assert.IsType<ClrTypeReference>(typeRef).Type);
         }
 
         [Fact]
         public void SetSchemaType()
         {
             // arrange
-            var descriptor = new InputFieldDescriptor(
+            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+                Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
             // act
-            ((IInputFieldDescriptor)descriptor)
-                .Type(new StringType());
+            descriptor.Type(new StringType());
 
             // assert
-            InputFieldDescription description = descriptor.CreateDescription();
-            TypeReference typeRef = description.Type;
-            Assert.IsType<StringType>(typeRef.SchemaType);
+            InputFieldDefinition description = descriptor.CreateDefinition();
+            ITypeReference typeRef = description.Type;
+            Assert.IsType<StringType>(
+                Assert.IsType<SchemaTypeReference>(typeRef).Type);
         }
 
         [Fact]
         public void OverwriteName()
         {
             // arrange
-            var descriptor = new InputFieldDescriptor("field1234");
+            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+                Context,
+                "field1234");
 
             // act
-            ((IInputFieldDescriptor)descriptor)
-                .Name("args");
+            descriptor.Name("args");
 
             // assert
-            InputFieldDescription description = descriptor.CreateDescription();
+            InputFieldDefinition description = descriptor.CreateDefinition();
             Assert.Equal("args", description.Name);
         }
 
@@ -79,15 +88,15 @@ namespace HotChocolate.Types
         public void OverwriteName2()
         {
             // arrange
-            var descriptor = new InputFieldDescriptor(
+            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+                Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
             // act
-            ((IInputFieldDescriptor)descriptor)
-                .Name("args");
+            descriptor.Name("args");
 
             // assert
-            InputFieldDescription description = descriptor.CreateDescription();
+            InputFieldDefinition description = descriptor.CreateDefinition();
             Assert.Equal("args", description.Name);
         }
 
@@ -96,15 +105,15 @@ namespace HotChocolate.Types
         {
             // arrange
             string expectedDescription = Guid.NewGuid().ToString();
-            var descriptor = new InputFieldDescriptor(
+            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+                Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
             // act
-            ((IInputFieldDescriptor)descriptor)
-                .Description(expectedDescription);
+            descriptor.Description(expectedDescription);
 
             // assert
-            InputFieldDescription description = descriptor.CreateDescription();
+            InputFieldDefinition description = descriptor.CreateDefinition();
             Assert.Equal(expectedDescription, description.Description);
         }
 
@@ -112,16 +121,17 @@ namespace HotChocolate.Types
         public void SetDefaultValueAndInferType()
         {
             // arrange
-            var descriptor = new InputFieldDescriptor(
+            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+                Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
             // act
-            ((IInputFieldDescriptor)descriptor)
-                .DefaultValue("string");
+            descriptor.DefaultValue("string");
 
             // assert
-            InputFieldDescription description = descriptor.CreateDescription();
-            Assert.Equal(typeof(string), description.Type.ClrType);
+            InputFieldDefinition description = descriptor.CreateDefinition();
+            Assert.Equal(typeof(string),
+                Assert.IsType<SchemaTypeReference>(description.Type).Type);
             Assert.Equal("string", description.NativeDefaultValue);
         }
 
@@ -129,16 +139,17 @@ namespace HotChocolate.Types
         public void OverwriteDefaultValueLiteralWithNativeDefaultValue()
         {
             // arrange
-            var descriptor = new InputFieldDescriptor(
+            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+                Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
             // act
-            ((IInputFieldDescriptor)descriptor)
+            descriptor
                 .DefaultValue(new StringValueNode("123"))
                 .DefaultValue("string");
 
             // asser
-            InputFieldDescription description = descriptor.CreateDescription();
+            InputFieldDefinition description = descriptor.CreateDefinition();
             Assert.Null(description.DefaultValue);
             Assert.Equal("string", description.NativeDefaultValue);
         }
@@ -147,7 +158,8 @@ namespace HotChocolate.Types
         public void SettingTheNativeDefaultValueToNullCreatesNullLiteral()
         {
             // arrange
-            var descriptor = new InputFieldDescriptor(
+            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+                Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
             // act
@@ -157,7 +169,7 @@ namespace HotChocolate.Types
                 .DefaultValue(null);
 
             // assert
-            InputFieldDescription description = descriptor.CreateDescription();
+            InputFieldDefinition description = descriptor.CreateDefinition();
             Assert.IsType<NullValueNode>(description.DefaultValue);
             Assert.Null(description.NativeDefaultValue);
         }
@@ -166,7 +178,8 @@ namespace HotChocolate.Types
         public void OverwriteNativeDefaultValueWithDefaultValueLiteral()
         {
             // arrange
-            var descriptor = new InputFieldDescriptor(
+            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+                Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
             // act
@@ -175,7 +188,7 @@ namespace HotChocolate.Types
                 .DefaultValue(new StringValueNode("123"));
 
             // assert
-            InputFieldDescription description = descriptor.CreateDescription();
+            InputFieldDefinition description = descriptor.CreateDefinition();
             Assert.IsType<StringValueNode>(description.DefaultValue);
             Assert.Equal("123",
                 ((StringValueNode)description.DefaultValue).Value);
@@ -186,13 +199,14 @@ namespace HotChocolate.Types
         public void InferTypeFromProperty()
         {
             // act
-            var descriptor = new InputFieldDescriptor(
+            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+                Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
             // assert
-            InputFieldDescription description = descriptor.CreateDescription();
+            InputFieldDefinition description = descriptor.CreateDefinition();
             Assert.Equal(typeof(FieldCollection<InputField>),
-                description.Type.ClrType);
+                Assert.IsType<IClrTypeReference>(description.Type).Type);
             Assert.Equal("arguments", description.Name);
         }
     }
