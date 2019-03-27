@@ -69,8 +69,8 @@ namespace HotChocolate.AspNetCore
                 switch (context.Request.ContentType.Split(';')[0])
                 {
                     case ContentType.Json:
-                        return JsonConvert
-                            .DeserializeObject<QueryRequestDto>(content);
+                        return JsonConvert.DeserializeObject<QueryRequestDto>(
+                            content, QueryMiddlewareUtilities.JsonSettings);
 
                     case ContentType.GraphQL:
                         return new QueryRequestDto { Query = content };

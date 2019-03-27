@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -81,7 +82,8 @@ namespace HotChocolate.AspNetCore
                 NamedQuery = requestQuery[_namedQueryIdentifier],
                 OperationName = requestQuery[_operationNameIdentifier],
                 Variables = (variables != null && variables.Any())
-                    ? JObject.Parse(variables)
+                    ? JsonConvert.DeserializeObject<JObject>(
+                        variables, QueryMiddlewareUtilities.JsonSettings)
                     : null
             };
         }

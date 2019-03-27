@@ -268,8 +268,22 @@ namespace HotChocolate.Stitching
 
                 if (argument.Value is ScopedVariableNode sv)
                 {
-                    variables.Add(_resolvers.Resolve(
-                        context, sv, arg.Type.ToTypeNode()));
+                    VariableValue variable =
+                        _resolvers.Resolve(context, sv, arg.Type.ToTypeNode());
+
+                    if (arg.Type.IsLeafType()
+                        && arg.Type.NamedType() is ISerializableType s)
+                    {
+                        variable = new VariableValue
+                        (
+                            variable.Name,
+                            variable.Type,
+                            s.Serialize(variable.Value),
+                            variable.DefaultValue
+                        );
+                    }
+
+                    variables.Add(variable);
                 }
             }
         }
@@ -301,11 +315,6 @@ namespace HotChocolate.Stitching
             DocumentNode query,
             IEnumerable<VariableValue> variableValues)
         {
-            ITypeConversion typeConversion =
-                context.Service<IServiceProvider>()
-                    .GetService<ITypeConversion>()
-                    ?? TypeConversion.Default;
-
             OperationDefinitionNode operation =
                 query.Definitions.OfType<OperationDefinitionNode>().First();
             var usedVariables = new HashSet<string>(
@@ -324,10 +333,7 @@ namespace HotChocolate.Stitching
                     {
                         var wrapped = WrapType(inputType, variableValue.Type);
                         value = ObjectVariableRewriter.RewriteVariable(
-                            typeConversion,
-                            schemaName,
-                            wrapped,
-                            value);
+                            schemaName, wrapped, value);
                     }
 
                     builder.AddVariableValue(variableValue.Name, value);
