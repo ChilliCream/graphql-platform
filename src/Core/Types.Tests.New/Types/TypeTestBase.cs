@@ -1,3 +1,5 @@
+using System;
+
 namespace HotChocolate.Types
 {
     public class TypeTestBase
@@ -24,6 +26,20 @@ namespace HotChocolate.Types
             builder.Create();
 
             return type;
+        }
+
+        public static ISchema CreateSchema(Action<ISchemaBuilder> configure)
+        {
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddQueryType(c =>
+                    c.Name("Query")
+                        .Field("foo")
+                        .Type<StringType>()
+                        .Resolver("bar"));
+
+            configure(builder);
+
+            return builder.Create();
         }
     }
 }
