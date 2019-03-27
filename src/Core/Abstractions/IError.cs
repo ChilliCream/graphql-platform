@@ -25,13 +25,13 @@ namespace HotChocolate
         /// Gets the path to the object that caused the error.
         /// This property is optional and can be null.
         /// </summary>
-        IReadOnlyCollection<object> Path { get; }
+        IReadOnlyList<object> Path { get; }
 
         /// <summary>
         /// Gets the source text positions to which this error refers to.
         /// This property is optional and can be null.
         /// </summary>
-        IReadOnlyCollection<Location> Locations { get; }
+        IReadOnlyList<Location> Locations { get; }
 
         /// <summary>
         /// Gets the exception associated with this error.
@@ -97,7 +97,7 @@ namespace HotChocolate
         /// Returns a new error that contains all properties of this error
         /// but with the specified <paramref name="path" />.
         /// </returns>
-        IError WithPath(IReadOnlyCollection<object> path);
+        IError WithPath(IReadOnlyList<object> path);
 
         /// <summary>
         /// Creates a new error that contains all properties of this error
@@ -111,7 +111,7 @@ namespace HotChocolate
         /// Returns a new error that contains all properties of this error
         /// but with the specified <paramref name="locations" />.
         /// </returns>
-        IError WithLocations(IReadOnlyCollection<Location> locations);
+        IError WithLocations(IReadOnlyList<Location> locations);
 
         /// <summary>
         /// Creates a new error that contains all properties of this error

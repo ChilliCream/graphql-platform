@@ -192,11 +192,17 @@ namespace HotChocolate.Execution
         }
 
         public void ReportError(string errorMessage)
-            => ReportError(QueryError.CreateFieldError(
-                    errorMessage, Path, FieldSelection));
+            => ReportError(ErrorBuilder.New()
+                .SetMessage(errorMessage)
+                .SetPath(Path)
+                .AddLocation(FieldSelection)
+                .Build());
 
-        public void ReportError(IError error) =>
-            _resolverTask.ReportError(error);
+        public void ReportError(IError error)
+        {
+            _resolverTask.ReportError(
+                _executionContext.ErrorHandler.Handle(error));
+        }
 
         public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType typeContext) =>

@@ -1,0 +1,84 @@
+{
+  "Data": {
+    "customer": {
+      "contracts": [
+        {
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgx",
+          "error": null
+        },
+        {
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgy",
+          "error": null
+        },
+        {
+          "id": "U29tZU90aGVyQ29udHJhY3QteDE="
+        }
+      ]
+    }
+  },
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "Error_Message",
+      "Code": "ERROR_CODE",
+      "Path": [
+        "customer",
+        "contracts",
+        "error"
+      ],
+      "Locations": [
+        {
+          "line": 4,
+          "column": 26
+        }
+      ],
+      "Exception": null,
+      "Extensions": {
+        "code": "ERROR_CODE",
+        "remote": {
+          "Exception": null,
+          "message": "Error_Message",
+          "path": [
+            "contracts",
+            "error"
+          ],
+          "extensions": {
+            "code": "ERROR_CODE"
+          }
+        },
+        "STITCH": "SOMETHING"
+      }
+    },
+    {
+      "Message": "Error_Message",
+      "Code": "ERROR_CODE",
+      "Path": [
+        "customer",
+        "contracts",
+        "error"
+      ],
+      "Locations": [
+        {
+          "line": 4,
+          "column": 26
+        }
+      ],
+      "Exception": null,
+      "Extensions": {
+        "code": "ERROR_CODE",
+        "remote": {
+          "Exception": null,
+          "message": "Error_Message",
+          "path": [
+            "contracts",
+            "error"
+          ],
+          "extensions": {
+            "code": "ERROR_CODE"
+          }
+        },
+        "STITCH": "SOMETHING"
+      }
+    }
+  ]
+}

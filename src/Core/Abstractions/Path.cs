@@ -94,18 +94,18 @@ namespace HotChocolate
             }
         }
 
-        public IReadOnlyCollection<object> ToCollection()
+        public IReadOnlyList<object> ToCollection()
         {
-            var stack = new Stack<object>();
+            var stack = new List<object>();
             Path current = this;
 
             while (current != null)
             {
                 if (current.IsIndexer)
                 {
-                    stack.Push(current.Index);
+                    stack.Insert(0, current.Index);
                 }
-                stack.Push(current.Name);
+                stack.Insert(0, current.Name);
                 current = current.Parent;
             }
 
