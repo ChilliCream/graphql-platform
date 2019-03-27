@@ -15,6 +15,8 @@ namespace HotChocolate
 
         ISchemaBuilder SetOptions(IReadOnlySchemaOptions options);
 
+        ISchemaBuilder ModifyOptions(Action<ISchemaOptions> configure);
+
         ISchemaBuilder AddDirective<T>(T directiveInstance)
             where T : class;
 

@@ -12,10 +12,17 @@ namespace HotChocolate.Configuration
 
         public string SubscriptionTypeName { get; set; }
 
-        public IServiceProvider Services { get; set; }
-
         public bool StrictValidation { get; set; } = true;
 
-        public bool DeveloperMode { get; set; } = Debugger.IsAttached;
+        public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
+        {
+            return new SchemaOptions
+            {
+                QueryTypeName = options.QueryTypeName,
+                MutationTypeName = options.MutationTypeName,
+                SubscriptionTypeName = options.SubscriptionTypeName,
+                StrictValidation = options.StrictValidation
+            };
+        }
     }
 }

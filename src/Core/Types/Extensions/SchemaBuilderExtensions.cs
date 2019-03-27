@@ -12,6 +12,20 @@ namespace HotChocolate
     {
         public static ISchemaBuilder AddQueryType(
             this ISchemaBuilder builder,
+            Action<IObjectTypeDescriptor> configure)
+        {
+            return AddQueryType(builder, new ObjectType(configure));
+        }
+
+        public static ISchemaBuilder AddQueryType<T>(
+            this ISchemaBuilder builder,
+            Action<IObjectTypeDescriptor<T>> configure)
+        {
+            return AddQueryType(builder, new ObjectType<T>(configure));
+        }
+
+        public static ISchemaBuilder AddQueryType(
+            this ISchemaBuilder builder,
             Type type)
         {
             return builder.AddRootType(type, OperationType.Query);
@@ -29,6 +43,20 @@ namespace HotChocolate
             where TQuery : class
         {
             return builder.AddRootType(typeof(TQuery), OperationType.Query);
+        }
+
+        public static ISchemaBuilder AddMutationType(
+            this ISchemaBuilder builder,
+            Action<IObjectTypeDescriptor> configure)
+        {
+            return AddMutationType(builder, new ObjectType(configure));
+        }
+
+        public static ISchemaBuilder AddMutationType<T>(
+            this ISchemaBuilder builder,
+            Action<IObjectTypeDescriptor<T>> configure)
+        {
+            return AddMutationType(builder, new ObjectType<T>(configure));
         }
 
         public static ISchemaBuilder AddMutationType(
@@ -52,6 +80,20 @@ namespace HotChocolate
             return builder.AddRootType(
                 typeof(TMutation),
                 OperationType.Mutation);
+        }
+
+        public static ISchemaBuilder AddSubscriptionType(
+            this ISchemaBuilder builder,
+            Action<IObjectTypeDescriptor> configure)
+        {
+            return AddSubscriptionType(builder, new ObjectType(configure));
+        }
+
+        public static ISchemaBuilder AddSubscriptionType<T>(
+            this ISchemaBuilder builder,
+            Action<IObjectTypeDescriptor<T>> configure)
+        {
+            return AddSubscriptionType(builder, new ObjectType<T>(configure));
         }
 
         public static ISchemaBuilder AddSubscriptionType(

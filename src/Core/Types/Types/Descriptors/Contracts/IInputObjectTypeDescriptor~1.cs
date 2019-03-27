@@ -19,6 +19,8 @@ namespace HotChocolate.Types
         IInputObjectTypeDescriptor<T> BindFields(
             BindingBehavior behavior);
 
+        IInputFieldDescriptor Field(NameString name);
+
         IInputFieldDescriptor Field<TValue>(
             Expression<Func<T, TValue>> property);
 

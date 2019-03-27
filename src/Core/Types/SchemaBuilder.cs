@@ -28,7 +28,7 @@ namespace HotChocolate
             new Dictionary<FieldReference, FieldResolver>();
         private readonly IBindingCompiler _bindingCompiler;
         private string _description;
-        private IReadOnlySchemaOptions _options = new SchemaOptions();
+        private SchemaOptions _options = new SchemaOptions();
         private IsOfTypeFallback _isOfType;
         private IServiceProvider _services;
 
@@ -40,7 +40,16 @@ namespace HotChocolate
 
         public ISchemaBuilder SetOptions(IReadOnlySchemaOptions options)
         {
-            _options = options ?? new SchemaOptions();
+            if (options != null)
+            {
+                _options = SchemaOptions.FromOptions(options);
+            }
+            return this;
+        }
+
+        public ISchemaBuilder ModifyOptions(Action<ISchemaOptions> configure)
+        {
+            configure(_options);
             return this;
         }
 
