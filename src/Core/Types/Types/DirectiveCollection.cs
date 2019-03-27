@@ -40,6 +40,11 @@ namespace HotChocolate.Types
 
         internal void CompleteCollection(ICompletionContext context)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             var processed = new HashSet<string>();
 
             foreach (DirectiveDefinition description in _definitions)

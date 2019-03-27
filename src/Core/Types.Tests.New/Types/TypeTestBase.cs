@@ -4,13 +4,39 @@ namespace HotChocolate.Types
 {
     public class TypeTestBase
     {
-        public static T CreateType<T>(T type)
+        protected T CreateDirective<T>(T directiveType)
+            where T : DirectiveType
+        {
+            return CreateDirective(directiveType, b => { });
+        }
+
+        protected T CreateDirective<T>(T directiveType,
+            Action<ISchemaBuilder> configure)
+            where T : DirectiveType
+        {
+            ISchemaBuilder builder = SchemaBuilder.New()
+                .AddQueryType(c =>
+                    c.Name("Query")
+                        .Field("foo")
+                        .Type<StringType>()
+                        .Resolver("bar"))
+                .AddDirectiveType(directiveType);
+
+            configure(builder);
+
+            builder.Create();
+
+            return directiveType;
+        }
+
+        protected static T CreateType<T>(T type)
             where T : INamedType
         {
             return CreateType(type, b => { });
         }
 
-        public static T CreateType<T>(T type, Action<ISchemaBuilder> configure)
+        protected static T CreateType<T>(T type,
+            Action<ISchemaBuilder> configure)
             where T : INamedType
         {
             ISchemaBuilder builder = SchemaBuilder.New()
