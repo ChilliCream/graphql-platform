@@ -14,6 +14,13 @@ namespace HotChocolate.Stitching.Schemas.Contracts
             descriptor.Field("foo")
                 .Argument("bar", a => a.Type<StringType>())
                 .Resolver(ctx => ctx.Argument<string>("bar"));
+            descriptor.Field("error")
+                .Type<StringType>()
+                .Resolver(ctx => ErrorBuilder.New()
+                    .SetMessage("Error_Message")
+                    .SetCode("ERROR_CODE")
+                    .SetPath(ctx.Path)
+                    .Build());
         }
     }
 }

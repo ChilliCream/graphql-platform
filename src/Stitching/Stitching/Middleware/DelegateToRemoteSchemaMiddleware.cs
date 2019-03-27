@@ -4,6 +4,8 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -11,6 +13,7 @@ using HotChocolate.Stitching.Delegation;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching
 {
@@ -90,7 +93,7 @@ namespace HotChocolate.Stitching
 
             var requestBuilder = new RemoteQueryRequestBuilder();
 
-            AddVariables(context.Schema, schemaName,
+            AddVariables(context, schemaName,
                 requestBuilder, query, variableValues);
 
             requestBuilder.SetQuery(query);
@@ -154,12 +157,46 @@ namespace HotChocolate.Stitching
             IResolverContext context,
             IEnumerable<IError> errors)
         {
-            IReadOnlyCollection<object> path = context.Path.ToCollection();
-
             foreach (IError error in errors)
             {
-                context.ReportError(error.AddExtension("remote", path));
+                IErrorBuilder builder = ErrorBuilder.FromError(error)
+                    .SetExtension("remote", error);
+
+                if (error.Path != null)
+                {
+                    Path path = RewriteErrorPath(error, context.Path);
+                    builder.SetPath(path)
+                        .ClearLocations()
+                        .AddLocation(context.FieldSelection);
+                }
+
+                context.ReportError(builder.Build());
             }
+        }
+
+        private static Path RewriteErrorPath(IError error, Path path)
+        {
+            Path current = path;
+
+            if (error.Path.Count > 0
+                && error.Path[0] is string s
+                && current.Name.Equals(s))
+            {
+                for (int i = 1; i < error.Path.Count; i++)
+                {
+                    if (error.Path[i] is string name)
+                    {
+                        current = current.Append(name);
+                    }
+
+                    if (error.Path[i] is int index)
+                    {
+                        current = current.Append(index);
+                    }
+                }
+            }
+
+            return current;
         }
 
         private static IReadOnlyCollection<VariableValue> CreateVariableValues(
@@ -265,8 +302,22 @@ namespace HotChocolate.Stitching
 
                 if (argument.Value is ScopedVariableNode sv)
                 {
-                    variables.Add(_resolvers.Resolve(
-                        context, sv, arg.Type.ToTypeNode()));
+                    VariableValue variable =
+                        _resolvers.Resolve(context, sv, arg.Type.ToTypeNode());
+
+                    if (arg.Type.IsLeafType()
+                        && arg.Type.NamedType() is ISerializableType s)
+                    {
+                        variable = new VariableValue
+                        (
+                            variable.Name,
+                            variable.Type,
+                            s.Serialize(variable.Value),
+                            variable.DefaultValue
+                        );
+                    }
+
+                    variables.Add(variable);
                 }
             }
         }
@@ -292,7 +343,7 @@ namespace HotChocolate.Stitching
         }
 
         private static void AddVariables(
-            ISchema schema,
+            IResolverContext context,
             NameString schemaName,
             IRemoteQueryRequestBuilder builder,
             DocumentNode query,
@@ -310,15 +361,13 @@ namespace HotChocolate.Stitching
                 {
                     object value = variableValue.Value;
 
-                    if (schema.TryGetType(
+                    if (context.Schema.TryGetType(
                         variableValue.Type.NamedType().Name.Value,
                         out InputObjectType inputType))
                     {
+                        var wrapped = WrapType(inputType, variableValue.Type);
                         value = ObjectVariableRewriter.RewriteVariable(
-                            schemaName,
-                            WrapType(inputType,
-                            variableValue.Type),
-                            value);
+                            schemaName, wrapped, value);
                     }
 
                     builder.AddVariableValue(variableValue.Name, value);

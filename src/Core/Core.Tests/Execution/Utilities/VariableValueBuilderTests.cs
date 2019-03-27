@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
@@ -481,6 +482,37 @@ namespace HotChocolate.Execution
 
             // assert
             variables.GetVariable<List<string>>("test").MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task EnsureThatDateTimeIsCoercedTheSameInAllCases()
+        {
+            // arrange
+            IQueryExecutor executor = Schema.Create(
+                "type Query { a(a: DateTime) : DateTime }",
+                c =>
+                {
+                    c.RegisterExtendedScalarTypes();
+                    c.Use(next => context =>
+                    {
+                        context.Result = context.Argument<DateTimeOffset>("a");
+                        return Task.CompletedTask;
+                    });
+                }).MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(@"
+                        query a($d: DateTime!) {
+                            a: a(a: ""2018-01-01T01:00:00.000Z"")
+                            b: a(a: $d)
+                        }")
+                    .AddVariableValue("d", "2018-01-01T01:00:00.000Z")
+                    .Create());
+
+            // assert
+            result.MatchSnapshot();
         }
 
         private Schema CreateSchema()

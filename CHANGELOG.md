@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added operation start/stop event.
+- Added error filter support for schema stitching.
 
 ### Changed
 
@@ -28,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - __type argument was named `type` instead of `name`. [spec](https://facebook.github.io/graphql/June2018/#sec-Introspection)
 - The server template is now working again. [#657](https://github.com/ChilliCream/hotchocolate/issues/657)
 - Non-nullable types are now validated when query uses variables. [#651](https://github.com/ChilliCream/hotchocolate/issues/651)
+- Variable handling im middleware does not convert the DateTime value anymore. [#664](https://github.com/ChilliCream/hotchocolate/issues/664)
+- Directives are now correctly merged when declared in an extension file. [#665](https://github.com/ChilliCream/hotchocolate/issues/665)
 
 ## [0.8.0] - 2019-03-03
 
