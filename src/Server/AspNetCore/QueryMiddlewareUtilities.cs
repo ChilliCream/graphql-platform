@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 #if ASPNETCLASSIC
@@ -11,6 +12,12 @@ namespace HotChocolate.AspNetCore
 {
     internal static class QueryMiddlewareUtilities
     {
+        public static JsonSerializerSettings JsonSettings { get; } =
+            new JsonSerializerSettings
+            {
+                DateParseHandling = DateParseHandling.None
+            };
+
         public static Dictionary<string, object> ToDictionary(
             this JObject input)
         {

@@ -529,7 +529,7 @@ namespace HotChocolate.Stitching
             Snapshot.Match(result);
         }
 
-        [Fact(Skip = "Fix this issue")]
+        [Fact]
         public async Task ExtendedScalarAsInAndOutputType()
         {
             // arrange
@@ -613,7 +613,57 @@ namespace HotChocolate.Stitching
                 }");
                 request.VariableValues = new Dictionary<string, object>
                 {
-                    {"d", "2019-01-01T01:00"}
+                    {"d", "2019-01-01T01:00:00.000Z"}
+                };
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        [Fact]
+        public async Task DateTimeIsHandledCorrectly()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .AddExtensionsFromString(
+                        "directive @custom(d: DateTime) on FIELD")
+                    .AddSchemaConfiguration(c =>
+                    {
+                        c.RegisterExtendedScalarTypes();
+                    })
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                query a($d: DateTime!) {
+                    a: extendedScalar(d: ""2018-01-01T01:00:00.000Z"")
+                    b: extendedScalar(d: $d)
+                    c: extendedScalar(d: $d)
+                        @custom(d: ""2020-09-01T01:00:00.000Z"")
+                }");
+                request.VariableValues = new Dictionary<string, object>
+                {
+                    {"d", "2019-01-01T01:00:00.000Z"}
                 };
                 request.Services = scope.ServiceProvider;
 

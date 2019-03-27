@@ -6,5 +6,6 @@ namespace HotChocolate.Stitching
         public const string FieldNotDefined = "STITCHING_FLD_NOT_DEFINED";
         public const string VariableNotDefined = "STITCHING_VAR_NOT_DEFINED";
         public const string ScopeNotDefined = "STITCHING_SCOPE_NOT_DEFINED";
+        public const string TypeNotDefined = "STITCHING_TYPE_NOT_DEFINED";
     }
 }
