@@ -309,7 +309,7 @@ namespace HotChocolate.Stitching
         }
 
         private static void AddVariables(
-            IMiddlewareContext context,
+            IResolverContext context,
             NameString schemaName,
             IRemoteQueryRequestBuilder builder,
             DocumentNode query,
