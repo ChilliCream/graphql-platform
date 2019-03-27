@@ -8,6 +8,8 @@
   "None: HotChocolate.Types.TypeKind": "None: HotChocolate.Types.Introspection.__TypeKind",
   "None: System.String": "None: HotChocolate.Types.StringType",
   "None: System.Boolean": "None: HotChocolate.Types.BooleanType",
+  "None: System.Int32": "None: HotChocolate.Types.IntType",
+  "None: HotChocolate.Types.MultiplierPathString": "None: HotChocolate.Types.MultiplierPathType",
   "Output: HotChocolate.TypeRegistrarTests+Foo": "Output: HotChocolate.Types.ObjectType`1[[HotChocolate.TypeRegistrarTests+Foo, HotChocolate.Types.Tests.New, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]",
   "Output: HotChocolate.TypeRegistrarTests+Bar": "Output: HotChocolate.Types.ObjectType`1[[HotChocolate.TypeRegistrarTests+Bar, HotChocolate.Types.Tests.New, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]"
 }
