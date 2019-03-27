@@ -9,7 +9,7 @@ namespace HotChocolate
 
         IErrorBuilder SetCode(string code);
 
-        IErrorBuilder SetPath(IReadOnlyCollection<object> path);
+        IErrorBuilder SetPath(IReadOnlyList<object> path);
 
         IErrorBuilder SetPath(Path path);
 
@@ -17,9 +17,15 @@ namespace HotChocolate
 
         IErrorBuilder AddLocation(int line, int column);
 
+        IErrorBuilder ClearLocations();
+
         IErrorBuilder SetException(Exception exception);
 
         IErrorBuilder SetExtension(string key, object value);
+
+        IErrorBuilder RemoveExtension(string key);
+
+        IErrorBuilder ClearExtensions();
 
         IError Build();
     }

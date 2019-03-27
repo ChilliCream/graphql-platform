@@ -1,6 +1,8 @@
+using System.Collections.Specialized;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using HotChocolate.Execution;
 
 namespace HotChocolate
 {
@@ -8,8 +10,9 @@ namespace HotChocolate
         : IError
     {
         private const string _code = "code";
-        private IImmutableDictionary<string, object> _extensions =
-            ImmutableDictionary<string, object>.Empty;
+        private OrderedDictionary<string, object> _extensions =
+            new OrderedDictionary<string, object>();
+        private bool _needsCopy;
 
         private string _message;
 
@@ -47,15 +50,21 @@ namespace HotChocolate
             }
             internal set
             {
-                _extensions = (value == null)
-                    ? _extensions.Remove(_code)
-                    : _extensions.SetItem(_code, value);
+                CopyExtensions();
+                if (value == null)
+                {
+                    _extensions.Remove(_code);
+                }
+                else
+                {
+                    _extensions[_code] = value;
+                }
             }
         }
 
-        public IReadOnlyCollection<object> Path { get; set; }
+        public IReadOnlyList<object> Path { get; set; }
 
-        IReadOnlyCollection<Location> IError.Locations =>
+        IReadOnlyList<Location> IError.Locations =>
             Locations.Count == 0 ? null : Locations;
 
         public IImmutableList<Location> Locations { get; set; }
@@ -63,12 +72,33 @@ namespace HotChocolate
         public Exception Exception { get; set; }
 
         IReadOnlyDictionary<string, object> IError.Extensions =>
-            Extensions.Count == 0 ? null : Extensions;
+            _extensions.Count == 0 ? null : _extensions;
 
-        public IImmutableDictionary<string, object> Extensions
+        public OrderedDictionary<string, object> Extensions
         {
-            get => _extensions;
-            internal set => _extensions = value;
+            get
+            {
+                CopyExtensions();
+                return _extensions;
+            }
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                _needsCopy = false;
+                _extensions = value;
+            }
+        }
+
+        private void CopyExtensions()
+        {
+            if (_needsCopy)
+            {
+                _extensions = _extensions.Clone();
+                _needsCopy = false;
+            }
         }
 
         public IError WithCode(string code)
@@ -89,26 +119,27 @@ namespace HotChocolate
             IReadOnlyDictionary<string, object> extensions)
         {
             Error error = Copy();
-            error.Extensions = ImmutableDictionary.CreateRange(extensions);
+            error.Extensions =
+                new OrderedDictionary<string, object>(extensions);
             return error;
         }
 
         public IError AddExtension(string key, object value)
         {
             Error error = Copy();
-            error.Extensions = error.Extensions.Add(key, value);
+            error.Extensions.Add(key, value);
             return error;
         }
 
         public IError RemoveExtension(string key)
         {
             Error error = Copy();
-            error.Extensions = error.Extensions.Remove(key);
+            error.Extensions.Remove(key);
             return error;
         }
 
 
-        public IError WithLocations(IReadOnlyCollection<Location> locations)
+        public IError WithLocations(IReadOnlyList<Location> locations)
         {
             Error error = Copy();
             error.Locations = ImmutableList.CreateRange(locations);
@@ -136,7 +167,7 @@ namespace HotChocolate
             return error;
         }
 
-        public IError WithPath(IReadOnlyCollection<object> path)
+        public IError WithPath(IReadOnlyList<object> path)
         {
             Error error = Copy();
             error.Path = path;
@@ -149,6 +180,7 @@ namespace HotChocolate
             {
                 Message = Message,
                 _extensions = _extensions,
+                _needsCopy = true,
                 Path = Path,
                 Locations = Locations,
                 Exception = Exception

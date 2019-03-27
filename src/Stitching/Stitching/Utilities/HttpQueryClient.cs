@@ -64,6 +64,7 @@ namespace HotChocolate.Stitching.Utilities
             HttpResponseMessage response =
                 await httpClient.PostAsync(default(Uri), content)
                     .ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
 
             return await response.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
