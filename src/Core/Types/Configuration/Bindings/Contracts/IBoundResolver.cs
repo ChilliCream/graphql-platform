@@ -16,7 +16,7 @@ namespace HotChocolate.Configuration.Bindings
         where TResolver : class
         where TObjectType : class
     {
-        IBindFieldResolver<TResolver> Resolve<TPropertyType>(
+        IBindFieldResolver<TResolver, TObjectType> Resolve<TPropertyType>(
             Expression<Func<TObjectType, TPropertyType>> field);
     }
 }

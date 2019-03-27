@@ -38,8 +38,8 @@ namespace HotChocolate.Configuration.Bindings
                 ?? throw new ArgumentNullException(nameof(builder));
         }
 
-        public IBindFieldResolver<TResolver> Resolve<TPropertyType>(
-            Expression<Func<TObjectType, TPropertyType>> field)
+        public IBindFieldResolver<TResolver, TObjectType> Resolve<TPropType>(
+            Expression<Func<TObjectType, TPropType>> field)
         {
             if (field == null)
             {
@@ -49,7 +49,8 @@ namespace HotChocolate.Configuration.Bindings
             IResolverFieldBindingBuilder builder =
                ResolverFieldBindingBuilder.New()
                    .SetField(field.ExtractMember());
-            return new BindFieldResolver<TResolver>(_builder, builder);
+            return new BindFieldResolver<TResolver, TObjectType>(
+                _builder, builder);
         }
 
         public IBindFieldResolver<TResolver> Resolve(NameString fieldName)
