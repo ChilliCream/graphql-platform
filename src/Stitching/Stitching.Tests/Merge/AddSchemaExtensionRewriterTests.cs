@@ -61,6 +61,42 @@ namespace HotChocolate.Stitching.Merge
         }
 
         [Fact]
+        public void ObjectType_AddDirectivesToField()
+        {
+            // arrange
+            const string schema = "type Foo { bar: String } " +
+                "directive @foo on FIELD";
+            const string extensions = "extend type Foo { bar: String @foo }";
+
+            // act
+            var rewriter = new AddSchemaExtensionRewriter();
+            DocumentNode merged = rewriter.AddExtensions(
+                Parser.Default.Parse(schema),
+                Parser.Default.Parse(extensions));
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_DirectiveDeclaredInExtensionDoc()
+        {
+            // arrange
+            const string schema = "type Foo { bar: String }";
+            const string extensions = "extend type Foo @foo { bar: String }"
+                + "directive @foo on OBJECT";
+
+            // act
+            var rewriter = new AddSchemaExtensionRewriter();
+            DocumentNode merged = rewriter.AddExtensions(
+                Parser.Default.Parse(schema),
+                Parser.Default.Parse(extensions));
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+        }
+
+        [Fact]
         public void ObjectType_AddDuplicateDirectives()
         {
             // arrange

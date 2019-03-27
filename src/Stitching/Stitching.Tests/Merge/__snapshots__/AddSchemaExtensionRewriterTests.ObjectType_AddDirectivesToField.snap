@@ -1,0 +1,5 @@
+type Foo {
+  bar: String @foo
+}
+
+directive @foo on FIELD
