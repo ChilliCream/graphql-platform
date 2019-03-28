@@ -1,12 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
-using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -21,7 +19,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new ObjectType<Foo>(d => d
+            ObjectType<Foo> fooType = CreateType(new ObjectType<Foo>(d => d
                 .Field(f => f.Description)
                 .Name("a")));
 
@@ -34,7 +32,8 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new ObjectType<QueryWithIntArg>());
+            ObjectType<QueryWithIntArg> fooType =
+                CreateType(new ObjectType<QueryWithIntArg>());
 
             // assert
             IType argumentType = fooType.Fields["bar"]
@@ -53,7 +52,7 @@ namespace HotChocolate.Types
             resolverContext.SetupAllProperties();
 
             // act
-            var fooType = CreateType(new ObjectType(c => c
+            ObjectType fooType = CreateType(new ObjectType(c => c
                 .Name("Foo")
                 .Field("bar")
                 .Resolver(() => "baz")),
@@ -77,7 +76,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new ObjectType<Foo>());
+            ObjectType<Foo> fooType = CreateType(new ObjectType<Foo>());
 
             // assert
             Assert.NotNull(fooType.Fields.First().Resolver);
@@ -88,7 +87,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var someObject = CreateType(new ObjectType<Foo>());
+            ObjectType<Foo> someObject = CreateType(new ObjectType<Foo>());
 
             // assert
             Assert.Equal(TypeKind.Object, someObject.Kind);
@@ -109,7 +108,7 @@ namespace HotChocolate.Types
         public void ObjectTypeWithDynamicField_TypeDeclaOrderShouldNotMatter()
         {
             // act
-            var fooType = CreateType(new ObjectType<FooType>());
+            ObjectType<FooType> fooType = CreateType(new ObjectType<FooType>());
 
             // assert
             Assert.True(fooType.Fields.TryGetField(
@@ -123,7 +122,8 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var genericType = CreateType(new ObjectType<GenericFoo<string>>());
+            ObjectType<GenericFoo<string>> genericType =
+                CreateType(new ObjectType<GenericFoo<string>>());
 
             // assert
             Assert.Equal("GenericFooOfString", genericType.Name);
@@ -134,7 +134,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var genericType =
+            ObjectType<GenericFoo<GenericFoo<string>>> genericType =
                 CreateType(new ObjectType<GenericFoo<GenericFoo<string>>>());
 
             // assert
@@ -146,7 +146,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new ObjectType<Foo>(d => d
+            ObjectType<Foo> fooType = CreateType(new ObjectType<Foo>(d => d
                 .Field<FooResolver>(t => t.GetBar(default))));
 
             // assert
@@ -406,7 +406,7 @@ namespace HotChocolate.Types
                 }";
 
             // act
-            Schema schema = Schema.Create(source, c =>
+            var schema = Schema.Create(source, c =>
             {
                 c.BindResolver(() => "foo").To("C", "a");
             });
@@ -421,8 +421,9 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new ObjectType<object>(d => d
-                .Include<Foo>()));
+            ObjectType<object> fooType =
+                CreateType(new ObjectType<object>(d => d
+                    .Include<Foo>()));
 
             // assert
             Assert.True(fooType.Fields.ContainsField("description"));
@@ -433,7 +434,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new ObjectType<Bar>());
+            ObjectType<Bar> fooType = CreateType(new ObjectType<Bar>());
 
             // assert
             Assert.True(fooType.Fields["baz"].Type.IsNonNullType());
@@ -486,7 +487,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new ObjectType<Foo>(),
+            ObjectType<Foo> fooType = CreateType(new ObjectType<Foo>(),
                 b => b.AddType(new InterfaceType<IFoo>()));
 
             // assert

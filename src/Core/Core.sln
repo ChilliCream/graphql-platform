@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28721.148
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Language", "Language\Language.csproj", "{9F71DFC0-FBB3-4582-B31C-BAF5ED1A056B}"
 EndProject
@@ -38,8 +38,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Diagnostics.ApolloTracing.Tests", "Core.Diagnostics.ApolloTracing.Tests\Core.Diagnostics.ApolloTracing.Tests.csproj", "{19486BA9-746F-49CB-9883-6E95BF982EFF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Diagnostics.CustomObserver.Tests", "Core.Diagnostics.CustomObserver.Tests\Core.Diagnostics.CustomObserver.Tests.csproj", "{024C0D0A-4FDB-4E97-B2B8-92585C028C9C}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Tests.New", "Types.Tests.New\Types.Tests.New.csproj", "{AA814D88-975E-45A5-AC49-A5354A6EC150}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
