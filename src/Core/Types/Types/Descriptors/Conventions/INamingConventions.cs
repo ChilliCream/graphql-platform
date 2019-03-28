@@ -6,6 +6,8 @@ namespace HotChocolate.Types.Descriptors
 {
     public interface INamingConventions
     {
+        NameString GetTypeName(Type type);
+
         NameString GetTypeName(Type type, TypeKind kind);
 
         string GetTypeDescription(Type type, TypeKind kind);

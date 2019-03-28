@@ -61,10 +61,9 @@ namespace HotChocolate.Types.Factories
                     .DefaultValue(inputField.DefaultValue)
                     .SyntaxNode(inputField);
 
-                if (bindingInfo.TryGetFieldMember(
+                if (bindingInfo.TryGetFieldProperty(
                     inputField.Name.Value,
-                    out MemberInfo member)
-                    && member is PropertyInfo p)
+                    out PropertyInfo p))
                 {
                     descriptor.Configure(t => t.Property = p);
                 }

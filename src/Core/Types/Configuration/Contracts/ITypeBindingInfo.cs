@@ -15,6 +15,8 @@ namespace HotChocolate.Configuration
 
         bool TryGetFieldMember(NameString fieldName, out MemberInfo member);
 
+        bool TryGetFieldProperty(NameString fieldName, out PropertyInfo prop);
+
         void TrackField(NameString fieldName);
 
         IEnumerable<RegisteredResolver> CreateResolvers();

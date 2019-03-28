@@ -26,7 +26,8 @@ namespace HotChocolate
             new Dictionary<OperationType, ITypeReference>();
         private readonly Dictionary<FieldReference, FieldResolver> _resolvers =
             new Dictionary<FieldReference, FieldResolver>();
-        private readonly IBindingCompiler _bindingCompiler;
+        private readonly IBindingCompiler _bindingCompiler =
+            new BindingCompiler();
         private string _description;
         private SchemaOptions _options = new SchemaOptions();
         private IsOfTypeFallback _isOfType;
