@@ -1,3 +1,1 @@
-Multiple schema errors occured:
-The field `C.a` has no resolver. - Type: C
 The return type of the interface field a from interface A and B do not match and are implemented by object type C. - Type: C

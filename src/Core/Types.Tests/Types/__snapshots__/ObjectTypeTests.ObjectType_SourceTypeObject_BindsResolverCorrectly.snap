@@ -1,7 +1,10 @@
 {
-  "Data": {
-    "desc": "hello"
-  },
+  "Data": {},
   "Extensions": {},
-  "Errors": []
+  "Errors": [
+    {
+      "Exception": null,
+      "message": "The specified root type `Query` does not exist."
+    }
+  ]
 }
