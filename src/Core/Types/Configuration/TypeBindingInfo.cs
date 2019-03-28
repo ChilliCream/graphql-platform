@@ -144,7 +144,9 @@ namespace HotChocolate.Configuration
         {
             if (_allMembers == null)
             {
-                _allMembers = _context.Inspector.GetMembers(SourceType).ToList();
+                _allMembers = SourceType == null
+                    ? new List<MemberInfo>()
+                    : _context.Inspector.GetMembers(SourceType).ToList();
             }
         }
     }

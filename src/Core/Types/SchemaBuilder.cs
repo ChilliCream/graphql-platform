@@ -13,7 +13,7 @@ using HotChocolate.Types.Factories;
 
 namespace HotChocolate
 {
-    public class SchemaBuilder
+    public partial class SchemaBuilder
         : ISchemaBuilder
     {
         private readonly List<FieldMiddleware> _globalComponents =
@@ -251,7 +251,7 @@ namespace HotChocolate
 
         public Schema Create()
         {
-            var services = _services ?? new EmptyServiceProvider();
+            IServiceProvider services = _services ?? new EmptyServiceProvider();
             IBindingLookup bindingLookup =
                 _bindingCompiler.Compile(DescriptorContext.Create(services));
 
@@ -262,10 +262,16 @@ namespace HotChocolate
                 types.AddRange(ParseDocuments(services, bindingLookup));
             }
 
+            var lazy = new LazySchema();
+
             TypeInitializer initializer =
-                InitializeTypes(services, bindingLookup, types);
+                InitializeTypes(services, bindingLookup, types, () => lazy.Schema);
+
             SchemaDefinition definition = CreateSchemaDefinition(initializer);
-            return new Schema(definition);
+
+            var schema = new Schema(definition);
+            lazy.Schema = schema;
+            return schema;
         }
 
         ISchema ISchemaBuilder.Create() => Create();
@@ -292,9 +298,9 @@ namespace HotChocolate
         private TypeInitializer InitializeTypes(
             IServiceProvider services,
             IBindingLookup bindingLookup,
-            IEnumerable<ITypeReference> types)
+            IEnumerable<ITypeReference> types,
+            Func<ISchema> schemaResolver)
         {
-
             var initializer = new TypeInitializer(services, types, IsQueryType);
 
             foreach (FieldMiddleware component in _globalComponents)
@@ -317,7 +323,7 @@ namespace HotChocolate
                 initializer.Resolvers[reference] = resolver;
             }
 
-            initializer.Initialize();
+            initializer.Initialize(schemaResolver);
             return initializer;
         }
 

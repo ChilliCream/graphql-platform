@@ -60,7 +60,7 @@ namespace HotChocolate.Configuration
         {
             const int max = 10000;
             int tries = 0;
-            bool resolved = false;
+            bool resolved;
 
             do
             {
@@ -118,7 +118,14 @@ namespace HotChocolate.Configuration
                 else if (typeReference is ISchemaTypeReference str
                     && str.Type is TypeSystemObjectBase tso)
                 {
-                    RegisterTypeSystemObject(tso);
+                    if (BaseTypes.IsNonGenericBaseType(tso.GetType()))
+                    {
+                        RegisterTypeSystemObject(tso, str);
+                    }
+                    else
+                    {
+                        RegisterTypeSystemObject(tso);
+                    }
                 }
 
                 _unregistered.Remove(typeReference);
@@ -182,6 +189,16 @@ namespace HotChocolate.Configuration
                 typeSystemObject.GetType(),
                 typeContext);
 
+            RegisterTypeSystemObject(typeSystemObject, internalReference);
+        }
+
+        private void RegisterTypeSystemObject(
+            TypeSystemObjectBase typeSystemObject,
+            ITypeReference internalReference)
+        {
+            TypeContext typeContext =
+                SchemaTypeReference.InferTypeContext(typeSystemObject);
+
             if (!Registerd.ContainsKey(internalReference))
             {
                 RegisteredType registeredType =
@@ -217,7 +234,7 @@ namespace HotChocolate.Configuration
         }
 
         private RegisteredType InitializeAndRegister(
-            IClrTypeReference internalReference,
+            ITypeReference internalReference,
             TypeSystemObjectBase typeSystemObject)
         {
             var initializationContext = new InitializationContext(

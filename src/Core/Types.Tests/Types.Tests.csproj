@@ -42,4 +42,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Configuration\__snapshots__\__mismatch__\" />
+  </ItemGroup>
+
 </Project>

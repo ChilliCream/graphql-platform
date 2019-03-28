@@ -65,12 +65,17 @@ namespace HotChocolate.Configuration
         public IDictionary<FieldReference, RegisteredResolver> Resolvers =>
             _res;
 
-        public void Initialize()
+        public void Initialize(Func<ISchema> schemaResolver)
         {
+            if (schemaResolver == null)
+            {
+                throw new ArgumentNullException(nameof(schemaResolver));
+            }
+
             RegisterTypes();
             CompileResolvers();
             RegisterImplicitInterfaceDependencies();
-            CompleteNames();
+            CompleteNames(schemaResolver);
             CompleteTypes();
         }
 
@@ -147,7 +152,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private bool CompleteNames()
+        private bool CompleteNames(Func<ISchema> schemaResolver)
         {
             bool success = CompleteTypes(TypeDependencyKind.Named,
                 registeredType =>
@@ -156,7 +161,7 @@ namespace HotChocolate.Configuration
                         _initContexts.First(t =>
                             t.Type == registeredType.Type);
                     var completionContext = new CompletionContext(
-                        initializationContext, this);
+                        initializationContext, this, schemaResolver);
                     _cmpCtx[registeredType] = completionContext;
 
                     registeredType.Type.CompleteName(completionContext);
@@ -180,6 +185,7 @@ namespace HotChocolate.Configuration
                 UpdateDependencyLookup();
             }
 
+            ThrowOnErrors();
             return success;
         }
 
@@ -197,7 +203,7 @@ namespace HotChocolate.Configuration
 
         private bool CompleteTypes()
         {
-            return CompleteTypes(TypeDependencyKind.Completed, registeredType =>
+            bool success = CompleteTypes(TypeDependencyKind.Completed, registeredType =>
             {
                 CompletionContext context = _cmpCtx[registeredType];
                 context.Status = TypeStatus.Named;
@@ -205,6 +211,9 @@ namespace HotChocolate.Configuration
                 registeredType.Type.CompleteType(context);
                 return true;
             });
+
+            ThrowOnErrors();
+            return success;
         }
 
         private bool CompleteTypes(
@@ -374,6 +383,21 @@ namespace HotChocolate.Configuration
 
             normalized = null;
             return false;
+        }
+
+        private void ThrowOnErrors()
+        {
+            var errors = new List<ISchemaError>();
+
+            foreach (InitializationContext context in _initContexts)
+            {
+                errors.AddRange(context.Errors);
+            }
+
+            if (errors.Count > 0)
+            {
+                throw new SchemaException(errors);
+            }
         }
 
         private static bool IsTypeSystemObject(Type type) =>

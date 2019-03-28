@@ -14,9 +14,12 @@ namespace HotChocolate.Configuration
     {
         private readonly InitializationContext _initializationContext;
         private readonly TypeInitializer _typeInitializer;
+        private readonly Func<ISchema> _schemaResolver;
+
         public CompletionContext(
             InitializationContext initializationContext,
-            TypeInitializer typeInitializer)
+            TypeInitializer typeInitializer,
+            Func<ISchema> schemaResolver)
         {
             _initializationContext = initializationContext
                 ?? throw new ArgumentNullException(
@@ -24,6 +27,9 @@ namespace HotChocolate.Configuration
             _typeInitializer = typeInitializer
                 ?? throw new ArgumentNullException(
                     nameof(typeInitializer));
+            _schemaResolver = schemaResolver
+                ?? throw new ArgumentNullException(
+                    nameof(schemaResolver));
 
             GlobalComponents = new ReadOnlyCollection<FieldMiddleware>(
                 _typeInitializer.GlobalComponents);
@@ -130,7 +136,7 @@ namespace HotChocolate.Configuration
                 throw new NotSupportedException();
             }
 
-            throw new NotImplementedException();
+            return _schemaResolver;
         }
 
         public IEnumerable<T> GetTypes<T>()

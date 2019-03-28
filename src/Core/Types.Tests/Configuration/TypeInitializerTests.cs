@@ -30,7 +30,7 @@ namespace HotChocolate
                 t => t is FooType);
 
             // act
-            typeInitializer.Initialize();
+            typeInitializer.Initialize(() => null);
 
             // assert
             bool exists = typeInitializer.Types.TryGetValue(
@@ -71,7 +71,7 @@ namespace HotChocolate
                 t => t is ObjectType<Foo>);
 
             // act
-            typeInitializer.Initialize();
+            typeInitializer.Initialize(() => null);
 
             // assert
             bool exists = typeInitializer.Types.TryGetValue(

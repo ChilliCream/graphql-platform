@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
@@ -52,7 +52,7 @@ namespace HotChocolate.Types
         protected override ObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            ObjectTypeDescriptor descriptor = ObjectTypeDescriptor.New(
+            var descriptor = ObjectTypeDescriptor.New(
                 DescriptorContext.Create(context.Services),
                 GetType());
             _configure(descriptor);
@@ -126,10 +126,9 @@ namespace HotChocolate.Types
         {
             if (ClrType != typeof(object))
             {
-                Type[] possibleInterfaceTypes = ClrType.GetInterfaces();
                 foreach (Type interfaceType in ClrType.GetInterfaces())
                 {
-                    if (context.TryGetType<InterfaceType>(
+                    if (context.TryGetType(
                         new ClrTypeReference(interfaceType, TypeContext.Output),
                         out InterfaceType type))
                     {
@@ -140,9 +139,7 @@ namespace HotChocolate.Types
 
             foreach (ITypeReference interfaceRef in definition.Interfaces)
             {
-                if (!context.TryGetType<InterfaceType>(
-                    interfaceRef,
-                    out InterfaceType type))
+                if (!context.TryGetType(interfaceRef, out InterfaceType type))
                 {
                     context.ReportError(SchemaErrorBuilder.New()
                         .SetMessage(

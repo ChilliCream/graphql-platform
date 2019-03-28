@@ -183,7 +183,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                ex.Message.Snapshot();
+                ex.Message.MatchSnapshot();
                 return;
             }
 
@@ -217,7 +217,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                ex.Message.Snapshot();
+                ex.Message.MatchSnapshot();
                 return;
             }
 
@@ -251,7 +251,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                ex.Message.Snapshot();
+                ex.Message.MatchSnapshot();
                 return;
             }
 
@@ -285,7 +285,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                ex.Message.Snapshot();
+                ex.Message.MatchSnapshot();
                 return;
             }
 
@@ -319,7 +319,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                ex.Message.Snapshot();
+                ex.Message.MatchSnapshot();
                 return;
             }
 
@@ -353,7 +353,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                ex.Message.Snapshot();
+                ex.Message.MatchSnapshot();
                 return;
             }
 
@@ -455,7 +455,7 @@ namespace HotChocolate.Types
             var schema = Schema.Create(t => t.RegisterQueryType(objectType));
 
             // assert
-            schema.ToString().Snapshot();
+            schema.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -491,7 +491,8 @@ namespace HotChocolate.Types
                 b => b.AddType(new InterfaceType<IFoo>()));
 
             // assert
-            Assert.NotNull(fooType.Fields.First().Resolver);
+            Assert.IsType<InterfaceType<IFoo>>(
+                fooType.Interfaces.First());
         }
 
         [Fact]
