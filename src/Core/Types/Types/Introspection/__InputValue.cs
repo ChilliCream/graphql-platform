@@ -2,6 +2,7 @@
 
 namespace HotChocolate.Types.Introspection
 {
+    // TODO : resources
     [Introspection]
     internal sealed class __InputValue
         : ObjectType<InputField>

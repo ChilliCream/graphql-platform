@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using ChilliCream.Testing;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -7,26 +8,18 @@ using Xunit;
 namespace HotChocolate.Types
 {
     public class InputObjectTypeTests
+        : TypeTestBase
     {
         [Fact]
         public void Initialize_IgnoreProperty_PropertyIsNotInSchemaType()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-
             // act
             var fooType = new InputObjectType<SimpleInput>(
                 d => d.Field(f => f.Id).Ignore());
-            INeedsInitialization init = fooType;
 
             // assert
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Empty(errors);
+            fooType = CreateType(fooType);
             Assert.Collection(fooType.Fields,
                 t => Assert.Equal("name", t.Name));
         }
@@ -67,23 +60,14 @@ namespace HotChocolate.Types
         public void GenericInputObject_AddDirectives_NameArgs()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
             var fooType = new InputObjectType<SimpleInput>(
                 d => d.Directive("foo").Field(f => f.Id).Directive("foo"));
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            fooType = CreateType(fooType,
+                b => b.AddDirectiveType<FooDirectiveType>());
 
-            Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
         }
@@ -92,10 +76,6 @@ namespace HotChocolate.Types
         public void GenericInputObject_AddDirectives_NameArgs2()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
             var fooType = new InputObjectType<SimpleInput>(
                 d => d.Directive(new NameString("foo"))
@@ -103,14 +83,10 @@ namespace HotChocolate.Types
                     .Directive(new NameString("foo")));
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            fooType = CreateType(fooType,
+                b => b.AddDirectiveType<FooDirectiveType>());
 
-            Assert.Empty(errors);
+
             Assert.NotEmpty(fooType.Directives["foo"]);
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
         }
@@ -119,10 +95,6 @@ namespace HotChocolate.Types
         public void GenericInputObject_AddDirectives_DirectiveNode()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
             var fooType = new InputObjectType<SimpleInput>(
                 d => d.Directive(new DirectiveNode("foo"))
@@ -130,14 +102,9 @@ namespace HotChocolate.Types
                     .Directive(new DirectiveNode("foo")));
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            fooType = CreateType(fooType,
+                b => b.AddDirectiveType<FooDirectiveType>());
 
-            Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
         }
@@ -146,10 +113,6 @@ namespace HotChocolate.Types
         public void GenericInputObject_AddDirectives_DirectiveClassInstance()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
             var fooType = new InputObjectType<SimpleInput>(
                 d => d.Directive(new FooDirective())
@@ -157,14 +120,9 @@ namespace HotChocolate.Types
                     .Directive(new FooDirective()));
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            fooType = CreateType(fooType,
+                b => b.AddDirectiveType<FooDirectiveType>());
 
-            Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
         }
@@ -173,10 +131,6 @@ namespace HotChocolate.Types
         public void GenericInputObject_AddDirectives_DirectiveType()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
             var fooType = new InputObjectType<SimpleInput>(
                 d => d.Directive<FooDirective>()
@@ -184,14 +138,9 @@ namespace HotChocolate.Types
                     .Directive<FooDirective>());
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            fooType = CreateType(fooType,
+                b => b.AddDirectiveType<FooDirectiveType>());
 
-            Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
         }
@@ -200,10 +149,6 @@ namespace HotChocolate.Types
         public void InputObject_AddDirectives_NameArgs()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
             var fooType = new InputObjectType(
                 d => d.Directive("foo")
@@ -212,14 +157,9 @@ namespace HotChocolate.Types
                     .Directive("foo"));
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            fooType = CreateType(fooType,
+                b => b.AddDirectiveType<FooDirectiveType>());
 
-            Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
         }
@@ -228,10 +168,6 @@ namespace HotChocolate.Types
         public void InputObject_AddDirectives_NameArgs2()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
             var fooType = new InputObjectType<SimpleInput>(
                 d => d.Directive(new NameString("foo"))
@@ -240,14 +176,9 @@ namespace HotChocolate.Types
                     .Directive(new NameString("foo")));
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            fooType = CreateType(fooType,
+                b => b.AddDirectiveType<FooDirectiveType>());
 
-            Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
         }
@@ -256,10 +187,6 @@ namespace HotChocolate.Types
         public void InputObject_AddDirectives_DirectiveNode()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
             var fooType = new InputObjectType(
                 d => d.Directive(new DirectiveNode("foo"))
@@ -268,14 +195,9 @@ namespace HotChocolate.Types
                     .Directive(new DirectiveNode("foo")));
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            fooType = CreateType(fooType,
+                b => b.AddDirectiveType<FooDirectiveType>());
 
-            Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
         }
@@ -284,10 +206,6 @@ namespace HotChocolate.Types
         public void InputObject_AddDirectives_DirectiveClassInstance()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
             var fooType = new InputObjectType(
                 d => d.Directive(new FooDirective())
@@ -296,14 +214,9 @@ namespace HotChocolate.Types
                     .Directive(new FooDirective()));
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            fooType = CreateType(fooType,
+                b => b.AddDirectiveType<FooDirectiveType>());
 
-            Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
         }
@@ -312,10 +225,6 @@ namespace HotChocolate.Types
         public void InputObject_AddDirectives_DirectiveType()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
             var fooType = new InputObjectType(
                 d => d.Directive<FooDirective>()
@@ -324,14 +233,9 @@ namespace HotChocolate.Types
                     .Directive<FooDirective>());
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            fooType = CreateType(fooType,
+                b => b.AddDirectiveType<FooDirectiveType>());
 
-            Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
         }

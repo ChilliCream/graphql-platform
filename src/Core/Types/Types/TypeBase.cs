@@ -1,14 +1,14 @@
-﻿namespace HotChocolate.Types
-{
-    public class TypeBase
-        : TypeSystemBase
-        , IType
-    {
-        public TypeBase(TypeKind kind)
-        {
-            Kind = kind;
-        }
+﻿using HotChocolate.Types.Descriptors.Definitions;
 
-        public TypeKind Kind { get; }
+namespace HotChocolate.Types
+{
+    public abstract class TypeBase<TDefinition>
+        : TypeSystemObjectBase<TDefinition>
+        , IType
+        where TDefinition : DefinitionBase
+    {
+        protected TypeBase() { }
+
+        public abstract TypeKind Kind { get; }
     }
 }

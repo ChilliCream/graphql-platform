@@ -1,5 +1,8 @@
 ﻿using System;
+using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Relay
@@ -29,14 +32,6 @@ namespace HotChocolate.Types.Relay
         protected new static void Configure(
             IObjectTypeDescriptor<IConnection> descriptor)
         {
-            if (!NamedTypeInfoFactory.Default.TryExtractName(
-                typeof(T), out NameString name))
-            {
-                throw new InvalidOperationException(
-                    $"Unable to extract a name from {typeof(T).FullName}.");
-            }
-
-            descriptor.Name(name + "Connection");
             descriptor.Description("A connection to a list of items.");
 
             descriptor.BindFields(BindingBehavior.Explicit);
@@ -53,21 +48,40 @@ namespace HotChocolate.Types.Relay
         }
 
         protected override void OnRegisterDependencies(
-            ITypeInitializationContext context)
+            IInitializationContext context,
+            ObjectTypeDefinition definition)
         {
-            base.OnRegisterDependencies(context);
+            base.OnRegisterDependencies(context, definition);
 
-            context.RegisterType(new TypeReference(typeof(T)));
-            context.RegisterType(new TypeReference(typeof(EdgeType<T>)));
+            context.RegisterDependency(new ClrTypeReference(
+                typeof(T), TypeContext.Output),
+                TypeDependencyKind.Named);
+            context.RegisterDependency(new ClrTypeReference(
+                typeof(EdgeType<T>), TypeContext.Output),
+                TypeDependencyKind.Default);
+        }
+
+        protected override void OnCompleteName(
+            ICompletionContext context,
+            ObjectTypeDefinition definition)
+        {
+            base.OnCompleteName(context, definition);
+
+            INamedType namedType = context.GetType<INamedType>(
+                new ClrTypeReference(typeof(T), TypeContext.Output));
+
+            Name = namedType.Name + "Connection";
         }
 
         protected override void OnCompleteType(
-            ITypeInitializationContext context)
+            ICompletionContext context,
+            ObjectTypeDefinition definition)
         {
-            EdgeType = context.GetType<EdgeType<T>>(
-                new TypeReference(typeof(EdgeType<T>)));
+            base.OnCompleteType(context, definition);
 
-            base.OnCompleteType(context);
+            EdgeType = context.GetType<EdgeType<T>>(
+                new ClrTypeReference(typeof(EdgeType<T>),
+                TypeContext.Output));
         }
 
         public static ConnectionType<T> CreateWithTotalCount()

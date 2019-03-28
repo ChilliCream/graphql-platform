@@ -8,33 +8,47 @@ namespace HotChocolate
     public class SchemaErrorTests
     {
         [Fact]
-        public void CreateSchemaError_TwoArguments_PopertiesAreSet()
+        public void CreateSchemaError_ExceptionAndMessage()
         {
             // arrange
             var message = "FooBar";
             var exception = new Exception();
 
             // act
-            var schemaError = new SchemaError(message, exception);
+            ISchemaError schemaError = SchemaErrorBuilder.New()
+                .SetMessage(message)
+                .SetException(exception)
+                .Build();
 
             // assert
             Assert.Equal(message, schemaError.Message);
-            Assert.Equal(exception, schemaError.AssociatedException);
-            Assert.Null(schemaError.SyntaxNode);
-            Assert.Null(schemaError.Type);
+            Assert.Equal(exception, schemaError.Exception);
+            Assert.Empty(schemaError.SyntaxNodes);
+            Assert.Empty(schemaError.Extensions);
+            Assert.Null(schemaError.TypeSystemObject);
+            Assert.Null(schemaError.Path);
+            Assert.Null(schemaError.Code);
         }
 
         [Fact]
-        public void CreateSchemaError_TwoArgsNoMsg_ArgumentNullException()
+        public void CreateSchemaError_Exception()
         {
             // arrange
-            var exception = new Exception();
+            var exception = new Exception("FooBar");
 
             // act
-            Action a = () => new SchemaError(null, exception);
+            ISchemaError schemaError = SchemaErrorBuilder.New()
+                .SetException(exception)
+                .Build();
 
             // assert
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Equal(exception.Message, schemaError.Message);
+            Assert.Equal(exception, schemaError.Exception);
+            Assert.Empty(schemaError.SyntaxNodes);
+            Assert.Empty(schemaError.Extensions);
+            Assert.Null(schemaError.TypeSystemObject);
+            Assert.Null(schemaError.Path);
+            Assert.Null(schemaError.Code);
         }
 
         [Fact]
@@ -43,61 +57,77 @@ namespace HotChocolate
             // arrange
             var message = "FooBar";
             var exception = new Exception();
+            var type = new StringType();
 
             // act
-            var schemaError = new SchemaError(
-                message, new StringType(), exception);
+            ISchemaError schemaError = SchemaErrorBuilder.New()
+                .SetMessage(message)
+                .SetException(exception)
+                .SetTypeSystemObject(type)
+                .Build();
 
             // assert
             Assert.Equal(message, schemaError.Message);
-            Assert.Equal(exception, schemaError.AssociatedException);
-            Assert.Null(schemaError.SyntaxNode);
-            Assert.IsType<StringType>(schemaError.Type);
+            Assert.Equal(exception, schemaError.Exception);
+            Assert.Equal(type, schemaError.TypeSystemObject);
+            Assert.Empty(schemaError.SyntaxNodes);
+            Assert.Empty(schemaError.Extensions);
+            Assert.Null(schemaError.Path);
+            Assert.Null(schemaError.Code);
         }
 
         [Fact]
-        public void CreateSchemaError_ThreeArgsNoMsg_ArgumentNullException()
-        {
-            // arrange
-            var exception = new Exception();
-
-            // act
-            Action a = () => new SchemaError(null, new StringType(), exception);
-
-            // assert
-            Assert.Throws<ArgumentNullException>(a);
-        }
-
-        [Fact]
-        public void CreateSchemaError_FourArguments_PopertiesAreSet()
+        public void CreateSchemaError_SetExtension()
         {
             // arrange
             var message = "FooBar";
-            var exception = new Exception();
+            var key = "foo";
+            var value = "bar";
 
             // act
-            var schemaError = new SchemaError(
-                message, new StringType(), new NameNode("foo"), exception);
+            ISchemaError schemaError = SchemaErrorBuilder.New()
+                .SetMessage(message)
+                .SetExtension(key, value)
+                .Build();
 
             // assert
             Assert.Equal(message, schemaError.Message);
-            Assert.Equal(exception, schemaError.AssociatedException);
-            Assert.IsType<NameNode>(schemaError.SyntaxNode);
-            Assert.IsType<StringType>(schemaError.Type);
+            Assert.Empty(schemaError.SyntaxNodes);
+            Assert.Collection(schemaError.Extensions,
+                t =>
+                {
+                    Assert.Equal(key, t.Key);
+                    Assert.Equal(value, t.Value);
+                });
+            Assert.Null(schemaError.Exception);
+            Assert.Null(schemaError.TypeSystemObject);
+            Assert.Null(schemaError.Path);
+            Assert.Null(schemaError.Code);
         }
 
         [Fact]
-        public void CreateSchemaError_FourArgs_ArgumentNullException()
+        public void CreateSchemaError_AddSyntaxNode()
         {
             // arrange
-            var exception = new Exception();
+            var message = "FooBar";
+            var node = new NameNode("foo");
+
 
             // act
-            Action a = () => new SchemaError(
-                null, new StringType(), new NameNode("foo"), exception);
+            ISchemaError schemaError = SchemaErrorBuilder.New()
+                .SetMessage(message)
+                .AddSyntaxNode(node)
+                .Build();
 
             // assert
-            Assert.Throws<ArgumentNullException>(a);
+            Assert.Equal(message, schemaError.Message);
+            Assert.Collection(schemaError.SyntaxNodes,
+                t => Assert.Equal(node, t));
+            Assert.Empty(schemaError.Extensions);
+            Assert.Null(schemaError.Exception);
+            Assert.Null(schemaError.TypeSystemObject);
+            Assert.Null(schemaError.Path);
+            Assert.Null(schemaError.Code);
         }
     }
 }

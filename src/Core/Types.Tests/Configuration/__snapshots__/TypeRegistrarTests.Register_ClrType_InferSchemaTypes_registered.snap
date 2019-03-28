@@ -1,0 +1,16 @@
+{
+  "HotChocolate.Types.Introspection.__Directive": "System.Object",
+  "HotChocolate.Types.Introspection.__DirectiveLocation": "HotChocolate.Types.DirectiveLocation",
+  "HotChocolate.Types.Introspection.__EnumValue": "HotChocolate.Types.EnumValue",
+  "HotChocolate.Types.Introspection.__Field": "HotChocolate.Types.IOutputField",
+  "HotChocolate.Types.Introspection.__InputValue": "HotChocolate.Types.InputField",
+  "HotChocolate.Types.Introspection.__Schema": "HotChocolate.ISchema",
+  "HotChocolate.Types.Introspection.__Type": "HotChocolate.Types.IType",
+  "HotChocolate.Types.Introspection.__TypeKind": "HotChocolate.Types.TypeKind",
+  "HotChocolate.Types.StringType": "System.String",
+  "HotChocolate.Types.BooleanType": "System.Boolean",
+  "HotChocolate.Types.IntType": "System.Int32",
+  "HotChocolate.Types.MultiplierPathType": "HotChocolate.Types.MultiplierPathString",
+  "HotChocolate.Types.ObjectType`1[[HotChocolate.TypeRegistrarTests+Foo, HotChocolate.Types.Tests.New, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": "HotChocolate.TypeRegistrarTests+Foo",
+  "HotChocolate.Types.ObjectType`1[[HotChocolate.TypeRegistrarTests+Bar, HotChocolate.Types.Tests.New, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": "HotChocolate.TypeRegistrarTests+Bar"
+}

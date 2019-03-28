@@ -6,129 +6,83 @@ namespace HotChocolate.Configuration
 {
     internal partial class SchemaConfiguration
     {
-        #region RegisterType - Type
-
         public void RegisterType<T>()
         {
-            RegisterType(typeof(T));
+            _builder.AddType<T>();
         }
 
         public void RegisterType(Type type)
         {
-            if (type.IsDefined(typeof(GraphQLResolverOfAttribute), false))
-            {
-                _typeRegistry.RegisterResolverType(type);
-            }
-            else
-            {
-                CreateAndRegisterType(type);
-            }
+            _builder.AddType(type);
         }
 
         public void RegisterQueryType<T>() where T : class
         {
-            RegisterQueryType(typeof(T));
+            _builder.AddQueryType<T>();
         }
 
         public void RegisterQueryType(Type type)
         {
-            INamedType namedType = RegisterObjectType(type);
-            Options.QueryTypeName = namedType.Name;
+            _builder.AddQueryType(type);
         }
 
         public void RegisterMutationType<T>() where T : class
         {
-            RegisterMutationType(typeof(T));
+            _builder.AddMutationType<T>();
         }
 
         public void RegisterMutationType(Type type)
         {
-            INamedType namedType = RegisterObjectType(type);
-            Options.MutationTypeName = namedType.Name;
+            _builder.AddMutationType(type);
         }
 
         public void RegisterSubscriptionType<T>() where T : class
         {
-            RegisterSubscriptionType(typeof(T));
+            _builder.AddSubscriptionType<T>();
         }
 
         public void RegisterSubscriptionType(Type type)
         {
-            INamedType namedType = RegisterObjectType(type);
-            Options.SubscriptionTypeName = namedType.Name;
+            _builder.AddSubscriptionType(type);
         }
-
-        private INamedType RegisterObjectType(Type type)
-        {
-            return typeof(ObjectType).IsAssignableFrom(type)
-                ? CreateAndRegisterType(type)
-                : CreateAndRegisterType(typeof(ObjectType<>)
-                    .MakeGenericType(type));
-        }
-
-        private INamedType CreateAndRegisterType(Type type)
-        {
-            if (BaseTypes.IsNonGenericBaseType(type))
-            {
-                throw new SchemaException(new SchemaError(
-                    "You cannot add a type without specifing its " +
-                    "name and attributes."));
-            }
-
-            TypeReference typeReference = type.GetOutputType();
-            _typeRegistry.RegisterType(typeReference);
-            return _typeRegistry.GetType<INamedType>(typeReference);
-        }
-
-        #endregion
-
-        #region RegisterType - Instance
 
         public void RegisterType<T>(T namedType)
             where T : class, INamedType
         {
-            _typeRegistry.RegisterType(namedType);
+            _builder.AddType(namedType);
         }
 
         public void RegisterQueryType<T>(T objectType)
             where T : ObjectType
         {
-            Options.QueryTypeName = objectType.Name;
-            _typeRegistry.RegisterType(objectType);
+            _builder.AddQueryType(objectType);
         }
 
         public void RegisterMutationType<T>(T objectType)
             where T : ObjectType
         {
-            Options.MutationTypeName = objectType.Name;
-            _typeRegistry.RegisterType(objectType);
+            _builder.AddMutationType(objectType);
         }
 
         public void RegisterSubscriptionType<T>(T objectType)
             where T : ObjectType
         {
-            Options.SubscriptionTypeName = objectType.Name;
-            _typeRegistry.RegisterType(objectType);
+            _builder.AddSubscriptionType(objectType);
         }
-        #endregion
-
-        #region Directives
 
         public void RegisterDirective<T>() where T : DirectiveType, new()
         {
-            RegisterDirective(typeof(T));
+            _builder.AddDirectiveType<T>();
         }
 
         public void RegisterDirective(Type type)
         {
-            _directiveRegistry.RegisterDirectiveType(type);
+            _builder.AddDirectiveType(type);
         }
 
         public void RegisterDirective<T>(T directive) where T : DirectiveType
         {
-            _directiveRegistry.RegisterDirectiveType(directive);
+            _builder.AddDirectiveType(directive);
         }
-
-        #endregion
     }
 }

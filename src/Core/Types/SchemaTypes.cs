@@ -7,41 +7,24 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
+
     internal sealed class SchemaTypes
     {
         private readonly Dictionary<NameString, INamedType> _types;
-        private readonly Dictionary<NameString, ITypeBinding> _typeBindings;
         private readonly Dictionary<NameString, ImmutableList<ObjectType>> _possibleTypes;
 
-        private SchemaTypes(
-            IEnumerable<INamedType> types,
-            IEnumerable<ITypeBinding> typeBindings,
-            string queryTypeName,
-            string mutationTypeName,
-            string subscriptionTypeName)
+        public SchemaTypes(SchemaDefinition definition)
         {
-            _types = types.ToDictionary(t => t.Name);
-            _typeBindings = typeBindings.ToDictionary(t => t.Name);
-            _possibleTypes = CreatePossibleTypeLookup(_types.Values);
-
-            INamedType namedType;
-            if (_types.TryGetValue(queryTypeName, out namedType)
-                && namedType is ObjectType queryType)
+            if (definition == null)
             {
-                QueryType = queryType;
+                throw new ArgumentNullException(nameof(definition));
             }
 
-            if (_types.TryGetValue(mutationTypeName, out namedType)
-               && namedType is ObjectType mutationType)
-            {
-                MutationType = mutationType;
-            }
-
-            if (_types.TryGetValue(subscriptionTypeName, out namedType)
-               && namedType is ObjectType subscriptionType)
-            {
-                SubscriptionType = subscriptionType;
-            }
+            _types = definition.Types.ToDictionary(t => t.Name);
+            _possibleTypes = CreatePossibleTypeLookup(definition.Types);
+            QueryType = definition.QueryType;
+            MutationType = definition.MutationType;
+            SubscriptionType = definition.SubscriptionType;
         }
 
         public ObjectType QueryType { get; }
@@ -83,19 +66,12 @@ namespace HotChocolate
 
         public bool TryGetClrType(NameString typeName, out Type clrType)
         {
-            if (_typeBindings.TryGetValue(typeName, out ITypeBinding binding))
+            if (_types.TryGetValue(typeName, out INamedType type)
+                && type is IHasClrType ct
+                && ct.ClrType != typeof(object))
             {
-                if (binding is ObjectTypeBinding otb)
-                {
-                    clrType = otb.Type;
-                    return true;
-                }
-
-                if (binding is InputObjectTypeBinding iotb)
-                {
-                    clrType = iotb.Type;
-                    return true;
-                }
+                clrType = ct.ClrType;
+                return true;
             }
 
             clrType = null;
@@ -148,33 +124,6 @@ namespace HotChocolate
 
             return possibleTypes.ToDictionary(
                 t => t.Key, t => t.Value.ToImmutableList());
-        }
-
-        public static SchemaTypes Create(
-            IEnumerable<INamedType> types,
-            IEnumerable<ITypeBinding> typeBindings,
-            IReadOnlySchemaOptions options)
-        {
-            if (types == null)
-            {
-                throw new ArgumentNullException(nameof(types));
-            }
-
-            if (typeBindings == null)
-            {
-                throw new ArgumentNullException(nameof(typeBindings));
-            }
-
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            return new SchemaTypes(types,
-                typeBindings,
-                options.QueryTypeName,
-                options.MutationTypeName,
-                options.SubscriptionTypeName);
         }
     }
 }

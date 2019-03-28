@@ -6,6 +6,7 @@ using ChilliCream.Testing;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -13,26 +14,18 @@ using Xunit;
 namespace HotChocolate.Types
 {
     public class ObjectTypeTests
+        : TypeTestBase
     {
         [Fact]
         public void IntializeExplicitFieldWithImplicitResolver()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-
             // act
-            var fooType = new ObjectType<Foo>(
-                d => d.Field(f => f.Description).Name("a"));
-            INeedsInitialization init = fooType;
-
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            var fooType = CreateType(new ObjectType<Foo>(d => d
+                .Field(f => f.Description)
+                .Name("a")));
 
             // assert
-            Assert.Empty(errors);
             Assert.NotNull(fooType.Fields.First().Resolver);
         }
 
@@ -40,29 +33,16 @@ namespace HotChocolate.Types
         public void IntArgumentIsInferedAsNonNullType()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            var intType = new IntType();
-            schemaContext.Types.RegisterType(intType);
-
             // act
-            var fooType = new ObjectType<QueryWithIntArg>();
+            var fooType = CreateType(new ObjectType<QueryWithIntArg>());
 
             // assert
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            ((INeedsInitialization)fooType)
-                .RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Empty(errors);
-
             IType argumentType = fooType.Fields["bar"]
                 .Arguments.First().Type;
 
             Assert.NotNull(argumentType);
             Assert.True(argumentType.IsNonNullType());
-            Assert.Equal(intType, argumentType.NamedType());
+            Assert.Equal("Int", argumentType.NamedType().Name.Value);
         }
 
         [Fact]
@@ -72,37 +52,23 @@ namespace HotChocolate.Types
             var resolverContext = new Mock<IMiddlewareContext>();
             resolverContext.SetupAllProperties();
 
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            var stringType = new StringType();
-
-            schemaContext.Types.RegisterType(stringType);
-            schemaContext.Resolvers.RegisterMiddleware(next => async context =>
-            {
-                await next(context);
-
-                if (context.Result is string s)
-                {
-                    context.Result = s.ToUpperInvariant();
-                }
-            });
-
             // act
-            var fooType = new ObjectType(c =>
-                c.Name("Foo").Field("bar").Resolver(() => "baz"));
+            var fooType = CreateType(new ObjectType(c => c
+                .Name("Foo")
+                .Field("bar")
+                .Resolver(() => "baz")),
+                b => b.Use(next => async context =>
+                {
+                    await next(context);
+
+                    if (context.Result is string s)
+                    {
+                        context.Result = s.ToUpperInvariant();
+                    }
+                }));
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            ((INeedsInitialization)fooType)
-                .RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Empty(errors);
-
             await fooType.Fields["bar"].Middleware(resolverContext.Object);
-
             Assert.Equal("BAZ", resolverContext.Object.Result);
         }
 
@@ -110,20 +76,10 @@ namespace HotChocolate.Types
         public void IntializeImpicitFieldWithImplicitResolver()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-
             // act
-            var fooType = new ObjectType<Foo>();
-            INeedsInitialization init = fooType;
-
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            var fooType = CreateType(new ObjectType<Foo>());
 
             // assert
-            Assert.Empty(errors);
             Assert.NotNull(fooType.Fields.First().Resolver);
         }
 
@@ -131,11 +87,8 @@ namespace HotChocolate.Types
         public void EnsureObjectTypeKindIsCorret()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var context = new SchemaContext();
-
             // act
-            var someObject = new ObjectType<Foo>();
+            var someObject = CreateType(new ObjectType<Foo>());
 
             // assert
             Assert.Equal(TypeKind.Object, someObject.Kind);
@@ -153,19 +106,14 @@ namespace HotChocolate.Types
         ///   .Resolver<List<string>>(() => new List<string>())
         /// </summary>
         [Fact]
-        public void ObjectTypeWithDynamicField_TypeDeclarationOrderShouldNotMatter()
+        public void ObjectTypeWithDynamicField_TypeDeclaOrderShouldNotMatter()
         {
             // act
-            var schema = Schema.Create(c =>
-            {
-                c.Options.StrictValidation = false;
-                c.RegisterType<FooType>();
-            });
+            var fooType = CreateType(new ObjectType<FooType>());
 
             // assert
-            ObjectType type = schema.GetType<ObjectType>("Foo");
-            bool hasDynamicField = type.Fields.TryGetField("test", out ObjectField field);
-            Assert.True(hasDynamicField);
+            Assert.True(fooType.Fields.TryGetField(
+                "test", out ObjectField field));
             Assert.IsType<ListType>(field.Type);
             Assert.IsType<StringType>(((ListType)field.Type).ElementType);
         }
@@ -174,17 +122,9 @@ namespace HotChocolate.Types
         public void GenericObjectTypes()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-
             // act
-            var genericType = new ObjectType<GenericFoo<string>>();
-            INeedsInitialization init = genericType;
+            var genericType = CreateType(new ObjectType<GenericFoo<string>>());
 
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), genericType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
             // assert
             Assert.Equal("GenericFooOfString", genericType.Name);
         }
@@ -193,17 +133,9 @@ namespace HotChocolate.Types
         public void NestedGenericObjectTypes()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-
             // act
-            var genericType = new ObjectType<GenericFoo<GenericFoo<string>>>();
-            INeedsInitialization init = genericType;
-
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), genericType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            var genericType =
+                CreateType(new ObjectType<GenericFoo<GenericFoo<string>>>());
 
             // assert
             Assert.Equal("GenericFooOfGenericFooOfString", genericType.Name);
@@ -213,21 +145,11 @@ namespace HotChocolate.Types
         public void BindFieldToResolverTypeField()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-
             // act
-            var fooType = new ObjectType<Foo>(
-                d => d.Field<FooResolver>(t => t.GetBar(default)));
-            INeedsInitialization init = fooType;
-
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            var fooType = CreateType(new ObjectType<Foo>(d => d
+                .Field<FooResolver>(t => t.GetBar(default))));
 
             // assert
-            Assert.Empty(errors);
             Assert.Equal("foo", fooType.Fields["bar"].Arguments.First().Name);
             Assert.NotNull(fooType.Fields["bar"].Resolver);
             Assert.IsType<StringType>(fooType.Fields["bar"].Type);
@@ -498,21 +420,11 @@ namespace HotChocolate.Types
         public void Include_TypeWithOneField_ContainsThisField()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-
             // act
-            var fooType = new ObjectType<object>(
-                d => d.Include<Foo>());
-            INeedsInitialization init = fooType;
-
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            var fooType = CreateType(new ObjectType<object>(d => d
+                .Include<Foo>()));
 
             // assert
-            Assert.Empty(errors);
             Assert.True(fooType.Fields.ContainsField("description"));
         }
 
@@ -520,20 +432,10 @@ namespace HotChocolate.Types
         public void NonNullAttribute_StringIsRewritten_NonNullStringType()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-
             // act
-            var fooType = new ObjectType<Bar>();
-            INeedsInitialization init = fooType;
-
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            var fooType = CreateType(new ObjectType<Bar>());
 
             // assert
-            Assert.Empty(errors);
             Assert.True(fooType.Fields["baz"].Type.IsNonNullType());
             Assert.Equal("String", fooType.Fields["baz"].Type.NamedType().Name);
         }
@@ -583,41 +485,28 @@ namespace HotChocolate.Types
         public void InferInterfaceImplementation()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Types.RegisterType(new InterfaceType<IFoo>());
-
             // act
-            var fooType = new ObjectType<Foo>();
-            INeedsInitialization init = fooType;
-
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            var fooType = CreateType(new ObjectType<Foo>(),
+                b => b.AddType(new InterfaceType<IFoo>()));
 
             // assert
-            Assert.Empty(errors);
             Assert.NotNull(fooType.Fields.First().Resolver);
         }
 
         [Fact]
         public void IgnoreFieldWithShortcut()
         {
-            // arrange & act
-            TypeResult<ObjectType<Foo>> result =
-                TestUtils.CreateType(c =>
-                    new ObjectType<Foo>(
-                    d =>
-                    {
-                        d.Ignore(t => t.Description);
-                        d.Field("foo").Type<StringType>().Resolver("abc");
-                    }));
+            // arrange
+            // act
+            ObjectType<Foo> fooType = CreateType(new ObjectType<Foo>(d =>
+            {
+                d.Ignore(t => t.Description);
+                d.Field("foo").Type<StringType>().Resolver("abc");
+            }));
 
             // assert
-            Assert.Empty(result.Errors);
             Assert.Collection(
-                result.Type.Fields.Where(t => !t.IsIntrospectionField),
+                fooType.Fields.Where(t => !t.IsIntrospectionField),
                 t => Assert.Equal("foo", t.Name));
 
         }
@@ -625,7 +514,8 @@ namespace HotChocolate.Types
         [Fact]
         public void IgnoreField_DescriptorIsNull_ArgumentNullException()
         {
-            // arrange & act
+            // arrange
+            // act
             Action a = () => ObjectTypeDescriptorExtensions
                 .Ignore<Foo>(null, t => t.Description);
 
@@ -636,9 +526,12 @@ namespace HotChocolate.Types
         [Fact]
         public void IgnoreField_ExpressionIsNull_ArgumentNullException()
         {
-            // arrange & act
+            // arrange
+            var descriptor = new Mock<IObjectTypeDescriptor<Foo>>();
+
+            // act
             Action a = () => ObjectTypeDescriptorExtensions
-                .Ignore<Foo>(new ObjectTypeDescriptor<Foo>(), null);
+                .Ignore<Foo>(descriptor.Object, null);
 
             // assert
             Assert.Throws<ArgumentNullException>(a);

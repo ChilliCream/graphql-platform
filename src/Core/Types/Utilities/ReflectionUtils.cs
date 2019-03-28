@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using HotChocolate.Properties;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Utilities
 {
@@ -187,13 +188,13 @@ namespace HotChocolate.Utilities
             return type.Namespace;
         }
 
-        public static TypeReference GetOutputType(this MemberInfo member) =>
+        public static ITypeReference GetOutputType(this MemberInfo member) =>
             member.GetTypeReference(TypeContext.Output);
 
-        public static TypeReference GetInputType(this MemberInfo member) =>
+        public static ITypeReference GetInputType(this MemberInfo member) =>
             member.GetTypeReference(TypeContext.Input);
 
-        private static TypeReference GetTypeReference(
+        private static ITypeReference GetTypeReference(
             this MemberInfo member,
             TypeContext context)
         {
@@ -201,7 +202,7 @@ namespace HotChocolate.Utilities
 
             if (type != null)
             {
-                return new TypeReference(type, context);
+                return new ClrTypeReference(type, context);
             }
 
             return null;

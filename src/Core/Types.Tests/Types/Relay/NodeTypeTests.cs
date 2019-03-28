@@ -6,27 +6,16 @@ using Xunit;
 namespace HotChocolate.Types
 {
     public class NodeTypeTests
+        : TypeTestBase
     {
         [Fact]
         public void IntializeExplicitFieldWithImplicitResolver()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-
             // act
-            var nodeInterface = new NodeType();
+            var nodeInterface = CreateType(new NodeType());
 
             // assert
-            INeedsInitialization init = nodeInterface;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), nodeInterface, false);
-            schemaContext.Types.RegisterType(nodeInterface);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Empty(errors);
-
             Assert.Equal(
                 "Node",
                 nodeInterface.Name);

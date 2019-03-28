@@ -133,8 +133,6 @@ namespace HotChocolate
             Description = description;
         }
 
-        public override string Description { get; }
-
         public override Type ClrType { get; }
 
         public override bool IsInstanceOfType(IValueNode literal)

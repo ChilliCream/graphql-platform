@@ -1,3 +1,4 @@
+using System.ComponentModel.Design;
 using System;
 using System.ComponentModel;
 using System.Globalization;
@@ -13,6 +14,7 @@ namespace HotChocolate
     [TypeConverter(typeof(NameStringConverter))]
     public struct NameString
         : IEquatable<NameString>
+        , IComparable<NameString>
     {
 
         /// <summary>
@@ -126,6 +128,11 @@ namespace HotChocolate
                 return IsEmpty;
             }
             return obj is NameString n && Equals(n);
+        }
+
+        public int CompareTo(NameString other)
+        {
+            return Value.CompareTo(other.Value);
         }
 
         /// <summary>

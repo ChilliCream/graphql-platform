@@ -1,23 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 using Moq;
 using Xunit;
 
 namespace HotChocolate.Types
 {
     public class DirectiveCollectionTests
+        : TypeTestBase
     {
         [Fact]
         public void DirectiveOrderIsSignificant()
         {
-            // act
-            var someType = new ObjectType(t => t.Name("Foo"));
-            var directiveDescriptions = new List<DirectiveDescription>
-            {
-                new DirectiveDescription(new DirectiveNode("foo")),
-                new DirectiveDescription(new DirectiveNode("bar"))
-            };
+            // arrange
+            var someType = new ObjectType(t =>
+                t.Name("Foo")
+                    .Field("abc")
+                    .Type<StringType>()
+                    .Resolver("abc")
+                    .Directive(new DirectiveNode("foo"))
+                    .Directive(new DirectiveNode("bar")));
 
             var foo = new DirectiveType(d =>
                 d.Name("foo").Location(DirectiveLocation.Field));
@@ -25,78 +28,44 @@ namespace HotChocolate.Types
             var bar = new DirectiveType(d =>
                 d.Name("bar").Location(DirectiveLocation.Field));
 
-            var context = new Mock<ITypeInitializationContext>(
-                MockBehavior.Strict);
-            context.Setup(
-                t => t.GetDirectiveType(It.IsAny<DirectiveReference>()))
-                .Returns(new Func<DirectiveReference, DirectiveType>(
-                    r =>
-                    {
-                        if (r.Name == "foo")
-                        {
-                            return foo;
-                        }
-
-                        if (r.Name == "bar")
-                        {
-                            return bar;
-                        }
-
-                        return null;
-                    }
-                ));
-
-
             // act
-            var collection = new DirectiveCollection(
-                someType, DirectiveLocation.Field,
-                directiveDescriptions);
-            ((INeedsInitialization)collection)
-                .RegisterDependencies(context.Object);
-            ((INeedsInitialization)collection)
-                .CompleteType(context.Object);
+            ISchema schema = CreateSchema(b =>
+            {
+                b.AddType(someType);
+                b.AddDirectiveType(foo);
+                b.AddDirectiveType(bar);
+            });
 
             // assert
-            Assert.Collection(collection,
+            Assert.Collection(someType.Fields["abc"].Directives,
                 t => Assert.Equal("foo", t.Name),
                 t => Assert.Equal("bar", t.Name));
         }
 
         [Fact]
-        public void DirectiveNotRepeatable()
+        public void DirectiveIsNotRepeatable()
         {
-            // act
-            var someType = new ObjectType(t => t.Name("Foo"));
-            var directiveDescriptions = new List<DirectiveDescription>
-            {
-                new DirectiveDescription(new DirectiveNode("foo")),
-                new DirectiveDescription(new DirectiveNode("foo"))
-            };
+            // arrange
+            var someType = new ObjectType(t =>
+                t.Name("Foo")
+                    .Field("abc")
+                    .Type<StringType>()
+                    .Resolver("abc")
+                    .Directive(new DirectiveNode("foo"))
+                    .Directive(new DirectiveNode("foo")));
 
             var foo = new DirectiveType(d =>
                 d.Name("foo").Location(DirectiveLocation.Field));
 
-            var errors = new List<SchemaError>();
-
-            var context = new Mock<ITypeInitializationContext>();
-            context.Setup(
-                t => t.GetDirectiveType(It.IsAny<DirectiveReference>()))
-                .Returns(new Func<DirectiveReference, DirectiveType>(
-                    r => foo));
-            context.Setup(t => t.ReportError(It.IsAny<SchemaError>()))
-                .Callback(new Action<SchemaError>(errors.Add));
-
             // act
-            var collection = new DirectiveCollection(
-                someType, DirectiveLocation.Field,
-                directiveDescriptions);
-            ((INeedsInitialization)collection)
-                .RegisterDependencies(context.Object);
-            ((INeedsInitialization)collection)
-                .CompleteType(context.Object);
+            Action action = () => CreateSchema(b =>
+            {
+                b.AddType(someType);
+                b.AddDirectiveType(foo);
+            });
 
             // assert
-            Assert.Collection(errors,
+            Assert.Collection(Assert.Throws<SchemaException>(action).Errors,
                 t => Assert.Equal(
                     "The specified directive `@foo` " +
                     "is unique and cannot be added twice.",
@@ -104,39 +73,56 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void InvalidLocation()
+        public void DirectiveIsRepeatable()
         {
-            // act
-            var someType = new ObjectType(t => t.Name("Foo"));
-            var directiveDescriptions = new List<DirectiveDescription>
-            {
-                new DirectiveDescription(new DirectiveNode("foo"))
-            };
+            // arrange
+            var someType = new ObjectType(t =>
+                t.Name("Foo")
+                    .Field("abc")
+                    .Type<StringType>()
+                    .Resolver("abc")
+                    .Directive(new DirectiveNode("foo"))
+                    .Directive(new DirectiveNode("foo")));
 
             var foo = new DirectiveType(d =>
-                d.Name("foo").Location(DirectiveLocation.Enum));
-
-            var errors = new List<SchemaError>();
-
-            var context = new Mock<ITypeInitializationContext>();
-            context.Setup(
-                t => t.GetDirectiveType(It.IsAny<DirectiveReference>()))
-                .Returns(new Func<DirectiveReference, DirectiveType>(
-                    r => foo));
-            context.Setup(t => t.ReportError(It.IsAny<SchemaError>()))
-                .Callback(new Action<SchemaError>(errors.Add));
+                d.Name("foo").Location(DirectiveLocation.Field).Repeatable());
 
             // act
-            var collection = new DirectiveCollection(
-                someType, DirectiveLocation.Field,
-                directiveDescriptions);
-            ((INeedsInitialization)collection)
-                .RegisterDependencies(context.Object);
-            ((INeedsInitialization)collection)
-                .CompleteType(context.Object);
+            Action action = () => CreateSchema(b =>
+            {
+                b.AddType(someType);
+                b.AddDirectiveType(foo);
+            });
 
             // assert
-            Assert.Collection(errors,
+            Assert.Collection(someType.Fields["abc"].Directives,
+                t => Assert.Equal("foo", t.Name),
+                t => Assert.Equal("foo", t.Name));
+        }
+
+        [Fact]
+        public void InvalidLocation()
+        {
+            // arrange
+            var someType = new ObjectType(t =>
+                t.Name("Foo")
+                    .Field("abc")
+                    .Type<StringType>()
+                    .Resolver("abc")
+                    .Directive(new DirectiveNode("foo")));
+
+            var foo = new DirectiveType(d =>
+                d.Name("foo").Location(DirectiveLocation.Object));
+
+            // act
+            Action action = () => CreateSchema(b =>
+            {
+                b.AddType(someType);
+                b.AddDirectiveType(foo);
+            });
+
+            // assert
+            Assert.Collection(Assert.Throws<SchemaException>(action).Errors,
                 t => Assert.Equal(
                     "The specified directive `@foo` " +
                     "is not allowed on the current location " +

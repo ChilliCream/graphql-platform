@@ -15,10 +15,8 @@ namespace HotChocolate.Types
         public MultiplierPathType()
             : base("MultiplierPath")
         {
+            Description = TypeResources.MultiplierPathType_Description;
         }
-
-        public override string Description =>
-            TypeResources.MultiplierPathType_Description;
 
         public override Type ClrType => typeof(MultiplierPathString);
 

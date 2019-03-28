@@ -1,4 +1,7 @@
 ﻿using System;
+using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Relay
@@ -20,7 +23,6 @@ namespace HotChocolate.Types.Relay
                     $"Unable to extract a name from {typeof(T).FullName}.");
             }
 
-            descriptor.Name(name + "Edge");
             descriptor.Description("An edge in a connection.");
 
             descriptor.BindFields(BindingBehavior.Explicit);
@@ -37,20 +39,40 @@ namespace HotChocolate.Types.Relay
         }
 
         protected override void OnRegisterDependencies(
-            ITypeInitializationContext context)
+            IInitializationContext context,
+            ObjectTypeDefinition definition)
         {
-            base.OnRegisterDependencies(context);
+            base.OnRegisterDependencies(context, definition);
 
-            context.RegisterType(new TypeReference(typeof(T)));
+            context.RegisterDependency(
+                new ClrTypeReference(
+                    typeof(T),
+                    TypeContext.Output),
+                TypeDependencyKind.Named);
+        }
+
+        protected override void OnCompleteName(
+            ICompletionContext context,
+            ObjectTypeDefinition definition)
+        {
+            base.OnCompleteName(context, definition);
+
+            INamedType namedType = context.GetType<INamedType>(
+                new ClrTypeReference(typeof(T), TypeContext.Output));
+
+            Name = namedType.Name + "Edge";
         }
 
         protected override void OnCompleteType(
-            ITypeInitializationContext context)
+            ICompletionContext context,
+            ObjectTypeDefinition definition)
         {
-            EntityType = context.GetType<T>(
-                new TypeReference(typeof(T)));
+            base.OnCompleteType(context, definition);
 
-            base.OnCompleteType(context);
+            EntityType = context.GetType<T>(
+                new ClrTypeReference(
+                    typeof(T),
+                    TypeContext.Output));
         }
     }
 }

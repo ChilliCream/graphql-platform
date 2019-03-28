@@ -16,9 +16,7 @@ namespace HotChocolate.Types
         public IntType()
             : base("Int")
         {
+            Description = TypeResources.IntType_Description;
         }
-
-        public override string Description =>
-            TypeResources.IntType_Description;
     }
 }

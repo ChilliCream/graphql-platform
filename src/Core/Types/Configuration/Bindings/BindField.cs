@@ -1,28 +1,28 @@
-﻿using System;
+using System;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration.Bindings
 {
     internal class BindField<T>
         : IBindField<T>
         where T : class
     {
-        private readonly TypeBindingInfo _bindingInfo;
-        private readonly FieldBindingInfo _fieldBindingInfo;
+        private readonly IComplexTypeBindingBuilder _typeBuilder;
+        private readonly IComplexTypeFieldBindingBuilder _fieldBuilder;
 
         public BindField(
-            TypeBindingInfo bindingInfo,
-            FieldBindingInfo fieldBindingInfo)
+            IComplexTypeBindingBuilder typeBuilder,
+            IComplexTypeFieldBindingBuilder fieldBuilder)
         {
-            _bindingInfo = bindingInfo
-                ?? throw new ArgumentNullException(nameof(bindingInfo));
-            _fieldBindingInfo = fieldBindingInfo
-                ?? throw new ArgumentNullException(nameof(fieldBindingInfo));
+            _typeBuilder = typeBuilder
+                ?? throw new ArgumentNullException(nameof(typeBuilder));
+            _fieldBuilder = fieldBuilder
+                ?? throw new ArgumentNullException(nameof(fieldBuilder));
         }
 
         public IBoundType<T> Name(NameString fieldName)
         {
-            _fieldBindingInfo.Name = fieldName;
-            return new BindType<T>(_bindingInfo);
+            _fieldBuilder.SetName(fieldName);
+            return new BoundType<T>(_typeBuilder);
         }
     }
 }

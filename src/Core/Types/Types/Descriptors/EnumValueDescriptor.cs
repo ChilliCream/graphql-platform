@@ -1,81 +1,56 @@
 ﻿using System;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
-    internal class EnumValueDescriptor
-        : IEnumValueDescriptor
-        , IDescriptionFactory<EnumValueDescription>
+    public class EnumValueDescriptor
+        : DescriptorBase<EnumValueDefinition>
+        , IEnumValueDescriptor
     {
-        public EnumValueDescriptor(object value)
+        public EnumValueDescriptor(IDescriptorContext context, object value)
+            : base(context)
         {
             if (value == null)
             {
                 throw new ArgumentNullException(nameof(value));
             }
 
-            ValueDescription.Name = value.ToString().ToUpperInvariant();
-            ValueDescription.Value = value;
+            Definition.Name = context.Naming.GetEnumValueName(value);
+            Definition.Value = value;
         }
 
-        protected EnumValueDescription ValueDescription { get; } =
-            new EnumValueDescription();
+        protected override EnumValueDefinition Definition { get; } =
+            new EnumValueDefinition();
 
-        public EnumValueDescription CreateDescription()
+        public IEnumValueDescriptor SyntaxNode(
+            EnumValueDefinitionNode enumValueDefinition)
         {
-            return ValueDescription;
-        }
-
-        protected void SyntaxNode(EnumValueDefinitionNode syntaxNode)
-        {
-            ValueDescription.SyntaxNode = syntaxNode;
-        }
-
-        protected void Name(NameString name)
-        {
-            ValueDescription.Name = name.EnsureNotEmpty(nameof(name));
-        }
-
-        protected void Description(string description)
-        {
-            ValueDescription.Description = description;
-        }
-
-        protected void DeprecationReason(string deprecationReason)
-        {
-            ValueDescription.DeprecationReason = deprecationReason;
-        }
-
-
-        #region IEnumValueDescriptor
-
-        IEnumValueDescriptor IEnumValueDescriptor.SyntaxNode(
-            EnumValueDefinitionNode syntaxNode)
-        {
-            SyntaxNode(syntaxNode);
+            Definition.SyntaxNode = enumValueDefinition;
             return this;
         }
 
-        IEnumValueDescriptor IEnumValueDescriptor.Name(NameString name)
+        public IEnumValueDescriptor Name(NameString value)
         {
-            Name(name);
+            Definition.Name = value.EnsureNotEmpty(nameof(value));
             return this;
         }
 
-        IEnumValueDescriptor IEnumValueDescriptor.Description(
-            string description)
+        public IEnumValueDescriptor Description(string value)
         {
-            Description(description);
+            Definition.Description = value;
             return this;
         }
 
-        IEnumValueDescriptor IEnumValueDescriptor.DeprecationReason(
-            string deprecationReason)
+        public IEnumValueDescriptor DeprecationReason(string reason)
         {
-            DeprecationReason(deprecationReason);
+            Definition.Description = reason;
             return this;
         }
 
-        #endregion
+        public static EnumValueDescriptor New(
+            IDescriptorContext context,
+            object value) =>
+            new EnumValueDescriptor(context, value);
     }
 }

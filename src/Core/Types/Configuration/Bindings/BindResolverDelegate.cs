@@ -1,26 +1,25 @@
 ﻿using System;
 using System.Linq.Expressions;
+using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration.Bindings
 {
     internal class BindResolverDelegate
         : IBindResolverDelegate
     {
-        private readonly ResolverDelegateBindingInfo _bindingInfo;
+        private readonly IResolverBindingBuilder _bindingBuilder;
 
-        public BindResolverDelegate(ResolverDelegateBindingInfo bindingInfo)
+        public BindResolverDelegate(IResolverBindingBuilder bindingBuilder)
         {
-            _bindingInfo = bindingInfo
-                ?? throw new ArgumentNullException(nameof(bindingInfo));
+            _bindingBuilder = bindingBuilder
+                ?? throw new ArgumentNullException(nameof(bindingBuilder));
         }
 
         public void To(NameString typeName, NameString fieldName)
         {
-            _bindingInfo.ObjectTypeName =
-                typeName.EnsureNotEmpty(nameof(typeName));
-            _bindingInfo.FieldName =
-                fieldName.EnsureNotEmpty(nameof(fieldName));
+            _bindingBuilder.SetType(typeName.EnsureNotEmpty(nameof(typeName)))
+                .SetField(fieldName.EnsureNotEmpty(nameof(fieldName)));
         }
 
         public void To<TObjectType>(
@@ -32,8 +31,8 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            _bindingInfo.ObjectType = typeof(TObjectType);
-            _bindingInfo.FieldMember = resolver.ExtractMember();
+            _bindingBuilder.SetType(typeof(TObjectType))
+                .SetField(resolver.ExtractMember());
         }
     }
 }

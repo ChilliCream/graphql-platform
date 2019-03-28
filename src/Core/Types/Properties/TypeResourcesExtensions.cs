@@ -98,32 +98,6 @@ namespace HotChocolate.Properties
                 parameterName);
         }
 
-        public static string Field_Cannot_ResolveType(
-            string typeName, string fieldName,
-            TypeReference typeReference)
-        {
-            if (typeName == null)
-            {
-                throw new ArgumentNullException(nameof(typeName));
-            }
-
-            if (fieldName == null)
-            {
-                throw new ArgumentNullException(nameof(fieldName));
-            }
-
-            if (typeReference == null)
-            {
-                return $"{typeName}.{fieldName}: Cannot resolve type.";
-            }
-
-            string kind = typeReference.Context == TypeContext.Output
-                ? "output" : "input";
-
-            return $"{typeName}.{fieldName}: Cannot resolve " +
-                $"{kind}-type `{typeReference}`";
-        }
-
         public static string Type_Name_IsNotValid(string typeName)
         {
             string name = typeName ?? "null";

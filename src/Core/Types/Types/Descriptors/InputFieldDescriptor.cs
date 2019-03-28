@@ -2,126 +2,127 @@
 using System.Reflection;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
-    internal class InputFieldDescriptor
-        : ArgumentDescriptor
+    public class InputFieldDescriptor
+        : ArgumentDescriptorBase<InputFieldDefinition>
         , IInputFieldDescriptor
-        , IDescriptionFactory<InputFieldDescription>
     {
-        public InputFieldDescriptor(NameString name)
-            : base(new InputFieldDescription())
+        public InputFieldDescriptor(
+            IDescriptorContext context,
+            NameString fieldName)
+            : base(context)
         {
-            InputDescription.Name = name;
+            Definition.Name = fieldName;
         }
 
-        public InputFieldDescriptor(PropertyInfo property)
-            : base(new InputFieldDescription())
+        public InputFieldDescriptor(
+            IDescriptorContext context,
+            PropertyInfo property)
+            : base(context)
         {
-            InputDescription.Property = property
+            Definition.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
-            InputDescription.Name = property.GetGraphQLName();
-            InputDescription.Description = property.GetGraphQLDescription();
-            InputDescription.TypeReference = property.GetInputType();
-            InputDescription.AcquireNonNullStatus(property);
+            Definition.Name = context.Naming.GetMemberName(
+                property, MemberKind.InputObjectField);
+            Definition.Description = context.Naming.GetMemberDescription(
+                property, MemberKind.InputObjectField);
+            Definition.Type = context.Inspector.GetInputReturnType(property);
         }
 
-        protected new InputFieldDescription InputDescription
-            => (InputFieldDescription)base.InputDescription;
-
-        public new InputFieldDescription CreateDescription()
+        public new IInputFieldDescriptor SyntaxNode(
+            InputValueDefinitionNode inputValueDefinition)
         {
-            InputDescription.RewriteClrType(c => c.GetInputType());
-            return InputDescription;
-        }
-
-        protected void Name(NameString name)
-        {
-            InputDescription.Name = name.EnsureNotEmpty(nameof(name));
-        }
-
-        #region IInputFieldDescriptor
-
-        IInputFieldDescriptor IInputFieldDescriptor.SyntaxNode(
-            InputValueDefinitionNode syntaxNode)
-        {
-            SyntaxNode(syntaxNode);
+            base.SyntaxNode(inputValueDefinition);
             return this;
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.Name(NameString name)
+        public IInputFieldDescriptor Name(NameString value)
         {
-            Name(name);
+            Definition.Name = value.EnsureNotEmpty(nameof(value));
             return this;
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.Description(
-            string description)
+        public new IInputFieldDescriptor Description(string value)
         {
-            Description(description);
+            base.Description(value);
             return this;
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.Type<TInputType>()
+        public new IInputFieldDescriptor Type<TInputType>()
+            where TInputType : IInputType
         {
-            Type<TInputType>();
+            base.Type<TInputType>();
             return this;
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.Type<TInputType>(
+        public new IInputFieldDescriptor Type<TInputType>(
             TInputType inputType)
+            where TInputType : class, IInputType
         {
-            Type(inputType);
+            base.Type<TInputType>(inputType);
             return this;
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.Type(ITypeNode type)
+        public new IInputFieldDescriptor Type(ITypeNode typeNode)
         {
-            Type(type);
+            base.Type(typeNode);
             return this;
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.Ignore()
+        public IInputFieldDescriptor Ignore()
         {
-            InputDescription.Ignored = true;
+            Definition.Ignore = true;
             return this;
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.DefaultValue(
-            IValueNode defaultValue)
+        public new IInputFieldDescriptor DefaultValue(
+            IValueNode value)
         {
-            DefaultValue(defaultValue);
+            base.DefaultValue(value);
             return this;
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.DefaultValue(
-            object defaultValue)
+        public new IInputFieldDescriptor DefaultValue(
+            object value)
         {
-            DefaultValue(defaultValue);
+            base.DefaultValue(value);
             return this;
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.Directive<T>(T directive)
+        public new IInputFieldDescriptor Directive<TDirective>(
+            TDirective directiveInstance)
+            where TDirective : class
         {
-            InputDescription.Directives.AddDirective(directive);
+            base.Directive(directiveInstance);
             return this;
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.Directive<T>()
+        public new IInputFieldDescriptor Directive<TDirective>()
+            where TDirective : class, new()
         {
-            InputDescription.Directives.AddDirective(new T());
+            base.Directive<TDirective>();
             return this;
         }
 
-        IInputFieldDescriptor IInputFieldDescriptor.Directive(
+        public new IInputFieldDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
-            InputDescription.Directives.AddDirective(name, arguments);
+            base.Directive(name, arguments);
             return this;
         }
 
-        #endregion
+        public static InputFieldDescriptor New(
+            IDescriptorContext context,
+            NameString fieldName) =>
+            new InputFieldDescriptor(context, fieldName);
+
+        public static InputFieldDescriptor New(
+            IDescriptorContext context,
+            PropertyInfo property) =>
+            new InputFieldDescriptor(context, property);
     }
 }

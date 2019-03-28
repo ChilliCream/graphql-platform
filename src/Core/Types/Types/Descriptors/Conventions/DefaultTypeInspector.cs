@@ -1,0 +1,121 @@
+using System.Reflection;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using HotChocolate.Resolvers.CodeGeneration;
+using HotChocolate.Utilities;
+using System.Threading.Tasks;
+
+namespace HotChocolate.Types.Descriptors
+{
+    public class DefaultTypeInspector
+        : ITypeInspector
+    {
+        public virtual IEnumerable<MemberInfo> GetMembers(Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            foreach (MethodInfo method in type.GetMethods(
+                BindingFlags.Instance | BindingFlags.Public)
+                    .Where(m => !IsIgnored(m)
+                        && !m.IsSpecialName
+                        && m.DeclaringType != typeof(object)
+                        && m.ReturnType != typeof(void)
+                        && m.ReturnType != typeof(Task)))
+            {
+                yield return method;
+            }
+
+            foreach (PropertyInfo property in type.GetProperties(
+                BindingFlags.Instance | BindingFlags.Public)
+                .Where(p => !IsIgnored(p)
+                    && p.CanRead
+                    && p.DeclaringType != typeof(object)))
+            {
+                yield return property;
+            }
+        }
+
+        public virtual IEnumerable<Type> GetResolverTypes(Type sourceType)
+        {
+            if (sourceType == null)
+            {
+                throw new ArgumentNullException(nameof(sourceType));
+            }
+
+            if (sourceType.IsDefined(typeof(GraphQLResolverAttribute)))
+            {
+                return sourceType
+                    .GetCustomAttributes(typeof(GraphQLResolverAttribute))
+                    .OfType<GraphQLResolverAttribute>()
+                    .SelectMany(attr => attr.ResolverTypes);
+            }
+            return Enumerable.Empty<Type>();
+        }
+
+        public virtual ITypeReference GetReturnType(
+            MemberInfo member,
+            TypeContext context)
+        {
+            if (member == null)
+            {
+                throw new ArgumentNullException(nameof(member));
+            }
+
+            Type returnType = GetReturnType(member);
+
+            if (member.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
+            {
+                var attribute =
+                    member.GetCustomAttribute<GraphQLNonNullTypeAttribute>();
+
+                return new ClrTypeReference(
+                    returnType,
+                    context,
+                    attribute.IsNullable,
+                    attribute.IsElementNullable);
+            }
+
+            return new ClrTypeReference(returnType, context);
+        }
+
+        protected static Type GetReturnType(MemberInfo member)
+        {
+            if (member is MethodInfo m)
+            {
+                return m.ReturnType;
+            }
+            else if (member is PropertyInfo p)
+            {
+                return p.PropertyType;
+            }
+            else
+            {
+                // TODO : resources
+                throw new ArgumentException("TODO", nameof(member));
+            }
+        }
+
+        public virtual IEnumerable<object> GetEnumValues(Type enumType)
+        {
+            if (enumType == null)
+            {
+                throw new ArgumentNullException(nameof(enumType));
+            }
+
+            if (enumType != typeof(object) && enumType.IsEnum)
+            {
+                return Enum.GetValues(enumType).Cast<object>();
+            }
+            return Enumerable.Empty<object>();
+        }
+
+        private static bool IsIgnored(MemberInfo member)
+        {
+            return member.IsDefined(typeof(GraphQLIgnoreAttribute));
+        }
+    }
+}

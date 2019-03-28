@@ -6,6 +6,7 @@ using Xunit;
 namespace HotChocolate.Types
 {
     public class CostDirectiveTypeTests
+        : TypeTestBase
     {
         [Fact]
         public void AnnotateCostToObjectFieldCodeFirst()
@@ -238,21 +239,10 @@ namespace HotChocolate.Types
         public void CreateCostDirective()
         {
             // arrange
-            SchemaContext schemaContext = SchemaContextFactory.Create();
-
-            var schemaConfiguration = new SchemaConfiguration(
-                sp => { },
-                schemaContext.Types,
-                schemaContext.Resolvers,
-                schemaContext.Directives);
-
-            var typeFinalizer = new TypeFinalizer(schemaConfiguration);
-            typeFinalizer.FinalizeTypes(schemaContext, null);
-
-            // assert
-            DirectiveType directive = schemaContext.Directives
-                .GetDirectiveTypes()
-                .FirstOrDefault(t => t.Name == "cost");
+            // act
+            ISchema schema = CreateSchema(b => { });
+            CostDirectiveType directive =
+                schema.Directives.OfType<CostDirectiveType>().FirstOrDefault();
 
             // assert
             Assert.NotNull(directive);

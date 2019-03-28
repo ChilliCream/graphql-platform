@@ -1,22 +1,25 @@
-﻿using Xunit;
+﻿using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
+using Xunit;
 
 namespace HotChocolate.Types
 {
     public class InputObjectTypeDescriptorTests
+        : DescriptorTestBase
     {
         [Fact]
         public void Field_Ignore_PropertyIsExcluded()
         {
             // arrange
-            var descriptor = new InputObjectTypeDescriptor<SimpleInput>();
-            IInputObjectTypeDescriptor<SimpleInput> descriptorItf = descriptor;
+            InputObjectTypeDescriptor<SimpleInput> descriptor =
+                InputObjectTypeDescriptor.New<SimpleInput>(Context);
 
             // act
-            descriptorItf.Field(t => t.Id).Ignore();
+            descriptor.Field(t => t.Id).Ignore();
 
             // assert
-            InputObjectTypeDescription description =
-                descriptor.CreateDescription();
+            InputObjectTypeDefinition description =
+                descriptor.CreateDefinition();
 
             Assert.Collection(description.Fields,
                 t => Assert.Equal("name", t.Name));

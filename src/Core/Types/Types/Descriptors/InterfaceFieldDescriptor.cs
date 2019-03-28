@@ -1,142 +1,155 @@
 ﻿using System;
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Resolvers.CodeGeneration;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
-    internal class InterfaceFieldDescriptor
-        : ObjectFieldDescriptorBase
+    public class InterfaceFieldDescriptor
+        : OutputFieldDescriptorBase<InterfaceFieldDefinition>
         , IInterfaceFieldDescriptor
-        , IDescriptionFactory<InterfaceFieldDescription>
     {
         private bool _argumentsInitialized;
 
-        public InterfaceFieldDescriptor(NameString name)
-            : base(new InterfaceFieldDescription { Name = name })
+        public InterfaceFieldDescriptor(
+            IDescriptorContext context,
+            NameString fieldName)
+            : base(context)
         {
+            Definition.Name = fieldName.EnsureNotEmpty(nameof(fieldName));
         }
 
-        public InterfaceFieldDescriptor(MemberInfo member)
-            : base(new InterfaceFieldDescription())
+        public InterfaceFieldDescriptor(
+            IDescriptorContext context,
+            MemberInfo member)
+            : base(context)
         {
-            FieldDescription.ClrMember = member
+            Definition.Member = member
                 ?? throw new ArgumentNullException(nameof(member));
 
-            FieldDescription.Name = member.GetGraphQLName();
-            FieldDescription.Description = member.GetGraphQLDescription();
-            FieldDescription.TypeReference = member.GetOutputType();
-            FieldDescription.AcquireNonNullStatus(member);
+            Definition.Name = context.Naming.GetMemberName(
+                member, MemberKind.InputObjectField);
+            Definition.Description = context.Naming.GetMemberDescription(
+                member, MemberKind.InputObjectField);
+            Definition.Type = context.Inspector.GetOutputReturnType(member);
         }
 
-        public InterfaceFieldDescriptor()
-            : base(new InterfaceFieldDescription())
+        protected override InterfaceFieldDefinition Definition { get; } =
+            new InterfaceFieldDefinition();
+
+        protected override void OnCreateDefinition(
+            InterfaceFieldDefinition definition)
         {
+            CompleteArguments(definition);
         }
 
-        protected new InterfaceFieldDescription FieldDescription =>
-            (InterfaceFieldDescription)base.FieldDescription;
-
-        public new InterfaceFieldDescription CreateDescription()
-        {
-            CompleteArguments();
-            return FieldDescription;
-        }
-
-        private void CompleteArguments()
+        private void CompleteArguments(InterfaceFieldDefinition definition)
         {
             if (!_argumentsInitialized)
             {
                 FieldDescriptorUtilities.DiscoverArguments(
-                    FieldDescription.Arguments,
-                    FieldDescription.ClrMember);
+                    Context,
+                    definition.Arguments,
+                    definition.Member);
                 _argumentsInitialized = true;
             }
         }
 
-        #region IInterfaceFieldDescriptor
-
-        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.SyntaxNode(
-            FieldDefinitionNode syntaxNode)
+        public new IInterfaceFieldDescriptor SyntaxNode(
+            FieldDefinitionNode fieldDefinitionNode)
         {
-            SyntaxNode(syntaxNode);
+            base.SyntaxNode(fieldDefinitionNode);
             return this;
         }
 
-        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Name(
+        public new IInterfaceFieldDescriptor Name(
             NameString name)
         {
-            Name(name);
+            base.Name(name);
             return this;
         }
 
-        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Description(
+        public new IInterfaceFieldDescriptor Description(
             string description)
         {
-            Description(description);
+            base.Description(description);
             return this;
         }
 
-        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.DeprecationReason(
+        public new IInterfaceFieldDescriptor DeprecationReason(
             string deprecationReason)
         {
-            DeprecationReason(deprecationReason);
+            base.DeprecationReason(deprecationReason);
             return this;
         }
 
-        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Type<TOutputType>()
+        public new IInterfaceFieldDescriptor Type<TOutputType>()
+            where TOutputType : IOutputType
         {
-            Type<TOutputType>();
+            base.Type<TOutputType>();
             return this;
         }
 
-        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Type<TOutputType>(
-            TOutputType type)
+        public new IInterfaceFieldDescriptor Type<TOutputType>(
+            TOutputType outputType)
+            where TOutputType : class, IOutputType
         {
-            Type<TOutputType>(type);
+            base.Type<TOutputType>(outputType);
             return this;
         }
 
-        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Type(ITypeNode type)
+        public new IInterfaceFieldDescriptor Type(ITypeNode type)
         {
-            Type(type);
+            base.Type(type);
             return this;
         }
 
-        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Ignore()
+        public new IInterfaceFieldDescriptor Argument(
+            NameString name,
+            Action<IArgumentDescriptor> argument)
         {
-            FieldDescription.Ignored = true;
+            base.Argument(name, argument);
             return this;
         }
 
-        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Argument(
-            NameString name, Action<IArgumentDescriptor> argument)
+        public new IInterfaceFieldDescriptor Ignore()
         {
-            Argument(name, argument);
+            base.Ignore();
             return this;
         }
 
-        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Directive<T>(
-            T directive)
+        public new IInterfaceFieldDescriptor Directive<T>(T directive)
+            where T : class
         {
-            FieldDescription.Directives.AddDirective(directive);
+            base.Directive(directive);
             return this;
         }
 
-        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Directive<T>()
+        public new IInterfaceFieldDescriptor Directive<T>()
+            where T : class, new()
         {
-            FieldDescription.Directives.AddDirective(new T());
+            base.Directive<T>();
             return this;
         }
 
-        IInterfaceFieldDescriptor IInterfaceFieldDescriptor.Directive(
+        public new IInterfaceFieldDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
-            FieldDescription.Directives.AddDirective(name, arguments);
+            base.Directive(name, arguments);
             return this;
         }
 
-        #endregion
+        public static InterfaceFieldDescriptor New(
+            IDescriptorContext context,
+            NameString fieldName) =>
+            new InterfaceFieldDescriptor(context, fieldName);
+
+        public static InterfaceFieldDescriptor New(
+            IDescriptorContext context,
+            MemberInfo member) =>
+            new InterfaceFieldDescriptor(context, member);
     }
 }

@@ -1,34 +1,45 @@
-﻿namespace HotChocolate.Types
+﻿using System.Linq;
+using System;
+using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Configuration;
+
+namespace HotChocolate.Types
 {
-    public class NamedTypeBase
-        : TypeBase
+    public abstract class NamedTypeBase<TDefinition>
+        : TypeBase<TDefinition>
         , INamedType
         , IHasDirectives
+        , IHasClrType
+        where TDefinition : DefinitionBase, IHasDirectiveDefinition
     {
-        protected NamedTypeBase(TypeKind kind)
-            : base(kind)
-        {
-        }
-
-        public NameString Name { get; private set; }
-
-        public string Description { get; private set; }
-
         public IDirectiveCollection Directives { get; private set; }
 
-        protected void Initialize(
-            NameString name,
-            string description,
-            IDirectiveCollection directives)
-        {
-            Name = name;
-            Description = description;
-            Directives = directives;
+        public Type ClrType { get; private set; }
 
-            if (directives is INeedsInitialization init)
-            {
-                RegisterForInitialization(init);
-            }
+        protected override void OnRegisterDependencies(
+            IInitializationContext context,
+            TDefinition definition)
+        {
+            base.OnRegisterDependencies(context, definition);
+
+            ClrType = definition is IHasClrType clr && clr.ClrType != GetType()
+                ? clr.ClrType
+                : typeof(object);
+
+            context.RegisterDependencyRange(
+                definition.Directives.Select(t => t.Reference));
+        }
+
+        protected override void OnCompleteType(
+            ICompletionContext context,
+            TDefinition definition)
+        {
+            base.OnCompleteType(context, definition);
+
+            var directives = new DirectiveCollection(
+                this, definition.Directives);
+            directives.CompleteCollection(context);
+            Directives = directives;
         }
     }
 }

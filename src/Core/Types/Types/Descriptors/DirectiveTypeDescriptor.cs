@@ -6,412 +6,163 @@ using System.Reflection;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
-    internal class DirectiveTypeDescriptor
-        : IDirectiveTypeDescriptor
-        , IDescriptionFactory<DirectiveTypeDescription>
+    public class DirectiveTypeDescriptor
+        : DescriptorBase<DirectiveTypeDefinition>
+        , IDirectiveTypeDescriptor
     {
-        private readonly List<DirectiveArgumentDescriptor> _arguments =
+        public DirectiveTypeDescriptor(
+            IDescriptorContext context,
+            Type clrType)
+            : base(context)
+        {
+            if (clrType == null)
+            {
+                throw new ArgumentNullException(nameof(clrType));
+            }
+
+            Definition.ClrType = clrType;
+            Definition.Name = context.Naming.GetTypeName(
+                clrType, TypeKind.Directive);
+            Definition.Description = context.Naming.GetTypeDescription(
+                clrType, TypeKind.Directive);
+        }
+
+        public DirectiveTypeDescriptor(
+            IDescriptorContext context,
+            NameString name)
+            : base(context)
+        {
+            Definition.ClrType = typeof(object);
+            Definition.Name = name.EnsureNotEmpty(nameof(name));
+        }
+
+        protected override DirectiveTypeDefinition Definition { get; } =
+            new DirectiveTypeDefinition();
+
+        protected ICollection<DirectiveArgumentDescriptor> Arguments { get; } =
             new List<DirectiveArgumentDescriptor>();
 
-        private Func<string, IDirectiveMiddleware> _middlewareFactory;
-
-        protected DirectiveTypeDescription DirectiveDescription { get; } =
-            new DirectiveTypeDescription();
-
-        public DirectiveTypeDescription CreateDescription()
+        protected override void OnCreateDefinition(
+            DirectiveTypeDefinition definition)
         {
-            if (DirectiveDescription.Name == null)
-            {
-                throw new InvalidOperationException(
-                    "A directive must have a name.");
-            }
+            var arguments =
+                new Dictionary<NameString, DirectiveArgumentDefinition>();
+            var handledMembers = new HashSet<PropertyInfo>();
 
-            CompleteArguments();
-            CompleteMiddlewares();
+            FieldDescriptorUtilities.AddExplicitFields(
+                Arguments.Select(t => t.CreateDefinition()),
+                f => f.Property,
+                arguments,
+                handledMembers);
 
-            return DirectiveDescription;
+            OnCompleteArguments(arguments, handledMembers);
+
+            definition.Arguments.AddRange(arguments.Values);
         }
 
-        protected virtual void CompleteArguments()
+        protected virtual void OnCompleteArguments(
+            IDictionary<NameString, DirectiveArgumentDefinition> arguments,
+            ISet<PropertyInfo> handledProperties)
         {
-            DirectiveDescription.Arguments.Clear();
-
-            foreach (DirectiveArgumentDescriptor descriptor in _arguments)
-            {
-                DirectiveDescription.Arguments.Add(
-                    descriptor.CreateDescription());
-            }
         }
 
-        private void CompleteMiddlewares()
+        public IDirectiveTypeDescriptor SyntaxNode(
+            DirectiveDefinitionNode directiveDefinitionNode)
         {
-            DirectiveDescription.Middleware =
-                _middlewareFactory?.Invoke(DirectiveDescription.Name);
+            Definition.SyntaxNode = directiveDefinitionNode;
+            return this;
         }
 
-        protected void SyntaxNode(DirectiveDefinitionNode syntaxNode)
+        public IDirectiveTypeDescriptor Name(NameString value)
         {
-            DirectiveDescription.SyntaxNode = syntaxNode;
+            Definition.Name = value.EnsureNotEmpty(nameof(value));
+            return this;
         }
 
-        protected void Name(NameString name)
+        public IDirectiveTypeDescriptor Description(string value)
         {
-            DirectiveDescription.Name = name.EnsureNotEmpty(nameof(name));
+            Definition.Description = value;
+            return this;
         }
 
-        protected void Description(string description)
-        {
-            DirectiveDescription.Description = description;
-        }
-
-        protected DirectiveArgumentDescriptor Argument(NameString name)
+        public IDirectiveArgumentDescriptor Argument(NameString value)
         {
             var descriptor = new DirectiveArgumentDescriptor(
-                name.EnsureNotEmpty(nameof(name)));
-            _arguments.Add(descriptor);
+                Context,
+                value.EnsureNotEmpty(nameof(value)));
+            Arguments.Add(descriptor);
             return descriptor;
         }
 
-        protected DirectiveArgumentDescriptor Argument(
-            DirectiveArgumentDescriptor descriptor)
-        {
-            _arguments.Add(descriptor);
-            return descriptor;
-        }
-
-        protected void Location(DirectiveLocation location)
+        public IDirectiveTypeDescriptor Location(DirectiveLocation value)
         {
             var values = Enum.GetValues(typeof(DirectiveLocation));
-            foreach (DirectiveLocation value in values)
+            foreach (DirectiveLocation item in values)
             {
-                if (location.HasFlag(value))
+                if (value.HasFlag(item))
                 {
-                    DirectiveDescription.Locations.Add(value);
+                    Definition.Locations.Add(item);
                 }
             }
+            return this;
         }
 
-        protected void Middleware(DirectiveMiddleware middleware)
+        public IDirectiveTypeDescriptor Use(DirectiveMiddleware middleware)
         {
             if (middleware == null)
             {
                 throw new ArgumentNullException(nameof(middleware));
             }
 
-            _middlewareFactory =
-                name => new DirectiveDelegateMiddleware(name, middleware);
-        }
-
-        protected void Middleware<T>(
-            Expression<Func<T, object>> method)
-        {
-            BindMethodAsMiddleware(method);
-        }
-
-        protected void Middleware<T>(
-            Expression<Action<T>> method)
-        {
-            BindMethodAsMiddleware(method);
-        }
-
-        private void BindMethodAsMiddleware<T>(
-            Expression<Func<T, object>> method)
-        {
-            if (method == null)
-            {
-                throw new ArgumentNullException(nameof(method));
-            }
-
-            BindMethodAsMiddleware(
-                typeof(T),
-                method.ExtractMember() as MethodInfo);
-        }
-
-        private void BindMethodAsMiddleware<T>(Expression<Action<T>> method)
-        {
-            if (method == null)
-            {
-                throw new ArgumentNullException(nameof(method));
-            }
-
-            BindMethodAsMiddleware(
-                typeof(T),
-                method.ExtractMember() as MethodInfo);
-        }
-
-        private void BindMethodAsMiddleware(Type type, MethodInfo method)
-        {
-            if (method == null)
-            {
-                throw new ArgumentNullException(
-                    nameof(method),
-                    "Only methods can be bound as directive middlewares.");
-            }
-
-            _middlewareFactory = name =>
-                new DirectiveMethodMiddleware(
-                    name,
-                    type,
-                    method);
-        }
-
-        #region IDirectiveDescriptor
-
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.SyntaxNode(
-            DirectiveDefinitionNode syntaxNode)
-        {
-            SyntaxNode(syntaxNode);
+            Definition.MiddlewareComponents.Add(middleware);
             return this;
         }
 
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Name(NameString name)
-        {
-            Name(name);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Description(
-            string description)
-        {
-            Description(description);
-            return this;
-        }
-
-        IArgumentDescriptor IDirectiveTypeDescriptor.Argument(NameString name)
-        {
-            return Argument(name);
-        }
-
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Location(
-            DirectiveLocation location)
-        {
-            Location(location);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Middleware(
+        [Obsolete("Replace Middleware with `Use`.")]
+        public IDirectiveTypeDescriptor Middleware(
             DirectiveMiddleware middleware)
         {
-            Middleware(middleware);
-            return this;
+            return Use(middleware);
         }
 
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Middleware<T>(
+        [Obsolete("Replace Middleware with `Use`.", true)]
+        public IDirectiveTypeDescriptor Middleware<T>(
             Expression<Func<T, object>> method)
         {
-            Middleware(method);
-            return this;
+            // TODO : resources
+            throw new NotSupportedException("Replace Middleware with `Use`.");
         }
 
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Middleware<T>(
+        [Obsolete("Replace Middleware with `Use`.", true)]
+        public IDirectiveTypeDescriptor Middleware<T>(
             Expression<Action<T>> method)
         {
-            Middleware(method);
+            // TODO : resources
+            throw new NotSupportedException("Replace Middleware with `Use`.");
+        }
+
+        public IDirectiveTypeDescriptor Repeatable()
+        {
+            Definition.IsRepeatable = true;
             return this;
         }
 
-        IDirectiveTypeDescriptor IDirectiveTypeDescriptor.Repeatable()
-        {
-            DirectiveDescription.IsRepeatable = true;
-            return this;
-        }
+        public static DirectiveTypeDescriptor New(
+            IDescriptorContext context,
+            Type clrType) =>
+            new DirectiveTypeDescriptor(context, clrType);
 
-        #endregion
-    }
+        public static DirectiveTypeDescriptor New(
+            IDescriptorContext context,
+            NameString name) =>
+            new DirectiveTypeDescriptor(context, name);
 
-    internal class DirectiveTypeDescriptor<T>
-        : DirectiveTypeDescriptor
-        , IDirectiveTypeDescriptor<T>
-    {
-        public DirectiveTypeDescriptor()
-        {
-            DirectiveDescription.ClrType = typeof(T);
-            DirectiveDescription.Name = typeof(T).GetGraphQLName();
-            DirectiveDescription.Description =
-                typeof(T).GetGraphQLDescription();
-        }
-
-        protected override void CompleteArguments()
-        {
-            base.CompleteArguments();
-
-            var descriptions =
-                new Dictionary<string, DirectiveArgumentDescription>();
-            var handledProperties = new List<PropertyInfo>();
-
-            AddExplicitArguments(descriptions, handledProperties);
-
-            if (DirectiveDescription.ArgumentBindingBehavior ==
-                BindingBehavior.Implicit)
-            {
-                Dictionary<PropertyInfo, string> properties =
-                    GetPossibleImplicitArguments(handledProperties);
-                AddImplicitArguments(descriptions, properties);
-            }
-
-            DirectiveDescription.Arguments.Clear();
-            DirectiveDescription.Arguments.AddRange(descriptions.Values);
-        }
-
-        private void AddExplicitArguments(
-            IDictionary<string, DirectiveArgumentDescription> descriptors,
-            ICollection<PropertyInfo> handledProperties)
-        {
-            foreach (DirectiveArgumentDescription argumentDescription in
-                DirectiveDescription.Arguments)
-            {
-                if (!argumentDescription.Ignored)
-                {
-                    descriptors[argumentDescription.Name] = argumentDescription;
-                }
-
-                if (argumentDescription.Property != null)
-                {
-                    handledProperties.Add(argumentDescription.Property);
-                }
-            }
-        }
-
-        private void AddImplicitArguments(
-            IDictionary<string, DirectiveArgumentDescription> descriptors,
-            IDictionary<PropertyInfo, string> properties)
-        {
-            foreach (KeyValuePair<PropertyInfo, string> property in properties)
-            {
-                if (!descriptors.ContainsKey(property.Value))
-                {
-                    Type returnType = property.Key.GetReturnType();
-                    if (returnType != null)
-                    {
-                        var argDescriptor = new DirectiveArgumentDescriptor(
-                            property.Value, property.Key);
-
-                        descriptors[property.Value] = argDescriptor
-                            .CreateDescription();
-                    }
-                }
-            }
-        }
-
-        private Dictionary<PropertyInfo, string> GetPossibleImplicitArguments(
-            ICollection<PropertyInfo> handledProperties)
-        {
-            Dictionary<PropertyInfo, string> properties = GetProperties(
-                DirectiveDescription.ClrType);
-
-            foreach (PropertyInfo property in handledProperties)
-            {
-                properties.Remove(property);
-            }
-
-            return properties;
-        }
-
-        private static Dictionary<PropertyInfo, string> GetProperties(Type type)
-        {
-            return ReflectionUtils
-                .GetProperties(type)
-                .ToDictionary(t => t.Value, t => t.Key);
-        }
-
-        protected void BindArguments(BindingBehavior bindingBehavior)
-        {
-            DirectiveDescription.ArgumentBindingBehavior = bindingBehavior;
-        }
-
-        protected DirectiveArgumentDescriptor Argument(
-            Expression<Func<T, object>> property)
-        {
-            if (property == null)
-            {
-                throw new ArgumentNullException(nameof(property));
-            }
-
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                var descriptor = new DirectiveArgumentDescriptor(
-                    p.GetGraphQLName(), p);
-                return Argument(descriptor);
-            }
-
-            throw new ArgumentException(
-                "Only properties are allowed in this expression.",
-                nameof(property));
-        }
-
-        #region IDirectiveDescriptor<T>
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.SyntaxNode(
-            DirectiveDefinitionNode syntaxNode)
-        {
-            SyntaxNode(syntaxNode);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Name(
-            NameString name)
-        {
-            Name(name);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Description(
-          string description)
-        {
-            Description(description);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.BindArguments(
-            BindingBehavior bindingBehavior)
-        {
-            BindArguments(bindingBehavior);
-            return this;
-        }
-
-        IDirectiveArgumentDescriptor IDirectiveTypeDescriptor<T>.Argument(
-            Expression<Func<T, object>> property)
-        {
-            return Argument(property);
-        }
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Location(
-            DirectiveLocation location)
-        {
-            Location(location);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Middleware(
-            DirectiveMiddleware middleware)
-        {
-            Middleware(middleware);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Middleware<TM>(
-            Expression<Func<TM, object>> method)
-        {
-            Middleware(method);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Middleware<TM>(
-            Expression<Action<T>> method)
-        {
-            Middleware(method);
-            return this;
-        }
-
-        IDirectiveTypeDescriptor<T> IDirectiveTypeDescriptor<T>.Repeatable()
-        {
-            DirectiveDescription.IsRepeatable = true;
-            return this;
-        }
-
-        #endregion
+        public static DirectiveTypeDescriptor<T> New<T>(
+            IDescriptorContext context) =>
+            new DirectiveTypeDescriptor<T>(context);
     }
 }

@@ -1,176 +1,139 @@
-﻿using System;
+﻿using System.Reflection;
+using System.Reflection.Emit;
+using System;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
-    internal class ArgumentDescriptor
-        : IArgumentDescriptor
-        , IDescriptionFactory<ArgumentDescription>
+    public class ArgumentDescriptor
+        : ArgumentDescriptorBase<ArgumentDefinition>
+        , IArgumentDescriptor
     {
-        protected ArgumentDescriptor(ArgumentDescription argumentDescription)
+        public ArgumentDescriptor(
+            IDescriptorContext context,
+            NameString argumentName)
+            : base(context)
         {
-            InputDescription = argumentDescription
-                ?? throw new ArgumentNullException(nameof(argumentDescription));
+            Definition.Name = argumentName.EnsureNotEmpty(nameof(argumentName));
+            Definition.DefaultValue = NullValueNode.Default;
         }
 
-        public ArgumentDescriptor(string argumentName, Type argumentType)
-            : this(argumentName)
+        public ArgumentDescriptor(
+            IDescriptorContext context,
+            NameString argumentName,
+            Type argumentType)
+            : this(context, argumentName)
         {
             if (argumentType == null)
             {
                 throw new ArgumentNullException(nameof(argumentType));
             }
 
-            InputDescription = new ArgumentDescription();
-            InputDescription.Name = argumentName;
-            InputDescription.TypeReference = argumentType.GetInputType();
-            InputDescription.DefaultValue = NullValueNode.Default;
+            Definition.Name = argumentName;
+            Definition.Type = argumentType.GetInputType();
+            Definition.DefaultValue = NullValueNode.Default;
         }
 
-        public ArgumentDescriptor(NameString argumentName)
+        public ArgumentDescriptor(
+            IDescriptorContext context,
+            ParameterInfo parameter)
+            : base(context)
         {
-            InputDescription = new ArgumentDescription
-            {
-                Name = argumentName.EnsureNotEmpty(nameof(argumentName)),
-                DefaultValue = NullValueNode.Default
-            };
+            Definition.Name =
+                context.Naming.GetArgumentName(parameter);
+            Definition.Description =
+                context.Naming.GetArgumentDescription(parameter);
+            Definition.Type = new ClrTypeReference(
+                parameter.ParameterType, TypeContext.Input);
+            Definition.DefaultValue = NullValueNode.Default;
         }
 
-        protected ArgumentDescription InputDescription { get; }
-
-        public ArgumentDescription CreateDescription()
+        public new IArgumentDescriptor SyntaxNode(
+            InputValueDefinitionNode inputValueDefinition)
         {
-            return InputDescription;
+            base.SyntaxNode(inputValueDefinition);
+            return this;
         }
 
-        public void SyntaxNode(InputValueDefinitionNode syntaxNode)
+        public new IArgumentDescriptor Description(string value)
         {
-            InputDescription.SyntaxNode = syntaxNode;
-
+            base.Description(value);
+            return this;
         }
-        public void Description(string description)
+
+        public new IArgumentDescriptor Type<TInputType>()
+            where TInputType : IInputType
         {
-            InputDescription.Description = description;
+            base.Type<TInputType>();
+            return this;
         }
 
-        public void Type<TInputType>()
-        {
-            InputDescription.TypeReference = InputDescription.TypeReference
-                .GetMoreSpecific(typeof(TInputType), TypeContext.Input);
-        }
-
-        public void Type<TInputType>(TInputType inputType)
+        public new IArgumentDescriptor Type<TInputType>(
+            TInputType inputType)
             where TInputType : class, IInputType
         {
-            if (inputType == null)
-            {
-                throw new ArgumentNullException(nameof(inputType));
-            }
-
-            InputDescription.TypeReference = new TypeReference(inputType);
-        }
-
-        public void Type(ITypeNode type)
-        {
-            InputDescription.TypeReference = InputDescription.TypeReference
-                .GetMoreSpecific(type);
-        }
-
-        public void DefaultValue(IValueNode defaultValue)
-        {
-            InputDescription.DefaultValue =
-                defaultValue ?? NullValueNode.Default;
-            InputDescription.NativeDefaultValue = null;
-        }
-
-        public void DefaultValue(object defaultValue)
-        {
-            if (defaultValue == null)
-            {
-                InputDescription.DefaultValue = NullValueNode.Default;
-                InputDescription.NativeDefaultValue = null;
-            }
-            else
-            {
-                InputDescription.TypeReference = InputDescription.TypeReference
-                    .GetMoreSpecific(defaultValue.GetType(), TypeContext.Input);
-                InputDescription.NativeDefaultValue = defaultValue;
-                InputDescription.DefaultValue = null;
-            }
-        }
-
-        #region IArgumentDescriptor
-
-        IArgumentDescriptor IArgumentDescriptor.SyntaxNode(
-            InputValueDefinitionNode syntaxNode)
-        {
-            SyntaxNode(syntaxNode);
+            base.Type<TInputType>(inputType);
             return this;
         }
 
-        IArgumentDescriptor IArgumentDescriptor.Description(
-            string description)
+        public new IArgumentDescriptor Type(
+            ITypeNode typeNode)
         {
-            Description(description);
+            base.Type(typeNode);
             return this;
         }
 
-        IArgumentDescriptor IArgumentDescriptor.Type<TInputType>()
+        public new IArgumentDescriptor DefaultValue(IValueNode value)
         {
-            Type<TInputType>();
+            base.DefaultValue(value);
             return this;
         }
 
-        IArgumentDescriptor IArgumentDescriptor.Type<TInputType>(
-            TInputType inputType)
+        public new IArgumentDescriptor DefaultValue(object value)
         {
-            Type(inputType);
+            base.DefaultValue(value);
             return this;
         }
 
-        IArgumentDescriptor IArgumentDescriptor.Type(
-            ITypeNode type)
+        public new IArgumentDescriptor Directive<TDirective>(
+            TDirective directiveInstance)
+            where TDirective : class
         {
-            Type(type);
+            base.Directive(directiveInstance);
             return this;
         }
 
-        IArgumentDescriptor IArgumentDescriptor.DefaultValue(
-            IValueNode defaultValue)
+        public new IArgumentDescriptor Directive<TDirective>()
+            where TDirective : class, new()
         {
-            DefaultValue(defaultValue);
+            base.Directive<TDirective>();
             return this;
         }
 
-        IArgumentDescriptor IArgumentDescriptor.DefaultValue(
-            object defaultValue)
-        {
-            DefaultValue(defaultValue);
-            return this;
-        }
-
-        IArgumentDescriptor IArgumentDescriptor.Directive<T>(
-            T directive)
-        {
-            InputDescription.Directives.AddDirective(directive);
-            return this;
-        }
-
-        IArgumentDescriptor IArgumentDescriptor.Directive<T>()
-        {
-            InputDescription.Directives.AddDirective(new T());
-            return this;
-        }
-
-        IArgumentDescriptor IArgumentDescriptor.Directive(
+        public new IArgumentDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
-            InputDescription.Directives.AddDirective(name, arguments);
+            base.Directive(name, arguments);
             return this;
         }
 
-        #endregion
+        public static ArgumentDescriptor New(
+            IDescriptorContext context,
+            NameString argumentName) =>
+            new ArgumentDescriptor(context, argumentName);
+
+        public static ArgumentDescriptor New(
+            IDescriptorContext context,
+            NameString argumentName,
+            Type argumentType) =>
+            new ArgumentDescriptor(context, argumentName, argumentType);
+
+        public static ArgumentDescriptor New(
+            IDescriptorContext context,
+            ParameterInfo parameter) =>
+            new ArgumentDescriptor(context, parameter);
     }
 }

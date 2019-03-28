@@ -9,6 +9,7 @@ using Xunit;
 namespace HotChocolate.Types
 {
     public class DirectiveTypeTests
+        : TypeTestBase
     {
         [Fact]
         public void ConfigureTypedDirectiveWithResolver()
@@ -16,7 +17,7 @@ namespace HotChocolate.Types
             // arrange
             // act
             DirectiveType directiveType =
-                CreateDirective<CustomDirectiveType>();
+                CreateDirective(new CustomDirectiveType());
 
             // assert
             Assert.True(directiveType.IsExecutable);
@@ -31,7 +32,7 @@ namespace HotChocolate.Types
             DirectiveType directiveType = new DirectiveType(
                 t => t.Name("Foo")
                     .Location(DirectiveLocation.Field)
-                    .Middleware(next => context => Task.CompletedTask));
+                    .Use(next => context => Task.CompletedTask));
             // act
             directiveType = CreateDirective(directiveType);
 
@@ -111,7 +112,7 @@ namespace HotChocolate.Types
                     .Repeatable()
                     .Location(DirectiveLocation.Object)
                     .Location(DirectiveLocation.FieldDefinition)
-                    .Middleware(next => context => Task.CompletedTask)
+                    .Use(next => context => Task.CompletedTask)
                     .Argument("a").Type<StringType>());
 
 
@@ -192,7 +193,7 @@ namespace HotChocolate.Types
                 t => t.Name("foo")
                     .Location(DirectiveLocation.Object)
                     .Location(DirectiveLocation.FieldDefinition)
-                    .Middleware(next => context => Task.CompletedTask)
+                    .Use(next => context => Task.CompletedTask)
                     .Argument("a").Type<StringType>());
 
 
@@ -224,31 +225,6 @@ namespace HotChocolate.Types
                 });
         }
 
-        private DirectiveType CreateDirective<T>()
-            where T : DirectiveType, new()
-        {
-            return CreateDirective(new T());
-        }
-
-        private DirectiveType CreateDirective<T>(T directiveType)
-            where T : DirectiveType
-        {
-            var schemaContext = new SchemaContext();
-            schemaContext.Types.RegisterType(new StringType());
-            schemaContext.Directives.RegisterDirectiveType(directiveType);
-
-            var schemaConfiguration = new SchemaConfiguration(
-                sp => { },
-                schemaContext.Types,
-                schemaContext.Resolvers,
-                schemaContext.Directives);
-
-            var typeFinalizer = new TypeFinalizer(schemaConfiguration);
-            typeFinalizer.FinalizeTypes(schemaContext, null);
-
-            return schemaContext.Directives.GetDirectiveTypes().Single();
-        }
-
         public class CustomDirectiveType
             : DirectiveType<CustomDirective>
         {
@@ -258,7 +234,7 @@ namespace HotChocolate.Types
                 descriptor.Name("Custom");
                 descriptor.Location(DirectiveLocation.Enum);
                 descriptor.Location(DirectiveLocation.Field);
-                descriptor.Middleware(next => context => Task.CompletedTask);
+                descriptor.Use(next => context => Task.CompletedTask);
             }
         }
 

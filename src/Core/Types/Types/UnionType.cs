@@ -1,122 +1,133 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     public class UnionType
-        : NamedTypeBase
+        : NamedTypeBase<UnionTypeDefinition>
         , INamedOutputType
     {
+        private readonly Action<IUnionTypeDescriptor> _configure;
         private readonly Dictionary<NameString, ObjectType> _typeMap =
             new Dictionary<NameString, ObjectType>();
-        private List<TypeReference> _types;
         private ResolveAbstractType _resolveAbstractType;
 
         protected UnionType()
-            : base(TypeKind.Union)
         {
-            Initialize(Configure);
+            _configure = Configure;
         }
 
         public UnionType(Action<IUnionTypeDescriptor> configure)
-            : base(TypeKind.Union)
         {
-            Initialize(configure);
+            _configure = configure
+                ?? throw new ArgumentNullException(nameof(configure));
         }
+
+        public override TypeKind Kind => TypeKind.Union;
 
         public UnionTypeDefinitionNode SyntaxNode { get; private set; }
 
         public IReadOnlyDictionary<NameString, ObjectType> Types => _typeMap;
 
+
         public ObjectType ResolveType(
             IResolverContext context, object resolverResult)
             => _resolveAbstractType(context, resolverResult);
 
-        #region Configuration
+        #region Initialization
+
+        protected override UnionTypeDefinition CreateDefinition(IInitializationContext context)
+        {
+            UnionTypeDescriptor descriptor = UnionTypeDescriptor.New(
+                DescriptorContext.Create(context.Services),
+                GetType());
+            _configure(descriptor);
+            return descriptor.CreateDefinition();
+        }
 
         protected virtual void Configure(IUnionTypeDescriptor descriptor) { }
 
-        #endregion
-
-        #region Initialization
-
-        internal virtual UnionTypeDescriptor CreateDescriptor() =>
-            new UnionTypeDescriptor(GetType());
-
-        private void Initialize(Action<IUnionTypeDescriptor> configure)
-        {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            var descriptor = new UnionTypeDescriptor(GetType());
-            configure(descriptor);
-
-            UnionTypeDescription description = descriptor.CreateDescription();
-
-            _types = description.Types;
-            _resolveAbstractType = description.ResolveAbstractType;
-
-            Initialize(description.Name, description.Description,
-                new DirectiveCollection(this,
-                    DirectiveLocation.Union,
-                    description.Directives));
-        }
-
         protected override void OnRegisterDependencies(
-            ITypeInitializationContext context)
+            IInitializationContext context,
+            UnionTypeDefinition definition)
         {
-            base.OnRegisterDependencies(context);
+            base.OnRegisterDependencies(context, definition);
 
-            foreach (TypeReference typeReference in _types)
-            {
-                context.RegisterType(typeReference);
-            }
+            context.RegisterDependencyRange(
+                definition.Types,
+                TypeDependencyKind.Default);
         }
 
         protected override void OnCompleteType(
-            ITypeInitializationContext context)
+            ICompletionContext context,
+            UnionTypeDefinition definition)
         {
-            base.OnCompleteType(context);
+            base.OnCompleteType(context, definition);
 
-            CompleteTypes(context);
-            CompleteResolveAbstractType();
+            CompleteTypeSet(context, definition);
+            CompleteResolveAbstractType(definition.ResolveAbstractType);
         }
 
-        private void CompleteTypes(
-            ITypeInitializationContext context)
+        private void CompleteTypeSet(
+            ICompletionContext context,
+            UnionTypeDefinition definition)
         {
-            if (_types != null)
+            var typeSet = new HashSet<ObjectType>();
+
+            OnCompleteTypeSet(context, definition, typeSet);
+
+            foreach (ObjectType objectType in typeSet)
             {
-                foreach (ObjectType memberType in CreateUnionTypeSet(context))
+                _typeMap[objectType.Name] = objectType;
+            }
+
+            if (typeSet.Count == 0)
+            {
+                // TODO : RESOURCES
+                context.ReportError(SchemaErrorBuilder.New()
+                    .SetMessage("A Union type must define one or " +
+                        "more unique member types.")
+                    .SetCode(TypeErrorCodes.MissingType)
+                    .SetTypeSystemObject(this)
+                    .AddSyntaxNode(SyntaxNode)
+                    .Build());
+            }
+        }
+
+        protected virtual void OnCompleteTypeSet(
+            ICompletionContext context,
+            UnionTypeDefinition definition,
+            ISet<ObjectType> typeSet)
+        {
+            foreach (ITypeReference typeReference in definition.Types)
+            {
+                if (context.TryGetType(typeReference, out ObjectType ot))
                 {
-                    _typeMap[memberType.Name] = memberType;
+                    typeSet.Add(ot);
+                }
+                else
+                {
+                    // TODO : RESOURCES
+                    context.ReportError(SchemaErrorBuilder.New()
+                        .SetMessage("")
+                        .SetCode(TypeErrorCodes.MissingType)
+                        .SetTypeSystemObject(this)
+                        .AddSyntaxNode(SyntaxNode)
+                        .Build());
                 }
             }
-
-            if (_typeMap.Count == 0)
-            {
-                context.ReportError(new SchemaError(
-                    "A Union type must define one or more unique member types.",
-                    this));
-            }
         }
 
-        protected virtual ISet<ObjectType> CreateUnionTypeSet(
-            ITypeInitializationContext context)
+        private void CompleteResolveAbstractType(
+            ResolveAbstractType resolveAbstractType)
         {
-            return new HashSet<ObjectType>(_types
-                .Select(t => context.GetType<ObjectType>(t))
-                .Where(t => t != null));
-        }
-
-        private void CompleteResolveAbstractType()
-        {
-            if (_resolveAbstractType == null)
+            if (resolveAbstractType == null)
             {
                 // if there is no custom type resolver we will use this default
                 // abstract type resolver.
@@ -132,43 +143,12 @@ namespace HotChocolate.Types
                     return null;
                 };
             }
+            else
+            {
+                _resolveAbstractType = resolveAbstractType;
+            }
         }
 
         #endregion
-    }
-
-    public class UnionType<T>
-        : UnionType
-    {
-        public UnionType()
-        {
-        }
-
-        public UnionType(Action<IUnionTypeDescriptor> configure)
-            : base(configure)
-        {
-        }
-
-        internal override UnionTypeDescriptor CreateDescriptor() =>
-            new UnionTypeDescriptor(typeof(T));
-
-        protected override ISet<ObjectType> CreateUnionTypeSet(
-            ITypeInitializationContext context)
-        {
-            ISet<ObjectType> typeSet = base.CreateUnionTypeSet(context);
-
-            Type markerType = typeof(T);
-
-            foreach (IType type in context.GetTypes())
-            {
-                if (type is ObjectType objectType
-                    && markerType.IsAssignableFrom(objectType.ClrType))
-                {
-                    typeSet.Add(objectType);
-                }
-            }
-
-            return typeSet;
-        }
     }
 }

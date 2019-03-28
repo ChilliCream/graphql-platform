@@ -9,6 +9,7 @@ using Xunit;
 namespace HotChocolate.Types.Relay
 {
     public class ConnectionTypeTests
+        : TypeTestBase
     {
         [Fact]
         public void CheckThatNameIsCorrect()
@@ -25,20 +26,10 @@ namespace HotChocolate.Types.Relay
         public void CheckFieldsAreCorrect()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-
             // act
-            var type = new ConnectionType<StringType>();
+            var type = CreateType(new ConnectionType<StringType>());
 
             // assert
-            INeedsInitialization init = type;
-
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), type, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
             Assert.Collection(type.Fields.Where(t => !t.IsIntrospectionField),
                 t =>
                 {
