@@ -187,9 +187,11 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new InterfaceType<IFoo>(d => d
+            var fooType = CreateType(new InterfaceType(d => d
+                .Name("FooInt")
                 .Directive("foo")
-                .Field(f => f.Bar)
+                .Field("id")
+                .Type<StringType>()
                 .Directive("foo")),
                 b => b.AddDirectiveType<FooDirectiveType>());
 
@@ -202,26 +204,16 @@ namespace HotChocolate.Types
         public void InterfaceType_AddDirectives_NameArgs2()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
-            var fooType = new InterfaceType<SimpleInput>(
-                d => d.Directive(new NameString("foo"))
-                    .Field("id")
-                    .Type<StringType>()
-                    .Directive(new NameString("foo")));
+            var fooType = CreateType(new InterfaceType(d => d
+                .Name("FooInt")
+                .Directive(new NameString("foo"))
+                .Field("bar")
+                .Type<StringType>()
+                .Directive(new NameString("foo"))),
+                b => b.AddDirectiveType<FooDirectiveType>());
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
         }
@@ -230,26 +222,16 @@ namespace HotChocolate.Types
         public void InterfaceType_AddDirectives_DirectiveNode()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
-            var fooType = new InterfaceType(
-                d => d.Directive(new DirectiveNode("foo"))
-                    .Field("id")
-                    .Type<StringType>()
-                    .Directive(new DirectiveNode("foo")));
+            var fooType = CreateType(new InterfaceType(d => d
+                .Name("FooInt")
+                .Directive(new DirectiveNode("foo"))
+                .Field("id")
+                .Type<StringType>()
+                .Directive(new DirectiveNode("foo"))),
+                b => b.AddDirectiveType<FooDirectiveType>());
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
         }
@@ -258,26 +240,16 @@ namespace HotChocolate.Types
         public void InterfaceType_AddDirectives_DirectiveClassInstance()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
-            var fooType = new InterfaceType(
-                d => d.Directive(new FooDirective())
-                    .Field("id")
-                    .Type<StringType>()
-                    .Directive(new FooDirective()));
+            var fooType = CreateType(new InterfaceType(d => d
+                .Name("FooInt")
+                .Directive(new FooDirective())
+                .Field("id")
+                .Type<StringType>()
+                .Directive(new FooDirective())),
+                b => b.AddDirectiveType<FooDirectiveType>());
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
         }
@@ -286,26 +258,16 @@ namespace HotChocolate.Types
         public void InterfaceType_AddDirectives_DirectiveType()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
-            var fooType = new InterfaceType(
-                d => d.Directive<FooDirective>()
-                    .Field("id")
-                    .Type<StringType>()
-                    .Directive<FooDirective>());
+            var fooType = CreateType(new InterfaceType(d => d
+                .Name("FooInt")
+                .Directive<FooDirective>()
+                .Field("id")
+                .Type<StringType>()
+                .Directive<FooDirective>()),
+                b => b.AddDirectiveType<FooDirectiveType>());
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Empty(errors);
             Assert.NotEmpty(fooType.Directives["foo"]);
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
         }
