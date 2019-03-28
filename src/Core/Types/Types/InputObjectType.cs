@@ -92,7 +92,7 @@ namespace HotChocolate.Types
         protected override InputObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            InputObjectTypeDescriptor descriptor =
+            var descriptor =
                 InputObjectTypeDescriptor.New(
                     DescriptorContext.Create(context.Services),
                     GetType());
@@ -120,6 +120,12 @@ namespace HotChocolate.Types
             InputObjectTypeDefinition definition)
         {
             base.OnCompleteType(context, definition);
+
+            ITypeConversion typeConversion = context.Services.GetTypeConversion();
+            _objectToValueConverter =
+                new InputObjectToObjectValueConverter(typeConversion);
+            _valueToObjectConverter =
+                new ObjectValueToInputObjectConverter(typeConversion);
 
             SyntaxNode = definition.SyntaxNode;
             Fields = new FieldCollection<InputField>(

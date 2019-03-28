@@ -108,11 +108,10 @@ namespace HotChocolate.Types
         public void ObjectTypeWithDynamicField_TypeDeclaOrderShouldNotMatter()
         {
             // act
-            ObjectType<FooType> fooType = CreateType(new ObjectType<FooType>());
+            FooType fooType = CreateType(new FooType());
 
             // assert
-            Assert.True(fooType.Fields.TryGetField(
-                "test", out ObjectField field));
+            Assert.True(fooType.Fields.TryGetField("test", out ObjectField field));
             Assert.IsType<ListType>(field.Type);
             Assert.IsType<StringType>(((ListType)field.Type).ElementType);
         }
@@ -445,9 +444,12 @@ namespace HotChocolate.Types
         public void ObjectType_FieldDefaultValue_SerializesCorrectly()
         {
             // arrange
-            var objectType = new ObjectType(t => t.Name("Bar")
-                .Field("_123").Type<StringType>()
-                .Resolver(() => "").Argument("_456",
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolver(() => "")
+                .Argument("_456",
                     a => a.Type<InputObjectType<Foo>>()
                         .DefaultValue(new Foo())));
 
