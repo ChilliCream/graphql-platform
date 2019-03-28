@@ -125,6 +125,28 @@ namespace HotChocolate
             return builder.AddType(typeof(T));
         }
 
+        public static ISchemaBuilder AddTypes(
+            this ISchemaBuilder builder,
+            params INamedType[] types)
+        {
+            foreach (INamedType type in types)
+            {
+                return builder.AddType(type);
+            }
+            return builder;
+        }
+
+        public static ISchemaBuilder AddTypes(
+            this ISchemaBuilder builder,
+            params Type[] types)
+        {
+            foreach (Type type in types)
+            {
+                return builder.AddType(type);
+            }
+            return builder;
+        }
+
         public static ISchemaBuilder AddDirectiveType(
             this ISchemaBuilder builder,
             Type directiveType)

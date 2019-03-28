@@ -67,6 +67,10 @@ namespace HotChocolate
         public ISchemaErrorBuilder SetException(Exception exception)
         {
             _error.Exception = exception;
+            if (_error.Message == null)
+            {
+                _error.Message = exception.Message;
+            }
             return this;
         }
 
