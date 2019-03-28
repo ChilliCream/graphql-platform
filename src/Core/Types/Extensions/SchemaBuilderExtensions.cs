@@ -14,6 +14,16 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IObjectTypeDescriptor> configure)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
             return AddQueryType(builder, new ObjectType(configure));
         }
 
@@ -21,6 +31,16 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IObjectTypeDescriptor<T>> configure)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
             return AddQueryType(builder, new ObjectType<T>(configure));
         }
 
@@ -28,6 +48,16 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Type type)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return builder.AddRootType(type, OperationType.Query);
         }
 
@@ -35,6 +65,16 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             ObjectType queryType)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (queryType == null)
+            {
+                throw new ArgumentNullException(nameof(queryType));
+            }
+
             return builder.AddRootType(queryType, OperationType.Query);
         }
 
@@ -42,6 +82,11 @@ namespace HotChocolate
             this ISchemaBuilder builder)
             where TQuery : class
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
             return builder.AddRootType(typeof(TQuery), OperationType.Query);
         }
 
@@ -49,6 +94,16 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IObjectTypeDescriptor> configure)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
             return AddMutationType(builder, new ObjectType(configure));
         }
 
@@ -56,6 +111,16 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IObjectTypeDescriptor<T>> configure)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
             return AddMutationType(builder, new ObjectType<T>(configure));
         }
 
@@ -63,6 +128,16 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Type type)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return builder.AddRootType(type, OperationType.Mutation);
         }
 
@@ -70,6 +145,16 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             ObjectType queryType)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (queryType == null)
+            {
+                throw new ArgumentNullException(nameof(queryType));
+            }
+
             return builder.AddRootType(queryType, OperationType.Mutation);
         }
 
@@ -77,6 +162,11 @@ namespace HotChocolate
             this ISchemaBuilder builder)
             where TMutation : class
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
             return builder.AddRootType(
                 typeof(TMutation),
                 OperationType.Mutation);
@@ -86,6 +176,16 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IObjectTypeDescriptor> configure)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
             return AddSubscriptionType(builder, new ObjectType(configure));
         }
 
@@ -93,6 +193,16 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Action<IObjectTypeDescriptor<T>> configure)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
             return AddSubscriptionType(builder, new ObjectType<T>(configure));
         }
 
@@ -100,6 +210,16 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Type type)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return builder.AddRootType(type, OperationType.Subscription);
         }
 
@@ -107,6 +227,16 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             ObjectType queryType)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (queryType == null)
+            {
+                throw new ArgumentNullException(nameof(queryType));
+            }
+
             return builder.AddRootType(queryType, OperationType.Subscription);
         }
 
@@ -114,6 +244,11 @@ namespace HotChocolate
             this ISchemaBuilder builder)
             where TSubscription : class
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
             return builder.AddRootType(
                 typeof(TSubscription),
                 OperationType.Subscription);
@@ -122,6 +257,11 @@ namespace HotChocolate
         public static ISchemaBuilder AddType<T>(
             this ISchemaBuilder builder)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
             return builder.AddType(typeof(T));
         }
 
@@ -129,6 +269,16 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             params INamedType[] types)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (types == null)
+            {
+                throw new ArgumentNullException(nameof(types));
+            }
+
             foreach (INamedType type in types)
             {
                 return builder.AddType(type);
@@ -140,6 +290,16 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             params Type[] types)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (types == null)
+            {
+                throw new ArgumentNullException(nameof(types));
+            }
+
             foreach (Type type in types)
             {
                 return builder.AddType(type);
@@ -151,6 +311,11 @@ namespace HotChocolate
             this ISchemaBuilder builder,
             Type directiveType)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
             if (directiveType == null)
             {
                 throw new ArgumentNullException(nameof(directiveType));
@@ -178,6 +343,10 @@ namespace HotChocolate
             this ISchemaBuilder builder)
             where TDirective : DirectiveType
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
 
             return AddDirectiveType(builder, typeof(TDirective));
         }

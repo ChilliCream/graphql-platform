@@ -6,6 +6,7 @@ using ChilliCream.Testing;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -419,21 +420,11 @@ namespace HotChocolate.Types
         public void Include_TypeWithOneField_ContainsThisField()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-
             // act
-            var fooType = new ObjectType<object>(
-                d => d.Include<Foo>());
-            INeedsInitialization init = fooType;
-
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            var fooType = CreateType(new ObjectType<object>(d => d
+                .Include<Foo>()));
 
             // assert
-            Assert.Empty(errors);
             Assert.True(fooType.Fields.ContainsField("description"));
         }
 
@@ -441,20 +432,10 @@ namespace HotChocolate.Types
         public void NonNullAttribute_StringIsRewritten_NonNullStringType()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-
             // act
-            var fooType = new ObjectType<Bar>();
-            INeedsInitialization init = fooType;
-
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            var fooType = CreateType(new ObjectType<Bar>());
 
             // assert
-            Assert.Empty(errors);
             Assert.True(fooType.Fields["baz"].Type.IsNonNullType());
             Assert.Equal("String", fooType.Fields["baz"].Type.NamedType().Name);
         }
@@ -504,41 +485,28 @@ namespace HotChocolate.Types
         public void InferInterfaceImplementation()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Types.RegisterType(new InterfaceType<IFoo>());
-
             // act
-            var fooType = new ObjectType<Foo>();
-            INeedsInitialization init = fooType;
-
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
+            var fooType = CreateType(new ObjectType<Foo>(),
+                b => b.AddType(new InterfaceType<IFoo>()));
 
             // assert
-            Assert.Empty(errors);
             Assert.NotNull(fooType.Fields.First().Resolver);
         }
 
         [Fact]
         public void IgnoreFieldWithShortcut()
         {
-            // arrange & act
-            TypeResult<ObjectType<Foo>> result =
-                TestUtils.CreateType(c =>
-                    new ObjectType<Foo>(
-                    d =>
-                    {
-                        d.Ignore(t => t.Description);
-                        d.Field("foo").Type<StringType>().Resolver("abc");
-                    }));
+            // arrange
+            // act
+            ObjectType<Foo> fooType = CreateType(new ObjectType<Foo>(d =>
+            {
+                d.Ignore(t => t.Description);
+                d.Field("foo").Type<StringType>().Resolver("abc");
+            }));
 
             // assert
-            Assert.Empty(result.Errors);
             Assert.Collection(
-                result.Type.Fields.Where(t => !t.IsIntrospectionField),
+                fooType.Fields.Where(t => !t.IsIntrospectionField),
                 t => Assert.Equal("foo", t.Name));
 
         }
@@ -546,7 +514,8 @@ namespace HotChocolate.Types
         [Fact]
         public void IgnoreField_DescriptorIsNull_ArgumentNullException()
         {
-            // arrange & act
+            // arrange
+            // act
             Action a = () => ObjectTypeDescriptorExtensions
                 .Ignore<Foo>(null, t => t.Description);
 
@@ -557,9 +526,12 @@ namespace HotChocolate.Types
         [Fact]
         public void IgnoreField_ExpressionIsNull_ArgumentNullException()
         {
-            // arrange & act
+            // arrange
+            var descriptor = new Mock<IObjectTypeDescriptor<Foo>>();
+
+            // act
             Action a = () => ObjectTypeDescriptorExtensions
-                .Ignore<Foo>(new ObjectTypeDescriptor<Foo>(), null);
+                .Ignore<Foo>(descriptor.Object, null);
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
