@@ -116,7 +116,7 @@ namespace HotChocolate.Configuration
                     RegisterClrType(ctr);
                 }
                 else if (typeReference is ISchemaTypeReference str
-                    && str is TypeSystemObjectBase tso)
+                    && str.Type is TypeSystemObjectBase tso)
                 {
                     RegisterTypeSystemObject(tso);
                 }

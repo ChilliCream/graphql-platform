@@ -1,0 +1,36 @@
+{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "Exception": null,
+      "message": "The specified fragment `FullType` is not used within the current document.",
+      "locations": [
+        {
+          "line": 22,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "Exception": null,
+      "message": "The specified fragment `InputValue` is not used within the current document.",
+      "locations": [
+        {
+          "line": 55,
+          "column": 4
+        }
+      ]
+    },
+    {
+      "Exception": null,
+      "message": "The specified fragment `TypeRef` is not used within the current document.",
+      "locations": [
+        {
+          "line": 62,
+          "column": 4
+        }
+      ]
+    }
+  ]
+}

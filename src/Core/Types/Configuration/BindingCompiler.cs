@@ -57,9 +57,10 @@ namespace HotChocolate.Configuration
             CompleteComplexTypeBindings(descriptorContext.Naming);
             CompleteResolverTypeBindings(descriptorContext.Naming);
 
+            IEnumerable<TypeBindingInfo> bindings =
+                CreateTypeBindingInfos(descriptorContext);
 
-
-
+            return new BindingLookup(descriptorContext, bindings);
         }
 
         private void CompleteComplexTypeBindings(
@@ -131,6 +132,19 @@ namespace HotChocolate.Configuration
             }
         }
 
+        private IEnumerable<TypeBindingInfo> CreateTypeBindingInfos(
+            IDescriptorContext context)
+        {
+            var bindings = new List<TypeBindingInfo>();
+
+            foreach (TypeBindingInfo binding in
+                _bindings.OfType<TypeBindingInfo>())
+            {
+                bindings.Add(binding);
+            }
+
+            return bindings;
+        }
 
         private TypeBindingInfo CreateTypeBindingInfo(
             IDescriptorContext context,
@@ -216,155 +230,6 @@ namespace HotChocolate.Configuration
                                 field.Member)));
                     }
                 }
-            }
-        }
-    }
-
-    internal class BindingLookup
-        : IBindingLookup
-    {
-        private readonly IDescriptorContext _context;
-
-        private readonly Dictionary<NameString, TypeBindingInfo> _bindings;
-
-        public IReadOnlyList<ITypeBindingInfo> Bindings => throw new NotImplementedException();
-
-        public ITypeBindingInfo GetBindingInfo(NameString typeName)
-        {
-            if (!_bindings.TryGetValue(typeName, out TypeBindingInfo binding))
-            {
-                binding = new TypeBindingInfo(
-                    _context,
-                    typeName,
-                    typeof(object),
-                    new Dictionary<NameString, RegisteredResolver>(),
-                    new Dictionary<NameString, MemberInfo>());
-                _bindings.Add(typeName, binding);
-            }
-            return binding;
-        }
-    }
-
-    internal class TypeBindingInfo
-        : ITypeBindingInfo
-    {
-        private readonly IDescriptorContext _context;
-        private readonly Dictionary<NameString, RegisteredResolver> _resolvers;
-        private readonly Dictionary<NameString, MemberInfo> _members;
-        private readonly HashSet<NameString> _fieldNames =
-            new HashSet<NameString>();
-        private List<MemberInfo> _allMembers;
-
-        public TypeBindingInfo(
-            IDescriptorContext context,
-            NameString name,
-            Type sourceType,
-            IDictionary<NameString, RegisteredResolver> resolvers,
-            IDictionary<NameString, MemberInfo> members)
-        {
-            _context = context;
-            Name = name;
-            SourceType = sourceType;
-            _resolvers = new Dictionary<NameString, RegisteredResolver>(
-                resolvers);
-            _members = new Dictionary<NameString, MemberInfo>(
-                members);
-        }
-
-        public NameString Name { get; }
-
-        public Type SourceType { get; }
-
-        public IEnumerable<RegisteredResolver> CreateResolvers()
-        {
-            return _resolvers.Values;
-        }
-
-        public void TrackField(NameString fieldName)
-        {
-            if (fieldName.HasValue)
-            {
-                _fieldNames.Add(fieldName);
-            }
-        }
-
-        public bool TryGetFieldMember(
-            NameString fieldName,
-            out MemberInfo member)
-        {
-            if (_members.TryGetValue(fieldName, out member))
-            {
-                return true;
-            }
-
-            if (SourceType != typeof(object)
-                && _fieldNames.Contains(fieldName))
-            {
-                InitializeAllMembers();
-                member = _allMembers.FirstOrDefault(t =>
-                    _context.Naming.GetMemberName(t, MemberKind.Field)
-                        .Equals(fieldName));
-
-                if (member != null)
-                {
-                    TryRegisterResolver(fieldName, member);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public bool TryGetFieldProperty(
-            NameString fieldName,
-            out PropertyInfo prop)
-        {
-            if (_members.TryGetValue(
-                fieldName, out MemberInfo member)
-                && member is PropertyInfo p)
-            {
-                prop = p;
-                return true;
-            }
-
-            if (SourceType != typeof(object)
-                && _fieldNames.Contains(fieldName))
-            {
-                InitializeAllMembers();
-                prop = _allMembers.OfType<PropertyInfo>().FirstOrDefault(t =>
-                    _context.Naming.GetMemberName(t, MemberKind.Field)
-                       .Equals(fieldName));
-
-                if (prop != null)
-                {
-                    TryRegisterResolver(fieldName, prop);
-                    return true;
-                }
-            }
-
-            prop = null;
-            return false;
-        }
-
-        private void TryRegisterResolver(
-            NameString fieldName,
-            MemberInfo member)
-        {
-            if (!_resolvers.ContainsKey(fieldName))
-            {
-                _resolvers.Add(
-                    fieldName,
-                    new RegisteredResolver(
-                        SourceType,
-                        new FieldMember(Name, fieldName, member)));
-            }
-        }
-
-        private void InitializeAllMembers()
-        {
-            if (_allMembers == null)
-            {
-                _allMembers = _context.Inspector.GetMembers(SourceType).ToList();
             }
         }
     }

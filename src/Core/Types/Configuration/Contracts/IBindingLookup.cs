@@ -4,7 +4,7 @@ namespace HotChocolate.Configuration
 {
     internal interface IBindingLookup
     {
-        IReadOnlyList<ITypeBindingInfo> Bindings { get; }
+        IReadOnlyCollection<ITypeBindingInfo> Bindings { get; }
 
         ITypeBindingInfo GetBindingInfo(NameString typeName);
     }

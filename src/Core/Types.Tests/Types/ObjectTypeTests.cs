@@ -26,7 +26,7 @@ namespace HotChocolate.Types
                 .Name("a")));
 
             // assert
-            Assert.NotNull(fooType.Fields.First().Resolver);
+            Assert.NotNull(fooType.Fields["a"].Resolver);
         }
 
         [Fact]
