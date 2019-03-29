@@ -67,9 +67,7 @@ namespace HotChocolate.Types
         {
             base.OnRegisterDependencies(context, definition);
 
-            context.RegisterDependencyRange(
-                definition.GetDependencies(),
-                TypeDependencyKind.Default);
+            RegisterDependencies(context, definition);
 
             foreach (ObjectFieldDefinition field in definition.Fields)
             {
@@ -82,6 +80,26 @@ namespace HotChocolate.Types
                         field.ResolverType);
                 }
             }
+        }
+
+        private void RegisterDependencies(
+            IInitializationContext context,
+            ObjectTypeDefinition definition)
+        {
+            var dependencies = new List<ITypeReference>();
+
+            context.RegisterDependencyRange(
+                definition.Interfaces,
+                TypeDependencyKind.Default);
+
+            context.RegisterDependencyRange(
+                definition.Fields.Select(t => t.Type),
+                TypeDependencyKind.Default);
+
+            context.RegisterDependencyRange(
+                definition.Fields.SelectMany(t => t.Arguments)
+                    .Select(t => t.Type),
+                TypeDependencyKind.Completed);
         }
 
         protected override void OnCompleteType(
@@ -101,7 +119,6 @@ namespace HotChocolate.Types
 
             CompleteInterfaces(context, definition);
             FieldInitHelper.CompleteFields(context, definition, Fields);
-            ValidateInterfaceImplementation(context);
         }
 
         private void AddIntrospectionFields(
@@ -154,150 +171,7 @@ namespace HotChocolate.Types
             }
         }
 
-        private void ValidateInterfaceImplementation(
-            ICompletionContext context)
-        {
-            if (_interfaces.Count > 0)
-            {
-                foreach (IGrouping<NameString, InterfaceField> fieldGroup in
-                    _interfaces.Values
-                        .SelectMany(t => t.Fields)
-                        .GroupBy(t => t.Name))
-                {
-                    ValidateField(context, fieldGroup);
-                }
-            }
-        }
-
-        private void ValidateField(
-            ICompletionContext context,
-            IGrouping<NameString, InterfaceField> interfaceField)
-        {
-            InterfaceField first = interfaceField.First();
-            if (ValidateInterfaceFieldGroup(context, first, interfaceField))
-            {
-                ValidateObjectField(context, first);
-            }
-        }
-
-        private bool ValidateInterfaceFieldGroup(
-            ICompletionContext context,
-            InterfaceField first,
-            IGrouping<NameString, InterfaceField> interfaceField)
-        {
-            if (interfaceField.Count() == 1)
-            {
-                return true;
-            }
-
-            foreach (InterfaceField field in interfaceField)
-            {
-                if (!field.Type.IsEqualTo(first.Type))
-                {
-                    // TODO : RESOURCES
-                    context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(
-                           "The return type of the interface field " +
-                            $"{first.Name} from interface " +
-                            $"{first.DeclaringType.Name} and " +
-                            $"{field.DeclaringType.Name} do not match " +
-                            $"and are implemented by object type {Name}.")
-                        .SetCode(TypeErrorCodes.MissingType)
-                        .SetTypeSystemObject(this)
-                        .AddSyntaxNode(SyntaxNode)
-                        .Build());
-                    return false;
-                }
-
-                if (!ArgumentsAreEqual(field.Arguments, first.Arguments))
-                {
-                    // TODO : RESOURCES
-                    context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(
-                            $"The arguments of the interface field {first.Name} " +
-                            $"from interface {first.DeclaringType.Name} and " +
-                            $"{field.DeclaringType.Name} do not match " +
-                            $"and are implemented by object type {Name}.")
-                        .SetCode(TypeErrorCodes.MissingType)
-                        .SetTypeSystemObject(this)
-                        .AddSyntaxNode(SyntaxNode)
-                        .Build());
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private void ValidateObjectField(
-            ICompletionContext context,
-            InterfaceField first)
-        {
-            if (Fields.TryGetField(first.Name, out ObjectField field))
-            {
-                if (!field.Type.IsEqualTo(first.Type))
-                {
-                    // TODO : RESOURCES
-                    context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(
-                            "The return type of the interface field " +
-                            $"{first.Name} does not match the field declared " +
-                            $"by object type {Name}.")
-                        .SetCode(TypeErrorCodes.MissingType)
-                        .SetTypeSystemObject(this)
-                        .AddSyntaxNode(SyntaxNode)
-                        .Build());
-                }
-
-                if (!ArgumentsAreEqual(field.Arguments, first.Arguments))
-                {
-                    // TODO : RESOURCES
-                    context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(
-                            $"Object type {Name} does not implement " +
-                            $"all arguments of field {first.Name} " +
-                            $"from interface {first.DeclaringType.Name}.")
-                        .SetCode(TypeErrorCodes.MissingType)
-                        .SetTypeSystemObject(this)
-                        .AddSyntaxNode(SyntaxNode)
-                        .Build());
-                }
-            }
-            else
-            {
-                // TODO : RESOURCES
-                context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage(
-                        $"Object type {Name} does not implement the " +
-                        $"field {first.Name} " +
-                        $"from interface {first.DeclaringType.Name}.")
-                    .SetCode(TypeErrorCodes.MissingType)
-                    .SetTypeSystemObject(this)
-                    .AddSyntaxNode(SyntaxNode)
-                    .Build());
-            }
-        }
-
-        private bool ArgumentsAreEqual(
-            FieldCollection<Argument> x,
-            FieldCollection<Argument> y)
-        {
-            if (x.Count != y.Count)
-            {
-                return false;
-            }
-
-            foreach (Argument xfield in x)
-            {
-                if (!y.TryGetField(xfield.Name, out Argument yfield)
-                    || !xfield.Type.IsEqualTo(yfield.Type))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
+        
 
         #endregion
     }

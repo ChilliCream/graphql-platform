@@ -71,9 +71,23 @@ namespace HotChocolate.Types
         {
             base.OnRegisterDependencies(context, definition);
 
+            RegisterDependencies(context, definition);
+        }
+
+        private void RegisterDependencies(
+           IInitializationContext context,
+           InterfaceTypeDefinition definition)
+        {
+            var dependencies = new List<ITypeReference>();
+
             context.RegisterDependencyRange(
-                definition.GetDependencies(),
+                definition.Fields.Select(t => t.Type),
                 TypeDependencyKind.Default);
+
+            context.RegisterDependencyRange(
+                definition.Fields.SelectMany(t => t.Arguments)
+                    .Select(t => t.Type),
+                TypeDependencyKind.Completed);
         }
 
         protected override void OnCompleteType(

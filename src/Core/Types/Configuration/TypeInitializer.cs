@@ -6,6 +6,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Configuration.Validation;
 
 namespace HotChocolate.Configuration
 {
@@ -77,6 +78,14 @@ namespace HotChocolate.Configuration
             RegisterImplicitInterfaceDependencies();
             CompleteNames(schemaResolver);
             CompleteTypes();
+
+            IReadOnlyCollection<ISchemaError> errors =
+                SchemaValidator.Validate(_types.Select(t => t.Value.Type));
+
+            if (errors.Count > 0)
+            {
+                throw new SchemaException(errors);
+            }
         }
 
         private bool RegisterTypes()

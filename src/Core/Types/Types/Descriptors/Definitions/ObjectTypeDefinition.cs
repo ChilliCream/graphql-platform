@@ -1,4 +1,3 @@
-﻿using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 
@@ -15,20 +14,6 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public BindingBehavior FieldBindingBehavior { get; set; }
 
         public IBindableList<ObjectFieldDefinition> Fields { get; } =
-            new BindableList<ObjectFieldDefinition>();
-
-        public IEnumerable<ITypeReference> GetDependencies()
-        {
-            var dependencies = new List<ITypeReference>();
-
-            dependencies.AddRange(Interfaces);
-
-            foreach (ObjectFieldDefinition field in Fields)
-            {
-                dependencies.AddRange(field.GetDependencies());
-            }
-
-            return dependencies;
-        }
+            new BindableList<ObjectFieldDefinition>();        
     }
 }

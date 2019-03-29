@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ChilliCream.Testing;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using Moq;
@@ -494,7 +493,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<InterfaceType<IFoo>>(
-                fooType.Interfaces.First());
+                fooType.Interfaces.Values.First());
         }
 
         [Fact]

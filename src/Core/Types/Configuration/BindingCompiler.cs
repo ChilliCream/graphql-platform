@@ -1,13 +1,11 @@
-using System.Collections;
-using System.Reflection;
-using System.Net;
-using System.Linq;
 using System;
-using HotChocolate.Configuration.Bindings;
 using System.Collections.Generic;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Types;
+using System.Linq;
+using System.Reflection;
+using HotChocolate.Configuration.Bindings;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration
 {
