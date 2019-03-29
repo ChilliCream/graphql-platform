@@ -31,5 +31,19 @@ namespace HotChocolate.Stitching.Introspection
             // assert
             Assert.Throws<ArgumentException>(action).Message.MatchSnapshot();
         }
+
+        [Fact]
+        public void DeserializeIntrospectionWithIntDefaultValues()
+        {
+            // arrange
+            string json = FileResource.Open(
+                "IntrospectionWithDefaultValues.json");
+
+            // act
+            DocumentNode schema = IntrospectionDeserializer.Deserialize(json);
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+        }
     }
 }

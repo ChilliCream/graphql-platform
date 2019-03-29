@@ -27,6 +27,8 @@ namespace HotChocolate.Stitching.Delegation
 
         public string Value => Scope.Value + ":" + Name.Value;
 
+        object IValueNode.Value => Value;
+
         /// <summary>
         /// Determines whether the specified <see cref="ScopedVariableNode"/>
         /// is equal to the current <see cref="ScopedVariableNode"/>.

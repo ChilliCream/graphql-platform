@@ -86,5 +86,15 @@ namespace HotChocolate.Language
         {
             return Position >= SourceText.Length;
         }
+
+        /// <summary>
+        /// Checks if the lexer source pointer has reached
+        /// the end of the GraphQL source text.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsEndOfStream(int position)
+        {
+            return position >= SourceText.Length;
+        }
     }
 }
