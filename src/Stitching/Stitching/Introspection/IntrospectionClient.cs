@@ -114,7 +114,7 @@ namespace HotChocolate.Stitching.Introspection
             return IntrospectionDeserializer.Deserialize(json);
         }
 
-        private static DocumentNode CreateIntrospectionQuery(
+        internal static DocumentNode CreateIntrospectionQuery(
             SchemaFeatures features)
         {
             DocumentNode query = Parser.Default.Parse(
