@@ -9,9 +9,17 @@ namespace HotChocolate.Language
         [InlineData("false", false, typeof(BooleanValueNode))]
         [InlineData("0", "0", typeof(IntValueNode))]
         [InlineData("123", "123", typeof(IntValueNode))]
+        [InlineData("-123", "-123", typeof(IntValueNode))]
+        [InlineData("2.3e-5", "2.3e-5", typeof(FloatValueNode))]
+        [InlineData("2.3e+5", "2.3e+5", typeof(FloatValueNode))]
         [InlineData("123.456", "123.456", typeof(FloatValueNode))]
         [InlineData("\"123\"", "123", typeof(StringValueNode))]
+        [InlineData("\"\"\"123\n456\"\"\"", "123\n456",
+            typeof(StringValueNode))]
+        [InlineData("\"\\u0031\"", "1", typeof(StringValueNode))]
         [InlineData("\"\\u004E\"", "N", typeof(StringValueNode))]
+        [InlineData("\"\\u0061\"", "a", typeof(StringValueNode))]
+        [InlineData("\"\\u003A\"", ":", typeof(StringValueNode))]
         [InlineData("FOO", "FOO", typeof(EnumValueNode))]
         [Theory]
         public void ParseSimpleValue(
