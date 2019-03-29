@@ -5,7 +5,7 @@
   "Extensions": {},
   "Errors": [
     {
-      "Message": "Connection refused",
+      "Message": "System.Net.Http.HttpRequestException",
       "Code": null,
       "Path": null,
       "Locations": [],

@@ -746,7 +746,7 @@ namespace HotChocolate.Stitching
                             {
                                 return ErrorBuilder.FromError(error)
                                     .ClearExtensions()
-                                    .SetMessage(ex.Message)
+                                    .SetMessage(ex.GetType().FullName)
                                     .SetException(null)
                                     .Build();
                             };
