@@ -38,6 +38,8 @@ namespace HotChocolate.Language
         IReadOnlyList<ObjectFieldNode>
             IValueNode<IReadOnlyList<ObjectFieldNode>>.Value => Fields;
 
+        object IValueNode.Value => Fields;
+
         /// <summary>
         /// Determines whether the specified <see cref="ObjectValueNode"/>
         /// is equal to the current <see cref="ObjectValueNode"/>.

@@ -20,6 +20,7 @@ namespace HotChocolate.Stitching.Introspection
         private const string _phase1 = "introspection_phase_1.graphql";
         private const string _phase2 = "introspection_phase_2.graphql";
 
+        private const string _schemaName = "__Schema";
         private const string _directiveName = "__Directive";
         private const string _locations = "locations";
         private const string _isRepeatable = "isRepeatable";
@@ -27,6 +28,7 @@ namespace HotChocolate.Stitching.Introspection
         private const string _onFragment = "onFragment";
         private const string _onField = "onField";
         private const string _directivesField = "directives";
+        private const string _subscriptionType = "subscriptionType";
 
         public static DocumentNode LoadSchema(
             HttpClient httpClient)
@@ -78,12 +80,18 @@ namespace HotChocolate.Stitching.Introspection
             IntrospectionResult result =
                 JsonConvert.DeserializeObject<IntrospectionResult>(json);
 
-            FullType type = result.Data.Schema.Types.First(t =>
+            FullType directive = result.Data.Schema.Types.First(t =>
                  t.Name.Equals(_directiveName, StringComparison.Ordinal));
-            features.HasRepeatableDirectives = type.Fields.Any(t =>
+            features.HasRepeatableDirectives = directive.Fields.Any(t =>
                 t.Name.Equals(_isRepeatable, StringComparison.Ordinal));
-            features.HasDirectiveLocations = type.Fields.Any(t =>
+            features.HasDirectiveLocations = directive.Fields.Any(t =>
                 t.Name.Equals(_locations, StringComparison.Ordinal));
+
+            FullType schema = result.Data.Schema.Types.First(t =>
+                 t.Name.Equals(_schemaName, StringComparison.Ordinal));
+            features.HasSubscriptionSupport = schema.Fields.Any(t =>
+                t.Name.Equals(_subscriptionType, StringComparison.Ordinal));
+
             return features;
         }
 
@@ -106,7 +114,7 @@ namespace HotChocolate.Stitching.Introspection
             return IntrospectionDeserializer.Deserialize(json);
         }
 
-        private static DocumentNode CreateIntrospectionQuery(
+        internal static DocumentNode CreateIntrospectionQuery(
             SchemaFeatures features)
         {
             DocumentNode query = Parser.Default.Parse(
@@ -120,31 +128,18 @@ namespace HotChocolate.Stitching.Introspection
 
             FieldNode directives =
                 schema.SelectionSet.Selections.OfType<FieldNode>().First(t =>
-                    t.Name.Value.Equals(_directivesField
-                        , StringComparison.Ordinal));
+                    t.Name.Value.Equals(_directivesField,
+                        StringComparison.Ordinal));
 
             var selections = directives.SelectionSet.Selections.ToList();
-
-            if (features.HasDirectiveLocations)
-            {
-                selections.Add(CreateField(_locations));
-            }
-            else
-            {
-                selections.Add(CreateField(_onField));
-                selections.Add(CreateField(_onFragment));
-                selections.Add(CreateField(_onOperation));
-            }
-
-            if (features.HasRepeatableDirectives)
-            {
-                selections.Add(CreateField(_isRepeatable));
-            }
+            AddDirectiveFeatures(features, selections);
 
             FieldNode newField = directives.WithSelectionSet(
                 directives.SelectionSet.WithSelections(selections));
 
             selections = schema.SelectionSet.Selections.ToList();
+            RemoveSubscriptionIfNotSupported(features, selections);
+
             selections.Remove(directives);
             selections.Add(newField);
 
@@ -163,6 +158,40 @@ namespace HotChocolate.Stitching.Introspection
             definitions.Insert(0, newOp);
 
             return query.WithDefinitions(definitions);
+        }
+
+        private static void AddDirectiveFeatures(
+            SchemaFeatures features,
+            ICollection<ISelectionNode> selections)
+        {
+            if (features.HasDirectiveLocations)
+            {
+                selections.Add(CreateField(_locations));
+            }
+            else
+            {
+                selections.Add(CreateField(_onField));
+                selections.Add(CreateField(_onFragment));
+                selections.Add(CreateField(_onOperation));
+            }
+
+            if (features.HasRepeatableDirectives)
+            {
+                selections.Add(CreateField(_isRepeatable));
+            }
+        }
+
+        private static void RemoveSubscriptionIfNotSupported(
+            SchemaFeatures features,
+            ICollection<ISelectionNode> selections)
+        {
+            if (!features.HasSubscriptionSupport)
+            {
+                FieldNode subscriptionField = selections.OfType<FieldNode>()
+                    .First(t => t.Name.Value.Equals(_subscriptionType,
+                        StringComparison.Ordinal));
+                selections.Remove(subscriptionField);
+            }
         }
 
         private static FieldNode CreateField(string name) =>
