@@ -299,11 +299,14 @@ namespace HotChocolate.Language
 
             if (code == '0')
             {
-                code = state.SourceText[++state.Position];
-                if (char.IsDigit(code))
+                if (!state.IsEndOfStream(++state.Position))
                 {
-                    throw new SyntaxException(state,
-                        $"Invalid number, unexpected digit after 0: {code}.");
+                    code = state.SourceText[state.Position];
+                    if (char.IsDigit(code))
+                    {
+                        throw new SyntaxException(state,
+                            $"Invalid number, unexpected digit after 0: {code}.");
+                    }
                 }
             }
             else
