@@ -722,6 +722,96 @@ namespace HotChocolate.Stitching
         }
 
         [Fact]
+        public async Task ConnectionLost()
+        {
+            // arrange
+            var connections = new Dictionary<string, HttpClient>();
+            IHttpClientFactory clientFactory = CreateRemoteSchemas(connections);
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .RenameType("CreateCustomerInput", "CreateCustomerInput2")
+                    .AddExtensionsFromString(
+                        FileResource.Open("StitchingExtensions.graphql"))
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>())
+                    .AddExecutionConfiguration(b =>
+                    {
+                        b.AddErrorFilter(error =>
+                        {
+                            if (error.Exception is Exception ex)
+                            {
+                                return ErrorBuilder.FromError(error)
+                                    .ClearExtensions()
+                                    .SetMessage(ex.Message)
+                                    .SetException(null)
+                                    .Build();
+                            };
+                            return error;
+                        });
+                    }));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                    mutation {
+                        createCustomer(input: { name: ""a"" })
+                        {
+                            customer {
+                                name
+                                contracts {
+                                    id
+                                }
+                            }
+                        }
+                    }");
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            var client = new HttpClient
+            {
+                BaseAddress = new Uri("http://127.0.0.1")
+            }; ;
+            connections["contract"] = client;
+            connections["customer"] = client;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                    mutation {
+                        createCustomer(input: { name: ""a"" })
+                        {
+                            customer {
+                                name
+                                contracts {
+                                    id
+                                }
+                            }
+                        }
+                    }");
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        [Fact]
         public async Task StitchedMutationWithRenamedInputType()
         {
             // arrange
@@ -1029,6 +1119,12 @@ namespace HotChocolate.Stitching
 
         private IHttpClientFactory CreateRemoteSchemas()
         {
+            return CreateRemoteSchemas(new Dictionary<string, HttpClient>());
+        }
+
+        private IHttpClientFactory CreateRemoteSchemas(
+            Dictionary<string, HttpClient> connections)
+        {
             TestServer server_contracts = TestServerFactory.Create(
                 ContractSchemaFactory.ConfigureSchema,
                 ContractSchemaFactory.ConfigureServices,
@@ -1039,13 +1135,19 @@ namespace HotChocolate.Stitching
                 CustomerSchemaFactory.ConfigureServices,
                 new QueryMiddlewareOptions());
 
+            connections["contract"] = server_contracts.CreateClient();
+            connections["customer"] = server_customers.CreateClient();
+
             var httpClientFactory = new Mock<IHttpClientFactory>();
             httpClientFactory.Setup(t => t.CreateClient(It.IsAny<string>()))
                 .Returns(new Func<string, HttpClient>(n =>
                 {
-                    return n.Equals("contract")
-                        ? server_contracts.CreateClient()
-                        : server_customers.CreateClient();
+                    if (connections.ContainsKey(n))
+                    {
+                        return connections[n];
+                    }
+
+                    throw new Exception();
                 }));
             return httpClientFactory.Object;
         }
