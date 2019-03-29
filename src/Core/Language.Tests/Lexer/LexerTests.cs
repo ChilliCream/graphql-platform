@@ -32,5 +32,48 @@ namespace HotChocolate.Language
             Assert.Equal(token.Next.Next, token.Next.Next.Next.Previous);
             Assert.Null(token.Next.Next.Next.Next);
         }
+
+        [Fact]
+        public void SourceIsNull_ArgumentNullException()
+        {
+            // arrange
+            Lexer lexer = new Lexer();
+
+            // act
+            Action action = () => lexer.Read(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void UnexpectedCharacter()
+        {
+            // arrange
+            Source source = new Source("~");
+            Lexer lexer = new Lexer();
+
+            // act
+            Action action = () => lexer.Read(source);
+
+            // assert
+            Assert.Equal("Unexpected character.",
+                Assert.Throws<SyntaxException>(action).Message);
+        }
+
+        [Fact]
+        public void UnexpectedTokenSequence()
+        {
+            // arrange
+            Source source = new Source("\"foo");
+            Lexer lexer = new Lexer();
+
+            // act
+            Action action = () => lexer.Read(source);
+
+            // assert
+            Assert.Equal("Unexpected token sequence.",
+                Assert.Throws<SyntaxException>(action).Message);
+        }
     }
 }

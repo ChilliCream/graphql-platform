@@ -57,7 +57,7 @@ namespace HotChocolate.Language
 
                 return start;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!(ex is SyntaxException))
             {
                 throw new SyntaxException(state,
                     "Unexpected token sequence.",
