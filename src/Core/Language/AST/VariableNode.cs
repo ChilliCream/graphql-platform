@@ -28,6 +28,8 @@ namespace HotChocolate.Language
 
         public string Value => Name.Value;
 
+        object IValueNode.Value => Value;
+
         /// <summary>
         /// Determines whether the specified <see cref="VariableNode"/>
         /// is equal to the current <see cref="VariableNode"/>.

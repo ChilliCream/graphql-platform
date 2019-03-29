@@ -26,6 +26,8 @@ namespace HotChocolate.Language
 
         public bool Value { get; }
 
+        object IValueNode.Value => Value;
+
         /// <summary>
         /// Determines whether the specified <see cref="BooleanValueNode"/>
         /// is equal to the current <see cref="BooleanValueNode"/>.
