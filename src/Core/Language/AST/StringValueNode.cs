@@ -52,6 +52,8 @@ namespace HotChocolate.Language
 
         public string Value { get; }
 
+        object IValueNode.Value => Value;
+
         /// <summary>
         /// Gets a value indicating whether this <see cref="StringValueNode"/>
         /// was parsed from a block string.
