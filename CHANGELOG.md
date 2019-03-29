@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [0.8.1] - 2019-03-29
+
+### Added
+
 - Added operation start/stop event.
 - Added error filter support for schema stitching.
 
@@ -31,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Non-nullable types are now validated when query uses variables. [#651](https://github.com/ChilliCream/hotchocolate/issues/651)
 - Variable handling im middleware does not convert the DateTime value anymore. [#664](https://github.com/ChilliCream/hotchocolate/issues/664)
 - Directives are now correctly merged when declared in an extension file. [#665](https://github.com/ChilliCream/hotchocolate/issues/665)
+- Subscription is now optional in the 2-phase introspection call [#668](https://github.com/ChilliCream/hotchocolate/issues/668)
 
 ## [0.8.0] - 2019-03-03
 
