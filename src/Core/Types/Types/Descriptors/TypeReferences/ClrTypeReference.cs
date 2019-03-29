@@ -36,8 +36,8 @@ namespace HotChocolate.Types.Descriptors
             {
                 Type rewritten = DotNetTypeInfoFactory.Rewrite(
                     Type,
-                    IsTypeNullable ?? false,
-                    IsElementTypeNullable ?? false);
+                    !(IsTypeNullable ?? false),
+                    !(IsElementTypeNullable ?? false));
                 return new ClrTypeReference(rewritten, Context);
             }
             return this;

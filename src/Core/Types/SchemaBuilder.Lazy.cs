@@ -1,15 +1,4 @@
-using System.Net;
-using System.Linq;
 using System;
-using System.Collections.Generic;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
-using HotChocolate.Configuration;
-using HotChocolate.Configuration.Bindings;
-using HotChocolate.Types.Factories;
 
 namespace HotChocolate
 {
@@ -28,14 +17,22 @@ namespace HotChocolate
                     {
                         throw new InvalidOperationException();
                     }
+
                     return _schema;
                 }
                 set
                 {
-                    if (value == null)
+                    if (value is null)
                     {
                         throw new ArgumentNullException(nameof(value));
                     }
+
+                    if (_isSet)
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    _isSet = true;
                     _schema = value;
                 }
             }

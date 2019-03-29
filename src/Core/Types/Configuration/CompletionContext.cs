@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -76,7 +77,7 @@ namespace HotChocolate.Configuration
                 reference, out ITypeReference nr)
                 && _typeInitializer.Types.TryGetValue(
                     nr, out RegisteredType rt)
-                && rt.Type is T t)
+                    && rt.Type is IType t)
             {
                 if (reference is IClrTypeReference cr
                     && _typeInitializer.TypeInspector.TryCreate(
@@ -84,9 +85,13 @@ namespace HotChocolate.Configuration
                 {
                     type = (T)typeInfo.TypeFactory.Invoke(t);
                 }
+                else if (reference is ISyntaxTypeReference sr)
+                {
+                    type = (T)WrapType(t, sr.Type);
+                }
                 else
                 {
-                    type = t;
+                    type = (T)t;
                 }
                 return true;
             }
@@ -94,6 +99,24 @@ namespace HotChocolate.Configuration
 
             type = default;
             return false;
+        }
+
+        private static IType WrapType(
+           IType namedType,
+           ITypeNode typeNode)
+        {
+            if (typeNode is NonNullTypeNode nntn)
+            {
+                return new NonNullType(WrapType(namedType, nntn.Type));
+            }
+            else if (typeNode is ListTypeNode ltn)
+            {
+                return new ListType(WrapType(namedType, ltn.Type));
+            }
+            else
+            {
+                return namedType;
+            }
         }
 
         public DirectiveType GetDirectiveType(IDirectiveReference reference)

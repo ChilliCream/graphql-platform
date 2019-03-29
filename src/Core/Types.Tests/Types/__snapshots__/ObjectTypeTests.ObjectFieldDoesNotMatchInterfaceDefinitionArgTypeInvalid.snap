@@ -1,1 +1,1 @@
-The field `C.a` has no resolver. - Type: C
+Object type C does not implement all arguments of field a from interface A. - Type: C
