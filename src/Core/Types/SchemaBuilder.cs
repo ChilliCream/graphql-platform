@@ -268,6 +268,15 @@ namespace HotChocolate
 
             SchemaDefinition definition = CreateSchemaDefinition(initializer);
 
+            if (definition.QueryType == null && _options.StrictValidation)
+            {
+                // TODO : Resources
+                throw new SchemaException(
+                    SchemaErrorBuilder.New()
+                        .SetMessage("No QUERY TYPE")
+                        .Build());
+            }
+
             var schema = new Schema(definition);
             lazy.Schema = schema;
             return schema;
@@ -289,9 +298,30 @@ namespace HotChocolate
                 var visitor = new SchemaSyntaxVisitor(bindingLookup);
                 visitor.Visit(schemaDocument, null);
                 types.AddRange(visitor.Types);
+
+                RegisterOperationName(OperationType.Query,
+                    visitor.QueryTypeName);
+                RegisterOperationName(OperationType.Mutation,
+                    visitor.MutationTypeName);
+                RegisterOperationName(OperationType.Subscription,
+                    visitor.SubscriptionTypeName);
             }
 
             return types;
+        }
+
+        private void RegisterOperationName(
+            OperationType operation,
+            string typeName)
+        {
+            if (!_operations.ContainsKey(operation)
+                && !string.IsNullOrEmpty(typeName))
+            {
+                _operations.Add(operation,
+                    new SyntaxTypeReference(
+                        new NamedTypeNode(typeName),
+                        TypeContext.Output));
+            }
         }
 
         private TypeInitializer InitializeTypes(
@@ -340,6 +370,13 @@ namespace HotChocolate
             definition.DirectiveTypes = initializer.Types.Values
                 .Select(t => t.Type).OfType<DirectiveType>().ToList();
 
+            RegisterOperationName(OperationType.Query,
+                _options.QueryTypeName);
+            RegisterOperationName(OperationType.Mutation,
+                _options.MutationTypeName);
+            RegisterOperationName(OperationType.Subscription,
+                _options.SubscriptionTypeName);
+
             definition.QueryType = ResolveOperation(
                 initializer, OperationType.Query);
             definition.MutationType = ResolveOperation(
@@ -363,38 +400,63 @@ namespace HotChocolate
                     .FirstOrDefault(t => t.Name.Equals(typeName));
             }
             else if (_operations.TryGetValue(operation,
-                out ITypeReference reference)
-                && initializer.TryNormalizeReference(reference,
-                out ITypeReference normalized)
-                && initializer.Types.TryGetValue(normalized,
-                out RegisteredType type)
-                && type.Type is ObjectType rootType)
+                out ITypeReference reference))
             {
-                return rootType;
+
+                if (reference is ISchemaTypeReference sr)
+                {
+                    return (ObjectType)sr.Type;
+                }
+
+                if (reference is IClrTypeReference cr
+                    && initializer.Types.TryGetValue(cr,
+                        out RegisteredType registeredType))
+                {
+                    return (ObjectType)registeredType.Type;
+                }
+
+                if (reference is ISyntaxTypeReference str)
+                {
+                    NamedTypeNode namedType = str.Type.NamedType();
+                    return initializer.Types.Values.Select(t => t.Type)
+                        .OfType<ObjectType>()
+                        .FirstOrDefault(t => t.Name.Equals(
+                            namedType.Name.Value));
+                }
             }
+
             return null;
         }
 
         private bool IsQueryType(TypeSystemObjectBase type)
         {
-            if (_operations.TryGetValue(OperationType.Query,
-                out ITypeReference reference))
+            if (type is ObjectType objectType)
             {
-                if (reference is ISchemaTypeReference sr)
+                if (_operations.TryGetValue(OperationType.Query,
+                    out ITypeReference reference))
                 {
-                    return sr.Type == type;
-                }
+                    if (reference is ISchemaTypeReference sr)
+                    {
+                        return sr.Type == objectType;
+                    }
 
-                if (reference is IClrTypeReference cr)
-                {
-                    return cr.Type == type.GetType();
+                    if (reference is IClrTypeReference cr)
+                    {
+                        return cr.Type == objectType.GetType();
+                    }
+
+                    if (reference is ISyntaxTypeReference str)
+                    {
+                        return objectType.Name.Equals(
+                            str.Type.NamedType().Name.Value);
+                    }
                 }
-            }
-            else
-            {
-                // TODO : query to constant
-                return type is ObjectType
-                    && type.Name.Equals("Query");
+                else
+                {
+                    // TODO : query to constant
+                    return type is ObjectType
+                        && type.Name.Equals("Query");
+                }
             }
 
             return false;

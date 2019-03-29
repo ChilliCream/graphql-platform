@@ -291,6 +291,71 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void SpecifyQueryTypeNameInSchemaFirst()
+        {
+            // arrange
+            string source = @"
+                type A { field: String }
+                type B { field: String }
+                type C { field: String }
+
+                schema {
+                  query: A
+                  mutation: B
+                  subscription: C
+                }
+            ";
+
+            // act
+            var schema = Schema.Create(source,
+                c => c.Use(next => context => Task.CompletedTask));
+
+            Assert.Equal("A", schema.QueryType.Name.Value);
+            Assert.Equal("B", schema.MutationType.Name.Value);
+            Assert.Equal("C", schema.SubscriptionType.Name.Value);
+        }
+
+        [Fact]
+        public void SpecifyQueryTypeNameInSchemaFirstWithOptions()
+        {
+            // arrange
+            string source = @"
+                type A { field: String }
+                type B { field: String }
+                type C { field: String }
+            ";
+
+            // act
+            var schema = Schema.Create(source,
+                c =>
+                {
+                    c.Use(next => context => Task.CompletedTask);
+                    c.Options.QueryTypeName = "A";
+                    c.Options.MutationTypeName = "B";
+                    c.Options.SubscriptionTypeName = "C";
+                });
+
+            Assert.Equal("A", schema.QueryType.Name.Value);
+            Assert.Equal("B", schema.MutationType.Name.Value);
+            Assert.Equal("C", schema.SubscriptionType.Name.Value);
+        }
+
+        [Fact]
+        public void NoQueryType()
+        {
+            // arrange
+            string source = @"
+                type A { field: String }
+            ";
+
+            // act
+            Action action = () => Schema.Create(source,
+                c => c.Use(next => context => Task.CompletedTask));
+
+            Assert.Throws<SchemaException>(action).Errors.MatchSnapshot();
+        }
+
+        [Fact]
         public void ObjectFieldDoesNotMatchInterfaceDefinitionArgTypeInvalid()
         {
             // arrange
@@ -373,10 +438,15 @@ namespace HotChocolate.Types
 
                 type C implements A & B {
                     a(a: String): String
-                }";
+                }
+
+                schema {
+                  query: C                
+                }
+            ";
 
             // act
-            Schema schema = Schema.Create(source, c =>
+            var schema = Schema.Create(source, c =>
             {
                 c.BindResolver(() => "foo").To("C", "a");
             });
@@ -401,7 +471,12 @@ namespace HotChocolate.Types
 
                 type C implements A & B {
                     a(a: String!): String!
-                }";
+                }
+
+                schema {
+                  query: C                
+                }
+            ";
 
             // act
             var schema = Schema.Create(source, c =>
