@@ -1,72 +1,61 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Factories;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
 {
     public class TypeFactoryTests
+        : TypeTestBase
     {
         [Fact]
         public void CreateObjectType()
         {
             // arrange
-            ObjectTypeDefinitionNode typeDefinition =
-                CreateTypeDefinition<ObjectTypeDefinitionNode>(@"
-                    type Simple { a: String b: [String] }");
-
-            var resolverBinding = new FieldResolver(
-                "Simple", "a",
-                c => Task.FromResult<object>("hello"));
+            string source = "type Simple { a: String b: [String] }";
 
             // act
             var factory = new ObjectTypeFactory();
-            ObjectType type = null; //  factory.Create(typeDefinition);
-                                    // CompleteType(type,
-                                    // s => s.Resolvers.RegisterResolver(resolverBinding));
+            var schema = Schema.Create(source, c =>
+            {
+                c.BindResolver(ctx =>
+                    Task.FromResult<object>("hello"))
+                    .To("Simple", "a");
+
+                c.BindResolver(ctx =>
+                    Task.FromResult<object>(new[] { "hello" }))
+                    .To("Simple", "b");
+
+                c.Options.QueryTypeName = "Simple";
+            });
 
             // assert
-            Assert.Equal("Simple", type.Name);
-            Assert.Equal(3, type.Fields.Count);
-
-            Assert.True(type.Fields.ContainsField("a"));
-            Assert.False(type.Fields["a"].Type.IsNonNullType());
-            Assert.False(type.Fields["a"].Type.IsListType());
-            Assert.True(type.Fields["a"].Type.IsScalarType());
-            Assert.Equal("String", type.Fields["a"].Type.TypeName());
-
-            Assert.True(type.Fields.ContainsField("b"));
-            Assert.False(type.Fields["b"].Type.IsNonNullType());
-            Assert.True(type.Fields["b"].Type.IsListType());
-            Assert.False(type.Fields["b"].Type.IsScalarType());
-            Assert.Equal("String", type.Fields["b"].Type.TypeName());
-
-            Assert.Equal("hello", (type.Fields["a"]
-                .Resolver(null).Result));
+            schema.ToString().MatchSnapshot();
         }
 
         [Fact]
         public void ObjectFieldDeprecationReason()
         {
             // arrange
-            ObjectTypeDefinitionNode typeDefinition =
-                CreateTypeDefinition<ObjectTypeDefinitionNode>(@"
-                    type Simple {
-                        a: String @deprecated(reason: ""reason123"")
-                    }");
+            string source = @"
+                type Simple {
+                    a: String @deprecated(reason: ""reason123"")
+                }";            
 
             // act
-            var factory = new ObjectTypeFactory();
-            ObjectType type = null; //factory.Create(typeDefinition);
-            // CompleteType(type);
+            var schema = Schema.Create(source, c =>
+            {
+                c.Use(next => context => Task.CompletedTask);
+                c.Options.QueryTypeName = "Simple";
+            });
 
             // assert
-            Assert.True(type.Fields["a"].IsDeprecated);
-            Assert.Equal("reason123", type.Fields["a"].DeprecationReason);
+            schema.ToString().MatchSnapshot();
         }
 
         [Fact]
