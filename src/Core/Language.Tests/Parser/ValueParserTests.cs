@@ -28,22 +28,23 @@ namespace HotChocolate.Language
             Type expectedNodeType)
         {
             // arrange
-            SyntaxToken start = Lexer.Default.Read(
-                new Source(value));
-
-            var context = new ParserContext(
-                new Source(value),
-                start,
-                ParserOptions.Default,
-                Parser.ParseName);
-            context.MoveNext();
-
             // act
             IValueNode valueNode = ParseValue(value);
 
             // assert
             Assert.Equal(expectedNodeType, valueNode.GetType());
             Assert.Equal(expectedValue, valueNode.Value);
+        }
+
+        [Fact]
+        public void ZeroZeroIsNotAllowed()
+        {
+            // arrange
+            // act
+            Action action = () => ParseValue("00");
+
+            // assert
+            Assert.Throws<SyntaxException>(action);
         }
 
         private static IValueNode ParseValue(string value)
