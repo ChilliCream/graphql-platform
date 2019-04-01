@@ -71,7 +71,7 @@ namespace Types.Tests.Configuration
             // arrange
             ISchema schema = Schema.Create(
                 "type Query { a: String b: String }",
-                c => c.Map<TestFieldMiddleware>(
+                c => c.Map(
                         new FieldReference("Query", "a"),
                         (services, next) => new TestFieldMiddleware(next))
                     .Map(

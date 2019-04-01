@@ -57,7 +57,7 @@ namespace HotChocolate.Utilities
                         .Type<ListType<StringType>>()));
             });
 
-            var type = schema.GetType<InputObjectType>("FooInput");
+            InputObjectType type = schema.GetType<InputObjectType>("FooInput");
 
             var foo = new ObjectValueNode(
                 new ObjectFieldNode("a", new ListValueNode(

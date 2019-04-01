@@ -106,7 +106,7 @@ namespace HotChocolate
         public bool TryGetType<T>(NameString typeName, out T type)
             where T : INamedType
         {
-            return _types.TryGetType<T>(
+            return _types.TryGetType(
                 typeName.EnsureNotEmpty(nameof(typeName)),
                 out type);
         }

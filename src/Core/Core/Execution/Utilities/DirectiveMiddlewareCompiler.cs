@@ -54,8 +54,8 @@ namespace HotChocolate.Execution
         private IReadOnlyList<IDirective> CollectDirectives(
             FieldSelection fieldSelection)
         {
-            HashSet<string> processed = new HashSet<string>();
-            List<IDirective> directives = new List<IDirective>();
+            var processed = new HashSet<string>();
+            var directives = new List<IDirective>();
 
             CollectTypeSystemDirectives(
                 processed, directives,

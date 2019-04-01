@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             // act
-            var type = CreateType(new ConnectionType<StringType>());
+            ConnectionType<StringType> type = CreateType(new ConnectionType<StringType>());
 
             // assert
             Assert.Collection(type.Fields.Where(t => !t.IsIntrospectionField),

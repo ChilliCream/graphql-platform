@@ -16,7 +16,7 @@ namespace HotChocolate.Types
         public void DotNetTypesDoNotOverwriteSchemaTypes()
         {
             // arrange
-            ObjectFieldDescriptor descriptor =
+            var descriptor =
                 ObjectFieldDescriptor.New(Context, "field");
 
             // act
@@ -35,7 +35,7 @@ namespace HotChocolate.Types
         public void SchemaTypesOverwriteDotNetTypes()
         {
             // arrange
-            ObjectFieldDescriptor descriptor =
+            var descriptor =
                 ObjectFieldDescriptor.New(Context, "field");
 
             // act
@@ -54,7 +54,7 @@ namespace HotChocolate.Types
         public void ResolverTypesDoNotOverwriteSchemaTypes()
         {
             // arrange
-            ObjectFieldDescriptor descriptor = ObjectFieldDescriptor.New(
+            var descriptor = ObjectFieldDescriptor.New(
                 Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
@@ -76,7 +76,7 @@ namespace HotChocolate.Types
         public void OverwriteName()
         {
             // arrange
-            ObjectFieldDescriptor descriptor = ObjectFieldDescriptor.New(
+            var descriptor = ObjectFieldDescriptor.New(
                 Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
@@ -92,7 +92,7 @@ namespace HotChocolate.Types
         {
             // arrange
             string expectedDescription = Guid.NewGuid().ToString();
-            ObjectFieldDescriptor descriptor = ObjectFieldDescriptor.New(
+            var descriptor = ObjectFieldDescriptor.New(
                 Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
@@ -108,7 +108,7 @@ namespace HotChocolate.Types
         public void SetResolverAndInferTypeFromResolver()
         {
             // arrange
-            ObjectFieldDescriptor descriptor =
+            var descriptor =
                 ObjectFieldDescriptor.New(
                     Context,
                     typeof(ObjectField).GetProperty("Arguments"));
@@ -134,7 +134,7 @@ namespace HotChocolate.Types
         public void SetResolverAndInferTypeIsAlwaysRecognisedAsDotNetType()
         {
             // arrange
-            ObjectFieldDescriptor descriptor =
+            var descriptor =
                 ObjectFieldDescriptor.New(
                     Context,
                     typeof(ObjectField).GetProperty("Arguments"));
@@ -159,7 +159,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            ObjectFieldDescriptor descriptor =
+            var descriptor =
                 ObjectFieldDescriptor.New(
                     Context,
                     typeof(ObjectField).GetProperty("Arguments"),

@@ -16,7 +16,7 @@ namespace HotChocolate.Utilities
                 throw new ArgumentNullException(nameof(typeInfo));
             }
 
-            var services = Expression.Parameter(typeof(IServiceProvider));
+            ParameterExpression services = Expression.Parameter(typeof(IServiceProvider));
             NewExpression newInstance = CreateNewInstance(typeInfo, services);
             return Expression.Lambda<Func<IServiceProvider, object>>(
                 newInstance, services).Compile();
@@ -30,7 +30,7 @@ namespace HotChocolate.Utilities
                 throw new ArgumentNullException(nameof(typeInfo));
             }
 
-            var services = Expression.Parameter(typeof(IServiceProvider));
+            ParameterExpression services = Expression.Parameter(typeof(IServiceProvider));
             NewExpression newInstance = CreateNewInstance(typeInfo, services);
             return Expression.Lambda<Func<IServiceProvider, T>>(
                 newInstance, services).Compile();
@@ -54,7 +54,7 @@ namespace HotChocolate.Utilities
 
         private static ConstructorInfo ResolveCunstructor(TypeInfo typeInfo)
         {
-            var constructors = typeInfo.DeclaredConstructors
+            ConstructorInfo[] constructors = typeInfo.DeclaredConstructors
                 .Where(t => t.IsPublic).ToArray();
 
             if (constructors.Length == 1)

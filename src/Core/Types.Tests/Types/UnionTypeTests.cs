@@ -13,7 +13,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooBarType = CreateType(new UnionType(d => d
+            UnionType fooBarType = CreateType(new UnionType(d => d
                 .Type<FooType>()
                 .Type<BarType>()));
 
@@ -28,7 +28,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooBarType = CreateType(new UnionType<IFooOrBar>(),
+            UnionType<IFooOrBar> fooBarType = CreateType(new UnionType<IFooOrBar>(),
                 b => b.AddTypes(new FooType(), new BarType()));
 
             // assert
@@ -42,7 +42,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooBarType = CreateType(
+            UnionType<IFooOrBar> fooBarType = CreateType(
                 new UnionType<IFooOrBar>(c => c.Type<BazType>()),
                 b => b.AddTypes(new FooType(), new BarType()));
 
@@ -58,7 +58,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooBarType = CreateType(new UnionType(d => d
+            UnionType fooBarType = CreateType(new UnionType(d => d
                 .Directive("foo")
                 .Type<FooType>()
                 .Type<BarType>()),
@@ -73,7 +73,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooBarType = CreateType(new UnionType(d => d
+            UnionType fooBarType = CreateType(new UnionType(d => d
                 .Directive(new NameString("foo"))
                 .Type<FooType>()
                 .Type<BarType>()),
@@ -88,7 +88,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooBarType = CreateType(new UnionType(d => d
+            UnionType fooBarType = CreateType(new UnionType(d => d
                 .Directive(new DirectiveNode("foo"))
                 .Type<FooType>()
                 .Type<BarType>()),
@@ -103,7 +103,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooBarType = CreateType(new UnionType(d => d
+            UnionType fooBarType = CreateType(new UnionType(d => d
                 .Directive(new FooDirective())
                 .Type<FooType>()
                 .Type<BarType>()),
@@ -118,7 +118,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooBarType = CreateType(new UnionType(d => d
+            UnionType fooBarType = CreateType(new UnionType(d => d
                 .Directive<FooDirective>()
                 .Type<FooType>()
                 .Type<BarType>()),

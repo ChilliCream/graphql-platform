@@ -137,6 +137,7 @@ namespace HotChocolate.Configuration
             if(reference is NameDirectiveReference nr)
             {
                 return _typeInitializer.Types.Values
+                    .Select(t => t.Type)
                     .OfType<DirectiveType>()
                     .FirstOrDefault(t => t.Name.Equals(nr.Name));
             }

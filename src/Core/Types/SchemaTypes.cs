@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -88,7 +88,7 @@ namespace HotChocolate
         private static Dictionary<NameString, ImmutableList<ObjectType>> CreatePossibleTypeLookup(
             IReadOnlyCollection<INamedType> types)
         {
-            Dictionary<NameString, List<ObjectType>> possibleTypes =
+            var possibleTypes =
                 new Dictionary<NameString, List<ObjectType>>();
 
             foreach (ObjectType objectType in types.OfType<ObjectType>())

@@ -37,7 +37,7 @@ namespace HotChocolate.Utilities
             string expectedTypeName)
         {
             // arrange
-            DotNetTypeInfoFactory factory = new DotNetTypeInfoFactory();
+            var factory = new DotNetTypeInfoFactory();
 
             // act
             bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
@@ -78,7 +78,7 @@ namespace HotChocolate.Utilities
             string expectedTypeName)
         {
             // arrange
-            DotNetTypeInfoFactory factory = new DotNetTypeInfoFactory();
+            var factory = new DotNetTypeInfoFactory();
 
             // act
             bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
@@ -99,7 +99,7 @@ namespace HotChocolate.Utilities
         public void NotSupportedCases(Type clrType)
         {
             // arrange
-            DotNetTypeInfoFactory factory = new DotNetTypeInfoFactory();
+            var factory = new DotNetTypeInfoFactory();
 
             // act
             bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
@@ -124,7 +124,7 @@ namespace HotChocolate.Utilities
         public void SupportedListTypes(Type clrType, string expectedTypeName)
         {
             // arrange
-            DotNetTypeInfoFactory factory = new DotNetTypeInfoFactory();
+            var factory = new DotNetTypeInfoFactory();
 
             // act
             bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);
@@ -145,7 +145,7 @@ namespace HotChocolate.Utilities
         public void MixedTypes(Type clrType, string expectedTypeName)
         {
             // arrange
-            DotNetTypeInfoFactory factory = new DotNetTypeInfoFactory();
+            var factory = new DotNetTypeInfoFactory();
 
             // act
             bool success = factory.TryCreate(clrType, out TypeInfo typeInfo);

@@ -8,7 +8,7 @@ namespace HotChocolate.Language
         public static void IsNull_Null_True()
         {
             // arrange
-            IValueNode value = default(IValueNode);
+            var value = default(IValueNode);
 
             // act
             bool result = value.IsNull();

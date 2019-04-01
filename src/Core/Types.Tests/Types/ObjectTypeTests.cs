@@ -609,7 +609,7 @@ namespace HotChocolate.Types
 
             // act
             Action a = () => ObjectTypeDescriptorExtensions
-                .Ignore<Foo>(descriptor.Object, null);
+                .Ignore(descriptor.Object, null);
 
             // assert
             Assert.Throws<ArgumentNullException>(a);

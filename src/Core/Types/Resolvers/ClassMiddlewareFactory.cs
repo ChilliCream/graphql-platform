@@ -10,10 +10,10 @@ namespace HotChocolate.Resolvers
         {
             return next =>
             {
-                var factory = MiddlewareActivator
+                MiddlewareFactory<TMiddleware, FieldDelegate> factory = MiddlewareActivator
                     .CompileFactory<TMiddleware, FieldDelegate>();
 
-                return CreateDelegate<TMiddleware>(
+                return CreateDelegate(
                     (s, n) => factory(s, n),
                     next);
             };
@@ -23,7 +23,7 @@ namespace HotChocolate.Resolvers
             Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
             where TMiddleware : class
         {
-            return next => CreateDelegate<TMiddleware>(factory, next);
+            return next => CreateDelegate(factory, next);
         }
 
         internal static FieldDelegate CreateDelegate<TMiddleware>(
@@ -34,7 +34,7 @@ namespace HotChocolate.Resolvers
             object sync = new object();
             TMiddleware middleware = null;
 
-            var compiled = MiddlewareActivator
+            ClassQueryDelegate<TMiddleware, IMiddlewareContext> compiled = MiddlewareActivator
                 .CompileMiddleware<TMiddleware, IMiddlewareContext>();
 
             return context =>

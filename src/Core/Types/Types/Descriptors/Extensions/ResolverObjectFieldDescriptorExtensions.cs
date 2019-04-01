@@ -24,7 +24,7 @@ namespace HotChocolate.Types
             }
 
             return descriptor.Resolver(ctx =>
-                Task.FromResult<object>(resolver(ctx)));
+                Task.FromResult(resolver(ctx)));
         }
 
         public static IObjectFieldDescriptor Resolver(
@@ -109,7 +109,7 @@ namespace HotChocolate.Types
             }
 
             return descriptor.Resolver(ctx =>
-                Task.FromResult<object>(resolver()));
+                Task.FromResult(resolver()));
         }
 
         public static IObjectFieldDescriptor Resolver(
@@ -255,7 +255,7 @@ namespace HotChocolate.Types
             }
 
             return descriptor.Resolver(
-                ctx => Task.FromResult<object>(constantResult));
+                ctx => Task.FromResult(constantResult));
         }
 
         public static IObjectFieldDescriptor Resolver<TResult>(

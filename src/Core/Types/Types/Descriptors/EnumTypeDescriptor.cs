@@ -37,7 +37,7 @@ namespace HotChocolate.Types.Descriptors
         protected override void OnCreateDefinition(
             EnumTypeDefinition definition)
         {
-            Dictionary<object, EnumValueDefinition> values =
+            var values =
                 Values.Select(t => t.CreateDefinition())
                    .ToDictionary(t => t.Value);
             AddImplicitValues(definition, values);

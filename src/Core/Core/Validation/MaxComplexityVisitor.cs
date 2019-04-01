@@ -44,20 +44,20 @@ namespace HotChocolate.Validation
         {
             if (document == null)
             {
-                throw new System.ArgumentNullException(nameof(document));
+                throw new ArgumentNullException(nameof(document));
             }
 
             if (operation == null)
             {
-                throw new System.ArgumentNullException(nameof(operation));
+                throw new ArgumentNullException(nameof(operation));
             }
 
             if (context == null)
             {
-                throw new System.ArgumentNullException(nameof(context));
+                throw new ArgumentNullException(nameof(context));
             }
 
-            foreach (var fragment in document.Definitions
+            foreach (FragmentDefinitionNode fragment in document.Definitions
                 .OfType<FragmentDefinitionNode>()
                 .Where(t => t.Name?.Value != null))
             {
@@ -80,14 +80,14 @@ namespace HotChocolate.Validation
             DocumentNode node,
             MaxComplexityVisitorContext context)
         {
-            foreach (var fragment in node.Definitions
+            foreach (FragmentDefinitionNode fragment in node.Definitions
                 .OfType<FragmentDefinitionNode>()
                 .Where(t => t.Name?.Value != null))
             {
                 context.Fragments[fragment.Name.Value] = fragment;
             }
 
-            foreach (var operation in node.Definitions
+            foreach (OperationDefinitionNode operation in node.Definitions
                 .OfType<OperationDefinitionNode>())
             {
                 if (operation.TryGetOperationType(

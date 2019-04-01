@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             // act
-            var type = CreateType(new EdgeType<StringType>());
+            EdgeType<StringType> type = CreateType(new EdgeType<StringType>());
 
             // assert
             Assert.Collection(type.Fields.Where(t => !t.IsIntrospectionField),

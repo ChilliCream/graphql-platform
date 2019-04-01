@@ -44,7 +44,7 @@ namespace HotChocolate.Configuration
 
             foreach (FieldResolver resolver in result.Resolvers)
             {
-                FieldReference reference = resolver.ToFieldReference();
+                var reference = resolver.ToFieldReference();
                 if (resolvers.TryGetValue(reference,
                     out RegisteredResolver registered))
                 {

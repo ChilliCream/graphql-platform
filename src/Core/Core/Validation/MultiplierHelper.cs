@@ -61,7 +61,7 @@ namespace HotChocolate.Validation
             string multiplierPath,
             out int value)
         {
-            Queue<string> path = new Queue<string>(multiplierPath.Split('.'));
+            var path = new Queue<string>(multiplierPath.Split('.'));
             string name = path.Dequeue();
 
             ArgumentNode argument = field.Arguments

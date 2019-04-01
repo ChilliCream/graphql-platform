@@ -52,7 +52,7 @@ namespace HotChocolate.Utilities
                         .Type<ListType<StringType>>()));
             });
 
-            var type = schema.GetType<INamedInputType>("FooInput");
+            INamedInputType type = schema.GetType<INamedInputType>("FooInput");
 
             var foo = new Dictionary<string, object>();
             foo["a"] = new List<object> { "abc", "def" };

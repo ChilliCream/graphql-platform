@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Introspection
         private static ObjectFieldDefinition CreateDefinition(
             IDescriptorContext context)
         {
-            ObjectFieldDescriptor descriptor = ObjectFieldDescriptor
+            var descriptor = ObjectFieldDescriptor
                 .New(context, IntrospectionFields.TypeName);
 
             descriptor.Description(

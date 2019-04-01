@@ -54,7 +54,7 @@ namespace HotChocolate.Types
         protected override InterfaceTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            InterfaceTypeDescriptor descriptor = InterfaceTypeDescriptor.New(
+            var descriptor = InterfaceTypeDescriptor.New(
                 DescriptorContext.Create(context.Services),
                 GetType());
             _configure(descriptor);
@@ -100,31 +100,11 @@ namespace HotChocolate.Types
             Fields = new FieldCollection<InterfaceField>(
                 definition.Fields.Select(t => new InterfaceField(t)));
 
-            FieldInitHelper.CompleteFields(context, definition, Fields);
             CompleteAbstractTypeResolver(
                 context,
                 definition.ResolveAbstractType);
-        }
-
-        private void CompleteFields(
-            ICompletionContext context)
-        {
-            foreach (InterfaceField field in Fields)
-            {
-                field.CompleteField(context);
-            }
-
-            if (Fields.Count == 0)
-            {
-                // TODO : RESOURCES
-                context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage($"Interface `{Name}` has no fields declared.")
-                    .SetCode(TypeErrorCodes.MissingType)
-                    .SetTypeSystemObject(context.Type)
-                    .AddSyntaxNode(SyntaxNode)
-                    .Build());
-            }
-        }
+            FieldInitHelper.CompleteFields(context, definition, Fields);
+        }       
 
         private void CompleteAbstractTypeResolver(
             ICompletionContext context,

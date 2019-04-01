@@ -109,7 +109,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 if (IsResolverRelevant(sourceType, member))
                 {
-                    var fieldDefinition = ObjectFieldDescriptor
+                    ObjectFieldDefinition fieldDefinition = ObjectFieldDescriptor
                         .New(Context, member, resolverType)
                         .CreateDefinition();
 

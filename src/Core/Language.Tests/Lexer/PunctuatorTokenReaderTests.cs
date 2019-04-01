@@ -96,7 +96,7 @@ namespace HotChocolate.Language
         private void ReadToken(string sourceBody, TokenKind kind)
         {
             // arrange
-            Source source = new Source(sourceBody);
+            var source = new Source(sourceBody);
 
             // act
             SyntaxToken token = Lexer.Default.Read(source);

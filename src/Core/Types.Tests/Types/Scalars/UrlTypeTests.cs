@@ -10,7 +10,7 @@ namespace HotChocolate.Types
         public void EnsureUrlTypeKindIsCorrect()
         {
             // arrange
-            UrlType type = new UrlType();
+            var type = new UrlType();
 
             // act
             // assert
@@ -21,12 +21,12 @@ namespace HotChocolate.Types
         public void ParseLiteral_StringValueNode()
         {
             // arrange
-            UrlType urlType = new UrlType();
-            Uri expected = new Uri("http://domain.test/url");
+            var urlType = new UrlType();
+            var expected = new Uri("http://domain.test/url");
             var literal = new StringValueNode(expected.AbsoluteUri);
 
             // act
-            Uri actual = (Uri)urlType
+            var actual = (Uri)urlType
                 .ParseLiteral(literal);
 
             // assert
@@ -37,7 +37,7 @@ namespace HotChocolate.Types
         public void ParseLiteral_NullValueNode()
         {
             // arrange
-            UrlType urlType = new UrlType();
+            var urlType = new UrlType();
             NullValueNode literal = NullValueNode.Default;
 
             // act
@@ -51,8 +51,8 @@ namespace HotChocolate.Types
         public void ParseLiteral_Invalid_Url_Throws()
         {
             // arrange
-            UrlType type = new UrlType();
-            StringValueNode input = new StringValueNode("$*^domain.test");
+            var type = new UrlType();
+            var input = new StringValueNode("$*^domain.test");
 
             // act
             // assert
@@ -64,12 +64,12 @@ namespace HotChocolate.Types
         public void ParseValue_Url()
         {
             // arrange
-            UrlType urlType = new UrlType();
-            Uri uri = new Uri("http://domain.test/url");
+            var urlType = new UrlType();
+            var uri = new Uri("http://domain.test/url");
             string expectedLiteralValue = uri.AbsoluteUri;
 
             // act
-            StringValueNode stringLiteral =
+            var stringLiteral =
                 (StringValueNode)urlType.ParseValue(uri);
 
             // assert
@@ -80,12 +80,12 @@ namespace HotChocolate.Types
         public void ParseValue_Encoded()
         {
             // arrange
-            UrlType urlType = new UrlType();
-            Uri uri = new Uri("http://domain.test/ä+😄?q=a/α");
+            var urlType = new UrlType();
+            var uri = new Uri("http://domain.test/ä+😄?q=a/α");
             string expectedLiteralValue = uri.AbsoluteUri;
 
             // act
-            StringValueNode stringLiteral =
+            var stringLiteral =
                 (StringValueNode)urlType.ParseValue(uri);
 
             // assert
@@ -96,7 +96,7 @@ namespace HotChocolate.Types
         public void Serialize_Null()
         {
             // arrange
-            UrlType dateType = new UrlType();
+            var dateType = new UrlType();
 
             // act
             object serializedValue = dateType.Serialize(null);
@@ -109,8 +109,8 @@ namespace HotChocolate.Types
         public void Serialize_Url()
         {
             // arrange
-            UrlType urlType = new UrlType();
-            Uri uri = new Uri("http://domain.test/url");
+            var urlType = new UrlType();
+            var uri = new Uri("http://domain.test/url");
 
             // act
             object serializedValue = urlType.Serialize(uri);

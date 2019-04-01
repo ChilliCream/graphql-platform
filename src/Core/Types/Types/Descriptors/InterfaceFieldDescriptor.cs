@@ -96,7 +96,7 @@ namespace HotChocolate.Types.Descriptors
             TOutputType outputType)
             where TOutputType : class, IOutputType
         {
-            base.Type<TOutputType>(outputType);
+            base.Type(outputType);
             return this;
         }
 

@@ -51,7 +51,7 @@ namespace HotChocolate.Utilities
 
             if (CanHandle(type))
             {
-                List<Type> components = RemoveNonNullComponents(type).ToList();
+                var components = RemoveNonNullComponents(type).ToList();
 
                 if (components.Count == 2
                     && IsListType(components[0])

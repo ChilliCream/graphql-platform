@@ -12,7 +12,7 @@ namespace HotChocolate.Language
             string schemaSource = FileResource.Open("schema-kitchen-sink.graphql");
 
             // act
-            Parser parser = new Parser();
+            var parser = new Parser();
             DocumentNode document = parser.Parse(
                 schemaSource, new ParserOptions(noLocations: true));
 
@@ -27,7 +27,7 @@ namespace HotChocolate.Language
             string querySource = FileResource.Open("kitchen-sink.graphql");
 
             // act
-            Parser parser = new Parser();
+            var parser = new Parser();
             DocumentNode document = parser.Parse(
                 querySource, new ParserOptions(
                     noLocations: true, allowFragmentVariables: true));

@@ -287,7 +287,7 @@ namespace HotChocolate.Validation
             var options = new Mock<IValidateQueryOptionsAccessor>(
                 MockBehavior.Strict);
             options.Setup(t => t.MaxExecutionDepth)
-                .Returns((Nullable<int>)null);
+                .Returns((int?)null);
 
             var rule = new MaxDepthRule(options.Object);
 

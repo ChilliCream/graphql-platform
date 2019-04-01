@@ -29,7 +29,7 @@ namespace HotChocolate.Types
         public void ConfigureDirectiveWithResolver()
         {
             // arrange
-            DirectiveType directiveType = new DirectiveType(
+            var directiveType = new DirectiveType(
                 t => t.Name("Foo")
                     .Location(DirectiveLocation.Field)
                     .Use(next => context => Task.CompletedTask));

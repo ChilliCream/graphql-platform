@@ -18,7 +18,7 @@ namespace HotChocolate.Discovery
             });
 
             // assert
-            var query = schema.GetType<ObjectType>("Query");
+            ObjectType query = schema.GetType<ObjectType>("Query");
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
                 .OrderBy(t => t.Name.ToString()),
@@ -40,7 +40,7 @@ namespace HotChocolate.Discovery
             });
 
             // assert
-            var query = schema.GetType<ObjectType>("Mutation");
+            ObjectType query = schema.GetType<ObjectType>("Mutation");
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
                 .OrderBy(t => t.Name.ToString()),
@@ -63,7 +63,7 @@ namespace HotChocolate.Discovery
             });
 
             // assert
-            var query = schema.GetType<ObjectType>("Query");
+            ObjectType query = schema.GetType<ObjectType>("Query");
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
                 .OrderBy(t => t.Name.ToString()),
@@ -87,7 +87,7 @@ namespace HotChocolate.Discovery
             });
 
             // assert
-            var query = schema.GetType<ObjectType>("Query");
+            ObjectType query = schema.GetType<ObjectType>("Query");
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
                 .OrderBy(t => t.Name.ToString()),
@@ -111,7 +111,7 @@ namespace HotChocolate.Discovery
             });
 
             // assert
-            var query = schema.GetType<ObjectType>("Query");
+            ObjectType query = schema.GetType<ObjectType>("Query");
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
                 .OrderBy(t => t.Name.ToString()),

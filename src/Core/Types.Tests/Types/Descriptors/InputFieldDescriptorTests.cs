@@ -14,7 +14,7 @@ namespace HotChocolate.Types
         public void DotNetTypesDoNotOverwriteSchemaTypes()
         {
             // arrange
-            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+            var descriptor = InputFieldDescriptor.New(
                 Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
@@ -34,7 +34,7 @@ namespace HotChocolate.Types
         public void SchemaTypesOverwriteDotNetTypes()
         {
             // arrange
-            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+            var descriptor = InputFieldDescriptor.New(
                 Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
@@ -54,7 +54,7 @@ namespace HotChocolate.Types
         public void SetSchemaType()
         {
             // arrange
-            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+            var descriptor = InputFieldDescriptor.New(
                 Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
@@ -72,7 +72,7 @@ namespace HotChocolate.Types
         public void OverwriteName()
         {
             // arrange
-            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+            var descriptor = InputFieldDescriptor.New(
                 Context,
                 "field1234");
 
@@ -88,7 +88,7 @@ namespace HotChocolate.Types
         public void OverwriteName2()
         {
             // arrange
-            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+            var descriptor = InputFieldDescriptor.New(
                 Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
@@ -105,7 +105,7 @@ namespace HotChocolate.Types
         {
             // arrange
             string expectedDescription = Guid.NewGuid().ToString();
-            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+            var descriptor = InputFieldDescriptor.New(
                 Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
@@ -121,7 +121,7 @@ namespace HotChocolate.Types
         public void SetDefaultValueAndInferType()
         {
             // arrange
-            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+            var descriptor = InputFieldDescriptor.New(
                 Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
@@ -139,7 +139,7 @@ namespace HotChocolate.Types
         public void OverwriteDefaultValueLiteralWithNativeDefaultValue()
         {
             // arrange
-            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+            var descriptor = InputFieldDescriptor.New(
                 Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
@@ -158,7 +158,7 @@ namespace HotChocolate.Types
         public void SettingTheNativeDefaultValueToNullCreatesNullLiteral()
         {
             // arrange
-            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+            var descriptor = InputFieldDescriptor.New(
                 Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
@@ -178,7 +178,7 @@ namespace HotChocolate.Types
         public void OverwriteNativeDefaultValueWithDefaultValueLiteral()
         {
             // arrange
-            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+            var descriptor = InputFieldDescriptor.New(
                 Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 
@@ -199,7 +199,7 @@ namespace HotChocolate.Types
         public void InferTypeFromProperty()
         {
             // act
-            InputFieldDescriptor descriptor = InputFieldDescriptor.New(
+            var descriptor = InputFieldDescriptor.New(
                 Context,
                 typeof(ObjectField).GetProperty("Arguments"));
 

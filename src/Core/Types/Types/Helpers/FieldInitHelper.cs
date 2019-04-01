@@ -50,11 +50,11 @@ namespace HotChocolate.Types
             where TFieldDef : FieldDefinitionBase
 
         {
-            if (fields.Count == 0)
+            if (context.Type is IType type && fields.Count == 0)
             {
                 // TODO : RESOURCES
                 context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage($"Interface `{definition.Name}` has no fields declared.")
+                    .SetMessage($"{type.Kind} `{definition.Name}` has no fields declared.")
                     .SetCode(TypeErrorCodes.MissingType)
                     .SetTypeSystemObject(context.Type)
                     .AddSyntaxNode(definition.SyntaxNode)

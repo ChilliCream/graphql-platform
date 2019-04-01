@@ -51,7 +51,7 @@ namespace HotChocolate
             typeDefinitions.Insert(0,
                 SerializeSchemaTypeDefinition(schema, referenced));
 
-            var scalarTypeDefinitions = schema.Types
+            IEnumerable<ScalarTypeDefinitionNode> scalarTypeDefinitions = schema.Types
                 .OfType<ScalarType>()
                 .Where(t => referenced.Contains(t.Name))
                 .Select(t => SerializeScalarType(t));
@@ -342,7 +342,7 @@ namespace HotChocolate
             if (type is NonNullType nt)
             {
                 return new NonNullTypeNode(null,
-                    (Language.INullableTypeNode)SerializeType(
+                    (INullableTypeNode)SerializeType(
                         nt.Type, referenced));
             }
 

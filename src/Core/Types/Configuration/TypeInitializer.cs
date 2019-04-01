@@ -151,11 +151,11 @@ namespace HotChocolate.Configuration
 
         private void RegisterImplicitInterfaceDependencies()
         {
-            List<RegisteredType> withClrType =
+            var withClrType =
                 _types.Values.Where(t => t.ClrType != typeof(object)).ToList();
-            List<RegisteredType> interfaceTypes =
+            var interfaceTypes =
                 withClrType.Where(t => t.Type is InterfaceType).ToList();
-            List<RegisteredType> objectTypes =
+            var objectTypes =
                 withClrType.Where(t => t.Type is ObjectType).ToList();
 
             var dependencies = new List<TypeDependency>();

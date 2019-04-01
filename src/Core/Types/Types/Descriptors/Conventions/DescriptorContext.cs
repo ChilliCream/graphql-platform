@@ -34,7 +34,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(services));
             }
 
-            INamingConventions naming =
+            var naming =
                 (INamingConventions)services.GetService(
                     typeof(INamingConventions));
             if (naming == null)
@@ -42,7 +42,7 @@ namespace HotChocolate.Types.Descriptors
                 naming = new DefaultNamingConventions();
             }
 
-            ITypeInspector inspector =
+            var inspector =
                 (ITypeInspector)services.GetService(
                     typeof(ITypeInspector));
             if (inspector == null)

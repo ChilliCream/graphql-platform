@@ -44,7 +44,7 @@ namespace HotChocolate.Validation
         private Dictionary<string, List<ISyntaxNode>> CollectOperations(
             DocumentNode queryDocument)
         {
-            Dictionary<string, List<ISyntaxNode>> operations =
+            var operations =
                 new Dictionary<string, List<ISyntaxNode>>();
 
             foreach (OperationDefinitionNode operation in queryDocument
@@ -66,7 +66,7 @@ namespace HotChocolate.Validation
         private List<IError> CheckForRuleViolations(
             Dictionary<string, List<ISyntaxNode>> operations)
         {
-            List<IError> errors = new List<IError>();
+            var errors = new List<IError>();
             foreach (KeyValuePair<string, List<ISyntaxNode>> operation in
                 operations)
             {

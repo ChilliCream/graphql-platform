@@ -78,7 +78,7 @@ namespace HotChocolate.Utilities
             if (elementType != null)
             {
                 Type listType = typeof(List<>).MakeGenericType(elementType);
-                IList temp = (IList)Activator.CreateInstance(listType);
+                var temp = (IList)Activator.CreateInstance(listType);
 
                 for (int i = 0; i < list.Count; i++)
                 {

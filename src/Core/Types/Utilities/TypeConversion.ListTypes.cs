@@ -53,7 +53,7 @@ namespace HotChocolate.Utilities
             Type elementType, ICollection source,
             ChangeType converter)
         {
-            Array array = Array.CreateInstance(elementType, source.Count);
+            var array = Array.CreateInstance(elementType, source.Count);
             ChangeListType(source, (item, index) =>
                 array.SetValue(converter(item), index));
             return array;
@@ -63,7 +63,7 @@ namespace HotChocolate.Utilities
             Type listType, ICollection source,
             ChangeType converter)
         {
-            IList list = (IList)Activator.CreateInstance(listType);
+            var list = (IList)Activator.CreateInstance(listType);
             ChangeListType(source, (item, index) =>
                 list.Add(converter(item)));
             return list;

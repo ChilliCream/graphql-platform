@@ -24,7 +24,7 @@ namespace HotChocolate.Types
             }
 
             return descriptor.Use(
-                FieldClassMiddlewareFactory.Create<TMiddleware>(factory));
+                FieldClassMiddlewareFactory.Create(factory));
         }
     }
 }

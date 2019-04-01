@@ -24,7 +24,7 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             // act
-            var type = CreateType(new PageInfoType());
+            PageInfoType type = CreateType(new PageInfoType());
 
             // assert
             Assert.Collection(type.Fields.Where(t => !t.IsIntrospectionField),

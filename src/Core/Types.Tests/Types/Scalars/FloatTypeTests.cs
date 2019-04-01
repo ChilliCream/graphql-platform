@@ -29,8 +29,8 @@ namespace HotChocolate.Types
         public void IsInstanceOfType_IntValueNode()
         {
             // arrange
-            FloatType type = new FloatType();
-            IntValueNode input = new IntValueNode("123");
+            var type = new FloatType();
+            var input = new IntValueNode("123");
 
             // act
             bool result = type.IsInstanceOfType(input);
@@ -43,8 +43,8 @@ namespace HotChocolate.Types
         public void ParseLiteral_IntValueNode()
         {
             // arrange
-            FloatType type = new FloatType();
-            IntValueNode input = new IntValueNode("123");
+            var type = new FloatType();
+            var input = new IntValueNode("123");
 
             // act
             object result = type.ParseLiteral(input);

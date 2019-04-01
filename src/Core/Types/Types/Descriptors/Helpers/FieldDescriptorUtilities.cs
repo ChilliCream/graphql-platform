@@ -79,7 +79,7 @@ namespace HotChocolate.Types.Descriptors
                 {
                     if (IsArgumentType(method, parameter))
                     {
-                        var argumentDefinition =
+                        ArgumentDefinition argumentDefinition =
                             ArgumentDescriptor
                                 .New(context, parameter)
                                 .CreateDefinition();

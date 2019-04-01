@@ -19,9 +19,9 @@ namespace HotChocolate.Subscriptions
 
             try
             {
-                if (_streams.TryGetValue(message.Event, out var subscribers))
+                if (_streams.TryGetValue(message.Event, out List<InMemoryEventStream> subscribers))
                 {
-                    foreach (var stream in subscribers)
+                    foreach (InMemoryEventStream stream in subscribers)
                     {
                         stream.Trigger(message);
                     }
@@ -52,7 +52,7 @@ namespace HotChocolate.Subscriptions
             try
             {
                 if (!_streams.TryGetValue(eventDescription,
-                    out var subscribers))
+                    out List<InMemoryEventStream> subscribers))
                 {
                     subscribers = new List<InMemoryEventStream>();
                     _streams[eventDescription] = subscribers;
@@ -78,7 +78,7 @@ namespace HotChocolate.Subscriptions
 
             try
             {
-                if (_streams.TryGetValue(message.Event, out var subscribers))
+                if (_streams.TryGetValue(message.Event, out List<InMemoryEventStream> subscribers))
                 {
                     subscribers.Remove(stream);
                 }

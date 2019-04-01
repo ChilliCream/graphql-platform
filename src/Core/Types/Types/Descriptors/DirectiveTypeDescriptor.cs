@@ -100,7 +100,7 @@ namespace HotChocolate.Types.Descriptors
 
         public IDirectiveTypeDescriptor Location(DirectiveLocation value)
         {
-            var values = Enum.GetValues(typeof(DirectiveLocation));
+            Array values = Enum.GetValues(typeof(DirectiveLocation));
             foreach (DirectiveLocation item in values)
             {
                 if (value.HasFlag(item))

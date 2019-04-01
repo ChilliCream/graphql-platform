@@ -189,7 +189,7 @@ namespace HotChocolate.Types
             string schemaSdl = "input Simple { a: String b: [String] }";
 
             // act
-            Schema schema = Schema.Create(
+            var schema = Schema.Create(
                 schemaSdl,
                 c =>
                 {
@@ -224,7 +224,7 @@ namespace HotChocolate.Types
             string schemaSdl = "directive @foo(a:String) on QUERY";
 
             // act
-            Schema schema = Schema.Create(
+            var schema = Schema.Create(
                 schemaSdl,
                 c => c.Options.StrictValidation = false);
 
@@ -249,7 +249,7 @@ namespace HotChocolate.Types
             string schemaSdl = "directive @foo(a:String) repeatable on QUERY";
 
             // act
-            Schema schema = Schema.Create(
+            var schema = Schema.Create(
                 schemaSdl,
                 c => c.Options.StrictValidation = false);
 

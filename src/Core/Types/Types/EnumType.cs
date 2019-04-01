@@ -187,7 +187,7 @@ namespace HotChocolate.Types
         protected override EnumTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            EnumTypeDescriptor descriptor = EnumTypeDescriptor.New(
+            var descriptor = EnumTypeDescriptor.New(
                 DescriptorContext.Create(context.Services),
                 GetType());
             _configure(descriptor);

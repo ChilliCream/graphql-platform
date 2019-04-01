@@ -10,7 +10,7 @@ namespace HotChocolate.Utilities
         public void Case4()
         {
             // arrange
-            NamedTypeInfoFactory factory = new NamedTypeInfoFactory();
+            var factory = new NamedTypeInfoFactory();
             Type nativeType = typeof(NonNullType<ListType<NonNullType<StringType>>>);
 
             // act
@@ -32,7 +32,7 @@ namespace HotChocolate.Utilities
         public void Case3_1()
         {
             // arrange
-            NamedTypeInfoFactory factory = new NamedTypeInfoFactory();
+            var factory = new NamedTypeInfoFactory();
             Type nativeType = typeof(ListType<NonNullType<StringType>>);
 
             // act
@@ -52,7 +52,7 @@ namespace HotChocolate.Utilities
         public void Case3_2()
         {
             // arrange
-            NamedTypeInfoFactory factory = new NamedTypeInfoFactory();
+            var factory = new NamedTypeInfoFactory();
             Type nativeType = typeof(NonNullType<ListType<StringType>>);
 
             // act
@@ -72,7 +72,7 @@ namespace HotChocolate.Utilities
         public void Case2_1()
         {
             // arrange
-            NamedTypeInfoFactory factory = new NamedTypeInfoFactory();
+            var factory = new NamedTypeInfoFactory();
             Type nativeType = typeof(NonNullType<StringType>);
 
             // act
@@ -90,7 +90,7 @@ namespace HotChocolate.Utilities
         public void Case2_2()
         {
             // arrange
-            NamedTypeInfoFactory factory = new NamedTypeInfoFactory();
+            var factory = new NamedTypeInfoFactory();
             Type nativeType = typeof(ListType<StringType>);
 
             // act
@@ -108,7 +108,7 @@ namespace HotChocolate.Utilities
         public void Case1()
         {
             // arrange
-            NamedTypeInfoFactory factory = new NamedTypeInfoFactory();
+            var factory = new NamedTypeInfoFactory();
             Type nativeType = typeof(StringType);
 
             // act
@@ -127,7 +127,7 @@ namespace HotChocolate.Utilities
         public void NotSupportedCases(Type nativeType)
         {
             // arrange
-            NamedTypeInfoFactory factory = new NamedTypeInfoFactory();
+            var factory = new NamedTypeInfoFactory();
 
             // act
             bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);

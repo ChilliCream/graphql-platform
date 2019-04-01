@@ -10,7 +10,7 @@ namespace HotChocolate.Runtime
         public void TypeArgumentValidation()
         {
             // arrange
-            ServiceFactory factory = new ServiceFactory();
+            var factory = new ServiceFactory();
 
             // act
             Action a = () => factory.CreateInstance(null);
@@ -23,7 +23,7 @@ namespace HotChocolate.Runtime
         public void CreateInstanceWithoutServiceProvider()
         {
             // arrange
-            ServiceFactory factory = new ServiceFactory();
+            var factory = new ServiceFactory();
 
             // act
             object instance =
@@ -54,7 +54,7 @@ namespace HotChocolate.Runtime
             Assert.NotNull(instance);
             Assert.IsType<ClassWithDependencies>(instance);
 
-            ClassWithDependencies classWithDependencies =
+            var classWithDependencies =
                 (ClassWithDependencies)instance;
             Assert.NotNull(classWithDependencies.Dependency);
         }

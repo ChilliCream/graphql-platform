@@ -71,7 +71,7 @@ namespace HotChocolate.Types.Descriptors
             TInterface type)
             where TInterface : InterfaceType
         {
-            base.Interface<TInterface>(type);
+            base.Interface(type);
             return this;
         }
 
@@ -97,14 +97,14 @@ namespace HotChocolate.Types.Descriptors
             TDirective directive)
             where TDirective : class
         {
-            base.Directive<TDirective>(directive);
+            base.Directive(directive);
             return this;
         }
 
         public new IObjectTypeDescriptor<T> Directive<TDirective>()
             where TDirective : class, new()
         {
-            base.Directive<TDirective>(new TDirective());
+            base.Directive(new TDirective());
             return this;
         }
 
