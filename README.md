@@ -7,7 +7,7 @@
 
 **Hot Chocolate is a GraphQL server for _.NET Core_ and _.NET Classic_**
 
-_Hot Chocolate_ is a GraphQL server and parser implementation based on the current GraphQL [June 2018 specification](http://facebook.github.io/graphql/June2018/) defined by Facebook.
+_Hot Chocolate_ is a GraphQL server implementation based on the current GraphQL [June 2018 specification](http://facebook.github.io/graphql/June2018/).
 
 ## Getting Started
 
@@ -26,6 +26,8 @@ dotnet new starwars
 The GraphQL specification and more is available on the [Facebook GraphQL repository](https://github.com/facebook/graphql).
 
 If you want to get in touch with us you can do so by joining our [slack group](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTBkZjNjZWIzMmNlZjQ5MDQyNDNjMmY3NzYzZjgyYTVmZDU2YjVmNDlhNjNlNTk2ZWRiYzIxMTkwYzA4ODA5Yzg).
+
+> This readme only provides a simple quickstart, in order to learn more about advanced features like schema stitching head over to our [documentation](http://hotchocolate.io).
 
 ### Using Hot Chocolate
 
