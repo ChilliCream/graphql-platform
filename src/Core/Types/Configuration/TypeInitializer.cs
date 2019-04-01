@@ -88,6 +88,30 @@ namespace HotChocolate.Configuration
             }
         }
 
+        public bool TryGetRegisteredType(
+            ITypeReference reference,
+            out RegisteredType registeredType)
+        {
+            if (reference == null)
+            {
+                throw new ArgumentNullException(nameof(reference));
+            }
+
+            if (_types.TryGetValue(reference, out registeredType))
+            {
+                return true;
+            }
+
+            if(TryNormalizeReference(reference, out ITypeReference nr)
+                && _types.TryGetValue(nr, out registeredType))
+            {
+                return true;
+            }
+
+            registeredType = null;
+            return false;
+        }
+
         private bool RegisterTypes()
         {
             var typeRegistrar = new TypeRegistrar(_services, _initialTypes);

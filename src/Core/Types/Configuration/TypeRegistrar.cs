@@ -93,8 +93,17 @@ namespace HotChocolate.Configuration
             foreach (IClrTypeReference unresolvedType in Unresolved.ToList())
             {
                 if (Scalars.TryGetScalar(unresolvedType.Type,
-                    out IClrTypeReference schemaType)
-                    || SchemaTypeResolver.TryInferSchemaType(unresolvedType,
+                    out IClrTypeReference schemaType))
+                {
+                    resolved = true;
+                    _unregistered.Add(schemaType);
+                    Unresolved.Remove(unresolvedType);
+                    if (!ClrTypes.ContainsKey(unresolvedType))
+                    {
+                        ClrTypes.Add(unresolvedType, schemaType);
+                    }
+                }
+                else if (SchemaTypeResolver.TryInferSchemaType(unresolvedType,
                     out schemaType))
                 {
                     resolved = true;

@@ -32,7 +32,7 @@ namespace HotChocolate.Types
         protected override DirectiveTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            DirectiveTypeDescriptor<TDirective> descriptor =
+            var descriptor =
                 DirectiveTypeDescriptor.New<TDirective>(
                     DescriptorContext.Create(context.Services));
             _conf(descriptor);

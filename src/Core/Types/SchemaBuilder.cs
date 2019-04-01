@@ -409,8 +409,8 @@ namespace HotChocolate
                 }
 
                 if (reference is IClrTypeReference cr
-                    && initializer.Types.TryGetValue(cr,
-                        out RegisteredType registeredType))
+                    && initializer.TryGetRegisteredType(cr,
+                    out RegisteredType registeredType))
                 {
                     return (ObjectType)registeredType.Type;
                 }

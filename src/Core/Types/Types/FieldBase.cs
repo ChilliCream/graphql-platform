@@ -1,4 +1,4 @@
-﻿using System.Reflection.Metadata;
+using System.Reflection.Metadata;
 using System;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
@@ -49,6 +49,12 @@ namespace HotChocolate.Types
         {
             DeclaringType = context.Type;
             Type = context.GetType<TType>(_definition.Type);
+
+            if(Type == null)
+            {
+
+            }
+
             ClrType = Type.NamedType() is IHasClrType hasClrType
                 ? hasClrType.ClrType
                 : typeof(object);

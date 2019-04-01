@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using Xunit;
@@ -26,7 +26,7 @@ namespace HotChocolate.Types
                     t.Use(next => context => Task.CompletedTask);
                 });
 
-            var query = schema.GetType<ObjectType>("Query");
+            ObjectType query = schema.GetType<ObjectType>("Query");
             IDirective directive = query.Fields["field"].Directives
                 .Single(t => t.Name == "cost");
             CostDirective obj = directive.ToObject<CostDirective>();

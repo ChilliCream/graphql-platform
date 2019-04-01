@@ -126,7 +126,22 @@ namespace HotChocolate.Configuration
                 throw new NotSupportedException();
             }
 
-            throw new NotImplementedException();
+            if (reference is ClrTypeDirectiveReference cr
+                && _typeInitializer.TryGetRegisteredType(
+                    new ClrTypeReference(cr.ClrType, TypeContext.None),
+                    out RegisteredType registeredType))
+            {
+                return (DirectiveType)registeredType.Type;
+            }
+
+            if(reference is NameDirectiveReference nr)
+            {
+                return _typeInitializer.Types.Values
+                    .OfType<DirectiveType>()
+                    .FirstOrDefault(t => t.Name.Equals(nr.Name));
+            }
+
+            return null;
         }
 
         public FieldResolver GetResolver(IFieldReference reference)

@@ -15,6 +15,7 @@ namespace HotChocolate.Types
         : TypeSystemObjectBase<DirectiveTypeDefinition>
         , IHasName
         , IHasDescription
+        , IHasClrType
     {
         private readonly Action<IDirectiveTypeDescriptor> _configure;
         private ITypeConversion _converter;
@@ -33,7 +34,7 @@ namespace HotChocolate.Types
 
         public DirectiveDefinitionNode SyntaxNode { get; private set; }
 
-        internal Type ClrType { get; private set; }
+        public Type ClrType { get; private set; }
 
         public bool IsRepeatable { get; private set; }
 
@@ -66,7 +67,7 @@ namespace HotChocolate.Types
         protected override DirectiveTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            DirectiveTypeDescriptor descriptor = DirectiveTypeDescriptor.New(
+            var descriptor = DirectiveTypeDescriptor.New(
                 DescriptorContext.Create(context.Services),
                 GetType());
             _configure(descriptor);
@@ -81,9 +82,24 @@ namespace HotChocolate.Types
             IInitializationContext context,
             DirectiveTypeDefinition definition)
         {
+            base.OnRegisterDependencies(context, definition);
+
+            ClrType = definition.ClrType != GetType()
+                ? definition.ClrType
+                : typeof(object);
+
+            RegisterDependencies(context, definition);
+        }
+
+        private void RegisterDependencies(
+           IInitializationContext context,
+           DirectiveTypeDefinition definition)
+        {
+            var dependencies = new List<ITypeReference>();
+            
             context.RegisterDependencyRange(
-                definition.GetDependencies(),
-                TypeDependencyKind.Default);
+                definition.Arguments.Select(t => t.Type),
+                TypeDependencyKind.Completed);            
         }
 
         protected override void OnCompleteType(
