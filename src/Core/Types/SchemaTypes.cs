@@ -55,7 +55,7 @@ namespace HotChocolate
                 return true;
             }
 
-            type = default(T);
+            type = default;
             return false;
         }
 

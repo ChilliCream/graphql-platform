@@ -45,7 +45,7 @@ namespace HotChocolate.Types
             var schema = Schema.Create(c =>
             {
                 c.RegisterType<IFoo>();
-                c.RegisterType<FooImpl>();
+                c.RegisterQueryType<FooImpl>();
             });
 
             // assert
@@ -213,7 +213,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
-            Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
+            Assert.NotEmpty(fooType.Fields["bar"].Directives["foo"]);
         }
 
         [Fact]

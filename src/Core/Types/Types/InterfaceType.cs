@@ -88,6 +88,11 @@ namespace HotChocolate.Types
                 definition.Fields.SelectMany(t => t.Arguments)
                     .Select(t => t.Type),
                 TypeDependencyKind.Completed);
+
+            context.RegisterDependencyRange(
+                definition.Fields.SelectMany(t => t.Directives)
+                    .Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
         }
 
         protected override void OnCompleteType(
