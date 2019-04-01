@@ -90,7 +90,17 @@ namespace HotChocolate.Types
                 TypeDependencyKind.Completed);
 
             context.RegisterDependencyRange(
+                definition.Directives.Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
+
+            context.RegisterDependencyRange(
                 definition.Fields.SelectMany(t => t.Directives)
+                    .Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
+
+            context.RegisterDependencyRange(
+                definition.Fields.SelectMany(t => t.Arguments)
+                    .SelectMany(t => t.Directives)
                     .Select(t => t.TypeReference),
                 TypeDependencyKind.Completed);
         }
@@ -109,7 +119,7 @@ namespace HotChocolate.Types
                 context,
                 definition.ResolveAbstractType);
             FieldInitHelper.CompleteFields(context, definition, Fields);
-        }       
+        }
 
         private void CompleteAbstractTypeResolver(
             ICompletionContext context,

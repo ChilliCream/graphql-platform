@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using ChilliCream.Testing;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -38,7 +39,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.IsType<SerializationInputObject1>(obj);
-            obj.Snapshot();
+            obj.MatchSnapshot();
         }
 
         [Fact]

@@ -20,7 +20,6 @@ namespace HotChocolate.Types
             string source = "type Simple { a: String b: [String] }";
 
             // act
-            var factory = new ObjectTypeFactory();
             var schema = Schema.Create(source, c =>
             {
                 c.BindResolver(ctx =>
@@ -45,7 +44,7 @@ namespace HotChocolate.Types
             string source = @"
                 type Simple {
                     a: String @deprecated(reason: ""reason123"")
-                }";            
+                }";
 
             // act
             var schema = Schema.Create(source, c =>
@@ -62,16 +61,17 @@ namespace HotChocolate.Types
         public void CreateInterfaceType()
         {
             // arrange
-            InterfaceTypeDefinitionNode typeDefinition =
-                CreateTypeDefinition<InterfaceTypeDefinitionNode>(
-                    "interface Simple { a: String b: [String] }");
+            string source = "interface Simple { a: String b: [String] }";
 
             // act
-            var factory = new InterfaceTypeFactory();
-            InterfaceType type = null; // factory.Create(typeDefinition);
-            // CompleteType(type);
+            var schema = Schema.Create(source, c =>
+            {
+                c.RegisterQueryType<DummyQuery>();
+            });
 
             // assert
+            InterfaceType type = schema.GetType<InterfaceType>("Simple");
+
             Assert.Equal("Simple", type.Name);
             Assert.Equal(2, type.Fields.Count);
 
@@ -86,26 +86,32 @@ namespace HotChocolate.Types
             Assert.True(type.Fields["b"].Type.IsListType());
             Assert.False(type.Fields["b"].Type.IsScalarType());
             Assert.Equal("String", type.Fields["b"].Type.TypeName());
+
+            schema.ToString().MatchSnapshot();
         }
 
         [Fact]
         public void InterfaceFieldDeprecationReason()
         {
             // arrange
-            InterfaceTypeDefinitionNode typeDefinition =
-                CreateTypeDefinition<InterfaceTypeDefinitionNode>(@"
+            string source = @"
                     interface Simple {
                         a: String @deprecated(reason: ""reason123"")
-                    }");
+                    }";
 
             // act
-            var factory = new InterfaceTypeFactory();
-            InterfaceType type = null;// factory.Create(typeDefinition);
-            // CompleteType(type);
+            var schema = Schema.Create(source, c =>
+            {
+                c.RegisterQueryType<DummyQuery>();
+            });
 
             // assert
+            InterfaceType type = schema.GetType<InterfaceType>("Simple");
+
             Assert.True(type.Fields["a"].IsDeprecated);
             Assert.Equal("reason123", type.Fields["a"].DeprecationReason);
+
+            schema.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -117,20 +123,19 @@ namespace HotChocolate.Types
             var objectTypeB = new ObjectType(d =>
                 d.Name("B").Field("a").Type<StringType>());
 
-            UnionTypeDefinitionNode typeDefinition =
-                CreateTypeDefinition<UnionTypeDefinitionNode>(
-                    "union X = A | B");
+            string source = "union X = A | B";
 
             // act
-            var factory = new UnionTypeFactory();
-            UnionType type = null; // factory.Create(typeDefinition);
-                                   // CompleteType(type, s =>
-                                   // {
-                                   // s.Types.RegisterType(objectTypeA);
-                                   // s.Types.RegisterType(objectTypeB);
-                                   // });
+            var schema = Schema.Create(source, c =>
+            {
+                c.RegisterType(objectTypeA);
+                c.RegisterType(objectTypeB);
+                c.RegisterQueryType<DummyQuery>();
+            });
 
             // assert
+            UnionType type = schema.GetType<UnionType>("X");
+
             Assert.Equal("X", type.Name);
             Assert.Equal(2, type.Types.Count);
             Assert.Equal("A", type.Types.First().Key);
@@ -279,6 +284,11 @@ namespace HotChocolate.Types
         {
             public string Name { get; set; }
             public string[] Friends { get; set; }
+        }
+
+        public class DummyQuery
+        {
+            public string Bar { get; set; }
         }
     }
 }

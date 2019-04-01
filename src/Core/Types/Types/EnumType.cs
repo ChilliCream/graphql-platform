@@ -196,6 +196,17 @@ namespace HotChocolate.Types
 
         protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
 
+        protected override void OnRegisterDependencies(
+            IInitializationContext context,
+            EnumTypeDefinition definition)
+        {
+            base.OnRegisterDependencies(context, definition);
+
+            context.RegisterDependencyRange(
+                definition.Directives.Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
+        }
+
         protected override void OnCompleteType(
             ICompletionContext context,
             EnumTypeDefinition definition)

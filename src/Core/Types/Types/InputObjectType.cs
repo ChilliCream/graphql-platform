@@ -111,8 +111,17 @@ namespace HotChocolate.Types
             base.OnRegisterDependencies(context, definition);
 
             context.RegisterDependencyRange(
-                definition.GetDependencies(),
+                definition.Fields.Select(t => t.Type),
                 TypeDependencyKind.Default);
+
+            context.RegisterDependencyRange(
+                definition.Directives.Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
+
+            context.RegisterDependencyRange(
+                definition.Fields.SelectMany(t => t.Directives)
+                    .Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
         }
 
         protected override void OnCompleteType(
