@@ -79,23 +79,28 @@ namespace HotChocolate.Configuration
                     nr, out RegisteredType rt)
                     && rt.Type is IType t)
             {
+                IType resolved;
                 if (reference is IClrTypeReference cr
                     && _typeInitializer.TypeInspector.TryCreate(
                         cr.Type, out TypeInfo typeInfo))
                 {
-                    type = (T)typeInfo.TypeFactory.Invoke(t);
+                    resolved = typeInfo.TypeFactory.Invoke(t);
                 }
                 else if (reference is ISyntaxTypeReference sr)
                 {
-                    type = (T)WrapType(t, sr.Type);
+                    resolved = WrapType(t, sr.Type);
                 }
                 else
                 {
-                    type = (T)t;
+                    resolved = t;
                 }
-                return true;
-            }
 
+                if(resolved is T casted)
+                {
+                    type = casted;
+                    return true;
+                }
+            }
 
             type = default;
             return false;
@@ -134,7 +139,7 @@ namespace HotChocolate.Configuration
                 return (DirectiveType)registeredType.Type;
             }
 
-            if(reference is NameDirectiveReference nr)
+            if (reference is NameDirectiveReference nr)
             {
                 return _typeInitializer.Types.Values
                     .Select(t => t.Type)

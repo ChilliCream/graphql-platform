@@ -35,7 +35,6 @@ namespace HotChocolate.Types
 
         public IReadOnlyDictionary<NameString, ObjectType> Types => _typeMap;
 
-
         public ObjectType ResolveType(
             IResolverContext context, object resolverResult)
             => _resolveAbstractType(context, resolverResult);

@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -83,7 +83,10 @@ namespace HotChocolate.Types.Factories
 
                 foreach (DirectiveNode directive in fieldDefinition.Directives)
                 {
-                    fieldDescriptor.Directive(directive);
+                    if (!directive.IsDeprecationReason())
+                    {
+                        fieldDescriptor.Directive(directive);
+                    }
                 }
 
                 string deprecactionReason = fieldDefinition.DeprecationReason();

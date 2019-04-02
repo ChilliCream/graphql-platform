@@ -28,7 +28,8 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            UnionType<IFooOrBar> fooBarType = CreateType(new UnionType<IFooOrBar>(),
+            UnionType<IFooOrBar> fooBarType = CreateType(
+                new UnionType<IFooOrBar>(),
                 b => b.AddTypes(new FooType(), new BarType()));
 
             // assert

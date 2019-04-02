@@ -1,10 +1,5 @@
-using System;
 using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Configuration;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Types.Factories;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -50,6 +45,31 @@ namespace HotChocolate.Types
             var schema = Schema.Create(source, c =>
             {
                 c.Use(next => context => Task.CompletedTask);
+                c.Options.QueryTypeName = "Simple";
+            });
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void CreateObjectTypeDescriptions()
+        {
+            // arrange
+            string source = @"
+                ""SimpleDesc""
+                type Simple {
+                    ""ADesc""
+                    a(""ArgDesc""arg: String): String
+                }";
+
+            // act
+            var schema = Schema.Create(source, c =>
+            {
+                c.BindResolver(ctx =>
+                    Task.FromResult<object>("hello"))
+                    .To("Simple", "a");
+
                 c.Options.QueryTypeName = "Simple";
             });
 
@@ -118,12 +138,19 @@ namespace HotChocolate.Types
         public void CreateUnion()
         {
             // arrange
-            var objectTypeA = new ObjectType(d =>
-                d.Name("A").Field("a").Type<StringType>());
-            var objectTypeB = new ObjectType(d =>
-                d.Name("B").Field("a").Type<StringType>());
+            var objectTypeA = new ObjectType(d => d
+                .Name("A")
+                .Field("a")
+                .Type<StringType>()
+                .Resolver("a"));
 
-            string source = "union X = A | B";
+            var objectTypeB = new ObjectType(d => d
+                .Name("B")
+                .Field("a")
+                .Type<StringType>()
+                .Resolver("b"));
+
+            var source = "union X = A | B";
 
             // act
             var schema = Schema.Create(source, c =>
@@ -146,16 +173,17 @@ namespace HotChocolate.Types
         public void CreateEnum()
         {
             // arrange
-            EnumTypeDefinitionNode typeDefinition =
-                CreateTypeDefinition<EnumTypeDefinitionNode>(
-                    "enum Abc { A B C }");
+            var source = "enum Abc { A B C }";
 
             // act
-            var factory = new EnumTypeFactory();
-            EnumType type = null; // factory.Create(typeDefinition);
-            // CompleteType(type);
+            var schema = Schema.Create(source, c =>
+            {
+                c.RegisterQueryType<DummyQuery>();
+            });
 
             // assert
+            EnumType type = schema.GetType<EnumType>("Abc");
+
             Assert.Equal("Abc", type.Name);
             Assert.Collection(type.Values,
                 t => Assert.Equal("A", t.Name),
@@ -167,20 +195,22 @@ namespace HotChocolate.Types
         public void EnumValueDeprecationReason()
         {
             // arrange
-            EnumTypeDefinitionNode typeDefinition =
-                CreateTypeDefinition<EnumTypeDefinitionNode>(@"
+            string source = @"
                     enum Abc {
                         A
                         B @deprecated(reason: ""reason123"")
                         C
-                    }");
+                    }";
 
             // act
-            var factory = new EnumTypeFactory();
-            EnumType type = null; // factory.Create(typeDefinition);
-            // CompleteType(type);
+            var schema = Schema.Create(source, c =>
+            {
+                c.RegisterQueryType<DummyQuery>();
+            });
 
             // assert
+            EnumType type = schema.GetType<EnumType>("Abc");
+
             EnumValue value = type.Values.FirstOrDefault(t => t.Name == "B");
             Assert.NotNull(value);
             Assert.True(value.IsDeprecated);
@@ -191,21 +221,23 @@ namespace HotChocolate.Types
         public void CreateInputObjectType()
         {
             // arrange
-            string schemaSdl = "input Simple { a: String b: [String] }";
+            string source = "input Simple { a: String b: [String] }";
 
             // act
             var schema = Schema.Create(
-                schemaSdl,
+                source,
                 c =>
                 {
-                    c.Options.StrictValidation = false;
-                    c.BindType<SimpleInputObject>().To("Simple")
+                    c.BindType<SimpleInputObject>()
+                        .To("Simple")
                         .Field(t => t.Name).Name("a")
                         .Field(t => t.Friends).Name("b");
+                    c.RegisterQueryType<DummyQuery>();
                 });
-            InputObjectType type = schema.GetType<InputObjectType>("Simple");
 
             // assert
+            InputObjectType type = schema.GetType<InputObjectType>("Simple");
+
             Assert.Equal("Simple", type.Name);
             Assert.Equal(2, type.Fields.Count);
 
@@ -231,7 +263,7 @@ namespace HotChocolate.Types
             // act
             var schema = Schema.Create(
                 schemaSdl,
-                c => c.Options.StrictValidation = false);
+                c => c.RegisterQueryType<DummyQuery>());
 
             // assert
             DirectiveType type = schema.GetDirectiveType("foo");
@@ -256,10 +288,11 @@ namespace HotChocolate.Types
             // act
             var schema = Schema.Create(
                 schemaSdl,
-                c => c.Options.StrictValidation = false);
+                c => c.RegisterQueryType<DummyQuery>());
 
             // assert
             DirectiveType type = schema.GetDirectiveType("foo");
+
             Assert.Equal("foo", type.Name);
             Assert.True(type.IsRepeatable);
             Assert.Collection(type.Locations,
@@ -270,14 +303,6 @@ namespace HotChocolate.Types
                     Assert.Equal("a", t.Name);
                     Assert.IsType<StringType>(t.Type);
                 });
-        }
-
-        private T CreateTypeDefinition<T>(string schema)
-            where T : ISyntaxNode
-        {
-            var parser = new Parser();
-            DocumentNode document = parser.Parse(schema);
-            return document.Definitions.OfType<T>().First();
         }
 
         public class SimpleInputObject

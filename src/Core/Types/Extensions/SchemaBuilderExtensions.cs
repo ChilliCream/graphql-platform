@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -281,7 +281,7 @@ namespace HotChocolate
 
             foreach (INamedType type in types)
             {
-                return builder.AddType(type);
+                builder.AddType(type);
             }
             return builder;
         }
@@ -302,7 +302,7 @@ namespace HotChocolate
 
             foreach (Type type in types)
             {
-                return builder.AddType(type);
+                builder.AddType(type);
             }
             return builder;
         }

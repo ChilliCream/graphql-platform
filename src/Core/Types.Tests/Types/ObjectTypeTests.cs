@@ -71,6 +71,25 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void FieldIsDepricated()
+        {
+            // arrange
+            var resolverContext = new Mock<IMiddlewareContext>();
+            resolverContext.SetupAllProperties();
+
+            // act
+            ObjectType fooType = CreateType(new ObjectType(c => c
+                .Name("Foo")
+                .Field("bar")
+                .DeprecationReason("fooBar")
+                .Resolver(() => "baz")));
+
+            // assert
+            Assert.Equal("fooBar", fooType.Fields["bar"].DeprecationReason);
+            Assert.True(fooType.Fields["bar"].IsDeprecated);
+        }
+
+        [Fact]
         public void IntializeImpicitFieldWithImplicitResolver()
         {
             // arrange
