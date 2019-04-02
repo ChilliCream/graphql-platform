@@ -81,7 +81,6 @@ namespace HotChocolate.Configuration
                 CompleteTypes();
             }
 
-
             IReadOnlyCollection<ISchemaError> errors =
                 SchemaValidator.Validate(_types.Select(t => t.Value.Type));
 
@@ -282,10 +281,15 @@ namespace HotChocolate.Configuration
                 foreach (RegisteredType type in _types.Values
                     .Where(t => !processed.Contains(t.Reference)))
                 {
+                    string name = type.Type.Name.HasValue
+                        ? type.Type.Name.Value
+                        : type.Reference.ToString();
+
                     // TODO : resources
                     _errors.Add(SchemaErrorBuilder.New()
                         .SetMessage(
                             "Unable to resolve `{0}` dependencies {1}.",
+                            name,
                             string.Join(", ", type.Dependencies
                                 .Where(t => t.Kind == kind)
                                 .Select(t => t.TypeReference)))

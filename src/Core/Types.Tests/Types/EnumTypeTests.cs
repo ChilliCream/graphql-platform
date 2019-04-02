@@ -13,11 +13,11 @@ namespace HotChocolate.Types
             var schema = Schema.Create(c =>
             {
                 c.RegisterDirective(new DirectiveType(d => d
-                    .Name("Foo")
+                    .Name("bar")
                     .Location(DirectiveLocation.Enum)));
 
                 c.RegisterType(new EnumType<Foo>(d => d
-                    .Directive(new DirectiveNode("Foo"))));
+                    .Directive(new DirectiveNode("bar"))));
 
                 c.Options.StrictValidation = false;
             });
@@ -25,7 +25,7 @@ namespace HotChocolate.Types
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
             Assert.Collection(type.Directives,
-                t => Assert.Equal("Foo", t.Type.Name));
+                t => Assert.Equal("bar", t.Type.Name));
         }
 
         [Fact]

@@ -211,6 +211,8 @@ namespace HotChocolate.Types
             ICompletionContext context,
             EnumTypeDefinition definition)
         {
+            base.OnCompleteType(context, definition);
+
             SyntaxNode = definition.SyntaxNode;
 
             foreach (EnumValue enumValue in definition.Values
