@@ -43,6 +43,43 @@ namespace HotChocolate.Types
                     typeof(NameType), TypeContext.None) },
             };
 
+        private static readonly Dictionary<NameString, IClrTypeReference> _nameLookup =
+           new Dictionary<NameString, IClrTypeReference>
+           {
+                { "String", new ClrTypeReference(
+                    typeof(StringType), TypeContext.None) },
+                { "ID", new ClrTypeReference(
+                    typeof(IdType), TypeContext.None) },
+                { "Boolean", new ClrTypeReference(
+                    typeof(BooleanType), TypeContext.None) },
+                { "Byte", new ClrTypeReference(
+                    typeof(ByteType), TypeContext.None) },
+                { "Short", new ClrTypeReference(
+                    typeof(ShortType), TypeContext.None) },
+                { "Int", new ClrTypeReference(
+                    typeof(IntType), TypeContext.None) },
+                { "Long", new ClrTypeReference(
+                    typeof(LongType), TypeContext.None) },
+
+                { "Float", new ClrTypeReference(
+                    typeof(FloatType), TypeContext.None) },
+                { "Decimal", new ClrTypeReference(
+                    typeof(DecimalType), TypeContext.None) },
+
+                { "Url", new ClrTypeReference(
+                    typeof(UrlType), TypeContext.None) },
+                { "Uuid", new ClrTypeReference(
+                    typeof(UuidType), TypeContext.None) },
+                { "DateTime", new ClrTypeReference(
+                    typeof(DateTimeType), TypeContext.None) },
+                { "Date", new ClrTypeReference(
+                    typeof(DateType), TypeContext.None) },
+                { "MultiplierPath", new ClrTypeReference(
+                    typeof(MultiplierPathType), TypeContext.None) },
+                { "Name", new ClrTypeReference(
+                    typeof(NameType), TypeContext.None) },
+           };
+
         public static bool TryGetScalar(
             Type clrType,
             out IClrTypeReference schemaType)
@@ -53,6 +90,15 @@ namespace HotChocolate.Types
             }
 
             return _lookup.TryGetValue(clrType, out schemaType);
+        }
+
+        public static bool TryGetScalar(
+            NameString typeName,
+            out IClrTypeReference schemaType)
+        {
+            return _nameLookup.TryGetValue(
+                typeName.EnsureNotEmpty(nameof(typeName)),
+                out schemaType);
         }
     }
 }

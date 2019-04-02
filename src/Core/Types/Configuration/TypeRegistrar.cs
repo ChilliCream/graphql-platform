@@ -6,6 +6,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Language;
 
 namespace HotChocolate.Configuration
 {
@@ -134,6 +135,13 @@ namespace HotChocolate.Configuration
                     {
                         RegisterTypeSystemObject(tso);
                     }
+                }
+                else if (typeReference is ISyntaxTypeReference sr
+                    && Scalars.TryGetScalar(
+                        sr.Type.NamedType().Name.Value,
+                        out ctr))
+                {
+                    RegisterClrType(ctr);
                 }
 
                 _unregistered.Remove(typeReference);
