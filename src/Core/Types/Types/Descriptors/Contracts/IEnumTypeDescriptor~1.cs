@@ -1,4 +1,4 @@
-﻿using HotChocolate.Language;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
@@ -33,7 +33,7 @@ namespace HotChocolate.Types
         /// </param>
         IEnumTypeDescriptor<T> Description(string value);
 
-        IEnumTypeDescriptor<T> Item(T value);
+        IEnumValueDescriptor Item(T value);
 
         IEnumTypeDescriptor<T> BindItems(BindingBehavior behavior);
 

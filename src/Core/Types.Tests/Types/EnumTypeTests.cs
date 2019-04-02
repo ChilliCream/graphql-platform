@@ -12,10 +12,13 @@ namespace HotChocolate.Types
             // act
             var schema = Schema.Create(c =>
             {
-                c.RegisterDirective(new DirectiveType(
-                    d => d.Name("Foo").Location(DirectiveLocation.Enum)));
-                c.RegisterType(new EnumType<Foo>(
-                    d => d.Directive(new DirectiveNode("Foo"))));
+                c.RegisterDirective(new DirectiveType(d => d
+                    .Name("Foo")
+                    .Location(DirectiveLocation.Enum)));
+
+                c.RegisterType(new EnumType<Foo>(d => d
+                    .Directive(new DirectiveNode("Foo"))));
+
                 c.Options.StrictValidation = false;
             });
 

@@ -50,7 +50,8 @@ namespace HotChocolate.Types
 
         public object Source { get; }
 
-        public DirectiveMiddleware Middleware => Type.Middleware;
+        public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents =>
+            Type.MiddlewareComponents;
 
         public bool IsExecutable => Type.IsExecutable;
 

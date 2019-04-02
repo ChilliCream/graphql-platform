@@ -19,7 +19,6 @@ namespace HotChocolate.Types
     {
         private readonly Action<IDirectiveTypeDescriptor> _configure;
         private ITypeConversion _converter;
-        private List<DirectiveMiddleware> _components;
 
         protected DirectiveType()
         {
@@ -42,25 +41,10 @@ namespace HotChocolate.Types
 
         public FieldCollection<Argument> Arguments { get; private set; }
 
-        public DirectiveMiddleware Middleware { get; private set; }
+        public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents
+        { get; private set; }
 
         public bool IsExecutable { get; private set; }
-
-        public FieldDelegate CompileMiddleware(
-            FieldDelegate first,
-            Func<IMiddlewareContext, IDirectiveContext> createContext)
-        {
-            FieldDelegate next = first;
-
-            foreach (DirectiveMiddleware component in _components)
-            {
-                DirectiveDelegate directiveDelegate = component.Invoke(next);
-                next = context => directiveDelegate(createContext(context));
-            }
-
-            return next;
-
-        }
 
         #region Initialization
 
@@ -96,10 +80,10 @@ namespace HotChocolate.Types
            DirectiveTypeDefinition definition)
         {
             var dependencies = new List<ITypeReference>();
-            
+
             context.RegisterDependencyRange(
                 definition.Arguments.Select(t => t.Type),
-                TypeDependencyKind.Completed);            
+                TypeDependencyKind.Completed);
         }
 
         protected override void OnCompleteType(
@@ -109,16 +93,18 @@ namespace HotChocolate.Types
             base.OnCompleteType(context, definition);
 
             _converter = context.Services.GetTypeConversion();
-            _components = definition.MiddlewareComponents.ToList();
-            _components.Reverse();
+            MiddlewareComponents =
+                definition.MiddlewareComponents.ToList().AsReadOnly();
 
             SyntaxNode = definition.SyntaxNode;
-            ClrType = definition.ClrType;
+            ClrType = definition.ClrType == GetType()
+                ? typeof(object)
+                : definition.ClrType;
             IsRepeatable = definition.IsRepeatable;
             Locations = definition.Locations.ToList().AsReadOnly();
             Arguments = new FieldCollection<Argument>(
                 definition.Arguments.Select(t => new Argument(t)));
-            IsExecutable = _components.Any();
+            IsExecutable = MiddlewareComponents.Count > 0;
 
             if (!Locations.Any())
             {

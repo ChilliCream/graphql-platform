@@ -1,6 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors
@@ -39,10 +36,9 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IEnumTypeDescriptor<T> Item(T value)
+        public IEnumValueDescriptor Item(T value)
         {
-            base.Item(value);
-            return this;
+            return base.Item(value);
         }
 
         public new IEnumTypeDescriptor<T> Directive<TDirective>(

@@ -76,8 +76,11 @@ namespace HotChocolate.Configuration
             RegisterTypes();
             CompileResolvers();
             RegisterImplicitInterfaceDependencies();
-            CompleteNames(schemaResolver);
-            CompleteTypes();
+            if (CompleteNames(schemaResolver))
+            {
+                CompleteTypes();
+            }
+
 
             IReadOnlyCollection<ISchemaError> errors =
                 SchemaValidator.Validate(_types.Select(t => t.Value.Type));
@@ -102,7 +105,7 @@ namespace HotChocolate.Configuration
                 return true;
             }
 
-            if(TryNormalizeReference(reference, out ITypeReference nr)
+            if (TryNormalizeReference(reference, out ITypeReference nr)
                 && _types.TryGetValue(nr, out registeredType))
             {
                 return true;
@@ -256,14 +259,16 @@ namespace HotChocolate.Configuration
             var processed = new HashSet<ITypeReference>();
             var batch = new List<RegisteredType>(
                 GetInitialBatch(kind));
+            bool failed = false;
 
-            while (processed.Count < _types.Count && batch.Count > 0)
+            while (!failed && processed.Count < _types.Count && batch.Count > 0)
             {
                 foreach (RegisteredType registeredType in batch)
                 {
                     if (!action(registeredType))
                     {
-                        return false;
+                        failed = true;
+                        break;
                     }
                     processed.Add(registeredType.Reference);
                 }
@@ -272,12 +277,22 @@ namespace HotChocolate.Configuration
                 batch.AddRange(GetNextBatch(processed, kind));
             }
 
-            // TODO : resources
             if (processed.Count < _types.Count)
             {
-                _errors.Add(SchemaErrorBuilder.New()
-                    .SetMessage("Unable to resolve dependencies")
-                    .Build());
+                foreach (RegisteredType type in _types.Values
+                    .Where(t => !processed.Contains(t.Reference)))
+                {
+                    // TODO : resources
+                    _errors.Add(SchemaErrorBuilder.New()
+                        .SetMessage(
+                            "Unable to resolve `{0}` dependencies {1}.",
+                            string.Join(", ", type.Dependencies
+                                .Where(t => t.Kind == kind)
+                                .Select(t => t.TypeReference)))
+                        .SetTypeSystemObject(type.Type)
+                        .Build());
+                }
+
                 return false;
             }
 

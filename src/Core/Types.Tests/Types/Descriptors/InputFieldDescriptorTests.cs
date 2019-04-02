@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -131,7 +131,7 @@ namespace HotChocolate.Types
             // assert
             InputFieldDefinition description = descriptor.CreateDefinition();
             Assert.Equal(typeof(string),
-                Assert.IsType<SchemaTypeReference>(description.Type).Type);
+                Assert.IsType<ClrTypeReference>(description.Type).Type);
             Assert.Equal("string", description.NativeDefaultValue);
         }
 
@@ -205,8 +205,8 @@ namespace HotChocolate.Types
 
             // assert
             InputFieldDefinition description = descriptor.CreateDefinition();
-            Assert.Equal(typeof(FieldCollection<InputField>),
-                Assert.IsType<IClrTypeReference>(description.Type).Type);
+            Assert.Equal(typeof(FieldCollection<Argument>),
+                Assert.IsType<ClrTypeReference>(description.Type).Type);
             Assert.Equal("arguments", description.Name);
         }
     }

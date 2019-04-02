@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -125,7 +125,7 @@ namespace HotChocolate.Execution
         {
             FieldDelegate next = fieldPipeline;
 
-            for(int i = directives.Count - 1; i >= 0; i--)
+            for (int i = directives.Count - 1; i >= 0; i--)
             {
                 next = BuildComponent(directives[i], next);
             }
@@ -135,20 +135,31 @@ namespace HotChocolate.Execution
 
         private static FieldDelegate BuildComponent(
             IDirective directive,
-            FieldDelegate next)
+            FieldDelegate first)
         {
-            DirectiveDelegate component = directive.Middleware.Invoke(next);
+            FieldDelegate next = first;
 
-            return context =>
+            IReadOnlyList<DirectiveMiddleware> components =
+                directive.MiddlewareComponents;
+
+            for (int i = components.Count; i >= 0; i--)
             {
-                if (HasErrors(context.Result))
-                {
-                    return Task.CompletedTask;
-                }
 
-                return component.Invoke(
-                    new DirectiveContext(context, directive));
-            };
+                DirectiveDelegate component = components[i].Invoke(next);
+
+                next = context =>
+                {
+                    if (HasErrors(context.Result))
+                    {
+                        return Task.CompletedTask;
+                    }
+
+                    return component.Invoke(
+                        new DirectiveContext(context, directive));
+                };
+            }
+
+            return next;
         }
 
         private static bool HasErrors(object result)
