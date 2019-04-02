@@ -76,6 +76,7 @@ namespace HotChocolate.Configuration
             RegisterTypes();
             CompileResolvers();
             RegisterImplicitInterfaceDependencies();
+
             if (CompleteNames(schemaResolver))
             {
                 CompleteTypes();

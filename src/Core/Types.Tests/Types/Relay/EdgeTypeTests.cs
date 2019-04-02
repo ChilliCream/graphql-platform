@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Xunit;
 
 namespace HotChocolate.Types.Relay
@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             // act
-            var type = new EdgeType<StringType>();
+            EdgeType<StringType> type = CreateType(new EdgeType<StringType>());
 
             // assert
             Assert.Equal("StringEdge", type.Name);
