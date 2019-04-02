@@ -133,6 +133,7 @@ namespace HotChocolate.Types
             Fields = new FieldCollection<ObjectField>(fields);
 
             CompleteInterfaces(context, definition);
+            CompleteIsOfType(context);
             FieldInitHelper.CompleteFields(context, definition, Fields);
         }
 
@@ -186,7 +187,49 @@ namespace HotChocolate.Types
             }
         }
 
-        
+        private void CompleteIsOfType(ICompletionContext context)
+        {
+            if (_isOfType == null)
+            {
+                if (context.IsOfType != null)
+                {
+                    IsOfTypeFallback isOfType = context.IsOfType;
+                    _isOfType = (ctx, obj) => isOfType(this, ctx, obj);
+                }
+                else if (ClrType == typeof(object))
+                {
+                    _isOfType = IsOfTypeWithName;
+                }
+                else
+                {
+                    _isOfType = IsOfTypeWithClrType;
+                }
+            }
+        }
+
+        private bool IsOfTypeWithClrType(
+            IResolverContext context,
+            object result)
+        {
+            if (result == null)
+            {
+                return true;
+            }
+            return ClrType.IsInstanceOfType(result);
+        }
+
+        private bool IsOfTypeWithName(
+            IResolverContext context,
+            object result)
+        {
+            if (result == null)
+            {
+                return true;
+            }
+
+            Type type = result.GetType();
+            return Name.Equals(type.Name);
+        }
 
         #endregion
     }

@@ -42,6 +42,8 @@ namespace HotChocolate.Configuration
 
         public IReadOnlyList<FieldMiddleware> GlobalComponents { get; }
 
+        public IsOfTypeFallback IsOfType { get; }
+
         public ITypeSystemObject Type => _initializationContext.Type;
 
         public bool IsType => _initializationContext.IsType;

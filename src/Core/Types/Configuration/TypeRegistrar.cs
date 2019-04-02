@@ -268,8 +268,16 @@ namespace HotChocolate.Configuration
             return registeredType;
         }
 
-        private bool IsTypeResolved(IClrTypeReference typeReference) =>
-            ClrTypes.ContainsKey(typeReference);
+        private bool IsTypeResolved(IClrTypeReference typeReference)
+        {
+            if (ClrTypes.ContainsKey(typeReference)
+                || ClrTypes.Keys.Any(t => t.Equals(typeReference)))
+            {
+                return true;
+            }
+            return false;
+        }
+
 
         private TypeSystemObjectBase CreateInstance(Type type) =>
             (TypeSystemObjectBase)_serviceFactory.CreateInstance(type);

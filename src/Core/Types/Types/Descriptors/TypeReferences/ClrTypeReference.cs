@@ -55,8 +55,14 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
+            if(Context != other.Context
+                && Context != TypeContext.None
+                && other.Context != TypeContext.None)
+            {
+                return false;
+            }
+
             return Type.Equals(other.Type)
-                && Context == other.Context
                 && IsTypeNullable.Equals(other.IsTypeNullable)
                 && IsElementTypeNullable.Equals(other.IsElementTypeNullable);
         }
@@ -73,8 +79,14 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
+            if (Context != other.Context
+                && Context != TypeContext.None
+                && other.Context != TypeContext.None)
+            {
+                return false;
+            }
+
             return Type.Equals(other.Type)
-                && Context == other.Context
                 && IsTypeNullable.Equals(other.IsTypeNullable)
                 && IsElementTypeNullable.Equals(other.IsElementTypeNullable);
         }
