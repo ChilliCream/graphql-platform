@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System;
 using HotChocolate.Types;
-using System.Linq;
 
 namespace HotChocolate.Configuration.Bindings
 {

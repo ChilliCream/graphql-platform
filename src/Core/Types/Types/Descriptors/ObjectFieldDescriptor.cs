@@ -1,10 +1,7 @@
-﻿using System;
+using System;
 using System.Reflection;
-using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using System.Linq;
-using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors

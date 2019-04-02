@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Factories;
 
 namespace HotChocolate.Types.Factories
 {

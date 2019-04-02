@@ -4,7 +4,6 @@ using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
-using Moq;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;

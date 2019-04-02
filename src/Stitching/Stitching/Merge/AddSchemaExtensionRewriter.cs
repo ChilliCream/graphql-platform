@@ -333,7 +333,7 @@ namespace HotChocolate.Stitching.Merge
             return base.RewriteInputObjectTypeDefinition(current, context);
         }
 
-        private static InputObjectTypeDefinitionNode AddInputFields(
+        private static InputObjectTypeDefinitionNoAddInputFields(
             InputObjectTypeDefinitionNode typeDefinition,
             InputObjectTypeExtensionNode typeExtension)
         {

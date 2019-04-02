@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using Snapshooter.Xunit;
 using Xunit;

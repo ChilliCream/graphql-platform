@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
-using Moq;
 using Xunit;
 using Snapshooter.Xunit;
 using Snapshooter;

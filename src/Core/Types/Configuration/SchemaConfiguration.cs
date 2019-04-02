@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using HotChocolate.Configuration.Bindings;
 using HotChocolate.Resolvers;
 

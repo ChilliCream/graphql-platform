@@ -1,5 +1,4 @@
 using System;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration

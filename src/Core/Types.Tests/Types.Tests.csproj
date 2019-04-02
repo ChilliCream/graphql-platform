@@ -45,6 +45,7 @@
   <ItemGroup>
     <Folder Include="Configuration\__snapshots__\__mismatch__\" />
     <Folder Include="Types\__snapshots__\__mismatch__\" />
+    <Folder Include="__snapshots__\__mismatch__\" />
   </ItemGroup>
 
 </Project>

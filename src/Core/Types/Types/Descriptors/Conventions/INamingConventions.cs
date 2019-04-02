@@ -1,6 +1,5 @@
 using System.Reflection;
 using System;
-using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {

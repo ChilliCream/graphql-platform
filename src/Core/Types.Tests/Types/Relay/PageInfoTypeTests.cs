@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Configuration;
+﻿using System.Linq;
 using Xunit;
 
 namespace HotChocolate.Types.Relay

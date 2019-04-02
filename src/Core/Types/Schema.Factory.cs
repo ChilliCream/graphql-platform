@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using HotChocolate.Configuration;
-using HotChocolate.Utilities;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate
 {

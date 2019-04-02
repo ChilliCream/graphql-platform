@@ -1,5 +1,4 @@
-﻿using System;
-using HotChocolate.Execution.Configuration;
+﻿using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using Moq;
 using Xunit;

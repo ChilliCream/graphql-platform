@@ -1,6 +1,5 @@
 using System;
 using System.Globalization;
-using HotChocolate.Types;
 
 namespace HotChocolate.Properties
 {

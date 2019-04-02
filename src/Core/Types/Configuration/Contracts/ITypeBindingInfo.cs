@@ -1,8 +1,5 @@
-using System.ComponentModel;
-using System.Runtime.InteropServices.ComTypes;
 using System;
 using System.Reflection;
-using HotChocolate.Resolvers;
 using System.Collections.Generic;
 
 namespace HotChocolate.Configuration

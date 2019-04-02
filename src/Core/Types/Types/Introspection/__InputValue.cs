@@ -1,14 +1,14 @@
-﻿using HotChocolate.Language;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types.Introspection
 {
     // TODO : resources
     [Introspection]
     internal sealed class __InputValue
-        : ObjectType<InputField>
+        : ObjectType<IInputField>
     {
         protected override void Configure(
-            IObjectTypeDescriptor<InputField> descriptor)
+            IObjectTypeDescriptor<IInputField> descriptor)
         {
             descriptor.Name("__InputValue");
 
@@ -34,7 +34,7 @@ namespace HotChocolate.Types.Introspection
                 .Type<StringType>()
                 .Resolver(c =>
                 {
-                    InputField field = c.Parent<InputField>();
+                    IInputField field = c.Parent<IInputField>();
                     if (field.DefaultValue.IsNull())
                     {
                         return null;

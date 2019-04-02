@@ -1,5 +1,4 @@
-﻿using System;
-using HotChocolate.Language;
+﻿using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {

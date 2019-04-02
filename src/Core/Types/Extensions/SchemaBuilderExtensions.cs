@@ -1,10 +1,6 @@
 using System;
-using System.Reflection;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate
 {
