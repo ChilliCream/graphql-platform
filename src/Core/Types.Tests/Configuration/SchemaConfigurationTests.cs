@@ -40,7 +40,6 @@ namespace HotChocolate.Configuration
                 .Returns(new TestObjectA());
             resolverContext.Setup(t => t.Resolver<TestResolverCollectionA>())
                 .Returns(new TestResolverCollectionA());
-            resolverContext.Setup(t => t.Argument<string>("a")).Returns("foo");
             resolverContext.Setup(t => t.RequestAborted)
                 .Returns(CancellationToken.None);
 

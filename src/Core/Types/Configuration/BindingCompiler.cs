@@ -117,7 +117,7 @@ namespace HotChocolate.Configuration
                     _bindings.Add(new ComplexTypeBindingInfo
                     {
                         Name = binding.TypeName,
-                        Type = typeof(object)
+                        Type = binding.SourceType
                     });
                 }
 
