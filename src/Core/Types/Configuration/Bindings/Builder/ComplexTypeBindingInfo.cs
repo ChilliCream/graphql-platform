@@ -29,7 +29,7 @@ namespace HotChocolate.Configuration.Bindings
                 return false;
             }
 
-            return false;
+            return true;
         }
 
         public ComplexTypeBindingInfo Clone()
