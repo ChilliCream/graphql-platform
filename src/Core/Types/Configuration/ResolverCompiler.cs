@@ -32,7 +32,7 @@ namespace HotChocolate.Configuration
                         resolverBuilder.AddDescriptor(
                             new ResolverDescriptor(
                                 resolver.ResolverType,
-                                resolver.ResolverType,
+                                resolver.SourceType,
                                 member));
                     }
                 }

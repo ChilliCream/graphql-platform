@@ -67,7 +67,7 @@ namespace HotChocolate.Configuration
             Assert.NotNull(type.Fields["a"].Resolver);
             Assert.NotNull(type.Fields["b"].Resolver);
 
-            Assert.Equal("a_dummy_a", type.Fields["a"].Resolver(
+            Assert.Equal("a_dummy", type.Fields["a"].Resolver(
                 resolverContext.Object).Result);
         }
 
