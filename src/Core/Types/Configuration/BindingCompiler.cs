@@ -92,7 +92,7 @@ namespace HotChocolate.Configuration
             {
                 if (binding.SourceType == null)
                 {
-                    binding.SourceType = binding.ResolverType;
+                    binding.SourceType = typeof(object);
                 }
 
                 if (binding.SourceType != null && binding.TypeName.IsEmpty)
@@ -117,7 +117,7 @@ namespace HotChocolate.Configuration
                     _bindings.Add(new ComplexTypeBindingInfo
                     {
                         Name = binding.TypeName,
-                        Type = binding.SourceType
+                        Type = typeof(object)
                     });
                 }
 
@@ -193,8 +193,7 @@ namespace HotChocolate.Configuration
 
             foreach (ResolverTypeBindingInfo resolverBinding in
                 _bindings.OfType<ResolverTypeBindingInfo>()
-                    .Where(t => t.TypeName.Equals(binding.Name)
-                        && t.SourceType == binding.Type))
+                    .Where(t => t.TypeName.Equals(binding.Name)))
             {
                 RegisterResolverFields(
                     binding.Name, resolverBinding,
@@ -219,7 +218,7 @@ namespace HotChocolate.Configuration
             {
                 if (!registerdResolvers.ContainsKey(field.FieldName))
                 {
-                    IFieldReference fieldReference = field.FieldMember == null
+                    IFieldReference fieldReference = field.ResolverMember == null
                         ? (IFieldReference)new FieldResolver(
                             typeName,
                             field.FieldName,
@@ -227,7 +226,7 @@ namespace HotChocolate.Configuration
                         : new FieldMember(
                             typeName,
                             field.FieldName,
-                            field.FieldMember);
+                            field.ResolverMember);
                     registerdResolvers.Add(field.FieldName,
                         new RegisteredResolver(
                             resolverBinding.ResolverType,

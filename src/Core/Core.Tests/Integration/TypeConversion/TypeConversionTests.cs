@@ -105,6 +105,7 @@ namespace HotChocolate.Integration.TypeConversion
                 c.RegisterQueryType<Query>();
                 c.RegisterExtendedScalarTypes();
             });
+
             var variables = new Dictionary<string, object>
             {
                 {
