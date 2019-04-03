@@ -45,6 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Execution\__snapshots__\__mismatch__\" />
     <Folder Include="Integration\TypeConversion\__snapshots__\__mismatch__\" />
   </ItemGroup>
 

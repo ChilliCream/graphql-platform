@@ -138,9 +138,10 @@ namespace HotChocolate.Types
             }
 
             // schema first unbound enum type
-            if (value is string s && ClrType == typeof(string)
+            if (ClrType == typeof(object)
                 && _nameToValues.TryGetValue(
-                    s.ToUpperInvariant(), out enumValue))
+                    value.ToString().ToUpperInvariant(),
+                    out enumValue))
             {
                 return enumValue.Name;
             }

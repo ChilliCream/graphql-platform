@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
@@ -309,13 +309,16 @@ namespace HotChocolate.Execution
         public async Task ResolveRootTypeWithCustomNames(string rootType)
         {
             // arrange
+            string queryType = rootType == "query"
+                ? string.Empty
+                : "type Query { a : String }";
+
             var schema = Schema.Create(@"
                 type Foo { a: String }
                 schema { " + rootType + @": Foo }
-                ", c =>
+                " + queryType, c =>
             {
-                c.BindResolver(() => "hello world")
-                    .To("Foo", "a");
+                c.Use(n => ctx => Task.CompletedTask);
             });
 
             var request = new QueryRequest("query a { a }");

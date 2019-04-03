@@ -1,5 +1,6 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
@@ -529,7 +530,8 @@ namespace HotChocolate.Execution
                 union FooUnion = Foo | Fa
 
                 type Query { a: String }
-                ", c => { c.Options.StrictValidation = false; });
+                ",
+                c => c.Use(next => context => Task.CompletedTask));
         }
     }
 }

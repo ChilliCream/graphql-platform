@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -522,12 +522,12 @@ namespace HotChocolate.Execution
                 "type Foo { a: String b(a: Bar): String } ",
                 c =>
                 {
+                    c.Use(next => context => Task.CompletedTask);
                     c.RegisterType<BarType>();
                     c.RegisterType<FooType>();
                     c.RegisterType<BazType>();
                     c.RegisterType<BarEnumType>();
                     c.RegisterExtendedScalarTypes();
-                    c.Options.StrictValidation = false;
                 });
         }
 
