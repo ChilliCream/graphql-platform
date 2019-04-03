@@ -29,6 +29,7 @@ namespace HotChocolate.Subscriptions
 
             ISchema schema = Schema.Create(c =>
             {
+                c.RegisterQueryType<DummyQuery>();
                 c.RegisterServiceProvider(services.Object);
                 c.RegisterMutationType<MutationType>();
                 c.RegisterSubscriptionType<SubscriptionType>();
@@ -47,6 +48,11 @@ namespace HotChocolate.Subscriptions
             IReadOnlyQueryResult result = await responseStream.ReadAsync();
             Assert.False(responseStream.IsCompleted);
             Assert.Equal("bar", result.Data["foo"]);
+        }
+
+        public class DummyQuery
+        {
+            public string Foo { get; set; }
         }
 
         public class SubscriptionType

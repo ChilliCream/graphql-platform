@@ -217,7 +217,13 @@ namespace HotChocolate.Validation
             IType typeA = GetType(fieldA);
             IType typeB = GetType(fieldB);
 
-            if (RemoveNonNullType(ref typeA, ref typeB)
+            if (typeA is null && typeB is null)
+            {
+                return true;
+            }
+
+            if (typeA != null && typeB != null
+                && RemoveNonNullType(ref typeA, ref typeB)
                 && RemoveListType(ref typeA, ref typeB)
                 && RemoveNonNullType(ref typeA, ref typeB))
             {

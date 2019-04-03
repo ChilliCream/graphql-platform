@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace Types.Tests.Configuration
+namespace HotChocolate.Types.Configuration
 {
     public class MiddlewareConfigurationTests
     {
