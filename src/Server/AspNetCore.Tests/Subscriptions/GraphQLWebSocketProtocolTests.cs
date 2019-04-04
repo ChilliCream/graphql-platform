@@ -1,4 +1,4 @@
-﻿
+
 using System;
 using System.Collections.Generic;
 using System.Net.WebSockets;
@@ -101,6 +101,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             return TestServerFactory.Create(
                 c =>
                 {
+                    c.RegisterQueryType<Query>();
                     c.RegisterMutationType<Mutation>();
                     c.RegisterSubscriptionType<Subscription>();
                 },
@@ -148,6 +149,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
         public class Subscription
         {
             public string Foo() => "bar";
+        }
+
+        public class Query
+        {
+            public string Foo { get; set; }
         }
     }
 }
