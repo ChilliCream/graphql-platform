@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution;
+using HotChocolate.Configuration;
 
 namespace HotChocolate
 {

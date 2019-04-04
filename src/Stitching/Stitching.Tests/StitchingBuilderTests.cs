@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using ChilliCream.Testing;
 using HotChocolate.AspNetCore;
+using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;

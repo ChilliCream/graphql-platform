@@ -3,6 +3,7 @@ using HotChocolate.AspNetClassic.Authorization;
 #else
 using HotChocolate.AspNetCore.Authorization;
 #endif
+using HotChocolate.Configuration;
 
 namespace HotChocolate
 {

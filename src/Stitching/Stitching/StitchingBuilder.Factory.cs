@@ -11,6 +11,7 @@ using HotChocolate.Stitching.Merge.Rewriters;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Stitching.Properties;
+using HotChocolate.Configuration;
 
 namespace HotChocolate.Stitching
 {
