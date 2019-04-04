@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Configuration;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Relay
@@ -37,9 +38,21 @@ namespace HotChocolate.Types.Relay
             this IObjectFieldDescriptor descriptor)
             where TSchemaType : IOutputType, new()
         {
+            new TypeDependency()
+
             descriptor
                 .AddPagingArguments()
-                .Type(ConnectionType<TSchemaType>.CreateWithTotalCount());
+                .Type(ConnectionType<TSchemaType>.CreateWithTotalCount())
+                .Configure(new TypeConfiguration(
+                    ConfigurationKind.Completion,
+                    c =>
+                    {
+
+                    },
+                    ));
+
+
+
 
             if (NamedTypeInfoFactory.Default.TryExtractClrType(
                 typeof(TSchemaType), out Type clrType))

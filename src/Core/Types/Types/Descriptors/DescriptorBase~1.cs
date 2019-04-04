@@ -10,8 +10,6 @@ namespace HotChocolate.Types.Descriptors
         , IHasDescriptorContext
         where T : DefinitionBase
     {
-        private readonly List<Action<T>> _modifiers = new List<Action<T>>();
-
         protected DescriptorBase(IDescriptorContext context)
         {
             Context = context
@@ -24,24 +22,29 @@ namespace HotChocolate.Types.Descriptors
 
         protected abstract T Definition { get; }
 
-        public void Configure(Action<T> definitionModifier)
+        public void Configure(Action<T> configure)
         {
-            if (definitionModifier == null)
+            if (configure == null)
             {
-                throw new ArgumentNullException(nameof(definitionModifier));
+                throw new ArgumentNullException(nameof(configure));
             }
-            _modifiers.Add(definitionModifier);
+
+            Configure(new TypeConfiguration<T>(configure));
+        }
+
+        public void Configure(TypeConfiguration<T> configuration)
+        {
+            if (configuration == null)
+            {
+                throw new ArgumentNullException(nameof(configuration));
+            }
+
+            Definition.Configurations.Add(configuration);
         }
 
         public T CreateDefinition()
         {
             OnCreateDefinition(Definition);
-
-            foreach (Action<T> modifier in _modifiers)
-            {
-                modifier(Definition);
-            }
-
             return Definition;
         }
 
@@ -51,10 +54,5 @@ namespace HotChocolate.Types.Descriptors
 
         DefinitionBase IDefinitionFactory.CreateDefinition() =>
             CreateDefinition();
-    }
-
-    internal interface IHasDescriptorContext
-    {
-        IDescriptorContext Context { get; }
     }
 }
