@@ -7,6 +7,7 @@ using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Configuration.Validation;
+using System.Reflection;
 
 namespace HotChocolate.Configuration
 {
@@ -35,11 +36,13 @@ namespace HotChocolate.Configuration
 
         private readonly IServiceProvider _services;
         private readonly List<ITypeReference> _initialTypes;
+        private readonly List<Type> _externalResolverTypes;
         private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
 
         public TypeInitializer(
             IServiceProvider services,
             IEnumerable<ITypeReference> initialTypes,
+            IEnumerable<Type> externalResolverTypes,
             Func<TypeSystemObjectBase, bool> isQueryType)
         {
             if (initialTypes == null)
@@ -47,10 +50,16 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(initialTypes));
             }
 
+            if (externalResolverTypes == null)
+            {
+                throw new ArgumentNullException(nameof(externalResolverTypes));
+            }
+
             _services = services
                 ?? throw new ArgumentNullException(nameof(services));
             _isQueryType = isQueryType
                 ?? throw new ArgumentNullException(nameof(isQueryType));
+            _externalResolverTypes = externalResolverTypes.ToList();
             _initialTypes = initialTypes.ToList();
         }
 
@@ -74,11 +83,12 @@ namespace HotChocolate.Configuration
             }
 
             RegisterTypes();
-            CompileResolvers();
             RegisterImplicitInterfaceDependencies();
 
             if (CompleteNames(schemaResolver))
             {
+                RegisterExternalResolvers();
+                CompileResolvers();
                 CompleteTypes();
             }
 
@@ -146,6 +156,91 @@ namespace HotChocolate.Configuration
             }
 
             _errors.AddRange(typeRegistrar.Errors);
+            return false;
+        }
+
+        private void RegisterExternalResolvers()
+        {
+            if (_externalResolverTypes.Count == 0)
+            {
+                return;
+            }
+
+            IDescriptorContext descriptorContext =
+                DescriptorContext.Create(_services);
+
+            Dictionary<NameString, ObjectType> types =
+                _types.Select(t => t.Value.Type)
+                    .OfType<ObjectType>()
+                    .ToDictionary(t => t.Name);
+
+            foreach (Type type in _externalResolverTypes)
+            {
+                GraphQLResolverOfAttribute attribute =
+                    type.GetCustomAttribute<GraphQLResolverOfAttribute>();
+
+                if (attribute.TypeNames != null)
+                {
+                    foreach (string typeName in attribute.TypeNames)
+                    {
+                        if (types.TryGetValue(typeName,
+                            out ObjectType objectType))
+                        {
+
+                        }
+                    }
+                }
+
+                if (attribute.Types != null)
+                {
+                    foreach (Type sourceType in attribute.Types
+                        .Where(t => !BaseTypes.IsNonGenericBaseType(t)))
+                    {
+                        ObjectType objectType = types.Values
+                            .FirstOrDefault(t => t.GetType() == sourceType);
+                    }
+                }
+            }
+        }
+
+        private void AddResolvers(
+            IDescriptorContext context,
+            ObjectType objectType,
+            Type resolverType)
+        {
+            foreach (MemberInfo member in
+                context.Inspector.GetMembers(resolverType))
+            {
+                if (IsResolverRelevant(objectType.ClrType, member))
+                {
+                    NameString fieldName = context.Naming.GetMemberName(
+                        member, MemberKind.ObjectField);
+                    var fieldMember = new FieldMember(
+                        objectType.Name, fieldName, member);
+                    var resolver = new RegisteredResolver(
+                        resolverType, objectType.ClrType, fieldMember);
+                    _res[fieldMember.ToFieldReference()] = resolver;
+                }
+            }
+        }
+
+        private static bool IsResolverRelevant(
+            Type sourceType,
+            MemberInfo resolver)
+        {
+            if (resolver is PropertyInfo)
+            {
+                return true;
+            }
+
+            if (resolver is MethodInfo m)
+            {
+                ParameterInfo parent = m.GetParameters()
+                    .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
+                return parent == null
+                    || parent.ParameterType.IsAssignableFrom(sourceType);
+            }
+
             return false;
         }
 
@@ -407,7 +502,7 @@ namespace HotChocolate.Configuration
         {
             if (!BaseTypes.IsNonGenericBaseType(typeReference.Type)
                 && _typeInspector.TryCreate(typeReference.Type,
-                    out TypeInfo typeInfo))
+                    out Utilities.TypeInfo typeInfo))
             {
                 if (IsTypeSystemObject(typeInfo.ClrType))
                 {

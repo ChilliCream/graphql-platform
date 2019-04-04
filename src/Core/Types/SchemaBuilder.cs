@@ -1,3 +1,4 @@
+using System.Reflection;
 using System.Linq;
 using System;
 using System.Collections.Generic;
@@ -21,6 +22,7 @@ namespace HotChocolate
             new List<LoadSchemaDocument>();
         private readonly List<ITypeReference> _types =
             new List<ITypeReference>();
+        private readonly List<Type> _resolverTypes = new List<Type>();
         private readonly Dictionary<OperationType, ITypeReference> _operations =
             new Dictionary<OperationType, ITypeReference>();
         private readonly Dictionary<FieldReference, FieldResolver> _resolvers =
@@ -101,11 +103,40 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(type));
             }
 
-            _types.Add(new ClrTypeReference(
-                type,
-                SchemaTypeReference.InferTypeContext(type)));
+            if (type.IsDefined(typeof(GraphQLResolverOfAttribute), true))
+            {
+                AddResolverType(type);
+            }
+            else
+            {
+                _types.Add(new ClrTypeReference(
+                    type,
+                    SchemaTypeReference.InferTypeContext(type)));
+            }
 
             return this;
+        }
+
+        private void AddResolverType(Type type)
+        {
+            GraphQLResolverOfAttribute attribute =
+                type.GetCustomAttribute<GraphQLResolverOfAttribute>(true);
+
+            _resolverTypes.Add(type);
+
+            if (attribute.Types != null)
+            {
+                foreach (Type schemaType in attribute.Types)
+                {
+                    if (typeof(ObjectType).IsAssignableFrom(schemaType)
+                        && !BaseTypes.IsNonGenericBaseType(schemaType))
+                    {
+                        _types.Add(new ClrTypeReference(
+                            schemaType,
+                            SchemaTypeReference.InferTypeContext(schemaType)));
+                    }
+                }
+            }
         }
 
         public ISchemaBuilder AddType(INamedType type)
@@ -330,7 +361,8 @@ namespace HotChocolate
             IEnumerable<ITypeReference> types,
             Func<ISchema> schemaResolver)
         {
-            var initializer = new TypeInitializer(services, types, IsQueryType);
+            var initializer = new TypeInitializer(
+                services, types, _resolverTypes, IsQueryType);
 
             foreach (FieldMiddleware component in _globalComponents)
             {

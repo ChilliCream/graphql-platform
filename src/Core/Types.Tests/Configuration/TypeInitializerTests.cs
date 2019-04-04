@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
@@ -26,6 +27,7 @@ namespace HotChocolate
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
                 initialTypes,
+                new List<Type>(),
                 t => t is FooType);
 
             // act
@@ -67,6 +69,7 @@ namespace HotChocolate
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
                 initialTypes,
+                new List<Type>(),
                 t => t is ObjectType<Foo>);
 
             // act
