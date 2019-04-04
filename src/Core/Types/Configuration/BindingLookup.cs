@@ -3,6 +3,7 @@ using System.Linq;
 using System;
 using System.Collections.Generic;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
@@ -38,6 +39,7 @@ namespace HotChocolate.Configuration
                     _context,
                     typeName,
                     null,
+                    BindingBehavior.Explicit,
                     new Dictionary<NameString, RegisteredResolver>(),
                     new Dictionary<NameString, MemberInfo>());
                 _bindings.Add(typeName, binding);

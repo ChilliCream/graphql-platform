@@ -63,6 +63,7 @@ namespace HotChocolate.Types.Factories
 
                 if (bindingInfo.TryGetFieldProperty(
                     inputField.Name.Value,
+                    MemberKind.InputObjectField,
                     out PropertyInfo p))
                 {
                     descriptor.Configure(t => t.Property = p);

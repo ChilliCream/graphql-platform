@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             // act
-            var type = new PageInfoType();
+            var type = CreateType(new PageInfoType());
 
             // assert
             Assert.Equal("PageInfo", type.Name);
@@ -25,7 +25,13 @@ namespace HotChocolate.Types.Relay
             PageInfoType type = CreateType(new PageInfoType());
 
             // assert
-            Assert.Collection(type.Fields.Where(t => !t.IsIntrospectionField),
+            Assert.Collection(
+                type.Fields.Where(t => !t.IsIntrospectionField).OrderBy(t => t.Name),
+                t =>
+                {
+                    Assert.Equal("endCursor", t.Name);
+                    Assert.IsType<StringType>(t.Type);
+                },
                 t =>
                 {
                     Assert.Equal("hasNextPage", t.Name);
@@ -49,11 +55,6 @@ namespace HotChocolate.Types.Relay
                 t =>
                 {
                     Assert.Equal("startCursor", t.Name);
-                    Assert.IsType<StringType>(t.Type);
-                },
-                t =>
-                {
-                    Assert.Equal("endCursor", t.Name);
                     Assert.IsType<StringType>(t.Type);
                 });
         }

@@ -75,6 +75,7 @@ namespace HotChocolate.Types.Factories
 
                 if (bindingInfo.TryGetFieldMember(
                     fieldDefinition.Name.Value,
+                    MemberKind.ObjectField,
                     out MemberInfo member))
                 {
                     fieldDescriptor.Configure(t => t.Member = member);

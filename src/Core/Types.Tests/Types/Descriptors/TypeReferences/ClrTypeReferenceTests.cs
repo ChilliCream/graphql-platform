@@ -38,18 +38,20 @@ namespace HotChocolate.Types.Descriptors
                 typeReference.IsElementTypeNullable);
         }
 
-        [InlineData(typeof(int?[]), true, null,
+        [InlineData(typeof(int?[]), false, true,
             typeof(NonNullType<NativeType<List<int?>>>))]
-        [InlineData(typeof(int?[]), true, true,
+        [InlineData(typeof(int?[]), true, null,
+            typeof(List<NonNullType<NativeType<int>>>))]
+        [InlineData(typeof(int?[]), false, false,
             typeof(NonNullType<NativeType<List<NonNullType<NativeType<int>>>>>)
             )]
-        [InlineData(typeof(int), true, null,
+        [InlineData(typeof(int), false, true,
             typeof(NonNullType<NativeType<int>>))]
-        [InlineData(typeof(int), true, true,
+        [InlineData(typeof(int), false, false,
             typeof(NonNullType<NativeType<int>>))]
-        [InlineData(typeof(int[]), true, null,
+        [InlineData(typeof(int[]), false, true,
             typeof(NonNullType<NativeType<List<int?>>>))]
-        [InlineData(typeof(int[]), null, true,
+        [InlineData(typeof(int[]), true, false,
             typeof(List<NonNullType<NativeType<int>>>))]
         [Theory]
         public void ClrTypeReference_RewriteType(
@@ -121,6 +123,42 @@ namespace HotChocolate.Types.Descriptors
         [InlineData(typeof(string), TypeContext.Output, true, null)]
         [InlineData(typeof(string), TypeContext.Output, null, null)]
         [Theory]
+        public void ClrTypeReference_CtxNone_Equals_True(
+            Type clrType,
+            TypeContext context,
+            bool? isTypeNullable,
+            bool? isElementTypeNullable)
+        {
+            // arrange
+            var x = new ClrTypeReference(
+                clrType,
+                context,
+                isTypeNullable,
+                isElementTypeNullable);
+
+            var y = new ClrTypeReference(
+                clrType,
+                TypeContext.None,
+                isTypeNullable,
+                isElementTypeNullable);
+
+            // act
+            bool result = x.Equals(y);
+
+            // assert
+            Assert.True(result);
+        }
+
+        [InlineData(typeof(string[]), TypeContext.Input, false, null)]
+        [InlineData(typeof(string[]), TypeContext.Input, null, false)]
+        [InlineData(typeof(string), TypeContext.Input, true, false)]
+        [InlineData(typeof(string), TypeContext.None, true, false)]
+        [InlineData(typeof(string), TypeContext.Output, true, false)]
+        [InlineData(typeof(string), TypeContext.Output, false, true)]
+        [InlineData(typeof(string), TypeContext.Output, null, true)]
+        [InlineData(typeof(string), TypeContext.Output, true, null)]
+        [InlineData(typeof(string), TypeContext.Output, null, null)]
+        [Theory]
         public void IClrTypeReference_Equals_True(
             Type clrType,
             TypeContext context,
@@ -158,6 +196,43 @@ namespace HotChocolate.Types.Descriptors
         [InlineData(typeof(string), TypeContext.Output, true, null)]
         [InlineData(typeof(string), TypeContext.Output, null, null)]
         [Theory]
+        public void IClrTypeReference_CtxNone_Equals_True(
+            Type clrType,
+            TypeContext context,
+            bool? isTypeNullable,
+            bool? isElementTypeNullable)
+        {
+            // arrange
+            var x = new ClrTypeReference(
+                clrType,
+                context,
+                isTypeNullable,
+                isElementTypeNullable);
+
+            IClrTypeReference y = new ClrTypeReference(
+                clrType,
+                TypeContext.None,
+                isTypeNullable,
+                isElementTypeNullable);
+
+            // act
+
+            bool result = x.Equals(y);
+
+            // assert
+            Assert.True(result);
+        }
+
+        [InlineData(typeof(string[]), TypeContext.Input, false, null)]
+        [InlineData(typeof(string[]), TypeContext.Input, null, false)]
+        [InlineData(typeof(string), TypeContext.Input, true, false)]
+        [InlineData(typeof(string), TypeContext.None, true, false)]
+        [InlineData(typeof(string), TypeContext.Output, true, false)]
+        [InlineData(typeof(string), TypeContext.Output, false, true)]
+        [InlineData(typeof(string), TypeContext.Output, null, true)]
+        [InlineData(typeof(string), TypeContext.Output, true, null)]
+        [InlineData(typeof(string), TypeContext.Output, null, null)]
+        [Theory]
         public void Object_Equals_True(
             Type clrType,
             TypeContext context,
@@ -174,6 +249,42 @@ namespace HotChocolate.Types.Descriptors
             IClrTypeReference y = new ClrTypeReference(
                 clrType,
                 context,
+                isTypeNullable,
+                isElementTypeNullable);
+
+            // act
+            bool result = x.Equals(y);
+
+            // assert
+            Assert.True(result);
+        }
+
+        [InlineData(typeof(string[]), TypeContext.Input, false, null)]
+        [InlineData(typeof(string[]), TypeContext.Input, null, false)]
+        [InlineData(typeof(string), TypeContext.Input, true, false)]
+        [InlineData(typeof(string), TypeContext.None, true, false)]
+        [InlineData(typeof(string), TypeContext.Output, true, false)]
+        [InlineData(typeof(string), TypeContext.Output, false, true)]
+        [InlineData(typeof(string), TypeContext.Output, null, true)]
+        [InlineData(typeof(string), TypeContext.Output, true, null)]
+        [InlineData(typeof(string), TypeContext.Output, null, null)]
+        [Theory]
+        public void Object_CtxNone_Equals_True(
+            Type clrType,
+            TypeContext context,
+            bool? isTypeNullable,
+            bool? isElementTypeNullable)
+        {
+            // arrange
+            var x = new ClrTypeReference(
+                clrType,
+                context,
+                isTypeNullable,
+                isElementTypeNullable);
+
+            IClrTypeReference y = new ClrTypeReference(
+                clrType,
+                TypeContext.None,
                 isTypeNullable,
                 isElementTypeNullable);
 
@@ -240,7 +351,6 @@ namespace HotChocolate.Types.Descriptors
         [InlineData(typeof(string), TypeContext.None, true, true)]
         [InlineData(typeof(string), TypeContext.None, false, false)]
         [InlineData(typeof(string), TypeContext.Output, true, false)]
-        [InlineData(typeof(string), TypeContext.Input, true, false)]
         [InlineData(typeof(int), TypeContext.None, true, false)]
         [InlineData(typeof(object), TypeContext.None, true, false)]
         [Theory]
@@ -253,7 +363,7 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             var x = new ClrTypeReference(
                 typeof(string),
-                TypeContext.None,
+                TypeContext.Input,
                 true,
                 false);
 
@@ -275,7 +385,6 @@ namespace HotChocolate.Types.Descriptors
         [InlineData(typeof(string), TypeContext.None, true, true)]
         [InlineData(typeof(string), TypeContext.None, false, false)]
         [InlineData(typeof(string), TypeContext.Output, true, false)]
-        [InlineData(typeof(string), TypeContext.Input, true, false)]
         [InlineData(typeof(int), TypeContext.None, true, false)]
         [InlineData(typeof(object), TypeContext.None, true, false)]
         [Theory]
@@ -288,7 +397,7 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             var x = new ClrTypeReference(
                 typeof(string),
-                TypeContext.None,
+                TypeContext.Input,
                 true,
                 false);
 
@@ -310,7 +419,6 @@ namespace HotChocolate.Types.Descriptors
         [InlineData(typeof(string), TypeContext.None, true, true)]
         [InlineData(typeof(string), TypeContext.None, false, false)]
         [InlineData(typeof(string), TypeContext.Output, true, false)]
-        [InlineData(typeof(string), TypeContext.Input, true, false)]
         [InlineData(typeof(int), TypeContext.None, true, false)]
         [InlineData(typeof(object), TypeContext.None, true, false)]
         [Theory]
@@ -323,7 +431,7 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             var x = new ClrTypeReference(
                 typeof(string),
-                TypeContext.None,
+                TypeContext.Input,
                 true,
                 false);
 

@@ -14,14 +14,16 @@ namespace HotChocolate.Configuration
         private readonly IDescriptorContext _context;
         private readonly Dictionary<NameString, RegisteredResolver> _resolvers;
         private readonly Dictionary<NameString, MemberInfo> _members;
+        private readonly BindingBehavior _bindingBehavior;
         private readonly HashSet<NameString> _fieldNames =
             new HashSet<NameString>();
-        private List<MemberInfo> _allMembers;
+        private List<MemberInfo> _allMembers;        
 
         public TypeBindingInfo(
             IDescriptorContext context,
             NameString name,
             Type sourceType,
+            BindingBehavior bindingBehavior,
             IDictionary<NameString, RegisteredResolver> resolvers,
             IDictionary<NameString, MemberInfo> members)
         {
@@ -41,6 +43,7 @@ namespace HotChocolate.Configuration
                 ?? throw new ArgumentNullException(nameof(context));
             Name = name;
             SourceType = sourceType;
+            _bindingBehavior = bindingBehavior;
             _resolvers = new Dictionary<NameString, RegisteredResolver>(
                 resolvers);
             _members = new Dictionary<NameString, MemberInfo>(
@@ -66,6 +69,7 @@ namespace HotChocolate.Configuration
 
         public bool TryGetFieldMember(
             NameString fieldName,
+            MemberKind kind,
             out MemberInfo member)
         {
             fieldName.EnsureNotEmpty(nameof(fieldName));
@@ -80,7 +84,7 @@ namespace HotChocolate.Configuration
             {
                 InitializeAllMembers();
                 member = _allMembers.FirstOrDefault(t =>
-                    _context.Naming.GetMemberName(t, MemberKind.Field)
+                    _context.Naming.GetMemberName(t, kind)
                         .Equals(fieldName));
 
                 if (member != null)
@@ -95,6 +99,7 @@ namespace HotChocolate.Configuration
 
         public bool TryGetFieldProperty(
             NameString fieldName,
+            MemberKind kind,
             out PropertyInfo prop)
         {
             fieldName.EnsureNotEmpty(nameof(fieldName));
@@ -112,7 +117,7 @@ namespace HotChocolate.Configuration
             {
                 InitializeAllMembers();
                 prop = _allMembers.OfType<PropertyInfo>().FirstOrDefault(t =>
-                    _context.Naming.GetMemberName(t, MemberKind.Field)
+                    _context.Naming.GetMemberName(t, kind)
                        .Equals(fieldName));
 
                 if (prop != null)
@@ -145,6 +150,7 @@ namespace HotChocolate.Configuration
             if (_allMembers == null)
             {
                 _allMembers = SourceType == null
+                    || _bindingBehavior == BindingBehavior.Explicit
                     ? new List<MemberInfo>()
                     : _context.Inspector.GetMembers(SourceType).ToList();
             }

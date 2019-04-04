@@ -53,7 +53,9 @@ namespace HotChocolate.Configuration
             }
 
             CompleteComplexTypeBindings(descriptorContext.Naming);
-            CompleteResolverTypeBindings(descriptorContext.Naming);
+            CompleteResolverTypeBindings(
+                descriptorContext.Inspector,
+                descriptorContext.Naming);
             CompleteResolverBindings(descriptorContext.Naming);
 
             IEnumerable<TypeBindingInfo> bindings =
@@ -84,12 +86,16 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void CompleteResolverTypeBindings(INamingConventions naming)
+        private void CompleteResolverTypeBindings(
+            ITypeInspector inspector,
+            INamingConventions naming)
         {
             foreach (ResolverTypeBindingInfo binding in
                 _bindings.OfType<ResolverTypeBindingInfo>()
                     .ToList())
             {
+                ComplexTypeBindingInfo typeBinding = null;
+
                 if (binding.SourceType == null)
                 {
                     binding.SourceType = typeof(object);
@@ -97,9 +103,8 @@ namespace HotChocolate.Configuration
 
                 if (binding.SourceType != null && binding.TypeName.IsEmpty)
                 {
-                    ComplexTypeBindingInfo typeBinding =
-                        _bindings.OfType<ComplexTypeBindingInfo>()
-                            .FirstOrDefault(t => t.Type == binding.SourceType);
+                    typeBinding = _bindings.OfType<ComplexTypeBindingInfo>()
+                        .FirstOrDefault(t => t.Type == binding.SourceType);
                     if (typeBinding == null)
                     {
                         binding.TypeName = naming.GetTypeName(
@@ -111,14 +116,19 @@ namespace HotChocolate.Configuration
                     }
                 }
 
-                if (!_bindings.OfType<ComplexTypeBindingInfo>()
-                    .Any(t => t.Name.Equals(binding.TypeName)))
+                typeBinding = _bindings.OfType<ComplexTypeBindingInfo>()
+                    .FirstOrDefault(t => t.Name.Equals(binding.TypeName));
+                if (typeBinding == null)
                 {
                     _bindings.Add(new ComplexTypeBindingInfo
                     {
                         Name = binding.TypeName,
                         Type = binding.SourceType
                     });
+                }
+                else if (binding.SourceType == typeof(object))
+                {
+                    binding.SourceType = typeBinding.Type;
                 }
 
                 foreach (ResolverFieldBindingInfo field in binding.Fields)
@@ -128,6 +138,33 @@ namespace HotChocolate.Configuration
                         field.FieldName = naming.GetMemberName(
                             field.FieldMember, MemberKind.ObjectField);
                     }
+                }
+
+                if (binding.BindingBehavior == BindingBehavior.Implicit)
+                {
+                    AddImplicitResolverBindings(inspector, naming, binding);
+                }
+            }
+        }
+
+        private void AddImplicitResolverBindings(
+            ITypeInspector inspector,
+            INamingConventions naming,
+            ResolverTypeBindingInfo binding)
+        {
+            var names = new HashSet<NameString>(
+                binding.Fields.Select(t => t.FieldName));
+
+            foreach (MemberInfo member in inspector.GetMembers(binding.ResolverType))
+            {
+                NameString fieldName =
+                    naming.GetMemberName(member, MemberKind.ObjectField);
+                if (names.Add(fieldName))
+                {
+                    var builder = ResolverFieldBindingBuilder.New();
+                    builder.SetResolver(member);
+                    builder.SetField(fieldName);
+                    binding.Fields = binding.Fields.Add(builder.Create());
                 }
             }
         }
@@ -203,8 +240,12 @@ namespace HotChocolate.Configuration
             RegisterFields(binding, registerdResolvers, members);
 
             return new TypeBindingInfo(
-                context, binding.Name, binding.Type,
-                registerdResolvers, members);
+                context,
+                binding.Name,
+                binding.Type,
+                binding.BindingBehavior,
+                registerdResolvers,
+                members);
         }
 
         private void RegisterResolverFields(
@@ -245,7 +286,7 @@ namespace HotChocolate.Configuration
             ComplexTypeBindingInfo binding,
             Dictionary<NameString, RegisteredResolver> registerdResolvers)
         {
-            foreach(ResolverBindingInfo resolver in
+            foreach (ResolverBindingInfo resolver in
                 _bindings.OfType<ResolverBindingInfo>()
                     .Where(t => t.TypeName.Equals(binding.Name)))
             {

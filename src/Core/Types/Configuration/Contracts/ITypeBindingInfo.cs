@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using System.Collections.Generic;
+using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
@@ -10,9 +11,15 @@ namespace HotChocolate.Configuration
 
         Type SourceType { get; }
 
-        bool TryGetFieldMember(NameString fieldName, out MemberInfo member);
+        bool TryGetFieldMember(
+            NameString fieldName,
+            MemberKind kind, out
+            MemberInfo member);
 
-        bool TryGetFieldProperty(NameString fieldName, out PropertyInfo prop);
+        bool TryGetFieldProperty(
+            NameString fieldName,
+            MemberKind kind,
+            out PropertyInfo prop);
 
         void TrackField(NameString fieldName);
 

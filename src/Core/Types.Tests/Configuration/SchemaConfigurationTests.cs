@@ -77,11 +77,13 @@ namespace HotChocolate.Configuration
             // arrange
             var dummyObjectType = new TestObjectB();
 
-            var resolverContext = new Mock<IResolverContext>();
+            var resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);
             resolverContext.Setup(t => t.Resolver<TestResolverCollectionB>())
                .Returns(new TestResolverCollectionB());
             resolverContext.Setup(t => t.Parent<TestObjectB>())
                .Returns(dummyObjectType);
+            resolverContext.Setup(t => t.RequestAborted)
+                .Returns(CancellationToken.None);
 
             // act
             ISchema schema = Schema.Create(c =>
