@@ -495,7 +495,8 @@ namespace HotChocolate.Execution
                     c.RegisterExtendedScalarTypes();
                     c.Use(next => context =>
                     {
-                        context.Result = context.Argument<DateTimeOffset>("a");
+                        context.Result = context.Argument<DateTimeOffset>("a")
+                            .ToUniversalTime();
                         return Task.CompletedTask;
                     });
                 }).MakeExecutable();
