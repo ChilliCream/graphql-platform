@@ -11,7 +11,8 @@ namespace HotChocolate.Utilities
         {
             // arrange
             var factory = new NamedTypeInfoFactory();
-            Type nativeType = typeof(NonNullType<ListType<NonNullType<StringType>>>);
+            Type nativeType =
+                typeof(NonNullType<ListType<NonNullType<StringType>>>);
 
             // act
             bool success = factory.TryCreate(nativeType, out TypeInfo typeInfo);

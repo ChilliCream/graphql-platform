@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using ChilliCream.Testing;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Utilities
@@ -12,7 +13,11 @@ namespace HotChocolate.Utilities
         {
             // arrange
             ISchema schema = Schema.Create(
-                c => c.RegisterType<InputObjectType<Foo>>());
+                c =>
+                {
+                    c.RegisterQueryType<DummyQuery>();
+                    c.RegisterType<InputObjectType<Foo>>();
+                });
 
             InputObjectType type = schema.GetType<InputObjectType>("FooInput");
 
@@ -31,7 +36,7 @@ namespace HotChocolate.Utilities
             Dictionary<string, object> dict = converter.Convert(type, foo);
 
             // assert
-            dict.Snapshot();
+            dict.MatchSnapshot();
         }
 
         [Fact]
@@ -39,7 +44,11 @@ namespace HotChocolate.Utilities
         {
             // arrange
             ISchema schema = Schema.Create(
-                c => c.RegisterType<InputObjectType<Foo>>());
+                c =>
+                {
+                    c.RegisterQueryType<DummyQuery>();
+                    c.RegisterType<InputObjectType<Foo>>();
+                });
 
             InputObjectType type = schema.GetType<InputObjectType>("FooInput");
 
@@ -57,7 +66,7 @@ namespace HotChocolate.Utilities
             Dictionary<string, object> dict = converter.Convert(type, foo);
 
             // assert
-            dict.Snapshot();
+            dict.MatchSnapshot();
         }
 
         [Fact]
@@ -65,7 +74,11 @@ namespace HotChocolate.Utilities
         {
             // arrange
             ISchema schema = Schema.Create(
-                c => c.RegisterType<InputObjectType<Foo>>());
+                c =>
+                {
+                    c.RegisterQueryType<DummyQuery>();
+                    c.RegisterType<InputObjectType<Foo>>();
+                });
 
             InputObjectType type = schema.GetType<InputObjectType>("FooInput");
 
@@ -83,7 +96,7 @@ namespace HotChocolate.Utilities
             Dictionary<string, object> dict = converter.Convert(type, foo);
 
             // assert
-            dict.Snapshot();
+            dict.MatchSnapshot();
         }
 
         public class Foo
@@ -104,6 +117,11 @@ namespace HotChocolate.Utilities
         {
             Foo,
             Bar
+        }
+
+        public class DummyQuery
+        {
+            public string Foo { get; set; }
         }
     }
 }

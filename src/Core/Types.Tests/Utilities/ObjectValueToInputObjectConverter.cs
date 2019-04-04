@@ -2,6 +2,7 @@
 using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Utilities
@@ -14,6 +15,7 @@ namespace HotChocolate.Utilities
             // arrange
             ISchema schema = Schema.Create(c =>
             {
+                c.RegisterQueryType<DummyQuery>();
                 c.RegisterType<InputObjectType<Foo>>();
                 c.RegisterType<DecimalType>();
             });
@@ -42,7 +44,7 @@ namespace HotChocolate.Utilities
             var converted = converter.Convert(foo, type);
 
             // assert
-            converted.Snapshot();
+            converted.MatchSnapshot();
         }
 
         [Fact]
@@ -51,6 +53,7 @@ namespace HotChocolate.Utilities
             // arrange
             ISchema schema = Schema.Create(c =>
             {
+                c.RegisterQueryType<DummyQuery>();
                 c.RegisterType(new InputObjectType(t =>
                     t.Name("FooInput")
                         .Field("a")
@@ -72,7 +75,7 @@ namespace HotChocolate.Utilities
             object converted = converter.Convert(foo, type);
 
             // assert
-            converted.Snapshot();
+            converted.MatchSnapshot();
         }
 
         public class Foo
@@ -97,6 +100,11 @@ namespace HotChocolate.Utilities
         {
             On,
             Off
+        }
+
+        public class DummyQuery
+        {
+            public string Foo { get; set; }
         }
     }
 }

@@ -1,0 +1,13 @@
+﻿{
+  "Text": "abc",
+  "Bar": {
+    "State": "On",
+    "Bazs": [
+      {
+        "Number": 1.5
+      }
+    ],
+    "BazArray": null,
+    "StringArray": null
+  }
+}
