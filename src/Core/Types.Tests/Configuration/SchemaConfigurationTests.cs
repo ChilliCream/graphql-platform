@@ -115,16 +115,18 @@ namespace HotChocolate.Configuration
             var resolverContext = new Mock<IResolverContext>();
             resolverContext.Setup(t => t.Parent<TestObjectB>())
                .Returns(dummyObjectType);
+            resolverContext.Setup(t => t.RequestAborted)
+                .Returns(CancellationToken.None);
+
+            string source = @"
+                type Dummy { bar: String }
+            ";
+
 
             // act
-            ISchema schema = Schema.Create(c =>
+            ISchema schema = Schema.Create(source, c =>
             {
-                c.RegisterQueryType(new ObjectType(d =>
-                {
-                    d.Name("Dummy");
-                    d.Field("bar").Type<StringType>();
-                }));
-
+                c.RegisterQueryType<DummyQuery>();
                 c.BindType<TestObjectB>().To("Dummy");
             });
 
@@ -145,15 +147,14 @@ namespace HotChocolate.Configuration
             resolverContext.Setup(t => t.Parent<TestObjectB>())
                .Returns(dummyObjectType);
 
-            // act
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType(new ObjectType(d =>
-                {
-                    d.Name("Dummy");
-                    d.Field("bar2").Type<StringType>();
-                }));
+            string source = @"
+                type Dummy { bar2: String }
+            ";
 
+            // act
+            ISchema schema = Schema.Create(source, c =>
+            {
+                c.RegisterQueryType<DummyQuery>();
                 c.BindType<TestObjectB>().To("Dummy");
             });
 
@@ -204,5 +205,10 @@ namespace HotChocolate.Configuration
         public string Bar { get; } = "hello";
 
         public string GetBar2() => "world";
+    }
+
+    public class DummyQuery
+    {
+        public string Foo { get; set; }
     }
 }
