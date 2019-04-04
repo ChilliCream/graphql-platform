@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
@@ -5,6 +7,8 @@ namespace HotChocolate.Types
     internal interface ITypeConfigration
     {
         ConfigurationKind Kind { get; }
-        void Configure(DefinitionBase definition);
+        IReadOnlyList<TypeDependency> Dependencies { get; }
+        void Configure(DefinitionBase definition,
+            IReadOnlyList<ITypeSystemObject> depenencies);
     }
 }

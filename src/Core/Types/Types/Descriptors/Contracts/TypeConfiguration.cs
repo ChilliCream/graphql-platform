@@ -75,7 +75,7 @@ namespace HotChocolate.Types
 
             if (definition is T t)
             {
-                Configure(t);
+                Configure(t, depenencies);
             }
             else
             {

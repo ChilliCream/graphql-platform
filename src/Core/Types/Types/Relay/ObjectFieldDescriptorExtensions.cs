@@ -1,7 +1,10 @@
-﻿using System;
+﻿using System.Threading.Tasks;
+using System;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
+using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Relay
@@ -38,21 +41,23 @@ namespace HotChocolate.Types.Relay
             this IObjectFieldDescriptor descriptor)
             where TSchemaType : IOutputType, new()
         {
-            new TypeDependency()
+            FieldMiddleware placeholder =
+                next => context => Task.CompletedTask;
+            var dependency = TypeDependency.FromSchemaType(typeof(TSchemaType));
 
             descriptor
                 .AddPagingArguments()
                 .Type(ConnectionType<TSchemaType>.CreateWithTotalCount())
-                .Configure(new TypeConfiguration(
+                .Use(placeholder)
+                .Configure(new TypeConfiguration<ObjectFieldDefinition>(
                     ConfigurationKind.Completion,
-                    c =>
+                    (def, deps) =>
                     {
 
+
+
                     },
-                    ));
-
-
-
+                    dependency));
 
             if (NamedTypeInfoFactory.Default.TryExtractClrType(
                 typeof(TSchemaType), out Type clrType))
