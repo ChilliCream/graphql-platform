@@ -2,8 +2,6 @@ using System.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Resolvers.CodeGeneration;
-using HotChocolate.Utilities;
 using System.Threading.Tasks;
 
 namespace HotChocolate.Types.Descriptors
@@ -67,16 +65,24 @@ namespace HotChocolate.Types.Descriptors
 
             Type returnType = GetReturnType(member);
 
+            if (member.IsDefined(typeof(GraphQLTypeAttribute)))
+            {
+                GraphQLTypeAttribute attribute =
+                    member.GetCustomAttribute<GraphQLTypeAttribute>();
+                returnType = attribute.Type;
+            }
+
             if (member.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
             {
-                var attribute =
+                GraphQLNonNullTypeAttribute attribute =
                     member.GetCustomAttribute<GraphQLNonNullTypeAttribute>();
 
                 return new ClrTypeReference(
                     returnType,
                     context,
                     attribute.IsNullable,
-                    attribute.IsElementNullable);
+                    attribute.IsElementNullable)
+                    .Compile();
             }
 
             return new ClrTypeReference(returnType, context);

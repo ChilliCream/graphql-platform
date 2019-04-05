@@ -249,7 +249,7 @@ namespace HotChocolate
         {
             // arrange
             var a = new NameString("Foo");
-            var b = a;
+            NameString b = a;
 
             // act
             bool result = a == b;
@@ -319,7 +319,7 @@ namespace HotChocolate
         {
             // arrange
             var a = new NameString("Foo");
-            var b = a;
+            NameString b = a;
 
             // act
             bool result = a != b;

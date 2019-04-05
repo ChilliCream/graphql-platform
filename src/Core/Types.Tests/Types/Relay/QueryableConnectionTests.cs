@@ -25,7 +25,7 @@ namespace HotChocolate.Types.Relay
                 list.AsQueryable(), pagingDetails);
 
             // act
-            var connection = await connectionFactory.ResolveAsync(
+            Connection<string> connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             // assert
@@ -65,7 +65,7 @@ namespace HotChocolate.Types.Relay
                 list.AsQueryable(), pagingDetails);
 
             // act
-            var connection = await connectionFactory.ResolveAsync(
+            Connection<string> connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             // assert
@@ -99,7 +99,7 @@ namespace HotChocolate.Types.Relay
             var connectionFactory = new QueryableConnectionResolver<string>(
                 list.AsQueryable(), new PagingDetails {First = 1});
 
-            var connection = await connectionFactory.ResolveAsync(
+            Connection<string> connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             var pagingDetails = new PagingDetails
@@ -147,7 +147,7 @@ namespace HotChocolate.Types.Relay
             var connectionFactory = new QueryableConnectionResolver<string>(
                 list.AsQueryable(), new PagingDetails {First = 2});
 
-            var connection = await connectionFactory.ResolveAsync(
+            Connection<string> connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             //2. Page
@@ -208,7 +208,7 @@ namespace HotChocolate.Types.Relay
             var connectionFactory = new QueryableConnectionResolver<string>(
                 list.AsQueryable(), new PagingDetails {First = 5});
 
-            var connection = await connectionFactory.ResolveAsync(
+            Connection<string> connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             var pagingDetails = new PagingDetails
@@ -261,7 +261,7 @@ namespace HotChocolate.Types.Relay
                 list.AsQueryable(), pagingDetails);
 
             // act
-            var connection = await connectionFactory.ResolveAsync(
+            Connection<string> connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             // assert
@@ -283,7 +283,7 @@ namespace HotChocolate.Types.Relay
                 list.AsQueryable(), pagingDetails);
 
             // act
-            var connection = await connectionFactory.ResolveAsync(
+            Connection<string> connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             // assert
@@ -299,7 +299,7 @@ namespace HotChocolate.Types.Relay
             var connectionFactory = new QueryableConnectionResolver<string>(
                 list.AsQueryable(), new PagingDetails {First = 1});
 
-            var connection = await connectionFactory.ResolveAsync(
+            Connection<string> connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             var pagingDetails = new PagingDetails
@@ -331,7 +331,7 @@ namespace HotChocolate.Types.Relay
                 list.AsQueryable(), pagingDetails);
 
             // act
-            var connection = await connectionFactory.ResolveAsync(
+            Connection<string> connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
 
             // assert
@@ -340,7 +340,7 @@ namespace HotChocolate.Types.Relay
 
         private int GetPositionFromCursor(string cursor)
         {
-            var properties = Base64Serializer
+            Dictionary<string, object> properties = Base64Serializer
                 .Deserialize<Dictionary<string, object>>(cursor);
             return Convert.ToInt32(properties["__position"]);
         }

@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Reflection;
 using System;
 
@@ -59,8 +58,23 @@ namespace HotChocolate.Types.Descriptors
             return member.GetGraphQLDescription();
         }
 
+        public virtual NameString GetTypeName(Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return type.GetGraphQLName();
+        }
+
         public virtual NameString GetTypeName(Type type, TypeKind kind)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             string name = type.GetGraphQLName();
 
             if (kind == TypeKind.InputObject)
@@ -76,6 +90,11 @@ namespace HotChocolate.Types.Descriptors
 
         public string GetTypeDescription(Type type, TypeKind kind)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return type.GetGraphQLDescription();
         }
     }

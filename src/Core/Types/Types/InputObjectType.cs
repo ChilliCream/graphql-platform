@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -92,7 +91,7 @@ namespace HotChocolate.Types
         protected override InputObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            InputObjectTypeDescriptor descriptor =
+            var descriptor =
                 InputObjectTypeDescriptor.New(
                     DescriptorContext.Create(context.Services),
                     GetType());
@@ -111,8 +110,17 @@ namespace HotChocolate.Types
             base.OnRegisterDependencies(context, definition);
 
             context.RegisterDependencyRange(
-                definition.GetDependencies(),
+                definition.Fields.Select(t => t.Type),
                 TypeDependencyKind.Default);
+
+            context.RegisterDependencyRange(
+                definition.Directives.Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
+
+            context.RegisterDependencyRange(
+                definition.Fields.SelectMany(t => t.Directives)
+                    .Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
         }
 
         protected override void OnCompleteType(
@@ -120,6 +128,12 @@ namespace HotChocolate.Types
             InputObjectTypeDefinition definition)
         {
             base.OnCompleteType(context, definition);
+
+            ITypeConversion typeConversion = context.Services.GetTypeConversion();
+            _objectToValueConverter =
+                new InputObjectToObjectValueConverter(typeConversion);
+            _valueToObjectConverter =
+                new ObjectValueToInputObjectConverter(typeConversion);
 
             SyntaxNode = definition.SyntaxNode;
             Fields = new FieldCollection<InputField>(

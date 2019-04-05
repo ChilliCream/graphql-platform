@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Resolvers;
 using HotChocolate.Resolvers.CodeGeneration;
 
@@ -33,7 +32,7 @@ namespace HotChocolate.Configuration
                         resolverBuilder.AddDescriptor(
                             new ResolverDescriptor(
                                 resolver.ResolverType,
-                                resolver.ResolverType,
+                                resolver.SourceType,
                                 member));
                     }
                 }
@@ -44,7 +43,7 @@ namespace HotChocolate.Configuration
 
             foreach (FieldResolver resolver in result.Resolvers)
             {
-                FieldReference reference = resolver.ToFieldReference();
+                var reference = resolver.ToFieldReference();
                 if (resolvers.TryGetValue(reference,
                     out RegisteredResolver registered))
                 {

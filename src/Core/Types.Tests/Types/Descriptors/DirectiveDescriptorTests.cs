@@ -14,7 +14,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            DirectiveTypeDescriptor descriptor =
+            var descriptor =
                 DirectiveTypeDescriptor.New(Context, "Foo");
 
             // assert
@@ -26,7 +26,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            DirectiveTypeDescriptor<CustomDirective> descriptor =
+            var descriptor =
                 DirectiveTypeDescriptor.New<CustomDirective>(Context);
 
             // assert
@@ -39,7 +39,7 @@ namespace HotChocolate.Types
         public void OverrideName()
         {
             // arrange
-            DirectiveTypeDescriptor<CustomDirective> descriptor =
+            var descriptor =
                 DirectiveTypeDescriptor.New<CustomDirective>(Context);
 
             // act
@@ -55,7 +55,7 @@ namespace HotChocolate.Types
         public void DeclareNullName()
         {
             // arrange
-            DirectiveTypeDescriptor descriptor =
+            var descriptor =
                 DirectiveTypeDescriptor.New(Context, "Foo");
 
             // act
@@ -69,7 +69,7 @@ namespace HotChocolate.Types
         public void DeclareEmptyName()
         {
             // arrange
-            DirectiveTypeDescriptor descriptor =
+            var descriptor =
                 DirectiveTypeDescriptor.New(Context, "Foo");
 
             // act
@@ -83,7 +83,7 @@ namespace HotChocolate.Types
         public void DeclareDescription()
         {
             // arrange
-            DirectiveTypeDescriptor descriptor =
+            var descriptor =
                 DirectiveTypeDescriptor.New(Context, "Foo");
 
             // act
@@ -97,7 +97,7 @@ namespace HotChocolate.Types
         public void DeclareArgument()
         {
             // arrange
-            DirectiveTypeDescriptor descriptor =
+            var descriptor =
                 DirectiveTypeDescriptor.New(Context, "Foo");
 
             // act
@@ -113,7 +113,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            DirectiveTypeDescriptor<CustomDirective> descriptor =
+            var descriptor =
                 DirectiveTypeDescriptor.New<CustomDirective>(Context);
 
             // assert
@@ -128,7 +128,7 @@ namespace HotChocolate.Types
         public void DeclareExplicitArgumentBinding()
         {
             // arrange
-            DirectiveTypeDescriptor<CustomDirective> descriptor =
+            var descriptor =
                 DirectiveTypeDescriptor.New<CustomDirective>(Context);
 
             // act
@@ -146,7 +146,7 @@ namespace HotChocolate.Types
         public void DeclareArgumentAndSpecifyType()
         {
             // arrange
-            DirectiveTypeDescriptor<CustomDirective> descriptor =
+            var descriptor =
                 DirectiveTypeDescriptor.New<CustomDirective>(Context);
 
             // act
@@ -168,7 +168,7 @@ namespace HotChocolate.Types
         public void IgnoreArgumentBinding()
         {
             // arrange
-            DirectiveTypeDescriptor<CustomDirective> descriptor =
+            var descriptor =
                 DirectiveTypeDescriptor.New<CustomDirective>(Context);
 
             // act
@@ -185,7 +185,7 @@ namespace HotChocolate.Types
         public void MethodsAreNotAllowedAsArguments()
         {
             // arrange
-            DirectiveTypeDescriptor<CustomDirective> descriptor =
+            var descriptor =
                 DirectiveTypeDescriptor.New<CustomDirective>(Context);
 
             // act
@@ -199,7 +199,7 @@ namespace HotChocolate.Types
         public void DeclareLocation()
         {
             // arrange
-            DirectiveTypeDescriptor descriptor =
+            var descriptor =
                 DirectiveTypeDescriptor.New(Context, "Foo");
 
             // act

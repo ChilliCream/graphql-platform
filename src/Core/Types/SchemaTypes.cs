@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using HotChocolate.Configuration;
 using HotChocolate.Types;
 
 namespace HotChocolate
@@ -55,7 +54,7 @@ namespace HotChocolate
                 return true;
             }
 
-            type = default(T);
+            type = default;
             return false;
         }
 
@@ -88,7 +87,7 @@ namespace HotChocolate
         private static Dictionary<NameString, ImmutableList<ObjectType>> CreatePossibleTypeLookup(
             IReadOnlyCollection<INamedType> types)
         {
-            Dictionary<NameString, List<ObjectType>> possibleTypes =
+            var possibleTypes =
                 new Dictionary<NameString, List<ObjectType>>();
 
             foreach (ObjectType objectType in types.OfType<ObjectType>())

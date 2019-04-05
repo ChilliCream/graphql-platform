@@ -1,4 +1,3 @@
-using System.Security.AccessControl;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +6,7 @@ using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Language;
 
 namespace HotChocolate.Configuration
 {
@@ -37,7 +37,7 @@ namespace HotChocolate.Configuration
             }
 
             _unregistered.AddRange(IntrospectionTypes.All);
-            _unregistered.AddRange(BuiltInDirectives.All);
+            _unregistered.AddRange(Directives.All);
             _unregistered.AddRange(initialTypes);
             _serviceFactory.Services = services;
         }
@@ -60,7 +60,7 @@ namespace HotChocolate.Configuration
         {
             const int max = 10000;
             int tries = 0;
-            bool resolved = false;
+            bool resolved;
 
             do
             {
@@ -94,8 +94,17 @@ namespace HotChocolate.Configuration
             foreach (IClrTypeReference unresolvedType in Unresolved.ToList())
             {
                 if (Scalars.TryGetScalar(unresolvedType.Type,
-                    out IClrTypeReference schemaType)
-                    || SchemaTypeResolver.TryInferSchemaType(unresolvedType,
+                    out IClrTypeReference schemaType))
+                {
+                    resolved = true;
+                    _unregistered.Add(schemaType);
+                    Unresolved.Remove(unresolvedType);
+                    if (!ClrTypes.ContainsKey(unresolvedType))
+                    {
+                        ClrTypes.Add(unresolvedType, schemaType);
+                    }
+                }
+                else if (SchemaTypeResolver.TryInferSchemaType(unresolvedType,
                     out schemaType))
                 {
                     resolved = true;
@@ -116,9 +125,23 @@ namespace HotChocolate.Configuration
                     RegisterClrType(ctr);
                 }
                 else if (typeReference is ISchemaTypeReference str
-                    && str is TypeSystemObjectBase tso)
+                    && str.Type is TypeSystemObjectBase tso)
                 {
-                    RegisterTypeSystemObject(tso);
+                    if (BaseTypes.IsNonGenericBaseType(tso.GetType()))
+                    {
+                        RegisterTypeSystemObject(tso, str);
+                    }
+                    else
+                    {
+                        RegisterTypeSystemObject(tso);
+                    }
+                }
+                else if (typeReference is ISyntaxTypeReference sr
+                    && Scalars.TryGetScalar(
+                        sr.Type.NamedType().Name.Value,
+                        out ctr))
+                {
+                    RegisterClrType(ctr);
                 }
 
                 _unregistered.Remove(typeReference);
@@ -182,6 +205,16 @@ namespace HotChocolate.Configuration
                 typeSystemObject.GetType(),
                 typeContext);
 
+            RegisterTypeSystemObject(typeSystemObject, internalReference);
+        }
+
+        private void RegisterTypeSystemObject(
+            TypeSystemObjectBase typeSystemObject,
+            ITypeReference internalReference)
+        {
+            TypeContext typeContext =
+                SchemaTypeReference.InferTypeContext(typeSystemObject);
+
             if (!Registerd.ContainsKey(internalReference))
             {
                 RegisteredType registeredType =
@@ -217,7 +250,7 @@ namespace HotChocolate.Configuration
         }
 
         private RegisteredType InitializeAndRegister(
-            IClrTypeReference internalReference,
+            ITypeReference internalReference,
             TypeSystemObjectBase typeSystemObject)
         {
             var initializationContext = new InitializationContext(
@@ -235,8 +268,16 @@ namespace HotChocolate.Configuration
             return registeredType;
         }
 
-        private bool IsTypeResolved(IClrTypeReference typeReference) =>
-            ClrTypes.ContainsKey(typeReference);
+        private bool IsTypeResolved(IClrTypeReference typeReference)
+        {
+            if (ClrTypes.ContainsKey(typeReference)
+                || ClrTypes.Keys.Any(t => t.Equals(typeReference)))
+            {
+                return true;
+            }
+            return false;
+        }
+
 
         private TypeSystemObjectBase CreateInstance(Type type) =>
             (TypeSystemObjectBase)_serviceFactory.CreateInstance(type);

@@ -1,8 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 using Xunit;
 
@@ -21,7 +19,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.True(directiveType.IsExecutable);
-            Assert.NotNull(directiveType.Middleware);
+            Assert.NotEmpty(directiveType.MiddlewareComponents);
             Assert.Equal(typeof(CustomDirective), directiveType.ClrType);
         }
 
@@ -29,17 +27,18 @@ namespace HotChocolate.Types
         public void ConfigureDirectiveWithResolver()
         {
             // arrange
-            DirectiveType directiveType = new DirectiveType(
-                t => t.Name("Foo")
-                    .Location(DirectiveLocation.Field)
-                    .Use(next => context => Task.CompletedTask));
+            var directiveType = new DirectiveType(t => t
+                .Name("Foo")
+                .Location(DirectiveLocation.Field)
+                .Use(next => context => Task.CompletedTask));
+
             // act
             directiveType = CreateDirective(directiveType);
 
             // assert
             Assert.True(directiveType.IsExecutable);
-            Assert.NotNull(directiveType.Middleware);
-            Assert.Null(directiveType.ClrType);
+            Assert.NotEmpty(directiveType.MiddlewareComponents);
+            Assert.Equal(typeof(object), directiveType.ClrType);
         }
 
         [Fact]
@@ -55,11 +54,12 @@ namespace HotChocolate.Types
         [Fact]
         public void NoName()
         {
-            // act
-            Action a = () => new DirectiveType(d => { });
+            // act            
+            Action a = () =>
+                CreateDirective(new DirectiveType(d => { }));
 
             // assert
-            Assert.Throws<InvalidOperationException>(a);
+            Assert.Throws<SchemaException>(a);
         }
 
         [Fact]

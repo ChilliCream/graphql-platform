@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
@@ -23,6 +22,14 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// </summary>
         public IDictionary<string, object> ContextData { get; } =
             new Dictionary<string, object>();
+
+        internal ICollection<ITypeConfigration> Configurations { get; } =
+            new List<ITypeConfigration>();
+
+        internal virtual IEnumerable<ITypeConfigration> GetConfigurations()
+        {
+            return Configurations;
+        }
 
         /// <summary>
         /// Validates the description object for consitency and

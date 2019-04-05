@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -6,7 +6,6 @@ using System.Runtime.Serialization;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -51,7 +50,8 @@ namespace HotChocolate.Types
 
         public object Source { get; }
 
-        public DirectiveMiddleware Middleware => Type.Middleware;
+        public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents =>
+            Type.MiddlewareComponents;
 
         public bool IsExecutable => Type.IsExecutable;
 
@@ -194,7 +194,7 @@ namespace HotChocolate.Types
 
             if (constructor == null)
             {
-                directive = default(T);
+                directive = default;
                 return false;
             }
 

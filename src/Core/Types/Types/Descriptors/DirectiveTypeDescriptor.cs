@@ -1,9 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -100,7 +99,7 @@ namespace HotChocolate.Types.Descriptors
 
         public IDirectiveTypeDescriptor Location(DirectiveLocation value)
         {
-            var values = Enum.GetValues(typeof(DirectiveLocation));
+            Array values = Enum.GetValues(typeof(DirectiveLocation));
             foreach (DirectiveLocation item in values)
             {
                 if (value.HasFlag(item))

@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using Snapshooter.Xunit;
 using Xunit;
@@ -16,7 +15,8 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             // act
-            var type = new ConnectionType<StringType>();
+            ConnectionType<StringType> type =
+                CreateType(new ConnectionType<StringType>());
 
             // assert
             Assert.Equal("StringConnection", type.Name);
@@ -27,16 +27,11 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             // act
-            var type = CreateType(new ConnectionType<StringType>());
+            ConnectionType<StringType> type = CreateType(new ConnectionType<StringType>());
 
             // assert
-            Assert.Collection(type.Fields.Where(t => !t.IsIntrospectionField),
-                t =>
-                {
-                    Assert.Equal("pageInfo", t.Name);
-                    Assert.IsType<NonNullType>(t.Type);
-                    Assert.IsType<PageInfoType>(((NonNullType)t.Type).Type);
-                },
+            Assert.Collection(
+                type.Fields.Where(t => !t.IsIntrospectionField).OrderBy(t => t.Name),
                 t =>
                 {
                     Assert.Equal("edges", t.Name);
@@ -44,6 +39,12 @@ namespace HotChocolate.Types.Relay
                     Assert.IsType<NonNullType>(((ListType)t.Type).ElementType);
                     Assert.IsType<EdgeType<StringType>>(
                         ((NonNullType)((ListType)t.Type).ElementType).Type);
+                },
+                t =>
+                {
+                    Assert.Equal("pageInfo", t.Name);
+                    Assert.IsType<NonNullType>(t.Type);
+                    Assert.IsType<PageInfoType>(((NonNullType)t.Type).Type);
                 });
         }
 

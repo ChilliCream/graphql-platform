@@ -1,7 +1,6 @@
 using System.Collections.Immutable;
 using System;
 using HotChocolate.Types;
-using System.Linq;
 
 namespace HotChocolate.Configuration.Bindings
 {
@@ -30,7 +29,7 @@ namespace HotChocolate.Configuration.Bindings
                 return false;
             }
 
-            return false;
+            return true;
         }
 
         public ComplexTypeBindingInfo Clone()

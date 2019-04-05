@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
-using HotChocolate;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace Types.Tests.Configuration
+namespace HotChocolate.Types.Configuration
 {
     public class MiddlewareConfigurationTests
     {
@@ -71,7 +70,7 @@ namespace Types.Tests.Configuration
             // arrange
             ISchema schema = Schema.Create(
                 "type Query { a: String b: String }",
-                c => c.Map<TestFieldMiddleware>(
+                c => c.Map(
                         new FieldReference("Query", "a"),
                         (services, next) => new TestFieldMiddleware(next))
                     .Map(

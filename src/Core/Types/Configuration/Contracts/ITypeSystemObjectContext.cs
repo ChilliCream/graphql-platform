@@ -1,6 +1,4 @@
 using System;
-using System.Linq;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration

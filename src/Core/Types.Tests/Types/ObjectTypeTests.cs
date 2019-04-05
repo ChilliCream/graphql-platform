@@ -1,12 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ChilliCream.Testing;
-using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -21,12 +18,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new ObjectType<Foo>(d => d
+            ObjectType<Foo> fooType = CreateType(new ObjectType<Foo>(d => d
                 .Field(f => f.Description)
                 .Name("a")));
 
             // assert
-            Assert.NotNull(fooType.Fields.First().Resolver);
+            Assert.NotNull(fooType.Fields["a"].Resolver);
         }
 
         [Fact]
@@ -34,7 +31,8 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new ObjectType<QueryWithIntArg>());
+            ObjectType<QueryWithIntArg> fooType =
+                CreateType(new ObjectType<QueryWithIntArg>());
 
             // assert
             IType argumentType = fooType.Fields["bar"]
@@ -53,7 +51,7 @@ namespace HotChocolate.Types
             resolverContext.SetupAllProperties();
 
             // act
-            var fooType = CreateType(new ObjectType(c => c
+            ObjectType fooType = CreateType(new ObjectType(c => c
                 .Name("Foo")
                 .Field("bar")
                 .Resolver(() => "baz")),
@@ -73,11 +71,30 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void FieldIsDepricated()
+        {
+            // arrange
+            var resolverContext = new Mock<IMiddlewareContext>();
+            resolverContext.SetupAllProperties();
+
+            // act
+            ObjectType fooType = CreateType(new ObjectType(c => c
+                .Name("Foo")
+                .Field("bar")
+                .DeprecationReason("fooBar")
+                .Resolver(() => "baz")));
+
+            // assert
+            Assert.Equal("fooBar", fooType.Fields["bar"].DeprecationReason);
+            Assert.True(fooType.Fields["bar"].IsDeprecated);
+        }
+
+        [Fact]
         public void IntializeImpicitFieldWithImplicitResolver()
         {
             // arrange
             // act
-            var fooType = CreateType(new ObjectType<Foo>());
+            ObjectType<Foo> fooType = CreateType(new ObjectType<Foo>());
 
             // assert
             Assert.NotNull(fooType.Fields.First().Resolver);
@@ -88,7 +105,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var someObject = CreateType(new ObjectType<Foo>());
+            ObjectType<Foo> someObject = CreateType(new ObjectType<Foo>());
 
             // assert
             Assert.Equal(TypeKind.Object, someObject.Kind);
@@ -109,11 +126,10 @@ namespace HotChocolate.Types
         public void ObjectTypeWithDynamicField_TypeDeclaOrderShouldNotMatter()
         {
             // act
-            var fooType = CreateType(new ObjectType<FooType>());
+            FooType fooType = CreateType(new FooType());
 
             // assert
-            Assert.True(fooType.Fields.TryGetField(
-                "test", out ObjectField field));
+            Assert.True(fooType.Fields.TryGetField("test", out ObjectField field));
             Assert.IsType<ListType>(field.Type);
             Assert.IsType<StringType>(((ListType)field.Type).ElementType);
         }
@@ -123,7 +139,8 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var genericType = CreateType(new ObjectType<GenericFoo<string>>());
+            ObjectType<GenericFoo<string>> genericType =
+                CreateType(new ObjectType<GenericFoo<string>>());
 
             // assert
             Assert.Equal("GenericFooOfString", genericType.Name);
@@ -134,7 +151,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var genericType =
+            ObjectType<GenericFoo<GenericFoo<string>>> genericType =
                 CreateType(new ObjectType<GenericFoo<GenericFoo<string>>>());
 
             // assert
@@ -146,7 +163,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new ObjectType<Foo>(d => d
+            ObjectType<Foo> fooType = CreateType(new ObjectType<Foo>(d => d
                 .Field<FooResolver>(t => t.GetBar(default))));
 
             // assert
@@ -183,7 +200,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                ex.Message.Snapshot();
+                ex.Message.MatchSnapshot();
                 return;
             }
 
@@ -217,7 +234,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                ex.Message.Snapshot();
+                ex.Message.MatchSnapshot();
                 return;
             }
 
@@ -251,7 +268,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                ex.Message.Snapshot();
+                ex.Message.MatchSnapshot();
                 return;
             }
 
@@ -285,11 +302,76 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                ex.Message.Snapshot();
+                ex.Message.MatchSnapshot();
                 return;
             }
 
             Assert.True(false, "Schema exception was not thrown.");
+        }
+
+        [Fact]
+        public void SpecifyQueryTypeNameInSchemaFirst()
+        {
+            // arrange
+            string source = @"
+                type A { field: String }
+                type B { field: String }
+                type C { field: String }
+
+                schema {
+                  query: A
+                  mutation: B
+                  subscription: C
+                }
+            ";
+
+            // act
+            var schema = Schema.Create(source,
+                c => c.Use(next => context => Task.CompletedTask));
+
+            Assert.Equal("A", schema.QueryType.Name.Value);
+            Assert.Equal("B", schema.MutationType.Name.Value);
+            Assert.Equal("C", schema.SubscriptionType.Name.Value);
+        }
+
+        [Fact]
+        public void SpecifyQueryTypeNameInSchemaFirstWithOptions()
+        {
+            // arrange
+            string source = @"
+                type A { field: String }
+                type B { field: String }
+                type C { field: String }
+            ";
+
+            // act
+            var schema = Schema.Create(source,
+                c =>
+                {
+                    c.Use(next => context => Task.CompletedTask);
+                    c.Options.QueryTypeName = "A";
+                    c.Options.MutationTypeName = "B";
+                    c.Options.SubscriptionTypeName = "C";
+                });
+
+            Assert.Equal("A", schema.QueryType.Name.Value);
+            Assert.Equal("B", schema.MutationType.Name.Value);
+            Assert.Equal("C", schema.SubscriptionType.Name.Value);
+        }
+
+        [Fact]
+        public void NoQueryType()
+        {
+            // arrange
+            string source = @"
+                type A { field: String }
+            ";
+
+            // act
+            Action action = () => Schema.Create(source,
+                c => c.Use(next => context => Task.CompletedTask));
+
+            Assert.Throws<SchemaException>(action).Errors.MatchSnapshot();
         }
 
         [Fact]
@@ -319,7 +401,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                ex.Message.Snapshot();
+                ex.Message.MatchSnapshot();
                 return;
             }
 
@@ -353,7 +435,7 @@ namespace HotChocolate.Types
             }
             catch (SchemaException ex)
             {
-                ex.Message.Snapshot();
+                ex.Message.MatchSnapshot();
                 return;
             }
 
@@ -375,10 +457,15 @@ namespace HotChocolate.Types
 
                 type C implements A & B {
                     a(a: String): String
-                }";
+                }
+
+                schema {
+                  query: C                
+                }
+            ";
 
             // act
-            Schema schema = Schema.Create(source, c =>
+            var schema = Schema.Create(source, c =>
             {
                 c.BindResolver(() => "foo").To("C", "a");
             });
@@ -403,10 +490,15 @@ namespace HotChocolate.Types
 
                 type C implements A & B {
                     a(a: String!): String!
-                }";
+                }
+
+                schema {
+                  query: C                
+                }
+            ";
 
             // act
-            Schema schema = Schema.Create(source, c =>
+            var schema = Schema.Create(source, c =>
             {
                 c.BindResolver(() => "foo").To("C", "a");
             });
@@ -421,8 +513,9 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new ObjectType<object>(d => d
-                .Include<Foo>()));
+            ObjectType<object> fooType =
+                CreateType(new ObjectType<object>(d => d
+                    .Include<Foo>()));
 
             // assert
             Assert.True(fooType.Fields.ContainsField("description"));
@@ -433,7 +526,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new ObjectType<Bar>());
+            ObjectType<Bar> fooType = CreateType(new ObjectType<Bar>());
 
             // assert
             Assert.True(fooType.Fields["baz"].Type.IsNonNullType());
@@ -444,9 +537,12 @@ namespace HotChocolate.Types
         public void ObjectType_FieldDefaultValue_SerializesCorrectly()
         {
             // arrange
-            var objectType = new ObjectType(t => t.Name("Bar")
-                .Field("_123").Type<StringType>()
-                .Resolver(() => "").Argument("_456",
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolver(() => "")
+                .Argument("_456",
                     a => a.Type<InputObjectType<Foo>>()
                         .DefaultValue(new Foo())));
 
@@ -454,7 +550,7 @@ namespace HotChocolate.Types
             var schema = Schema.Create(t => t.RegisterQueryType(objectType));
 
             // assert
-            schema.ToString().Snapshot();
+            schema.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -486,11 +582,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new ObjectType<Foo>(),
+            ObjectType<Foo> fooType = CreateType(new ObjectType<Foo>(),
                 b => b.AddType(new InterfaceType<IFoo>()));
 
             // assert
-            Assert.NotNull(fooType.Fields.First().Resolver);
+            Assert.IsType<InterfaceType<IFoo>>(
+                fooType.Interfaces.Values.First());
         }
 
         [Fact]
@@ -531,7 +628,7 @@ namespace HotChocolate.Types
 
             // act
             Action a = () => ObjectTypeDescriptorExtensions
-                .Ignore<Foo>(descriptor.Object, null);
+                .Ignore(descriptor.Object, null);
 
             // assert
             Assert.Throws<ArgumentNullException>(a);

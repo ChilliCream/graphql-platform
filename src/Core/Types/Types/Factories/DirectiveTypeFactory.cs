@@ -10,10 +10,10 @@ namespace HotChocolate.Types.Factories
     internal sealed class DirectiveTypeFactory
         : ITypeFactory<DirectiveDefinitionNode, DirectiveType>
     {
-         private static readonly
-            Dictionary<Language.DirectiveLocation, DirectiveLocation> _locs =
-            new Dictionary<Language.DirectiveLocation, DirectiveLocation>
-            {
+        private static readonly
+           Dictionary<Language.DirectiveLocation, DirectiveLocation> _locs =
+           new Dictionary<Language.DirectiveLocation, DirectiveLocation>
+           {
                 {
                     Language.DirectiveLocation.Query,
                     DirectiveLocation.Query
@@ -86,7 +86,7 @@ namespace HotChocolate.Types.Factories
                     Language.DirectiveLocation.InputFieldDefinition,
                     DirectiveLocation.InputFieldDefinition
                 },
-            };
+           };
 
         public DirectiveType Create(
             IBindingLookup bindingLookup,
@@ -113,7 +113,8 @@ namespace HotChocolate.Types.Factories
 
                 if (bindingInfo.SourceType != null)
                 {
-                    c.Configure(t => t.ClrType = bindingInfo.SourceType);
+                    c.Extend().OnBeforeCreate(
+                        t => t.ClrType = bindingInfo.SourceType);
                 }
 
                 if (node.IsRepeatable)

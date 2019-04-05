@@ -33,7 +33,8 @@ namespace HotChocolate.Types.Factories
 
                 if (bindingInfo.SourceType != null)
                 {
-                    d.Configure(t => t.ClrType = bindingInfo.SourceType);
+                    d.Extend().OnBeforeCreate(
+                        t => t.ClrType = bindingInfo.SourceType);
                 }
 
                 foreach (DirectiveNode directive in node.Directives)
@@ -61,12 +62,13 @@ namespace HotChocolate.Types.Factories
                     .DefaultValue(inputField.DefaultValue)
                     .SyntaxNode(inputField);
 
-                if (bindingInfo.TryGetFieldMember(
+                if (bindingInfo.TryGetFieldProperty(
                     inputField.Name.Value,
-                    out MemberInfo member)
-                    && member is PropertyInfo p)
+                    MemberKind.InputObjectField,
+                    out PropertyInfo p))
                 {
-                    descriptor.Configure(t => t.Property = p);
+                    descriptor.Extend().OnBeforeCreate(
+                        t => t.Property = p);
                 }
 
                 foreach (DirectiveNode directive in inputField.Directives)

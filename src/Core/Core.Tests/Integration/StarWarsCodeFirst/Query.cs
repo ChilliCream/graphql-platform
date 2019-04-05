@@ -19,7 +19,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
 
         public IEnumerable<ICharacter> GetHeroes(Episode[] episodes)
         {
-            List<ICharacter> result = new List<ICharacter>();
+            var result = new List<ICharacter>();
             foreach (Episode episode in episodes)
             {
                 result.Add(_repository.GetHero(episode));

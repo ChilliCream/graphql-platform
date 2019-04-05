@@ -11,7 +11,7 @@ namespace HotChocolate.Types
         public void Field_Ignore_PropertyIsExcluded()
         {
             // arrange
-            InputObjectTypeDescriptor<SimpleInput> descriptor =
+            var descriptor =
                 InputObjectTypeDescriptor.New<SimpleInput>(Context);
 
             // act

@@ -3,7 +3,6 @@ using System;
 using HotChocolate.Configuration.Bindings;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {

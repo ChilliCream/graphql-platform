@@ -57,14 +57,14 @@ namespace HotChocolate.Subscriptions
             if (Name.Equals(other.Name, StringComparison.Ordinal)
                 && Arguments.Count == other.Arguments.Count)
             {
-                Dictionary<string, IValueNode> arguments =
+                var arguments =
                     other.Arguments.ToDictionary(
                         c => c.Name.Value,
                         c => c.Value);
 
                 foreach (ArgumentNode argument in Arguments)
                 {
-                    if (!arguments.TryGetValue(argument.Name.Value, out var v)
+                    if (!arguments.TryGetValue(argument.Name.Value, out IValueNode v)
                         || !v.Equals(argument.Value))
                     {
                         return false;

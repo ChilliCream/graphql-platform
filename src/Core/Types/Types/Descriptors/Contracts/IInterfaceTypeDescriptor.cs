@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 

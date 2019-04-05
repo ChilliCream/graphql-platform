@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Web.Http;
 using HotChocolate.AspNetClassic.Helpers;
+using HotChocolate.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Owin.Testing;
 

@@ -1,6 +1,5 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Configuration;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -26,7 +25,7 @@ namespace HotChocolate.Types
                     t.Use(next => context => Task.CompletedTask);
                 });
 
-            var query = schema.GetType<ObjectType>("Query");
+            ObjectType query = schema.GetType<ObjectType>("Query");
             IDirective directive = query.Fields["field"].Directives
                 .Single(t => t.Name == "cost");
             CostDirective obj = directive.ToObject<CostDirective>();
@@ -51,7 +50,7 @@ namespace HotChocolate.Types
                     t.Use(next => context => Task.CompletedTask);
                 });
 
-            var query = schema.GetType<ObjectType>("Query");
+            ObjectType query = schema.GetType<ObjectType>("Query");
             IDirective directive = query.Fields["field"].Directives
                 .Single(t => t.Name == "cost");
             CostDirective obj = directive.ToObject<CostDirective>();
@@ -78,7 +77,7 @@ namespace HotChocolate.Types
                     t.Use(next => context => Task.CompletedTask);
                 });
 
-            var query = schema.GetType<ObjectType>("Query");
+            ObjectType query = schema.GetType<ObjectType>("Query");
             IDirective directive = query.Fields["field"].Directives
                 .Single(t => t.Name == "cost");
             CostDirective obj = directive.ToObject<CostDirective>();
@@ -112,7 +111,7 @@ namespace HotChocolate.Types
                     t.Use(next => context => Task.CompletedTask);
                 });
 
-            var queryInterface = schema.GetType<InterfaceType>("IQuery");
+            InterfaceType queryInterface = schema.GetType<InterfaceType>("IQuery");
             IDirective directive = queryInterface.Fields["field"].Directives
                 .Single(t => t.Name == "cost");
             CostDirective obj = directive.ToObject<CostDirective>();
@@ -143,7 +142,7 @@ namespace HotChocolate.Types
                     t.Use(next => context => Task.CompletedTask);
                 });
 
-            var queryInterface = schema.GetType<InterfaceType>("IQuery");
+            InterfaceType queryInterface = schema.GetType<InterfaceType>("IQuery");
             IDirective directive = queryInterface.Fields["field"].Directives
                 .Single(t => t.Name == "cost");
             CostDirective obj = directive.ToObject<CostDirective>();
@@ -176,7 +175,7 @@ namespace HotChocolate.Types
                     t.Use(next => context => Task.CompletedTask);
                 });
 
-            var queryInterface = schema.GetType<InterfaceType>("IQuery");
+            InterfaceType queryInterface = schema.GetType<InterfaceType>("IQuery");
             IDirective directive = queryInterface.Fields["field"].Directives
                 .Single(t => t.Name == "cost");
             CostDirective obj = directive.ToObject<CostDirective>();
@@ -198,7 +197,7 @@ namespace HotChocolate.Types
                 }",
                 t => t.Use(next => context => Task.CompletedTask));
 
-            var query = schema.GetType<ObjectType>("Query");
+            ObjectType query = schema.GetType<ObjectType>("Query");
             IDirective directive = query.Fields["field"].Directives
                 .Single(t => t.Name == "cost");
             CostDirective obj = directive.ToObject<CostDirective>();
@@ -226,7 +225,7 @@ namespace HotChocolate.Types
                 ",
                 t => t.Use(next => context => Task.CompletedTask));
 
-            var queryInterface = schema.GetType<InterfaceType>("IQuery");
+            InterfaceType queryInterface = schema.GetType<InterfaceType>("IQuery");
             IDirective directive = queryInterface.Fields["field"].Directives
                 .Single(t => t.Name == "cost");
             CostDirective obj = directive.ToObject<CostDirective>();
@@ -242,7 +241,7 @@ namespace HotChocolate.Types
             // act
             ISchema schema = CreateSchema(b => { });
             CostDirectiveType directive =
-                schema.Directives.OfType<CostDirectiveType>().FirstOrDefault();
+                schema.DirectiveTypes.OfType<CostDirectiveType>().FirstOrDefault();
 
             // assert
             Assert.NotNull(directive);

@@ -10,11 +10,21 @@ namespace HotChocolate.Types
     {
         public static bool IsNonNullType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return (type is NonNullType);
         }
 
         public static bool IsNonNullElementType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (type is ListType l
                 && l.ElementType is NonNullType)
             {
@@ -33,6 +43,11 @@ namespace HotChocolate.Types
 
         public static bool IsCompositeType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return IsType<ObjectType>(type)
                 || IsType<UnionType>(type)
                 || IsType<InterfaceType>(type);
@@ -40,69 +55,134 @@ namespace HotChocolate.Types
 
         public static bool IsComplexType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return IsType<ObjectType>(type)
                 || IsType<InterfaceType>(type);
         }
 
         public static bool IsLeafType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return IsScalarType(type)
                 || IsEnumType(type);
         }
 
         public static bool IsListType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return IsType<ListType>(type);
         }
 
         public static bool IsScalarType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return IsType<ScalarType>(type);
         }
 
         public static bool IsObjectType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return IsType<ObjectType>(type);
         }
 
         public static bool IsEnumType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return IsType<EnumType>(type);
         }
 
         public static bool IsInterfaceType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return IsType<InterfaceType>(type);
         }
 
         public static bool IsInputObjectType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return IsType<InputObjectType>(type);
         }
 
         public static bool IsInputType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return type.InnerType().InnerType().InnerType() is IInputType;
         }
 
         public static bool IsOutputType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return type.InnerType().InnerType().InnerType() is IOutputType;
         }
 
         public static bool IsUnionType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return IsType<UnionType>(type);
         }
 
         public static bool IsAbstractType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             return type.IsUnionType() || type.IsInterfaceType();
         }
 
         public static bool IsType<T>(this IType type)
             where T : IType
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (type is T)
             {
                 return true;
@@ -119,6 +199,11 @@ namespace HotChocolate.Types
 
         public static IType InnerType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (type is NonNullType n)
             {
                 return n.Type;
@@ -134,6 +219,11 @@ namespace HotChocolate.Types
 
         public static IType NullableType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (type is NonNullType nnt)
             {
                 return nnt.Type;
@@ -143,6 +233,11 @@ namespace HotChocolate.Types
 
         public static NameString TypeName(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             IType innerType = type.InnerType().InnerType().InnerType();
 
             if (innerType is INamedType nt)
@@ -156,6 +251,11 @@ namespace HotChocolate.Types
 
         public static ListType ListType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (type is ListType lt)
             {
                 return lt;
@@ -172,6 +272,11 @@ namespace HotChocolate.Types
 
         public static INamedType NamedType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             IType innerType = type.InnerType().InnerType().InnerType();
 
             if (innerType is INamedType nt)
@@ -185,6 +290,11 @@ namespace HotChocolate.Types
         public static T NamedType<T>(this IType type)
             where T : INamedType
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             IType innerType = type.InnerType().InnerType().InnerType();
 
             if (innerType is T nt)
@@ -200,6 +310,11 @@ namespace HotChocolate.Types
 
         public static IType ElementType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (type.IsListType())
             {
                 if (type is ListType l)
@@ -244,6 +359,11 @@ namespace HotChocolate.Types
 
         public static Type ToClrType(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (type.IsListType())
             {
                 Type elementType = ToClrType(type.ElementType());
@@ -270,6 +390,11 @@ namespace HotChocolate.Types
 
         private static Type LeafTypeToClrType(IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (type.IsLeafType() && type.NamedType() is IHasClrType t)
             {
                 if (!type.IsNonNullType() && t.ClrType.IsValueType)
@@ -284,6 +409,11 @@ namespace HotChocolate.Types
 
         public static ITypeNode ToTypeNode(this IType type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (type is NonNullType nnt
                 && ToTypeNode(nnt.Type) is INullableTypeNode nntn)
             {

@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Threading;
+﻿using System.Threading;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Moq;
@@ -41,7 +40,6 @@ namespace HotChocolate.Configuration
                 .Returns(new TestObjectA());
             resolverContext.Setup(t => t.Resolver<TestResolverCollectionA>())
                 .Returns(new TestResolverCollectionA());
-            resolverContext.Setup(t => t.Argument<string>("a")).Returns("foo");
             resolverContext.Setup(t => t.RequestAborted)
                 .Returns(CancellationToken.None);
 
@@ -69,7 +67,7 @@ namespace HotChocolate.Configuration
             Assert.NotNull(type.Fields["a"].Resolver);
             Assert.NotNull(type.Fields["b"].Resolver);
 
-            Assert.Equal("a_dummy_a", type.Fields["a"].Resolver(
+            Assert.Equal("a_dummy", type.Fields["a"].Resolver(
                 resolverContext.Object).Result);
         }
 
@@ -79,11 +77,13 @@ namespace HotChocolate.Configuration
             // arrange
             var dummyObjectType = new TestObjectB();
 
-            var resolverContext = new Mock<IResolverContext>();
+            var resolverContext = new Mock<IResolverContext>(MockBehavior.Strict);
             resolverContext.Setup(t => t.Resolver<TestResolverCollectionB>())
                .Returns(new TestResolverCollectionB());
             resolverContext.Setup(t => t.Parent<TestObjectB>())
                .Returns(dummyObjectType);
+            resolverContext.Setup(t => t.RequestAborted)
+                .Returns(CancellationToken.None);
 
             // act
             ISchema schema = Schema.Create(c =>
@@ -115,16 +115,18 @@ namespace HotChocolate.Configuration
             var resolverContext = new Mock<IResolverContext>();
             resolverContext.Setup(t => t.Parent<TestObjectB>())
                .Returns(dummyObjectType);
+            resolverContext.Setup(t => t.RequestAborted)
+                .Returns(CancellationToken.None);
+
+            string source = @"
+                type Dummy { bar: String }
+            ";
+
 
             // act
-            ISchema schema = Schema.Create(c =>
+            ISchema schema = Schema.Create(source, c =>
             {
-                c.RegisterQueryType(new ObjectType(d =>
-                {
-                    d.Name("Dummy");
-                    d.Field("bar").Type<StringType>();
-                }));
-
+                c.RegisterQueryType<DummyQuery>();
                 c.BindType<TestObjectB>().To("Dummy");
             });
 
@@ -145,15 +147,14 @@ namespace HotChocolate.Configuration
             resolverContext.Setup(t => t.Parent<TestObjectB>())
                .Returns(dummyObjectType);
 
-            // act
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterQueryType(new ObjectType(d =>
-                {
-                    d.Name("Dummy");
-                    d.Field("bar2").Type<StringType>();
-                }));
+            string source = @"
+                type Dummy { bar2: String }
+            ";
 
+            // act
+            ISchema schema = Schema.Create(source, c =>
+            {
+                c.RegisterQueryType<DummyQuery>();
                 c.BindType<TestObjectB>().To("Dummy");
             });
 
@@ -204,5 +205,10 @@ namespace HotChocolate.Configuration
         public string Bar { get; } = "hello";
 
         public string GetBar2() => "world";
+    }
+
+    public class DummyQuery
+    {
+        public string Foo { get; set; }
     }
 }

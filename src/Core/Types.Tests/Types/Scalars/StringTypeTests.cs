@@ -10,7 +10,7 @@ namespace HotChocolate.Types
         public void EnsureStringTypeKindIsCorret()
         {
             // arrange
-            StringType type = new StringType();
+            var type = new StringType();
 
             // act
             TypeKind kind = type.Kind;
@@ -23,8 +23,8 @@ namespace HotChocolate.Types
         public void IsInstanceOfType_ValueNode()
         {
             // arrange
-            StringType type = new StringType();
-            StringValueNode input = new StringValueNode("123456");
+            var type = new StringType();
+            var input = new StringValueNode("123456");
 
             // act
             bool result = type.IsInstanceOfType(input);
@@ -37,7 +37,7 @@ namespace HotChocolate.Types
         public void IsInstanceOfType_NullValueNode()
         {
             // arrange
-            StringType type = new StringType();
+            var type = new StringType();
             NullValueNode input = NullValueNode.Default;
 
             // act
@@ -51,8 +51,8 @@ namespace HotChocolate.Types
         public void IsInstanceOfType_Wrong_ValueNode()
         {
             // arrange
-            StringType type = new StringType();
-            IntValueNode input = new IntValueNode(123456);
+            var type = new StringType();
+            var input = new IntValueNode(123456);
 
             // act
             bool result = type.IsInstanceOfType(input);
@@ -65,7 +65,7 @@ namespace HotChocolate.Types
         public void IsInstanceOfType_Null_Throws()
         {
             // arrange
-            StringType type = new StringType();
+            var type = new StringType();
 
             // act
             // assert
@@ -76,7 +76,7 @@ namespace HotChocolate.Types
         public void Serialize_Type()
         {
             // arrange
-            StringType type = new StringType();
+            var type = new StringType();
             string input = "123456";
 
             // act
@@ -91,7 +91,7 @@ namespace HotChocolate.Types
         public void Serialize_Null()
         {
             // arrange
-            StringType type = new StringType();
+            var type = new StringType();
 
             // act
             object serializedValue = type.Serialize(null);
@@ -104,7 +104,7 @@ namespace HotChocolate.Types
         public void Serialize_Wrong_Type_Throws()
         {
             // arrange
-            StringType type = new StringType();
+            var type = new StringType();
             object input = 123456;
 
             // act
@@ -117,8 +117,8 @@ namespace HotChocolate.Types
         public void ParseLiteral_ValueNode()
         {
             // arrange
-            StringType type = new StringType();
-            StringValueNode input = new StringValueNode("123456");
+            var type = new StringType();
+            var input = new StringValueNode("123456");
 
             // act
             object output = type.ParseLiteral(input);
@@ -132,7 +132,7 @@ namespace HotChocolate.Types
         public void ParseLiteral_NullValueNode()
         {
             // arrange
-            StringType type = new StringType();
+            var type = new StringType();
             NullValueNode input = NullValueNode.Default;
 
             // act
@@ -146,8 +146,8 @@ namespace HotChocolate.Types
         public void ParseLiteral_Wrong_ValueNode_Throws()
         {
             // arrange
-            StringType type = new StringType();
-            IntValueNode input = new IntValueNode(123456);
+            var type = new StringType();
+            var input = new IntValueNode(123456);
 
             // act
             // assert
@@ -159,7 +159,7 @@ namespace HotChocolate.Types
         public void ParseLiteral_Null_Throws()
         {
             // arrange
-            StringType type = new StringType();
+            var type = new StringType();
 
             // act
             // assert
@@ -170,7 +170,7 @@ namespace HotChocolate.Types
         public void ParseValue_Wrong_Value_Throws()
         {
             // arrange
-            StringType type = new StringType();
+            var type = new StringType();
             object input = 123456;
 
             // act
@@ -183,7 +183,7 @@ namespace HotChocolate.Types
         public void ParseValue_Null()
         {
             // arrange
-            StringType type = new StringType();
+            var type = new StringType();
             object input = null;
 
             // act

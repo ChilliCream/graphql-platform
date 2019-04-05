@@ -12,8 +12,8 @@ namespace HotChocolate.Types
         public void Serialize_Utc_DateTime()
         {
             // arrange
-            DateTimeType dateTimeType = new DateTimeType();
-            DateTime dateTime = new DateTime(
+            var dateTimeType = new DateTimeType();
+            var dateTime = new DateTime(
                 2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
             string expectedValue = "2018-06-11T08:46:14.000Z";
 
@@ -28,8 +28,8 @@ namespace HotChocolate.Types
         public void Serialize_DateTimeOffset()
         {
             // arrange
-            DateTimeType dateTimeType = new DateTimeType();
-            DateTimeOffset dateTime = new DateTimeOffset(
+            var dateTimeType = new DateTimeType();
+            var dateTime = new DateTimeOffset(
                 new DateTime(2018, 6, 11, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
             string expectedValue = "2018-06-11T08:46:14.000+04:00";
@@ -45,7 +45,7 @@ namespace HotChocolate.Types
         public void Serialize_Null()
         {
             // arrange
-            DateTimeType dateTimeType = new DateTimeType();
+            var dateTimeType = new DateTimeType();
 
             // act
             object serializedValue = dateTimeType.Serialize(null);
@@ -58,7 +58,7 @@ namespace HotChocolate.Types
         public void Serialize_String_Exception()
         {
             // arrange
-            DateTimeType dateTimeType = new DateTimeType();
+            var dateTimeType = new DateTimeType();
 
             // act
             Action a = () => dateTimeType.Serialize("foo");
@@ -71,15 +71,15 @@ namespace HotChocolate.Types
         public void ParseLiteral_StringValueNode()
         {
             // arrange
-            DateTimeType dateTimeType = new DateTimeType();
-            StringValueNode literal = new StringValueNode(
+            var dateTimeType = new DateTimeType();
+            var literal = new StringValueNode(
                 "2018-06-29T08:46:14+04:00");
-            DateTimeOffset expectedDateTime = new DateTimeOffset(
+            var expectedDateTime = new DateTimeOffset(
                 new DateTime(2018, 6, 29, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
 
             // act
-            DateTimeOffset dateTime = (DateTimeOffset)dateTimeType
+            var dateTime = (DateTimeOffset)dateTimeType
                 .ParseLiteral(literal);
 
             // assert
@@ -99,15 +99,15 @@ namespace HotChocolate.Types
             Thread.CurrentThread.CurrentCulture =
                 CultureInfo.GetCultureInfo(cultureName);
 
-            DateTimeType dateTimeType = new DateTimeType();
-            StringValueNode literal = new StringValueNode(
+            var dateTimeType = new DateTimeType();
+            var literal = new StringValueNode(
                 "2018-06-29T08:46:14+04:00");
-            DateTimeOffset expectedDateTime = new DateTimeOffset(
+            var expectedDateTime = new DateTimeOffset(
                 new DateTime(2018, 6, 29, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
 
             // act
-            DateTimeOffset dateTime = (DateTimeOffset)dateTimeType
+            var dateTime = (DateTimeOffset)dateTimeType
                 .ParseLiteral(literal);
 
             // assert
@@ -118,13 +118,13 @@ namespace HotChocolate.Types
         public void Deserialize_IsoString_DateTimeOffset()
         {
             // arrange
-            DateTimeType dateTimeType = new DateTimeType();
-            DateTimeOffset dateTime = new DateTimeOffset(
+            var dateTimeType = new DateTimeType();
+            var dateTime = new DateTimeOffset(
                 new DateTime(2018, 6, 11, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
 
             // act
-            DateTimeOffset deserializedValue = (DateTimeOffset)dateTimeType
+            var deserializedValue = (DateTimeOffset)dateTimeType
                 .Deserialize("2018-06-11T08:46:14+04:00");
 
             // assert
@@ -135,13 +135,13 @@ namespace HotChocolate.Types
         public void Deserialize_ZuluString_DateTimeOffset()
         {
             // arrange
-            DateTimeType dateTimeType = new DateTimeType();
-            DateTimeOffset dateTime = new DateTimeOffset(
+            var dateTimeType = new DateTimeType();
+            var dateTime = new DateTimeOffset(
                 new DateTime(2018, 6, 11, 8, 46, 14),
                 new TimeSpan(0, 0, 0));
 
             // act
-            DateTimeOffset deserializedValue = (DateTimeOffset)dateTimeType
+            var deserializedValue = (DateTimeOffset)dateTimeType
                 .Deserialize("2018-06-11T08:46:14.000Z");
 
             // assert
@@ -152,8 +152,8 @@ namespace HotChocolate.Types
         public void Deserialize_IsoString_DateTime()
         {
             // arrange
-            DateTimeType dateTimeType = new DateTimeType();
-            DateTime dateTime = new DateTime(
+            var dateTimeType = new DateTimeType();
+            var dateTime = new DateTime(
                 2018, 6, 11, 8, 46, 14, DateTimeKind.Unspecified);
 
             // act
@@ -169,7 +169,7 @@ namespace HotChocolate.Types
         public void Deserialize_ZuluString_DateTime()
         {
             // arrange
-            DateTimeType dateTimeType = new DateTimeType();
+            var dateTimeType = new DateTimeType();
             DateTimeOffset dateTime = new DateTime(
                 2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
 
@@ -185,7 +185,7 @@ namespace HotChocolate.Types
         public void ParseLiteral_NullValueNode()
         {
             // arrange
-            DateTimeType dateTimeType = new DateTimeType();
+            var dateTimeType = new DateTimeType();
             NullValueNode literal = NullValueNode.Default;
 
             // act
@@ -199,14 +199,14 @@ namespace HotChocolate.Types
         public void ParseValue_DateTimeOffset()
         {
             // arrange
-            DateTimeType dateTimeType = new DateTimeType();
-            DateTimeOffset dateTime = new DateTimeOffset(
+            var dateTimeType = new DateTimeType();
+            var dateTime = new DateTimeOffset(
                 new DateTime(2018, 6, 11, 8, 46, 14),
                 new TimeSpan(4, 0, 0));
             string expectedLiteralValue = "2018-06-11T08:46:14.000+04:00";
 
             // act
-            StringValueNode stringLiteral =
+            var stringLiteral =
                 (StringValueNode)dateTimeType.ParseValue(dateTime);
 
             // assert
@@ -217,16 +217,16 @@ namespace HotChocolate.Types
         public void ParseValue_Unspecified_DateTime()
         {
             // arrange
-            DateTimeType dateTimeType = new DateTimeType();
-            DateTime dateTime =
+            var dateTimeType = new DateTimeType();
+            var dateTime =
                 new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Unspecified);
             DateTimeOffset offset = dateTime;
             DateTime offsetDateTime = offset.DateTime;
 
             // act
-            StringValueNode stringLiteral =
+            var stringLiteral =
                 (StringValueNode)dateTimeType.ParseValue(dateTime);
-            StringValueNode stringLiteralOffset =
+            var stringLiteralOffset =
                 (StringValueNode)dateTimeType.ParseValue(offsetDateTime);
 
             // assert
@@ -237,16 +237,16 @@ namespace HotChocolate.Types
         public void ParseValue_Local_DateTime()
         {
             // arrange
-            DateTimeType dateTimeType = new DateTimeType();
-            DateTime dateTime =
+            var dateTimeType = new DateTimeType();
+            var dateTime =
                 new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Local);
             DateTimeOffset offset = dateTime;
             DateTime offsetDateTime = offset.DateTime;
 
             // act
-            StringValueNode stringLiteral =
+            var stringLiteral =
                 (StringValueNode)dateTimeType.ParseValue(dateTime);
-            StringValueNode stringLiteralOffset =
+            var stringLiteralOffset =
                 (StringValueNode)dateTimeType.ParseValue(offsetDateTime);
 
             // assert
@@ -257,13 +257,13 @@ namespace HotChocolate.Types
         public void ParseValue_Utc_DateTime()
         {
             // arrange
-            DateTimeType dateTimeType = new DateTimeType();
-            DateTime dateTime =
+            var dateTimeType = new DateTimeType();
+            var dateTime =
                 new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
             string expectedLiteralValue = "2018-06-11T08:46:14.000Z";
 
             // act
-            StringValueNode stringLiteral =
+            var stringLiteral =
                 (StringValueNode)dateTimeType.ParseValue(dateTime);
 
             // assert
@@ -274,7 +274,7 @@ namespace HotChocolate.Types
         public void ParseValue_Null()
         {
             // arrange
-            DateTimeType dateTimeType = new DateTimeType();
+            var dateTimeType = new DateTimeType();
 
             // act
             IValueNode literal = dateTimeType.ParseValue(null);
@@ -287,7 +287,7 @@ namespace HotChocolate.Types
         public void EnsureDateTimeTypeKindIsCorret()
         {
             // arrange
-            DateTimeType type = new DateTimeType();
+            var type = new DateTimeType();
 
             // act
             TypeKind kind = type.Kind;

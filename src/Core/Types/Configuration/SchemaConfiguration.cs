@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using HotChocolate.Configuration.Bindings;
 using HotChocolate.Resolvers;
 
@@ -10,10 +9,6 @@ namespace HotChocolate.Configuration
     {
         private readonly SchemaBuilder _builder = SchemaBuilder.New();
 
-        public SchemaConfiguration()
-        {
-            _builder.SetOptions(Options);
-        }
 
         public ISchemaOptions Options { get; set; } = new SchemaOptions();
 
@@ -26,6 +21,9 @@ namespace HotChocolate.Configuration
                     _builder.AddBinding(bindingBuilder.Create());
                 }
             }
+
+            _builder.SetOptions(Options);
+
             return _builder;
         }
 

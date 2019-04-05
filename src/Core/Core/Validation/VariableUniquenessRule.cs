@@ -29,7 +29,7 @@ namespace HotChocolate.Validation
                 throw new ArgumentNullException(nameof(queryDocument));
             }
 
-            HashSet<string> names = new HashSet<string>();
+            var names = new HashSet<string>();
 
             foreach (OperationDefinitionNode operation in queryDocument
                 .Definitions.OfType<OperationDefinitionNode>())

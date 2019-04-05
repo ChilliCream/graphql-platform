@@ -70,7 +70,7 @@ namespace HotChocolate.Execution
                [Result]string result,
                [DirectiveArgument]string s)
             {
-                return Task.FromResult<string>(result + s);
+                return Task.FromResult(result + s);
             }
         }
 

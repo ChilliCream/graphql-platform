@@ -13,6 +13,8 @@ namespace HotChocolate.Configuration
 
         IReadOnlyList<FieldMiddleware> GlobalComponents { get; }
 
+        IsOfTypeFallback IsOfType { get; }
+
         bool TryGetType<T>(ITypeReference reference, out T type) where T : IType;
 
         T GetType<T>(ITypeReference reference) where T : IType;

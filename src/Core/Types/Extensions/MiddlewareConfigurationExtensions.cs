@@ -20,7 +20,7 @@ namespace HotChocolate
             where TMiddleware : class
         {
             return configuration.Use(
-                FieldClassMiddlewareFactory.Create<TMiddleware>(factory));
+                FieldClassMiddlewareFactory.Create(factory));
         }
 
         public static IMiddlewareConfiguration Map(
@@ -29,7 +29,7 @@ namespace HotChocolate
             FieldMiddleware middleware)
         {
             return configuration.Use(
-                FieldClassMiddlewareFactory.Create<MapMiddleware>(
+                FieldClassMiddlewareFactory.Create(
                     (s, n) => new MapMiddleware(
                         n, fieldReference, middleware(n))));
         }
@@ -41,7 +41,7 @@ namespace HotChocolate
             where TMiddleware : class
         {
             return configuration.Use(
-                FieldClassMiddlewareFactory.Create<MapMiddleware>(
+                FieldClassMiddlewareFactory.Create(
                     (s, n) =>
                     {
                         FieldMiddleware classMiddleware =
@@ -58,12 +58,12 @@ namespace HotChocolate
             where TMiddleware : class
         {
             return configuration.Use(
-                FieldClassMiddlewareFactory.Create<MapMiddleware>(
+                FieldClassMiddlewareFactory.Create(
                     (s, n) =>
                     {
                         FieldMiddleware classMiddleware =
                             FieldClassMiddlewareFactory
-                                .Create<TMiddleware>(factory);
+                                .Create(factory);
                         return new MapMiddleware(
                             n, fieldReference, classMiddleware(n));
                     }));

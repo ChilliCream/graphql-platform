@@ -6,6 +6,8 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using HotChocolate.Configuration.Validation;
+using System.Reflection;
 
 namespace HotChocolate.Configuration
 {
@@ -34,11 +36,15 @@ namespace HotChocolate.Configuration
 
         private readonly IServiceProvider _services;
         private readonly List<ITypeReference> _initialTypes;
+        private readonly List<Type> _externalResolverTypes;
+        private readonly IsOfTypeFallback _isOfType;
         private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
 
         public TypeInitializer(
             IServiceProvider services,
             IEnumerable<ITypeReference> initialTypes,
+            IEnumerable<Type> externalResolverTypes,
+            IsOfTypeFallback isOfType,
             Func<TypeSystemObjectBase, bool> isQueryType)
         {
             if (initialTypes == null)
@@ -46,10 +52,17 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(initialTypes));
             }
 
+            if (externalResolverTypes == null)
+            {
+                throw new ArgumentNullException(nameof(externalResolverTypes));
+            }
+
             _services = services
                 ?? throw new ArgumentNullException(nameof(services));
+            _isOfType = isOfType;
             _isQueryType = isQueryType
                 ?? throw new ArgumentNullException(nameof(isQueryType));
+            _externalResolverTypes = externalResolverTypes.ToList();
             _initialTypes = initialTypes.ToList();
         }
 
@@ -65,13 +78,54 @@ namespace HotChocolate.Configuration
         public IDictionary<FieldReference, RegisteredResolver> Resolvers =>
             _res;
 
-        public void Initialize()
+        public void Initialize(Func<ISchema> schemaResolver)
         {
+            if (schemaResolver == null)
+            {
+                throw new ArgumentNullException(nameof(schemaResolver));
+            }
+
             RegisterTypes();
-            CompileResolvers();
             RegisterImplicitInterfaceDependencies();
-            CompleteNames();
-            CompleteTypes();
+
+            if (CompleteNames(schemaResolver))
+            {
+                RegisterExternalResolvers();
+                CompileResolvers();
+                CompleteTypes();
+            }
+
+            _errors.AddRange(SchemaValidator.Validate(
+                _types.Select(t => t.Value.Type)));
+
+            if (_errors.Count > 0)
+            {
+                throw new SchemaException(_errors);
+            }
+        }
+
+        public bool TryGetRegisteredType(
+            ITypeReference reference,
+            out RegisteredType registeredType)
+        {
+            if (reference == null)
+            {
+                throw new ArgumentNullException(nameof(reference));
+            }
+
+            if (_types.TryGetValue(reference, out registeredType))
+            {
+                return true;
+            }
+
+            if (TryNormalizeReference(reference, out ITypeReference nr)
+                && _types.TryGetValue(nr, out registeredType))
+            {
+                return true;
+            }
+
+            registeredType = null;
+            return false;
         }
 
         private bool RegisterTypes()
@@ -108,16 +162,101 @@ namespace HotChocolate.Configuration
             return false;
         }
 
+        private void RegisterExternalResolvers()
+        {
+            if (_externalResolverTypes.Count == 0)
+            {
+                return;
+            }
+
+            IDescriptorContext descriptorContext =
+                DescriptorContext.Create(_services);
+
+            Dictionary<NameString, ObjectType> types =
+                _types.Select(t => t.Value.Type)
+                    .OfType<ObjectType>()
+                    .ToDictionary(t => t.Name);
+
+            foreach (Type type in _externalResolverTypes)
+            {
+                GraphQLResolverOfAttribute attribute =
+                    type.GetCustomAttribute<GraphQLResolverOfAttribute>();
+
+                if (attribute.TypeNames != null)
+                {
+                    foreach (string typeName in attribute.TypeNames)
+                    {
+                        if (types.TryGetValue(typeName,
+                            out ObjectType objectType))
+                        {
+
+                        }
+                    }
+                }
+
+                if (attribute.Types != null)
+                {
+                    foreach (Type sourceType in attribute.Types
+                        .Where(t => !BaseTypes.IsNonGenericBaseType(t)))
+                    {
+                        ObjectType objectType = types.Values
+                            .FirstOrDefault(t => t.GetType() == sourceType);
+                    }
+                }
+            }
+        }
+
+        private void AddResolvers(
+            IDescriptorContext context,
+            ObjectType objectType,
+            Type resolverType)
+        {
+            foreach (MemberInfo member in
+                context.Inspector.GetMembers(resolverType))
+            {
+                if (IsResolverRelevant(objectType.ClrType, member))
+                {
+                    NameString fieldName = context.Naming.GetMemberName(
+                        member, MemberKind.ObjectField);
+                    var fieldMember = new FieldMember(
+                        objectType.Name, fieldName, member);
+                    var resolver = new RegisteredResolver(
+                        resolverType, objectType.ClrType, fieldMember);
+                    _res[fieldMember.ToFieldReference()] = resolver;
+                }
+            }
+        }
+
+        private static bool IsResolverRelevant(
+            Type sourceType,
+            MemberInfo resolver)
+        {
+            if (resolver is PropertyInfo)
+            {
+                return true;
+            }
+
+            if (resolver is MethodInfo m)
+            {
+                ParameterInfo parent = m.GetParameters()
+                    .FirstOrDefault(t => t.IsDefined(typeof(ParentAttribute)));
+                return parent == null
+                    || parent.ParameterType.IsAssignableFrom(sourceType);
+            }
+
+            return false;
+        }
+
         private void CompileResolvers() =>
             ResolverCompiler.Compile(_res);
 
         private void RegisterImplicitInterfaceDependencies()
         {
-            List<RegisteredType> withClrType =
+            var withClrType =
                 _types.Values.Where(t => t.ClrType != typeof(object)).ToList();
-            List<RegisteredType> interfaceTypes =
+            var interfaceTypes =
                 withClrType.Where(t => t.Type is InterfaceType).ToList();
-            List<RegisteredType> objectTypes =
+            var objectTypes =
                 withClrType.Where(t => t.Type is ObjectType).ToList();
 
             var dependencies = new List<TypeDependency>();
@@ -147,7 +286,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private bool CompleteNames()
+        private bool CompleteNames(Func<ISchema> schemaResolver)
         {
             bool success = CompleteTypes(TypeDependencyKind.Named,
                 registeredType =>
@@ -155,8 +294,11 @@ namespace HotChocolate.Configuration
                     InitializationContext initializationContext =
                         _initContexts.First(t =>
                             t.Type == registeredType.Type);
+
                     var completionContext = new CompletionContext(
-                        initializationContext, this);
+                        initializationContext, this,
+                        _isOfType, schemaResolver);
+
                     _cmpCtx[registeredType] = completionContext;
 
                     registeredType.Type.CompleteName(completionContext);
@@ -180,6 +322,7 @@ namespace HotChocolate.Configuration
                 UpdateDependencyLookup();
             }
 
+            ThrowOnErrors();
             return success;
         }
 
@@ -197,7 +340,7 @@ namespace HotChocolate.Configuration
 
         private bool CompleteTypes()
         {
-            return CompleteTypes(TypeDependencyKind.Completed, registeredType =>
+            bool success = CompleteTypes(TypeDependencyKind.Completed, registeredType =>
             {
                 CompletionContext context = _cmpCtx[registeredType];
                 context.Status = TypeStatus.Named;
@@ -205,6 +348,9 @@ namespace HotChocolate.Configuration
                 registeredType.Type.CompleteType(context);
                 return true;
             });
+
+            ThrowOnErrors();
+            return success;
         }
 
         private bool CompleteTypes(
@@ -214,14 +360,16 @@ namespace HotChocolate.Configuration
             var processed = new HashSet<ITypeReference>();
             var batch = new List<RegisteredType>(
                 GetInitialBatch(kind));
+            bool failed = false;
 
-            while (processed.Count < _types.Count && batch.Count > 0)
+            while (!failed && processed.Count < _types.Count && batch.Count > 0)
             {
                 foreach (RegisteredType registeredType in batch)
                 {
                     if (!action(registeredType))
                     {
-                        return false;
+                        failed = true;
+                        break;
                     }
                     processed.Add(registeredType.Reference);
                 }
@@ -230,12 +378,27 @@ namespace HotChocolate.Configuration
                 batch.AddRange(GetNextBatch(processed, kind));
             }
 
-            // TODO : resources
             if (processed.Count < _types.Count)
             {
-                _errors.Add(SchemaErrorBuilder.New()
-                    .SetMessage("Unable to resolve dependencies")
-                    .Build());
+                foreach (RegisteredType type in _types.Values
+                    .Where(t => !processed.Contains(t.Reference)))
+                {
+                    string name = type.Type.Name.HasValue
+                        ? type.Type.Name.Value
+                        : type.Reference.ToString();
+
+                    // TODO : resources
+                    _errors.Add(SchemaErrorBuilder.New()
+                        .SetMessage(
+                            "Unable to resolve `{0}` dependencies {1}.",
+                            name,
+                            string.Join(", ", type.Dependencies
+                                .Where(t => t.Kind == kind)
+                                .Select(t => t.TypeReference)))
+                        .SetTypeSystemObject(type.Type)
+                        .Build());
+                }
+
                 return false;
             }
 
@@ -345,7 +508,7 @@ namespace HotChocolate.Configuration
         {
             if (!BaseTypes.IsNonGenericBaseType(typeReference.Type)
                 && _typeInspector.TryCreate(typeReference.Type,
-                    out TypeInfo typeInfo))
+                    out Utilities.TypeInfo typeInfo))
             {
                 if (IsTypeSystemObject(typeInfo.ClrType))
                 {
@@ -374,6 +537,21 @@ namespace HotChocolate.Configuration
 
             normalized = null;
             return false;
+        }
+
+        private void ThrowOnErrors()
+        {
+            var errors = new List<ISchemaError>();
+
+            foreach (InitializationContext context in _initContexts)
+            {
+                errors.AddRange(context.Errors);
+            }
+
+            if (errors.Count > 0)
+            {
+                throw new SchemaException(errors);
+            }
         }
 
         private static bool IsTypeSystemObject(Type type) =>

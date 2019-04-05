@@ -6,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Resolvers;
+using HotChocolate.Configuration;
 
 namespace HotChocolate.Stitching
 {
@@ -114,9 +115,5 @@ namespace HotChocolate.Stitching
 
         IStitchingBuilder SetExecutionOptions(
             IQueryExecutionOptionsAccessor options);
-
-
-
-
     }
 }

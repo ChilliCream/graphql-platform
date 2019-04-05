@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -52,8 +52,18 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public IBindableList<DirectiveArgumentDefinition> Arguments
         { get; } = new BindableList<DirectiveArgumentDefinition>();
 
-        public IEnumerable<ITypeReference> GetDependencies() =>
-            Arguments.Select(t => t.Type);
+        internal override IEnumerable<ITypeConfigration> GetConfigurations()
+        {
+            var configs = new List<ITypeConfigration>();
+            configs.AddRange(Configurations);
+
+            foreach (DirectiveArgumentDefinition field in Arguments)
+            {
+                configs.AddRange(field.Configurations);
+            }
+
+            return configs;
+        }
 
         protected override void OnValidate(ICollection<IError> errors)
         {

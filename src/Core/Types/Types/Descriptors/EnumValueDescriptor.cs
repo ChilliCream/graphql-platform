@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -44,7 +44,7 @@ namespace HotChocolate.Types.Descriptors
 
         public IEnumValueDescriptor DeprecationReason(string reason)
         {
-            Definition.Description = reason;
+            Definition.DeprecationReason = reason;
             return this;
         }
 

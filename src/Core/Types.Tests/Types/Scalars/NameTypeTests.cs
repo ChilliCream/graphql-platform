@@ -24,7 +24,7 @@ namespace HotChocolate.Types
         {
             // arrange
             var type = new NameType();
-            StringValueNode input = new StringValueNode("_123456");
+            var input = new StringValueNode("_123456");
 
             // act
             bool result = type.IsInstanceOfType(input);
@@ -150,7 +150,7 @@ namespace HotChocolate.Types
         {
             // arrange
             var type = new NameType();
-            var input = NullValueNode.Default;
+            NullValueNode input = NullValueNode.Default;
 
             // act
             object output = type.ParseLiteral(input);

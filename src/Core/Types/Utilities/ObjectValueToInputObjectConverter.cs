@@ -94,7 +94,7 @@ namespace HotChocolate.Utilities
             {
                 ListType listType = context.InputType.ListType();
                 Type tempType = listType.ToClrType();
-                IList temp = (IList)Activator.CreateInstance(tempType);
+                var temp = (IList)Activator.CreateInstance(tempType);
 
                 for (int i = 0; i < node.Items.Count; i++)
                 {

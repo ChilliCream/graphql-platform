@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -61,7 +60,7 @@ namespace HotChocolate.Types.Descriptors
             TInputType inputType)
             where TInputType : class, IInputType
         {
-            base.Type<TInputType>(inputType);
+            base.Type(inputType);
             return this;
         }
 

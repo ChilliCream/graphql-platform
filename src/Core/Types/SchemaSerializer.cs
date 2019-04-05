@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,6 +12,11 @@ namespace HotChocolate
     {
         public static string Serialize(ISchema schema)
         {
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
             var sb = new StringBuilder();
             using (var stringWriter = new StringWriter(sb))
             using (var documentWriter = new DocumentWriter(stringWriter))
@@ -25,6 +30,16 @@ namespace HotChocolate
 
         public static void Serialize(ISchema schema, TextWriter textWriter)
         {
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            if (textWriter == null)
+            {
+                throw new ArgumentNullException(nameof(textWriter));
+            }
+
             using (var documentWriter = new DocumentWriter(textWriter))
             {
                 DocumentNode document = SerializeSchema(schema);
@@ -48,10 +63,15 @@ namespace HotChocolate
                 .OfType<IDefinitionNode>()
                 .ToList();
 
-            typeDefinitions.Insert(0,
-                SerializeSchemaTypeDefinition(schema, referenced));
+            if (schema.QueryType != null
+                || schema.MutationType != null
+                || schema.SubscriptionType != null)
+            {
+                typeDefinitions.Insert(0,
+                    SerializeSchemaTypeDefinition(schema, referenced));
+            }
 
-            var scalarTypeDefinitions = schema.Types
+            IEnumerable<ScalarTypeDefinitionNode> scalarTypeDefinitions = schema.Types
                 .OfType<ScalarType>()
                 .Where(t => referenced.Contains(t.Name))
                 .Select(t => SerializeScalarType(t));
@@ -89,10 +109,13 @@ namespace HotChocolate
         {
             var operations = new List<OperationTypeDefinitionNode>();
 
-            operations.Add(SerializeOperationType(
-                schema.QueryType,
-                OperationType.Query,
-                referenced));
+            if (schema.QueryType != null)
+            {
+                operations.Add(SerializeOperationType(
+                    schema.QueryType,
+                    OperationType.Query,
+                    referenced));
+            }
 
             if (schema.MutationType != null)
             {
@@ -342,7 +365,7 @@ namespace HotChocolate
             if (type is NonNullType nt)
             {
                 return new NonNullTypeNode(null,
-                    (Language.INullableTypeNode)SerializeType(
+                    (INullableTypeNode)SerializeType(
                         nt.Type, referenced));
             }
 

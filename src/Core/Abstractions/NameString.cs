@@ -1,4 +1,3 @@
-using System.ComponentModel.Design;
 using System;
 using System.ComponentModel;
 using System.Globalization;

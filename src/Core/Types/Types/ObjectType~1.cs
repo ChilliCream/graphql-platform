@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using HotChocolate.Configuration;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Introspection;
 
 namespace HotChocolate.Types
 {
@@ -29,7 +24,7 @@ namespace HotChocolate.Types
         protected override ObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            ObjectTypeDescriptor<T> descriptor = ObjectTypeDescriptor.New<T>(
+            var descriptor = ObjectTypeDescriptor.New<T>(
                 DescriptorContext.Create(context.Services));
             _configure(descriptor);
             return descriptor.CreateDefinition();

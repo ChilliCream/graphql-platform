@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
@@ -14,9 +15,13 @@ namespace HotChocolate.Configuration
     {
         private readonly InitializationContext _initializationContext;
         private readonly TypeInitializer _typeInitializer;
+        private readonly Func<ISchema> _schemaResolver;
+
         public CompletionContext(
             InitializationContext initializationContext,
-            TypeInitializer typeInitializer)
+            TypeInitializer typeInitializer,
+            IsOfTypeFallback isOfType,
+            Func<ISchema> schemaResolver)
         {
             _initializationContext = initializationContext
                 ?? throw new ArgumentNullException(
@@ -24,6 +29,10 @@ namespace HotChocolate.Configuration
             _typeInitializer = typeInitializer
                 ?? throw new ArgumentNullException(
                     nameof(typeInitializer));
+            IsOfType = isOfType;
+            _schemaResolver = schemaResolver
+                ?? throw new ArgumentNullException(
+                    nameof(schemaResolver));
 
             GlobalComponents = new ReadOnlyCollection<FieldMiddleware>(
                 _typeInitializer.GlobalComponents);
@@ -34,6 +43,8 @@ namespace HotChocolate.Configuration
         public bool? IsQueryType { get; set; }
 
         public IReadOnlyList<FieldMiddleware> GlobalComponents { get; }
+
+        public IsOfTypeFallback IsOfType { get; }
 
         public ITypeSystemObject Type => _initializationContext.Type;
 
@@ -70,24 +81,51 @@ namespace HotChocolate.Configuration
                 reference, out ITypeReference nr)
                 && _typeInitializer.Types.TryGetValue(
                     nr, out RegisteredType rt)
-                && rt.Type is T t)
+                    && rt.Type is IType t)
             {
+                IType resolved;
                 if (reference is IClrTypeReference cr
                     && _typeInitializer.TypeInspector.TryCreate(
                         cr.Type, out TypeInfo typeInfo))
                 {
-                    type = (T)typeInfo.TypeFactory.Invoke(t);
+                    resolved = typeInfo.TypeFactory.Invoke(t);
+                }
+                else if (reference is ISyntaxTypeReference sr)
+                {
+                    resolved = WrapType(t, sr.Type);
                 }
                 else
                 {
-                    type = t;
+                    resolved = t;
                 }
-                return true;
-            }
 
+                if (resolved is T casted)
+                {
+                    type = casted;
+                    return true;
+                }
+            }
 
             type = default;
             return false;
+        }
+
+        private static IType WrapType(
+           IType namedType,
+           ITypeNode typeNode)
+        {
+            if (typeNode is NonNullTypeNode nntn)
+            {
+                return new NonNullType(WrapType(namedType, nntn.Type));
+            }
+            else if (typeNode is ListTypeNode ltn)
+            {
+                return new ListType(WrapType(namedType, ltn.Type));
+            }
+            else
+            {
+                return namedType;
+            }
         }
 
         public DirectiveType GetDirectiveType(IDirectiveReference reference)
@@ -97,7 +135,23 @@ namespace HotChocolate.Configuration
                 throw new NotSupportedException();
             }
 
-            throw new NotImplementedException();
+            if (reference is ClrTypeDirectiveReference cr
+                && _typeInitializer.TryGetRegisteredType(
+                    new ClrTypeReference(cr.ClrType, TypeContext.None),
+                    out RegisteredType registeredType))
+            {
+                return (DirectiveType)registeredType.Type;
+            }
+
+            if (reference is NameDirectiveReference nr)
+            {
+                return _typeInitializer.Types.Values
+                    .Select(t => t.Type)
+                    .OfType<DirectiveType>()
+                    .FirstOrDefault(t => t.Name.Equals(nr.Name));
+            }
+
+            return null;
         }
 
         public FieldResolver GetResolver(IFieldReference reference)
@@ -130,7 +184,7 @@ namespace HotChocolate.Configuration
                 throw new NotSupportedException();
             }
 
-            throw new NotImplementedException();
+            return _schemaResolver;
         }
 
         public IEnumerable<T> GetTypes<T>()

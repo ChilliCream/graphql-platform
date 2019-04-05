@@ -3,9 +3,22 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Introspection
 {
-    internal static class IntrospectionTypes
+    public static class IntrospectionTypes
     {
-        public static IReadOnlyList<ITypeReference> All { get; } =
+        private static readonly HashSet<string> _typeNames =
+            new HashSet<string>
+            {
+                "__Directive",
+                "__DirectiveLocation",
+                "__EnumValue",
+                "__Field",
+                "__InputValue",
+                "__Schema",
+                "__Type",
+                "__TypeKind"
+            };
+
+        internal static IReadOnlyList<ITypeReference> All { get; } =
             new List<ITypeReference>
             {
                 new ClrTypeReference(
@@ -33,5 +46,11 @@ namespace HotChocolate.Types.Introspection
                     typeof(__TypeKind),
                     TypeContext.None),
             };
+
+        public static bool IsIntrospectionType(NameString typeName)
+        {
+            return typeName.HasValue
+                && _typeNames.Contains(typeName.Value);
+        }
     }
 }

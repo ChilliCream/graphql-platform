@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public FieldResolverDelegate Resolver { get; set; }
 
-        public ICollection<FieldMiddleware> MiddlewareComponents { get; } =
+        public IList<FieldMiddleware> MiddlewareComponents { get; } =
             new List<FieldMiddleware>();
     }
 }

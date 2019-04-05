@@ -12,7 +12,7 @@ namespace HotChocolate.Language
         private void ReadToken(string sourceText)
         {
             // arrange
-            Source source = new Source(sourceText);
+            var source = new Source(sourceText);
 
             // act
             SyntaxToken token = Lexer.Default.Read(source);

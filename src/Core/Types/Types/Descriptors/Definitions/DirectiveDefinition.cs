@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors.Definitions
@@ -10,6 +10,9 @@ namespace HotChocolate.Types.Descriptors.Definitions
             ParsedDirective = parsedDirective
                 ?? throw new ArgumentNullException(nameof(parsedDirective));
             Reference = new NameDirectiveReference(parsedDirective.Name.Value);
+            TypeReference = new SyntaxTypeReference(
+                new NamedTypeNode(parsedDirective.Name),
+                TypeContext.None);
         }
 
         public DirectiveDefinition(object customDirective)
@@ -18,6 +21,9 @@ namespace HotChocolate.Types.Descriptors.Definitions
                 ?? throw new ArgumentNullException(nameof(customDirective));
             Reference = new ClrTypeDirectiveReference(
                 customDirective.GetType());
+            TypeReference = new ClrTypeReference(
+                customDirective.GetType(),
+                TypeContext.None);
         }
 
         public DirectiveNode ParsedDirective { get; }
@@ -26,5 +32,6 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public IDirectiveReference Reference { get; }
 
+        public ITypeReference TypeReference { get; }
     }
 }

@@ -1,7 +1,8 @@
-﻿using System.IO;
+using System.IO;
 using System.Text;
 using ChilliCream.Testing;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate
@@ -17,20 +18,19 @@ namespace HotChocolate
                 source,
                 c =>
                 {
+                    c.RegisterQueryType<Query>();
                     c.Use(next => context => next(context));
                     c.RegisterDirective(new DirectiveType(t =>
                         t.Name("upper")
                             .Location(DirectiveLocation.FieldDefinition)));
                 });
 
-            var sb = new StringBuilder();
-            var s = new StringWriter(sb);
 
             // act
-            SchemaSerializer.Serialize(schema, s);
+            string serializedSchema = schema.ToString();
 
             // assert
-            sb.ToString().Snapshot();
+            serializedSchema.MatchSnapshot();
         }
 
         [Fact]
@@ -50,10 +50,15 @@ namespace HotChocolate
             var s = new StringWriter(sb);
 
             // act
-            SchemaSerializer.Serialize(schema, s);
+            string serializedSchema = schema.ToString();
 
             // assert
-            sb.ToString().Snapshot();
+            serializedSchema.MatchSnapshot();
+        }
+
+        public class Query
+        {
+            public string Bar { get; set; }
         }
     }
 }

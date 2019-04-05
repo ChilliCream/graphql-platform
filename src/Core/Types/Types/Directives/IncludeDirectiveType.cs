@@ -5,7 +5,7 @@
     {
         protected override void Configure(IDirectiveTypeDescriptor descriptor)
         {
-            descriptor.Name("include");
+            descriptor.Name(WellKnownDirectives.Include);
 
             descriptor.Description(
                 "Directs the executor to include this field or fragment " +
@@ -15,7 +15,7 @@
                 .Location(DirectiveLocation.FragmentSpread)
                 .Location(DirectiveLocation.InlineFragment);
 
-            descriptor.Argument("if")
+            descriptor.Argument(WellKnownDirectives.IfArgument)
                 .Description("Included when true.")
                 .Type<NonNullType<BooleanType>>();
         }

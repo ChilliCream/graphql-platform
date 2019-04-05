@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -33,7 +33,8 @@ namespace HotChocolate.Types.Factories
 
                 if (bindingInfo.SourceType != null)
                 {
-                    d.Configure(t => t.ClrType = bindingInfo.SourceType);
+                    d.Extend().OnBeforeCreate(
+                        t => t.ClrType = bindingInfo.SourceType);
                 }
 
                 foreach (DirectiveNode directive in node.Directives)
@@ -59,7 +60,10 @@ namespace HotChocolate.Types.Factories
 
                 foreach (DirectiveNode directive in fieldDefinition.Directives)
                 {
-                    fieldDescriptor.Directive(directive);
+                    if (!directive.IsDeprecationReason())
+                    {
+                        fieldDescriptor.Directive(directive);
+                    }
                 }
 
                 string deprecactionReason = fieldDefinition.DeprecationReason();

@@ -28,7 +28,7 @@ namespace HotChocolate.Integration.ArgumentValidation
                     object argumentValue =
                         context.Argument<object>(argument.Name);
 
-                    var argumentValidator =
+                    ArgumentValidationDirective argumentValidator =
                         directive.ToObject<ArgumentValidationDirective>();
 
                     argumentValidator.Validator(

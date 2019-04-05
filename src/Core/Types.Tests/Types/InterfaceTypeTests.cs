@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 using Xunit;
 
@@ -14,7 +12,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new InterfaceType<IFoo>());
+            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>());
 
             // assert
             Assert.Collection(
@@ -44,10 +42,10 @@ namespace HotChocolate.Types
         public void InferSchemaInterfaceTypeFromClrInterface()
         {
             // arrange && act
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.RegisterType<IFoo>();
-                c.RegisterType<FooImpl>();
+                c.RegisterQueryType<FooImpl>();
             });
 
             // assert
@@ -61,7 +59,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(
+            InterfaceType<IFoo> fooType = CreateType(
                 new InterfaceType<IFoo>(t => t.Ignore(p => p.Bar)));
 
             // assert
@@ -87,7 +85,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new InterfaceType<IFoo>(t => t
+            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(t => t
                 .BindFields(BindingBehavior.Explicit)
                 .Field(p => p.Bar)));
 
@@ -107,7 +105,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new InterfaceType<IFoo>(d => d
+            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(d => d
                 .Directive("foo")
                 .Field(f => f.Bar)
                 .Directive("foo")),
@@ -123,7 +121,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new InterfaceType<IFoo>(d => d
+            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(d => d
                 .Directive(new NameString("foo"))
                 .Field(f => f.Bar)
                 .Directive(new NameString("foo"))),
@@ -139,7 +137,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new InterfaceType<IFoo>(d => d
+            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(d => d
                 .Directive(new DirectiveNode("foo"))
                 .Field(f => f.Bar)
                 .Directive(new DirectiveNode("foo"))),
@@ -155,7 +153,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new InterfaceType<IFoo>(d => d
+            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(d => d
                 .Directive(new FooDirective())
                 .Field(f => f.Bar)
                 .Directive(new FooDirective())),
@@ -171,7 +169,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new InterfaceType<IFoo>(d => d
+            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(d => d
                 .Directive<FooDirective>()
                 .Field(f => f.Bar)
                 .Directive<FooDirective>()),
@@ -187,7 +185,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new InterfaceType(d => d
+            InterfaceType fooType = CreateType(new InterfaceType(d => d
                 .Name("FooInt")
                 .Directive("foo")
                 .Field("id")
@@ -205,7 +203,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new InterfaceType(d => d
+            InterfaceType fooType = CreateType(new InterfaceType(d => d
                 .Name("FooInt")
                 .Directive(new NameString("foo"))
                 .Field("bar")
@@ -215,7 +213,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
-            Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
+            Assert.NotEmpty(fooType.Fields["bar"].Directives["foo"]);
         }
 
         [Fact]
@@ -223,7 +221,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new InterfaceType(d => d
+            InterfaceType fooType = CreateType(new InterfaceType(d => d
                 .Name("FooInt")
                 .Directive(new DirectiveNode("foo"))
                 .Field("id")
@@ -241,7 +239,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new InterfaceType(d => d
+            InterfaceType fooType = CreateType(new InterfaceType(d => d
                 .Name("FooInt")
                 .Directive(new FooDirective())
                 .Field("id")
@@ -259,7 +257,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = CreateType(new InterfaceType(d => d
+            InterfaceType fooType = CreateType(new InterfaceType(d => d
                 .Name("FooInt")
                 .Directive<FooDirective>()
                 .Field("id")

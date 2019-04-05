@@ -9,8 +9,8 @@ namespace HotChocolate.Language
         {
             // arrange
             string sourceBody = "\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar\"\"\"";
-            Source source = new Source(sourceBody);
-            Lexer lexer = new Lexer();
+            var source = new Source(sourceBody);
+            var lexer = new Lexer();
 
             // act
             SyntaxToken token = lexer.Read(source);
@@ -36,8 +36,8 @@ namespace HotChocolate.Language
         {
             // arrange
             string sourceBody = "\"\"\"\\\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar\"\"\"";
-            Source source = new Source(sourceBody);
-            Lexer lexer = new Lexer();
+            var source = new Source(sourceBody);
+            var lexer = new Lexer();
 
             // act
             SyntaxToken token = lexer.Read(source);
@@ -63,8 +63,8 @@ namespace HotChocolate.Language
         {
             // arrange
             string sourceBody = "\"\"\"hello\\\"\"\"World_123\r\n\t\tfoo\r\n\tbar\"\"\"";
-            Source source = new Source(sourceBody);
-            Lexer lexer = new Lexer();
+            var source = new Source(sourceBody);
+            var lexer = new Lexer();
 
             // act
             SyntaxToken token = lexer.Read(source);
@@ -90,8 +90,8 @@ namespace HotChocolate.Language
         {
             // arrange
             string sourceBody = "\"\"\"\r\n\t\r\n\t\r\n\thelloWorld_123\r\n\t\tfoo\r\n\tbar\"\"\"";
-            Source source = new Source(sourceBody);
-            Lexer lexer = new Lexer();
+            var source = new Source(sourceBody);
+            var lexer = new Lexer();
 
             // act
             SyntaxToken token = lexer.Read(source);
@@ -117,8 +117,8 @@ namespace HotChocolate.Language
         {
             // arrange
             string sourceBody = "\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar\r\n\t\r\n\t\r\n\t\r\n\t\"\"\"";
-            Source source = new Source(sourceBody);
-            Lexer lexer = new Lexer();
+            var source = new Source(sourceBody);
+            var lexer = new Lexer();
 
             // act
             SyntaxToken token = lexer.Read(source);
@@ -144,8 +144,8 @@ namespace HotChocolate.Language
         {
             // arrange
             string sourceBody = "\"\"\"helloWorld_123\"\"\"";
-            Source source = new Source(sourceBody);
-            Lexer lexer = new Lexer();
+            var source = new Source(sourceBody);
+            var lexer = new Lexer();
 
             // act
             SyntaxToken token = lexer.Read(source);

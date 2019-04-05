@@ -54,7 +54,7 @@ namespace HotChocolate.Types
         protected override InterfaceTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            InterfaceTypeDescriptor descriptor = InterfaceTypeDescriptor.New(
+            var descriptor = InterfaceTypeDescriptor.New(
                 DescriptorContext.Create(context.Services),
                 GetType());
             _configure(descriptor);
@@ -71,9 +71,38 @@ namespace HotChocolate.Types
         {
             base.OnRegisterDependencies(context, definition);
 
+            RegisterDependencies(context, definition);
+        }
+
+        private void RegisterDependencies(
+           IInitializationContext context,
+           InterfaceTypeDefinition definition)
+        {
+            var dependencies = new List<ITypeReference>();
+
             context.RegisterDependencyRange(
-                definition.GetDependencies(),
+                definition.Fields.Select(t => t.Type),
                 TypeDependencyKind.Default);
+
+            context.RegisterDependencyRange(
+                definition.Fields.SelectMany(t => t.Arguments)
+                    .Select(t => t.Type),
+                TypeDependencyKind.Completed);
+
+            context.RegisterDependencyRange(
+                definition.Directives.Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
+
+            context.RegisterDependencyRange(
+                definition.Fields.SelectMany(t => t.Directives)
+                    .Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
+
+            context.RegisterDependencyRange(
+                definition.Fields.SelectMany(t => t.Arguments)
+                    .SelectMany(t => t.Directives)
+                    .Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
         }
 
         protected override void OnCompleteType(
@@ -86,30 +115,10 @@ namespace HotChocolate.Types
             Fields = new FieldCollection<InterfaceField>(
                 definition.Fields.Select(t => new InterfaceField(t)));
 
-            FieldInitHelper.CompleteFields(context, definition, Fields);
             CompleteAbstractTypeResolver(
                 context,
                 definition.ResolveAbstractType);
-        }
-
-        private void CompleteFields(
-            ICompletionContext context)
-        {
-            foreach (InterfaceField field in Fields)
-            {
-                field.CompleteField(context);
-            }
-
-            if (Fields.Count == 0)
-            {
-                // TODO : RESOURCES
-                context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage($"Interface `{Name}` has no fields declared.")
-                    .SetCode(TypeErrorCodes.MissingType)
-                    .SetTypeSystemObject(context.Type)
-                    .AddSyntaxNode(SyntaxNode)
-                    .Build());
-            }
+            FieldInitHelper.CompleteFields(context, definition, Fields);
         }
 
         private void CompleteAbstractTypeResolver(

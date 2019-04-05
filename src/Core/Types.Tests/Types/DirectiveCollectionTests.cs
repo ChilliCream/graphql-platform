@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using HotChocolate.Language;
-using HotChocolate.Types.Descriptors.Definitions;
-using Moq;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -22,11 +19,13 @@ namespace HotChocolate.Types
                     .Directive(new DirectiveNode("foo"))
                     .Directive(new DirectiveNode("bar")));
 
-            var foo = new DirectiveType(d =>
-                d.Name("foo").Location(DirectiveLocation.Field));
+            var foo = new DirectiveType(d => d
+                .Name("foo")
+                .Location(DirectiveLocation.FieldDefinition));
 
-            var bar = new DirectiveType(d =>
-                d.Name("bar").Location(DirectiveLocation.Field));
+            var bar = new DirectiveType(d => d
+                .Name("bar")
+                .Location(DirectiveLocation.FieldDefinition));
 
             // act
             ISchema schema = CreateSchema(b =>
@@ -55,7 +54,7 @@ namespace HotChocolate.Types
                     .Directive(new DirectiveNode("foo")));
 
             var foo = new DirectiveType(d =>
-                d.Name("foo").Location(DirectiveLocation.Field));
+                d.Name("foo").Location(DirectiveLocation.FieldDefinition));
 
             // act
             Action action = () => CreateSchema(b =>
@@ -84,11 +83,13 @@ namespace HotChocolate.Types
                     .Directive(new DirectiveNode("foo"))
                     .Directive(new DirectiveNode("foo")));
 
-            var foo = new DirectiveType(d =>
-                d.Name("foo").Location(DirectiveLocation.Field).Repeatable());
+            var foo = new DirectiveType(d => d
+                .Name("foo")
+                .Location(DirectiveLocation.FieldDefinition)
+                .Repeatable());
 
             // act
-            Action action = () => CreateSchema(b =>
+            CreateSchema(b =>
             {
                 b.AddType(someType);
                 b.AddDirectiveType(foo);
@@ -104,15 +105,16 @@ namespace HotChocolate.Types
         public void InvalidLocation()
         {
             // arrange
-            var someType = new ObjectType(t =>
-                t.Name("Foo")
-                    .Field("abc")
-                    .Type<StringType>()
-                    .Resolver("abc")
-                    .Directive(new DirectiveNode("foo")));
+            var someType = new ObjectType(t => t
+                .Name("Foo")
+                .Field("abc")
+                .Type<StringType>()
+                .Resolver("abc")
+                .Directive(new DirectiveNode("foo")));
 
-            var foo = new DirectiveType(d =>
-                d.Name("foo").Location(DirectiveLocation.Object));
+            var foo = new DirectiveType(d => d
+                .Name("foo")
+                .Location(DirectiveLocation.Object));
 
             // act
             Action action = () => CreateSchema(b =>
@@ -126,7 +128,7 @@ namespace HotChocolate.Types
                 t => Assert.Equal(
                     "The specified directive `@foo` " +
                     "is not allowed on the current location " +
-                    $"`{DirectiveLocation.Field}`.",
+                    $"`{DirectiveLocation.FieldDefinition}`.",
                     t.Message));
         }
     }

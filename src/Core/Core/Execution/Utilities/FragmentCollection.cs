@@ -48,7 +48,7 @@ namespace HotChocolate.Execution
 
         private Fragment CreateFragment(string fragmentName)
         {
-            var fragmentDefinition = _queryDocument.Definitions
+            FragmentDefinitionNode fragmentDefinition = _queryDocument.Definitions
                 .OfType<FragmentDefinitionNode>()
                 .FirstOrDefault(t => string.Equals(
                     t.Name.Value, fragmentName,

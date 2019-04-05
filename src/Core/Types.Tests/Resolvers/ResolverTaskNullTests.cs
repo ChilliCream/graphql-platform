@@ -65,7 +65,7 @@ namespace HotChocolate.Resolvers
                         {
                             return null;
                         }
-                        return Task.FromResult<string>(name);
+                        return Task.FromResult(name);
                     });
             }
         }

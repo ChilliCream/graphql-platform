@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -96,7 +94,7 @@ namespace HotChocolate.Types.Descriptors
             TOutputType outputType)
             where TOutputType : class, IOutputType
         {
-            base.Type<TOutputType>(outputType);
+            base.Type(outputType);
             return this;
         }
 

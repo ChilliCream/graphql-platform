@@ -35,7 +35,6 @@ namespace HotChocolate.Types
 
         public IReadOnlyDictionary<NameString, ObjectType> Types => _typeMap;
 
-
         public ObjectType ResolveType(
             IResolverContext context, object resolverResult)
             => _resolveAbstractType(context, resolverResult);
@@ -44,7 +43,7 @@ namespace HotChocolate.Types
 
         protected override UnionTypeDefinition CreateDefinition(IInitializationContext context)
         {
-            UnionTypeDescriptor descriptor = UnionTypeDescriptor.New(
+            var descriptor = UnionTypeDescriptor.New(
                 DescriptorContext.Create(context.Services),
                 GetType());
             _configure(descriptor);
@@ -62,6 +61,10 @@ namespace HotChocolate.Types
             context.RegisterDependencyRange(
                 definition.Types,
                 TypeDependencyKind.Default);
+
+            context.RegisterDependencyRange(
+                definition.Directives.Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
         }
 
         protected override void OnCompleteType(

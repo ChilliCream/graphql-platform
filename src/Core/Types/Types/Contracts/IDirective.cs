@@ -1,4 +1,5 @@
-﻿
+
+using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 
@@ -12,7 +13,8 @@ namespace HotChocolate.Types
 
         object Source { get; }
 
-        DirectiveMiddleware Middleware { get; }
+        IReadOnlyList<DirectiveMiddleware> MiddlewareComponents
+        { get; }
 
         bool IsExecutable { get; }
 

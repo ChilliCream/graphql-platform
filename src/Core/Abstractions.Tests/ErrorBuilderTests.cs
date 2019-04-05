@@ -1,4 +1,3 @@
-using System.Collections.Specialized;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -17,7 +16,7 @@ namespace HotChocolate
             IError error = new Error { Message = "123" };
 
             // act
-            ErrorBuilder builder = ErrorBuilder.FromError(error);
+            var builder = ErrorBuilder.FromError(error);
             error = builder.Build();
 
             // assert
@@ -38,7 +37,7 @@ namespace HotChocolate
             };
 
             // act
-            ErrorBuilder builder = ErrorBuilder.FromError(error);
+            var builder = ErrorBuilder.FromError(error);
             error = builder.Build();
 
             // assert
@@ -106,7 +105,7 @@ namespace HotChocolate
             };
 
             // act
-            ErrorBuilder builder = ErrorBuilder.FromError(error);
+            var builder = ErrorBuilder.FromError(error);
             error = builder.Build();
 
             // assert

@@ -1,4 +1,4 @@
-using System.Net;
+using System.Reflection;
 using System.Linq;
 using System;
 using System.Collections.Generic;
@@ -13,7 +13,7 @@ using HotChocolate.Types.Factories;
 
 namespace HotChocolate
 {
-    public class SchemaBuilder
+    public partial class SchemaBuilder
         : ISchemaBuilder
     {
         private readonly List<FieldMiddleware> _globalComponents =
@@ -22,11 +22,13 @@ namespace HotChocolate
             new List<LoadSchemaDocument>();
         private readonly List<ITypeReference> _types =
             new List<ITypeReference>();
+        private readonly List<Type> _resolverTypes = new List<Type>();
         private readonly Dictionary<OperationType, ITypeReference> _operations =
             new Dictionary<OperationType, ITypeReference>();
         private readonly Dictionary<FieldReference, FieldResolver> _resolvers =
             new Dictionary<FieldReference, FieldResolver>();
-        private readonly IBindingCompiler _bindingCompiler;
+        private readonly IBindingCompiler _bindingCompiler =
+            new BindingCompiler();
         private string _description;
         private SchemaOptions _options = new SchemaOptions();
         private IsOfTypeFallback _isOfType;
@@ -101,11 +103,40 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(type));
             }
 
-            _types.Add(new ClrTypeReference(
-                type,
-                SchemaTypeReference.InferTypeContext(type)));
+            if (type.IsDefined(typeof(GraphQLResolverOfAttribute), true))
+            {
+                AddResolverType(type);
+            }
+            else
+            {
+                _types.Add(new ClrTypeReference(
+                    type,
+                    SchemaTypeReference.InferTypeContext(type)));
+            }
 
             return this;
+        }
+
+        private void AddResolverType(Type type)
+        {
+            GraphQLResolverOfAttribute attribute =
+                type.GetCustomAttribute<GraphQLResolverOfAttribute>(true);
+
+            _resolverTypes.Add(type);
+
+            if (attribute.Types != null)
+            {
+                foreach (Type schemaType in attribute.Types)
+                {
+                    if (typeof(ObjectType).IsAssignableFrom(schemaType)
+                        && !BaseTypes.IsNonGenericBaseType(schemaType))
+                    {
+                        _types.Add(new ClrTypeReference(
+                            schemaType,
+                            SchemaTypeReference.InferTypeContext(schemaType)));
+                    }
+                }
+            }
         }
 
         public ISchemaBuilder AddType(INamedType type)
@@ -250,7 +281,7 @@ namespace HotChocolate
 
         public Schema Create()
         {
-            var services = _services ?? new EmptyServiceProvider();
+            IServiceProvider services = _services ?? new EmptyServiceProvider();
             IBindingLookup bindingLookup =
                 _bindingCompiler.Compile(DescriptorContext.Create(services));
 
@@ -261,10 +292,25 @@ namespace HotChocolate
                 types.AddRange(ParseDocuments(services, bindingLookup));
             }
 
+            var lazy = new LazySchema();
+
             TypeInitializer initializer =
-                InitializeTypes(services, bindingLookup, types);
+                InitializeTypes(services, bindingLookup, types, () => lazy.Schema);
+
             SchemaDefinition definition = CreateSchemaDefinition(initializer);
-            return new Schema(definition);
+
+            if (definition.QueryType == null && _options.StrictValidation)
+            {
+                // TODO : Resources
+                throw new SchemaException(
+                    SchemaErrorBuilder.New()
+                        .SetMessage("No QUERY TYPE")
+                        .Build());
+            }
+
+            var schema = new Schema(definition);
+            lazy.Schema = schema;
+            return schema;
         }
 
         ISchema ISchemaBuilder.Create() => Create();
@@ -283,18 +329,41 @@ namespace HotChocolate
                 var visitor = new SchemaSyntaxVisitor(bindingLookup);
                 visitor.Visit(schemaDocument, null);
                 types.AddRange(visitor.Types);
+
+                RegisterOperationName(OperationType.Query,
+                    visitor.QueryTypeName);
+                RegisterOperationName(OperationType.Mutation,
+                    visitor.MutationTypeName);
+                RegisterOperationName(OperationType.Subscription,
+                    visitor.SubscriptionTypeName);
             }
 
             return types;
         }
 
+        private void RegisterOperationName(
+            OperationType operation,
+            string typeName)
+        {
+            if (!_operations.ContainsKey(operation)
+                && !string.IsNullOrEmpty(typeName))
+            {
+                _operations.Add(operation,
+                    new SyntaxTypeReference(
+                        new NamedTypeNode(typeName),
+                        TypeContext.Output));
+            }
+        }
+
         private TypeInitializer InitializeTypes(
             IServiceProvider services,
             IBindingLookup bindingLookup,
-            IEnumerable<ITypeReference> types)
+            IEnumerable<ITypeReference> types,
+            Func<ISchema> schemaResolver)
         {
-
-            var initializer = new TypeInitializer(services, types, IsQueryType);
+            var initializer = new TypeInitializer(
+                services, types, _resolverTypes,
+                _isOfType, IsQueryType);
 
             foreach (FieldMiddleware component in _globalComponents)
             {
@@ -316,7 +385,7 @@ namespace HotChocolate
                 initializer.Resolvers[reference] = resolver;
             }
 
-            initializer.Initialize();
+            initializer.Initialize(schemaResolver);
             return initializer;
         }
 
@@ -333,6 +402,13 @@ namespace HotChocolate
                 .Select(t => t.Type).OfType<INamedType>().ToList();
             definition.DirectiveTypes = initializer.Types.Values
                 .Select(t => t.Type).OfType<DirectiveType>().ToList();
+
+            RegisterOperationName(OperationType.Query,
+                _options.QueryTypeName);
+            RegisterOperationName(OperationType.Mutation,
+                _options.MutationTypeName);
+            RegisterOperationName(OperationType.Subscription,
+                _options.SubscriptionTypeName);
 
             definition.QueryType = ResolveOperation(
                 initializer, OperationType.Query);
@@ -357,38 +433,63 @@ namespace HotChocolate
                     .FirstOrDefault(t => t.Name.Equals(typeName));
             }
             else if (_operations.TryGetValue(operation,
-                out ITypeReference reference)
-                && initializer.TryNormalizeReference(reference,
-                out ITypeReference normalized)
-                && initializer.Types.TryGetValue(normalized,
-                out RegisteredType type)
-                && type.Type is ObjectType rootType)
+                out ITypeReference reference))
             {
-                return rootType;
+
+                if (reference is ISchemaTypeReference sr)
+                {
+                    return (ObjectType)sr.Type;
+                }
+
+                if (reference is IClrTypeReference cr
+                    && initializer.TryGetRegisteredType(cr,
+                    out RegisteredType registeredType))
+                {
+                    return (ObjectType)registeredType.Type;
+                }
+
+                if (reference is ISyntaxTypeReference str)
+                {
+                    NamedTypeNode namedType = str.Type.NamedType();
+                    return initializer.Types.Values.Select(t => t.Type)
+                        .OfType<ObjectType>()
+                        .FirstOrDefault(t => t.Name.Equals(
+                            namedType.Name.Value));
+                }
             }
+
             return null;
         }
 
         private bool IsQueryType(TypeSystemObjectBase type)
         {
-            if (_operations.TryGetValue(OperationType.Query,
-                out ITypeReference reference))
+            if (type is ObjectType objectType)
             {
-                if (reference is ISchemaTypeReference sr)
+                if (_operations.TryGetValue(OperationType.Query,
+                    out ITypeReference reference))
                 {
-                    return sr.Type == type;
-                }
+                    if (reference is ISchemaTypeReference sr)
+                    {
+                        return sr.Type == objectType;
+                    }
 
-                if (reference is IClrTypeReference cr)
-                {
-                    return cr.Type == type.GetType();
+                    if (reference is IClrTypeReference cr)
+                    {
+                        return cr.Type == objectType.GetType();
+                    }
+
+                    if (reference is ISyntaxTypeReference str)
+                    {
+                        return objectType.Name.Equals(
+                            str.Type.NamedType().Name.Value);
+                    }
                 }
-            }
-            else
-            {
-                // TODO : query to constant
-                return type is ObjectType
-                    && type.Name.Equals("Query");
+                else
+                {
+                    // TODO : query to constant
+                    return type is ObjectType
+                        && type.Name.Equals("Query");
+                }
             }
 
             return false;

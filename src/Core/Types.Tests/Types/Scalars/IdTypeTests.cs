@@ -164,7 +164,7 @@ namespace HotChocolate.Types
         {
             // arrange
             var type = new IdType();
-            var input = NullValueNode.Default;
+            NullValueNode input = NullValueNode.Default;
 
             // act
             object output = type.ParseLiteral(input);
@@ -178,7 +178,7 @@ namespace HotChocolate.Types
         {
             // arrange
             var type = new IdType();
-            FloatValueNode input = new FloatValueNode("123456");
+            var input = new FloatValueNode("123456");
 
             // act
             // assert

@@ -13,7 +13,7 @@ namespace HotChocolate.Language
             DocumentNode document = Parser.Default.Parse(query);
 
             // act
-            DummySchemaSyntaxWalker walker = new DummySchemaSyntaxWalker();
+            var walker = new DummySchemaSyntaxWalker();
             walker.Visit(document, null);
 
             // assert

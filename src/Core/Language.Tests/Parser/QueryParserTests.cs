@@ -13,7 +13,7 @@ namespace HotChocolate.Language
             string sourceText = "{ x { y } }";
 
             // act
-            Parser parser = new Parser();
+            var parser = new Parser();
             DocumentNode document = parser.Parse(sourceText);
 
             // assert
@@ -33,7 +33,7 @@ namespace HotChocolate.Language
                         {
                             Assert.IsType<FieldNode>(s1);
 
-                            FieldNode field1 = (FieldNode)s1;
+                            var field1 = (FieldNode)s1;
                             Assert.Null(field1.Alias);
                             Assert.Equal("x", field1.Name.Value);
                             Assert.Empty(field1.Arguments);
@@ -44,7 +44,7 @@ namespace HotChocolate.Language
                                 {
                                     Assert.IsType<FieldNode>(s2);
 
-                                    FieldNode field2 = (FieldNode)s2;
+                                    var field2 = (FieldNode)s2;
                                     Assert.Null(field2.Alias);
                                     Assert.Equal("y", field2.Name.Value);
                                     Assert.Empty(field2.Arguments);
@@ -64,7 +64,7 @@ namespace HotChocolate.Language
             string sourceText = operation + " a($s : String = \"hello\") { x { y } }";
 
             // act
-            Parser parser = new Parser();
+            var parser = new Parser();
             DocumentNode document = parser.Parse(sourceText);
 
             // assert
@@ -91,7 +91,7 @@ namespace HotChocolate.Language
                         {
                             Assert.IsType<FieldNode>(s1);
 
-                            FieldNode field1 = (FieldNode)s1;
+                            var field1 = (FieldNode)s1;
                             Assert.Null(field1.Alias);
                             Assert.Equal("x", field1.Name.Value);
                             Assert.Empty(field1.Arguments);
@@ -102,7 +102,7 @@ namespace HotChocolate.Language
                                 {
                                     Assert.IsType<FieldNode>(s2);
 
-                                    FieldNode field2 = (FieldNode)s2;
+                                    var field2 = (FieldNode)s2;
                                     Assert.Null(field2.Alias);
                                     Assert.Equal("y", field2.Name.Value);
                                     Assert.Empty(field2.Arguments);
@@ -118,10 +118,10 @@ namespace HotChocolate.Language
         {
             // arrange
             string sourceText = "query a { x { ... y } } fragment y on Type { z } ";
-            Source source = new Source(sourceText);
+            var source = new Source(sourceText);
 
             // act
-            Parser parser = new Parser();
+            var parser = new Parser();
             DocumentNode document = parser.Parse(sourceText);
 
             // assert
@@ -141,7 +141,7 @@ namespace HotChocolate.Language
                         {
                             Assert.IsType<FieldNode>(s1);
 
-                            FieldNode field1 = (FieldNode)s1;
+                            var field1 = (FieldNode)s1;
                             Assert.Null(field1.Alias);
                             Assert.Equal("x", field1.Name.Value);
                             Assert.Empty(field1.Arguments);
@@ -152,7 +152,7 @@ namespace HotChocolate.Language
                                 {
                                     Assert.IsType<FragmentSpreadNode>(s2);
 
-                                    FragmentSpreadNode spread = (FragmentSpreadNode)s2;
+                                    var spread = (FragmentSpreadNode)s2;
                                     Assert.Equal("y", spread.Name.Value);
                                     Assert.Empty(spread.Directives);
                                 });

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Descriptors.Definitions
@@ -13,15 +13,5 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
         public ICollection<ArgumentDefinition> Arguments { get; } =
             new List<ArgumentDefinition>();
-
-        public IEnumerable<ITypeReference> GetDependencies()
-        {
-            yield return Type;
-
-            foreach (ArgumentDefinition argument in Arguments)
-            {
-                yield return argument.Type;
-            }
-        }
     }
 }

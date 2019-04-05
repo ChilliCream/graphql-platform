@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -13,24 +13,16 @@ namespace HotChocolate.Types
         : OutputFieldBase<ObjectFieldDefinition>
         , IObjectField
     {
-        private readonly List<InterfaceField> _interfaceFields =
-            new List<InterfaceField>();
         private readonly List<IDirective> _executableDirectives =
             new List<IDirective>();
-        private readonly Type _resolverType;
-        private readonly MemberInfo _member;
 
         internal ObjectField(ObjectFieldDefinition definition)
             : base(definition)
         {
-            _resolverType = definition.ResolverType;
-            _member = definition.Member;
-
+            Member = definition.Member;
             Resolver = definition.Resolver;
-            InterfaceFields = _interfaceFields.AsReadOnly();
             ExecutableDirectives = _executableDirectives.AsReadOnly();
         }
-
 
         public new ObjectType DeclaringType => (ObjectType)base.DeclaringType;
 
@@ -45,11 +37,6 @@ namespace HotChocolate.Types
         public FieldResolverDelegate Resolver { get; private set; }
 
         /// <summary>
-        /// Gets the interface fields that are implemented by this object field.
-        /// </summary>
-        public IReadOnlyCollection<InterfaceField> InterfaceFields { get; }
-
-        /// <summary>
         /// Gets all executable directives that are associated with this field.
         /// </summary>
         public IReadOnlyCollection<IDirective> ExecutableDirectives { get; }
@@ -58,7 +45,7 @@ namespace HotChocolate.Types
         /// Gets the associated .net type member of this field.
         /// This member can be <c>null</c>.
         /// </summary>
-        public MemberInfo Member => _member;
+        public MemberInfo Member { get; }
 
         [Obsolete("Use Member.")]
         public MemberInfo ClrMember => Member;
@@ -69,25 +56,8 @@ namespace HotChocolate.Types
         {
             base.OnCompleteField(context, definition);
 
-            CompleteInterfaceFields(context);
             CompleteExecutableDirectives(context);
             CompleteResolver(context, definition);
-        }
-
-        private void CompleteInterfaceFields(
-            ICompletionContext context)
-        {
-            if (context.Type is ObjectType ot && ot.Interfaces.Count > 0)
-            {
-                foreach (InterfaceType interfaceType in ot.Interfaces.Values)
-                {
-                    if (interfaceType.Fields.TryGetField(Name,
-                        out InterfaceField field))
-                    {
-                        _interfaceFields.Add(field);
-                    }
-                }
-            }
         }
 
         private void CompleteExecutableDirectives(

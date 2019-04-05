@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
@@ -52,7 +52,7 @@ namespace HotChocolate.Types
         protected override ObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            ObjectTypeDescriptor descriptor = ObjectTypeDescriptor.New(
+            var descriptor = ObjectTypeDescriptor.New(
                 DescriptorContext.Create(context.Services),
                 GetType());
             _configure(descriptor);
@@ -67,9 +67,7 @@ namespace HotChocolate.Types
         {
             base.OnRegisterDependencies(context, definition);
 
-            context.RegisterDependencyRange(
-                definition.GetDependencies(),
-                TypeDependencyKind.Default);
+            RegisterDependencies(context, definition);
 
             foreach (ObjectFieldDefinition field in definition.Fields)
             {
@@ -82,6 +80,41 @@ namespace HotChocolate.Types
                         field.ResolverType);
                 }
             }
+        }
+
+        private void RegisterDependencies(
+            IInitializationContext context,
+            ObjectTypeDefinition definition)
+        {
+            var dependencies = new List<ITypeReference>();
+
+            context.RegisterDependencyRange(
+                definition.Interfaces,
+                TypeDependencyKind.Default);
+
+            context.RegisterDependencyRange(
+                definition.Fields.Select(t => t.Type),
+                TypeDependencyKind.Default);
+
+            context.RegisterDependencyRange(
+                definition.Fields.SelectMany(t => t.Arguments)
+                    .Select(t => t.Type),
+                TypeDependencyKind.Completed);
+
+            context.RegisterDependencyRange(
+                definition.Directives.Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
+
+            context.RegisterDependencyRange(
+                definition.Fields.SelectMany(t => t.Directives)
+                    .Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
+
+            context.RegisterDependencyRange(
+                definition.Fields.SelectMany(t => t.Arguments)
+                    .SelectMany(t => t.Directives)
+                    .Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
         }
 
         protected override void OnCompleteType(
@@ -100,8 +133,8 @@ namespace HotChocolate.Types
             Fields = new FieldCollection<ObjectField>(fields);
 
             CompleteInterfaces(context, definition);
+            CompleteIsOfType(context);
             FieldInitHelper.CompleteFields(context, definition, Fields);
-            ValidateInterfaceImplementation(context);
         }
 
         private void AddIntrospectionFields(
@@ -126,10 +159,9 @@ namespace HotChocolate.Types
         {
             if (ClrType != typeof(object))
             {
-                Type[] possibleInterfaceTypes = ClrType.GetInterfaces();
                 foreach (Type interfaceType in ClrType.GetInterfaces())
                 {
-                    if (context.TryGetType<InterfaceType>(
+                    if (context.TryGetType(
                         new ClrTypeReference(interfaceType, TypeContext.Output),
                         out InterfaceType type))
                     {
@@ -140,9 +172,7 @@ namespace HotChocolate.Types
 
             foreach (ITypeReference interfaceRef in definition.Interfaces)
             {
-                if (!context.TryGetType<InterfaceType>(
-                    interfaceRef,
-                    out InterfaceType type))
+                if (!context.TryGetType(interfaceRef, out InterfaceType type))
                 {
                     context.ReportError(SchemaErrorBuilder.New()
                         .SetMessage(
@@ -157,149 +187,48 @@ namespace HotChocolate.Types
             }
         }
 
-        private void ValidateInterfaceImplementation(
-            ICompletionContext context)
+        private void CompleteIsOfType(ICompletionContext context)
         {
-            if (_interfaces.Count > 0)
+            if (_isOfType == null)
             {
-                foreach (IGrouping<NameString, InterfaceField> fieldGroup in
-                    _interfaces.Values
-                        .SelectMany(t => t.Fields)
-                        .GroupBy(t => t.Name))
+                if (context.IsOfType != null)
                 {
-                    ValidateField(context, fieldGroup);
+                    IsOfTypeFallback isOfType = context.IsOfType;
+                    _isOfType = (ctx, obj) => isOfType(this, ctx, obj);
+                }
+                else if (ClrType == typeof(object))
+                {
+                    _isOfType = IsOfTypeWithName;
+                }
+                else
+                {
+                    _isOfType = IsOfTypeWithClrType;
                 }
             }
         }
 
-        private void ValidateField(
-            ICompletionContext context,
-            IGrouping<NameString, InterfaceField> interfaceField)
+        private bool IsOfTypeWithClrType(
+            IResolverContext context,
+            object result)
         {
-            InterfaceField first = interfaceField.First();
-            if (ValidateInterfaceFieldGroup(context, first, interfaceField))
+            if (result == null)
             {
-                ValidateObjectField(context, first);
+                return true;
             }
+            return ClrType.IsInstanceOfType(result);
         }
 
-        private bool ValidateInterfaceFieldGroup(
-            ICompletionContext context,
-            InterfaceField first,
-            IGrouping<NameString, InterfaceField> interfaceField)
+        private bool IsOfTypeWithName(
+            IResolverContext context,
+            object result)
         {
-            if (interfaceField.Count() == 1)
+            if (result == null)
             {
                 return true;
             }
 
-            foreach (InterfaceField field in interfaceField)
-            {
-                if (!field.Type.IsEqualTo(first.Type))
-                {
-                    // TODO : RESOURCES
-                    context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(
-                           "The return type of the interface field " +
-                            $"{first.Name} from interface " +
-                            $"{first.DeclaringType.Name} and " +
-                            $"{field.DeclaringType.Name} do not match " +
-                            $"and are implemented by object type {Name}.")
-                        .SetCode(TypeErrorCodes.MissingType)
-                        .SetTypeSystemObject(this)
-                        .AddSyntaxNode(SyntaxNode)
-                        .Build());
-                    return false;
-                }
-
-                if (!ArgumentsAreEqual(field.Arguments, first.Arguments))
-                {
-                    // TODO : RESOURCES
-                    context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(
-                            $"The arguments of the interface field {first.Name} " +
-                            $"from interface {first.DeclaringType.Name} and " +
-                            $"{field.DeclaringType.Name} do not match " +
-                            $"and are implemented by object type {Name}.")
-                        .SetCode(TypeErrorCodes.MissingType)
-                        .SetTypeSystemObject(this)
-                        .AddSyntaxNode(SyntaxNode)
-                        .Build());
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private void ValidateObjectField(
-            ICompletionContext context,
-            InterfaceField first)
-        {
-            if (Fields.TryGetField(first.Name, out ObjectField field))
-            {
-                if (!field.Type.IsEqualTo(first.Type))
-                {
-                    // TODO : RESOURCES
-                    context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(
-                            "The return type of the interface field " +
-                            $"{first.Name} does not match the field declared " +
-                            $"by object type {Name}.")
-                        .SetCode(TypeErrorCodes.MissingType)
-                        .SetTypeSystemObject(this)
-                        .AddSyntaxNode(SyntaxNode)
-                        .Build());
-                }
-
-                if (!ArgumentsAreEqual(field.Arguments, first.Arguments))
-                {
-                    // TODO : RESOURCES
-                    context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(
-                            $"Object type {Name} does not implement " +
-                            $"all arguments of field {first.Name} " +
-                            $"from interface {first.DeclaringType.Name}.")
-                        .SetCode(TypeErrorCodes.MissingType)
-                        .SetTypeSystemObject(this)
-                        .AddSyntaxNode(SyntaxNode)
-                        .Build());
-                }
-            }
-            else
-            {
-                // TODO : RESOURCES
-                context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage(
-                        $"Object type {Name} does not implement the " +
-                        $"field {first.Name} " +
-                        $"from interface {first.DeclaringType.Name}.")
-                    .SetCode(TypeErrorCodes.MissingType)
-                    .SetTypeSystemObject(this)
-                    .AddSyntaxNode(SyntaxNode)
-                    .Build());
-            }
-        }
-
-        private bool ArgumentsAreEqual(
-            FieldCollection<Argument> x,
-            FieldCollection<Argument> y)
-        {
-            if (x.Count != y.Count)
-            {
-                return false;
-            }
-
-            foreach (Argument xfield in x)
-            {
-                if (!y.TryGetField(xfield.Name, out Argument yfield)
-                    || !xfield.Type.IsEqualTo(yfield.Type))
-                {
-                    return false;
-                }
-            }
-
-            return true;
+            Type type = result.GetType();
+            return Name.Equals(type.Name);
         }
 
         #endregion

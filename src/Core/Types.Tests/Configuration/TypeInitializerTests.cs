@@ -1,10 +1,10 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
-using Moq;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -27,10 +27,12 @@ namespace HotChocolate
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
                 initialTypes,
+                new List<Type>(),
+                null,
                 t => t is FooType);
 
             // act
-            typeInitializer.Initialize();
+            typeInitializer.Initialize(() => null);
 
             // assert
             bool exists = typeInitializer.Types.TryGetValue(
@@ -68,10 +70,12 @@ namespace HotChocolate
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
                 initialTypes,
+                new List<Type>(),
+                null,
                 t => t is ObjectType<Foo>);
 
             // act
-            typeInitializer.Initialize();
+            typeInitializer.Initialize(() => null);
 
             // assert
             bool exists = typeInitializer.Types.TryGetValue(

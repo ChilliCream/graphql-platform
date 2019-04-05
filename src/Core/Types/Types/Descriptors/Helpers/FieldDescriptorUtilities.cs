@@ -1,4 +1,3 @@
-using System.Reflection.Metadata;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -79,7 +78,7 @@ namespace HotChocolate.Types.Descriptors
                 {
                     if (IsArgumentType(method, parameter))
                     {
-                        var argumentDefinition =
+                        ArgumentDefinition argumentDefinition =
                             ArgumentDescriptor
                                 .New(context, parameter)
                                 .CreateDefinition();

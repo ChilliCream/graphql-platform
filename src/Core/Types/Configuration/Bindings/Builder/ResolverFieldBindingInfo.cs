@@ -1,5 +1,4 @@
-﻿using System.IO.MemoryMappedFiles;
-using System.Reflection;
+﻿using System.Reflection;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Configuration.Bindings

@@ -1,12 +1,7 @@
 using System;
-using System.Globalization;
-using System.Linq;
 using HotChocolate.Configuration;
-using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -31,7 +26,7 @@ namespace HotChocolate.Types
         protected override InputObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            InputObjectTypeDescriptor<T> descriptor =
+            var descriptor =
                 InputObjectTypeDescriptor.New<T>(
                     DescriptorContext.Create(context.Services));
             _configure(descriptor);

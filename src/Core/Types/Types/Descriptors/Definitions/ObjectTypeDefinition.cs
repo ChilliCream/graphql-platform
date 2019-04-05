@@ -1,4 +1,4 @@
-﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using HotChocolate.Language;
 
@@ -17,18 +17,22 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public IBindableList<ObjectFieldDefinition> Fields { get; } =
             new BindableList<ObjectFieldDefinition>();
 
-        public IEnumerable<ITypeReference> GetDependencies()
+        internal override IEnumerable<ITypeConfigration> GetConfigurations()
         {
-            var dependencies = new List<ITypeReference>();
-
-            dependencies.AddRange(Interfaces);
+            var configs = new List<ITypeConfigration>();
+            configs.AddRange(Configurations);
 
             foreach (ObjectFieldDefinition field in Fields)
             {
-                dependencies.AddRange(field.GetDependencies());
+                configs.AddRange(field.Configurations);
+
+                foreach (ArgumentDefinition argument in field.Arguments)
+                {
+                    configs.AddRange(argument.Configurations);
+                }
             }
 
-            return dependencies;
+            return configs;
         }
     }
 }

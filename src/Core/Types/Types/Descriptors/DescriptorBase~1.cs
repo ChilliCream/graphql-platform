@@ -1,16 +1,18 @@
 using System;
 using HotChocolate.Types.Descriptors.Definitions;
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 
 namespace HotChocolate.Types.Descriptors
 {
     public abstract class DescriptorBase<T>
         : IDescriptor<T>
+        , IDescriptorExtension<T>
         , IDefinitionFactory<T>
         , IHasDescriptorContext
         where T : DefinitionBase
     {
-        private readonly List<Action<T>> _modifiers = new List<Action<T>>();
+        private List<Action<T>> _modifiers = new List<Action<T>>();
 
         protected DescriptorBase(IDescriptorContext context)
         {
@@ -24,13 +26,9 @@ namespace HotChocolate.Types.Descriptors
 
         protected abstract T Definition { get; }
 
-        public void Configure(Action<T> definitionModifier)
+        public IDescriptorExtension<T> Extend()
         {
-            if (definitionModifier == null)
-            {
-                throw new ArgumentNullException(nameof(definitionModifier));
-            }
-            _modifiers.Add(definitionModifier);
+            return this;
         }
 
         public T CreateDefinition()
@@ -39,7 +37,7 @@ namespace HotChocolate.Types.Descriptors
 
             foreach (Action<T> modifier in _modifiers)
             {
-                modifier(Definition);
+                modifier.Invoke(Definition);
             }
 
             return Definition;
@@ -51,10 +49,40 @@ namespace HotChocolate.Types.Descriptors
 
         DefinitionBase IDefinitionFactory.CreateDefinition() =>
             CreateDefinition();
-    }
 
-    internal interface IHasDescriptorContext
-    {
-        IDescriptorContext Context { get; }
+        void IDescriptorExtension<T>.OnBeforeCreate(Action<T> configure)
+        {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            _modifiers.Add(configure);
+        }
+
+        IDependencyDescriptor IDescriptorExtension<T>.OnBeforeNaming(
+            Action<ICompletionContext, T> configure) =>
+            CreateDependencyDescriptor(configure);
+
+        IDependencyDescriptor IDescriptorExtension<T>.OnBeforeCompletion(
+            Action<ICompletionContext, T> configure) =>
+            CreateDependencyDescriptor(configure);
+
+        private IDependencyDescriptor CreateDependencyDescriptor(
+            Action<ICompletionContext, T> configure)
+        {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            var configuration = new TypeConfiguration<T>();
+            configuration.Definition = Definition;
+            configuration.Kind = ConfigurationKind.Naming;
+            configuration.Configure = configure;
+            Definition.Configurations.Add(configuration);
+
+            return new DependencyDescriptor<T>(configuration);
+        }
     }
 }

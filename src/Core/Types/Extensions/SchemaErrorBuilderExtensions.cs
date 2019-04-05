@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 
 namespace HotChocolate
 {
@@ -9,7 +10,15 @@ namespace HotChocolate
             string format,
             params object[] args)
         {
-            throw new NotImplementedException();
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.SetMessage(string.Format(
+                CultureInfo.InvariantCulture,
+                format,
+                args));
         }
     }
 

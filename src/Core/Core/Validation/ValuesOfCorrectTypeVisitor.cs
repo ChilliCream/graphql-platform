@@ -55,7 +55,7 @@ namespace HotChocolate.Validation
         protected override void VisitField(
             FieldNode field,
             IType type,
-            ImmutableStack<Language.ISyntaxNode> path)
+            ImmutableStack<ISyntaxNode> path)
         {
             if (type is IComplexOutputType ct
                 && ct.Fields.TryGetField(field.Name.Value, out IOutputField f))

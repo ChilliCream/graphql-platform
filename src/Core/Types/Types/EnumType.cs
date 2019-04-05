@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -139,9 +138,10 @@ namespace HotChocolate.Types
             }
 
             // schema first unbound enum type
-            if (value is string s && ClrType == typeof(string)
+            if (ClrType == typeof(object)
                 && _nameToValues.TryGetValue(
-                    s.ToUpperInvariant(), out enumValue))
+                    value.ToString().ToUpperInvariant(),
+                    out enumValue))
             {
                 return enumValue.Name;
             }
@@ -187,7 +187,7 @@ namespace HotChocolate.Types
         protected override EnumTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            EnumTypeDescriptor descriptor = EnumTypeDescriptor.New(
+            var descriptor = EnumTypeDescriptor.New(
                 DescriptorContext.Create(context.Services),
                 GetType());
             _configure(descriptor);
@@ -196,10 +196,23 @@ namespace HotChocolate.Types
 
         protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
 
+        protected override void OnRegisterDependencies(
+            IInitializationContext context,
+            EnumTypeDefinition definition)
+        {
+            base.OnRegisterDependencies(context, definition);
+
+            context.RegisterDependencyRange(
+                definition.Directives.Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
+        }
+
         protected override void OnCompleteType(
             ICompletionContext context,
             EnumTypeDefinition definition)
         {
+            base.OnCompleteType(context, definition);
+
             SyntaxNode = definition.SyntaxNode;
 
             foreach (EnumValue enumValue in definition.Values

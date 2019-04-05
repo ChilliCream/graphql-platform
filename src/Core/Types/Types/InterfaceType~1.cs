@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -28,7 +24,7 @@ namespace HotChocolate.Types
         protected override InterfaceTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            InterfaceTypeDescriptor<T> descriptor =
+            var descriptor =
                 InterfaceTypeDescriptor.New<T>(
                     DescriptorContext.Create(context.Services));
             _configure(descriptor);

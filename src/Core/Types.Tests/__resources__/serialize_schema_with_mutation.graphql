@@ -11,7 +11,7 @@ type Foo implements Bar {
 }
 
 interface Bar {
-  id: ID! @upper
+  id: ID!
 }
 
 type Baz {

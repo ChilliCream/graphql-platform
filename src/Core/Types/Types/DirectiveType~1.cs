@@ -1,13 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
-using HotChocolate.Language;
-using HotChocolate.Properties;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -32,7 +26,7 @@ namespace HotChocolate.Types
         protected override DirectiveTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            DirectiveTypeDescriptor<TDirective> descriptor =
+            var descriptor =
                 DirectiveTypeDescriptor.New<TDirective>(
                     DescriptorContext.Create(context.Services));
             _conf(descriptor);

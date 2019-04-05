@@ -18,7 +18,7 @@ namespace HotChocolate.Execution
                     .To("Query", "a");
             });
 
-            var executor = QueryExecutionBuilder
+            IQueryExecutor executor = QueryExecutionBuilder
                 .New()
                 .Use(next => context =>
                 {
@@ -50,7 +50,7 @@ namespace HotChocolate.Execution
                     .To("Query", "a");
             });
 
-            var executor = QueryExecutionBuilder
+            IQueryExecutor executor = QueryExecutionBuilder
                 .New()
                 .Use<TestMiddleware>()
                 .Build(schema);
@@ -74,7 +74,7 @@ namespace HotChocolate.Execution
                     .To("Query", "a");
             });
 
-            var executor = QueryExecutionBuilder
+            IQueryExecutor executor = QueryExecutionBuilder
                 .New()
                 .Use((services, next) => new TestMiddleware(next))
                 .Build(schema);

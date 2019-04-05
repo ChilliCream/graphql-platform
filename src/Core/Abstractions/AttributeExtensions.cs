@@ -103,7 +103,7 @@ namespace HotChocolate
                 typeof(GraphQLDescriptionAttribute),
                 false))
             {
-                var attribute = attributeProvider.GetCustomAttributes(
+                GraphQLDescriptionAttribute attribute = attributeProvider.GetCustomAttributes(
                     typeof(GraphQLDescriptionAttribute),
                     false)
                     .OfType<GraphQLDescriptionAttribute>()
