@@ -520,7 +520,7 @@ namespace HotChocolate.Execution
         {
             return Schema.Create(
                 "type Query { foo: Foo } " +
-                "type Foo { a: String b(a: Bar): String } ",
+                "type Foo { a: String b(a: BarInput): String } ",
                 c =>
                 {
                     c.Use(next => context => Task.CompletedTask);
