@@ -52,6 +52,19 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public IBindableList<DirectiveArgumentDefinition> Arguments
         { get; } = new BindableList<DirectiveArgumentDefinition>();
 
+        internal override IEnumerable<ITypeConfigration> GetConfigurations()
+        {
+            var configs = new List<ITypeConfigration>();
+            configs.AddRange(Configurations);
+
+            foreach (DirectiveArgumentDefinition field in Arguments)
+            {
+                configs.AddRange(field.Configurations);
+            }
+
+            return configs;
+        }
+
         protected override void OnValidate(ICollection<IError> errors)
         {
             base.OnValidate(errors);
