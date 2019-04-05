@@ -130,7 +130,7 @@ namespace HotChocolate.Types.Descriptors
 
         public override string ToString()
         {
-            return $"{Context}: {Type.FullName}";
+            return $"{Context}: {Type.GetTypeName()}";
         }
 
         public IClrTypeReference WithoutContext()

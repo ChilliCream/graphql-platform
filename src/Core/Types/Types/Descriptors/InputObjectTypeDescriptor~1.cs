@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Descriptors
 
         public new IInputObjectTypeDescriptor<T> Description(string value)
         {
-            Description(value);
+            base.Description(value);
             return this;
         }
 

@@ -14,6 +14,6 @@
   "HotChocolate.Types.BooleanType": "System.Boolean",
   "HotChocolate.Types.IntType": "System.Int32",
   "HotChocolate.Types.MultiplierPathType": "HotChocolate.Types.MultiplierPathString",
-  "HotChocolate.Types.ObjectType`1[[HotChocolate.TypeRegistrarTests+Foo, HotChocolate.Types.Tests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": "HotChocolate.TypeRegistrarTests+Foo",
-  "HotChocolate.Types.ObjectType`1[[HotChocolate.TypeRegistrarTests+Bar, HotChocolate.Types.Tests, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]": "HotChocolate.TypeRegistrarTests+Bar"
+  "HotChocolate.Types.ObjectType<HotChocolate.TypeRegistrarTests.Foo>": "HotChocolate.TypeRegistrarTests.Foo",
+  "HotChocolate.Types.ObjectType<HotChocolate.TypeRegistrarTests.Bar>": "HotChocolate.TypeRegistrarTests.Bar"
 }
