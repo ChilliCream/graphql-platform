@@ -1,15 +1,19 @@
 using System;
 using HotChocolate.Types.Descriptors.Definitions;
 using System.Collections.Generic;
+using HotChocolate.Configuration;
 
 namespace HotChocolate.Types.Descriptors
 {
     public abstract class DescriptorBase<T>
         : IDescriptor<T>
+        , IDescriptorExtension<T>
         , IDefinitionFactory<T>
         , IHasDescriptorContext
         where T : DefinitionBase
     {
+        private List<Action<T>> _modifiers = new List<Action<T>>();
+
         protected DescriptorBase(IDescriptorContext context)
         {
             Context = context
@@ -22,24 +26,9 @@ namespace HotChocolate.Types.Descriptors
 
         protected abstract T Definition { get; }
 
-        public void Configure(Action<T> configure)
+        public IDescriptorExtension<T> Extend()
         {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
 
-            Configure(new TypeConfiguration<T>(configure));
-        }
-
-        public void Configure(TypeConfiguration<T> configuration)
-        {
-            if (configuration == null)
-            {
-                throw new ArgumentNullException(nameof(configuration));
-            }
-
-            Definition.Configurations.Add(configuration);
         }
 
         public T CreateDefinition()
@@ -54,5 +43,22 @@ namespace HotChocolate.Types.Descriptors
 
         DefinitionBase IDefinitionFactory.CreateDefinition() =>
             CreateDefinition();
+
+        void IDescriptorExtension<T>.OnBeforeCreate(Action<T> configure)
+        {
+            _modifiers.Add(configure);
+        }
+
+        IOnBeforeNamingDescriptor IDescriptorExtension<T>.OnBeforeNaming(
+            Action<ICompletionContext, T> configure)
+        {
+            throw new NotImplementedException();
+        }
+
+        IOnBeforeCompletionDescriptor IDescriptorExtension<T>.OnBeforeCompletion(
+            Action<ICompletionContext, T> configure)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

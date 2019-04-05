@@ -11,4 +11,10 @@ namespace HotChocolate.Types
         void Configure(DefinitionBase definition,
             IReadOnlyList<ITypeSystemObject> depenencies);
     }
+
+    internal enum ConfigurationKind
+    {
+        Naming,
+        Completion
+    }
 }
