@@ -47,9 +47,7 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteName(ICompletionContext context)
         {
-            ExecuteConfigurations(
-                context, _definition,
-                ConfigurationKind.Naming);
+            ExecuteConfigurations(context, ConfigurationKind.Naming);
             OnCompleteName(context, _definition);
             base.CompleteName(context);
         }
@@ -71,9 +69,7 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteType(ICompletionContext context)
         {
-            ExecuteConfigurations(
-                context, _definition,
-                ConfigurationKind.Completion);
+            ExecuteConfigurations(context, ConfigurationKind.Completion);
 
             Description = _definition.Description;
 
@@ -108,13 +104,12 @@ namespace HotChocolate.Types
 
         private void ExecuteConfigurations(
             ICompletionContext context,
-            TDefinition definition,
             ConfigurationKind kind)
         {
             foreach (ITypeConfigration configuration in
                 _configrations.Where(t => t.Kind == kind))
             {
-                configuration.Configure(context, definition);
+                configuration.Configure(context);
             }
         }
     }

@@ -10,9 +10,7 @@ namespace HotChocolate.Types
 
         IReadOnlyList<TypeDependency> Dependencies { get; }
 
-        void Configure(
-            ICompletionContext completionContext,
-            DefinitionBase definition);
+        void Configure(ICompletionContext completionContext);
     }
 
     internal enum ConfigurationKind

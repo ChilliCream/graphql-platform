@@ -77,8 +77,9 @@ namespace HotChocolate.Types.Descriptors
             }
 
             var configuration = new TypeConfiguration<T>();
-            configuration.Configure = configure;
+            configuration.Definition = Definition;
             configuration.Kind = ConfigurationKind.Naming;
+            configuration.Configure = configure;
             Definition.Configurations.Add(configuration);
 
             return new DependencyDescriptor<T>(configuration);

@@ -18,37 +18,35 @@ namespace HotChocolate.Types.Descriptors
         public Action<ICompletionContext, T> Configure
         { get; set; }
 
+        public T Definition { get; set; }
+
         public ICollection<TypeDependency> Dependencies => _dependencies;
 
         IReadOnlyList<TypeDependency> ITypeConfigration.Dependencies =>
             _dependencies;
 
-        void ITypeConfigration.Configure(
-            ICompletionContext context,
-            DefinitionBase definition)
+        void ITypeConfigration.Configure(ICompletionContext context)
         {
             if (context == null)
             {
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (definition == null)
+            if (Definition == null)
             {
-                throw new ArgumentNullException(nameof(definition));
+                // TODO : resources
+                throw new InvalidOperationException(
+                    "The Definition mustn't be null");
             }
 
+            if (Configure == null)
+            {
+                // TODO : resources
+                throw new InvalidOperationException(
+                    "The Configure mustn't be null");
+            }
 
-            if (definition is T t)
-            {
-                Configure(context, t);
-            }
-            else
-            {
-                // TODO : Resources
-                throw new ArgumentException("Invalid definition.");
-            }
+            Configure(context, Definition);
         }
     }
-
-
 }
