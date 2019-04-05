@@ -34,7 +34,8 @@ namespace HotChocolate.Types.Factories
 
                 if (bindingInfo.SourceType != null)
                 {
-                    d.Configure(t => t.ClrType = bindingInfo.SourceType);
+                    d.Extend().OnBeforeCreate(
+                        t => t.ClrType = bindingInfo.SourceType);
                 }
 
                 foreach (DirectiveNode directive in node.Directives)
@@ -78,7 +79,8 @@ namespace HotChocolate.Types.Factories
                     MemberKind.ObjectField,
                     out MemberInfo member))
                 {
-                    fieldDescriptor.Configure(t => t.Member = member);
+                    fieldDescriptor.Extend().OnBeforeCreate(
+                        t => t.Member = member);
                 }
 
                 foreach (DirectiveNode directive in fieldDefinition.Directives)

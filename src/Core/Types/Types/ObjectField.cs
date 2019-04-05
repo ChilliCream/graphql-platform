@@ -24,7 +24,6 @@ namespace HotChocolate.Types
             ExecutableDirectives = _executableDirectives.AsReadOnly();
         }
 
-
         public new ObjectType DeclaringType => (ObjectType)base.DeclaringType;
 
         /// <summary>
@@ -56,10 +55,10 @@ namespace HotChocolate.Types
             ObjectFieldDefinition definition)
         {
             base.OnCompleteField(context, definition);
-         
+
             CompleteExecutableDirectives(context);
             CompleteResolver(context, definition);
-        }   
+        }
 
         private void CompleteExecutableDirectives(
             ICompletionContext context)

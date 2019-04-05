@@ -113,7 +113,8 @@ namespace HotChocolate.Types.Factories
 
                 if (bindingInfo.SourceType != null)
                 {
-                    c.Configure(t => t.ClrType = bindingInfo.SourceType);
+                    c.Extend().OnBeforeCreate(
+                        t => t.ClrType = bindingInfo.SourceType);
                 }
 
                 if (node.IsRepeatable)

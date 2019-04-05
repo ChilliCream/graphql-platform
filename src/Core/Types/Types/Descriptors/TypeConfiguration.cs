@@ -12,9 +12,10 @@ namespace HotChocolate.Types.Descriptors
     {
         private readonly List<TypeDependency> _dependencies =
             new List<TypeDependency>();
+
         public ConfigurationKind Kind { get; set; }
 
-        public Action<T, IReadOnlyList<ITypeSystemObject>> Configure
+        public Action<ICompletionContext, T> Configure
         { get; set; }
 
         public ICollection<TypeDependency> Dependencies => _dependencies;
@@ -23,22 +24,23 @@ namespace HotChocolate.Types.Descriptors
             _dependencies;
 
         void ITypeConfigration.Configure(
-            DefinitionBase definition,
-            IReadOnlyList<ITypeSystemObject> depenencies)
+            ICompletionContext context,
+            DefinitionBase definition)
         {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             if (definition == null)
             {
                 throw new ArgumentNullException(nameof(definition));
             }
 
-            if (depenencies == null)
-            {
-                throw new ArgumentNullException(nameof(depenencies));
-            }
 
             if (definition is T t)
             {
-                Configure(t, depenencies);
+                Configure(context, t);
             }
             else
             {

@@ -7,9 +7,12 @@ namespace HotChocolate.Types
     internal interface ITypeConfigration
     {
         ConfigurationKind Kind { get; }
+
         IReadOnlyList<TypeDependency> Dependencies { get; }
-        void Configure(DefinitionBase definition,
-            IReadOnlyList<ITypeSystemObject> depenencies);
+
+        void Configure(
+            ICompletionContext completionContext,
+            DefinitionBase definition);
     }
 
     internal enum ConfigurationKind

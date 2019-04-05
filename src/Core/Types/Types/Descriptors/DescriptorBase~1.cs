@@ -28,12 +28,18 @@ namespace HotChocolate.Types.Descriptors
 
         public IDescriptorExtension<T> Extend()
         {
-
+            return this;
         }
 
         public T CreateDefinition()
         {
             OnCreateDefinition(Definition);
+
+            foreach (Action<T> modifier in _modifiers)
+            {
+                modifier.Invoke(Definition);
+            }
+
             return Definition;
         }
 
@@ -46,19 +52,36 @@ namespace HotChocolate.Types.Descriptors
 
         void IDescriptorExtension<T>.OnBeforeCreate(Action<T> configure)
         {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
             _modifiers.Add(configure);
         }
 
-        IOnBeforeNamingDescriptor IDescriptorExtension<T>.OnBeforeNaming(
-            Action<ICompletionContext, T> configure)
-        {
-            throw new NotImplementedException();
-        }
+        IDependencyDescriptor IDescriptorExtension<T>.OnBeforeNaming(
+            Action<ICompletionContext, T> configure) =>
+            CreateDependencyDescriptor(configure);
 
-        IOnBeforeCompletionDescriptor IDescriptorExtension<T>.OnBeforeCompletion(
+        IDependencyDescriptor IDescriptorExtension<T>.OnBeforeCompletion(
+            Action<ICompletionContext, T> configure) =>
+            CreateDependencyDescriptor(configure);
+
+        private IDependencyDescriptor CreateDependencyDescriptor(
             Action<ICompletionContext, T> configure)
         {
-            throw new NotImplementedException();
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            var configuration = new TypeConfiguration<T>();
+            configuration.Configure = configure;
+            configuration.Kind = ConfigurationKind.Naming;
+            Definition.Configurations.Add(configuration);
+
+            return new DependencyDescriptor<T>(configuration);
         }
     }
 }

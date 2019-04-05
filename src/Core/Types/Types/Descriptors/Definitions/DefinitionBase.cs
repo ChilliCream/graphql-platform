@@ -26,6 +26,11 @@ namespace HotChocolate.Types.Descriptors.Definitions
         internal ICollection<ITypeConfigration> Configurations { get; } =
             new List<ITypeConfigration>();
 
+        internal virtual IEnumerable<ITypeConfigration> GetConfigurations()
+        {
+            return Configurations;
+        }
+
         /// <summary>
         /// Validates the description object for consitency and
         /// returns the validation results.

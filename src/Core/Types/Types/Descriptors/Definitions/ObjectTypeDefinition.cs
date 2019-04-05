@@ -14,6 +14,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public BindingBehavior FieldBindingBehavior { get; set; }
 
         public IBindableList<ObjectFieldDefinition> Fields { get; } =
-            new BindableList<ObjectFieldDefinition>();        
+            new BindableList<ObjectFieldDefinition>();
+
+
     }
 }
