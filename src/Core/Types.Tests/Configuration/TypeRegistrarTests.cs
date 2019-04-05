@@ -34,8 +34,8 @@ namespace HotChocolate
                 .Select(t => t.Value.Type)
                 .OfType<IHasClrType>()
                 .ToDictionary(
-                    t => t.GetType().FullName,
-                    t => t.ClrType.FullName)
+                    t => t.GetType().GetTypeName(),
+                    t => t.ClrType.GetTypeName())
                 .MatchSnapshot(new SnapshotNameExtension("registered"));
 
             typeRegistrar.ClrTypes.ToDictionary(
@@ -66,8 +66,8 @@ namespace HotChocolate
                 .Select(t => t.Value.Type)
                 .OfType<IHasClrType>()
                 .ToDictionary(
-                    t => t.GetType().FullName,
-                    t => t.ClrType.FullName)
+                    t => t.GetType().GetTypeName(),
+                    t => t.ClrType.GetTypeName())
                 .MatchSnapshot(new SnapshotNameExtension("registered"));
 
             typeRegistrar.ClrTypes.ToDictionary(

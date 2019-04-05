@@ -20,15 +20,8 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(definition));
             }
 
-            if (string.IsNullOrEmpty(definition.Name))
-            {
-                throw new ArgumentException(
-                    "The name of a field mustn't be null or empty.",
-                    nameof(definition));
-            }
-
             _definition = definition;
-            Name = definition.Name;
+            Name = definition.Name.EnsureNotEmpty(nameof(definition.Name));
             Description = definition.Description;
         }
 

@@ -144,7 +144,7 @@ namespace HotChocolate.Types
             IDescriptorContext descriptorContext =
                 DescriptorContext.Create(context.Services);
 
-            if (context.IsQueryType ?? false)
+            if (context.IsQueryType.HasValue && context.IsQueryType.Value)
             {
                 fields.Add(new __SchemaField(descriptorContext));
                 fields.Add(new __TypeField(descriptorContext));
