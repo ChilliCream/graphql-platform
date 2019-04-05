@@ -37,12 +37,14 @@ namespace HotChocolate.Configuration
         private readonly IServiceProvider _services;
         private readonly List<ITypeReference> _initialTypes;
         private readonly List<Type> _externalResolverTypes;
+        private readonly IsOfTypeFallback _isOfType;
         private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
 
         public TypeInitializer(
             IServiceProvider services,
             IEnumerable<ITypeReference> initialTypes,
             IEnumerable<Type> externalResolverTypes,
+            IsOfTypeFallback isOfType,
             Func<TypeSystemObjectBase, bool> isQueryType)
         {
             if (initialTypes == null)
@@ -57,6 +59,7 @@ namespace HotChocolate.Configuration
 
             _services = services
                 ?? throw new ArgumentNullException(nameof(services));
+            _isOfType = isOfType;
             _isQueryType = isQueryType
                 ?? throw new ArgumentNullException(nameof(isQueryType));
             _externalResolverTypes = externalResolverTypes.ToList();
@@ -92,12 +95,12 @@ namespace HotChocolate.Configuration
                 CompleteTypes();
             }
 
-            IReadOnlyCollection<ISchemaError> errors =
-                SchemaValidator.Validate(_types.Select(t => t.Value.Type));
+            _errors.AddRange(SchemaValidator.Validate(
+                _types.Select(t => t.Value.Type)));
 
-            if (errors.Count > 0)
+            if (_errors.Count > 0)
             {
-                throw new SchemaException(errors);
+                throw new SchemaException(_errors);
             }
         }
 
@@ -291,8 +294,11 @@ namespace HotChocolate.Configuration
                     InitializationContext initializationContext =
                         _initContexts.First(t =>
                             t.Type == registeredType.Type);
+
                     var completionContext = new CompletionContext(
-                        initializationContext, this, schemaResolver);
+                        initializationContext, this,
+                        _isOfType, schemaResolver);
+
                     _cmpCtx[registeredType] = completionContext;
 
                     registeredType.Type.CompleteName(completionContext);

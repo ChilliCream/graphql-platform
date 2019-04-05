@@ -20,6 +20,7 @@ namespace HotChocolate.Configuration
         public CompletionContext(
             InitializationContext initializationContext,
             TypeInitializer typeInitializer,
+            IsOfTypeFallback isOfType,
             Func<ISchema> schemaResolver)
         {
             _initializationContext = initializationContext
@@ -28,6 +29,7 @@ namespace HotChocolate.Configuration
             _typeInitializer = typeInitializer
                 ?? throw new ArgumentNullException(
                     nameof(typeInitializer));
+            IsOfType = isOfType;
             _schemaResolver = schemaResolver
                 ?? throw new ArgumentNullException(
                     nameof(schemaResolver));
@@ -97,7 +99,7 @@ namespace HotChocolate.Configuration
                     resolved = t;
                 }
 
-                if(resolved is T casted)
+                if (resolved is T casted)
                 {
                     type = casted;
                     return true;

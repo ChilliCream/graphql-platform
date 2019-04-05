@@ -4,7 +4,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types
 {
-    internal static class Scalars
+    public static class Scalars
     {
         private static readonly Dictionary<Type, IClrTypeReference> _lookup =
             new Dictionary<Type, IClrTypeReference>
@@ -78,9 +78,11 @@ namespace HotChocolate.Types
                     typeof(MultiplierPathType), TypeContext.None) },
                 { "Name", new ClrTypeReference(
                     typeof(NameType), TypeContext.None) },
+                { "PaginationAmount", new ClrTypeReference(
+                    typeof(PaginationAmountType), TypeContext.None) },
            };
 
-        public static bool TryGetScalar(
+        internal static bool TryGetScalar(
             Type clrType,
             out IClrTypeReference schemaType)
         {
@@ -92,13 +94,18 @@ namespace HotChocolate.Types
             return _lookup.TryGetValue(clrType, out schemaType);
         }
 
-        public static bool TryGetScalar(
+        internal static bool TryGetScalar(
             NameString typeName,
             out IClrTypeReference schemaType)
         {
             return _nameLookup.TryGetValue(
                 typeName.EnsureNotEmpty(nameof(typeName)),
                 out schemaType);
+        }
+
+        public static bool IsBuiltIn(NameString typeName)
+        {
+            return typeName.HasValue && _nameLookup.ContainsKey(typeName);
         }
     }
 }

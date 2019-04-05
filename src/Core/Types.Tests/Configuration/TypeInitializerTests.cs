@@ -28,6 +28,7 @@ namespace HotChocolate
                 serviceProvider,
                 initialTypes,
                 new List<Type>(),
+                null,
                 t => t is FooType);
 
             // act
@@ -70,6 +71,7 @@ namespace HotChocolate
                 serviceProvider,
                 initialTypes,
                 new List<Type>(),
+                null,
                 t => t is ObjectType<Foo>);
 
             // act

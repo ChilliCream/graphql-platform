@@ -362,7 +362,8 @@ namespace HotChocolate
             Func<ISchema> schemaResolver)
         {
             var initializer = new TypeInitializer(
-                services, types, _resolverTypes, IsQueryType);
+                services, types, _resolverTypes,
+                _isOfType, IsQueryType);
 
             foreach (FieldMiddleware component in _globalComponents)
             {

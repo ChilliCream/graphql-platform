@@ -1,11 +1,6 @@
-﻿using System.Threading.Tasks;
-using System;
-using System.Linq;
-using System.Reflection;
-using HotChocolate.Configuration;
+﻿using System;
+using System.Threading.Tasks;
 using HotChocolate.Resolvers;
-using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Relay

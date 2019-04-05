@@ -5,7 +5,7 @@
     {
         protected override void Configure(IDirectiveTypeDescriptor descriptor)
         {
-            descriptor.Name("skip");
+            descriptor.Name(WellKnownDirectives.Skip);
 
             descriptor.Description(
                 "Directs the executor to skip this field or " +
@@ -16,7 +16,7 @@
                     | DirectiveLocation.FragmentSpread
                     | DirectiveLocation.InlineFragment);
 
-            descriptor.Argument("if")
+            descriptor.Argument(WellKnownDirectives.IfArgument)
                 .Description("Skipped when true.")
                 .Type<NonNullType<BooleanType>>();
         }
