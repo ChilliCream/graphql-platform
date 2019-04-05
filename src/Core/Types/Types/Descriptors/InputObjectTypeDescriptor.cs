@@ -68,7 +68,7 @@ namespace HotChocolate.Types.Descriptors
 
         protected virtual void OnCompleteFields(
             IDictionary<NameString, InputFieldDefinition> fields,
-            ISet<PropertyInfo> handledMembers)
+            ISet<PropertyInfo> handledProperties)
         {
         }
 
