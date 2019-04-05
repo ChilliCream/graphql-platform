@@ -3,79 +3,80 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
 {
     public class ObjectTypeDescriptorTests
+        : DescriptorTestBase
     {
         [Fact]
         public void InferNameFromType()
         {
             // arrange
-            var descriptor = new ObjectTypeDescriptor<Foo>();
+            var descriptor = new ObjectTypeDescriptor<Foo>(Context);
 
             // act
             IObjectTypeDescriptor<Foo> desc = descriptor;
 
             // assert
-            Assert.Equal("Foo", descriptor.CreateDescription().Name);
+            Assert.Equal("Foo", descriptor.CreateDefinition().Name);
         }
 
         [Fact]
         public void GetNameFromAttribute()
         {
             // arrange
-            var descriptor = new ObjectTypeDescriptor<Foo2>();
+            var descriptor = new ObjectTypeDescriptor<Foo2>(Context);
 
             // act
             IObjectTypeDescriptor<Foo2> desc = descriptor;
 
             // assert
-            Assert.Equal("FooAttr", descriptor.CreateDescription().Name);
+            Assert.Equal("FooAttr", descriptor.CreateDefinition().Name);
         }
 
         [Fact]
         public void OverwriteDefaultName()
         {
             // arrange
-            var descriptor = new ObjectTypeDescriptor<Foo>();
+            var descriptor = new ObjectTypeDescriptor<Foo>(Context);
 
             // act
-            IObjectTypeDescriptor<Foo> desc = descriptor;
-            desc.Name("FooBar");
+            descriptor.Name("FooBar");
 
             // assert
-            Assert.Equal("FooBar", descriptor.CreateDescription().Name);
+            Assert.Equal("FooBar", descriptor.CreateDefinition().Name);
         }
 
         [Fact]
         public void OverwriteAttributeName()
         {
             // arrange
-            var descriptor = new ObjectTypeDescriptor<Foo2>();
+            var descriptor = new ObjectTypeDescriptor<Foo2>(Context);
 
             // act
             IObjectTypeDescriptor<Foo2> desc = descriptor;
             desc.Name("FooBar");
 
             // assert
-            Assert.Equal("FooBar", descriptor.CreateDescription().Name);
+            Assert.Equal("FooBar", descriptor.CreateDefinition().Name);
         }
 
         [Fact]
         public void InferFieldsFromType()
         {
             // arrange
-            var descriptor = new ObjectTypeDescriptor<Foo>();
+            var descriptor = new ObjectTypeDescriptor<Foo>(Context);
 
             // act
             IObjectTypeDescriptor<Foo> desc = descriptor;
 
             // assert
             Assert.Collection(
-                descriptor.CreateDescription().Fields
+                descriptor.CreateDefinition().Fields
                     .Select(t => t.Name)
                     .OrderBy(t => t),
                 t => Assert.Equal("a", t),
@@ -89,15 +90,14 @@ namespace HotChocolate.Types
         public void IgnoreOverridenPropertyField()
         {
             // arrange
-            var descriptor = new ObjectTypeDescriptor<Foo>();
+            var descriptor = new ObjectTypeDescriptor<Foo>(Context);
 
             // act
-            IObjectTypeDescriptor<Foo> desc = descriptor;
-            desc.Field(t => t.B).Ignore();
+            descriptor.Field(t => t.B).Ignore();
 
             // assert
             Assert.Collection(
-                descriptor.CreateDescription().Fields
+                descriptor.CreateDefinition().Fields
                     .Select(t => t.Name)
                     .OrderBy(t => t),
                 t => Assert.Equal("a", t),
@@ -111,7 +111,7 @@ namespace HotChocolate.Types
         public void IgnoreOverridenMethodField()
         {
             // arrange
-            var descriptor = new ObjectTypeDescriptor<Foo>();
+            var descriptor = new ObjectTypeDescriptor<Foo>(Context);
 
             // act
             IObjectTypeDescriptor<Foo> desc = descriptor;
@@ -119,7 +119,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Collection(
-                descriptor.CreateDescription().Fields
+                descriptor.CreateDefinition().Fields
                     .Select(t => t.Name)
                     .OrderBy(t => t),
                 t => Assert.Equal("a", t),
@@ -132,7 +132,7 @@ namespace HotChocolate.Types
         public void DeclareFieldsExplicitly()
         {
             // arrange
-            var descriptor = new ObjectTypeDescriptor<Foo>();
+            var descriptor = new ObjectTypeDescriptor<Foo>(Context);
 
             // act
             IObjectTypeDescriptor<Foo> desc = descriptor;
@@ -141,7 +141,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Collection(
-               descriptor.CreateDescription().Fields.Select(t => t.Name),
+               descriptor.CreateDefinition().Fields.Select(t => t.Name),
                t => Assert.Equal("a", t));
         }
 

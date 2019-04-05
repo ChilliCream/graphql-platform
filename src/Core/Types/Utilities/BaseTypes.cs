@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
 
@@ -16,7 +16,9 @@ namespace HotChocolate.Utilities
             typeof(EnumType),
             typeof(EnumType<>),
             typeof(InterfaceType),
-            typeof(UnionType)
+            typeof(UnionType),
+            typeof(DirectiveType<>),
+            typeof(DirectiveType)
         };
 
         public static bool IsSchemaType(Type type)

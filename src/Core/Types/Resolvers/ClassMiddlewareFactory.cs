@@ -1,29 +1,52 @@
 ﻿using System;
+using System.Linq;
+using System.Reflection;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers
 {
     public static class FieldClassMiddlewareFactory
     {
+        private static MethodInfo _createGeneric =
+            typeof(FieldClassMiddlewareFactory)
+            .GetTypeInfo().DeclaredMethods.First(t =>
+            {
+                if (t.Name.EqualsOrdinal(
+                    nameof(FieldClassMiddlewareFactory.Create))
+                    && t.GetGenericArguments().Length == 1)
+                {
+                    return t.GetParameters().Length == 0;
+                }
+                return false;
+            });
+
         internal static FieldMiddleware Create<TMiddleware>()
             where TMiddleware : class
         {
             return next =>
             {
-                var factory = MiddlewareActivator
-                    .CompileFactory<TMiddleware, FieldDelegate>();
+                MiddlewareFactory<TMiddleware, FieldDelegate> factory =
+                    MiddlewareActivator
+                        .CompileFactory<TMiddleware, FieldDelegate>();
 
-                return CreateDelegate<TMiddleware>(
+                return CreateDelegate(
                     (s, n) => factory(s, n),
                     next);
             };
+        }
+
+        internal static FieldMiddleware Create(Type middlewareType)
+        {
+            return (FieldMiddleware)_createGeneric
+                .MakeGenericMethod(middlewareType)
+                .Invoke(null, Array.Empty<object>());
         }
 
         internal static FieldMiddleware Create<TMiddleware>(
             Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
             where TMiddleware : class
         {
-            return next => CreateDelegate<TMiddleware>(factory, next);
+            return next => CreateDelegate(factory, next);
         }
 
         internal static FieldDelegate CreateDelegate<TMiddleware>(
@@ -34,8 +57,9 @@ namespace HotChocolate.Resolvers
             object sync = new object();
             TMiddleware middleware = null;
 
-            var compiled = MiddlewareActivator
-                .CompileMiddleware<TMiddleware, IMiddlewareContext>();
+            ClassQueryDelegate<TMiddleware, IMiddlewareContext> compiled =
+                MiddlewareActivator
+                    .CompileMiddleware<TMiddleware, IMiddlewareContext>();
 
             return context =>
             {

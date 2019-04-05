@@ -4,15 +4,13 @@ using HotChocolate.Language;
 namespace HotChocolate.Types
 {
     public class NonNullType
-        : TypeBase
-        , IOutputType
+        : IOutputType
         , IInputType
     {
         private readonly bool _isInputType;
         private readonly IInputType _inputType;
 
         public NonNullType(IType type)
-            : base(TypeKind.NonNull)
         {
             if (type == null)
             {
@@ -21,6 +19,7 @@ namespace HotChocolate.Types
 
             if (!(type is INullableType))
             {
+                // TODO : resources
                 throw new ArgumentException(
                     "The inner type of non-null type must be a nullable type",
                     nameof(type));
@@ -32,6 +31,8 @@ namespace HotChocolate.Types
             Type = type;
             ClrType = this.ToClrType();
         }
+
+        public TypeKind Kind => TypeKind.NonNull;
 
         public IType Type { get; }
 
@@ -49,6 +50,7 @@ namespace HotChocolate.Types
                 return _inputType.IsInstanceOfType(literal);
             }
 
+            // TODO : resources
             throw new InvalidOperationException(
                 "The specified type is not an input type.");
         }
@@ -64,6 +66,7 @@ namespace HotChocolate.Types
             {
                 if (literal is NullValueNode)
                 {
+                    // TODO : resources
                     throw new ArgumentException(
                         "A non null type cannot parse null value literals.");
                 }
@@ -71,6 +74,7 @@ namespace HotChocolate.Types
                 return _inputType.ParseLiteral(literal);
             }
 
+            // TODO : resources
             throw new InvalidOperationException(
                 "The specified type is not an input type.");
         }
@@ -87,6 +91,7 @@ namespace HotChocolate.Types
                 return it.IsInstanceOfType(value);
             }
 
+            // TODO : resources
             throw new InvalidOperationException(
                 "The specified type is not an input type.");
         }
@@ -97,6 +102,7 @@ namespace HotChocolate.Types
             {
                 if (value == null)
                 {
+                    // TODO : resources
                     throw new ArgumentException(
                         "A non null type cannot parse null values.");
                 }
@@ -104,43 +110,9 @@ namespace HotChocolate.Types
                 return _inputType.ParseValue(value);
             }
 
+            // TODO : resources
             throw new InvalidOperationException(
                 "The specified type is not an input type.");
-        }
-    }
-
-    // this is just a marker type for the fluent code-first api.
-    public sealed class NonNullType<T>
-        : IOutputType
-        , IInputType
-        where T : IType
-    {
-        private NonNullType()
-        {
-        }
-
-        public Type ClrType => throw new NotSupportedException();
-
-        public TypeKind Kind => throw new NotSupportedException();
-
-        public bool IsInstanceOfType(IValueNode literal)
-        {
-            throw new NotSupportedException();
-        }
-
-        public bool IsInstanceOfType(object value)
-        {
-            throw new NotSupportedException();
-        }
-
-        public object ParseLiteral(IValueNode literal)
-        {
-            throw new NotSupportedException();
-        }
-
-        public IValueNode ParseValue(object value)
-        {
-            throw new NotSupportedException();
         }
     }
 }

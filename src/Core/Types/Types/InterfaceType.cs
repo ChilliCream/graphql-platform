@@ -1,37 +1,41 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     public class InterfaceType
-        : NamedTypeBase
+        : NamedTypeBase<InterfaceTypeDefinition>
         , IComplexOutputType
         , IHasClrType
+        , INamedType
     {
+        private readonly Action<IInterfaceTypeDescriptor> _configure;
         private ResolveAbstractType _resolveAbstractType;
 
         protected InterfaceType()
-            : base(TypeKind.Interface)
         {
-            Initialize(Configure);
+            _configure = Configure;
         }
 
         public InterfaceType(Action<IInterfaceTypeDescriptor> configure)
-            : base(TypeKind.Interface)
         {
-            Initialize(configure);
+            _configure = configure
+                ?? throw new ArgumentNullException(nameof(configure));
         }
+
+        public override TypeKind Kind => TypeKind.Interface;
 
         public InterfaceTypeDefinitionNode SyntaxNode { get; private set; }
 
         public FieldCollection<InterfaceField> Fields { get; private set; }
 
         IFieldCollection<IOutputField> IComplexOutputType.Fields => Fields;
-
-        public Type ClrType { get; protected set; }
 
         public ObjectType ResolveType(
             IResolverContext context,
@@ -45,78 +49,86 @@ namespace HotChocolate.Types
             return _resolveAbstractType.Invoke(context, resolverResult);
         }
 
-        #region Configuration
+        #region Initialization
 
-        internal virtual InterfaceTypeDescriptor CreateDescriptor() =>
-            new InterfaceTypeDescriptor();
+        protected override InterfaceTypeDefinition CreateDefinition(
+            IInitializationContext context)
+        {
+            var descriptor = InterfaceTypeDescriptor.New(
+                DescriptorContext.Create(context.Services),
+                GetType());
+            _configure(descriptor);
+            return descriptor.CreateDefinition();
+        }
 
         protected virtual void Configure(IInterfaceTypeDescriptor descriptor)
         {
-
-        }
-
-        #endregion
-
-        #region Initialization
-
-        private void Initialize(Action<IInterfaceTypeDescriptor> configure)
-        {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            InterfaceTypeDescriptor descriptor = CreateDescriptor();
-            configure(descriptor);
-
-            InterfaceTypeDescription description =
-                descriptor.CreateDescription();
-
-            _resolveAbstractType = description.ResolveAbstractType;
-
-            SyntaxNode = description.SyntaxNode;
-            Fields = new FieldCollection<InterfaceField>(
-                description.Fields.Select(t => new InterfaceField(t)));
-
-            Initialize(description.Name, description.Description,
-                new DirectiveCollection(this,
-                    DirectiveLocation.Interface,
-                    description.Directives));
         }
 
         protected override void OnRegisterDependencies(
-            ITypeInitializationContext context)
+            IInitializationContext context,
+            InterfaceTypeDefinition definition)
         {
-            base.OnRegisterDependencies(context);
+            base.OnRegisterDependencies(context, definition);
 
-            foreach (INeedsInitialization field in Fields
-                .Cast<INeedsInitialization>())
-            {
-                field.RegisterDependencies(context);
-            }
+            RegisterDependencies(context, definition);
+        }
+
+        private void RegisterDependencies(
+           IInitializationContext context,
+           InterfaceTypeDefinition definition)
+        {
+            var dependencies = new List<ITypeReference>();
+
+            context.RegisterDependencyRange(
+                definition.Fields.Select(t => t.Type),
+                TypeDependencyKind.Default);
+
+            context.RegisterDependencyRange(
+                definition.Fields.SelectMany(t => t.Arguments)
+                    .Select(t => t.Type),
+                TypeDependencyKind.Completed);
+
+            context.RegisterDependencyRange(
+                definition.Directives.Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
+
+            context.RegisterDependencyRange(
+                definition.Fields.SelectMany(t => t.Directives)
+                    .Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
+
+            context.RegisterDependencyRange(
+                definition.Fields.SelectMany(t => t.Arguments)
+                    .SelectMany(t => t.Directives)
+                    .Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
         }
 
         protected override void OnCompleteType(
-            ITypeInitializationContext context)
+            ICompletionContext context,
+            InterfaceTypeDefinition definition)
         {
-            base.OnCompleteType(context);
+            base.OnCompleteType(context, definition);
 
-            foreach (INeedsInitialization field in Fields
-                .Cast<INeedsInitialization>())
-            {
-                field.CompleteType(context);
-            }
+            SyntaxNode = definition.SyntaxNode;
+            Fields = new FieldCollection<InterfaceField>(
+                definition.Fields.Select(t => new InterfaceField(t)));
 
-            CompleteAbstractTypeResolver(context);
-            CompleteClrType(context);
-            ValidateFieldsRequirement(context);
+            CompleteAbstractTypeResolver(
+                context,
+                definition.ResolveAbstractType);
+            FieldInitHelper.CompleteFields(context, definition, Fields);
         }
 
         private void CompleteAbstractTypeResolver(
-            ITypeInitializationContext context)
+            ICompletionContext context,
+            ResolveAbstractType resolveAbstractType)
         {
-            if (_resolveAbstractType == null)
+            if (resolveAbstractType == null)
             {
+                Func<ISchema> schemaResolver = context.GetSchemaResolver();
+
                 // if there is no custom type resolver we will use this default
                 // abstract type resolver.
                 IReadOnlyCollection<ObjectType> types = null;
@@ -124,7 +136,8 @@ namespace HotChocolate.Types
                 {
                     if (types == null)
                     {
-                        types = context.GetPossibleTypes(this);
+                        ISchema schema = schemaResolver.Invoke();
+                        types = schema.GetPossibleTypes(this);
                     }
 
                     foreach (ObjectType type in types)
@@ -138,65 +151,10 @@ namespace HotChocolate.Types
                     return null;
                 };
             }
-        }
-
-        private void CompleteClrType(
-            ITypeInitializationContext context)
-        {
-            if (ClrType == null
-                && context.TryGetNativeType(this, out Type clrType))
+            else
             {
-                ClrType = clrType;
+                _resolveAbstractType = resolveAbstractType;
             }
-
-            if (ClrType == null)
-            {
-                ClrType = typeof(object);
-            }
-        }
-
-        private void ValidateFieldsRequirement(
-            ITypeInitializationContext context)
-        {
-            if (Fields.Count == 0)
-            {
-                context.ReportError(new SchemaError(
-                    $"Interface `{Name}` has no fields declared.",
-                    this));
-            }
-        }
-
-        #endregion
-    }
-
-    public class InterfaceType<T>
-        : InterfaceType
-    {
-        public InterfaceType()
-        {
-            ClrType = typeof(T);
-        }
-
-        public InterfaceType(Action<IInterfaceTypeDescriptor<T>> configure)
-            : base(d => configure((IInterfaceTypeDescriptor<T>)d))
-        {
-            ClrType = typeof(T);
-        }
-
-        #region Configuration
-
-        internal sealed override InterfaceTypeDescriptor CreateDescriptor() =>
-            new InterfaceTypeDescriptor<T>();
-
-        protected sealed override void Configure(
-            IInterfaceTypeDescriptor descriptor)
-        {
-            Configure((IInterfaceTypeDescriptor<T>)descriptor);
-        }
-
-        protected virtual void Configure(IInterfaceTypeDescriptor<T> descriptor)
-        {
-
         }
 
         #endregion

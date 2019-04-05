@@ -19,10 +19,8 @@ namespace HotChocolate.Types
         public BooleanType()
             : base("Boolean")
         {
+            Description = TypeResources.BooleanType_Description;
         }
-
-        public override string Description =>
-            TypeResources.BooleanType_Description;
 
         public override Type ClrType => typeof(bool);
 

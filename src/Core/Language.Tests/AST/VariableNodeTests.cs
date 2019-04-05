@@ -36,7 +36,7 @@ namespace HotChocolate.Language
         {
             // arrange
             var name = new NameNode("foo");
-            var location = AstTestHelper.CreateDummyLocation();
+            Location location = AstTestHelper.CreateDummyLocation();
 
             // act
             var node = new VariableNode(location, name);
@@ -61,7 +61,7 @@ namespace HotChocolate.Language
         public void Create_Name_LocationNull_ArgumentNullException()
         {
             // arrange
-            var location = AstTestHelper.CreateDummyLocation();
+            Location location = AstTestHelper.CreateDummyLocation();
 
             // act
             Action action = () => new VariableNode(location, null);

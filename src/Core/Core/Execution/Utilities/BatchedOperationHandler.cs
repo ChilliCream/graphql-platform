@@ -154,7 +154,7 @@ namespace HotChocolate.Execution
 
         private void BatchSizeIncreased(object sender, EventArgs args)
         {
-            IBatchOperation operation = (IBatchOperation)sender;
+            var operation = (IBatchOperation)sender;
 
             _touchedSync.Wait();
 

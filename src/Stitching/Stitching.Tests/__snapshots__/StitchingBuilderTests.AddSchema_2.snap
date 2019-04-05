@@ -1,6 +1,6 @@
-type Query {
-  customer(id: ID!): Customer @delegate(schema: "customer")
+﻿type Query {
   consultant(id: ID!): Consultant @delegate(schema: "customer")
+  customer(id: ID!): Customer @delegate(schema: "customer")
   customerOrConsultant(id: ID!): CustomerOrConsultant @delegate(schema: "customer")
   contract(contractId: ID!): Contract @delegate(schema: "contract")
   contracts(customerId: ID!): [Contract!] @delegate(schema: "contract")
@@ -13,9 +13,9 @@ type Mutation {
 }
 
 type Consultant @source(name: "Consultant", schema: "customer") {
+  customers(after: String before: String first: PaginationAmount last: PaginationAmount): CustomerConnection
   id: ID!
   name: String!
-  customers(first: PaginationAmount after: String last: PaginationAmount before: String): CustomerConnection
 }
 
 type CreateCustomerPayload @source(name: "CreateCustomerPayload", schema: "customer") {
@@ -23,19 +23,19 @@ type CreateCustomerPayload @source(name: "CreateCustomerPayload", schema: "custo
 }
 
 type Customer @source(name: "Customer", schema: "customer") {
+  consultant(customer: CustomerInput): Consultant
   id: ID!
   name: String!
-  street: String!
-  consultant(customer: CustomerInput): Consultant
   say(input: SayInput!): String
+  street: String!
 }
 
 "A connection to a list of items."
 type CustomerConnection @source(name: "CustomerConnection", schema: "customer") {
-  "Information to aid in pagination."
-  pageInfo: PageInfo!
   "A list of edges."
   edges: [CustomerEdge!]
+  "Information to aid in pagination."
+  pageInfo: PageInfo!
   totalCount: Int!
 }
 
@@ -49,29 +49,29 @@ type CustomerEdge @source(name: "CustomerEdge", schema: "customer") {
 
 "Information about pagination in a connection."
 type PageInfo @source(name: "PageInfo", schema: "customer") {
+  "When paginating forwards, the cursor to continue."
+  endCursor: String
   "Indicates whether more edges exist following the set defined by the clients arguments."
   hasNextPage: Boolean!
   "Indicates whether more edges exist prior the set defined by the clients arguments."
   hasPreviousPage: Boolean!
   "When paginating backwards, the cursor to continue."
   startCursor: String
-  "When paginating forwards, the cursor to continue."
-  endCursor: String
 }
 
 union CustomerOrConsultant @source(name: "CustomerOrConsultant", schema: "customer") = Customer | Consultant
 
 input CreateCustomerInput @source(name: "CreateCustomerInput", schema: "customer") {
+  consultantId: String
   name: String
   street: String
-  consultantId: String
 }
 
 input CustomerInput @source(name: "CustomerInput", schema: "customer") {
+  consultantId: String
   id: String
   name: String
   street: String
-  consultantId: String
 }
 
 input SayInput @source(name: "SayInput", schema: "customer") {
@@ -79,20 +79,20 @@ input SayInput @source(name: "SayInput", schema: "customer") {
 }
 
 interface Contract @source(name: "Contract", schema: "contract") {
-  id: ID!
   customerId: ID!
+  id: ID!
 }
 
 type LifeInsuranceContract implements Contract @source(name: "LifeInsuranceContract", schema: "contract") {
-  id: ID!
   customerId: ID!
-  foo(bar: String): String
   error: String
+  foo(bar: String): String
+  id: ID!
   premium: Float!
 }
 
 type SomeOtherContract implements Contract @source(name: "SomeOtherContract", schema: "contract") {
-  id: ID!
   customerId: ID!
   expiryDate: DateTime!
+  id: ID!
 }

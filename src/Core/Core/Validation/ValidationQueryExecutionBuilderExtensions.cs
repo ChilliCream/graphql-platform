@@ -21,7 +21,7 @@ namespace HotChocolate.Validation
                 throw new ArgumentNullException(nameof(complexityCalculation));
             }
 
-            builder.Services.AddSingleton<ComplexityCalculation>(
+            builder.Services.AddSingleton(
                 complexityCalculation);
 
             return builder;

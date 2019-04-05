@@ -1,23 +1,19 @@
-﻿using System;
+using System;
 using System.Linq.Expressions;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration.Bindings
 {
     internal class BindType<T>
         : IBindType<T>
         where T : class
     {
-        private readonly TypeBindingInfo _bindingInfo;
+        private readonly IComplexTypeBindingBuilder _typeBuilder;
 
-        public BindType(TypeBindingInfo bindingInfo)
+        public BindType(IComplexTypeBindingBuilder typeBuilder)
         {
-            if (bindingInfo == null)
-            {
-                throw new ArgumentNullException(nameof(bindingInfo));
-            }
-
-            _bindingInfo = bindingInfo;
+            _typeBuilder = typeBuilder
+                ?? throw new ArgumentNullException(nameof(typeBuilder));
         }
 
         public IBindField<T> Field<TPropertyType>(
@@ -28,19 +24,17 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(field));
             }
 
-            FieldBindingInfo fieldBindingInfo = new FieldBindingInfo
-            {
-                Member = field.ExtractMember()
-            };
-            _bindingInfo.Fields.Add(fieldBindingInfo);
-            return new BindField<T>(_bindingInfo, fieldBindingInfo);
+            IComplexTypeFieldBindingBuilder fieldBuilder =
+                ComplexTypeFieldBindingBuilder.New()
+                    .SetMember(field.ExtractMember());
+            _typeBuilder.AddField(fieldBuilder);
+            return new BindField<T>(_typeBuilder, fieldBuilder);
         }
 
         public IBoundType<T> To(NameString typeName)
         {
-
-            _bindingInfo.Name = typeName.EnsureNotEmpty(nameof(typeName));
-            return this;
+            _typeBuilder.SetName(typeName);
+            return new BoundType<T>(_typeBuilder);
         }
     }
 }

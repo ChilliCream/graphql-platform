@@ -7,7 +7,6 @@ namespace HotChocolate.Stitching.Utilities
     internal sealed class CustomScalarType
         : ScalarType
     {
-
         public CustomScalarType(ScalarTypeDefinitionNode typeDefinition)
             : base(typeDefinition?.Name.Value)
         {
@@ -15,8 +14,6 @@ namespace HotChocolate.Stitching.Utilities
         }
 
         public override Type ClrType => typeof(object);
-
-        public override string Description { get; }
 
         public override bool IsInstanceOfType(IValueNode literal)
         {

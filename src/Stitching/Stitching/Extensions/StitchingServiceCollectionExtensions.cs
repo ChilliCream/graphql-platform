@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Stitching;

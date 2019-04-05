@@ -9,8 +9,8 @@ namespace HotChocolate.Language
         public void EnsureTokensAreDoublyLinked()
         {
             // arrange
-            Source source = new Source(@"type foo");
-            Lexer lexer = new Lexer();
+            var source = new Source(@"type foo");
+            var lexer = new Lexer();
 
             // act
             SyntaxToken token = lexer.Read(source);
@@ -37,7 +37,7 @@ namespace HotChocolate.Language
         public void SourceIsNull_ArgumentNullException()
         {
             // arrange
-            Lexer lexer = new Lexer();
+            var lexer = new Lexer();
 
             // act
             Action action = () => lexer.Read(null);
@@ -50,8 +50,8 @@ namespace HotChocolate.Language
         public void UnexpectedCharacter()
         {
             // arrange
-            Source source = new Source("~");
-            Lexer lexer = new Lexer();
+            var source = new Source("~");
+            var lexer = new Lexer();
 
             // act
             Action action = () => lexer.Read(source);
@@ -65,8 +65,8 @@ namespace HotChocolate.Language
         public void UnexpectedTokenSequence()
         {
             // arrange
-            Source source = new Source("\"foo");
-            Lexer lexer = new Lexer();
+            var source = new Source("\"foo");
+            var lexer = new Lexer();
 
             // act
             Action action = () => lexer.Read(source);

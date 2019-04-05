@@ -21,60 +21,12 @@ namespace HotChocolate.Execution
             result.MatchSnapshot();
         }
 
-        [Fact]
-        public void SingleMethodMiddleware()
-        {
-            // arrange
-            ISchema schema = CreateSchema();
-
-            // act
-            IExecutionResult result = schema.MakeExecutable().Execute(
-                "{ sayHello @resolve @appendStringMethod(s: \"abc\") }");
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public void SingleAsyncMethodMiddleware()
-        {
-            // arrange
-            ISchema schema = CreateSchema();
-
-            // act
-            IExecutionResult result = schema.MakeExecutable().Execute(
-                "{ sayHello @resolve @appendStringMethodAsync(s: \"abc\") }");
-
-            // assert
-            result.MatchSnapshot();
-        }
-
-        [Fact]
-        public void MiddlewarePipeline()
-        {
-            // arrange
-            ISchema schema = CreateSchema();
-
-            // act
-            IExecutionResult result = schema.MakeExecutable().Execute(
-                "{ sayHello @resolve " +
-                "@appendString(s: \"abc\") " +
-                "@appendStringMethod(s: \"def\") " +
-                "@appendStringMethodAsync(s: \"ghi\") }");
-
-            // assert
-            result.MatchSnapshot();
-        }
-
         public static ISchema CreateSchema()
         {
             return Schema.Create(c =>
             {
                 c.RegisterDirective<ResolveDirective>();
                 c.RegisterDirective<AppendStringDirectiveType>();
-                c.RegisterDirective<AppendStringMethodDirectiveType>();
-                c.RegisterDirective<AppendStringMethodAsyncDirectiveType>();
-
                 c.RegisterQueryType<Query>();
             });
         }
@@ -96,40 +48,12 @@ namespace HotChocolate.Execution
                 descriptor.Name("appendString");
                 descriptor.Location(DirectiveLocation.Field);
                 descriptor.Argument("s").Type<NonNullType<StringType>>();
-                descriptor.Middleware(next => context =>
+                descriptor.Use(next => context =>
                 {
                     context.Result = context.Result +
                         context.Directive.GetArgument<string>("s");
                     return next.Invoke(context);
                 });
-            }
-        }
-
-        public class AppendStringMethodDirectiveType
-            : DirectiveType
-        {
-            protected override void Configure(
-                IDirectiveTypeDescriptor descriptor)
-            {
-                descriptor.Name("appendStringMethod");
-                descriptor.Location(DirectiveLocation.Field);
-                descriptor.Argument("s").Type<NonNullType<StringType>>();
-                descriptor.Middleware<AppendDirectiveMiddleware>(
-                    t => t.AppendString(default, default));
-            }
-        }
-
-        public class AppendStringMethodAsyncDirectiveType
-            : DirectiveType
-        {
-            protected override void Configure(
-                IDirectiveTypeDescriptor descriptor)
-            {
-                descriptor.Name("appendStringMethodAsync");
-                descriptor.Location(DirectiveLocation.Field);
-                descriptor.Argument("s").Type<NonNullType<StringType>>();
-                descriptor.Middleware<AppendDirectiveMiddleware>(
-                    t => t.AppendStringAsync(default, default));
             }
         }
 
@@ -146,8 +70,9 @@ namespace HotChocolate.Execution
                [Result]string result,
                [DirectiveArgument]string s)
             {
-                return Task.FromResult<string>(result + s);
+                return Task.FromResult(result + s);
             }
         }
+
     }
 }

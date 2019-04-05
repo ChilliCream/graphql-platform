@@ -1,28 +1,12 @@
 ﻿using System;
-using System.Linq;
-using System.Reflection;
-using HotChocolate.Utilities;
+using System.Threading.Tasks;
+using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Relay
 {
     public static class ObjectFieldDescriptorExtensions
     {
-        private static MethodInfo _use =
-            typeof(MiddlewareObjectFieldDescriptorExtensions)
-            .GetTypeInfo().DeclaredMethods.First(t =>
-            {
-                if (t.Name.EqualsOrdinal(
-                    nameof(MiddlewareObjectFieldDescriptorExtensions.Use))
-                    && t.GetGenericArguments().Length == 1)
-                {
-                    ParameterInfo[] parameters = t.GetParameters();
-                    return (parameters.Length == 1
-                        && parameters[0].ParameterType ==
-                            typeof(IObjectFieldDescriptor));
-                }
-                return false;
-            });
-
         public static IObjectFieldDescriptor UsePaging<TSchemaType, TClrType>(
             this IObjectFieldDescriptor descriptor)
             where TSchemaType : IOutputType, new()
@@ -37,18 +21,33 @@ namespace HotChocolate.Types.Relay
             this IObjectFieldDescriptor descriptor)
             where TSchemaType : IOutputType, new()
         {
+            FieldMiddleware placeholder =
+                next => context => Task.CompletedTask;
+            Type middlewareDefinition = typeof(QueryableConnectionMiddleware<>);
+
             descriptor
                 .AddPagingArguments()
-                .Type(ConnectionType<TSchemaType>.CreateWithTotalCount());
-
-            if (NamedTypeInfoFactory.Default.TryExtractClrType(
-                typeof(TSchemaType), out Type clrType))
-            {
-                Type middlewareType = typeof(QueryableConnectionMiddleware<>)
-                    .MakeGenericType(clrType);
-                _use.MakeGenericMethod(middlewareType)
-                    .Invoke(null, new object[] { descriptor });
-            }
+                .Type(ConnectionType<TSchemaType>.CreateWithTotalCount())
+                .Use(placeholder)
+                .Extend()
+                .OnBeforeCompletion((context, defintion) =>
+                {
+                    var reference = new ClrTypeReference(
+                        typeof(TSchemaType),
+                        TypeContext.Output);
+                    IOutputType type = context.GetType<IOutputType>(reference);
+                    if (type.NamedType() is IHasClrType hasClrType)
+                    {
+                        Type middlewareType = middlewareDefinition
+                            .MakeGenericType(hasClrType.ClrType);
+                        FieldMiddleware middleware =
+                            FieldClassMiddlewareFactory.Create(middlewareType);
+                        int index =
+                            defintion.MiddlewareComponents.IndexOf(placeholder);
+                        defintion.MiddlewareComponents[index] = middleware;
+                    }
+                })
+                .DependsOn<TSchemaType>();
 
             return descriptor;
         }

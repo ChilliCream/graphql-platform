@@ -1,3 +1,4 @@
+using HotChocolate.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Stitching.Schemas.Contracts

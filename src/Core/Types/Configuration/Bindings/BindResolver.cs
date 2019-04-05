@@ -1,42 +1,40 @@
-﻿using System;
+using System;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Configuration.Bindings
 {
     internal class BindResolver<TResolver>
         : IBindResolver<TResolver>
         where TResolver : class
     {
-        private readonly ResolverCollectionBindingInfo _bindingInfo;
+        private readonly IResolverTypeBindingBuilder _typeBuilder;
 
-        public BindResolver(ResolverCollectionBindingInfo bindingInfo)
+        public BindResolver(
+            IResolverTypeBindingBuilder typeBuilder)
         {
-            _bindingInfo = bindingInfo
-                ?? throw new ArgumentNullException(nameof(bindingInfo));
+            _typeBuilder = typeBuilder
+                ?? throw new ArgumentNullException(nameof(typeBuilder));
         }
 
         public IBindFieldResolver<TResolver> Resolve(NameString fieldName)
         {
-            var bindingInfo = new FieldResolverBindungInfo
-            {
-                FieldName = fieldName.EnsureNotEmpty(nameof(fieldName))
-            };
-            _bindingInfo.Fields.Add(bindingInfo);
-
-            return new BindFieldResolver<TResolver>(_bindingInfo, bindingInfo);
+            IResolverFieldBindingBuilder fieldBuilder =
+                ResolverFieldBindingBuilder.New()
+                    .SetField(fieldName);
+            return new BindFieldResolver<TResolver>(
+                _typeBuilder, fieldBuilder);
         }
 
         public IBoundResolver<TResolver> To(NameString typeName)
         {
-            _bindingInfo.ObjectTypeName =
-                typeName.EnsureNotEmpty(nameof(typeName));
-            return this;
+            return new BoundResolver<TResolver>(
+                _typeBuilder.SetType(typeName));
         }
 
         public IBoundResolver<TResolver, TObjectType> To<TObjectType>()
             where TObjectType : class
         {
-            _bindingInfo.ObjectType = typeof(TObjectType);
-            return new BoundResolver<TResolver, TObjectType>(_bindingInfo);
+            return new BoundResolver<TResolver, TObjectType>(
+                _typeBuilder.SetType(typeof(TObjectType)));
         }
     }
 }

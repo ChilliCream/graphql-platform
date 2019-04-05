@@ -2,238 +2,146 @@
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
-    internal class EnumTypeDescriptor
-        : IEnumTypeDescriptor
-        , IDescriptionFactory<EnumTypeDescription>
+    public class EnumTypeDescriptor
+        : DescriptorBase<EnumTypeDefinition>
+        , IEnumTypeDescriptor
     {
-        public EnumTypeDescriptor(NameString name)
+        public EnumTypeDescriptor(IDescriptorContext context, NameString name)
+            : base(context)
         {
-            EnumDescription.Name = name.EnsureNotEmpty(nameof(name));
+            Definition.ClrType = typeof(object);
+            Definition.Name = name.EnsureNotEmpty(nameof(name));
         }
 
-        public EnumTypeDescriptor(Type enumType)
+        public EnumTypeDescriptor(IDescriptorContext context, Type clrType)
+            : base(context)
         {
-            EnumDescription.ClrType = enumType
-                ?? throw new ArgumentNullException(nameof(enumType));
-            EnumDescription.Name = enumType.GetGraphQLName();
-            EnumDescription.Description = enumType.GetGraphQLDescription();
+            Definition.ClrType = clrType
+                ?? throw new ArgumentNullException(nameof(clrType));
+            Definition.Name = context.Naming.GetTypeName(
+                clrType, TypeKind.Enum);
+            Definition.Description = context.Naming.GetTypeDescription(
+                clrType, TypeKind.Enum);
         }
 
-        protected List<EnumValueDescriptor> Values { get; } =
+        protected override EnumTypeDefinition Definition { get; } =
+            new EnumTypeDefinition();
+
+        protected ICollection<EnumValueDescriptor> Values { get; } =
             new List<EnumValueDescriptor>();
 
-        protected EnumTypeDescription EnumDescription { get; } =
-            new EnumTypeDescription();
-
-        public EnumTypeDescription CreateDescription()
+        protected override void OnCreateDefinition(
+            EnumTypeDefinition definition)
         {
-            CompleteValues();
-            return EnumDescription;
-        }
+            var values =
+                Values.Select(t => t.CreateDefinition())
+                   .ToDictionary(t => t.Value);
+            AddImplicitValues(definition, values);
 
-        protected void CompleteValues()
-        {
-            var valueToDesc = new Dictionary<object, EnumValueDescription>();
+            definition.Values.Clear();
 
-            foreach (EnumValueDescription valueDescription in
-                Values.Select(t => t.CreateDescription()))
+            foreach (EnumValueDefinition value in values.Values)
             {
-                valueToDesc[valueDescription.Value] = valueDescription;
+                definition.Values.Add(value);
             }
-
-            AddImplicitValues(valueToDesc);
-
-            var values = new Dictionary<string, EnumValueDescription>();
-
-            foreach (EnumValueDescription valueDescription in
-                valueToDesc.Values)
-            {
-                values[valueDescription.Name] = valueDescription;
-            }
-
-            EnumDescription.Values.Clear();
-            EnumDescription.Values.AddRange(values.Values);
         }
 
         protected void AddImplicitValues(
-            Dictionary<object, EnumValueDescription> valueToDesc)
+            EnumTypeDefinition typeDefinition,
+            IDictionary<object, EnumValueDefinition> values)
         {
-            if (EnumDescription.ValueBindingBehavior ==
-                BindingBehavior.Implicit)
+            if (typeDefinition.Values.IsImplicitBinding())
             {
-                if (EnumDescription.ClrType != null
-                    && EnumDescription.ClrType.IsEnum)
+                foreach (object value in Context.Inspector
+                    .GetEnumValues(typeDefinition.ClrType))
                 {
-                    foreach (object o in Enum.GetValues(
-                        EnumDescription.ClrType))
+                    EnumValueDefinition valueDefinition =
+                        EnumValueDescriptor.New(Context, value)
+                            .CreateDefinition();
+
+                    if (!values.ContainsKey(valueDefinition.Value))
                     {
-                        EnumValueDescription description =
-                            new EnumValueDescriptor(o)
-                                .CreateDescription();
-                        if (!valueToDesc.ContainsKey(description.Value))
-                        {
-                            valueToDesc[description.Value] = description;
-                        }
+                        values.Add(valueDefinition.Value, valueDefinition);
                     }
                 }
             }
         }
 
-        protected void SyntaxNode(EnumTypeDefinitionNode syntaxNode)
+        public IEnumTypeDescriptor SyntaxNode(
+            EnumTypeDefinitionNode enumTypeDefinition)
         {
-            EnumDescription.SyntaxNode = syntaxNode;
+            Definition.SyntaxNode = enumTypeDefinition;
+            return this;
         }
 
-        protected void Name(NameString name)
+        public IEnumTypeDescriptor Name(NameString value)
         {
-            EnumDescription.Name = name.EnsureNotEmpty(nameof(name));
+            Definition.Name = value.EnsureNotEmpty(nameof(value));
+            return this;
         }
 
-        protected void Description(string description)
+        public IEnumTypeDescriptor Description(string value)
         {
-            EnumDescription.Description = description;
+            Definition.Description = value;
+            return this;
         }
 
-        protected EnumValueDescriptor Item<T>(T value)
+        public IEnumTypeDescriptor BindItems(
+            BindingBehavior behavior)
         {
-            if (EnumDescription.ClrType == null)
+            Definition.Values.BindingBehavior = behavior;
+            return this;
+        }
+
+        public IEnumValueDescriptor Item<T>(T value)
+        {
+            if (Definition.ClrType == null)
             {
-                EnumDescription.ClrType = typeof(T);
+                Definition.ClrType = typeof(T);
             }
 
-            var descriptor = new EnumValueDescriptor(value);
+            var descriptor = new EnumValueDescriptor(Context, value);
             Values.Add(descriptor);
             return descriptor;
         }
 
-        protected void BindItems(BindingBehavior bindingBehavior)
+        public IEnumTypeDescriptor Directive<T>(T instance)
+            where T : class
         {
-            EnumDescription.ValueBindingBehavior = bindingBehavior;
-        }
-
-        #region IEnumTypeDescriptor
-
-        IEnumTypeDescriptor IEnumTypeDescriptor.SyntaxNode(
-            EnumTypeDefinitionNode syntaxNode)
-        {
-            SyntaxNode(syntaxNode);
+            Definition.AddDirective(instance);
             return this;
         }
 
-        IEnumTypeDescriptor IEnumTypeDescriptor.Name(NameString name)
+        public IEnumTypeDescriptor Directive<T>()
+            where T : class, new()
         {
-            Name(name);
+            Definition.AddDirective(new T());
             return this;
         }
 
-        IEnumTypeDescriptor IEnumTypeDescriptor.Description(string description)
+        public IEnumTypeDescriptor Directive(
+            NameString name, params ArgumentNode[] arguments)
         {
-            Description(description);
+            Definition.AddDirective(name, arguments);
             return this;
         }
 
-        IEnumValueDescriptor IEnumTypeDescriptor.Item<T>(T value)
-        {
-            return Item(value);
-        }
+        public static EnumTypeDescriptor New(
+            IDescriptorContext context,
+            NameString name) =>
+            new EnumTypeDescriptor(context, name);
 
-        IEnumTypeDescriptor IEnumTypeDescriptor.BindItems(
-            BindingBehavior bindingBehavior)
-        {
-            BindItems(bindingBehavior);
-            return this;
-        }
+        public static EnumTypeDescriptor New(
+            IDescriptorContext context,
+            Type clrType) =>
+            new EnumTypeDescriptor(context, clrType);
 
-        IEnumTypeDescriptor IEnumTypeDescriptor.Directive<T>(T directive)
-        {
-            EnumDescription.Directives.AddDirective(directive);
-            return this;
-        }
-
-        IEnumTypeDescriptor IEnumTypeDescriptor.Directive<T>()
-        {
-            EnumDescription.Directives.AddDirective(new T());
-            return this;
-        }
-
-        IEnumTypeDescriptor IEnumTypeDescriptor.Directive(
-            NameString name,
-            params ArgumentNode[] arguments)
-        {
-            EnumDescription.Directives.AddDirective(name, arguments);
-            return this;
-        }
-
-        #endregion
-    }
-
-    internal class EnumTypeDescriptor<T>
-        : EnumTypeDescriptor
-        , IEnumTypeDescriptor<T>
-    {
-        public EnumTypeDescriptor()
-            : base(typeof(T))
-        {
-        }
-
-        #region IEnumTypeDescriptor<T>
-
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.SyntaxNode(
-            EnumTypeDefinitionNode syntaxNode)
-        {
-            SyntaxNode(syntaxNode);
-            return this;
-        }
-
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Name(NameString name)
-        {
-            Name(name);
-            return this;
-        }
-
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Description(
-            string description)
-        {
-            Description(description);
-            return this;
-        }
-
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.BindItems(
-            BindingBehavior bindingBehavior)
-        {
-            BindItems(bindingBehavior);
-            return this;
-        }
-
-        IEnumValueDescriptor IEnumTypeDescriptor<T>.Item(T value)
-        {
-            return Item(value);
-        }
-
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Directive<TDirective>(
-            TDirective directive)
-        {
-            EnumDescription.Directives.AddDirective(directive);
-            return this;
-        }
-
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Directive<TDirective>()
-        {
-            EnumDescription.Directives.AddDirective(new TDirective());
-            return this;
-        }
-
-        IEnumTypeDescriptor<T> IEnumTypeDescriptor<T>.Directive(
-            NameString name,
-            params ArgumentNode[] arguments)
-        {
-            EnumDescription.Directives.AddDirective(name, arguments);
-            return this;
-        }
-
-        #endregion
+        public static EnumTypeDescriptor<T> New<T>(
+            IDescriptorContext context) =>
+            new EnumTypeDescriptor<T>(context);
     }
 }

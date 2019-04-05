@@ -1,280 +1,139 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Utilities;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
+using System.Linq;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
-    internal class InputObjectTypeDescriptor
-        : IInputObjectTypeDescriptor
-        , IDescriptionFactory<InputObjectTypeDescription>
+    public class InputObjectTypeDescriptor
+        : DescriptorBase<InputObjectTypeDefinition>
+        , IInputObjectTypeDescriptor
     {
+        public InputObjectTypeDescriptor(
+            IDescriptorContext context,
+            Type clrType)
+            : base(context)
+        {
+            if (clrType == null)
+            {
+                throw new ArgumentNullException(nameof(clrType));
+            }
+
+            Definition.ClrType = clrType;
+            Definition.Name = context.Naming.GetTypeName(
+                clrType, TypeKind.InputObject);
+            Definition.Description = context.Naming.GetTypeDescription(
+                clrType, TypeKind.InputObject);
+        }
+
+        public InputObjectTypeDescriptor(
+            IDescriptorContext context,
+            NameString name)
+            : base(context)
+        {
+            Definition.ClrType = typeof(object);
+            Definition.Name = name.EnsureNotEmpty(nameof(name));
+        }
+
+        public InputObjectTypeDescriptor(IDescriptorContext context)
+            : base(context)
+        {
+            Definition.ClrType = typeof(object);
+        }
+
+        protected override InputObjectTypeDefinition Definition { get; } =
+            new InputObjectTypeDefinition();
+
         protected List<InputFieldDescriptor> Fields { get; } =
             new List<InputFieldDescriptor>();
 
-        protected InputObjectTypeDescription ObjectDescription { get; } =
-            new InputObjectTypeDescription();
-
-        public InputObjectTypeDescription CreateDescription()
+        protected override void OnCreateDefinition(
+            InputObjectTypeDefinition definition)
         {
-            CompleteFields();
-            return ObjectDescription;
-        }
-
-        private void CompleteFields()
-        {
-            var fields = new Dictionary<string, InputFieldDescription>();
+            var fields = new Dictionary<NameString, InputFieldDefinition>();
             var handledProperties = new HashSet<PropertyInfo>();
 
-            foreach (InputFieldDescriptor fieldDescriptor in Fields)
-            {
-                InputFieldDescription fieldDescription = fieldDescriptor
-                    .CreateDescription();
-
-                if (!fieldDescription.Ignored)
-                {
-                    fields[fieldDescription.Name] = fieldDescription;
-                }
-
-                if (fieldDescription.Property != null)
-                {
-                    handledProperties.Add(fieldDescription.Property);
-                }
-            }
+            FieldDescriptorUtilities.AddExplicitFields(
+                Fields.Select(t => t.CreateDefinition()),
+                f => f.Property,
+                fields,
+                handledProperties);
 
             OnCompleteFields(fields, handledProperties);
 
-            ObjectDescription.Fields.AddRange(fields.Values);
+            Definition.Fields.AddRange(fields.Values);
         }
 
         protected virtual void OnCompleteFields(
-            IDictionary<string, InputFieldDescription> fields,
-            ISet<PropertyInfo> handledProperties)
+            IDictionary<NameString, InputFieldDefinition> fields,
+            ISet<PropertyInfo> handledMembers)
         {
         }
 
-        protected void SyntaxNode(InputObjectTypeDefinitionNode syntaxNode)
+        public IInputObjectTypeDescriptor SyntaxNode(
+            InputObjectTypeDefinitionNode inputObjectTypeDefinitionNode)
         {
-            ObjectDescription.SyntaxNode = syntaxNode;
+            Definition.SyntaxNode = inputObjectTypeDefinitionNode;
+            return this;
         }
 
-        protected void Name(NameString name)
+        public IInputObjectTypeDescriptor Name(NameString value)
         {
-            ObjectDescription.Name = name.EnsureNotEmpty(nameof(name));
+            Definition.Name = value.EnsureNotEmpty(nameof(value));
+            return this;
         }
 
-        protected void Description(string description)
+        public IInputObjectTypeDescriptor Description(string value)
         {
-            ObjectDescription.Description = description;
+            Definition.Description = value;
+            return this;
         }
 
-        protected InputFieldDescriptor Field(NameString name)
+        public IInputFieldDescriptor Field(NameString name)
         {
             var field = new InputFieldDescriptor(
+                Context,
                 name.EnsureNotEmpty(nameof(name)));
             Fields.Add(field);
             return field;
         }
 
-        #region IInputObjectTypeDescriptor
-
-        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.SyntaxNode(
-            InputObjectTypeDefinitionNode syntaxNode)
+        public IInputObjectTypeDescriptor Directive<T>(T directive)
+            where T : class
         {
-            SyntaxNode(syntaxNode);
+            Definition.AddDirective(directive);
             return this;
         }
 
-        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Name(
-            NameString name)
+        public IInputObjectTypeDescriptor Directive<T>()
+            where T : class, new()
         {
-            Name(name);
+            Definition.AddDirective(new T());
             return this;
         }
 
-        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Description(
-            string description)
-        {
-            Description(description);
-            return this;
-        }
-
-        IInputFieldDescriptor IInputObjectTypeDescriptor.Field(NameString name)
-        {
-            return Field(name);
-        }
-
-        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Directive<T>(
-            T directive)
-        {
-            ObjectDescription.Directives.AddDirective(directive);
-            return this;
-        }
-
-        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Directive<T>()
-        {
-            ObjectDescription.Directives.AddDirective(new T());
-            return this;
-        }
-
-        IInputObjectTypeDescriptor IInputObjectTypeDescriptor.Directive(
+        public IInputObjectTypeDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
-            ObjectDescription.Directives.AddDirective(name, arguments);
+            Definition.AddDirective(name, arguments);
             return this;
         }
 
-        #endregion
-    }
+        public static InputObjectTypeDescriptor New(
+            IDescriptorContext context,
+            NameString name) =>
+            new InputObjectTypeDescriptor(context, name);
 
-    internal class InputObjectTypeDescriptor<T>
-        : InputObjectTypeDescriptor
-        , IInputObjectTypeDescriptor<T>
-    {
-        public InputObjectTypeDescriptor()
-        {
-            Type clrType = typeof(T);
-            ObjectDescription.ClrType = clrType;
-            ObjectDescription.Name = clrType.GetGraphQLName();
-            ObjectDescription.Description = clrType.GetGraphQLDescription();
+        public static InputObjectTypeDescriptor New(
+            IDescriptorContext context,
+            Type clrType) =>
+            new InputObjectTypeDescriptor(context, clrType);
 
-            // this convention will fix most type colisions where the
-            // .net type is and input and an output type.
-            // It is still possible to opt out via the descriptor.Name("Foo").
-            if (!ObjectDescription.Name.EndsWith("Input",
-                    StringComparison.Ordinal))
-            {
-                ObjectDescription.Name = ObjectDescription.Name + "Input";
-            }
-        }
-
-        protected override void OnCompleteFields(
-            IDictionary<string, InputFieldDescription> fields,
-            ISet<PropertyInfo> handledProperties)
-        {
-            if (ObjectDescription.FieldBindingBehavior ==
-                BindingBehavior.Implicit)
-            {
-                AddImplicitFields(fields, handledProperties);
-            }
-        }
-
-        private void AddImplicitFields(
-            IDictionary<string, InputFieldDescription> fields,
-            ISet<PropertyInfo> handledProperties)
-        {
-            foreach (KeyValuePair<PropertyInfo, string> property in
-                GetProperties(handledProperties))
-            {
-                if (!fields.ContainsKey(property.Value))
-                {
-                    var fieldDescriptor =
-                        new InputFieldDescriptor(property.Key);
-
-                    fields[property.Value] = fieldDescriptor
-                        .CreateDescription();
-                }
-            }
-        }
-
-        private Dictionary<PropertyInfo, string> GetProperties(
-            ISet<PropertyInfo> handledProperties)
-        {
-            var properties = new Dictionary<PropertyInfo, string>();
-
-            foreach (KeyValuePair<string, PropertyInfo> property in
-                ReflectionUtils.GetProperties(ObjectDescription.ClrType))
-            {
-                if (!handledProperties.Contains(property.Value))
-                {
-                    properties[property.Value] = property.Key;
-                }
-            }
-
-            return properties;
-        }
-
-        protected void BindFields(BindingBehavior bindingBehavior)
-        {
-            ObjectDescription.FieldBindingBehavior = bindingBehavior;
-        }
-
-        protected InputFieldDescriptor Field<TValue>(
-            Expression<Func<T, TValue>> property)
-        {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                var field = new InputFieldDescriptor(p);
-                Fields.Add(field);
-                return field;
-            }
-
-            throw new ArgumentException(
-                "Only properties are allowed for input types.",
-                nameof(property));
-        }
-
-        #region IInputObjectTypeDescriptor<T>
-
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.SyntaxNode(
-            InputObjectTypeDefinitionNode syntaxNode)
-        {
-            SyntaxNode(syntaxNode);
-            return this;
-        }
-
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Name(
-            NameString name)
-        {
-            Name(name);
-            return this;
-        }
-
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Description(
-            string description)
-        {
-            Description(description);
-            return this;
-        }
-
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.BindFields(
-            BindingBehavior bindingBehavior)
-        {
-            BindFields(bindingBehavior);
-            return this;
-        }
-
-        IInputFieldDescriptor IInputObjectTypeDescriptor<T>.Field<TValue>(
-            Expression<Func<T, TValue>> property)
-        {
-            return Field(property);
-        }
-
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>
-            .Directive<TDirective>(TDirective directive)
-        {
-            ObjectDescription.Directives.AddDirective(directive);
-            return this;
-        }
-
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>
-            .Directive<TDirective>()
-        {
-            ObjectDescription.Directives.AddDirective(new TDirective());
-            return this;
-        }
-
-        IInputObjectTypeDescriptor<T> IInputObjectTypeDescriptor<T>.Directive(
-            NameString name,
-            params ArgumentNode[] arguments)
-        {
-            ObjectDescription.Directives.AddDirective(name, arguments);
-            return this;
-        }
-
-        #endregion
+        public static InputObjectTypeDescriptor<T> New<T>(
+            IDescriptorContext context) =>
+            new InputObjectTypeDescriptor<T>(context);
     }
 }

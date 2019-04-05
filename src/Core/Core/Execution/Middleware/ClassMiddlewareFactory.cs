@@ -10,10 +10,10 @@ namespace HotChocolate.Execution
         {
             return next =>
             {
-                var factory = MiddlewareActivator
+                MiddlewareFactory<TMiddleware, QueryDelegate> factory = MiddlewareActivator
                     .CompileFactory<TMiddleware, QueryDelegate>();
 
-                return CreateDelegate<TMiddleware>(
+                return CreateDelegate(
                     (s, n) => factory(s, n),
                     next);
             };
@@ -23,7 +23,7 @@ namespace HotChocolate.Execution
             Func<IServiceProvider, QueryDelegate, TMiddleware> factory)
             where TMiddleware : class
         {
-            return next => CreateDelegate<TMiddleware>(factory, next);
+            return next => CreateDelegate(factory, next);
         }
 
         internal static QueryDelegate CreateDelegate<TMiddleware>(
@@ -34,7 +34,7 @@ namespace HotChocolate.Execution
             object sync = new object();
             TMiddleware middleware = null;
 
-            var compiled = MiddlewareActivator
+            ClassQueryDelegate<TMiddleware, IQueryContext> compiled = MiddlewareActivator
                 .CompileMiddleware<TMiddleware, IQueryContext>();
 
             return context =>

@@ -3,11 +3,13 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Introspection
 {
+    // TODO : resources
     [Introspection]
     internal sealed class __Directive
         : ObjectType
     {
-        protected override void Configure(IObjectTypeDescriptor descriptor)
+        protected override void Configure(
+            IObjectTypeDescriptor descriptor)
         {
             descriptor.Name("__Directive");
 

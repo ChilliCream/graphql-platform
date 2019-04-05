@@ -69,7 +69,7 @@ namespace HotChocolate.Utilities
 
         private static List<Type> DecomposeType(Type type)
         {
-            List<Type> components = new List<Type>();
+            var components = new List<Type>();
             Type current = type;
 
             do

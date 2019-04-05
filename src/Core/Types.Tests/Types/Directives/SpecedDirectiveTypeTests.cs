@@ -1,28 +1,21 @@
 ﻿using System.Linq;
-using HotChocolate.Configuration;
 using Xunit;
 
 namespace HotChocolate.Types
 {
     public class SpecedDirectiveTypeTests
+        : TypeTestBase
     {
         [Fact]
-        public void CreateSkipDirective()
+        public void EnsureSkipDirectiveIsAvailable()
         {
             // arrange
-            SchemaContext schemaContext = SchemaContextFactory.Create();
-            SchemaConfiguration schemaConfiguration =
-                new SchemaConfiguration(
-                    sp => { },
-                    schemaContext.Types,
-                    schemaContext.Resolvers,
-                    schemaContext.Directives);
-            TypeFinalizer typeFinalizer = new TypeFinalizer(schemaConfiguration);
-            typeFinalizer.FinalizeTypes(schemaContext, null);
+            ISchema schema = CreateSchema(b => { });
 
-            // assert
-            DirectiveType directive = schemaContext.Directives
-                .GetDirectiveTypes().FirstOrDefault(t => t.Name == "skip");
+            // act
+            DirectiveType directive =
+                schema.DirectiveTypes.FirstOrDefault(
+                    t => t.Name.Equals("skip"));
 
             // assert
             Assert.NotNull(directive);
@@ -42,22 +35,15 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void CreateIncludeDirective()
+        public void EnsureIncludeDirectiveIsAvailable()
         {
             // arrange
-            SchemaContext schemaContext = SchemaContextFactory.Create();
-            SchemaConfiguration schemaConfiguration =
-                new SchemaConfiguration(
-                        sp => { },
-                        schemaContext.Types,
-                        schemaContext.Resolvers,
-                        schemaContext.Directives);
-            TypeFinalizer typeFinalizer = new TypeFinalizer(schemaConfiguration);
-            typeFinalizer.FinalizeTypes(schemaContext, null);
+            ISchema schema = CreateSchema(b => { });
 
-            // assert
-            DirectiveType directive = schemaContext.Directives
-                .GetDirectiveTypes().FirstOrDefault(t => t.Name == "include");
+            // act
+            DirectiveType directive =
+                schema.DirectiveTypes.FirstOrDefault(
+                    t => t.Name.Equals("include"));
 
             // assert
             Assert.NotNull(directive);

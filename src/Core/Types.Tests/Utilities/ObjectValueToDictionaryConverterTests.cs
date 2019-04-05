@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using ChilliCream.Testing;
 using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Utilities
@@ -24,7 +25,7 @@ namespace HotChocolate.Utilities
             Dictionary<string, object> dict = converter.Convert(obj);
 
             // assert
-            dict.Snapshot();
+            dict.MatchSnapshot();
         }
 
         [Fact]
@@ -47,7 +48,7 @@ namespace HotChocolate.Utilities
             Dictionary<string, object> dict = converter.Convert(obj);
 
             // assert
-            dict.Snapshot();
+            dict.MatchSnapshot();
         }
 
         [Fact]
@@ -75,7 +76,7 @@ namespace HotChocolate.Utilities
             Dictionary<string, object> dict = converter.Convert(obj);
 
             // assert
-            dict.Snapshot();
+            dict.MatchSnapshot();
         }
     }
 }

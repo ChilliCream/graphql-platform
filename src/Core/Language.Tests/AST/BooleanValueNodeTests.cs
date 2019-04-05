@@ -26,7 +26,7 @@ namespace HotChocolate.Language
             // arrange
             var token = new SyntaxToken(
                 TokenKind.StartOfFile, 0, 0, 0, 0, null);
-            Location location = new Location(new Source("{}"), token, token);
+            var location = new Location(new Source("{}"), token, token);
 
             // act
             var booleanValueNode = new BooleanValueNode(location, value);

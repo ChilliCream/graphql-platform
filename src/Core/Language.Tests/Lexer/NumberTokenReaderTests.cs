@@ -14,7 +14,7 @@ namespace HotChocolate.Language
         private void ReadToken(string sourceBody, bool isFloat)
         {
             // arrange
-            Source source = new Source(sourceBody);
+            var source = new Source(sourceBody);
 
             // act
             SyntaxToken token = Lexer.Default.Read(source);

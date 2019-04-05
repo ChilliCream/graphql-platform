@@ -75,7 +75,7 @@ namespace HotChocolate.Types.Relay
 
         private IReadOnlyCollection<QueryableEdge> GetSelectedEdges()
         {
-            List<QueryableEdge> list = new List<QueryableEdge>();
+            var list = new List<QueryableEdge>();
             List<T> edges = GetEdgesToReturn(
                 _source, _pageDetails, out int offset);
 
@@ -223,7 +223,7 @@ namespace HotChocolate.Types.Relay
                 return null;
             }
 
-            var properties = Base64Serializer
+            Dictionary<string, object> properties = Base64Serializer
                 .Deserialize<Dictionary<string, object>>(cursor);
 
             return properties;

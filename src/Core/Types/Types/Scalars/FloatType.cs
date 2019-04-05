@@ -20,10 +20,8 @@ namespace HotChocolate.Types
         public FloatType()
             : base("Float")
         {
+            Description = TypeResources.FloatType_Description;
         }
-
-        public override string Description =>
-            TypeResources.FloatType_Description;
 
         public override Type ClrType => typeof(double);
 

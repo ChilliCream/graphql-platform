@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -495,7 +495,8 @@ namespace HotChocolate.Execution
                     c.RegisterExtendedScalarTypes();
                     c.Use(next => context =>
                     {
-                        context.Result = context.Argument<DateTimeOffset>("a");
+                        context.Result = context.Argument<DateTimeOffset>("a")
+                            .ToUniversalTime();
                         return Task.CompletedTask;
                     });
                 }).MakeExecutable();
@@ -519,15 +520,15 @@ namespace HotChocolate.Execution
         {
             return Schema.Create(
                 "type Query { foo: Foo } " +
-                "type Foo { a: String b(a: Bar): String } ",
+                "type Foo { a: String b(a: BarInput): String } ",
                 c =>
                 {
+                    c.Use(next => context => Task.CompletedTask);
                     c.RegisterType<BarType>();
                     c.RegisterType<FooType>();
                     c.RegisterType<BazType>();
                     c.RegisterType<BarEnumType>();
                     c.RegisterExtendedScalarTypes();
-                    c.Options.StrictValidation = false;
                 });
         }
 

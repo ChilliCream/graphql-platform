@@ -6,10 +6,10 @@ using HotChocolate.Language;
 using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Resolvers;
+using HotChocolate.Configuration;
 
 namespace HotChocolate.Stitching
 {
-    public delegate DocumentNode LoadSchemaDocument(IServiceProvider services);
     public delegate IQueryExecutor ExecutorFactory(IServiceProvider services);
 
     public interface IStitchingBuilder
@@ -115,9 +115,5 @@ namespace HotChocolate.Stitching
 
         IStitchingBuilder SetExecutionOptions(
             IQueryExecutionOptionsAccessor options);
-
-
-
-
     }
 }

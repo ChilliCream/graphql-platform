@@ -24,7 +24,7 @@ namespace HotChocolate.Types
         {
             // arrange
             var type = new MultiplierPathType();
-            StringValueNode input = new StringValueNode("_123.456");
+            var input = new StringValueNode("_123.456");
 
             // act
             bool result = type.IsInstanceOfType(input);
@@ -150,7 +150,7 @@ namespace HotChocolate.Types
         {
             // arrange
             var type = new MultiplierPathType();
-            var input = NullValueNode.Default;
+            NullValueNode input = NullValueNode.Default;
 
             // act
             object output = type.ParseLiteral(input);

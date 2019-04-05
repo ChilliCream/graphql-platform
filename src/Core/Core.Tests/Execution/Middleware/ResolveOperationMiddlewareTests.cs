@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
         public async Task OperationIsResolved()
         {
             // arrange
-            Schema schema = Schema.Create(@"
+            var schema = Schema.Create(@"
                 type Query { a: String }
                 ", c =>
             {
@@ -48,7 +48,7 @@ namespace HotChocolate.Execution
         public async Task RootValueNotProvidedAndRegisteredWithServices()
         {
             // arrange
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.RegisterQueryType<DisposableQuery>();
             });
@@ -81,7 +81,7 @@ namespace HotChocolate.Execution
         public async Task RootValueProvidedByRequest()
         {
             // arrange
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.RegisterQueryType<DisposableQuery>();
             });
@@ -121,7 +121,7 @@ namespace HotChocolate.Execution
             var services = new DictionaryServiceProvider(
                 typeof(DisposableQuery), new DisposableQuery());
 
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.RegisterQueryType<DisposableQuery>();
             });
@@ -157,7 +157,7 @@ namespace HotChocolate.Execution
             var services = new DictionaryServiceProvider(
                typeof(DisposableQuery), new DisposableQuery());
 
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.RegisterQueryType<DisposableQuery>();
             });
@@ -194,7 +194,7 @@ namespace HotChocolate.Execution
         public async Task RootClrTypeIsObject()
         {
             // arrange
-            Schema schema = Schema.Create(@"
+            var schema = Schema.Create(@"
                 type Query { a: String }
                 ", c =>
             {
@@ -228,7 +228,7 @@ namespace HotChocolate.Execution
         public async Task TwoOperations_ShortHand_QueryException()
         {
             // arrange
-            Schema schema = Schema.Create(@"
+            var schema = Schema.Create(@"
                 type Query { a: String }
                 ", c =>
             {
@@ -267,7 +267,7 @@ namespace HotChocolate.Execution
         public async Task TwoOperations_WrongOperationName_QueryException()
         {
             // arrange
-            Schema schema = Schema.Create(@"
+            var schema = Schema.Create(@"
                 type Query { a: String }
                 ", c =>
             {
@@ -309,13 +309,16 @@ namespace HotChocolate.Execution
         public async Task ResolveRootTypeWithCustomNames(string rootType)
         {
             // arrange
-            Schema schema = Schema.Create(@"
+            string queryType = rootType == "query"
+                ? string.Empty
+                : "type Query { a : String }";
+
+            var schema = Schema.Create(@"
                 type Foo { a: String }
                 schema { " + rootType + @": Foo }
-                ", c =>
+                " + queryType, c =>
             {
-                c.BindResolver(() => "hello world")
-                    .To("Foo", "a");
+                c.Use(n => ctx => Task.CompletedTask);
             });
 
             var request = new QueryRequest("query a { a }");
@@ -344,7 +347,7 @@ namespace HotChocolate.Execution
         public async Task ParseQueryMiddleware_ValidQuery_DocumentIsSet()
         {
             // arrange
-            Schema schema = Schema.Create(@"
+            var schema = Schema.Create(@"
                 type Query { a(b:String): String }
                 ", c =>
             {

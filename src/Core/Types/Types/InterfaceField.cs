@@ -1,37 +1,13 @@
-﻿using System;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     public class InterfaceField
-        : ObjectFieldBase
+        : OutputFieldBase<InterfaceFieldDefinition>
     {
-        internal InterfaceField(Action<IInterfaceFieldDescriptor> configure)
-            : this(() => ExecuteConfigure(configure))
+        public InterfaceField(InterfaceFieldDefinition definition)
+            : base(definition)
         {
-        }
-
-        internal InterfaceField(
-            Func<InterfaceFieldDescription> descriptionFactory)
-            : this(DescriptorHelpers.ExecuteFactory(descriptionFactory))
-        {
-        }
-
-        internal InterfaceField(InterfaceFieldDescription fieldDescription)
-            : base(fieldDescription)
-        {
-        }
-
-        private static InterfaceFieldDescription ExecuteConfigure(
-            Action<IInterfaceFieldDescriptor> configure)
-        {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            var descriptor = new InterfaceFieldDescriptor();
-            configure(descriptor);
-            return descriptor.CreateDescription();
         }
     }
 }

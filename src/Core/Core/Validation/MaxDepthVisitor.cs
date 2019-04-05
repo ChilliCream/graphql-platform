@@ -33,16 +33,16 @@ namespace HotChocolate.Validation
 
         protected override void VisitDocument(
             DocumentNode node,
-            MaxDepthVisitor.Context context)
+            Context context)
         {
-            foreach (var fragment in node.Definitions
+            foreach (FragmentDefinitionNode fragment in node.Definitions
                 .OfType<FragmentDefinitionNode>()
                 .Where(t => t.Name?.Value != null))
             {
                 context.Fragments[fragment.Name.Value] = fragment;
             }
 
-            foreach (var operation in node.Definitions
+            foreach (OperationDefinitionNode operation in node.Definitions
                 .OfType<OperationDefinitionNode>())
             {
                 VisitOperationDefinition(operation, context);
@@ -51,9 +51,9 @@ namespace HotChocolate.Validation
 
         protected override void VisitField(
             FieldNode node,
-            MaxDepthVisitor.Context context)
+            Context context)
         {
-            MaxDepthVisitor.Context current = context.AddField(node);
+            Context current = context.AddField(node);
 
             if (current.FieldPath.Count > _maxExecutionDepth)
             {
@@ -65,7 +65,7 @@ namespace HotChocolate.Validation
 
         protected override void VisitFragmentSpread(
             FragmentSpreadNode node,
-            MaxDepthVisitor.Context context)
+            Context context)
         {
             base.VisitFragmentSpread(node, context);
 

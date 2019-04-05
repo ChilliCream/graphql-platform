@@ -11,10 +11,8 @@ namespace HotChocolate.Types
         public DecimalType()
             : base("Decimal")
         {
+            Description = TypeResources.DecimalType_Description;
         }
-
-        public override string Description =>
-            TypeResources.DecimalType_Description;
 
         public override Type ClrType => typeof(decimal);
 

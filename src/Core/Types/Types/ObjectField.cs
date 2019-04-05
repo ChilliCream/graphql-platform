@@ -1,61 +1,27 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     public class ObjectField
-        : ObjectFieldBase
+        : OutputFieldBase<ObjectFieldDefinition>
         , IObjectField
     {
-        private readonly List<InterfaceField> _interfaceFields =
-            new List<InterfaceField>();
         private readonly List<IDirective> _executableDirectives =
             new List<IDirective>();
-        private List<FieldMiddleware> _middlewareComponents;
-        private readonly Type _sourceType;
-        private readonly Type _resolverType;
-        private readonly MemberInfo _member;
 
-        internal ObjectField(NameString fieldName,
-            Action<IObjectFieldDescriptor> configure)
-            : this(() => ExecuteConfigure(fieldName, configure))
+        internal ObjectField(ObjectFieldDefinition definition)
+            : base(definition)
         {
-        }
-
-        internal ObjectField(Func<ObjectFieldDescription> descriptionFactory)
-            : this(DescriptorHelpers.ExecuteFactory(descriptionFactory))
-        {
-        }
-
-        internal ObjectField(ObjectFieldDescription fieldDescription)
-            : base(fieldDescription)
-        {
-            _sourceType = fieldDescription.SourceType ?? typeof(object);
-            _resolverType = fieldDescription.ResolverType;
-            _member = fieldDescription.ClrMember;
-            _middlewareComponents = fieldDescription.MiddlewareComponents;
-
-            Resolver = fieldDescription.Resolver;
-            InterfaceFields = _interfaceFields.AsReadOnly();
+            Member = definition.Member;
+            Resolver = definition.Resolver;
             ExecutableDirectives = _executableDirectives.AsReadOnly();
-        }
-
-        private static ObjectFieldDescription ExecuteConfigure(
-            NameString fieldName,
-            Action<IObjectFieldDescriptor> configure)
-        {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            var descriptor = new ObjectFieldDescriptor(fieldName);
-            configure(descriptor);
-            return descriptor.CreateDescription();
         }
 
         public new ObjectType DeclaringType => (ObjectType)base.DeclaringType;
@@ -71,11 +37,6 @@ namespace HotChocolate.Types
         public FieldResolverDelegate Resolver { get; private set; }
 
         /// <summary>
-        /// Gets the interface fields that are implemented by this object field.
-        /// </summary>
-        public IReadOnlyCollection<InterfaceField> InterfaceFields { get; }
-
-        /// <summary>
         /// Gets all executable directives that are associated with this field.
         /// </summary>
         public IReadOnlyCollection<IDirective> ExecutableDirectives { get; }
@@ -84,48 +45,23 @@ namespace HotChocolate.Types
         /// Gets the associated .net type member of this field.
         /// This member can be <c>null</c>.
         /// </summary>
-        public MemberInfo ClrMember => _member;
+        public MemberInfo Member { get; }
 
-        protected override void OnRegisterDependencies(
-            ITypeInitializationContext context)
+        [Obsolete("Use Member.")]
+        public MemberInfo ClrMember => Member;
+
+        protected override void OnCompleteField(
+            ICompletionContext context,
+            ObjectFieldDefinition definition)
         {
-            base.OnRegisterDependencies(context);
+            base.OnCompleteField(context, definition);
 
-            if (_member != null)
-            {
-                context.RegisterResolver(
-                    _sourceType, _resolverType, Name, _member);
-            }
-        }
-
-        protected override void OnCompleteType(
-            ITypeInitializationContext context)
-        {
-            base.OnCompleteType(context);
-
-            CompleteInterfaceFields(context);
             CompleteExecutableDirectives(context);
-            CompleteResolver(context);
-        }
-
-        private void CompleteInterfaceFields(
-            ITypeInitializationContext context)
-        {
-            if (context.Type is ObjectType ot && ot.Interfaces.Count > 0)
-            {
-                foreach (InterfaceType interfaceType in ot.Interfaces.Values)
-                {
-                    if (interfaceType.Fields
-                        .TryGetField(Name, out InterfaceField field))
-                    {
-                        _interfaceFields.Add(field);
-                    }
-                }
-            }
+            CompleteResolver(context, definition);
         }
 
         private void CompleteExecutableDirectives(
-            ITypeInitializationContext context)
+            ICompletionContext context)
         {
             var processed = new HashSet<string>();
 
@@ -155,17 +91,30 @@ namespace HotChocolate.Types
         }
 
         private void CompleteResolver(
-            ITypeInitializationContext context)
+            ICompletionContext context,
+            ObjectFieldDefinition definition)
         {
-            if (Resolver == null)
+            bool isIntrospectionField = IsIntrospectionField
+                || DeclaringType.IsIntrospectionType();
+
+            Resolver = definition.Resolver;
+
+            if (Resolver == null || !isIntrospectionField)
             {
-                Resolver = context.GetResolver(Name);
+                var fieldReference = new FieldReference(
+                    context.Type.Name, definition.Name);
+                FieldResolver resolver = context.GetResolver(fieldReference);
+                if (resolver != null)
+                {
+                    Resolver = resolver.Resolver;
+                }
             }
 
-            Middleware = context.CreateMiddleware(
-                _middlewareComponents, Resolver,
-                IsIntrospectionField
-                || DeclaringType.IsIntrospectionType());
+            Middleware = FieldMiddlewareCompiler.Compile(
+                context.GlobalComponents,
+                definition.MiddlewareComponents.ToArray(),
+                Resolver,
+                isIntrospectionField);
 
             if (Resolver == null && Middleware == null)
             {
@@ -175,13 +124,16 @@ namespace HotChocolate.Types
                 }
                 else
                 {
-                    context.ReportError(new SchemaError(
-                        $"The field `{context.Type.Name}.{Name}` " +
-                        "has no resolver.", (INamedType)context.Type));
+                    context.ReportError(SchemaErrorBuilder.New()
+                        .SetMessage(
+                            $"The field `{context.Type.Name}.{Name}` " +
+                            "has no resolver.")
+                        .SetCode(TypeErrorCodes.NoResolver)
+                        .SetTypeSystemObject(context.Type)
+                        .AddSyntaxNode(definition.SyntaxNode)
+                        .Build());
                 }
             }
-
-            _middlewareComponents = null;
         }
     }
 }

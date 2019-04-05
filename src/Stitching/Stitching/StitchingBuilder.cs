@@ -12,6 +12,7 @@ using HotChocolate.Stitching.Utilities;
 using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Language;
+using HotChocolate.Configuration;
 
 namespace HotChocolate.Stitching
 {

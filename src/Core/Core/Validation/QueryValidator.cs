@@ -29,7 +29,7 @@ namespace HotChocolate.Validation
                 throw new ArgumentNullException(nameof(queryDocument));
             }
 
-            List<IError> errors = new List<IError>();
+            var errors = new List<IError>();
             for (int i = 0; i < _rules.Length; i++)
             {
                 QueryValidationResult result = _rules[i].Validate(

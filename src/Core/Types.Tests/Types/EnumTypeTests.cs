@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HotChocolate.Language;
 using Xunit;
 
@@ -10,26 +10,29 @@ namespace HotChocolate.Types
         public void EnumType_WithDirectives()
         {
             // act
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
-                c.RegisterDirective(new DirectiveType(
-                    d => d.Name("Foo").Location(DirectiveLocation.Enum)));
-                c.RegisterType(new EnumType<Foo>(
-                    d => d.Directive(new DirectiveNode("Foo"))));
+                c.RegisterDirective(new DirectiveType(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.Enum)));
+
+                c.RegisterType(new EnumType<Foo>(d => d
+                    .Directive(new DirectiveNode("bar"))));
+
                 c.Options.StrictValidation = false;
             });
 
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
             Assert.Collection(type.Directives,
-                t => Assert.Equal("Foo", t.Type.Name));
+                t => Assert.Equal("bar", t.Type.Name));
         }
 
         [Fact]
         public void ImplicitEnumType_DetectEnumValues()
         {
             // act
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.RegisterType(new EnumType<Foo>());
                 c.Options.StrictValidation = false;
@@ -48,7 +51,7 @@ namespace HotChocolate.Types
         public void ExplicitEnumType_OnlyContainDeclaredValues()
         {
             // act
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.RegisterType(new EnumType<Foo>(d =>
                 {
@@ -71,7 +74,7 @@ namespace HotChocolate.Types
         public void ImplicitEnumType_OnlyBar1HasCustomName()
         {
             // act
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.RegisterType(new EnumType<Foo>(d =>
                 {
@@ -114,7 +117,7 @@ namespace HotChocolate.Types
         public void EnsureEnumTypeKindIsCorrect()
         {
             // act
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.RegisterType(new EnumType<Foo>());
                 c.Options.StrictValidation = false;

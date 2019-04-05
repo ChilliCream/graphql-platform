@@ -44,7 +44,7 @@ namespace HotChocolate.Utilities
             }
 
             if (typeNode.Kind == NodeKind.NamedType
-                && schema.TryGetType<INamedType>(
+                && schema.TryGetType(
                     ((NamedTypeNode)typeNode).Name.Value,
                     out INamedType namedType))
             {

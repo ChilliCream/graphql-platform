@@ -1,18 +1,17 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using HotChocolate.Configuration;
+﻿using System.Linq;
 using Xunit;
 
 namespace HotChocolate.Types.Relay
 {
     public class PageInfoTypeTests
+        : TypeTestBase
     {
         [Fact]
         public void CheckThatNameIsCorrect()
         {
             // arrange
             // act
-            var type = new PageInfoType();
+            var type = CreateType(new PageInfoType());
 
             // assert
             Assert.Equal("PageInfo", type.Name);
@@ -22,21 +21,17 @@ namespace HotChocolate.Types.Relay
         public void CheckFieldsAreCorrect()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-
             // act
-            var type = new PageInfoType();
+            PageInfoType type = CreateType(new PageInfoType());
 
             // assert
-            INeedsInitialization init = type;
-
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), type, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Collection(type.Fields.Where(t => !t.IsIntrospectionField),
+            Assert.Collection(
+                type.Fields.Where(t => !t.IsIntrospectionField).OrderBy(t => t.Name),
+                t =>
+                {
+                    Assert.Equal("endCursor", t.Name);
+                    Assert.IsType<StringType>(t.Type);
+                },
                 t =>
                 {
                     Assert.Equal("hasNextPage", t.Name);
@@ -60,11 +55,6 @@ namespace HotChocolate.Types.Relay
                 t =>
                 {
                     Assert.Equal("startCursor", t.Name);
-                    Assert.IsType<StringType>(t.Type);
-                },
-                t =>
-                {
-                    Assert.Equal("endCursor", t.Name);
                     Assert.IsType<StringType>(t.Type);
                 });
         }

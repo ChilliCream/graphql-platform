@@ -1,18 +1,17 @@
-﻿using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Configuration;
 using Xunit;
 
 namespace HotChocolate.Types.Relay
 {
     public class EdgeTypeTests
+        : TypeTestBase
     {
         [Fact]
         public void CheckThatNameIsCorrect()
         {
             // arrange
             // act
-            var type = new EdgeType<StringType>();
+            EdgeType<StringType> type = CreateType(new EdgeType<StringType>());
 
             // assert
             Assert.Equal("StringEdge", type.Name);
@@ -22,20 +21,10 @@ namespace HotChocolate.Types.Relay
         public void CheckFieldsAreCorrect()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-
             // act
-            var type = new EdgeType<StringType>();
+            EdgeType<StringType> type = CreateType(new EdgeType<StringType>());
 
             // assert
-            INeedsInitialization init = type;
-
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), type, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
             Assert.Collection(type.Fields.Where(t => !t.IsIntrospectionField),
                 t =>
                 {

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
@@ -10,9 +11,9 @@ namespace HotChocolate.Types.Factories
         : ITypeFactory<DirectiveDefinitionNode, DirectiveType>
     {
         private static readonly
-            Dictionary<Language.DirectiveLocation, DirectiveLocation> _locs =
-            new Dictionary<Language.DirectiveLocation, DirectiveLocation>
-            {
+           Dictionary<Language.DirectiveLocation, DirectiveLocation> _locs =
+           new Dictionary<Language.DirectiveLocation, DirectiveLocation>
+           {
                 {
                     Language.DirectiveLocation.Query,
                     DirectiveLocation.Query
@@ -85,15 +86,36 @@ namespace HotChocolate.Types.Factories
                     Language.DirectiveLocation.InputFieldDefinition,
                     DirectiveLocation.InputFieldDefinition
                 },
-            };
+           };
 
-        public DirectiveType Create(DirectiveDefinitionNode node)
+        public DirectiveType Create(
+            IBindingLookup bindingLookup,
+            DirectiveDefinitionNode node)
         {
+            if (bindingLookup == null)
+            {
+                throw new ArgumentNullException(nameof(bindingLookup));
+            }
+
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
+            ITypeBindingInfo bindingInfo =
+                bindingLookup.GetBindingInfo(node.Name.Value);
+
             return new DirectiveType(c =>
             {
                 c.Name(node.Name.Value);
                 c.Description(node.Description?.Value);
                 c.SyntaxNode(node);
+
+                if (bindingInfo.SourceType != null)
+                {
+                    c.Extend().OnBeforeCreate(
+                        t => t.ClrType = bindingInfo.SourceType);
+                }
 
                 if (node.IsRepeatable)
                 {
@@ -111,17 +133,12 @@ namespace HotChocolate.Types.Factories
         {
             foreach (InputValueDefinitionNode inputField in node.Arguments)
             {
-                IArgumentDescriptor descriptor = typeDescriptor
+                IDirectiveArgumentDescriptor descriptor = typeDescriptor
                     .Argument(inputField.Name.Value)
                     .Description(inputField.Description?.Value)
                     .Type(inputField.Type)
                     .DefaultValue(inputField.DefaultValue)
                     .SyntaxNode(inputField);
-
-                foreach (DirectiveNode directive in inputField.Directives)
-                {
-                    descriptor.Directive(directive);
-                }
             }
         }
 

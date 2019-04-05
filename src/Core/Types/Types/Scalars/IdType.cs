@@ -23,10 +23,8 @@ namespace HotChocolate.Types
         public IdType()
             : base("ID")
         {
+            Description = TypeResources.IdType_Description;
         }
-
-        public override string Description =>
-            TypeResources.IdType_Description;
 
         public override Type ClrType => typeof(string);
 

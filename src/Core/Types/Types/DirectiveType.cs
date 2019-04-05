@@ -1,134 +1,131 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
     public class DirectiveType
-        : TypeSystemBase
+        : TypeSystemObjectBase<DirectiveTypeDefinition>
         , IHasName
         , IHasDescription
+        , IHasClrType
     {
+        private readonly Action<IDirectiveTypeDescriptor> _configure;
         private ITypeConversion _converter;
-        private IDirectiveMiddleware _middleware;
 
         protected DirectiveType()
         {
-            Initialize(Configure);
+            _configure = Configure;
         }
 
         public DirectiveType(Action<IDirectiveTypeDescriptor> configure)
         {
-            Initialize(configure);
+            _configure = configure
+                ?? throw new ArgumentNullException(nameof(configure));
         }
-
-        internal Type ClrType { get; private set; }
 
         public DirectiveDefinitionNode SyntaxNode { get; private set; }
 
-        public NameString Name { get; private set; }
-
-        public string Description { get; private set; }
+        public Type ClrType { get; private set; }
 
         public bool IsRepeatable { get; private set; }
 
         public ICollection<DirectiveLocation> Locations { get; private set; }
 
-        public FieldCollection<InputField> Arguments { get; private set; }
+        public FieldCollection<Argument> Arguments { get; private set; }
 
-        public DirectiveMiddleware Middleware { get; private set; }
+        public IReadOnlyList<DirectiveMiddleware> MiddlewareComponents
+        { get; private set; }
 
         public bool IsExecutable { get; private set; }
 
-        #region Configuration
+        #region Initialization
 
-        internal virtual DirectiveTypeDescriptor CreateDescriptor() =>
-            new DirectiveTypeDescriptor();
+        protected override DirectiveTypeDefinition CreateDefinition(
+            IInitializationContext context)
+        {
+            var descriptor = DirectiveTypeDescriptor.New(
+                DescriptorContext.Create(context.Services),
+                GetType());
+            _configure(descriptor);
+            return descriptor.CreateDefinition();
+        }
 
         protected virtual void Configure(IDirectiveTypeDescriptor descriptor)
         {
         }
 
-        #endregion
-
-        #region  Initialization
-
-        private void Initialize(Action<IDirectiveTypeDescriptor> configure)
+        protected override void OnRegisterDependencies(
+            IInitializationContext context,
+            DirectiveTypeDefinition definition)
         {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
+            base.OnRegisterDependencies(context, definition);
 
-            DirectiveTypeDescriptor descriptor = CreateDescriptor();
-            configure(descriptor);
+            ClrType = definition.ClrType != GetType()
+                ? definition.ClrType
+                : typeof(object);
 
-            DirectiveTypeDescription description =
-                descriptor.CreateDescription();
-
-            ClrType = description.ClrType;
-            SyntaxNode = description.SyntaxNode;
-            Name = description.Name;
-            Description = description.Description;
-            IsRepeatable = description.IsRepeatable;
-            Locations = description.Locations.ToList().AsReadOnly();
-            Arguments = new FieldCollection<InputField>(
-                description.Arguments.Select(t => new InputField(t)));
-            _middleware = description.Middleware;
+            RegisterDependencies(context, definition);
         }
 
-        protected override void OnRegisterDependencies(
-            ITypeInitializationContext context)
+        private void RegisterDependencies(
+           IInitializationContext context,
+           DirectiveTypeDefinition definition)
         {
-            base.OnRegisterDependencies(context);
+            var dependencies = new List<ITypeReference>();
 
-            if (Locations.Count == 0)
-            {
-                context.ReportError(new SchemaError(
-                    $"The `{Name}` directive does not declare any " +
-                    "location on which it is valid."));
-            }
-
-            foreach (INeedsInitialization argument in Arguments
-                .Cast<INeedsInitialization>())
-            {
-                argument.RegisterDependencies(context);
-            }
-
-            if (_middleware != null)
-            {
-                context.RegisterMiddleware(_middleware);
-            }
+            context.RegisterDependencyRange(
+                definition.Arguments.Select(t => t.Type),
+                TypeDependencyKind.Completed);
         }
 
         protected override void OnCompleteType(
-            ITypeInitializationContext context)
+            ICompletionContext context,
+            DirectiveTypeDefinition definition)
         {
-            base.OnCompleteType(context);
+            base.OnCompleteType(context, definition);
 
             _converter = context.Services.GetTypeConversion();
+            MiddlewareComponents =
+                definition.MiddlewareComponents.ToList().AsReadOnly();
 
-            foreach (INeedsInitialization argument in Arguments
-                .Cast<INeedsInitialization>())
+            SyntaxNode = definition.SyntaxNode;
+            ClrType = definition.ClrType == GetType()
+                ? typeof(object)
+                : definition.ClrType;
+            IsRepeatable = definition.IsRepeatable;
+            Locations = definition.Locations.ToList().AsReadOnly();
+            Arguments = new FieldCollection<Argument>(
+                definition.Arguments.Select(t => new Argument(t)));
+            IsExecutable = MiddlewareComponents.Count > 0;
+
+            if (!Locations.Any())
             {
-                argument.CompleteType(context);
+                // TODO : resources
+                context.ReportError(SchemaErrorBuilder.New()
+                    .SetMessage(
+                        $"The `{Name}` directive does not declare any " +
+                        "location on which it is valid.")
+                    .SetCode(TypeErrorCodes.MissingType)
+                    .SetTypeSystemObject(context.Type)
+                    .AddSyntaxNode(definition.SyntaxNode)
+                    .Build());
             }
 
-            if (context.GetMiddleware(Name) is DirectiveDelegateMiddleware m)
-            {
-                Middleware = m.Middleware;
-                IsExecutable = true;
-            }
+            FieldInitHelper.CompleteFields(context, definition, Arguments);
         }
 
         #endregion
 
         internal object DeserializeArgument(
-            InputField argument,
+            Argument argument,
             IValueNode valueNode,
             Type targetType)
         {
@@ -160,43 +157,10 @@ namespace HotChocolate.Types
         }
 
         internal T DeserializeArgument<T>(
-            InputField argument,
+            Argument argument,
             IValueNode valueNode)
         {
             return (T)DeserializeArgument(argument, valueNode, typeof(T));
         }
-    }
-
-    public class DirectiveType<TDirective>
-        : DirectiveType
-        where TDirective : class
-    {
-        protected DirectiveType()
-        {
-        }
-
-        public DirectiveType(Action<IDirectiveTypeDescriptor> configure)
-            : base(configure)
-        {
-        }
-
-        #region Configuration
-
-        internal sealed override DirectiveTypeDescriptor CreateDescriptor() =>
-            new DirectiveTypeDescriptor<TDirective>();
-
-        protected sealed override void Configure(
-            IDirectiveTypeDescriptor descriptor)
-        {
-            Configure((IDirectiveTypeDescriptor<TDirective>)descriptor);
-        }
-
-        protected virtual void Configure(
-            IDirectiveTypeDescriptor<TDirective> descriptor)
-        {
-
-        }
-
-        #endregion
     }
 }

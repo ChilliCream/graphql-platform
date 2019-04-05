@@ -101,7 +101,7 @@ namespace HotChocolate.Utilities
 
             // act
             bool success = TypeConversion.Default.TryConvert(
-                typeof(int), typeof(Nullable<long>),
+                typeof(int), typeof(long?),
                 source, out object output);
 
             // assert
@@ -114,11 +114,11 @@ namespace HotChocolate.Utilities
         public void Convert_NullableInt_NullableLong()
         {
             // arrange
-            Nullable<int> source = 55;
+            int? source = 55;
 
             // act
             bool success = TypeConversion.Default.TryConvert(
-                typeof(Nullable<int>), typeof(Nullable<long>),
+                typeof(int?), typeof(long?),
                 source, out object output);
 
             // assert
@@ -133,7 +133,7 @@ namespace HotChocolate.Utilities
             // arrange
             // act
             bool success = TypeConversion.Default.TryConvert(
-                typeof(string), typeof(Nullable<long>),
+                typeof(string), typeof(long?),
                 null, out object output);
 
             // assert
@@ -146,11 +146,11 @@ namespace HotChocolate.Utilities
         public void Convert_NullableLong_Int()
         {
             // arrange
-            Nullable<long> source = 55;
+            long? source = 55;
 
             // act
             bool success = TypeConversion.Default.TryConvert(
-                typeof(Nullable<long>), typeof(int),
+                typeof(long?), typeof(int),
                 source, out object output);
 
             // assert
@@ -183,7 +183,7 @@ namespace HotChocolate.Utilities
         {
             // arrange
             const string expectedOutput = "2d84dcd634394ebe8427f4b1e1730c47";
-            Guid input = Guid.Parse(expectedOutput);
+            var input = Guid.Parse(expectedOutput);
 
             // act
             bool success = TypeConversion.Default.TryConvert(
@@ -391,13 +391,13 @@ namespace HotChocolate.Utilities
 
             // act
             bool success = TypeConversion.Default.TryConvert(
-                typeof(string[]), typeof(List<Nullable<FooOrBar>>),
+                typeof(string[]), typeof(List<FooOrBar?>),
                 list, out object output);
 
             // assert
             Assert.True(success);
-            Assert.IsType<List<Nullable<FooOrBar>>>(output);
-            Assert.Collection((List<Nullable<FooOrBar>>)output,
+            Assert.IsType<List<FooOrBar?>>(output);
+            Assert.Collection((List<FooOrBar?>)output,
                 t => Assert.Equal(FooOrBar.Foo, t),
                 t => Assert.Equal(FooOrBar.Bar, t));
         }

@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
             OperationDefinitionNode operation =
                 query.Definitions.OfType<OperationDefinitionNode>().Single();
 
-            Schema schema = Schema.Create(
+            var schema = Schema.Create(
                 FileResource.Open("MergeSchema.graphql"),
                 c => c.Use(next => context => Task.CompletedTask));
 
@@ -45,13 +45,13 @@ namespace HotChocolate.Execution
                     Assert.Collection(selection.Selection.SelectionSet.Selections,
                         selectionNode =>
                         {
-                            var fragment = Assert.IsType<FragmentSpreadNode>(
+                            FragmentSpreadNode fragment = Assert.IsType<FragmentSpreadNode>(
                                 selectionNode);
                             Assert.Equal("app", fragment.Name.Value);
                         },
                         selectionNode =>
                         {
-                            var fragment = Assert.IsType<FragmentSpreadNode>(
+                            FragmentSpreadNode fragment = Assert.IsType<FragmentSpreadNode>(
                                 selectionNode);
                             Assert.Equal("parts", fragment.Name.Value);
                         });
@@ -68,7 +68,7 @@ namespace HotChocolate.Execution
             OperationDefinitionNode operation =
                 query.Definitions.OfType<OperationDefinitionNode>().Single();
 
-            Schema schema = Schema.Create(
+            var schema = Schema.Create(
                 FileResource.Open("MergeSchema.graphql"),
                 c => c.Use(next => context => Task.CompletedTask));
 

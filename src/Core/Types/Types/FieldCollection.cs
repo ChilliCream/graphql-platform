@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +9,8 @@ namespace HotChocolate.Types
         : IFieldCollection<T>
         where T : IField
     {
-        private readonly Dictionary<NameString, T> _fields;
+        private readonly Dictionary<NameString, T> _fieldsLookup;
+        private readonly List<T> _fields;
 
         public FieldCollection(IEnumerable<T> fields)
         {
@@ -18,33 +19,34 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(fields));
             }
 
-            _fields = fields.ToDictionary(t => (NameString)t.Name);
-            Count = _fields.Count;
+            _fields = fields.OrderBy(t => t.Name).ToList();
+            _fieldsLookup = _fields.ToDictionary(t => t.Name);
+
             IsEmpty = _fields.Count == 0;
         }
 
-        public T this[string fieldName] => _fields[fieldName];
+        public T this[string fieldName] => _fieldsLookup[fieldName];
 
-        public int Count { get; }
+        public int Count => _fields.Count;
 
         public bool IsEmpty { get; }
 
         public bool ContainsField(NameString fieldName)
         {
-            return _fields.ContainsKey(
+            return _fieldsLookup.ContainsKey(
                 fieldName.EnsureNotEmpty(nameof(fieldName)));
         }
 
         public bool TryGetField(NameString fieldName, out T field)
         {
-            return _fields.TryGetValue(
+            return _fieldsLookup.TryGetValue(
                 fieldName.EnsureNotEmpty(nameof(fieldName)),
                 out field);
         }
 
         public IEnumerator<T> GetEnumerator()
         {
-            return _fields.Values.GetEnumerator();
+            return _fields.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
