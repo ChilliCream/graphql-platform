@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
@@ -14,6 +15,8 @@ namespace HotChocolate.Configuration
         bool IsDirective { get; }
 
         IServiceProvider Services { get; }
+
+        IDictionary<string, object> ContextData { get; }
 
         void ReportError(ISchemaError error);
     }

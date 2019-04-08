@@ -57,6 +57,9 @@ namespace HotChocolate.Configuration
 
         public IServiceProvider Services => _initializationContext.Services;
 
+        public IDictionary<string, object> ContextData =>
+            _initializationContext.ContextData;
+
         public T GetType<T>(ITypeReference reference)
             where T : IType
         {

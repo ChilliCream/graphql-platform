@@ -4,7 +4,7 @@ using HotChocolate.Types.Relay;
 
 namespace HotChocolate
 {
-    public static class RelayMiddlewareConfigurationExtensions
+    public static class IdMiddlewareConfigurationExtensions
     {
         public static IMiddlewareConfiguration UseGlobalObjectIdentifier(
             this IMiddlewareConfiguration configuration)

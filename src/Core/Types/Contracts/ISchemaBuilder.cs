@@ -53,6 +53,14 @@ namespace HotChocolate
 
         ISchemaBuilder AddServices(IServiceProvider services);
 
+        ISchemaBuilder AddContextData(string key, object value);
+
+        ISchemaBuilder SetContextData(string key, object value);
+
+        ISchemaBuilder RemoveContextData(string key);
+
+        ISchemaBuilder ClearContextData();
+
         ISchema Create();
     }
 }

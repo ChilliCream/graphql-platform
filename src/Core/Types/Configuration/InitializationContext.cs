@@ -17,12 +17,15 @@ namespace HotChocolate.Configuration
 
         public InitializationContext(
             ITypeSystemObject type,
-            IServiceProvider services)
+            IServiceProvider services,
+            IDictionary<string, object> contextData)
         {
             Type = type
                 ?? throw new ArgumentNullException(nameof(type));
             Services = services
                 ?? throw new ArgumentNullException(nameof(services));
+            ContextData = contextData
+                ?? throw new ArgumentNullException(nameof(contextData));
 
             IsDirective = type is DirectiveType;
 
@@ -58,6 +61,8 @@ namespace HotChocolate.Configuration
 
         public ICollection<ISchemaError> Errors { get; } =
             new List<ISchemaError>();
+
+        public IDictionary<string, object> ContextData { get; }
 
         public void RegisterDependency(
             ITypeReference reference,

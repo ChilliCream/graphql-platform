@@ -28,6 +28,7 @@ namespace HotChocolate
                 serviceProvider,
                 initialTypes,
                 new List<Type>(),
+                new Dictionary<string, object>(),
                 null,
                 t => t is FooType);
 
@@ -71,6 +72,7 @@ namespace HotChocolate
                 serviceProvider,
                 initialTypes,
                 new List<Type>(),
+                new Dictionary<string, object>(),
                 null,
                 t => t is ObjectType<Foo>);
 

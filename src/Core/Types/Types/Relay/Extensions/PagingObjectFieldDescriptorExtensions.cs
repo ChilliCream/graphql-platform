@@ -5,7 +5,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Relay
 {
-    public static class ObjectFieldDescriptorExtensions
+    public static class PagingObjectFieldDescriptorExtensions
     {
         public static IObjectFieldDescriptor UsePaging<TSchemaType, TClrType>(
             this IObjectFieldDescriptor descriptor)

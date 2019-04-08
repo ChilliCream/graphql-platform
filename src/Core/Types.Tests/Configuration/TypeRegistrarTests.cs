@@ -24,7 +24,9 @@ namespace HotChocolate
             var serviceProvider = new EmptyServiceProvider();
 
             var typeRegistrar = new TypeRegistrar(
-                serviceProvider, initialTypes);
+                serviceProvider,
+                initialTypes,
+                new Dictionary<string, object>());
 
             // act
             typeRegistrar.Complete();
@@ -56,7 +58,9 @@ namespace HotChocolate
             var serviceProvider = new EmptyServiceProvider();
 
             var typeRegistrar = new TypeRegistrar(
-                serviceProvider, initialTypes);
+                serviceProvider,
+                initialTypes,
+                new Dictionary<string, object>());
 
             // act
             typeRegistrar.Complete();

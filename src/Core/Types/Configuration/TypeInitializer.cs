@@ -37,6 +37,7 @@ namespace HotChocolate.Configuration
         private readonly IServiceProvider _services;
         private readonly List<ITypeReference> _initialTypes;
         private readonly List<Type> _externalResolverTypes;
+        private readonly IDictionary<string, object> _contextData;
         private readonly IsOfTypeFallback _isOfType;
         private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
 
@@ -44,6 +45,7 @@ namespace HotChocolate.Configuration
             IServiceProvider services,
             IEnumerable<ITypeReference> initialTypes,
             IEnumerable<Type> externalResolverTypes,
+            IDictionary<string, object> contextData,
             IsOfTypeFallback isOfType,
             Func<TypeSystemObjectBase, bool> isQueryType)
         {
@@ -59,6 +61,8 @@ namespace HotChocolate.Configuration
 
             _services = services
                 ?? throw new ArgumentNullException(nameof(services));
+            _contextData = contextData
+                ?? throw new ArgumentNullException(nameof(contextData));
             _isOfType = isOfType;
             _isQueryType = isQueryType
                 ?? throw new ArgumentNullException(nameof(isQueryType));
@@ -130,7 +134,8 @@ namespace HotChocolate.Configuration
 
         private bool RegisterTypes()
         {
-            var typeRegistrar = new TypeRegistrar(_services, _initialTypes);
+            var typeRegistrar = new TypeRegistrar(
+                _services, _initialTypes, _contextData);
             if (typeRegistrar.Complete())
             {
                 foreach (InitializationContext context in
