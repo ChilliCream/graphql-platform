@@ -233,4 +233,9 @@ namespace HotChocolate.Types
 
         #endregion
     }
+
+    public class ObjectTypeExtension
+    {
+
+    }
 }
