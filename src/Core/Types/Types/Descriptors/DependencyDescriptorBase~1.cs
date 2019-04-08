@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Descriptors
     {
         private readonly TypeConfiguration<T> _configuration;
 
-        public DependencyDescriptorBase(TypeConfiguration<T> configuration)
+        protected DependencyDescriptorBase(TypeConfiguration<T> configuration)
         {
             _configuration = configuration
                 ?? throw new ArgumentNullException(nameof(configuration));

@@ -7,6 +7,43 @@ namespace HotChocolate.Types
     public class EnumTypeTests
     {
         [Fact]
+        public void EnumType_DynamicName()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new EnumType(d => d
+                    .Name(dep => dep.Name + "Enum")
+                    .DependsOn<StringType>()
+                    .Item("BAR")));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("StringEnum");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void GenericEnumType_DynamicName()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new EnumType<Foo>(d => d
+                    .Name(dep => dep.Name + "Enum")
+                    .DependsOn<StringType>()));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("StringEnum");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
         public void EnumType_WithDirectives()
         {
             // act
@@ -134,5 +171,4 @@ namespace HotChocolate.Types
             Bar2
         }
     }
-
 }
