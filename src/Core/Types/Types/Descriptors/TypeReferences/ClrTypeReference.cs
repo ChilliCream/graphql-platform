@@ -55,7 +55,7 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            if(Context != other.Context
+            if (Context != other.Context
                 && Context != TypeContext.None
                 && other.Context != TypeContext.None)
             {
@@ -138,6 +138,34 @@ namespace HotChocolate.Types.Descriptors
             return new ClrTypeReference(
                 Type, TypeContext.None,
                 IsTypeNullable, IsElementTypeNullable);
+        }
+
+        public static ClrTypeReference FromSchemaType<T>()
+            where T : ITypeSystem
+        {
+            return new ClrTypeReference(
+                typeof(T),
+                SchemaTypeReference.InferTypeContext(typeof(T)));
+        }
+
+        public static ClrTypeReference FromSchemaType(Type schemaType)
+        {
+            if (schemaType == null)
+            {
+                throw new ArgumentNullException(nameof(schemaType));
+            }
+
+            if (typeof(ITypeSystem).IsAssignableFrom(schemaType))
+            {
+
+                return new ClrTypeReference(
+                    schemaType,
+                    SchemaTypeReference.InferTypeContext(schemaType));
+            }
+
+            // TODO : resources
+            throw new ArgumentException(
+                "Only type system objects are allowed.");
         }
     }
 }

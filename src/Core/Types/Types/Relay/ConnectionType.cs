@@ -31,6 +31,9 @@ namespace HotChocolate.Types.Relay
         protected new static void Configure(
             IObjectTypeDescriptor<IConnection> descriptor)
         {
+            descriptor.Name(dependency => dependency.Name + "Connection")
+                .DependsOn<T>();
+
             descriptor.Description("A connection to a list of items.");
 
             descriptor.BindFields(BindingBehavior.Explicit);
@@ -52,24 +55,9 @@ namespace HotChocolate.Types.Relay
         {
             base.OnRegisterDependencies(context, definition);
 
-            context.RegisterDependency(new ClrTypeReference(
-                typeof(T), TypeContext.Output),
-                TypeDependencyKind.Named);
-            context.RegisterDependency(new ClrTypeReference(
-                typeof(EdgeType<T>), TypeContext.Output),
+            context.RegisterDependency(
+                ClrTypeReference.FromSchemaType<EdgeType<T>>(),
                 TypeDependencyKind.Default);
-        }
-
-        protected override void OnCompleteName(
-            ICompletionContext context,
-            ObjectTypeDefinition definition)
-        {
-            base.OnCompleteName(context, definition);
-
-            INamedType namedType = context.GetType<INamedType>(
-                new ClrTypeReference(typeof(T), TypeContext.Output));
-
-            Name = namedType.Name + "Connection";
         }
 
         protected override void OnCompleteType(
@@ -79,8 +67,7 @@ namespace HotChocolate.Types.Relay
             base.OnCompleteType(context, definition);
 
             EdgeType = context.GetType<EdgeType<T>>(
-                new ClrTypeReference(typeof(EdgeType<T>),
-                TypeContext.Output));
+                ClrTypeReference.FromSchemaType<EdgeType<T>>());
         }
 
         public static ConnectionType<T> CreateWithTotalCount()

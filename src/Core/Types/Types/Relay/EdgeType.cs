@@ -9,19 +9,15 @@ namespace HotChocolate.Types.Relay
     public class EdgeType<T>
         : ObjectType<IEdge>
         , IEdgeType
-        where T : IOutputType, new()
+        where T : IOutputType
     {
         public IOutputType EntityType { get; private set; }
 
         protected override void Configure(
             IObjectTypeDescriptor<IEdge> descriptor)
         {
-            if (!NamedTypeInfoFactory.Default.TryExtractName(
-                typeof(T), out NameString name))
-            {
-                throw new InvalidOperationException(
-                    $"Unable to extract a name from {typeof(T).FullName}.");
-            }
+            descriptor.Name(dependency => dependency.Name + "Edge")
+                .DependsOn<T>();
 
             descriptor.Description("An edge in a connection.");
 
@@ -38,31 +34,6 @@ namespace HotChocolate.Types.Relay
                 .Type<T>();
         }
 
-        protected override void OnRegisterDependencies(
-            IInitializationContext context,
-            ObjectTypeDefinition definition)
-        {
-            base.OnRegisterDependencies(context, definition);
-
-            context.RegisterDependency(
-                new ClrTypeReference(
-                    typeof(T),
-                    TypeContext.Output),
-                TypeDependencyKind.Named);
-        }
-
-        protected override void OnCompleteName(
-            ICompletionContext context,
-            ObjectTypeDefinition definition)
-        {
-            base.OnCompleteName(context, definition);
-
-            INamedType namedType = context.GetType<INamedType>(
-                new ClrTypeReference(typeof(T), TypeContext.Output));
-
-            Name = namedType.Name + "Edge";
-        }
-
         protected override void OnCompleteType(
             ICompletionContext context,
             ObjectTypeDefinition definition)
@@ -70,9 +41,7 @@ namespace HotChocolate.Types.Relay
             base.OnCompleteType(context, definition);
 
             EntityType = context.GetType<T>(
-                new ClrTypeReference(
-                    typeof(T),
-                    TypeContext.Output));
+                ClrTypeReference.FromSchemaType<T>());
         }
     }
 }
