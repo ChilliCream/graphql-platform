@@ -41,3 +41,4 @@ namespace HotChocolate.Types
             throw new NotSupportedException();
         }
     }
+}
