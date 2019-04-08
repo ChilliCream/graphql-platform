@@ -460,7 +460,7 @@ namespace HotChocolate.Types
                 }
 
                 schema {
-                  query: C                
+                  query: C
                 }
             ";
 
@@ -493,7 +493,7 @@ namespace HotChocolate.Types
                 }
 
                 schema {
-                  query: C                
+                  query: C
                 }
             ";
 
@@ -551,6 +551,90 @@ namespace HotChocolate.Types
 
             // assert
             schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_FuncString_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolver(() => "fooBar"));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ _123 }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_ConstantString_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolver("fooBar"));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ _123 }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_FuncCtxString_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolver(ctx => ctx.Field.Name.Value));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ _123 }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_FuncCtxCtString_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolver((ctx, ct) => ctx.Field.Name.Value));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ _123 }").MatchSnapshot();
         }
 
         [Fact]
