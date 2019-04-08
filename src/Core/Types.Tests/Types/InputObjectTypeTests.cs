@@ -9,6 +9,82 @@ namespace HotChocolate.Types
         : TypeTestBase
     {
         [Fact]
+        public void InputObjectType_DynamicName()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new InputObjectType(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn<StringType>()
+                    .Field("bar")
+                    .Type<StringType>()));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            InputObjectType type = schema.GetType<InputObjectType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void InputObjectType_DynamicName_NonGeneric()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new InputObjectType(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn(typeof(StringType))
+                    .Field("bar")
+                    .Type<StringType>()));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            InputObjectType type = schema.GetType<InputObjectType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void GenericInputObjectType_DynamicName()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new InputObjectType<SimpleInput>(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn<StringType>()));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            InputObjectType type = schema.GetType<InputObjectType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void GenericInputObjectType_DynamicName_NonGeneric()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new InputObjectType<SimpleInput>(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn(typeof(StringType))));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            InputObjectType type = schema.GetType<InputObjectType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
         public void Initialize_IgnoreProperty_PropertyIsNotInSchemaType()
         {
             // arrange

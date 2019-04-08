@@ -26,6 +26,25 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void EnumType_DynamicName_NonGeneric()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new EnumType(d => d
+                    .Name(dep => dep.Name + "Enum")
+                    .DependsOn(typeof(StringType))
+                    .Item("BAR")));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("StringEnum");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
         public void GenericEnumType_DynamicName()
         {
             // act
@@ -34,6 +53,24 @@ namespace HotChocolate.Types
                 c.RegisterType(new EnumType<Foo>(d => d
                     .Name(dep => dep.Name + "Enum")
                     .DependsOn<StringType>()));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("StringEnum");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void GenericEnumType_DynamicName_NonGeneric()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new EnumType<Foo>(d => d
+                    .Name(dep => dep.Name + "Enum")
+                    .DependsOn(typeof(StringType))));
 
                 c.Options.StrictValidation = false;
             });

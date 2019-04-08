@@ -14,6 +14,84 @@ namespace HotChocolate.Types
         : TypeTestBase
     {
         [Fact]
+        public void ObjectType_DynamicName()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new ObjectType(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn<StringType>()
+                    .Field("bar")
+                    .Type<StringType>()
+                    .Resolver("foo")));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void ObjectType_DynamicName_NonGeneric()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new ObjectType(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn(typeof(StringType))
+                    .Field("bar")
+                    .Type<StringType>()
+                    .Resolver("foo")));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void GenericObjectType_DynamicName()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new ObjectType<Foo>(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn<StringType>()));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void GenericObjectType_DynamicName_NonGeneric()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new ObjectType<Foo>(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn(typeof(StringType))));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
         public void IntializeExplicitFieldWithImplicitResolver()
         {
             // arrange
