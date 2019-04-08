@@ -31,11 +31,6 @@ namespace HotChocolate.Types.Descriptors
 
         public ITypeNode Type { get; }
 
-        public ISyntaxTypeReference Compile()
-        {
-            throw new NotImplementedException();
-        }
-
         public bool Equals(SyntaxTypeReference other)
         {
             if (other is null)

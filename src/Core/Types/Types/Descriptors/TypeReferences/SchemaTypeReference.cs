@@ -50,11 +50,6 @@ namespace HotChocolate.Types.Descriptors
 
         public object Type { get; }
 
-        public ISyntaxTypeReference Compile()
-        {
-            throw new NotImplementedException();
-        }
-
         public bool Equals(SchemaTypeReference other)
         {
             if (other is null)
@@ -113,12 +108,12 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            if (obj is SyntaxTypeReference str)
+            if (obj is SchemaTypeReference str)
             {
                 return Equals(str);
             }
 
-            if (obj is ISyntaxTypeReference istr)
+            if (obj is ISchemaTypeReference istr)
             {
                 return Equals(istr);
             }
