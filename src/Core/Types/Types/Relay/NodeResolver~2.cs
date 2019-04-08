@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Relay
     internal sealed class NodeResolver<TNode, TId>
         : INodeResolver
     {
-        private NodeResolverDelegate<TNode, TId> _resolver;
+        private readonly NodeResolverDelegate<TNode, TId> _resolver;
 
         public NodeResolver(NodeResolverDelegate<TNode, TId> resolver)
         {
