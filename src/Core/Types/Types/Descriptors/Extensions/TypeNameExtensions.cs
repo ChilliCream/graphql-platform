@@ -41,5 +41,113 @@ namespace HotChocolate.Types
             return new ObjectTypeNameDependencyDescriptor<T>(
                 descriptor, createName);
         }
+
+        public static IEnumTypeNameDependencyDescriptor Name(
+            this IEnumTypeDescriptor descriptor,
+            Func<INamedType, NameString> createName)
+        {
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            if (createName == null)
+            {
+                throw new ArgumentNullException(nameof(createName));
+            }
+
+            return new EnumTypeNameDependencyDescriptor(
+                descriptor, createName);
+        }
+
+        public static IEnumTypeNameDependencyDescriptor<T> Name<T>(
+            this IEnumTypeDescriptor<T> descriptor,
+            Func<INamedType, NameString> createName)
+        {
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            if (createName == null)
+            {
+                throw new ArgumentNullException(nameof(createName));
+            }
+
+            return new EnumTypeNameDependencyDescriptor<T>(
+                descriptor, createName);
+        }
+
+        public static IInputObjectTypeNameDependencyDescriptor Name(
+            this IInputObjectTypeDescriptor descriptor,
+            Func<INamedType, NameString> createName)
+        {
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            if (createName == null)
+            {
+                throw new ArgumentNullException(nameof(createName));
+            }
+
+            return new InputObjectTypeNameDependencyDescriptor(
+                descriptor, createName);
+        }
+
+        public static IInputObjectTypeNameDependencyDescriptor<T> Name<T>(
+            this IInputObjectTypeDescriptor<T> descriptor,
+            Func<INamedType, NameString> createName)
+        {
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            if (createName == null)
+            {
+                throw new ArgumentNullException(nameof(createName));
+            }
+
+            return new InputObjectTypeNameDependencyDescriptor<T>(
+                descriptor, createName);
+        }
+
+        public static IInterfaceTypeNameDependencyDescriptor Name(
+            this IInterfaceTypeDescriptor descriptor,
+            Func<INamedType, NameString> createName)
+        {
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            if (createName == null)
+            {
+                throw new ArgumentNullException(nameof(createName));
+            }
+
+            return new InterfaceTypeNameDependencyDescriptor(
+                descriptor, createName);
+        }
+
+        public static IInterfaceTypeNameDependencyDescriptor<T> Name<T>(
+            this IInterfaceTypeDescriptor<T> descriptor,
+            Func<INamedType, NameString> createName)
+        {
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            if (createName == null)
+            {
+                throw new ArgumentNullException(nameof(createName));
+            }
+
+            return new InterfaceTypeNameDependencyDescriptor<T>(
+                descriptor, createName);
+        }
     }
 }
