@@ -149,5 +149,23 @@ namespace HotChocolate.Types
             return new InterfaceTypeNameDependencyDescriptor<T>(
                 descriptor, createName);
         }
+
+        public static IUnionTypeNameDependencyDescriptor Name(
+            this IUnionTypeDescriptor descriptor,
+            Func<INamedType, NameString> createName)
+        {
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            if (createName == null)
+            {
+                throw new ArgumentNullException(nameof(createName));
+            }
+
+            return new UnionTypeNameDependencyDescriptor(
+                descriptor, createName);
+        }
     }
 }
