@@ -22,6 +22,8 @@ namespace HotChocolate.Stitching.Schemas.Customers
 
             configuration.RegisterQueryType<QueryType>();
             configuration.RegisterMutationType<MutationType>();
+
+            configuration.RegisterExtendedScalarTypes();
             configuration.UseGlobalObjectIdentifier();
         }
 

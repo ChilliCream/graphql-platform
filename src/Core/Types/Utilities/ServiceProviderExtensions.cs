@@ -1,13 +1,20 @@
 ﻿using System;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Utilities
 {
-    internal static class ServiceProviderExtensions
+    public static class ServiceProviderExtensions
     {
         public static ITypeConversion GetTypeConversion(
             this IServiceProvider services)
         {
             return GetServiceOrDefault(services, TypeConversion.Default);
+        }
+
+        public static ITypeConversion GetTypeConversion(
+            this IResolverContext services)
+        {
+            return services.Service<IServiceProvider>().GetTypeConversion();
         }
 
         public static T GetServiceOrDefault<T>(

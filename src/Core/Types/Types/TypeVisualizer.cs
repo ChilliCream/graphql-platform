@@ -2,14 +2,14 @@
 
 namespace HotChocolate.Types
 {
-    internal static class TypeVisualizer
+    public static class TypeVisualizer
     {
         public static string Visualize(this IType type)
         {
             return Visualize(type, 0);
         }
 
-        public static string Visualize(IType type, int count)
+        private static string Visualize(IType type, int count)
         {
             if (count > 3)
             {

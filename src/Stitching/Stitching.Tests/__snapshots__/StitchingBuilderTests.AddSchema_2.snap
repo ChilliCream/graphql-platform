@@ -5,6 +5,8 @@ type Query {
   contract(contractId: ID!): Contract @delegate(schema: "contract")
   contracts(customerId: ID!): [Contract!] @delegate(schema: "contract")
   extendedScalar(d: DateTime): DateTime @delegate(schema: "contract")
+  int(i: Int!): Int! @delegate(schema: "contract")
+  guid(guid: Uuid!): Uuid! @delegate(schema: "contract")
 }
 
 type Mutation {
@@ -28,6 +30,8 @@ type Customer @source(name: "Customer", schema: "customer") {
   street: String!
   consultant(customer: CustomerInput): Consultant
   say(input: SayInput!): String
+  someInt: Int!
+  someGuid: Uuid!
 }
 
 "A connection to a list of items."
@@ -72,6 +76,8 @@ input CustomerInput @source(name: "CustomerInput", schema: "customer") {
   name: String
   street: String
   consultantId: String
+  someInt: Int!
+  someGuid: Uuid!
 }
 
 input SayInput @source(name: "SayInput", schema: "customer") {

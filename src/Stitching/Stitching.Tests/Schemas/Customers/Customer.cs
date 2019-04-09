@@ -1,3 +1,5 @@
+using System;
+
 namespace HotChocolate.Stitching.Schemas.Customers
 {
     public class Customer
@@ -7,5 +9,7 @@ namespace HotChocolate.Stitching.Schemas.Customers
         public string Name { get; set; }
         public string Street { get; set; }
         public string ConsultantId { get; set; }
+        public int SomeInt { get; set; }
+        public Guid SomeGuid { get; set; }
     }
 }
