@@ -19,6 +19,8 @@ namespace HotChocolate.Types
         public override IReadOnlyDictionary<string, object> ContextData =>
             _contextData;
 
+        internal TDefinition Definition => _definition;
+
         internal sealed override void Initialize(IInitializationContext context)
         {
             _definition = CreateDefinition(context);

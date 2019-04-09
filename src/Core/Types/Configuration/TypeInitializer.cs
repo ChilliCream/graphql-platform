@@ -94,6 +94,7 @@ namespace HotChocolate.Configuration
 
             if (CompleteNames(schemaResolver))
             {
+                MergeTypeExtensions();
                 RegisterExternalResolvers();
                 CompileResolvers();
                 CompleteTypes();
@@ -167,6 +168,46 @@ namespace HotChocolate.Configuration
             return false;
         }
 
+        private void MergeTypeExtensions()
+        {
+            var extensions = _types.Values.Select(t => t.Type)
+                .OfType<INamedTypeExtensionMerger>()
+                .ToList();
+
+            if (extensions.Count > 0)
+            {
+                var types = _types.Values.Select(t => t.Type)
+                    .OfType<INamedType>()
+                    .ToList();
+
+                foreach (INamedTypeExtensionMerger extension in extensions)
+                {
+                    INamedType type = types.FirstOrDefault(t =>
+                        t.Name.Equals(extension.Name));
+                    if (type != null)
+                    {
+                        MergeTypeExtension(extension, type);
+                    }
+                }
+            }
+        }
+
+        private void MergeTypeExtension(
+            INamedTypeExtensionMerger extension,
+            INamedType type)
+        {
+            if (extension.Kind != type.Kind)
+            {
+                // TODO : resources
+                throw new SchemaException(SchemaErrorBuilder.New()
+                    .SetMessage("Cannot merge type!")
+                    .SetTypeSystemObject((ITypeSystemObject)type)
+                    .Build());
+            }
+
+            extension.Merge(type);
+        }
+
         private void RegisterExternalResolvers()
         {
             if (_externalResolverTypes.Count == 0)
@@ -194,7 +235,7 @@ namespace HotChocolate.Configuration
                         if (types.TryGetValue(typeName,
                             out ObjectType objectType))
                         {
-
+                            AddResolvers(descriptorContext, objectType, type);
                         }
                     }
                 }
@@ -206,6 +247,10 @@ namespace HotChocolate.Configuration
                     {
                         ObjectType objectType = types.Values
                             .FirstOrDefault(t => t.GetType() == sourceType);
+                        if (objectType != null)
+                        {
+                            AddResolvers(descriptorContext, objectType, type);
+                        }
                     }
                 }
             }
@@ -312,9 +357,9 @@ namespace HotChocolate.Configuration
                     {
                         // TODO : resources
                         _errors.Add(SchemaErrorBuilder.New()
-                            .SetMessage("Duplicate name!")
-                            .SetTypeSystemObject(registeredType.Type)
-                            .Build());
+                                .SetMessage("Duplicate name!")
+                                .SetTypeSystemObject(registeredType.Type)
+                                .Build());
                         return false;
                     }
 
