@@ -285,6 +285,10 @@ namespace HotChocolate.Stitching
             IOutputField field,
             ICollection<VariableValue> variables)
         {
+            ITypeConversion typeConversion =
+                context.Service<IServiceProvider>()
+                    .GetTypeConversion();
+
             foreach (ArgumentNode argument in component.Arguments)
             {
                 if (!field.Arguments.TryGetField(argument.Name.Value,
@@ -305,16 +309,37 @@ namespace HotChocolate.Stitching
                     VariableValue variable =
                         _resolvers.Resolve(context, sv, arg.Type.ToTypeNode());
 
-                    if (arg.Type.IsLeafType()
-                        && arg.Type.NamedType() is ISerializableType s)
+                    if (context.Schema.TryGetType(
+                        arg.Type.NamedType().Name,
+                        out ILeafType leafType))
                     {
+                        object value = variable.Value;
+
+                        if (!leafType.IsInstanceOfType(value))
+                        {
+                            value = typeConversion.Convert(
+                                typeof(object), leafType.ClrType, value);
+                        }
+
                         variable = new VariableValue
                         (
                             variable.Name,
                             variable.Type,
-                            s.Serialize(variable.Value),
+                            leafType.Serialize(value),
                             variable.DefaultValue
                         );
+                    }
+                    else
+                    {
+                        // TODO : resources
+                        throw new QueryException(
+                            ErrorBuilder.New()
+                                .SetMessage(string.Format(
+                                    CultureInfo.InvariantCulture,
+                                    "Serialize argument {0} of type {1}.",
+                                    arg.Name, arg.Type.Visualize()))
+                                .SetPath(context.Path)
+                                .Build());
                     }
 
                     variables.Add(variable);
