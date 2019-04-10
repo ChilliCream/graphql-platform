@@ -34,6 +34,7 @@ namespace HotChocolate.Types
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
+                descriptor.Name("Foo");
                 descriptor.Field("test")
                     .Resolver(() => new List<string>())
                     .Type<ListType<StringType>>();

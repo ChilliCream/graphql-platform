@@ -56,9 +56,11 @@ namespace HotChocolate.Types
                     Definition.Fields,
                     objectType.Definition.Fields);
             }
-
-            // TODO : resources
-            throw new ArgumentException("CANNOT MERGE");
+            else
+            {
+                // TODO : resources
+                throw new ArgumentException("CANNOT MERGE");
+            }
         }
     }
 

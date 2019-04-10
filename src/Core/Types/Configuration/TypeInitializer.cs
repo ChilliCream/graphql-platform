@@ -356,17 +356,22 @@ namespace HotChocolate.Configuration
 
                     registeredType.Type.CompleteName(completionContext);
 
-                    if (_named.ContainsKey(registeredType.Type.Name))
+                    if (registeredType.Type is INamedType
+                        || registeredType.Type is DirectiveType)
                     {
-                        // TODO : resources
-                        _errors.Add(SchemaErrorBuilder.New()
-                                .SetMessage("Duplicate name!")
-                                .SetTypeSystemObject(registeredType.Type)
-                                .Build());
-                        return false;
+                        if (_named.ContainsKey(registeredType.Type.Name))
+                        {
+                            // TODO : resources
+                            _errors.Add(SchemaErrorBuilder.New()
+                                    .SetMessage("Duplicate name!")
+                                    .SetTypeSystemObject(registeredType.Type)
+                                    .Build());
+                            return false;
+                        }
+                        _named[registeredType.Type.Name] =
+                            registeredType.Reference;
                     }
 
-                    _named[registeredType.Type.Name] = registeredType.Reference;
                     return true;
                 });
 
