@@ -35,6 +35,8 @@ namespace HotChocolate
 
         ISchemaBuilder AddType(INamedType type);
 
+        ISchemaBuilder AddType(INamedTypeExtension type);
+
         ISchemaBuilder AddRootType(
             Type type,
             OperationType operation);

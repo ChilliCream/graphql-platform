@@ -632,6 +632,25 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void ObjectType_ResolverOverrides_FieldMember()
+        {
+            // arrange
+            var objectType = new ObjectType<Foo>(t => t
+                .Field(f => f.Description)
+                .Resolver("World"));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ description }").MatchSnapshot();
+        }
+
+        [Fact]
         public void ObjectType_FuncString_Resolver()
         {
             // arrange

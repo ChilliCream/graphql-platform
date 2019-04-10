@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
+using System.Collections.Generic;
 
 namespace HotChocolate.Types
 {
@@ -12,6 +13,7 @@ namespace HotChocolate.Types
         where TDefinition : FieldDefinitionBase
     {
         private TDefinition _definition;
+        private Dictionary<string, object> _contextData;
 
         protected FieldBase(TDefinition definition)
         {
@@ -37,6 +39,9 @@ namespace HotChocolate.Types
 
         public virtual Type ClrType { get; private set; }
 
+        public IReadOnlyDictionary<string, object> ContextData =>
+            _contextData;
+
         internal void CompleteField(ICompletionContext context)
         {
             DeclaringType = context.Type;
@@ -51,6 +56,9 @@ namespace HotChocolate.Types
             Directives = directives;
 
             OnCompleteField(context, _definition);
+
+            _contextData = new Dictionary<string, object>(
+                _definition.ContextData);
             _definition = null;
         }
 

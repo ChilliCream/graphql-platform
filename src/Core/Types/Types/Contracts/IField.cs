@@ -1,4 +1,6 @@
-﻿namespace HotChocolate.Types
+﻿using System.Collections.Generic;
+
+namespace HotChocolate.Types
 {
     public interface IField
         : IHasName
@@ -9,5 +11,7 @@
         /// The type of which declares this field.
         /// </summary>
         ITypeSystemObject DeclaringType { get; }
+
+        IReadOnlyDictionary<string, object> ContextData { get; }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
@@ -19,6 +20,15 @@ namespace HotChocolate.Types
                     if (extensionField.Resolver != null)
                     {
                         typeField.Resolver = extensionField.Resolver;
+                    }
+
+                    if (extensionField.MiddlewareComponents.Count > 0)
+                    {
+                        foreach (FieldMiddleware component in
+                            extensionField.MiddlewareComponents)
+                        {
+                            typeField.MiddlewareComponents.Add(component);
+                        }
                     }
                 });
         }
