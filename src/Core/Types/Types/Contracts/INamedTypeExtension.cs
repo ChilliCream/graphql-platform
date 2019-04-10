@@ -1,3 +1,5 @@
+using HotChocolate.Configuration;
+
 namespace HotChocolate.Types
 {
     public interface INamedTypeExtension
@@ -9,6 +11,6 @@ namespace HotChocolate.Types
     internal interface INamedTypeExtensionMerger
         : INamedTypeExtension
     {
-        void Merge(INamedType type);
+        void Merge(ICompletionContext context, INamedType type);
     }
 }

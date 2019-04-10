@@ -170,8 +170,8 @@ namespace HotChocolate.Configuration
 
         private void MergeTypeExtensions()
         {
-            var extensions = _types.Values.Select(t => t.Type)
-                .OfType<INamedTypeExtensionMerger>()
+            var extensions = _types.Values
+                .Where(t => t.Type is INamedTypeExtensionMerger)
                 .ToList();
 
             if (extensions.Count > 0)
@@ -180,19 +180,22 @@ namespace HotChocolate.Configuration
                     .OfType<INamedType>()
                     .ToList();
 
-                foreach (INamedTypeExtensionMerger extension in extensions)
+                foreach (RegisteredType extension in extensions)
                 {
                     INamedType type = types.FirstOrDefault(t =>
-                        t.Name.Equals(extension.Name));
-                    if (type != null)
+                        t.Name.Equals(extension.Type.Name));
+                    if (type != null
+                        && extension.Type is INamedTypeExtensionMerger m)
                     {
-                        MergeTypeExtension(extension, type);
+                        ICompletionContext context = _cmpCtx[extension];
+                        MergeTypeExtension(context, m, type);
                     }
                 }
             }
         }
 
         private void MergeTypeExtension(
+            ICompletionContext context,
             INamedTypeExtensionMerger extension,
             INamedType type)
         {
@@ -205,7 +208,7 @@ namespace HotChocolate.Configuration
                     .Build());
             }
 
-            extension.Merge(type);
+            extension.Merge(context, type);
         }
 
         private void RegisterExternalResolvers()
