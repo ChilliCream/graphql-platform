@@ -9,7 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-## [0.8.1] - 2019-03-31
+## [0.8.2] - 2019-04-10
+
+### Fixed
+
+- Some scalars did not work in stitched schemas and lead to a serialization exception.
+- IntValueNode IValueNode.Equals was not implemented correctly and lead always to false. [#681](https://github.com/ChilliCream/hotchocolate/issues/681)
+
+
+## [0.8.1] - 2019-03-29
 
 ### Added
 
