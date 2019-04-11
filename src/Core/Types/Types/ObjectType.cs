@@ -67,7 +67,7 @@ namespace HotChocolate.Types
         {
             base.OnRegisterDependencies(context, definition);
 
-            RegisterDependencies(context, definition);
+            context.RegisterDependencies(definition);
 
             foreach (ObjectFieldDefinition field in definition.Fields)
             {
@@ -80,41 +80,6 @@ namespace HotChocolate.Types
                         field.ResolverType);
                 }
             }
-        }
-
-        private void RegisterDependencies(
-            IInitializationContext context,
-            ObjectTypeDefinition definition)
-        {
-            var dependencies = new List<ITypeReference>();
-
-            context.RegisterDependencyRange(
-                definition.Interfaces,
-                TypeDependencyKind.Default);
-
-            context.RegisterDependencyRange(
-                definition.Fields.Select(t => t.Type),
-                TypeDependencyKind.Default);
-
-            context.RegisterDependencyRange(
-                definition.Fields.SelectMany(t => t.Arguments)
-                    .Select(t => t.Type),
-                TypeDependencyKind.Completed);
-
-            context.RegisterDependencyRange(
-                definition.Directives.Select(t => t.TypeReference),
-                TypeDependencyKind.Completed);
-
-            context.RegisterDependencyRange(
-                definition.Fields.SelectMany(t => t.Directives)
-                    .Select(t => t.TypeReference),
-                TypeDependencyKind.Completed);
-
-            context.RegisterDependencyRange(
-                definition.Fields.SelectMany(t => t.Arguments)
-                    .SelectMany(t => t.Directives)
-                    .Select(t => t.TypeReference),
-                TypeDependencyKind.Completed);
         }
 
         protected override void OnCompleteType(

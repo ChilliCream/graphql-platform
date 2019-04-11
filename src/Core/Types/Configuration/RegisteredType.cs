@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
@@ -42,7 +43,26 @@ namespace HotChocolate.Configuration
         public RegisteredType WithDependencies(
             IReadOnlyList<TypeDependency> dependencies)
         {
-            return new RegisteredType(Reference, Type, Dependencies);
+            if (dependencies == null)
+            {
+                throw new ArgumentNullException(nameof(dependencies));
+            }
+
+            return new RegisteredType(Reference, Type, dependencies);
+        }
+
+        public RegisteredType AddDependencies(
+            IReadOnlyList<TypeDependency> dependencies)
+        {
+            if (dependencies == null)
+            {
+                throw new ArgumentNullException(nameof(dependencies));
+            }
+
+            var merged = Dependencies.ToList();
+            merged.AddRange(dependencies);
+
+            return new RegisteredType(Reference, Type, merged);
         }
     }
 }

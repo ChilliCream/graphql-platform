@@ -36,6 +36,14 @@ namespace HotChocolate.Types
 
         protected virtual void Configure(IObjectTypeDescriptor descriptor) { }
 
+        protected override void OnRegisterDependencies(
+            IInitializationContext context,
+            ObjectTypeDefinition definition)
+        {
+            base.OnRegisterDependencies(context, definition);
+            context.RegisterDependencies(definition);
+        }
+
         internal override void Merge(
             ICompletionContext context,
             INamedType type)

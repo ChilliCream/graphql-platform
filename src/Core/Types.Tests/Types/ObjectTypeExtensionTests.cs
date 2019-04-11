@@ -5,6 +5,8 @@ using HotChocolate.Resolvers;
 using Xunit;
 using Snapshooter.Xunit;
 using System;
+using HotChocolate.Language;
+using System.Linq;
 
 namespace HotChocolate.Types
 {
@@ -221,16 +223,108 @@ namespace HotChocolate.Types
                 .Directives.Contains("dummy"));
         }
 
+        [Fact]
+        public void TypeExtension_ReplaceDirectiveOnType()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(new ObjectType<Foo>(t => t
+                    .Directive("dummy_arg", new ArgumentNode("a", "a"))))
+                .AddType(new ObjectTypeExtension(d => d
+                    .Name("Foo")
+                    .Directive("dummy_arg", new ArgumentNode("a", "b"))))
+                .AddDirectiveType<DummyWithArgDirective>()
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            string value = type.Directives["dummy_arg"]
+                .First().GetArgument<string>("a");
+            Assert.Equal("b", value);
+        }
+
+        [Fact]
+        public void TypeExtension_ReplaceDirectiveOnField()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(new ObjectType<Foo>(t => t
+                    .Field(f => f.Description)
+                    .Directive("dummy_arg", new ArgumentNode("a", "a"))))
+                .AddType(new ObjectTypeExtension(d => d
+                    .Name("Foo")
+                    .Field("name")
+                    .Directive("dummy_arg", new ArgumentNode("a", "b"))))
+                .AddDirectiveType<DummyWithArgDirective>()
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            string value = type.Fields["name"].Directives["dummy_arg"]
+                .First().GetArgument<string>("a");
+            Assert.Equal("b", value);
+        }
+
+        [Fact]
+        public void TypeExtension_ReplaceDirectiveOnArgument()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(new ObjectType<Foo>(t => t
+                    .Field(f => f.GetName(default))
+                    .Argument("a", a => a
+                        .Type<StringType>()
+                        .Directive("dummy_arg", new ArgumentNode("a", "a")))))
+                .AddType(new ObjectTypeExtension(d => d
+                    .Name("Foo")
+                    .Field("name")
+                    .Argument("a", a =>
+                        a.Directive("dummy_arg", new ArgumentNode("a", "b")))))
+                .AddDirectiveType<DummyWithArgDirective>()
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            string value = type.Fields["name"].Arguments["a"]
+                .Directives["dummy_arg"]
+                .First().GetArgument<string>("a");
+            Assert.Equal("b", value);
+        }
+
+        [Fact]
+        public void TypeExtension_CopyDependencies_ToType()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<FooType>()
+                .AddType(new ObjectTypeExtension(d => d
+                    .Name("Foo")
+                    .Field("name")
+                    .Argument("a", a =>
+                        a.Directive("dummy_arg", new ArgumentNode("a", "b")))))
+                .AddDirectiveType<DummyWithArgDirective>()
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            string value = type.Fields["name"].Arguments["a"]
+                .Directives["dummy_arg"]
+                .First().GetArgument<string>("a");
+            Assert.Equal("b", value);
+        }
+
 
         // TODO : ADD THE FOLLOWING TESTS:
 
-        // Replace Directive to Type
-        // Replace Directive to Field
-        // Replace Directive to Argument
         // Add Repeatable Directive to Type
         // Add Repeatable Directive to Field
         // Add Repeatable Directive to Argument
         // RESOLVER TYPE
+        // incomplete new field should raise an error
 
         public class FooType
             : ObjectType<Foo>
@@ -272,6 +366,20 @@ namespace HotChocolate.Types
                 IDirectiveTypeDescriptor descriptor)
             {
                 descriptor.Name("dummy");
+                descriptor.Location(DirectiveLocation.Object);
+                descriptor.Location(DirectiveLocation.FieldDefinition);
+                descriptor.Location(DirectiveLocation.ArgumentDefinition);
+            }
+        }
+
+        public class DummyWithArgDirective
+            : DirectiveType
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("dummy_arg");
+                descriptor.Argument("a").Type<StringType>();
                 descriptor.Location(DirectiveLocation.Object);
                 descriptor.Location(DirectiveLocation.FieldDefinition);
                 descriptor.Location(DirectiveLocation.ArgumentDefinition);

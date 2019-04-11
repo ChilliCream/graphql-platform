@@ -176,20 +176,29 @@ namespace HotChocolate.Configuration
 
             if (extensions.Count > 0)
             {
-                var types = _types.Values.Select(t => t.Type)
-                    .OfType<INamedType>()
+                var types = _types.Values
+                    .Where(t => t.Type is INamedType)
                     .ToList();
 
                 foreach (RegisteredType extension in extensions)
                 {
-                    INamedType type = types.FirstOrDefault(t =>
-                        t.Name.Equals(extension.Type.Name));
+                    RegisteredType type = types.FirstOrDefault(t =>
+                        t.Type.Name.Equals(extension.Type.Name));
+
                     if (type != null
-                        && extension.Type is INamedTypeExtensionMerger m)
+                        && extension.Type is INamedTypeExtensionMerger m
+                        && type.Type is INamedType n)
                     {
+                        // merge
                         CompletionContext context = _cmpCtx[extension];
                         context.Status = TypeStatus.Named;
-                        MergeTypeExtension(context, m, type);
+                        MergeTypeExtension(context, m, n);
+
+                        // update dependencies
+                        context = _cmpCtx[type];
+                        type = type.AddDependencies(extension.Dependencies);
+                        _types[type.Reference] = type;
+                        _cmpCtx[type] = context;
                     }
                 }
             }
@@ -486,7 +495,8 @@ namespace HotChocolate.Configuration
                     if (TryNormalizeDependencies(
                         type,
                         references,
-                        out IReadOnlyList<ITypeReference> normalized))
+                        out IReadOnlyList<ITypeReference> normalized)
+                        && processed.IsSupersetOf(normalized))
                     {
                         yield return type;
                     }
