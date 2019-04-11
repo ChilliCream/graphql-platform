@@ -106,7 +106,7 @@ namespace HotChocolate.Types
             var directives =
                 new List<(DirectiveType type, DirectiveDefinition def)>();
 
-            foreach (DirectiveDefinition directive in extension)
+            foreach (DirectiveDefinition directive in type)
             {
                 DirectiveType directiveType =
                     context.GetDirectiveType(directive.Reference);
@@ -116,6 +116,14 @@ namespace HotChocolate.Types
             foreach (DirectiveDefinition directive in extension)
             {
                 MergeDirective(context, directives, directive);
+            }
+
+            type.Clear();
+
+            foreach (DirectiveDefinition directive in
+                directives.Select(t => t.def))
+            {
+                type.Add(directive);
             }
         }
 

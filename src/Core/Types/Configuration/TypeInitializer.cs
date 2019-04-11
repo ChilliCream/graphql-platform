@@ -187,7 +187,8 @@ namespace HotChocolate.Configuration
                     if (type != null
                         && extension.Type is INamedTypeExtensionMerger m)
                     {
-                        ICompletionContext context = _cmpCtx[extension];
+                        CompletionContext context = _cmpCtx[extension];
+                        context.Status = TypeStatus.Named;
                         MergeTypeExtension(context, m, type);
                     }
                 }

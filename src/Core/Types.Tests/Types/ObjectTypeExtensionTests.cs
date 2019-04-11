@@ -163,18 +163,74 @@ namespace HotChocolate.Types
                 .ContextData.ContainsKey("foo"));
         }
 
+        [Fact]
+        public void TypeExtension_SetDirectiveOnType()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<FooType>()
+                .AddType(new ObjectTypeExtension(d => d
+                    .Name("Foo")
+                    .Directive("dummy")))
+                .AddDirectiveType<DummyDirective>()
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            Assert.True(type.Directives.Contains("dummy"));
+        }
+
+        [Fact]
+        public void TypeExtension_SetDirectiveOnField()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<FooType>()
+                .AddType(new ObjectTypeExtension(d => d
+                    .Name("Foo")
+                    .Field("name")
+                    .Directive("dummy")))
+                .AddDirectiveType<DummyDirective>()
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            Assert.True(type.Fields["name"]
+                .Directives.Contains("dummy"));
+        }
+
+        [Fact]
+        public void TypeExtension_SetDirectiveOnArgument()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<FooType>()
+                .AddType(new ObjectTypeExtension(d => d
+                    .Name("Foo")
+                    .Field("name")
+                    .Argument("a", a => a.Directive("dummy"))))
+                .AddDirectiveType<DummyDirective>()
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            Assert.True(type.Fields["name"].Arguments["a"]
+                .Directives.Contains("dummy"));
+        }
+
 
         // TODO : ADD THE FOLLOWING TESTS:
 
-        // Add Directive to Type
-        // Add Directive to Field
-        // Add Directive to Argument
         // Replace Directive to Type
         // Replace Directive to Field
         // Replace Directive to Argument
         // Add Repeatable Directive to Type
         // Add Repeatable Directive to Field
         // Add Repeatable Directive to Argument
+        // RESOLVER TYPE
 
         public class FooType
             : ObjectType<Foo>
@@ -212,8 +268,13 @@ namespace HotChocolate.Types
         public class DummyDirective
             : DirectiveType
         {
-            public DummyDirective(Action<IDirectiveTypeDescriptor> configure) : base(configure)
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
             {
+                descriptor.Name("dummy");
+                descriptor.Location(DirectiveLocation.Object);
+                descriptor.Location(DirectiveLocation.FieldDefinition);
+                descriptor.Location(DirectiveLocation.ArgumentDefinition);
             }
         }
     }
