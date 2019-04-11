@@ -326,6 +326,9 @@ namespace HotChocolate.Types
         // RESOLVER TYPE
         // incomplete new field should raise an error
 
+
+
+
         public class FooType
             : ObjectType<Foo>
         {
