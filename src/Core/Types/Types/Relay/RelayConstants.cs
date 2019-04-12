@@ -6,6 +6,5 @@ namespace HotChocolate.Types.Relay
             "HotChocolate.Relay.NodeResolver";
         public const string IsRelaySupportEnabled =
             "HotChocolate.Relay.IsEnabled";
-
     }
 }
