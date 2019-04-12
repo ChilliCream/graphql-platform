@@ -23,7 +23,7 @@ namespace HotChocolate.Types
             _configure = configure;
         }
 
-        public override TypeKind Kind => TypeKind.Object;
+        public override TypeKind Kind => TypeKind.Interface;
 
         protected override InterfaceTypeDefinition CreateDefinition(
             IInitializationContext context)
