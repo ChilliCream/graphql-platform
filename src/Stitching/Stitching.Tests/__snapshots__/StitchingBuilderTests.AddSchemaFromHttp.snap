@@ -5,8 +5,8 @@
   contract(contractId: ID!): Contract @delegate(schema: "contract")
   contracts(customerId: ID!): [Contract!] @delegate(schema: "contract")
   extendedScalar(d: DateTime): DateTime @delegate(schema: "contract")
-  int(i: Int!): Int! @delegate(schema: "contract")
   guid(guid: Uuid!): Uuid! @delegate(schema: "contract")
+  int(i: Int!): Int! @delegate(schema: "contract")
 }
 
 type Mutation {
@@ -19,9 +19,9 @@ type Customer @source(name: "Customer", schema: "customer") {
   id: ID!
   name: String!
   say(input: SayInput!): String
-  street: String!
-  someInt: Int!
   someGuid: Uuid!
+  someInt: Int!
+  street: String!
 }
 
 type Consultant @source(name: "Consultant", schema: "customer") {
@@ -45,18 +45,6 @@ type CustomerConnection @source(name: "CustomerConnection", schema: "customer") 
   totalCount: Int!
 }
 
-<<<<<<< HEAD
-=======
-input CustomerInput @source(name: "CustomerInput", schema: "customer") {
-  id: String
-  name: String
-  street: String
-  consultantId: String
-  someInt: Int!
-  someGuid: Uuid!
-}
-
->>>>>>> version_8_master
 "Information about pagination in a connection."
 type PageInfo @source(name: "PageInfo", schema: "customer") {
   "When paginating forwards, the cursor to continue."
@@ -91,6 +79,8 @@ input CustomerInput @source(name: "CustomerInput", schema: "customer") {
   consultantId: String
   id: String
   name: String
+  someGuid: Uuid!
+  someInt: Int!
   street: String
 }
 
