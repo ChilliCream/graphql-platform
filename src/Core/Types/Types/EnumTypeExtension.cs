@@ -10,10 +10,6 @@ namespace HotChocolate.Types
         : NamedTypeExtensionBase<EnumTypeDefinition>
     {
         private readonly Action<IEnumTypeDescriptor> _configure;
-        private readonly Dictionary<string, EnumValue> _nameToValues =
-            new Dictionary<string, EnumValue>();
-        private readonly Dictionary<object, EnumValue> _valueToValues =
-            new Dictionary<object, EnumValue>();
 
         protected EnumTypeExtension()
         {
