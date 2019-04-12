@@ -296,8 +296,7 @@ namespace HotChocolate.Execution
                 {
                     if (error.Exception is ArgumentException ex)
                     {
-                        return error.WithMessage(
-                            ex.Message.Replace("\r", string.Empty));
+                        return error.WithMessage(ex.Message);
                     }
                     return error;
                 })
