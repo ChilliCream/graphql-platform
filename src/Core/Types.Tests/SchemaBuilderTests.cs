@@ -260,10 +260,25 @@ namespace HotChocolate
             // arrange
             // act
             Action action = () => SchemaBuilder.New()
-                .AddDocument((LoadSchemaDocument)null);
+                .AddType((Type)null);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddType_TypeIsResolverTypeByName_QueryContainsBazField()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddType(typeof(QueryType))
+                .AddType(typeof(QueryResolverOnType))
+                .Create();
+
+            // assert
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            Assert.True(queryType.Fields.ContainsField("baz"));
         }
 
         // TODO : Add Missing Query Type test
@@ -321,6 +336,18 @@ namespace HotChocolate
         }
 
         public class Bar
+        {
+            public string Baz { get; }
+        }
+
+        [GraphQLResolverOf(typeof(QueryType))]
+        public class QueryResolverOnType
+        {
+            public string Baz { get; }
+        }
+
+        [GraphQLResolverOf("Query")]
+        public class QueryResolverOnName
         {
             public string Baz { get; }
         }
