@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -59,7 +60,7 @@ namespace HotChocolate.Types
                     Definition.Directives,
                     enumType.Definition.Directives);
 
-                MergeValues(Definition, enumType.Definition);
+                MergeValues(context, Definition, enumType.Definition);
             }
             else
             {
@@ -68,14 +69,28 @@ namespace HotChocolate.Types
             }
         }
 
-        private static void MergeValues(
+        private void MergeValues(
+            ICompletionContext context,
             EnumTypeDefinition extension,
             EnumTypeDefinition type)
         {
             // TODO : we have to rework this once directive support is in.
-            foreach (EnumValueDefinition enumValue in extension.Values)
+            foreach (EnumValueDefinition enumValue in
+                extension.Values.Where(t => t.Value != null))
             {
-                type.Values.Add(enumValue);
+                if (type.ClrType.IsAssignableFrom(enumValue.Value.GetType()))
+                {
+                    type.Values.Add(enumValue);
+                }
+                else
+                {
+                    // TODO : resources
+                    context.ReportError(
+                        SchemaErrorBuilder.New()
+                            .SetMessage("Invalid Type")
+                            .SetTypeSystemObject(this)
+                            .Build());
+                }
             }
         }
     }

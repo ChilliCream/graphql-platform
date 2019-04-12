@@ -15,7 +15,7 @@ namespace HotChocolate.Types
     public class ObjectTypeExtensionTests
     {
         [Fact]
-        public void TypeExtension_AddField()
+        public void ObjectTypeExtension_AddField()
         {
             // arrange
             // act
@@ -30,7 +30,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void TypeExtension_OverrideResolver()
+        public void ObjectTypeExtension_OverrideResolver()
         {
             // arrange
             FieldResolverDelegate resolver =
@@ -52,7 +52,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public async Task TypeExtension_AddResolverType()
+        public async Task ObjectTypeExtension_AddResolverType()
         {
             // arrange
             var context = new Mock<IResolverContext>(MockBehavior.Strict);
@@ -77,7 +77,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void TypeExtension_AddMiddleware()
+        public void ObjectTypeExtension_AddMiddleware()
         {
             // arrange
             // act
@@ -100,7 +100,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void TypeExtension_DepricateField()
+        public void ObjectTypeExtension_DepricateField()
         {
             // arrange
             FieldResolverDelegate resolver =
@@ -123,12 +123,9 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void TypeExtension_SetTypeContextData()
+        public void ObjectTypeExtension_SetTypeContextData()
         {
             // arrange
-            FieldResolverDelegate resolver =
-                ctx => Task.FromResult<object>(null);
-
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<FooType>()
@@ -144,7 +141,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void TypeExtension_SetFieldContextData()
+        public void ObjectTypeExtension_SetFieldContextData()
         {
             // arrange
             FieldResolverDelegate resolver =
@@ -167,7 +164,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void TypeExtension_SetArgumentContextData()
+        public void ObjectTypeExtension_SetArgumentContextData()
         {
             // arrange
             FieldResolverDelegate resolver =
@@ -193,7 +190,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void TypeExtension_SetDirectiveOnType()
+        public void ObjectTypeExtension_SetDirectiveOnType()
         {
             // arrange
             // act
@@ -211,7 +208,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void TypeExtension_SetDirectiveOnField()
+        public void ObjectTypeExtension_SetDirectiveOnField()
         {
             // arrange
             // act
@@ -231,7 +228,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void TypeExtension_SetDirectiveOnArgument()
+        public void ObjectTypeExtension_SetDirectiveOnArgument()
         {
             // arrange
             // act
@@ -251,7 +248,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void TypeExtension_ReplaceDirectiveOnType()
+        public void ObjectTypeExtension_ReplaceDirectiveOnType()
         {
             // arrange
             // act
@@ -272,7 +269,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void TypeExtension_ReplaceDirectiveOnField()
+        public void ObjectTypeExtension_ReplaceDirectiveOnField()
         {
             // arrange
             // act
@@ -295,7 +292,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void TypeExtension_ReplaceDirectiveOnArgument()
+        public void ObjectTypeExtension_ReplaceDirectiveOnArgument()
         {
             // arrange
             // act
@@ -322,7 +319,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void TypeExtension_CopyDependencies_ToType()
+        public void ObjectTypeExtension_CopyDependencies_ToType()
         {
             // arrange
             // act
@@ -345,7 +342,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void TypeExtension_RepeatableDirectiveOnType()
+        public void ObjectTypeExtension_RepeatableDirectiveOnType()
         {
             // arrange
             // act
@@ -365,7 +362,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void TypeExtension_RepeatableDirectiveOnField()
+        public void ObjectTypeExtension_RepeatableDirectiveOnField()
         {
             // arrange
             // act
@@ -387,7 +384,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void TypeExtension_RepeatableDirectiveOnArgument()
+        public void ObjectTypeExtension_RepeatableDirectiveOnArgument()
         {
             // arrange
             // act
