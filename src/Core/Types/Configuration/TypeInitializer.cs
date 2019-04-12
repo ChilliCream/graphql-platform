@@ -199,6 +199,7 @@ namespace HotChocolate.Configuration
                         type = type.AddDependencies(extension.Dependencies);
                         _types[type.Reference] = type;
                         _cmpCtx[type] = context;
+                        CopyAlternateNames(_cmpCtx[extension], context);
                     }
                 }
             }
@@ -219,6 +220,16 @@ namespace HotChocolate.Configuration
             }
 
             extension.Merge(context, type);
+        }
+
+        private void CopyAlternateNames(
+            CompletionContext source,
+            CompletionContext destination)
+        {
+            foreach (NameString name in source.AlternateTypeNames)
+            {
+                destination.AlternateTypeNames.Add(name);
+            }
         }
 
         private void RegisterExternalResolvers()

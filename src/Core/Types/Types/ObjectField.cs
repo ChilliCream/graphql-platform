@@ -101,9 +101,7 @@ namespace HotChocolate.Types
 
             if (Resolver == null)
             {
-                var fieldReference = new FieldReference(
-                    context.Type.Name, definition.Name);
-                FieldResolver resolver = context.GetResolver(fieldReference);
+                FieldResolver resolver = context.GetResolver(definition.Name);
                 if (resolver != null)
                 {
                     Resolver = resolver.Resolver;

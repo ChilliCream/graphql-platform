@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using HotChocolate.Execution;
@@ -7,6 +8,7 @@ using Snapshooter.Xunit;
 using System;
 using HotChocolate.Language;
 using System.Linq;
+using Moq;
 
 namespace HotChocolate.Types
 {
@@ -47,6 +49,31 @@ namespace HotChocolate.Types
             // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.Equal(resolver, type.Fields["description"].Resolver);
+        }
+
+        [Fact]
+        public async Task TypeExtension_AddResolverType()
+        {
+            // arrange
+            var context = new Mock<IResolverContext>(MockBehavior.Strict);
+            context.Setup(t => t.Resolver<FooResolver>())
+                .Returns(new FooResolver());
+            context.Setup(t => t.RequestAborted)
+                .Returns(CancellationToken.None);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<FooType>()
+                .AddType(new ObjectTypeExtension(d => d
+                    .Name("Foo")
+                    .Field<FooResolver>(t => t.GetName2())
+                    .Type<StringType>()))
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            object value = await type.Fields["name2"].Resolver(context.Object);
+            Assert.Equal("FooResolver.GetName2", value);
         }
 
         [Fact]
@@ -255,14 +282,14 @@ namespace HotChocolate.Types
                     .Directive("dummy_arg", new ArgumentNode("a", "a"))))
                 .AddType(new ObjectTypeExtension(d => d
                     .Name("Foo")
-                    .Field("name")
+                    .Field("description")
                     .Directive("dummy_arg", new ArgumentNode("a", "b"))))
                 .AddDirectiveType<DummyWithArgDirective>()
                 .Create();
 
             // assert
             ObjectType type = schema.GetType<ObjectType>("Foo");
-            string value = type.Fields["name"].Directives["dummy_arg"]
+            string value = type.Fields["description"].Directives["dummy_arg"]
                 .First().GetArgument<string>("a");
             Assert.Equal("b", value);
         }
@@ -317,14 +344,79 @@ namespace HotChocolate.Types
             Assert.Equal("b", value);
         }
 
+        [Fact]
+        public void TypeExtension_RepeatableDirectiveOnType()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(new ObjectType<Foo>(t => t
+                    .Directive("dummy_rep")))
+                .AddType(new ObjectTypeExtension(d => d
+                    .Name("Foo")
+                    .Directive("dummy_rep")))
+                .AddDirectiveType<RepeatableDummyDirective>()
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            int count = type.Directives["dummy_rep"].Count();
+            Assert.Equal(2, count);
+        }
+
+        [Fact]
+        public void TypeExtension_RepeatableDirectiveOnField()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(new ObjectType<Foo>(t => t
+                    .Field(f => f.Description)
+                    .Directive("dummy_rep")))
+                .AddType(new ObjectTypeExtension(d => d
+                    .Name("Foo")
+                    .Field("description")
+                    .Directive("dummy_rep")))
+                .AddDirectiveType<RepeatableDummyDirective>()
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            int count = type.Fields["description"].Directives["dummy_rep"].Count();
+            Assert.Equal(2, count);
+        }
+
+        [Fact]
+        public void TypeExtension_RepeatableDirectiveOnArgument()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(new ObjectType<Foo>(t => t
+                    .Field(f => f.GetName(default))
+                    .Argument("a", a => a
+                        .Type<StringType>()
+                        .Directive("dummy_rep", new ArgumentNode("a", "a")))))
+                .AddType(new ObjectTypeExtension(d => d
+                    .Name("Foo")
+                    .Field("name")
+                    .Argument("a", a =>
+                        a.Directive("dummy_rep", new ArgumentNode("a", "b")))))
+                .AddDirectiveType<RepeatableDummyDirective>()
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            int count = type.Fields["name"].Arguments["a"]
+                .Directives["dummy_rep"]
+                .Count();
+            Assert.Equal(2, count);
+        }
+
 
         // TODO : ADD THE FOLLOWING TESTS:
 
-        // Add Repeatable Directive to Type
-        // Add Repeatable Directive to Field
-        // Add Repeatable Directive to Argument
         // RESOLVER TYPE
-        // incomplete new field should raise an error
 
 
 
@@ -362,6 +454,14 @@ namespace HotChocolate.Types
             }
         }
 
+        public class FooResolver
+        {
+            public string GetName2()
+            {
+                return "FooResolver.GetName2";
+            }
+        }
+
         public class DummyDirective
             : DirectiveType
         {
@@ -383,6 +483,20 @@ namespace HotChocolate.Types
             {
                 descriptor.Name("dummy_arg");
                 descriptor.Argument("a").Type<StringType>();
+                descriptor.Location(DirectiveLocation.Object);
+                descriptor.Location(DirectiveLocation.FieldDefinition);
+                descriptor.Location(DirectiveLocation.ArgumentDefinition);
+            }
+        }
+
+        public class RepeatableDummyDirective
+            : DirectiveType
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("dummy_rep");
+                descriptor.Repeatable();
                 descriptor.Location(DirectiveLocation.Object);
                 descriptor.Location(DirectiveLocation.FieldDefinition);
                 descriptor.Location(DirectiveLocation.ArgumentDefinition);

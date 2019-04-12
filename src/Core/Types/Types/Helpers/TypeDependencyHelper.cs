@@ -51,6 +51,18 @@ namespace HotChocolate.Types
                     .SelectMany(t => t.Directives)
                     .Select(t => t.TypeReference),
                 TypeDependencyKind.Completed);
+
+            foreach (ObjectFieldDefinition field in definition.Fields)
+            {
+                if (field.Member != null)
+                {
+                    context.RegisterResolver(
+                        field.Name,
+                        field.Member,
+                        definition.ClrType,
+                        field.ResolverType);
+                }
+            }
         }
     }
 }

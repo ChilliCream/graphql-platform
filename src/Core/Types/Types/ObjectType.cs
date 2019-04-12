@@ -66,20 +66,7 @@ namespace HotChocolate.Types
             ObjectTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
-
             context.RegisterDependencies(definition);
-
-            foreach (ObjectFieldDefinition field in definition.Fields)
-            {
-                if (field.Member != null)
-                {
-                    context.RegisterResolver(
-                        field.Name,
-                        field.Member,
-                        definition.ClrType,
-                        field.ResolverType);
-                }
-            }
         }
 
         protected override void OnCompleteType(
