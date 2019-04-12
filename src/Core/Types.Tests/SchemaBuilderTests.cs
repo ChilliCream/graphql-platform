@@ -1,7 +1,11 @@
+using System.Threading.Tasks;
 using HotChocolate.Types;
 using Xunit;
 using Snapshooter.Xunit;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
+using System;
+using HotChocolate.Execution;
 
 namespace HotChocolate
 {
@@ -182,6 +186,84 @@ namespace HotChocolate
 
             // assert
             schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Use_MiddlewareNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .Use((FieldMiddleware)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Use_MiddlewareDelegate()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocument(sp =>
+                    Parser.Default.Parse("type Query { a: String }"))
+                .Use(next => context =>
+                {
+                    context.Result = "foo";
+                    return Task.CompletedTask;
+                })
+                .Create();
+
+
+            // assert
+            schema.MakeExecutable().Execute("{ a }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void AddDocument_DocumentIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddDocument((LoadSchemaDocument)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddDocument_MultipleDocuments_Are_Merged()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocument(sp =>
+                    Parser.Default.Parse("type Query { a: Foo }"))
+                .AddDocument(sp =>
+                    Parser.Default.Parse("type Foo { a: String }"))
+                .Use(next => context =>
+                {
+                    context.Result = "foo";
+                    return Task.CompletedTask;
+                })
+                .Create();
+
+
+            // assert
+            schema.MakeExecutable().Execute("{ a { a } }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void AddType_TypeIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddDocument((LoadSchemaDocument)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
         }
 
         // TODO : Add Missing Query Type test

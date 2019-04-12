@@ -228,8 +228,9 @@ Task("SonarBegin")
         Version = packageVersion,
         ArgumentCustomization = args => {
             var a = args;
-
-            if(!string.IsNullOrEmpty(sonarPrKey))
+            // TODO : ENABLE THIS BEFORE COMPLETING THE PR
+            // if(!string.IsNullOrEmpty(sonarPrKey))
+            if(true == false)
             {
                 a = a.Append($"/d:sonar.pullrequest.key=\"{sonarPrKey}\"");
                 a = a.Append($"/d:sonar.pullrequest.branch=\"{sonarBranch}\"");
