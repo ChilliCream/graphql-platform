@@ -413,14 +413,6 @@ namespace HotChocolate.Types
             Assert.Equal(2, count);
         }
 
-
-        // TODO : ADD THE FOLLOWING TESTS:
-
-        // RESOLVER TYPE
-
-
-
-
         public class FooType
             : ObjectType<Foo>
         {
