@@ -70,7 +70,7 @@ namespace HotChocolate.Types
             InterfaceTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
-            context.RegisterDependencies(context, definition);
+            context.RegisterDependencies(definition);
         }
 
         protected override void OnCompleteType(
