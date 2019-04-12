@@ -211,7 +211,8 @@ namespace HotChocolate
 
                     if (reference is IClrTypeReference cr)
                     {
-                        return cr.Type == objectType.GetType();
+                        return cr.Type == objectType.GetType()
+                            || cr.Type == objectType.ClrType;
                     }
 
                     if (reference is ISyntaxTypeReference str)

@@ -88,9 +88,9 @@ namespace HotChocolate
             return descriptor;
         }
 
-        public static IObjectTypeDescriptor<T> AsNode<T, TNode>(
+        public static IObjectTypeDescriptor<T> AsNode<T>(
             this IObjectTypeDescriptor<T> descriptor,
-            NodeResolverDelegate<TNode> nodeResolver)
+            NodeResolverDelegate<T> nodeResolver)
         {
             if (descriptor == null)
             {
@@ -103,12 +103,12 @@ namespace HotChocolate
             }
 
             return AsNode(descriptor,
-                sp => new NodeResolver<TNode>(nodeResolver));
+                sp => new NodeResolver<T>(nodeResolver));
         }
 
-        public static IObjectTypeDescriptor<T> AsNode<T, TNode, TId>(
+        public static IObjectTypeDescriptor<T> AsNode<T, TId>(
             this IObjectTypeDescriptor<T> descriptor,
-            NodeResolverDelegate<TNode, TId> nodeResolver)
+            NodeResolverDelegate<T, TId> nodeResolver)
         {
             if (descriptor == null)
             {
@@ -121,7 +121,7 @@ namespace HotChocolate
             }
 
             return AsNode(descriptor,
-                sp => new NodeResolver<TNode, TId>(nodeResolver));
+                sp => new NodeResolver<T, TId>(nodeResolver));
         }
 
         public static IObjectTypeDescriptor<T> AsNode<T>(

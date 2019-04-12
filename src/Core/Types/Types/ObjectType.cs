@@ -7,6 +7,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Types
 {
@@ -80,6 +81,7 @@ namespace HotChocolate.Types
 
             var fields = new List<ObjectField>();
             AddIntrospectionFields(context, fields);
+            AddRelayNodeField(context, fields);
             fields.AddRange(definition.Fields.Select(t => new ObjectField(t)));
 
             Fields = new FieldCollection<ObjectField>(fields);
@@ -103,6 +105,20 @@ namespace HotChocolate.Types
             }
 
             fields.Add(new __TypeNameField(descriptorContext));
+        }
+
+        private void AddRelayNodeField(
+            ICompletionContext context,
+            ICollection<ObjectField> fields)
+        {
+            if (context.IsQueryType.HasValue
+                && context.IsQueryType.Value
+                && context.ContextData.ContainsKey(
+                    RelayConstants.IsRelaySupportEnabled))
+            {
+                fields.Add(new NodeField(
+                    DescriptorContext.Create(context.Services)));
+            }
         }
 
         private void CompleteInterfaces(

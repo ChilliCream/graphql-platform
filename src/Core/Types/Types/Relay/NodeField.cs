@@ -1,27 +1,30 @@
 using System;
-using System.Threading.Tasks;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
-using HotChocolate.Types.Relay;
-using HotChocolate.Utilities;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate
+namespace HotChocolate.Types.Relay
 {
-    public static class NodeSchemaBuilderExtensions
+    internal sealed class NodeField
+         : ObjectField
     {
         private static readonly IdSerializer _idSerializer = new IdSerializer();
 
-        public static IObjectFieldDescriptor NodeField(
-            this IObjectTypeDescriptor descriptor)
+        internal NodeField(IDescriptorContext context)
+           : base(CreateDefinition(context))
         {
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException(nameof(descriptor));
-            }
+        }
 
-            return descriptor.Field("node")
-                .Type<NodeType>()
+        public override bool IsIntrospectionField { get; } = true;
+
+        private static ObjectFieldDefinition CreateDefinition(
+            IDescriptorContext context)
+        {
+            var descriptor = ObjectFieldDescriptor
+                .New(context, "node");
+
+            descriptor
                 .Argument("id", a => a.Type<NonNullType<IdType>>())
+                .Type<NonNullType<NodeType>>()
                 .Resolver(async ctx =>
                 {
                     string id = ctx.Argument<string>("id");
@@ -44,6 +47,8 @@ namespace HotChocolate
 
                     return null;
                 });
+
+            return descriptor.CreateDefinition();
         }
     }
 }
