@@ -17,6 +17,11 @@ namespace Generator
             return new Validation(definition);
         }
 
+        public void CreateBackground()
+        {
+            Background.Create();
+        }
+
         public string Name { get; }
         public Background Background { get; }
         public IEnumerable<Test> Tests { get; }

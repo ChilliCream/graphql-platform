@@ -9,6 +9,8 @@ namespace Generator
     {
         internal static void Generate(IScenario scenario, string outputDirectory)
         {
+            scenario.CreateBackground();
+
             ClassBuilder classBuilder = ClassBuilder.Init(scenario.Name)
                 .WithUsings(scenario.Usings)
                 .WithNamespace(scenario.Namespace)

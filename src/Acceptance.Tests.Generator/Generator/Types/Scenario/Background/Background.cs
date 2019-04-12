@@ -21,5 +21,9 @@ namespace Generator
         public string SchemaFile { get; }
         public object TestData { get; }
         public string TestDataFile { get; }
+
+        public void Create()
+        {
+        }
     }
 }

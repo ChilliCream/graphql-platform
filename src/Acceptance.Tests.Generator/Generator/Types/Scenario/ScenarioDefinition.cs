@@ -18,7 +18,7 @@ namespace Generator
             Tests = tests;
         }
 
-        public Background Background { get; set; }
+        public Background Background { get; }
 
         public IEnumerable<Test> Tests { get; }
     }

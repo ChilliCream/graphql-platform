@@ -12,5 +12,6 @@ namespace Generator
         IEnumerable<Statement> Constructor { get; }
         Background Background { get; }
         IEnumerable<Test> Tests { get; }
+        void CreateBackground();
     }
 }
