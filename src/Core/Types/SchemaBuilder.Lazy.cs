@@ -4,7 +4,7 @@ namespace HotChocolate
 {
     public partial class SchemaBuilder
     {
-        public class LazySchema
+        internal class LazySchema
         {
             private ISchema _schema;
             private bool _isSet;
