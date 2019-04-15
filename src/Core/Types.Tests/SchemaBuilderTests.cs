@@ -281,7 +281,113 @@ namespace HotChocolate
             Assert.True(queryType.Fields.ContainsField("baz"));
         }
 
+        [Fact]
+        public void AddType_NamedTypeIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddType((INamedType)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddType_QueryIsAdded_SchemaIsCreated()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Resolver("bar"));
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddType(queryType)
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Query");
+            Assert.Equal(queryType, type);
+            Assert.Equal(queryType, schema.QueryType);
+        }
+
+        [Fact]
+        public void AddType_NamedTypeExtensionIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddType((INamedTypeExtension)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddType_QueryAndExtensionAreAdded_SchemaIsCreated()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Resolver("bar"));
+
+            var queryTypeExtension = new ObjectTypeExtension(t => t
+                .Name("Query")
+                .Field("bar")
+                .Resolver("foo"));
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddType(queryType)
+                .AddType(queryTypeExtension)
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Query");
+            Assert.True(type.Fields.ContainsField("bar"));
+        }
+
+        [Fact]
+        public void AddDirectiveType_DirectiveTypeIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddDirectiveType((DirectiveType)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddDirectiveType_DirectiveTypeIsAdded_SchemaIsCreated()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Resolver("bar"));
+
+            var directiveType = new DirectiveType(t => t
+                .Name("foo")
+                .Location(Types.DirectiveLocation.Field));
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddType(queryType)
+                .AddDirectiveType(directiveType)
+                .Create();
+
+            // assert
+            DirectiveType type = schema.GetDirectiveType("foo");
+            Assert.Equal(directiveType, type);
+        }
+
         // TODO : Add Missing Query Type test
+
         public class QueryType
             : ObjectType
         {
