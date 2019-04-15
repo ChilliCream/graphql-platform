@@ -251,10 +251,10 @@ namespace HotChocolate.Types.Descriptors
                 nameof(member));
         }
 
-        public IObjectTypeDescriptor Directive<T>(T directive)
+        public IObjectTypeDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
-            Definition.AddDirective(directive);
+            Definition.AddDirective(directiveInstance);
             return this;
         }
 

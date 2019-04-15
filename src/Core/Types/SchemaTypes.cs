@@ -6,13 +6,12 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
-
     internal sealed class SchemaTypes
     {
         private readonly Dictionary<NameString, INamedType> _types;
         private readonly Dictionary<NameString, ImmutableList<ObjectType>> _possibleTypes;
 
-        public SchemaTypes(SchemaDefinition definition)
+        public SchemaTypes(SchemaTypesDefinition definition)
         {
             if (definition == null)
             {

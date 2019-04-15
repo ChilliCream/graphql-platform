@@ -28,12 +28,23 @@ namespace HotChocolate
                 types.AddRange(ParseDocuments(services, bindingLookup));
             }
 
+            if (_schema == null)
+            {
+                types.Add(new SchemaTypeReference(new Schema()));
+            }
+            else
+            {
+                types.Add(_schema);
+            }
+
             var lazy = new LazySchema();
 
             TypeInitializer initializer =
-                InitializeTypes(services, bindingLookup, types, () => lazy.Schema);
+                InitializeTypes(services, bindingLookup, types,
+                    () => lazy.Schema);
 
-            SchemaDefinition definition = CreateSchemaDefinition(initializer);
+            SchemaTypesDefinition definition =
+                CreateSchemaDefinition(initializer);
 
             if (definition.QueryType == null && _options.StrictValidation)
             {
@@ -44,7 +55,11 @@ namespace HotChocolate
                         .Build());
             }
 
-            var schema = new Schema(definition);
+            Schema schema = initializer.Types.Values
+                .Select(t => t.Type)
+                .OfType<Schema>()
+                .First();
+            schema.CompleteSchema(definition);
             lazy.Schema = schema;
             return schema;
         }
@@ -125,14 +140,10 @@ namespace HotChocolate
             return initializer;
         }
 
-        private SchemaDefinition CreateSchemaDefinition(
+        private SchemaTypesDefinition CreateSchemaDefinition(
             TypeInitializer initializer)
         {
-            var definition = new SchemaDefinition();
-
-            definition.Description = _description;
-            definition.Options = _options;
-            definition.Services = _services;
+            var definition = new SchemaTypesDefinition();
 
             definition.Types = initializer.Types.Values
                 .Select(t => t.Type).OfType<INamedType>().ToList();

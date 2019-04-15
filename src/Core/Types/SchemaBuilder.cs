@@ -31,14 +31,30 @@ namespace HotChocolate
             new Dictionary<FieldReference, FieldResolver>();
         private readonly IBindingCompiler _bindingCompiler =
             new BindingCompiler();
-        private string _description;
         private SchemaOptions _options = new SchemaOptions();
         private IsOfTypeFallback _isOfType;
         private IServiceProvider _services;
+        private ITypeReference _schema;
 
-        public ISchemaBuilder SetDescription(string description)
+        public ISchemaBuilder SetSchema(Type type)
         {
-            _description = description;
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            _schema = new ClrTypeReference(type, TypeContext.None);
+            return this;
+        }
+
+        public ISchemaBuilder SetSchema(ISchema schema)
+        {
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            _schema = new SchemaTypeReference(schema);
             return this;
         }
 
@@ -55,25 +71,6 @@ namespace HotChocolate
         {
             configure(_options);
             return this;
-        }
-
-        public ISchemaBuilder AddDirective<T>(T directiveInstance)
-            where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public ISchemaBuilder AddDirective<T>()
-            where T : class, new()
-        {
-            throw new NotImplementedException();
-        }
-
-        public ISchemaBuilder AddDirective(
-            NameString name,
-            params ArgumentNode[] arguments)
-        {
-            throw new NotImplementedException();
         }
 
         public ISchemaBuilder Use(FieldMiddleware middleware)

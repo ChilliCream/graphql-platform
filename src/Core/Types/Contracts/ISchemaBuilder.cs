@@ -11,20 +11,13 @@ namespace HotChocolate
 
     public interface ISchemaBuilder
     {
-        ISchemaBuilder SetDescription(string description);
+        ISchemaBuilder SetSchema(Type type);
+
+        ISchemaBuilder SetSchema(ISchema schema);
 
         ISchemaBuilder SetOptions(IReadOnlySchemaOptions options);
 
         ISchemaBuilder ModifyOptions(Action<ISchemaOptions> configure);
-
-        ISchemaBuilder AddDirective<T>(T directiveInstance)
-            where T : class;
-
-        ISchemaBuilder AddDirective<T>()
-            where T : class, new();
-        ISchemaBuilder AddDirective(
-            NameString name,
-            params ArgumentNode[] arguments);
 
         ISchemaBuilder Use(FieldMiddleware middleware);
 
