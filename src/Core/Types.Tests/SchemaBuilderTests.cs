@@ -386,6 +386,100 @@ namespace HotChocolate
             Assert.Equal(directiveType, type);
         }
 
+        [Fact]
+        public void SetSchema_TypeIsNull_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .SetSchema((Type)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void SetSchema_SetName()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Resolver("bar"));
+
+            var schemaDef = new Schema(t => t
+                .Name("FooBar"));
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .SetSchema(schemaDef)
+                .AddQueryType(queryType)
+                .Create();
+
+            // assert
+            Assert.Equal(schemaDef, schema);
+            Assert.Equal("FooBar", schema.Name);
+        }
+
+        [Fact]
+        public void SetSchema_SetDescription()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Resolver("bar"));
+
+            var schemaDef = new Schema(t => t
+                .Description("TestMe"));
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .SetSchema(schemaDef)
+                .AddQueryType(queryType)
+                .Create();
+
+            // assert
+            Assert.Equal(schemaDef, schema);
+            Assert.Equal("TestMe", schema.Description);
+        }
+
+        [Fact]
+        public void SetSchema_NameDoesNotCollideWithTypeName()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("TestMe")
+                .Field("foo")
+                .Resolver("bar"));
+
+            var schemaDef = new Schema(t => t
+                .Name("TestMe"));
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .SetSchema(schemaDef)
+                .AddQueryType(queryType)
+                .Create();
+
+            // assert
+            Assert.Equal(schemaDef, schema);
+            Assert.Equal("TestMe", schema.Name);
+            Assert.NotNull(schema.GetType<ObjectType>("TestMe"));
+        }
+
+        [Fact]
+        public void SetSchema_SchemaIsNull_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .SetSchema((ISchema)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
         // TODO : Add Missing Query Type test
 
         public class QueryType

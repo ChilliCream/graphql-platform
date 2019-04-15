@@ -43,7 +43,17 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(type));
             }
 
-            _schema = new ClrTypeReference(type, TypeContext.None);
+            if (typeof(Schema).IsAssignableFrom(type))
+            {
+                _schema = new ClrTypeReference(type, TypeContext.None);
+            }
+            else
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "The given schema has to inherit from " +
+                    "TypeSystemObjectBase in order to be initializable.");
+            }
             return this;
         }
 
@@ -54,7 +64,17 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(schema));
             }
 
-            _schema = new SchemaTypeReference(schema);
+            if (schema is TypeSystemObjectBase)
+            {
+                _schema = new SchemaTypeReference(schema);
+            }
+            else
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "The given schema has to inherit from " +
+                    "TypeSystemObjectBase in order to be initializable.");
+            }
             return this;
         }
 

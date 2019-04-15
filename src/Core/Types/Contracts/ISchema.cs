@@ -12,6 +12,7 @@ namespace HotChocolate
     /// </summary>
     public interface ISchema
         : IHasDirectives
+        , IHasName
         , IHasDescription
         , ITypeSystem
     {
