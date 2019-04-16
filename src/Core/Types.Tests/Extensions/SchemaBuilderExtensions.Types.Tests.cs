@@ -254,6 +254,246 @@ namespace HotChocolate
             builder.Create().ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void AddQueryTypeType_TypeIsNull_ArgumentNullException()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+
+            // act
+            Action action = () => SchemaBuilderExtensions
+                .AddQueryType(builder, (Type)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddQueryTypeType_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilderExtensions
+                .AddQueryType(null, typeof(FooType));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddQueryTypeType_TypeIsFooType_SchemaIsCreated()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+
+            // act
+            SchemaBuilderExtensions.AddQueryType(builder, typeof(FooType));
+
+            // assert
+            builder.Create().ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void AddMutationTypeType_TypeIsNull_ArgumentNullException()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+
+            // act
+            Action action = () => SchemaBuilderExtensions
+                .AddMutationType(builder, (Type)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddMutationTypeType_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilderExtensions
+                .AddMutationType(null, typeof(FooType));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddMutationTypeType_TypeIsFooType_SchemaIsCreated()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+            builder.AddQueryType<QueryType>();
+
+            // act
+            SchemaBuilderExtensions.AddMutationType(builder, typeof(FooType));
+
+            // assert
+            builder.Create().ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void AddSubscriptionTypeType_TypeIsNull_ArgNullException()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+
+            // act
+            Action action = () => SchemaBuilderExtensions
+                .AddMutationType(builder, (Type)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddSubscriptionTypeType_BuilderIsNull_ArgNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilderExtensions
+                .AddMutationType(null, typeof(FooType));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddSubscriptionTypeType_TypeIsFooType_SchemaIsCreated()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+            builder.AddQueryType<QueryType>();
+
+            // act
+            SchemaBuilderExtensions.AddSubscriptionType(
+                builder, typeof(FooType));
+
+            // assert
+            builder.Create().ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void AddQueryTypeObjectType_TypeIsNull_ArgumentNullException()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+
+            // act
+            Action action = () => SchemaBuilderExtensions
+                .AddQueryType(builder, (ObjectType)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddQueryTypeObjectType_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilderExtensions
+                .AddQueryType(null, new FooType());
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddQueryTypeObjectType_TypeIsFooType_SchemaIsCreated()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+
+            // act
+            SchemaBuilderExtensions.AddQueryType(builder, new FooType());
+
+            // assert
+            builder.Create().ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void AddMutationTypeObjectType_TypeIsNull_ArgumentNullException()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+
+            // act
+            Action action = () => SchemaBuilderExtensions
+                .AddMutationType(builder, (ObjectType)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddMutationTypeObjectType_BuilderIsNull_ArgNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilderExtensions
+                .AddMutationType(null, new FooType());
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddMutationTypeObjectType_TypeIsFooType_SchemaIsCreated()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+            builder.AddQueryType<QueryType>();
+
+            // act
+            SchemaBuilderExtensions.AddMutationType(builder, new FooType());
+
+            // assert
+            builder.Create().ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void AddSubscriptionTypeObjectType_TypeIsNull_ArgNullException()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+
+            // act
+            Action action = () => SchemaBuilderExtensions
+                .AddMutationType(builder, (ObjectType)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddSubscriptionTypeObjType_BuilderIsNull_ArgNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilderExtensions
+                .AddMutationType(null, new FooType());
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddSubscriptionTypeObjType_TypeIsFooType_SchemaIsCreated()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+            builder.AddQueryType<QueryType>();
+
+            // act
+            SchemaBuilderExtensions.AddSubscriptionType(
+                builder, new FooType());
+
+            // assert
+            builder.Create().ToString().MatchSnapshot();
+        }
+
         public class QueryType
            : ObjectType
         {
