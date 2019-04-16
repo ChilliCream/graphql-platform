@@ -177,9 +177,9 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            ObjectType queryType = schema.GetType<ObjectType>("Foo");
-            Assert.NotNull(queryType);
-            Assert.Equal(queryType, schema.MutationType);
+            ObjectType mutationType = schema.GetType<ObjectType>("Bar");
+            Assert.NotNull(mutationType);
+            Assert.Equal(mutationType, schema.MutationType);
             Assert.Equal(barType, schema.MutationType);
         }
 
@@ -197,9 +197,9 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            ObjectType queryType = schema.GetType<ObjectType>("Foo");
-            Assert.NotNull(queryType);
-            Assert.Equal(queryType, schema.SubscriptionType);
+            ObjectType subscriptionType = schema.GetType<ObjectType>("Bar");
+            Assert.NotNull(subscriptionType);
+            Assert.Equal(subscriptionType, schema.SubscriptionType);
             Assert.Equal(barType, schema.SubscriptionType);
         }
 
