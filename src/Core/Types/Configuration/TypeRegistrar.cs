@@ -21,14 +21,21 @@ namespace HotChocolate.Configuration
         private readonly List<ISchemaError> _errors = new List<ISchemaError>();
         private readonly List<ITypeReference> _unregistered =
             new List<ITypeReference>();
+        private readonly IDictionary<string, object> _contextData;
 
         public TypeRegistrar(
             IServiceProvider services,
-            IEnumerable<ITypeReference> initialTypes)
+            IEnumerable<ITypeReference> initialTypes,
+            IDictionary<string, object> contextData)
         {
             if (initialTypes == null)
             {
                 throw new ArgumentNullException(nameof(initialTypes));
+            }
+
+            if (contextData == null)
+            {
+                throw new ArgumentNullException(nameof(contextData));
             }
 
             if (services == null)
@@ -40,6 +47,7 @@ namespace HotChocolate.Configuration
             _unregistered.AddRange(Directives.All);
             _unregistered.AddRange(initialTypes);
             _serviceFactory.Services = services;
+            _contextData = contextData;
         }
 
         public ICollection<InitializationContext> InitializationContexts =>
@@ -255,7 +263,8 @@ namespace HotChocolate.Configuration
         {
             var initializationContext = new InitializationContext(
                 typeSystemObject,
-                _serviceFactory.Services);
+                _serviceFactory.Services,
+                _contextData);
             typeSystemObject.Initialize(initializationContext);
             _initContexts.Add(initializationContext);
 

@@ -5,14 +5,8 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
-    internal sealed class SchemaDefinition
+    internal sealed class SchemaTypesDefinition
     {
-        public string Description { get; set; }
-        public IDirectiveCollection Directives { get; set; }
-        public IReadOnlySchemaOptions Options { get; set; }
-
-        public IServiceProvider Services { get; set; }
-
         public ObjectType QueryType { get; set; }
         public ObjectType MutationType { get; set; }
         public ObjectType SubscriptionType { get; set; }

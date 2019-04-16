@@ -41,5 +41,15 @@ namespace HotChocolate.Stitching.Schemas.Contracts
             return _contractStorage.Contracts
                 .Where(t => t.CustomerId.Equals(value.Value));
         }
+
+        public int GetInt(int i)
+        {
+            return i;
+        }
+
+        public Guid GetGuid(Guid guid)
+        {
+            return guid;
+        }
     }
 }

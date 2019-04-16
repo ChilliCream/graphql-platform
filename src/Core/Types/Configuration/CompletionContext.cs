@@ -16,6 +16,8 @@ namespace HotChocolate.Configuration
         private readonly InitializationContext _initializationContext;
         private readonly TypeInitializer _typeInitializer;
         private readonly Func<ISchema> _schemaResolver;
+        private readonly HashSet<NameString> _alternateNames =
+            new HashSet<NameString>();
 
         public CompletionContext(
             InitializationContext initializationContext,
@@ -36,6 +38,8 @@ namespace HotChocolate.Configuration
 
             GlobalComponents = new ReadOnlyCollection<FieldMiddleware>(
                 _typeInitializer.GlobalComponents);
+
+            _alternateNames.Add(_initializationContext.InternalName);
         }
 
         public TypeStatus Status { get; set; } = TypeStatus.Initialized;
@@ -56,6 +60,11 @@ namespace HotChocolate.Configuration
         public bool IsDirective => _initializationContext.IsDirective;
 
         public IServiceProvider Services => _initializationContext.Services;
+
+        public IDictionary<string, object> ContextData =>
+            _initializationContext.ContextData;
+
+        public ISet<NameString> AlternateTypeNames => _alternateNames;
 
         public T GetType<T>(ITypeReference reference)
             where T : IType
@@ -154,27 +163,48 @@ namespace HotChocolate.Configuration
             return null;
         }
 
-        public FieldResolver GetResolver(IFieldReference reference)
+        public FieldResolver GetResolver(NameString fieldName)
         {
+            fieldName.EnsureNotEmpty(nameof(fieldName));
+
             if (Status == TypeStatus.Initialized)
             {
                 throw new NotSupportedException();
             }
 
-            if ((_typeInitializer.Resolvers.TryGetValue(
-                new FieldReference(reference.TypeName, reference.FieldName),
-                out RegisteredResolver resolver)
-                || _typeInitializer.Resolvers.TryGetValue(
-                new FieldReference(
-                    _initializationContext.InternalName,
-                    reference.FieldName),
-                out resolver))
-                && resolver.Field is FieldResolver res)
+            if (TryGetResolver(Type.Name, fieldName,
+                out FieldResolver resolver))
             {
-                return res;
+                return resolver;
+            }
+
+            foreach (NameString alternateName in _alternateNames)
+            {
+                if (TryGetResolver(alternateName, fieldName, out resolver))
+                {
+                    return resolver;
+                }
             }
 
             return null;
+        }
+
+        private bool TryGetResolver(
+            NameString typeName,
+            NameString fieldName,
+            out FieldResolver resolver)
+        {
+            if (_typeInitializer.Resolvers.TryGetValue(
+                new FieldReference(typeName, fieldName),
+                out RegisteredResolver rr)
+                && rr.Field is FieldResolver r)
+            {
+                resolver = r;
+                return true;
+            }
+
+            resolver = null;
+            return false;
         }
 
         public Func<ISchema> GetSchemaResolver()

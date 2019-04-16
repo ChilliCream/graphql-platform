@@ -8,6 +8,82 @@ namespace HotChocolate.Types
         : TypeTestBase
     {
         [Fact]
+        public void InterfaceType_DynamicName()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new InterfaceType(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn<StringType>()
+                    .Field("bar")
+                    .Type<StringType>()));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            InterfaceType type = schema.GetType<InterfaceType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void InterfaceType_DynamicName_NonGeneric()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new InterfaceType(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn(typeof(StringType))
+                    .Field("bar")
+                    .Type<StringType>()));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            InterfaceType type = schema.GetType<InterfaceType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void GenericInterfaceType_DynamicName()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new InterfaceType<IFoo>(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn<StringType>()));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            InterfaceType type = schema.GetType<InterfaceType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void GenericInterfaceType_DynamicName_NonGeneric()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new InterfaceType<IFoo>(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn(typeof(StringType))));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            InterfaceType type = schema.GetType<InterfaceType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
         public void InferFieldsFromClrInterface()
         {
             // arrange

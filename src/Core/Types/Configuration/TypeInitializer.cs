@@ -37,6 +37,7 @@ namespace HotChocolate.Configuration
         private readonly IServiceProvider _services;
         private readonly List<ITypeReference> _initialTypes;
         private readonly List<Type> _externalResolverTypes;
+        private readonly IDictionary<string, object> _contextData;
         private readonly IsOfTypeFallback _isOfType;
         private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
 
@@ -44,6 +45,7 @@ namespace HotChocolate.Configuration
             IServiceProvider services,
             IEnumerable<ITypeReference> initialTypes,
             IEnumerable<Type> externalResolverTypes,
+            IDictionary<string, object> contextData,
             IsOfTypeFallback isOfType,
             Func<TypeSystemObjectBase, bool> isQueryType)
         {
@@ -59,6 +61,8 @@ namespace HotChocolate.Configuration
 
             _services = services
                 ?? throw new ArgumentNullException(nameof(services));
+            _contextData = contextData
+                ?? throw new ArgumentNullException(nameof(contextData));
             _isOfType = isOfType;
             _isQueryType = isQueryType
                 ?? throw new ArgumentNullException(nameof(isQueryType));
@@ -90,6 +94,7 @@ namespace HotChocolate.Configuration
 
             if (CompleteNames(schemaResolver))
             {
+                MergeTypeExtensions();
                 RegisterExternalResolvers();
                 CompileResolvers();
                 CompleteTypes();
@@ -130,7 +135,8 @@ namespace HotChocolate.Configuration
 
         private bool RegisterTypes()
         {
-            var typeRegistrar = new TypeRegistrar(_services, _initialTypes);
+            var typeRegistrar = new TypeRegistrar(
+                _services, _initialTypes, _contextData);
             if (typeRegistrar.Complete())
             {
                 foreach (InitializationContext context in
@@ -162,6 +168,70 @@ namespace HotChocolate.Configuration
             return false;
         }
 
+        private void MergeTypeExtensions()
+        {
+            var extensions = _types.Values
+                .Where(t => t.Type is INamedTypeExtensionMerger)
+                .ToList();
+
+            if (extensions.Count > 0)
+            {
+                var types = _types.Values
+                    .Where(t => t.Type is INamedType)
+                    .ToList();
+
+                foreach (RegisteredType extension in extensions)
+                {
+                    RegisteredType type = types.FirstOrDefault(t =>
+                        t.Type.Name.Equals(extension.Type.Name));
+
+                    if (type != null
+                        && extension.Type is INamedTypeExtensionMerger m
+                        && type.Type is INamedType n)
+                    {
+                        // merge
+                        CompletionContext context = _cmpCtx[extension];
+                        context.Status = TypeStatus.Named;
+                        MergeTypeExtension(context, m, n);
+
+                        // update dependencies
+                        context = _cmpCtx[type];
+                        type = type.AddDependencies(extension.Dependencies);
+                        _types[type.Reference] = type;
+                        _cmpCtx[type] = context;
+                        CopyAlternateNames(_cmpCtx[extension], context);
+                    }
+                }
+            }
+        }
+
+        private void MergeTypeExtension(
+            ICompletionContext context,
+            INamedTypeExtensionMerger extension,
+            INamedType type)
+        {
+            if (extension.Kind != type.Kind)
+            {
+                // TODO : resources
+                throw new SchemaException(SchemaErrorBuilder.New()
+                    .SetMessage("Cannot merge type!")
+                    .SetTypeSystemObject((ITypeSystemObject)type)
+                    .Build());
+            }
+
+            extension.Merge(context, type);
+        }
+
+        private void CopyAlternateNames(
+            CompletionContext source,
+            CompletionContext destination)
+        {
+            foreach (NameString name in source.AlternateTypeNames)
+            {
+                destination.AlternateTypeNames.Add(name);
+            }
+        }
+
         private void RegisterExternalResolvers()
         {
             if (_externalResolverTypes.Count == 0)
@@ -189,7 +259,7 @@ namespace HotChocolate.Configuration
                         if (types.TryGetValue(typeName,
                             out ObjectType objectType))
                         {
-
+                            AddResolvers(descriptorContext, objectType, type);
                         }
                     }
                 }
@@ -201,6 +271,10 @@ namespace HotChocolate.Configuration
                     {
                         ObjectType objectType = types.Values
                             .FirstOrDefault(t => t.GetType() == sourceType);
+                        if (objectType != null)
+                        {
+                            AddResolvers(descriptorContext, objectType, type);
+                        }
                     }
                 }
             }
@@ -303,17 +377,22 @@ namespace HotChocolate.Configuration
 
                     registeredType.Type.CompleteName(completionContext);
 
-                    if (_named.ContainsKey(registeredType.Type.Name))
+                    if (registeredType.Type is INamedType
+                        || registeredType.Type is DirectiveType)
                     {
-                        // TODO : resources
-                        _errors.Add(SchemaErrorBuilder.New()
-                            .SetMessage("Duplicate name!")
-                            .SetTypeSystemObject(registeredType.Type)
-                            .Build());
-                        return false;
+                        if (_named.ContainsKey(registeredType.Type.Name))
+                        {
+                            // TODO : resources
+                            _errors.Add(SchemaErrorBuilder.New()
+                                    .SetMessage("Duplicate name!")
+                                    .SetTypeSystemObject(registeredType.Type)
+                                    .Build());
+                            return false;
+                        }
+                        _named[registeredType.Type.Name] =
+                            registeredType.Reference;
                     }
 
-                    _named[registeredType.Type.Name] = registeredType.Reference;
                     return true;
                 });
 
@@ -427,7 +506,8 @@ namespace HotChocolate.Configuration
                     if (TryNormalizeDependencies(
                         type,
                         references,
-                        out IReadOnlyList<ITypeReference> normalized))
+                        out IReadOnlyList<ITypeReference> normalized)
+                        && processed.IsSupersetOf(normalized))
                     {
                         yield return type;
                     }

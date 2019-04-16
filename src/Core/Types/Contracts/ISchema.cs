@@ -12,13 +12,10 @@ namespace HotChocolate
     /// </summary>
     public interface ISchema
         : IHasDirectives
+        , IHasName
         , IHasDescription
+        , ITypeSystem
     {
-        /// <summary>
-        /// Gets the schema options.
-        /// </summary>
-        IReadOnlySchemaOptions Options { get; }
-
         /// <summary>
         /// Gets the global schema services.
         /// </summary>

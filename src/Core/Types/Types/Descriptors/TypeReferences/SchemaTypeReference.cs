@@ -6,18 +6,13 @@ namespace HotChocolate.Types.Descriptors
         : TypeReferenceBase
         , ISchemaTypeReference
     {
-        public SchemaTypeReference(ITypeSystemObject type)
-            : this(type, null, null)
-        {
-        }
-
-        public SchemaTypeReference(IType type)
+        public SchemaTypeReference(ITypeSystem type)
             : this(type, null, null)
         {
         }
 
         public SchemaTypeReference(
-            ITypeSystemObject type,
+            ITypeSystem type,
             bool? isTypeNullable,
             bool? isElementTypeNullable)
             : base(InferTypeContext(type),
@@ -32,28 +27,7 @@ namespace HotChocolate.Types.Descriptors
             Type = type;
         }
 
-        public SchemaTypeReference(
-            IType type,
-            bool? isTypeNullable,
-            bool? isElementTypeNullable)
-            : base(InferTypeContext(type),
-                isTypeNullable,
-                isElementTypeNullable)
-        {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            Type = type;
-        }
-
-        public object Type { get; }
-
-        public ISyntaxTypeReference Compile()
-        {
-            throw new NotImplementedException();
-        }
+        public ITypeSystem Type { get; }
 
         public bool Equals(SchemaTypeReference other)
         {
@@ -113,12 +87,12 @@ namespace HotChocolate.Types.Descriptors
                 return true;
             }
 
-            if (obj is SyntaxTypeReference str)
+            if (obj is SchemaTypeReference str)
             {
                 return Equals(str);
             }
 
-            if (obj is ISyntaxTypeReference istr)
+            if (obj is ISchemaTypeReference istr)
             {
                 return Equals(istr);
             }
@@ -193,7 +167,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         internal static SchemaTypeReference Create<T>(T type)
-            where T : TypeSystemObjectBase
+            where T : ITypeSystem
         {
             return new SchemaTypeReference(type);
         }

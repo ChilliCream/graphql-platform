@@ -60,15 +60,7 @@ namespace HotChocolate.Types.Descriptors
             _modifiers.Add(configure);
         }
 
-        IDependencyDescriptor IDescriptorExtension<T>.OnBeforeNaming(
-            Action<ICompletionContext, T> configure) =>
-            CreateDependencyDescriptor(configure);
-
-        IDependencyDescriptor IDescriptorExtension<T>.OnBeforeCompletion(
-            Action<ICompletionContext, T> configure) =>
-            CreateDependencyDescriptor(configure);
-
-        private IDependencyDescriptor CreateDependencyDescriptor(
+        INamedDependencyDescriptor IDescriptorExtension<T>.OnBeforeNaming(
             Action<ICompletionContext, T> configure)
         {
             if (configure == null)
@@ -82,7 +74,20 @@ namespace HotChocolate.Types.Descriptors
             configuration.Configure = configure;
             Definition.Configurations.Add(configuration);
 
-            return new DependencyDescriptor<T>(configuration);
+            return new NamedDependencyDescriptor<T>(configuration);
+        }
+
+        ICompletedDependencyDescriptor IDescriptorExtension<T>
+            .OnBeforeCompletion(
+                Action<ICompletionContext, T> configure)
+        {
+            var configuration = new TypeConfiguration<T>();
+            configuration.Definition = Definition;
+            configuration.Kind = ConfigurationKind.Completion;
+            configuration.Configure = configure;
+            Definition.Configurations.Add(configuration);
+
+            return new CompletedDependencyDescriptor<T>(configuration);
         }
     }
 }

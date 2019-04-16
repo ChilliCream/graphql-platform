@@ -13,6 +13,95 @@ namespace HotChocolate.Types
     public class ObjectTypeTests
         : TypeTestBase
     {
+        // TODO : ADD TESTS
+
+        // the following should not fail
+        /*
+            The argument type should be infered
+         .AddQueryType(new ObjectType<Foo>(t => t
+                    .Field(f => f.GetName(default))
+                    .Argument("a", a => a
+                        .Directive("dummy_arg", new ArgumentNode("a", "a")))))
+         */
+
+        [Fact]
+        public void ObjectType_DynamicName()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new ObjectType(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn<StringType>()
+                    .Field("bar")
+                    .Type<StringType>()
+                    .Resolver("foo")));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void ObjectType_DynamicName_NonGeneric()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new ObjectType(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn(typeof(StringType))
+                    .Field("bar")
+                    .Type<StringType>()
+                    .Resolver("foo")));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void GenericObjectType_DynamicName()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new ObjectType<Foo>(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn<StringType>()));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void GenericObjectType_DynamicName_NonGeneric()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new ObjectType<Foo>(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn(typeof(StringType))));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
         [Fact]
         public void IntializeExplicitFieldWithImplicitResolver()
         {
@@ -460,7 +549,7 @@ namespace HotChocolate.Types
                 }
 
                 schema {
-                  query: C                
+                  query: C
                 }
             ";
 
@@ -493,7 +582,7 @@ namespace HotChocolate.Types
                 }
 
                 schema {
-                  query: C                
+                  query: C
                 }
             ";
 
@@ -551,6 +640,433 @@ namespace HotChocolate.Types
 
             // assert
             schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_ResolverOverrides_FieldMember()
+        {
+            // arrange
+            var objectType = new ObjectType<Foo>(t => t
+                .Field(f => f.Description)
+                .Resolver("World"));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ description }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_FuncString_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolver(() => "fooBar"));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ _123 }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_FuncString_ResolverInferType()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Resolver(() => "fooBar"));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ _123 }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_ConstantString_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolver("fooBar"));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ _123 }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_ConstantString_ResolverInferType()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Resolver("fooBar"));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ _123 }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_FuncCtxString_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolver(ctx => ctx.Field.Name.Value));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ _123 }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_FuncCtxString_ResolverInferType()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Resolver(ctx => ctx.Field.Name.Value));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ _123 }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_FuncCtxCtString_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolver((ctx, ct) => ctx.Field.Name.Value));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ _123 }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_FuncCtxCtString_ResolverInferType()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Resolver((ctx, ct) => ctx.Field.Name.Value));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ _123 }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_FuncObject_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolver(() => (object)"fooBar"));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ _123 }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_ConstantObject_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolver((object)"fooBar"));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ _123 }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_FuncCtxObject_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolver(ctx => (object)ctx.Field.Name.Value));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ _123 }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_FuncCtxCtObject_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType(t => t
+                .Name("Bar")
+                .Field("_123")
+                .Type<StringType>()
+                .Resolver((ctx, ct) => (object)ctx.Field.Name.Value));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ _123 }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectTypeOfFoo_FuncString_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType<Foo>(t => t
+                .Field(f => f.Description)
+                .Type<StringType>()
+                .Resolver(() => "fooBar"));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ description }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectTypeOfFoo_ConstantString_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType<Foo>(t => t
+                .Field(f => f.Description)
+                .Type<StringType>()
+                .Resolver("fooBar"));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ description }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectTypeOfFoo_FuncCtxString_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType<Foo>(t => t
+                .Field(f => f.Description)
+                .Type<StringType>()
+                .Resolver(ctx => ctx.Field.Name.Value));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ description }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectTypeOfFoo_FuncCtxCtString_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType<Foo>(t => t
+                .Field(f => f.Description)
+                .Type<StringType>()
+                .Resolver((ctx, ct) => ctx.Field.Name.Value));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ description }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectTypeOfFoo_FuncObject_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType<Foo>(t => t
+                .Field(f => f.Description)
+                .Type<StringType>()
+                .Resolver(() => (object)"fooBar"));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ description }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectTypeOfFoo_ConstantObject_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType<Foo>(t => t
+                .Field(f => f.Description)
+                .Type<StringType>()
+                .Resolver((object)"fooBar"));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ description }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectTypeOfFoo_FuncCtxObject_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType<Foo>(t => t
+                .Field(f => f.Description)
+                .Type<StringType>()
+                .Resolver(ctx => (object)ctx.Field.Name.Value));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ description }").MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectTypeOfFoo_FuncCtxCtObject_Resolver()
+        {
+            // arrange
+            var objectType = new ObjectType<Foo>(t => t
+                .Field(f => f.Description)
+                .Type<StringType>()
+                .Resolver((ctx, ct) => (object)ctx.Field.Name.Value));
+
+            // act
+            IQueryExecutor executor =
+                SchemaBuilder.New()
+                    .AddQueryType(objectType)
+                    .Create()
+                    .MakeExecutable();
+
+            // assert
+            executor.Execute("{ description }").MatchSnapshot();
         }
 
         [Fact]

@@ -201,10 +201,7 @@ namespace HotChocolate.Types
             EnumTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
-
-            context.RegisterDependencyRange(
-                definition.Directives.Select(t => t.TypeReference),
-                TypeDependencyKind.Completed);
+            context.RegisterDependencies(definition);
         }
 
         protected override void OnCompleteType(

@@ -16,6 +16,8 @@ namespace HotChocolate
     public partial class SchemaBuilder
         : ISchemaBuilder
     {
+        private readonly Dictionary<string, object> _contextData =
+            new Dictionary<string, object>();
         private readonly List<FieldMiddleware> _globalComponents =
             new List<FieldMiddleware>();
         private readonly List<LoadSchemaDocument> _documents =
@@ -29,14 +31,50 @@ namespace HotChocolate
             new Dictionary<FieldReference, FieldResolver>();
         private readonly IBindingCompiler _bindingCompiler =
             new BindingCompiler();
-        private string _description;
         private SchemaOptions _options = new SchemaOptions();
         private IsOfTypeFallback _isOfType;
         private IServiceProvider _services;
+        private ITypeReference _schema;
 
-        public ISchemaBuilder SetDescription(string description)
+        public ISchemaBuilder SetSchema(Type type)
         {
-            _description = description;
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (typeof(Schema).IsAssignableFrom(type))
+            {
+                _schema = new ClrTypeReference(type, TypeContext.None);
+            }
+            else
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "The given schema has to inherit from " +
+                    "TypeSystemObjectBase in order to be initializable.");
+            }
+            return this;
+        }
+
+        public ISchemaBuilder SetSchema(ISchema schema)
+        {
+            if (schema == null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            if (schema is TypeSystemObjectBase)
+            {
+                _schema = new SchemaTypeReference(schema);
+            }
+            else
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "The given schema has to inherit from " +
+                    "TypeSystemObjectBase in order to be initializable.");
+            }
             return this;
         }
 
@@ -51,27 +89,13 @@ namespace HotChocolate
 
         public ISchemaBuilder ModifyOptions(Action<ISchemaOptions> configure)
         {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
             configure(_options);
             return this;
-        }
-
-        public ISchemaBuilder AddDirective<T>(T directiveInstance)
-            where T : class
-        {
-            throw new NotImplementedException();
-        }
-
-        public ISchemaBuilder AddDirective<T>()
-            where T : class, new()
-        {
-            throw new NotImplementedException();
-        }
-
-        public ISchemaBuilder AddDirective(
-            NameString name,
-            params ArgumentNode[] arguments)
-        {
-            throw new NotImplementedException();
         }
 
         public ISchemaBuilder Use(FieldMiddleware middleware)
@@ -140,6 +164,17 @@ namespace HotChocolate
         }
 
         public ISchemaBuilder AddType(INamedType type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            _types.Add(new SchemaTypeReference(type));
+            return this;
+        }
+
+        public ISchemaBuilder AddType(INamedTypeExtension type)
         {
             if (type == null)
             {
@@ -279,220 +314,28 @@ namespace HotChocolate
             return this;
         }
 
-        public Schema Create()
+        public ISchemaBuilder AddContextData(string key, object value)
         {
-            IServiceProvider services = _services ?? new EmptyServiceProvider();
-            IBindingLookup bindingLookup =
-                _bindingCompiler.Compile(DescriptorContext.Create(services));
-
-            var types = new List<ITypeReference>(_types);
-
-            if (_documents.Count > 0)
-            {
-                types.AddRange(ParseDocuments(services, bindingLookup));
-            }
-
-            var lazy = new LazySchema();
-
-            TypeInitializer initializer =
-                InitializeTypes(services, bindingLookup, types, () => lazy.Schema);
-
-            SchemaDefinition definition = CreateSchemaDefinition(initializer);
-
-            if (definition.QueryType == null && _options.StrictValidation)
-            {
-                // TODO : Resources
-                throw new SchemaException(
-                    SchemaErrorBuilder.New()
-                        .SetMessage("No QUERY TYPE")
-                        .Build());
-            }
-
-            var schema = new Schema(definition);
-            lazy.Schema = schema;
-            return schema;
+            _contextData.Add(key, value);
+            return this;
         }
 
-        ISchema ISchemaBuilder.Create() => Create();
-
-        private IEnumerable<ITypeReference> ParseDocuments(
-            IServiceProvider services,
-            IBindingLookup bindingLookup)
+        public ISchemaBuilder SetContextData(string key, object value)
         {
-            var types = new List<ITypeReference>();
-
-            foreach (LoadSchemaDocument fetchSchema in _documents)
-            {
-                // TODO: retrieve root type names
-                DocumentNode schemaDocument = fetchSchema(services);
-
-                var visitor = new SchemaSyntaxVisitor(bindingLookup);
-                visitor.Visit(schemaDocument, null);
-                types.AddRange(visitor.Types);
-
-                RegisterOperationName(OperationType.Query,
-                    visitor.QueryTypeName);
-                RegisterOperationName(OperationType.Mutation,
-                    visitor.MutationTypeName);
-                RegisterOperationName(OperationType.Subscription,
-                    visitor.SubscriptionTypeName);
-            }
-
-            return types;
+            _contextData[key] = value;
+            return this;
         }
 
-        private void RegisterOperationName(
-            OperationType operation,
-            string typeName)
+        public ISchemaBuilder RemoveContextData(string key)
         {
-            if (!_operations.ContainsKey(operation)
-                && !string.IsNullOrEmpty(typeName))
-            {
-                _operations.Add(operation,
-                    new SyntaxTypeReference(
-                        new NamedTypeNode(typeName),
-                        TypeContext.Output));
-            }
+            _contextData.Remove(key);
+            return this;
         }
 
-        private TypeInitializer InitializeTypes(
-            IServiceProvider services,
-            IBindingLookup bindingLookup,
-            IEnumerable<ITypeReference> types,
-            Func<ISchema> schemaResolver)
+        public ISchemaBuilder ClearContextData()
         {
-            var initializer = new TypeInitializer(
-                services, types, _resolverTypes,
-                _isOfType, IsQueryType);
-
-            foreach (FieldMiddleware component in _globalComponents)
-            {
-                initializer.GlobalComponents.Add(component);
-            }
-
-            foreach (FieldReference reference in _resolvers.Keys)
-            {
-                initializer.Resolvers[reference] = new RegisteredResolver(
-                    typeof(object), _resolvers[reference]);
-            }
-
-            foreach (RegisteredResolver resolver in bindingLookup.Bindings
-                .SelectMany(t => t.CreateResolvers()))
-            {
-                var reference = new FieldReference(
-                    resolver.Field.TypeName,
-                    resolver.Field.FieldName);
-                initializer.Resolvers[reference] = resolver;
-            }
-
-            initializer.Initialize(schemaResolver);
-            return initializer;
-        }
-
-        private SchemaDefinition CreateSchemaDefinition(
-            TypeInitializer initializer)
-        {
-            var definition = new SchemaDefinition();
-
-            definition.Description = _description;
-            definition.Options = _options;
-            definition.Services = _services;
-
-            definition.Types = initializer.Types.Values
-                .Select(t => t.Type).OfType<INamedType>().ToList();
-            definition.DirectiveTypes = initializer.Types.Values
-                .Select(t => t.Type).OfType<DirectiveType>().ToList();
-
-            RegisterOperationName(OperationType.Query,
-                _options.QueryTypeName);
-            RegisterOperationName(OperationType.Mutation,
-                _options.MutationTypeName);
-            RegisterOperationName(OperationType.Subscription,
-                _options.SubscriptionTypeName);
-
-            definition.QueryType = ResolveOperation(
-                initializer, OperationType.Query);
-            definition.MutationType = ResolveOperation(
-                initializer, OperationType.Mutation);
-            definition.SubscriptionType = ResolveOperation(
-                initializer, OperationType.Subscription);
-
-            return definition;
-        }
-
-        private ObjectType ResolveOperation(
-            TypeInitializer initializer,
-            OperationType operation)
-        {
-            if (!_operations.ContainsKey(operation))
-            {
-                NameString typeName = operation.ToString();
-                return initializer.Types.Values
-                    .Select(t => t.Type)
-                    .OfType<ObjectType>()
-                    .FirstOrDefault(t => t.Name.Equals(typeName));
-            }
-            else if (_operations.TryGetValue(operation,
-                out ITypeReference reference))
-            {
-
-                if (reference is ISchemaTypeReference sr)
-                {
-                    return (ObjectType)sr.Type;
-                }
-
-                if (reference is IClrTypeReference cr
-                    && initializer.TryGetRegisteredType(cr,
-                    out RegisteredType registeredType))
-                {
-                    return (ObjectType)registeredType.Type;
-                }
-
-                if (reference is ISyntaxTypeReference str)
-                {
-                    NamedTypeNode namedType = str.Type.NamedType();
-                    return initializer.Types.Values.Select(t => t.Type)
-                        .OfType<ObjectType>()
-                        .FirstOrDefault(t => t.Name.Equals(
-                            namedType.Name.Value));
-                }
-            }
-
-            return null;
-        }
-
-        private bool IsQueryType(TypeSystemObjectBase type)
-        {
-            if (type is ObjectType objectType)
-            {
-                if (_operations.TryGetValue(OperationType.Query,
-                    out ITypeReference reference))
-                {
-                    if (reference is ISchemaTypeReference sr)
-                    {
-                        return sr.Type == objectType;
-                    }
-
-                    if (reference is IClrTypeReference cr)
-                    {
-                        return cr.Type == objectType.GetType();
-                    }
-
-                    if (reference is ISyntaxTypeReference str)
-                    {
-                        return objectType.Name.Equals(
-                            str.Type.NamedType().Name.Value);
-                    }
-                }
-                else
-                {
-                    // TODO : query to constant
-                    return type is ObjectType
-                        && type.Name.Equals("Query");
-                }
-            }
-
-            return false;
+            _contextData.Clear();
+            return this;
         }
 
         public static SchemaBuilder New() => new SchemaBuilder();

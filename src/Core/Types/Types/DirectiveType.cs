@@ -71,6 +71,7 @@ namespace HotChocolate.Types
             ClrType = definition.ClrType != GetType()
                 ? definition.ClrType
                 : typeof(object);
+            IsRepeatable = definition.IsRepeatable;
 
             RegisterDependencies(context, definition);
         }
@@ -97,10 +98,6 @@ namespace HotChocolate.Types
                 definition.MiddlewareComponents.ToList().AsReadOnly();
 
             SyntaxNode = definition.SyntaxNode;
-            ClrType = definition.ClrType == GetType()
-                ? typeof(object)
-                : definition.ClrType;
-            IsRepeatable = definition.IsRepeatable;
             Locations = definition.Locations.ToList().AsReadOnly();
             Arguments = new FieldCollection<Argument>(
                 definition.Arguments.Select(t => new Argument(t)));

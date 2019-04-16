@@ -9,10 +9,10 @@ namespace HotChocolate.Types
     {
         void OnBeforeCreate(Action<T> configure);
 
-        IDependencyDescriptor OnBeforeNaming(
+        INamedDependencyDescriptor OnBeforeNaming(
             Action<ICompletionContext, T> configure);
 
-        IDependencyDescriptor OnBeforeCompletion(
+        ICompletedDependencyDescriptor OnBeforeCompletion(
             Action<ICompletionContext, T> configure);
     }
 }

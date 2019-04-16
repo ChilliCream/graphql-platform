@@ -5,6 +5,8 @@
   contract(contractId: ID!): Contract @delegate(schema: "contract")
   contracts(customerId: ID!): [Contract!] @delegate(schema: "contract")
   extendedScalar(d: DateTime): DateTime @delegate(schema: "contract")
+  guid(guid: Uuid!): Uuid! @delegate(schema: "contract")
+  int(i: Int!): Int! @delegate(schema: "contract")
 }
 
 type Mutation {
@@ -27,6 +29,8 @@ type Customer @source(name: "Customer", schema: "customer") {
   id: ID!
   name: String!
   say(input: SayInput!): String
+  someGuid: Uuid!
+  someInt: Int!
   street: String!
 }
 
@@ -71,6 +75,8 @@ input CustomerInput @source(name: "CustomerInput", schema: "customer") {
   consultantId: String
   id: String
   name: String
+  someGuid: Uuid!
+  someInt: Int!
   street: String
 }
 

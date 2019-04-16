@@ -68,6 +68,12 @@ namespace HotChocolate.Types
             Expression<Func<T, object>> property);
 
         /// <summary>
+        /// Specifies a directive argument.
+        /// </summary>
+        /// <param name="name">The name of the argument.</param>
+        IDirectiveArgumentDescriptor Argument(NameString name);
+
+        /// <summary>
         /// Specifies in which location the directive belongs in.
         /// </summary>
         /// <param name="value">The directive location.</param>

@@ -25,6 +25,7 @@ namespace HotChocolate.Stitching.Schemas.Contracts
             configuration.RegisterType<SomeOtherContractType>();
             configuration.RegisterDirective<CustomDirectiveType>();
 
+            configuration.RegisterExtendedScalarTypes();
             configuration.UseGlobalObjectIdentifier();
         }
 

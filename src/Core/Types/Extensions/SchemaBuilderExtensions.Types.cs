@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate
 {
-    internal static class SchemaBuilderExtensions
+    public static partial class SchemaBuilderExtensions
     {
         public static ISchemaBuilder AddQueryType(
             this ISchemaBuilder builder,
@@ -345,6 +345,18 @@ namespace HotChocolate
             }
 
             return AddDirectiveType(builder, typeof(TDirective));
+        }
+
+        public static ISchemaBuilder SetSchema<TSchema>(
+            this ISchemaBuilder builder)
+            where TSchema : ISchema
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.SetSchema(typeof(TSchema));
         }
     }
 }

@@ -23,7 +23,7 @@ namespace HotChocolate.Configuration
 
         DirectiveType GetDirectiveType(IDirectiveReference reference);
 
-        FieldResolver GetResolver(IFieldReference reference);
+        FieldResolver GetResolver(NameString fieldName);
 
         Func<ISchema> GetSchemaResolver();
     }

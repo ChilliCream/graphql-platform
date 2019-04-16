@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Stitching.Schemas.Customers
@@ -11,21 +12,27 @@ namespace HotChocolate.Stitching.Schemas.Customers
                 Id = "1",
                 Name = "Freddy Freeman",
                 Street = "Far far away 1",
-                ConsultantId = "1"
+                ConsultantId = "1",
+                SomeInt = 1,
+                SomeGuid = new Guid("01e2f5dc-0f19-4305-99d3-3c5c234a6524")
             },
             new Customer
             {
                 Id = "2",
                 Name = "Carol Danvers",
                 Street = "Far far away 2",
-                ConsultantId = "1"
+                ConsultantId = "1",
+                SomeInt = 2,
+                SomeGuid = new Guid("7f84a645-3439-4a6c-91b1-d313f699648d")
             },
             new Customer
             {
                 Id = "3",
                 Name = "Walter Lawson",
                 Street = "Far far away 3",
-                ConsultantId = "2"
+                ConsultantId = "2",
+                SomeInt = 3,
+                SomeGuid = new Guid("c1c4ec83-a0db-4020-ad0c-9ec6e09ad949")
             }
         };
 

@@ -16,6 +16,10 @@
 
             descriptor.BindFields(BindingBehavior.Explicit);
 
+            descriptor.Field("description")
+                .Type<StringType>()
+                .Resolver(c => c.Schema.Description);
+
             descriptor.Field("types")
                 .Description("A list of all types supported by this server.")
                 .Type<NonNullType<ListType<NonNullType<__Type>>>>()

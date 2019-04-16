@@ -7,6 +7,88 @@ namespace HotChocolate.Types
         : TypeTestBase
     {
         [Fact]
+        public void UnionType_DynamicName()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new UnionType(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn<StringType>()
+                    .Type<FooType>()
+                    .Type<BarType>()));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            UnionType type = schema.GetType<UnionType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void UnionType_DynamicName_NonGeneric()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new UnionType(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn(typeof(StringType))
+                    .Type<FooType>()
+                    .Type<BarType>()));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            UnionType type = schema.GetType<UnionType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void GenericUnionType_DynamicName()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new UnionType<IFooOrBar>(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn<StringType>()));
+
+                c.RegisterType(new FooType());
+                c.RegisterType(new BarType());
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            UnionType type = schema.GetType<UnionType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void GenericUnionType_DynamicName_NonGeneric()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new UnionType<IFooOrBar>(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn(typeof(StringType))));
+
+                c.RegisterType(new FooType());
+                c.RegisterType(new BarType());
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            UnionType type = schema.GetType<UnionType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
         public void DeclareUnion_ByProvidingExplicitTypeSet()
         {
             // arrange
