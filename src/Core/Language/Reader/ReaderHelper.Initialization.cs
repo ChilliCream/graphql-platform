@@ -1,8 +1,8 @@
-﻿namespace HotChocolate.Utilities
+﻿namespace HotChocolate.Language
 {
-    internal static partial class CharExtensions2
+    internal static partial class ReaderHelper
     {
-        static CharExtensions()
+        static ReaderHelper()
         {
             InitializeIsControlCharacterCache();
             InitializeIsEscapeCharacterCache();

@@ -65,8 +65,69 @@ namespace HotChocolate.Language
 
         public bool Read()
         {
+            SkipWhitespaces();
+            UpdateColumn();
 
-            return false;
+            if(IsEndOfStream())
+            {
+
+            }
+
+            ref readonly byte code = ref GraphQLData[Position];
+
+            if(ReaderHelper.IsLetterOrDigitOrUnderscore(in code))
+            {
+
+            }
+
+            if(ReaderHelper.IsPunctuator(in code))
+            {
+
+            }
+
+            if(ReaderHelper.IsDigitOrMinus(in code))
+            {
+
+            }
+
+
+            if(ReaderHelper.IsHash(in code))
+            {
+
+            }
+
+            if(ReaderHelper.IsQuote(in code))
+            {
+
+            }
+
+            // TODO : fix this
+            throw new SyntaxException((LexerState)null, "Unexpected character.");
+        }
+
+        private void SkipWhitespaces()
+        {
+            if (IsEndOfStream())
+            {
+                return;
+            }
+
+            ref readonly byte code = ref GraphQLData[Position];
+            while (ReaderHelper.IsWhitespace(in code))
+            {
+                if (ReaderHelper.IsNewLine(in code))
+                {
+                    NewLine();
+                }
+
+                ++Position;
+                if (IsEndOfStream())
+                {
+                    return;
+                }
+
+                code = ref GraphQLData[Position];
+            }
         }
 
         /// <summary>
@@ -113,7 +174,7 @@ namespace HotChocolate.Language
         /// <returns></returns>
         public bool IsEndOfStream()
         {
-            return Position >= SourceText.Length;
+            return Position >= GraphQLData.Length;
         }
     }
 }

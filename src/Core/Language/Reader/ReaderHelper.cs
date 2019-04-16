@@ -1,11 +1,11 @@
-﻿namespace HotChocolate.Utilities
+﻿namespace HotChocolate.Language
 {
     /// <summary>
     /// This class provides internal char utilities
     /// that are used to tokenize a GraphQL source text.
     /// These utilities are used by the lexer dfault implementation.
     /// </summary>
-    internal static partial class CharExtensions2
+    internal static partial class ReaderHelper
     {
         private static readonly bool[] _isLetterOrUnderscore =
             new bool[char.MaxValue + 1];
@@ -30,6 +30,14 @@
         private const byte _hash = (byte)'#';
         private const byte _newLine = (byte)'\n';
         private const byte _return = (byte)'\r';
+        private const byte _b = (byte)'b';
+        private const byte _besc = (byte)'\b';
+        private const byte _f = (byte)'f';
+        private const byte _fesc = (byte)'\f';
+        private const byte _n = (byte)'n';
+        private const byte _r = (byte)'r';
+        private const byte _t = (byte)'t';
+        private const byte _tab = (byte)'\t';
 
 
         public static bool IsLetterOrDigitOrUnderscore(in this byte c)
@@ -120,31 +128,33 @@
             return c == _return;
         }
 
-        public static ref readonly bool IsValidEscapeCharacter(in this char c)
+        public static ref readonly bool IsValidEscapeCharacter(in this byte c)
         {
             return ref _isEscapeCharacter[c];
         }
 
-        public static char EscapeCharacter(in this char c)
+
+
+        public static byte EscapeCharacter(in this byte c)
         {
             switch (c)
             {
-                case 'b':
-                    return '\b';
-                case 'f':
-                    return '\f';
-                case 'n':
-                    return '\n';
-                case 'r':
-                    return '\r';
-                case 't':
-                    return '\t';
+                case _b:
+                    return _besc;
+                case _f:
+                    return _fesc;
+                case _n:
+                    return _newLine;
+                case _r:
+                    return _return;
+                case _t:
+                    return _tab;
                 default:
                     return c;
             }
         }
 
-        public static ref readonly bool IsControlCharacter(in this char c)
+        public static ref readonly bool IsControlCharacter(in this byte c)
         {
             return ref _isControlCharacter[c];
         }
