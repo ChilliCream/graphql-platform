@@ -89,15 +89,17 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(schemaResolver));
             }
 
-            RegisterTypes();
-            RegisterImplicitInterfaceDependencies();
-
-            if (CompleteNames(schemaResolver))
+            if (RegisterTypes())
             {
-                MergeTypeExtensions();
-                RegisterExternalResolvers();
-                CompileResolvers();
-                CompleteTypes();
+                RegisterImplicitInterfaceDependencies();
+
+                if (CompleteNames(schemaResolver))
+                {
+                    MergeTypeExtensions();
+                    RegisterExternalResolvers();
+                    CompileResolvers();
+                    CompleteTypes();
+                }
             }
 
             _errors.AddRange(SchemaValidator.Validate(
@@ -137,6 +139,7 @@ namespace HotChocolate.Configuration
         {
             var typeRegistrar = new TypeRegistrar(
                 _services, _initialTypes, _contextData);
+
             if (typeRegistrar.Complete())
             {
                 foreach (InitializationContext context in
@@ -161,6 +164,7 @@ namespace HotChocolate.Configuration
                 {
                     _clrTypes[key] = typeRegistrar.ClrTypes[key];
                 }
+
                 return true;
             }
 
@@ -205,7 +209,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void MergeTypeExtension(
+        private static void MergeTypeExtension(
             ICompletionContext context,
             INamedTypeExtensionMerger extension,
             INamedType type)
@@ -222,7 +226,7 @@ namespace HotChocolate.Configuration
             extension.Merge(context, type);
         }
 
-        private void CopyAlternateNames(
+        private static void CopyAlternateNames(
             CompletionContext source,
             CompletionContext destination)
         {
@@ -360,7 +364,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private bool CompleteNames(Func<ISchema> schemaResolver)
+        private void CompleteNames(Func<ISchema> schemaResolver)
         {
             bool success = CompleteTypes(TypeDependencyKind.Named,
                 registeredType =>
@@ -402,7 +406,6 @@ namespace HotChocolate.Configuration
             }
 
             ThrowOnErrors();
-            return success;
         }
 
         private void UpdateDependencyLookup()
@@ -417,9 +420,9 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private bool CompleteTypes()
+        private void CompleteTypes()
         {
-            bool success = CompleteTypes(TypeDependencyKind.Completed, registeredType =>
+            CompleteTypes(TypeDependencyKind.Completed, registeredType =>
             {
                 CompletionContext context = _cmpCtx[registeredType];
                 context.Status = TypeStatus.Named;
@@ -429,7 +432,6 @@ namespace HotChocolate.Configuration
             });
 
             ThrowOnErrors();
-            return success;
         }
 
         private bool CompleteTypes(
