@@ -68,41 +68,176 @@ namespace HotChocolate.Language
             SkipWhitespaces();
             UpdateColumn();
 
-            if(IsEndOfStream())
+            if (IsEndOfStream())
             {
-
+                Start = Position;
+                End = Position;
+                Kind = TokenKind.EndOfFile;
+                Value = null;
             }
 
             ref readonly byte code = ref GraphQLData[Position];
 
-            if(ReaderHelper.IsLetterOrDigitOrUnderscore(in code))
+            if (ReaderHelper.IsLetterOrDigitOrUnderscore(in code))
+            {
+                ReadNameToken();
+            }
+
+            if (ReaderHelper.IsPunctuator(in code))
+            {
+                ReadPunctuatorToken(in code);
+            }
+
+            if (ReaderHelper.IsDigitOrMinus(in code))
             {
 
             }
 
-            if(ReaderHelper.IsPunctuator(in code))
+
+            if (ReaderHelper.IsHash(in code))
             {
 
             }
 
-            if(ReaderHelper.IsDigitOrMinus(in code))
-            {
-
-            }
-
-
-            if(ReaderHelper.IsHash(in code))
-            {
-
-            }
-
-            if(ReaderHelper.IsQuote(in code))
+            if (ReaderHelper.IsQuote(in code))
             {
 
             }
 
             // TODO : fix this
             throw new SyntaxException((LexerState)null, "Unexpected character.");
+        }
+
+        /// <summary>
+        /// Reads name tokens as specified in
+        /// http://facebook.github.io/graphql/October2016/#Name
+        /// [_A-Za-z][_0-9A-Za-z]
+        /// from the current lexer state.
+        /// </summary>
+        /// <param name="state">The lexer state.</param>
+        /// <param name="previous">The previous-token.</param>
+        /// <returns>
+        /// Returns the name token read from the current lexer state.
+        /// </returns>
+        private void ReadNameToken()
+        {
+            var start = Position;
+            var position = Position;
+
+            do
+            {
+                position++;
+            }
+            while (position < GraphQLData.Length
+                && ReaderHelper.IsLetterOrDigitOrUnderscore(
+                    in GraphQLData[position]));
+
+            Kind = TokenKind.Name;
+            Start = start;
+            End = position;
+            Value = GraphQLData.Slice(start, position - start);
+            Position = position;
+        }
+
+        /// <summary>
+        /// Reads punctuator tokens as specified in
+        /// http://facebook.github.io/graphql/October2016/#sec-Punctuators
+        /// one of ! $ ( ) ... : = @ [ ] { | }
+        /// additionaly the reader will tokenize ampersands.
+        /// </summary>
+        /// <param name="state">
+        /// The lexer state.
+        /// </param>
+        /// <param name="previous">
+        /// The previous-token.
+        /// </param>
+        /// <param name="firstCode">
+        /// The first character of the punctuator.
+        /// </param>
+        /// <returns>
+        /// Returns the punctuator token read from the current lexer state.
+        /// </returns>
+        private void ReadPunctuatorToken(in byte code)
+        {
+            Start = Position;
+            End = ++Position;
+            Value = null;
+
+            switch (code)
+            {
+                case ReaderHelper.Bang:
+                    Kind = TokenKind.Bang;
+                    break;
+
+                case ReaderHelper.Dollar:
+                    Kind = TokenKind.Dollar;
+                    break;
+
+                case ReaderHelper.Ampersand:
+                    Kind = TokenKind.Ampersand;
+                    break;
+
+                case ReaderHelper.LeftParenthesis:
+                    Kind = TokenKind.LeftParenthesis;
+                    break;
+
+                case ReaderHelper.RightParenthesis:
+                    Kind = TokenKind.RightParenthesis;
+                    break;
+
+                case ReaderHelper.Colon:
+                    Kind = TokenKind.Colon;
+                    break;
+
+                case ReaderHelper.Equal:
+                    Kind = TokenKind.Equal;
+                    break;
+
+                case ReaderHelper.At:
+                    Kind = TokenKind.At;
+                    break;
+
+                case ReaderHelper.LeftBracket:
+                    Kind = TokenKind.LeftBracket;
+                    break;
+
+                case ReaderHelper.RightBracket:
+                    Kind = TokenKind.RightBracket;
+                    break;
+
+                case ReaderHelper.LeftBrace:
+                    Kind = TokenKind.LeftBrace;
+                    break;
+
+                case ReaderHelper.RightBrace:
+                    Kind = TokenKind.RightBrace;
+                    break;
+
+                case ReaderHelper.Pipe:
+                    Kind = TokenKind.Pipe;
+                    break;
+
+                case ReaderHelper.Dot:
+                    if (ReaderHelper.IsDot(in GraphQLData[Position])
+                        && ReaderHelper.IsDot(in GraphQLData[Position + 1]))
+                    {
+                        Position += 2;
+                        End = Position;
+                        Kind = TokenKind.Spread;
+                    }
+                    else
+                    {
+                        // TODO : exception
+                        Position--;
+                        throw new SyntaxException((LexerState)null,
+                            "Expected a spread token.");
+                    }
+                    break;
+            }
+
+            Position--;
+            throw new SyntaxException((LexerState)null,
+                "Unexpected punctuator character.");
         }
 
         private void SkipWhitespaces()

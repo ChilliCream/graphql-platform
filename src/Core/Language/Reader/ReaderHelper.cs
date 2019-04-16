@@ -21,7 +21,6 @@
             new bool[char.MaxValue + 1];
         private const byte _a = (byte)'a';
         private const byte _z = (byte)'z';
-        private const byte _dot = (byte)'.';
         private const byte _hyphen = (byte)'-';
         private const byte _underscore = (byte)'_';
         private const byte _plus = (byte)'+';
@@ -38,6 +37,21 @@
         private const byte _r = (byte)'r';
         private const byte _t = (byte)'t';
         private const byte _tab = (byte)'\t';
+
+        public const byte Bang = (byte)'!';
+        public const byte Dollar = (byte)'$';
+        public const byte Ampersand = (byte)'&';
+        public const byte LeftParenthesis = (byte)'(';
+        public const byte RightParenthesis = (byte)')';
+        public const byte Colon = (byte)':';
+        public const byte Equal = (byte)'=';
+        public const byte At = (byte)'@';
+        public const byte LeftBracket = (byte)'[';
+        public const byte RightBracket = (byte)']';
+        public const byte LeftBrace = (byte)'{';
+        public const byte RightBrace = (byte)'}';
+        public const byte Pipe = (byte)'|';
+        public const byte Dot = (byte)'.';
 
 
         public static bool IsLetterOrDigitOrUnderscore(in this byte c)
@@ -68,7 +82,7 @@
 
         public static bool IsDot(in this byte c)
         {
-            return c == _dot;
+            return c == Dot;
         }
 
         public static bool IsHyphen(in this byte c)
