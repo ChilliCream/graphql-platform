@@ -26,6 +26,114 @@ namespace HotChocolate
         }
 
         [Fact]
+        public void AddRootType_ValueTypeAsQueryType_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddRootType((Type)null, OperationType.Query);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddRootType_ValueTypeAsQueryType_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddRootType(typeof(int), OperationType.Query);
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void AddRootType_TypeIsNonGenericBaseType_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddRootType(typeof(ObjectType), OperationType.Query);
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void AddRootType_TypeIsNotObjectType_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddRootType(typeof(MyEnumType), OperationType.Query);
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void AddRootType_DuplicateQueryType_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddRootType(typeof(FooType), OperationType.Query)
+                .AddRootType(typeof(FooType), OperationType.Query);
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void AddRootType_TypeIsObjectType_SchemaIsCreated()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddRootType(typeof(FooType), OperationType.Query)
+                .Create();
+
+            // assert
+            ObjectType queryType = schema.GetType<ObjectType>("Foo");
+            Assert.NotNull(queryType);
+            Assert.Equal(queryType, schema.QueryType);
+        }
+
+        [Fact]
+        public void AddRootType_MutationType_SchemaIsCreated()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddRootType(typeof(FooType), OperationType.Query)
+                .AddRootType(typeof(BarType), OperationType.Mutation)
+                .Create();
+
+            // assert
+            ObjectType queryType = schema.GetType<ObjectType>("Bar");
+            Assert.NotNull(queryType);
+            Assert.Equal(queryType, schema.MutationType);
+        }
+
+        [Fact]
+        public void AddRootType_SubscriptionType_SchemaIsCreated()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddRootType(typeof(FooType), OperationType.Query)
+                .AddRootType(typeof(BarType), OperationType.Subscription)
+                .Create();
+
+            // assert
+            ObjectType queryType = schema.GetType<ObjectType>("Bar");
+            Assert.NotNull(queryType);
+            Assert.Equal(queryType, schema.SubscriptionType);
+        }
+
+        [Fact]
         public void AddQueryType()
         {
             // arrange
@@ -518,6 +626,7 @@ namespace HotChocolate
         {
             // arrange
             var schemaMock = new Mock<ISchema>();
+
             // act
             Action action = () => SchemaBuilder.New()
                 .SetSchema(schemaMock.Object);
@@ -536,6 +645,25 @@ namespace HotChocolate
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void ModifyOptions_Configure_()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("TestMe")
+                .Field("foo")
+                .Resolver("bar"));
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .ModifyOptions(o => o.QueryTypeName = "TestMe")
+                .AddType(queryType)
+                .Create();
+
+            // assert
+            Assert.Equal("TestMe", schema.QueryType.Name);
         }
 
         public class QueryType
@@ -616,5 +744,9 @@ namespace HotChocolate
                 descriptor.Description("Description");
             }
         }
+
+        public class MyEnumType
+            : EnumType
+        { }
     }
 }
