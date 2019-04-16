@@ -89,6 +89,11 @@ namespace HotChocolate
 
         public ISchemaBuilder ModifyOptions(Action<ISchemaOptions> configure)
         {
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
             configure(_options);
             return this;
         }

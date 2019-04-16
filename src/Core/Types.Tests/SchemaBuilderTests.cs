@@ -6,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using System;
 using HotChocolate.Execution;
+using Moq;
 
 namespace HotChocolate
 {
@@ -399,6 +400,38 @@ namespace HotChocolate
         }
 
         [Fact]
+        public void SetSchema_TypeIsNotSchema_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .SetSchema(typeof(SchemaBuilderTests));
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void SetSchema_TypeSchema_SchemaIsCreatedFromType()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Resolver("bar"));
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .SetSchema(typeof(MySchema))
+                .AddType(queryType)
+                .Create();
+
+            // assert
+            Assert.Equal("Description",
+                Assert.IsType<MySchema>(schema).Description);
+        }
+
+        [Fact]
         public void SetSchema_SetName()
         {
             // arrange
@@ -480,7 +513,30 @@ namespace HotChocolate
             Assert.Throws<ArgumentNullException>(action);
         }
 
-        // TODO : Add Missing Query Type test
+        [Fact]
+        public void SetSchema_SchemaIsNotTypeSystemObject_ArgumentException()
+        {
+            // arrange
+            var schemaMock = new Mock<ISchema>();
+            // act
+            Action action = () => SchemaBuilder.New()
+                .SetSchema(schemaMock.Object);
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void ModifyOptions_Configure_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .ModifyOptions(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
 
         public class QueryType
             : ObjectType
@@ -550,6 +606,15 @@ namespace HotChocolate
         public class QueryResolverOnName
         {
             public string Baz { get; }
+        }
+
+        public class MySchema
+            : Schema
+        {
+            protected override void Configure(ISchemaTypeDescriptor descriptor)
+            {
+                descriptor.Description("Description");
+            }
         }
     }
 }
