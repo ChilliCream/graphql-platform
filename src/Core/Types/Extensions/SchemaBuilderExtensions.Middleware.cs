@@ -4,7 +4,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate
 {
-    public static class MiddlewareSchemaBuilderExtensions
+    public static partial class SchemaBuilderExtensions
     {
         public static ISchemaBuilder Use<TMiddleware>(
             this ISchemaBuilder configuration)
