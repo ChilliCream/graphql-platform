@@ -134,6 +134,91 @@ namespace HotChocolate
         }
 
         [Fact]
+        public void AddRootType_ObjectTypeIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddRootType((ObjectType)null, OperationType.Query);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddRootType_ObjTypeQueryType_SchemaIsCreated()
+        {
+            // arrange
+            var fooType = new FooType();
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddRootType(fooType, OperationType.Query)
+                .Create();
+
+            // assert
+            ObjectType queryType = schema.GetType<ObjectType>("Foo");
+            Assert.NotNull(queryType);
+            Assert.Equal(queryType, schema.QueryType);
+            Assert.Equal(fooType, schema.QueryType);
+        }
+
+        [Fact]
+        public void AddRootType_ObjTypeMutationType_SchemaIsCreated()
+        {
+            // arrange
+            var fooType = new FooType();
+            var barType = new BarType();
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddRootType(fooType, OperationType.Query)
+                .AddRootType(barType, OperationType.Mutation)
+                .Create();
+
+            // assert
+            ObjectType queryType = schema.GetType<ObjectType>("Foo");
+            Assert.NotNull(queryType);
+            Assert.Equal(queryType, schema.MutationType);
+            Assert.Equal(barType, schema.MutationType);
+        }
+
+        [Fact]
+        public void AddRootType_ObjTypeSubscriptionType_SchemaIsCreated()
+        {
+            // arrange
+            var fooType = new FooType();
+            var barType = new BarType();
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddRootType(fooType, OperationType.Query)
+                .AddRootType(barType, OperationType.Subscription)
+                .Create();
+
+            // assert
+            ObjectType queryType = schema.GetType<ObjectType>("Foo");
+            Assert.NotNull(queryType);
+            Assert.Equal(queryType, schema.SubscriptionType);
+            Assert.Equal(barType, schema.SubscriptionType);
+        }
+
+        [Fact]
+        public void AddRootType_ObjTypeDuplicateQueryType_ArgumentException()
+        {
+            // arrange
+            var fooType = new FooType();
+
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddRootType(fooType, OperationType.Query)
+                .AddRootType(fooType, OperationType.Query);
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
         public void AddQueryType()
         {
             // arrange
@@ -648,7 +733,7 @@ namespace HotChocolate
         }
 
         [Fact]
-        public void ModifyOptions_Configure_()
+        public void ModifyOptions_SetQueryTypeName_SpecifTypeBecomesQueryType()
         {
             // arrange
             var queryType = new ObjectType(t => t
@@ -665,6 +750,45 @@ namespace HotChocolate
             // assert
             Assert.Equal("TestMe", schema.QueryType.Name);
         }
+
+        [Fact]
+        public void AddResolver_ResolverIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+               .AddResolver((FieldResolver)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddResolver_Resolver_ResolverIsSet()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("TestMe")
+                .Field("foo")
+                .Type<StringType>());
+
+            FieldResolverDelegate resolverDelegate =
+                c => Task.FromResult<object>(null);
+            var resolverDescriptor =
+                new FieldResolver("TestMe", "foo", resolverDelegate);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(queryType)
+                .AddResolver(resolverDescriptor)
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("TestMe");
+            Assert.NotNull(type);
+            Assert.Equal(resolverDelegate, type.Fields["foo"].Resolver);
+        }
+
 
         public class QueryType
             : ObjectType
