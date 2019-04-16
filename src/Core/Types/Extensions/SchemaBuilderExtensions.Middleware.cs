@@ -7,28 +7,28 @@ namespace HotChocolate
     public static partial class SchemaBuilderExtensions
     {
         public static ISchemaBuilder Use<TMiddleware>(
-            this ISchemaBuilder configuration)
+            this ISchemaBuilder builder)
             where TMiddleware : class
         {
-            return configuration.Use(
+            return builder.Use(
                 FieldClassMiddlewareFactory.Create<TMiddleware>());
         }
 
         public static ISchemaBuilder Use<TMiddleware>(
-            this ISchemaBuilder configuration,
+            this ISchemaBuilder builder,
             Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
             where TMiddleware : class
         {
-            return configuration.Use(
+            return builder.Use(
                 FieldClassMiddlewareFactory.Create(factory));
         }
 
         public static ISchemaBuilder Map(
-            this ISchemaBuilder configuration,
+            this ISchemaBuilder builder,
             FieldReference fieldReference,
             FieldMiddleware middleware)
         {
-            return configuration.Use(
+            return builder.Use(
                 FieldClassMiddlewareFactory.Create(
                     (s, n) => new MapMiddleware(
                         n, fieldReference, middleware(n))));
@@ -36,11 +36,11 @@ namespace HotChocolate
 
 
         public static ISchemaBuilder Map<TMiddleware>(
-            this ISchemaBuilder configuration,
+            this ISchemaBuilder builder,
             FieldReference fieldReference)
             where TMiddleware : class
         {
-            return configuration.Use(
+            return builder.Use(
                 FieldClassMiddlewareFactory.Create(
                     (s, n) =>
                     {
@@ -52,12 +52,12 @@ namespace HotChocolate
         }
 
         public static ISchemaBuilder Map<TMiddleware>(
-            this ISchemaBuilder configuration,
+            this ISchemaBuilder builder,
             FieldReference fieldReference,
             Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
             where TMiddleware : class
         {
-            return configuration.Use(
+            return builder.Use(
                 FieldClassMiddlewareFactory.Create(
                     (s, n) =>
                     {

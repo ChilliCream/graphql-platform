@@ -92,14 +92,11 @@ namespace HotChocolate.Configuration
             if (RegisterTypes())
             {
                 RegisterImplicitInterfaceDependencies();
-
-                if (CompleteNames(schemaResolver))
-                {
-                    MergeTypeExtensions();
-                    RegisterExternalResolvers();
-                    CompileResolvers();
-                    CompleteTypes();
-                }
+                CompleteNames(schemaResolver);
+                MergeTypeExtensions();
+                RegisterExternalResolvers();
+                CompileResolvers();
+                CompleteTypes();
             }
 
             _errors.AddRange(SchemaValidator.Validate(
