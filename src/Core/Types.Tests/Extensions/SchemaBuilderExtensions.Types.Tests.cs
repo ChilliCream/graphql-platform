@@ -494,6 +494,114 @@ namespace HotChocolate
             builder.Create().ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void SetSchema_BuilderIsNull_ArgumentException()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.SetSchema<MySchema>(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void SetSchema_TypeSchema_SchemaIsCreatedFromType()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Resolver("bar"));
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .SetSchema<MySchema>()
+                .AddType(queryType)
+                .Create();
+
+            // assert
+            Assert.Equal("Description",
+                Assert.IsType<MySchema>(schema).Description);
+        }
+
+        [Fact]
+        public void AddDirectiveType_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddDirectiveType(
+                    null, typeof(MyDirective));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddDirectiveType_TypeIsNull_ArgumentNullException()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddDirectiveType(builder, (Type)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddDirectiveType_TypeIsDirectiveType_ArgumentException()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddDirectiveType(
+                    builder, typeof(DirectiveType));
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void AddDirectiveType_TypeIsDirectiveTypeFoo_ArgumentException()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddDirectiveType(
+                    builder, typeof(DirectiveType<Foo>));
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void AddDirectiveType_TypeIsMyDirectiveType_SchemaIsValid()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+            builder.AddQueryType<QueryType>();
+
+            // act
+            SchemaBuilderExtensions.AddDirectiveType(
+                builder, typeof(MyDirective));
+
+            // assert
+            builder.Create().ToString().MatchSnapshot();
+        }
+
+
+
         public class QueryType
            : ObjectType
         {
@@ -576,5 +684,16 @@ namespace HotChocolate
         public class MyEnumType
             : EnumType
         { }
+
+        public class MyDirective
+            : DirectiveType
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor descriptor)
+            {
+                descriptor.Name("my");
+                descriptor.Location(DirectiveLocation.Field);
+            }
+        }
     }
 }
