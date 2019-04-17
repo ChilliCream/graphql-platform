@@ -4,6 +4,8 @@ namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLReader
     {
+        private static readonly byte _space = (byte)' ';
+
         public Utf8GraphQLReader(ReadOnlySpan<byte> graphQLData)
         {
             GraphQLData = graphQLData;
@@ -90,7 +92,7 @@ namespace HotChocolate.Language
 
             if (ReaderHelper.IsDigitOrMinus(in code))
             {
-
+                ReadDigits(in code);
             }
 
 
@@ -238,6 +240,103 @@ namespace HotChocolate.Language
             Position--;
             throw new SyntaxException((LexerState)null,
                 "Unexpected punctuator character.");
+        }
+
+        /// <summary>
+        /// Reads int tokens as specified in
+        /// http://facebook.github.io/graphql/October2016/#IntValue
+        /// or a float tokens as specified in
+        /// http://facebook.github.io/graphql/October2016/#FloatValue
+        /// from the current lexer state.
+        /// </summary>
+        /// <param name="state">The lexer state.</param>
+        /// <param name="previous">The previous-token.</param>
+        /// <param name="firstCode">
+        /// The first character of the int or float token.
+        /// </param>
+        /// <returns>
+        /// Returns the int or float tokens read from the current lexer state.
+        /// </returns>
+        private SyntaxToken ReadNumberToken(
+            in byte firstCode)
+        {
+            int start = Position;
+            ref readonly byte code = ref firstCode;
+            var isFloat = false;
+
+            if (ReaderHelper.IsMinus(in code))
+            {
+                code = ref GraphQLData[++Position];
+            }
+
+            if (code == '0')
+            {
+                code = ref GraphQLData[++Position];
+                if (ReaderHelper.IsDigit(in code))
+                {
+                    // TODO : FIX
+                    throw new SyntaxException((LexerState)null,
+                        $"Invalid number, unexpected digit after 0: {code}.");
+                }
+            }
+            else
+            {
+                ReadDigits(in code);
+                if (Position < GraphQLData.Length)
+                {
+                    code = ref GraphQLData[Position];
+                }
+                else
+                {
+                    code = ref _space;
+                }
+            }
+
+            if (code.IsDot())
+            {
+                isFloat = true;
+                code = ref GraphQLData[++Position];
+                ReadDigits(in code);
+                if (Position < GraphQLData.Length)
+                {
+                    code = ref GraphQLData[Position];
+                }
+                else
+                {
+                    code = ref _space;
+                }
+            }
+
+            if ((code | (char)0x20) == 'e') // shift instead of or
+            {
+                isFloat = true;
+                code = ref GraphQLData[++Position];
+                if (ReaderHelper.IsPlus(in code)
+                    || ReaderHelper.IsMinus(in code))
+                {
+                    code = ref GraphQLData[++Position];
+                }
+                ReadDigits(in code);
+            }
+
+            Kind = isFloat ? TokenKind.Float : TokenKind.Integer;
+            Start = start;
+            End = Position;
+            Value = GraphQLData.Slice(start, Position - start);
+        }
+
+        private void ReadDigits(in byte firstCode)
+        {
+            if (!firstCode.IsDigit())
+            {
+                // TODO : FIX
+                throw new SyntaxException((LexerState)null,
+                    $"Invalid number, expected digit but got: {firstCode}.");
+            }
+
+            while (++Position < GraphQLData.Length
+                && ReaderHelper.IsDigit(GraphQLData[Position]))
+            { }
         }
 
         private void SkipWhitespaces()

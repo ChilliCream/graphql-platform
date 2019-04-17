@@ -52,6 +52,7 @@
         public const byte RightBrace = (byte)'}';
         public const byte Pipe = (byte)'|';
         public const byte Dot = (byte)'.';
+        public const byte Space = (byte)' ';
 
 
         public static bool IsLetterOrDigitOrUnderscore(in this byte c)
