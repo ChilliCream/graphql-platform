@@ -5,6 +5,7 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <RootNamespace>HotChocolate.Benchmark.Tests</RootNamespace>
     <IsPackable>false</IsPackable>
+    <LangVersion>7.3</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -13,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\..\src\Core\Core\Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
