@@ -2,9 +2,9 @@ using System.Text;
 
 namespace HotChocolate.Benchmark.Tests.Language
 {
-    public class ParserBenchmarkResourcesV11
+    public class ParserBenchmarkResourcesV9
     {
-        public ParserBenchmarkResourcesV11()
+        public ParserBenchmarkResourcesV9()
         {
             ResourceHelper resources = new ResourceHelper();
             KitchenSinkSchema = Encoding.UTF8.GetBytes(

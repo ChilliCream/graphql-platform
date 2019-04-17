@@ -26,7 +26,6 @@
         private const byte _plus = (byte)'+';
         private const byte _quote = (byte)'"';
         private const byte _backslash = (byte)'\\';
-        private const byte _hash = (byte)'#';
         private const byte _newLine = (byte)'\n';
         private const byte _return = (byte)'\r';
         private const byte _b = (byte)'b';
@@ -36,7 +35,6 @@
         private const byte _n = (byte)'n';
         private const byte _r = (byte)'r';
         private const byte _t = (byte)'t';
-        private const byte _tab = (byte)'\t';
 
         public const byte Bang = (byte)'!';
         public const byte Dollar = (byte)'$';
@@ -53,7 +51,9 @@
         public const byte Pipe = (byte)'|';
         public const byte Dot = (byte)'.';
         public const byte Space = (byte)' ';
-
+        public const byte Hash = (byte)'#';
+        public const byte Tab = (byte)'\t';
+        public const byte U = (byte)'u';
 
         public static bool IsLetterOrDigitOrUnderscore(in this byte c)
         {
@@ -118,7 +118,7 @@
 
         public static bool IsHash(in this byte c)
         {
-            return c == _hash;
+            return c == Hash;
         }
 
         public static bool IsPunctuator(in this byte c)
@@ -161,7 +161,7 @@
                 case _r:
                     return _return;
                 case _t:
-                    return _tab;
+                    return Tab;
                 default:
                     return c;
             }

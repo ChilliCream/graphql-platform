@@ -11,6 +11,7 @@
   <ItemGroup>
     <PackageReference Include="BenchmarkDotNet" Version="0.11.3" />
     <PackageReference Include="Moq" Version="4.10.1" />
+    <PackageReference Include="GraphQL-Parser" Version="3.1.0-preview-39" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Language
 {
@@ -99,10 +100,9 @@ namespace HotChocolate.Language
                 return true;
             }
 
-
             if (ReaderHelper.IsHash(in code))
             {
-
+                ReadCommentToken();
             }
 
             if (ReaderHelper.IsQuote(in code))
@@ -126,6 +126,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the name token read from the current lexer state.
         /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReadNameToken()
         {
             var start = Position;
@@ -164,6 +165,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the punctuator token read from the current lexer state.
         /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReadPunctuatorToken(in byte code)
         {
             Start = Position;
@@ -263,6 +265,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the int or float tokens read from the current lexer state.
         /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReadNumberToken(
             in byte firstCode)
         {
@@ -331,6 +334,7 @@ namespace HotChocolate.Language
             Value = GraphQLData.Slice(start, Position - start);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReadDigits(in byte firstCode)
         {
             if (!firstCode.IsDigit())
@@ -345,6 +349,79 @@ namespace HotChocolate.Language
             { }
         }
 
+        /// <summary>
+        /// Reads comment tokens as specified in
+        /// http://facebook.github.io/graphql/October2016/#sec-Comments
+        /// #[\u0009\u0020-\uFFFF]*
+        /// from the current lexer state.
+        /// </summary>
+        /// <param name="state">The lexer state.</param>
+        /// <param name="previous">The previous-token.</param>
+        /// <returns>
+        /// Returns the comment token read from the current lexer state.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ReadCommentToken()
+        {
+            var start = Position;
+            var trimStart = Position;
+            bool trim = true;
+
+            while (++Position < GraphQLData.Length
+                && !ReaderHelper.IsControlCharacter(in GraphQLData[Position]))
+            {
+                if (trim)
+                {
+                    switch (GraphQLData[Position])
+                    {
+                        case ReaderHelper.Hash:
+                        case ReaderHelper.Space:
+                        case ReaderHelper.Tab:
+                            trimStart = Position;
+                            break;
+
+                        default:
+                            trim = false;
+                            break;
+                    }
+                }
+            }
+
+            Kind = TokenKind.Comment;
+            Start = start;
+            End = Position;
+            Value = GraphQLData.Slice(trimStart, Position - trimStart);
+        }
+
+        private static bool TryReadUnicodeChar(out char code)
+        {
+            var c = (CharToHex(state.SourceText[++state.Position]) << 12)
+                | (CharToHex(state.SourceText[++state.Position]) << 8)
+                | (CharToHex(state.SourceText[++state.Position]) << 4)
+                | CharToHex(state.SourceText[++state.Position]);
+
+            if (c < 0)
+            {
+                code = default;
+                return false;
+            }
+
+            code = (char)c;
+            return true;
+        }
+
+        private static int CharToHex(int a)
+        {
+            return a >= 48 && a <= 57
+              ? a - 48 // 0-9
+              : a >= 65 && a <= 70
+                ? a - 55 // A-F
+                : a >= 97 && a <= 102
+                  ? a - 87 // a-f
+                  : -1;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SkipWhitespaces()
         {
             if (IsEndOfStream())
@@ -373,6 +450,7 @@ namespace HotChocolate.Language
         /// <summary>
         /// Sets the state to a new line.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void NewLine()
         {
             Line++;
@@ -402,6 +480,7 @@ namespace HotChocolate.Language
         /// <summary>
         /// Updates the column index.
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void UpdateColumn()
         {
             Column = 1 + Position - LineStart;
@@ -412,6 +491,7 @@ namespace HotChocolate.Language
         /// the end of the GraphQL source text.
         /// </summary>
         /// <returns></returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsEndOfStream()
         {
             return Position >= GraphQLData.Length;
