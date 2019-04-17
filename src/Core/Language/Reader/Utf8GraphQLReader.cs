@@ -76,6 +76,7 @@ namespace HotChocolate.Language
                 End = Position;
                 Kind = TokenKind.EndOfFile;
                 Value = null;
+                return false;
             }
 
             ref readonly byte code = ref GraphQLData[Position];
@@ -83,16 +84,19 @@ namespace HotChocolate.Language
             if (ReaderHelper.IsLetterOrDigitOrUnderscore(in code))
             {
                 ReadNameToken();
+                return true;
             }
 
             if (ReaderHelper.IsPunctuator(in code))
             {
                 ReadPunctuatorToken(in code);
+                return true;
             }
 
             if (ReaderHelper.IsDigitOrMinus(in code))
             {
                 ReadDigits(in code);
+                return true;
             }
 
 
@@ -107,7 +111,8 @@ namespace HotChocolate.Language
             }
 
             // TODO : fix this
-            throw new SyntaxException((LexerState)null, "Unexpected character.");
+            throw new SyntaxException((LexerState)null,
+                "Unexpected character.");
         }
 
         /// <summary>
@@ -235,11 +240,12 @@ namespace HotChocolate.Language
                             "Expected a spread token.");
                     }
                     break;
-            }
 
-            Position--;
-            throw new SyntaxException((LexerState)null,
-                "Unexpected punctuator character.");
+                default:
+                    Position--;
+                    throw new SyntaxException((LexerState)null,
+                        "Unexpected punctuator character.");
+            }
         }
 
         /// <summary>
@@ -257,7 +263,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the int or float tokens read from the current lexer state.
         /// </returns>
-        private SyntaxToken ReadNumberToken(
+        private void ReadNumberToken(
             in byte firstCode)
         {
             int start = Position;

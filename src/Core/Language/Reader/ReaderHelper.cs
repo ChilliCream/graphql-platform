@@ -57,7 +57,7 @@
 
         public static bool IsLetterOrDigitOrUnderscore(in this byte c)
         {
-            return c.IsLetterOrUnderscore() || c.IsDigit();
+            return IsLetterOrUnderscore(in c) || IsDigit(in c);
         }
 
         public static bool IsLetter(in this byte c)
@@ -66,9 +66,9 @@
             return (normalized >= _a && normalized <= _z);
         }
 
-        public static ref readonly bool IsLetterOrUnderscore(in this byte c)
+        public static bool IsLetterOrUnderscore(in this byte c)
         {
-            return ref _isLetterOrUnderscore[c];
+            return _isLetterOrUnderscore[c];
         }
 
         public static bool IsDigit(in this byte c)
@@ -76,9 +76,9 @@
             return c >= 48 && c <= 57;
         }
 
-        public static ref bool IsDigitOrMinus(in this byte c)
+        public static bool IsDigitOrMinus(in this byte c)
         {
-            return ref _isDigitOrMinus[c];
+            return _isDigitOrMinus[c];
         }
 
         public static bool IsDot(in this byte c)
@@ -98,7 +98,7 @@
 
         public static bool IsMinus(in this byte c)
         {
-            return c.IsHyphen();
+            return IsHyphen(in c);
         }
 
         public static bool IsPlus(in this byte c)
@@ -121,14 +121,14 @@
             return c == _hash;
         }
 
-        public static ref readonly bool IsPunctuator(in this byte c)
+        public static bool IsPunctuator(in this byte c)
         {
-            return ref _isPunctuator[c];
+            return _isPunctuator[c];
         }
 
-        public static ref readonly bool IsWhitespace(in this byte c)
+        public static bool IsWhitespace(in this byte c)
         {
-            return ref _isWhitespace[c];
+            return _isWhitespace[c];
         }
 
         public static bool IsNewLine(in this byte c)
@@ -143,12 +143,10 @@
             return c == _return;
         }
 
-        public static ref readonly bool IsValidEscapeCharacter(in this byte c)
+        public static bool IsValidEscapeCharacter(in this byte c)
         {
-            return ref _isEscapeCharacter[c];
+            return _isEscapeCharacter[c];
         }
-
-
 
         public static byte EscapeCharacter(in this byte c)
         {
@@ -169,9 +167,9 @@
             }
         }
 
-        public static ref readonly bool IsControlCharacter(in this byte c)
+        public static bool IsControlCharacter(in this byte c)
         {
-            return ref _isControlCharacter[c];
+            return _isControlCharacter[c];
         }
     }
 }

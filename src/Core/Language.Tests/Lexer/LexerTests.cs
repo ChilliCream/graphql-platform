@@ -1,4 +1,7 @@
-﻿using Xunit;
+﻿using System;
+using System.Text;
+using ChilliCream.Testing;
+using Xunit;
 
 namespace HotChocolate.Language
 {
@@ -30,6 +33,39 @@ namespace HotChocolate.Language
             Assert.Equal(TokenKind.EndOfFile, token.Next.Next.Next.Kind);
             Assert.Equal(token.Next.Next, token.Next.Next.Next.Previous);
             Assert.Null(token.Next.Next.Next.Next);
+        }
+
+        [Fact]
+        public void SimpleReaderTest()
+        {
+            var source = new ReadOnlySpan<byte>(
+                Encoding.UTF8.GetBytes("type foo"));
+            var lexer = new Utf8GraphQLReader(source);
+
+            Assert.Equal(TokenKind.StartOfFile, lexer.Kind);
+
+            Assert.True(lexer.Read());
+            Assert.Equal(TokenKind.Name, lexer.Kind);
+            Assert.Equal("type",
+                Encoding.UTF8.GetString(lexer.Value.ToArray()));
+
+            Assert.True(lexer.Read());
+            Assert.Equal(TokenKind.Name, lexer.Kind);
+            Assert.Equal("foo",
+                Encoding.UTF8.GetString(lexer.Value.ToArray()));
+
+            Assert.True(lexer.Read());
+            Assert.Equal(TokenKind.EndOfFile, lexer.Kind);
+        }
+
+        [Fact]
+        public void IntrospectionQueryV11()
+        {
+            var source = new ReadOnlySpan<byte>(
+                Encoding.UTF8.GetBytes(
+                    FileResource.Open("IntrospectionQuery.graphql")));
+            var reader = new Utf8GraphQLReader(source);
+            while (reader.Read()) { }
         }
     }
 }
