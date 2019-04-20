@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,6 +14,14 @@ namespace HotChocolate.DataLoader
         public FetchSingleDataLoader(FetchCache<TKey, TValue> fetch)
             : this(fetch, DataLoaderDefaults.CacheSize)
         {
+        }
+
+        public FetchSingleDataLoader(
+            FetchCache<TKey, TValue> fetch,
+            int cacheSize, DataLoaderOptions<TKey> options)
+            : base(options)
+        {
+            _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
         }
 
         public FetchSingleDataLoader(

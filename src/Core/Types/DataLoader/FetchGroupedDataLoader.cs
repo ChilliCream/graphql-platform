@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,6 +11,11 @@ namespace HotChocolate.DataLoader
         : DataLoaderBase<TKey, TValue[]>
     {
         private readonly FetchGroup<TKey, TValue> _fetch;
+        public FetchGroupedDataLoader(FetchGroup<TKey, TValue> fetch, DataLoaderOptions<TKey> options)
+            : base(options)
+        {
+            _fetch = fetch ?? throw new ArgumentNullException(nameof(fetch));
+        }
 
         public FetchGroupedDataLoader(FetchGroup<TKey, TValue> fetch)
             : base(new DataLoaderOptions<TKey>
