@@ -1,10 +1,12 @@
 using System;
 using System.Runtime.CompilerServices;
+using System.Text;
 
 namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLReader
     {
+        private static readonly UTF8Encoding _utf8Encoding = new UTF8Encoding();
         private static readonly byte _space = (byte)' ';
 
         public Utf8GraphQLReader(ReadOnlySpan<byte> graphQLData)
@@ -65,6 +67,13 @@ namespace HotChocolate.Language
         /// </summary>
         public ReadOnlySpan<byte> Value { get; private set; }
 
+        public unsafe string GetString()
+        {
+            fixed (byte* bytePtr = Value)
+            {
+                return _utf8Encoding.GetString(bytePtr, Value.Length);
+            }
+        }
 
         public bool Read()
         {
@@ -393,12 +402,13 @@ namespace HotChocolate.Language
             Value = GraphQLData.Slice(trimStart, Position - trimStart);
         }
 
-        private static bool TryReadUnicodeChar(out char code)
+        private bool TryReadUnicodeChar(out char code)
         {
-            var c = (CharToHex(state.SourceText[++state.Position]) << 12)
-                | (CharToHex(state.SourceText[++state.Position]) << 8)
-                | (CharToHex(state.SourceText[++state.Position]) << 4)
-                | CharToHex(state.SourceText[++state.Position]);
+
+            var c = (CharToHex(GraphQLData[++Position]) << 12)
+                | (CharToHex(GraphQLData[++Position]) << 8)
+                | (CharToHex(GraphQLData[++Position]) << 4)
+                | CharToHex(GraphQLData[++Position]);
 
             if (c < 0)
             {
@@ -406,11 +416,12 @@ namespace HotChocolate.Language
                 return false;
             }
 
+
             code = (char)c;
             return true;
         }
 
-        private static int CharToHex(int a)
+        private static int CharToHex(in byte a)
         {
             return a >= 48 && a <= 57
               ? a - 48 // 0-9
