@@ -14,9 +14,9 @@ namespace HotChocolate.Language
         {
             // arrange
             var source = new Source("foo");
-            var start = new SyntaxToken(
-                TokenKind.StartOfFile, 0, 0, 1, 1, null);
-            var location = new Location(source, start, start);
+            var start = new SyntaxTokenInfo(
+                TokenKind.StartOfFile, 0, 0, 1, 1);
+            var location = new Location(start, start);
             var name = new NameNode("foo");
             var description = new StringValueNode("bar");
             var arguments = new List<InputValueDefinitionNode>();

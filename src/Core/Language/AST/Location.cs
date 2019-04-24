@@ -5,7 +5,6 @@ namespace HotChocolate.Language
     public sealed class Location
     {
         public Location(
-            ISource source,
             SyntaxTokenInfo start,
             SyntaxTokenInfo end)
         {

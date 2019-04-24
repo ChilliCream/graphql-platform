@@ -165,7 +165,7 @@
                 return null;
             }
 
-            return new Location(context.Source,
+            return new Location(
                 new SyntaxTokenInfo(
                     start.Kind,
                     start.Start,
