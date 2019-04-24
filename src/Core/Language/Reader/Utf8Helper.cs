@@ -1,13 +1,18 @@
+using System;
+using System.Runtime.CompilerServices;
+
 namespace HotChocolate.Language
 {
-    public static class Utf8Helper
+    internal static class Utf8Helper
     {
         private const int _utf8TwoByteMask = 0b1100_0000_1000_0000;
         private const int _shiftBytesMask = 0b1111_1111_1100_0000;
 
-        public static int Unescape(
+        // Escape Triple-Quote (\""")
+        public static void Unescape(
             in ReadOnlySpan<byte> escapedString,
-            ref Span<byte> unescapedString)
+            ref Span<byte> unescapedString,
+            bool isBlockString)
         {
             int readPosition = 0;
             int writePosition = 0;
@@ -17,7 +22,7 @@ namespace HotChocolate.Language
             {
                 if (ReaderHelper.IsBackslash(in code))
                 {
-                    ref readonly byte code = ref escapedString[++readPosition];
+                    code = ref escapedString[++readPosition];
                     if (ReaderHelper.IsValidEscapeCharacter(code))
                     {
                         unescapedString[writePosition++] =
@@ -26,12 +31,24 @@ namespace HotChocolate.Language
                     else if (code == ReaderHelper.U)
                     {
                         UnescapeUtf8Hex(
-                            escapedString[++readPosition],
-                            escapedString[++readPosition],
-                            escapedString[++readPosition],
-                            escapedString[++readPosition],
+                            in escapedString[++readPosition],
+                            in escapedString[++readPosition],
+                            in escapedString[++readPosition],
+                            in escapedString[++readPosition],
                             ref writePosition,
                             ref unescapedString);
+                    }
+                    else if (isBlockString
+                        && ReaderHelper.IsQuote(
+                            in escapedString[readPosition])
+                        && ReaderHelper.IsQuote(
+                            in escapedString[readPosition + 1])
+                        && ReaderHelper.IsQuote(
+                            in escapedString[readPosition + 2]))
+                    {
+                        unescapedString[writePosition++] = ReaderHelper.Quote;
+                        unescapedString[writePosition++] = ReaderHelper.Quote;
+                        unescapedString[writePosition++] = ReaderHelper.Quote;
                     }
                     else
                     {
@@ -45,11 +62,16 @@ namespace HotChocolate.Language
                 }
             }
 
-            return writePosition;
+            int length = unescapedString.Length - writePosition;
+            if (length > 0)
+            {
+                unescapedString = unescapedString.Slice(0, writePosition);
+            }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void UnescapeUtf8Hex(
-            byte a, byte b, byte c, byte d,
+            in byte a, in byte b, in byte c, in byte d,
             ref int writePosition,
             ref Span<byte> unescapedString)
         {
@@ -60,7 +82,7 @@ namespace HotChocolate.Language
 
             if (unicodeDecimal >= 0 && unicodeDecimal <= 127)
             {
-                unescapedString[writePosition++] = (byte)data;
+                unescapedString[writePosition++] = (byte)unicodeDecimal;
             }
             else if (unicodeDecimal >= 128 && unicodeDecimal <= 4063)
             {
@@ -69,13 +91,12 @@ namespace HotChocolate.Language
                 bytesToShift = bytesToShift << 2;
                 unicodeDecimal += _utf8TwoByteMask + bytesToShift;
 
-                unescapedString[writePosition++][0] = (byte)(unicodeDecimal >> 8);
-                unescapedString[writePosition++][1] = (byte)unicodeDecimal;
+                unescapedString[writePosition++] = (byte)(unicodeDecimal >> 8);
+                unescapedString[writePosition++] = (byte)unicodeDecimal;
             }
-
-            return unicodeDecimal;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int HexToDecimal(int a)
         {
             return a >= 48 && a <= 57

@@ -19,15 +19,13 @@
             new bool[char.MaxValue + 1];
         private static readonly bool[] _isDigitOrMinus =
             new bool[char.MaxValue + 1];
+
         private const byte _a = (byte)'a';
         private const byte _z = (byte)'z';
         private const byte _hyphen = (byte)'-';
         private const byte _underscore = (byte)'_';
         private const byte _plus = (byte)'+';
-        private const byte _quote = (byte)'"';
         private const byte _backslash = (byte)'\\';
-        private const byte _newLine = (byte)'\n';
-        private const byte _return = (byte)'\r';
         private const byte _b = (byte)'b';
         private const byte _besc = (byte)'\b';
         private const byte _f = (byte)'f';
@@ -54,6 +52,11 @@
         public const byte Hash = (byte)'#';
         public const byte Tab = (byte)'\t';
         public const byte U = (byte)'u';
+        public const byte Zero = (byte)'0';
+        public const byte E = (byte)'e';
+        public const byte NewLine = (byte)'\n';
+        public const byte Return = (byte)'\r';
+        public const byte Quote = (byte)'"';
 
         public static bool IsLetterOrDigitOrUnderscore(in this byte c)
         {
@@ -108,7 +111,7 @@
 
         public static bool IsQuote(in this byte c)
         {
-            return c == _quote;
+            return c == Quote;
         }
 
         public static bool IsBackslash(in this byte c)
@@ -134,13 +137,13 @@
         public static bool IsNewLine(in this byte c)
         {
             // 0x000a
-            return c == _newLine;
+            return c == NewLine;
         }
 
         public static bool IsReturn(in this byte c)
         {
             // 0x000d
-            return c == _return;
+            return c == Return;
         }
 
         public static bool IsValidEscapeCharacter(in this byte c)
@@ -157,9 +160,9 @@
                 case _f:
                     return _fesc;
                 case _n:
-                    return _newLine;
+                    return NewLine;
                 case _r:
-                    return _return;
+                    return Return;
                 case _t:
                     return Tab;
                 default:

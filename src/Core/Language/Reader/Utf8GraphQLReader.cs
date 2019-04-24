@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using System.Xml.Schema;
+using System.Buffers;
 using System;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -8,6 +11,7 @@ namespace HotChocolate.Language
     {
         private static readonly UTF8Encoding _utf8Encoding = new UTF8Encoding();
         private static readonly byte _space = (byte)' ';
+        private ReadOnlySpan<byte> _value;
 
         public Utf8GraphQLReader(ReadOnlySpan<byte> graphQLData)
         {
@@ -19,7 +23,7 @@ namespace HotChocolate.Language
             Position = 0;
             Line = 1;
             Column = 1;
-            Value = null;
+            _value = null;
         }
 
         public ReadOnlySpan<byte> GraphQLData { get; }
@@ -65,13 +69,49 @@ namespace HotChocolate.Language
         /// For non-punctuation tokens, represents the interpreted
         /// value of the token.
         /// </summary>
-        public ReadOnlySpan<byte> Value { get; private set; }
+        public ReadOnlySpan<byte> Value => _value;
 
         public unsafe string GetString()
         {
-            fixed (byte* bytePtr = Value)
+            byte[] unescaped = ArrayPool<byte>.Shared.Rent(_value.Length);
+
+            try
             {
-                return _utf8Encoding.GetString(bytePtr, Value.Length);
+                var unescapedSpan = new Span<byte>(unescaped);
+                UnescapeValue(ref unescapedSpan);
+
+                fixed (byte* bytePtr = unescaped)
+                {
+                    return _utf8Encoding.GetString(bytePtr, _value.Length);
+                }
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(unescaped);
+            }
+        }
+
+        public unsafe string GetString(ReadOnlySpan<byte> unescapedValue)
+        {
+            fixed (byte* bytePtr = unescapedValue)
+            {
+                return _utf8Encoding.GetString(bytePtr, _value.Length);
+            }
+        }
+
+        public void UnescapeValue(ref Span<byte> unescapedValue)
+        {
+            bool isBlockString = Kind == TokenKind.BlockString;
+
+            Utf8Helper.Unescape(
+                in _value,
+                ref unescapedValue,
+                isBlockString);
+
+            if (isBlockString)
+            {
+                BlockStringHelper.TrimBlockStringToken(
+                    unescapedValue, ref unescapedValue);
             }
         }
 
@@ -85,7 +125,7 @@ namespace HotChocolate.Language
                 Start = Position;
                 End = Position;
                 Kind = TokenKind.EndOfFile;
-                Value = null;
+                _value = null;
                 return false;
             }
 
@@ -112,15 +152,22 @@ namespace HotChocolate.Language
             if (ReaderHelper.IsHash(in code))
             {
                 ReadCommentToken();
+                return true;
             }
 
             if (ReaderHelper.IsQuote(in code))
             {
-
+                if (ReaderHelper.IsQuote(in GraphQLData[Position + 1])
+                    && ReaderHelper.IsQuote(in GraphQLData[Position + 2]))
+                {
+                    Position += 2;
+                    ReadBlockStringToken();
+                }
+                ReadStringValueToken();
+                return true;
             }
 
-            // TODO : fix this
-            throw new SyntaxException((LexerState)null,
+            throw new SyntaxException(this,
                 "Unexpected character.");
         }
 
@@ -152,7 +199,7 @@ namespace HotChocolate.Language
             Kind = TokenKind.Name;
             Start = start;
             End = position;
-            Value = GraphQLData.Slice(start, position - start);
+            _value = GraphQLData.Slice(start, position - start);
             Position = position;
         }
 
@@ -179,7 +226,7 @@ namespace HotChocolate.Language
         {
             Start = Position;
             End = ++Position;
-            Value = null;
+            _value = null;
 
             switch (code)
             {
@@ -287,13 +334,12 @@ namespace HotChocolate.Language
                 code = ref GraphQLData[++Position];
             }
 
-            if (code == '0')
+            if (code == ReaderHelper.Zero)
             {
                 code = ref GraphQLData[++Position];
                 if (ReaderHelper.IsDigit(in code))
                 {
-                    // TODO : FIX
-                    throw new SyntaxException((LexerState)null,
+                    throw new SyntaxException(this,
                         $"Invalid number, unexpected digit after 0: {code}.");
                 }
             }
@@ -325,7 +371,7 @@ namespace HotChocolate.Language
                 }
             }
 
-            if ((code | (char)0x20) == 'e') // shift instead of or
+            if ((code | (char)0x20) == ReaderHelper.E)
             {
                 isFloat = true;
                 code = ref GraphQLData[++Position];
@@ -340,7 +386,7 @@ namespace HotChocolate.Language
             Kind = isFloat ? TokenKind.Float : TokenKind.Integer;
             Start = start;
             End = Position;
-            Value = GraphQLData.Slice(start, Position - start);
+            _value = GraphQLData.Slice(start, Position - start);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -348,8 +394,7 @@ namespace HotChocolate.Language
         {
             if (!firstCode.IsDigit())
             {
-                // TODO : FIX
-                throw new SyntaxException((LexerState)null,
+                throw new SyntaxException(this,
                     $"Invalid number, expected digit but got: {firstCode}.");
             }
 
@@ -399,37 +444,113 @@ namespace HotChocolate.Language
             Kind = TokenKind.Comment;
             Start = start;
             End = Position;
-            Value = GraphQLData.Slice(trimStart, Position - trimStart);
+            _value = GraphQLData.Slice(trimStart, Position - trimStart);
         }
 
-        private bool TryReadUnicodeChar(out char code)
+        /// <summary>
+        /// Reads string tokens as specified in
+        /// http://facebook.github.io/graphql/October2016/#StringValue
+        /// "([^"\\\u000A\u000D]|(\\(u[0-9a-fA-F]{4}|["\\/bfnrt])))*"
+        /// from the current lexer state.
+        /// </summary>
+        /// <param name="state">The lexer state.</param>
+        /// <param name="previous">The previous-token.</param>
+        /// <returns>
+        /// Returns the string value token read from the current lexer state.
+        /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ReadStringValueToken()
         {
+            var start = Position;
+            var value = new StringBuilder();
 
-            var c = (CharToHex(GraphQLData[++Position]) << 12)
-                | (CharToHex(GraphQLData[++Position]) << 8)
-                | (CharToHex(GraphQLData[++Position]) << 4)
-                | CharToHex(GraphQLData[++Position]);
+            ref readonly byte code = ref GraphQLData[++Position];
 
-            if (c < 0)
+            while (!ReaderHelper.IsNewLine(in code))
             {
-                code = default;
-                return false;
+                // closing Quote (")
+                if (ReaderHelper.IsQuote(in code))
+                {
+                    Kind = TokenKind.String;
+                    Start = start;
+                    End = Position;
+                    _value = GraphQLData.Slice(start, Position - start);
+                    return;
+                }
+
+                // SourceCharacter
+                if (ReaderHelper.IsControlCharacter(in code))
+                {
+                    throw new SyntaxException(this,
+                        $"Invalid character within String: {code}.");
+                }
+
+                if (ReaderHelper.IsBackslash(in code)
+                    && ReaderHelper.IsQuote(in GraphQLData[Position + 1]))
+                {
+                    Position++;
+                }
+
+                code = ref GraphQLData[++Position];
             }
 
-
-            code = (char)c;
-            return true;
+            throw new SyntaxException(this, "Unterminated string.");
         }
 
-        private static int CharToHex(in byte a)
+        /// <summary>
+        /// Reads block string tokens as specified in
+        /// http://facebook.github.io/graphql/draft/#BlockStringCharacter
+        /// from the current lexer state.
+        /// </summary>
+        /// <param name="state">The lexer state.</param>
+        /// <param name="previous">The previous-token.</param>
+        /// <returns>
+        /// Returns the block string token read from the current lexer state.
+        /// </returns>
+        private void ReadBlockStringToken()
         {
-            return a >= 48 && a <= 57
-              ? a - 48 // 0-9
-              : a >= 65 && a <= 70
-                ? a - 55 // A-F
-                : a >= 97 && a <= 102
-                  ? a - 87 // a-f
-                  : -1;
+            var start = Position;
+
+            ref readonly byte code = ref GraphQLData[++Position];
+
+            while (!IsEndOfStream())
+            {
+                // Closing Triple-Quote (""")
+                if (code.IsQuote()
+                    && ReaderHelper.IsQuote(in GraphQLData[Position + 1])
+                    && ReaderHelper.IsQuote(in GraphQLData[Position + 2]))
+                {
+                    var length = Position - start - 2;
+
+                    Kind = TokenKind.String;
+                    Start = start;
+                    End = Position;
+                    _value = GraphQLData.Slice(start, length);
+                    NewLine(BlockStringHelper.CountLines(in _value) - 1);
+                    return;
+                }
+
+                // SourceCharacter
+                if (code.IsControlCharacter()
+                    && !code.IsNewLine()
+                    && !code.IsReturn())
+                {
+                    throw new SyntaxException(this,
+                        $"Invalid character within String: ${code}.");
+                }
+
+                if (ReaderHelper.IsBackslash(in code)
+                    && ReaderHelper.IsQuote(in GraphQLData[Position + 1])
+                    && ReaderHelper.IsQuote(in GraphQLData[Position + 2])
+                    && ReaderHelper.IsQuote(in GraphQLData[Position + 3]))
+                {
+                    Position += 3;
+                }
+
+                code = ref GraphQLData[++Position];
+            }
+
+            throw new SyntaxException(this, "Unterminated string.");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
