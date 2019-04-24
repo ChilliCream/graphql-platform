@@ -40,5 +40,10 @@ namespace HotChocolate.Language
         {
             return _visualization[reader.Kind];
         }
+
+        public static string Visualize(TokenKind tokenKind)
+        {
+            return _visualization[tokenKind];
+        }
     }
 }

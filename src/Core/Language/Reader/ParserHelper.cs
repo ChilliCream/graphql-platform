@@ -22,24 +22,24 @@ namespace HotChocolate.Language
             Expect(in reader, TokenKind.Colon);
         }
 
-        public static void ExpectDollar(ParserContext context)
+        public static void ExpectDollar(in Utf8GraphQLReader reader)
         {
-            return Expect(context, TokenKind.Dollar);
+            Expect(in reader, TokenKind.Dollar);
         }
 
-        public static void ExpectAt(ParserContext context)
+        public static void ExpectAt(in Utf8GraphQLReader reader)
         {
-            return Expect(context, TokenKind.At);
+            Expect(in reader, TokenKind.At);
         }
 
-        public static void ExpectRightBracket(ParserContext context)
+        public static void ExpectRightBracket(in Utf8GraphQLReader reader)
         {
-            return Expect(context, TokenKind.RightBracket);
+            Expect(in reader, TokenKind.RightBracket);
         }
 
-        public static void ExpectLeftBrace(ParserContext context)
+        public static void ExpectLeftBrace(in Utf8GraphQLReader reader)
         {
-            return Expect(context, TokenKind.RightBracket);
+            Expect(in reader, TokenKind.RightBracket);
         }
 
         public static string ExpectString(in Utf8GraphQLReader reader)
@@ -71,9 +71,9 @@ namespace HotChocolate.Language
         }
 
 
-        public static SyntaxToken ExpectSpread(ParserContext context)
+        public static void ExpectSpread(in Utf8GraphQLReader reader)
         {
-            return Expect(context, TokenKind.Spread);
+            Expect(in reader, TokenKind.Spread);
         }
 
         public static void Expect(
@@ -89,70 +89,70 @@ namespace HotChocolate.Language
                 $"Expected a name token: {reader.Kind}.");
         }
 
-        public static SyntaxToken ExpectScalarKeyword(
-            this ParserContext context)
+        public static void ExpectScalarKeyword(
+            in Utf8GraphQLReader reader)
         {
-            return ExpectKeyword(context, Keywords.Scalar);
+            ExpectKeyword(in reader, Utf8Keywords.Scalar);
         }
 
-        public static SyntaxToken ExpectSchemaKeyword(
-            this ParserContext context)
+        public static void ExpectSchemaKeyword(
+            in Utf8GraphQLReader reader)
         {
-            return ExpectKeyword(context, Keywords.Schema);
+            ExpectKeyword(in reader, Utf8Keywords.Schema);
         }
 
-        public static SyntaxToken ExpectTypeKeyword(
-            this ParserContext context)
+        public static void ExpectTypeKeyword(
+            in Utf8GraphQLReader reader)
         {
-            return ExpectKeyword(context, Keywords.Type);
+            ExpectKeyword(in reader, Utf8Keywords.Type);
         }
 
-        public static SyntaxToken ExpectInterfaceKeyword(
-            this ParserContext context)
+        public static void ExpectInterfaceKeyword(
+            in Utf8GraphQLReader reader)
         {
-            return ExpectKeyword(context, Keywords.Interface);
+            ExpectKeyword(in reader, Utf8Keywords.Interface);
         }
 
-        public static SyntaxToken ExpectUnionKeyword(
-            this ParserContext context)
+        public static void ExpectUnionKeyword(
+            in Utf8GraphQLReader reader)
         {
-            return ExpectKeyword(context, Keywords.Union);
+            ExpectKeyword(in reader, Utf8Keywords.Union);
         }
 
-        public static SyntaxToken ExpectEnumKeyword(
-            this ParserContext context)
+        public static void ExpectEnumKeyword(
+            in Utf8GraphQLReader reader)
         {
-            return ExpectKeyword(context, Keywords.Enum);
+            ExpectKeyword(in reader, Utf8Keywords.Enum);
         }
 
-        public static SyntaxToken ExpectInputKeyword(
-            this ParserContext context)
+        public static void ExpectInputKeyword(
+            in Utf8GraphQLReader reader)
         {
-            return ExpectKeyword(context, Keywords.Input);
+            ExpectKeyword(in reader, Utf8Keywords.Input);
         }
 
-        public static SyntaxToken ExpectExtendKeyword(
-            this ParserContext context)
+        public static void ExpectExtendKeyword(
+            in Utf8GraphQLReader reader)
         {
-            return ExpectKeyword(context, Keywords.Extend);
+            ExpectKeyword(in reader, Utf8Keywords.Extend);
         }
 
-        public static SyntaxToken ExpectDirectiveKeyword(
-            this ParserContext context)
+        public static void ExpectDirectiveKeyword(
+            in Utf8GraphQLReader reader)
         {
-            return ExpectKeyword(context, Utf8Keywords.Directive);
+            ExpectKeyword(in reader, Utf8Keywords.Directive);
         }
 
-        public static SyntaxToken ExpectOnKeyword(
-            this ParserContext context)
+        public static void ExpectOnKeyword(
+            in Utf8GraphQLReader reader)
         {
-            return ExpectKeyword(context, Keywords.On);
+            ExpectKeyword(in reader, Utf8Keywords.On);
         }
 
-        public static SyntaxToken ExpectFragmentKeyword(
-            this ParserContext context)
+        public static void ExpectFragmentKeyword(
+            in Utf8GraphQLReader reader)
         {
-            return ExpectKeyword(context, Keywords.Fragment);
+            ExpectKeyword(in reader, Utf8Keywords.Fragment);
         }
 
         public static void ExpectKeyword(
