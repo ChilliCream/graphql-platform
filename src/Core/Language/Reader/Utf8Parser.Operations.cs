@@ -9,6 +9,12 @@ namespace HotChocolate.Language
     // Implements the parsing rules in the Operations section.
     public partial class Utf8Parser
     {
+        private static readonly List<VariableDefinitionNode> _emptyVariableDefinitions =
+            new List<VariableDefinitionNode>();
+        private static readonly List<ArgumentNode> _emptyArguments =
+            new List<ArgumentNode>();
+
+
         /// <summary>
         /// Parses an operation definition.
         /// <see cref="OperationDefinitionNode" />:
@@ -135,7 +141,8 @@ namespace HotChocolate.Language
 
                 return list;
             }
-            return new List<VariableDefinitionNode>();
+
+            return _emptyVariableDefinitions;
         }
 
         /// <summary>
@@ -197,6 +204,7 @@ namespace HotChocolate.Language
         /// { Selection+ }
         /// </summary>
         /// <param name="context">The parser context.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static SelectionSetNode ParseSelectionSet(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
@@ -279,7 +287,7 @@ namespace HotChocolate.Language
 
             List<ArgumentNode> arguments = ParseArguments(context, ref reader, false);
             List<DirectiveNode> directives = ParseDirectives(context, ref reader, false);
-            SelectionSetNode selectionSet = TokenHelper.IsLeftBrace(ref reader)
+            SelectionSetNode selectionSet = reader.Kind == TokenKind.LeftBrace
                 ? ParseSelectionSet(context, ref reader)
                 : null;
 
@@ -325,8 +333,9 @@ namespace HotChocolate.Language
 
                 return list;
             }
-            return new List<ArgumentNode>();
+            return _emptyArguments;
         }
+
 
         /// <summary>
         /// Parses an argument.
