@@ -6,15 +6,11 @@ namespace HotChocolate.Language
     {
         public Location(
             ISource source,
-            SyntaxToken start,
-            SyntaxToken end)
+            SyntaxTokenInfo start,
+            SyntaxTokenInfo end)
         {
-            StartToken = start 
-                ?? throw new ArgumentNullException(nameof(start));
-            EndToken = end 
-                ?? throw new ArgumentNullException(nameof(end));
-            Source = source 
-                ?? throw new ArgumentNullException(nameof(source));
+            StartToken = start;
+            EndToken = end;
             Start = start.Start;
             End = end.End;
         }
@@ -35,18 +31,12 @@ namespace HotChocolate.Language
         /// Gets the <see cref="SyntaxToken" /> at which this
         /// <see cref="ISyntaxNode" /> begins.
         /// </summary>
-        public SyntaxToken StartToken { get; }
+        public SyntaxTokenInfo StartToken { get; }
 
         /// <summary>
         /// Gets the <see cref="SyntaxToken" /> at which this
         /// <see cref="ISyntaxNode" /> ends.
         /// </summary>
-        public SyntaxToken EndToken { get; }
-
-        /// <summary>
-        /// Gets the <see cref="Source" /> document the AST represents.
-        /// </summary>
-        /// <returns></returns>
-        public ISource Source { get; }
+        public SyntaxTokenInfo EndToken { get; }
     }
 }

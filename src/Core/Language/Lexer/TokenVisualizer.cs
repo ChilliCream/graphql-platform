@@ -4,7 +4,7 @@ namespace HotChocolate.Language
 {
     internal static class TokenVisualizer
     {
-        private static readonly Dictionary<TokenKind, string> _visualization = 
+        private static readonly Dictionary<TokenKind, string> _visualization =
             new Dictionary<TokenKind, string>
             {
                 {TokenKind.StartOfFile, "<SOF>"},
@@ -34,6 +34,11 @@ namespace HotChocolate.Language
         public static string Visualize(SyntaxToken token)
         {
             return token.Value ?? _visualization[token.Kind];
+        }
+
+        public static string Visualize(in Utf8GraphQLReader reader)
+        {
+            return _visualization[reader.Kind];
         }
     }
 }

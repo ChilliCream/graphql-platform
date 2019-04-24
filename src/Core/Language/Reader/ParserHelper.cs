@@ -1,79 +1,92 @@
-﻿namespace HotChocolate.Language
+﻿using System;
+
+namespace HotChocolate.Language
 {
-    internal static class ParserContextExtensions
+    internal static class ParserHelper
     {
-        public static SyntaxToken ExpectName(this ParserContext context)
+        public static string ExpectName(in Utf8GraphQLReader reader)
         {
-            return Expect(context, TokenKind.Name);
+            if (reader.Kind == TokenKind.Name)
+            {
+                string name = reader.GetString(reader.Value);
+                reader.Read();
+                return name;
+            }
+
+            throw new SyntaxException(reader,
+                $"Expected a name token: {TokenVisualizer.Visualize(reader)}.");
         }
 
-        public static SyntaxToken ExpectColon(this ParserContext context)
+        public static void ExpectColon(in Utf8GraphQLReader reader)
         {
-            return Expect(context, TokenKind.Colon);
+            Expect(in reader, TokenKind.Colon);
         }
 
-        public static SyntaxToken ExpectDollar(this ParserContext context)
+        public static void ExpectDollar(ParserContext context)
         {
             return Expect(context, TokenKind.Dollar);
         }
 
-        public static SyntaxToken ExpectAt(this ParserContext context)
+        public static void ExpectAt(ParserContext context)
         {
             return Expect(context, TokenKind.At);
         }
 
-        public static SyntaxToken ExpectRightBracket(this ParserContext context)
+        public static void ExpectRightBracket(ParserContext context)
         {
             return Expect(context, TokenKind.RightBracket);
         }
 
-        public static SyntaxToken ExpectLeftBrace(this ParserContext context)
+        public static void ExpectLeftBrace(ParserContext context)
         {
             return Expect(context, TokenKind.RightBracket);
         }
 
-        public static SyntaxToken ExpectString(this ParserContext context)
+        public static string ExpectString(in Utf8GraphQLReader reader)
         {
-            if (context.Current.IsString())
+            if (TokenHelper.IsString(in reader))
             {
-                context.MoveNext();
-                return context.Current.Previous;
+                string value = reader.GetString();
+                reader.Read();
+                return value;
             }
 
-            throw new SyntaxException(context,
-                $"Expected a name token: {context.Current}.");
+            throw new SyntaxException(reader,
+                "Expected a string token: " +
+                $"{TokenVisualizer.Visualize(reader)}.");
         }
 
-        public static SyntaxToken ExpectScalarValue(this ParserContext context)
+        public static string ExpectScalarValue(in Utf8GraphQLReader reader)
         {
-            if (context.Current.IsScalarValue())
+            if (TokenHelper.IsScalarValue(in reader))
             {
-                context.MoveNext();
-                return context.Current.Previous;
+                string value = reader.GetString(reader.Value);
+                reader.Read();
+                return value;
             }
 
-            throw new SyntaxException(context,
-                $"Expected a name token: {context.Current}.");
+            throw new SyntaxException(reader,
+                "Expected a scalar value token: " +
+                $"{TokenVisualizer.Visualize(reader)}.");
         }
 
-        public static SyntaxToken ExpectSpread(this ParserContext context)
+
+        public static SyntaxToken ExpectSpread(ParserContext context)
         {
             return Expect(context, TokenKind.Spread);
         }
 
-        public static SyntaxToken Expect(
-            this ParserContext context,
+        public static void Expect(
+            in Utf8GraphQLReader reader,
             TokenKind kind)
         {
-            SyntaxToken current = context.Current;
-            if (current.Kind == kind)
+            if (reader.Kind == kind)
             {
-                context.MoveNext();
-                return current;
+                reader.Read();
             }
 
-            throw new SyntaxException(context,
-                $"Expected a name token: {context.Current}.");
+            throw new SyntaxException(reader,
+                $"Expected a name token: {reader.Kind}.");
         }
 
         public static SyntaxToken ExpectScalarKeyword(
@@ -127,7 +140,7 @@
         public static SyntaxToken ExpectDirectiveKeyword(
             this ParserContext context)
         {
-            return ExpectKeyword(context, Keywords.Directive);
+            return ExpectKeyword(context, Utf8Keywords.Directive);
         }
 
         public static SyntaxToken ExpectOnKeyword(
@@ -142,50 +155,37 @@
             return ExpectKeyword(context, Keywords.Fragment);
         }
 
-        public static SyntaxToken ExpectKeyword(
-            ParserContext context,
-            string keyword)
+        public static void ExpectKeyword(
+            in Utf8GraphQLReader reader,
+            byte[] keyword)
         {
-            SyntaxToken token = context.Current;
-            if (token.IsName() && token.Value == keyword)
+            if (TokenHelper.IsName(in reader)
+                && reader.Value.SequenceEqual(keyword))
             {
-                context.MoveNext();
-                return token;
+                reader.Read();
+                return;
             }
-            throw new SyntaxException(context,
-                $"Expected \"{keyword}\", found {token}");
+            throw new SyntaxException(reader,
+                $"Expected \"{keyword}\", found " +
+                $"{TokenVisualizer.Visualize(in reader)}");
         }
 
-        public static Location CreateLocation(
-            this ParserContext context,
-            SyntaxToken start)
+        public static SyntaxTokenInfo CreateTokenInfo(
+            in Utf8GraphQLReader reader)
         {
-            if (context.Options.NoLocations)
-            {
-                return null;
-            }
-
-            return new Location(context.Source,
-                new SyntaxTokenInfo(
-                    start.Kind,
-                    start.Start,
-                    start.End,
-                    start.Line,
-                    start.Column),
-                new SyntaxTokenInfo(
-                    context.Current.Kind,
-                    context.Current.Start,
-                    context.Current.End,
-                    context.Current.Line,
-                    context.Current.Column));
+            return new SyntaxTokenInfo(
+                reader.Kind,
+                reader.Start,
+                reader.End,
+                reader.Line,
+                reader.Column);
         }
 
         public static SyntaxException Unexpected(
-            this ParserContext context,
-            SyntaxToken token)
+            in Utf8GraphQLReader reader, TokenKind kind)
         {
-            return new SyntaxException(context, token,
-                $"Unexpected token: {token}.");
+            return new SyntaxException(reader,
+                $"Unexpected token: {TokenVisualizer.Visualize(kind)}.");
         }
 
         public static SyntaxToken SkipDescription(this ParserContext context)
