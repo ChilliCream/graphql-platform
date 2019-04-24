@@ -110,15 +110,20 @@ namespace HotChocolate.Language
         /// </summary>
         /// <param name="context">The parser context.</param>
         private static ScalarTypeDefinitionNode ParseScalarTypeDefinition(
-            ParserContext context)
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
-            SyntaxToken start = context.Current;
-            StringValueNode description = ParseDescription(context);
-            context.ExpectScalarKeyword();
-            NameNode name = ParseName(context);
+            context.Start(in reader);
+
+            // skip scalar keyword
+            reader.Read();
+
+            NameNode name = ParseName(context, in reader);
+            StringValueNode description = context.PopDescription();
             List<DirectiveNode> directives =
-                ParseDirectives(context, true);
-            Location location = context.CreateLocation(start);
+                ParseDirectives(context, in reader, true);
+
+            Location location = context.CreateLocation(in reader);
 
             return new ScalarTypeDefinitionNode
             (
@@ -137,19 +142,24 @@ namespace HotChocolate.Language
         /// </summary>
         /// <param name="context">The parser context.</param>
         private static ObjectTypeDefinitionNode ParseObjectTypeDefinition(
-            ParserContext context)
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
-            SyntaxToken start = context.Current;
-            StringValueNode description = ParseDescription(context);
-            context.ExpectTypeKeyword();
-            NameNode name = ParseName(context);
+            context.Start(in reader);
+
+            // skip type keyword
+            reader.Read();
+
+            NameNode name = ParseName(context, in reader);
+            StringValueNode description = context.PopDescription();
             List<NamedTypeNode> interfaces =
-                ParseImplementsInterfaces(context);
+                ParseImplementsInterfaces(context, in reader);
             List<DirectiveNode> directives =
-                ParseDirectives(context, true);
+                ParseDirectives(context, in reader, true);
             List<FieldDefinitionNode> fields =
-                ParseFieldsDefinition(context);
-            Location location = context.CreateLocation(start);
+                ParseFieldsDefinition(context, in reader);
+
+            Location location = context.CreateLocation(in reader);
 
             return new ObjectTypeDefinitionNode
             (

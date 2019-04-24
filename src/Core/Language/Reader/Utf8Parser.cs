@@ -48,7 +48,7 @@ namespace HotChocolate.Language
         {
             if (TokenHelper.IsDescription(in reader))
             {
-                context.Description = ParseDescription(context, in reader);
+                context.PushDescription(ParseDescription(context, in reader));
             }
 
             if (reader.Kind == TokenKind.Name)

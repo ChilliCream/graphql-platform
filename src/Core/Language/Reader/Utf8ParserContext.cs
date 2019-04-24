@@ -12,6 +12,14 @@ namespace HotChocolate.Language
 
         }
 
-        public StringValueNode Description { get; set; }
+        public void PushDescription(StringValueNode description)
+        {
+
+        }
+
+        public StringValueNode PopDescription()
+        {
+
+        }
     }
 }
