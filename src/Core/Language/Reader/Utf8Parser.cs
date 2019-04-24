@@ -19,27 +19,30 @@ namespace HotChocolate.Language
                 throw new ArgumentException(nameof(source));
             }
 
+            var context = new Utf8ParserContext(options);
             var reader = new Utf8GraphQLReader(source);
 
-            return ParseDocument(source, start, options);
+            return ParseDocument(context, in reader);
         }
 
         private static DocumentNode ParseDocument(
-            ref Utf8GraphQLReader reader,
-            ParserOptions options)
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
             var definitions = new List<IDefinitionNode>();
 
-            context.MoveNext();
+            context.Start(in reader);
 
-            while (!context.IsEndOfFile())
+            reader.Read();
+
+            while (reader.Kind != TokenKind.EndOfFile)
             {
-                definitions.Add(ParseDefinition(context));
+                definitions.Add(ParseDefinition(context, in reader));
             }
 
-            Location location = context.CreateLocation(start);
+            Location location = context.CreateLocation(in reader);
 
-            return new DocumentNode(location, definitions.AsReadOnly());
+            return new DocumentNode(location, definitions);
         }
 
         private static IDefinitionNode ParseDefinition(
