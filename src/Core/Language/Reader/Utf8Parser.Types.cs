@@ -13,38 +13,38 @@
         /// <param name="context">The parser context.</param>
         private static ITypeNode ParseTypeReference(
             Utf8ParserContext context,
-            in Utf8GraphQLReader reader)
+            ref Utf8GraphQLReader reader)
         {
             ITypeNode type;
             Location location;
 
             if (reader.Kind == TokenKind.LeftBracket)
             {
-                context.Start(in reader);
+                context.Start(ref reader);
                 reader.Read();
-                type = ParseTypeReference(context, in reader);
-                ParserHelper.ExpectRightBracket(in reader);
-                location = context.CreateLocation(in reader);
+                type = ParseTypeReference(context, ref reader);
+                ParserHelper.ExpectRightBracket(ref reader);
+                location = context.CreateLocation(ref reader);
                 type = new ListTypeNode(location, type);
             }
             else
             {
-                type = ParseNamedType(context, in reader);
+                type = ParseNamedType(context, ref reader);
             }
 
             if (reader.Kind == TokenKind.Bang)
             {
                 if (type is INullableTypeNode nt)
                 {
-                    context.Start(in reader);
+                    context.Start(ref reader);
                     reader.Read();
                     return new NonNullTypeNode
                     (
-                        context.CreateLocation(in reader),
+                        context.CreateLocation(ref reader),
                         nt
                     );
                 }
-                ParserHelper.Unexpected(in reader, TokenKind.Bang);
+                ParserHelper.Unexpected(ref reader, TokenKind.Bang);
             }
 
             return type;
@@ -58,11 +58,11 @@
         /// <param name="context">The parser context.</param>
         private static NamedTypeNode ParseNamedType(
             Utf8ParserContext context,
-            in Utf8GraphQLReader reader)
+            ref Utf8GraphQLReader reader)
         {
-            context.Start(in reader);
-            NameNode name = ParseName(context, in reader);
-            Location location = context.CreateLocation(in reader);
+            context.Start(ref reader);
+            NameNode name = ParseName(context, ref reader);
+            Location location = context.CreateLocation(ref reader);
 
             return new NamedTypeNode
             (

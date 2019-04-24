@@ -14,7 +14,7 @@ namespace HotChocolate.Language
                 throw new ArgumentNullException(nameof(options));
             }
 
-            if (source.Length > 0)
+            if (source.Length == 0)
             {
                 throw new ArgumentException(nameof(source));
             }
@@ -22,36 +22,36 @@ namespace HotChocolate.Language
             var context = new Utf8ParserContext(options);
             var reader = new Utf8GraphQLReader(source);
 
-            return ParseDocument(context, in reader);
+            return ParseDocument(context, ref reader);
         }
 
         private static DocumentNode ParseDocument(
             Utf8ParserContext context,
-            in Utf8GraphQLReader reader)
+            ref Utf8GraphQLReader reader)
         {
             var definitions = new List<IDefinitionNode>();
 
-            context.Start(in reader);
+            context.Start(ref reader);
 
             reader.Read();
 
             while (reader.Kind != TokenKind.EndOfFile)
             {
-                definitions.Add(ParseDefinition(context, in reader));
+                definitions.Add(ParseDefinition(context, ref reader));
             }
 
-            Location location = context.CreateLocation(in reader);
+            Location location = context.CreateLocation(ref reader);
 
             return new DocumentNode(location, definitions);
         }
 
         private static IDefinitionNode ParseDefinition(
             Utf8ParserContext context,
-            in Utf8GraphQLReader reader)
+            ref Utf8GraphQLReader reader)
         {
-            if (TokenHelper.IsDescription(in reader))
+            if (TokenHelper.IsDescription(ref reader))
             {
-                context.PushDescription(ParseDescription(context, in reader));
+                context.PushDescription(ParseDescription(context, ref reader));
             }
 
             if (reader.Kind == TokenKind.Name)
@@ -60,65 +60,65 @@ namespace HotChocolate.Language
                     || reader.Value.SequenceEqual(Utf8Keywords.Mutation)
                     || reader.Value.SequenceEqual(Utf8Keywords.Subscription))
                 {
-                    return ParseOperationDefinition(context, in reader);
+                    return ParseOperationDefinition(context, ref reader);
                 }
 
                 if (reader.Value.SequenceEqual(Utf8Keywords.Fragment))
                 {
-                    return ParseFragmentDefinition(context, in reader);
+                    return ParseFragmentDefinition(context, ref reader);
                 }
 
                 if (reader.Value.SequenceEqual(Utf8Keywords.Schema))
                 {
-                    ParseSchemaDefinition(context, in reader);
+                    ParseSchemaDefinition(context, ref reader);
                 }
 
                 if (reader.Value.SequenceEqual(Utf8Keywords.Scalar))
                 {
-                    return ParseScalarTypeDefinition(context, in reader);
+                    return ParseScalarTypeDefinition(context, ref reader);
                 }
 
                 if (reader.Value.SequenceEqual(Utf8Keywords.Type))
                 {
-                    return ParseObjectTypeDefinition(context, in reader);
+                    return ParseObjectTypeDefinition(context, ref reader);
                 }
 
                 if (reader.Value.SequenceEqual(Utf8Keywords.Interface))
                 {
-                    return ParseInterfaceTypeDefinition(context, in reader);
+                    return ParseInterfaceTypeDefinition(context, ref reader);
                 }
 
                 if (reader.Value.SequenceEqual(Utf8Keywords.Union))
                 {
-                    return ParseUnionTypeDefinition(context, in reader);
+                    return ParseUnionTypeDefinition(context, ref reader);
                 }
 
                 if (reader.Value.SequenceEqual(Utf8Keywords.Enum))
                 {
-                    return ParseEnumTypeDefinition(context, in reader);
+                    return ParseEnumTypeDefinition(context, ref reader);
                 }
 
                 if (reader.Value.SequenceEqual(Utf8Keywords.Input))
                 {
-                    return ParseInputObjectTypeDefinition(context, in reader);
+                    return ParseInputObjectTypeDefinition(context, ref reader);
                 }
 
                 if (reader.Value.SequenceEqual(Utf8Keywords.Extend))
                 {
-                    return ParseTypeExtension(context, in reader);
+                    return ParseTypeExtension(context, ref reader);
                 }
 
                 if (reader.Value.SequenceEqual(Utf8Keywords.Directive))
                 {
-                    return ParseDirectiveDefinition(context, in reader);
+                    return ParseDirectiveDefinition(context, ref reader);
                 }
             }
             else if (reader.Kind == TokenKind.LeftBrace)
             {
-                return ParseOperationDefinition(context, in reader);
+                return ParseOperationDefinition(context, ref reader);
             }
 
-            throw ParserHelper.Unexpected(in reader, reader.Kind);
+            throw ParserHelper.Unexpected(ref reader, reader.Kind);
         }
 
         public static Parser Default { get; } = new Parser();

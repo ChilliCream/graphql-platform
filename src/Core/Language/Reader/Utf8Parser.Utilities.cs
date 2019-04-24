@@ -9,12 +9,12 @@ namespace HotChocolate.Language
     {
         private static NameNode ParseName(
             Utf8ParserContext context,
-            in Utf8GraphQLReader reader)
+            ref Utf8GraphQLReader reader)
         {
-            context.Start(in reader);
+            context.Start(ref reader);
 
-            string name = ParserHelper.ExpectName(in reader);
-            Location location = context.CreateLocation(in reader);
+            string name = ParserHelper.ExpectName(ref reader);
+            Location location = context.CreateLocation(ref reader);
 
             return new NameNode
             (

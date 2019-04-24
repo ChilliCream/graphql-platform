@@ -11,12 +11,12 @@ namespace HotChocolate.Language
 
         public ParserOptions Options { get; }
 
-        public void Start(in Utf8GraphQLReader reader)
+        public void Start(ref Utf8GraphQLReader reader)
         {
             // use stack for token info
         }
 
-        public Location CreateLocation(in Utf8GraphQLReader reader)
+        public Location CreateLocation(ref Utf8GraphQLReader reader)
         {
             return null;
         }

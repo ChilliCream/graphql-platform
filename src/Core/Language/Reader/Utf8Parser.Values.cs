@@ -32,45 +32,45 @@ namespace HotChocolate.Language
         /// </param>
         private static IValueNode ParseValueLiteral(
             Utf8ParserContext context,
-            in Utf8GraphQLReader reader,
+            ref Utf8GraphQLReader reader,
             bool isConstant)
         {
             if (reader.Kind == TokenKind.LeftBracket)
             {
-                return ParseList(context, in reader, isConstant);
+                return ParseList(context, ref reader, isConstant);
             }
 
             if (reader.Kind == TokenKind.LeftBrace)
             {
-                return ParseObject(context, in reader, isConstant);
+                return ParseObject(context, ref reader, isConstant);
             }
 
-            if (TokenHelper.IsScalarValue(in reader))
+            if (TokenHelper.IsScalarValue(ref reader))
             {
-                return ParseScalarValue(context, in reader);
+                return ParseScalarValue(context, ref reader);
             }
 
-            if (TokenHelper.IsName(in reader))
+            if (TokenHelper.IsName(ref reader))
             {
-                return ParseEnumValue(context, in reader);
+                return ParseEnumValue(context, ref reader);
             }
 
-            if (TokenHelper.IsDollar(in reader) && !isConstant)
+            if (TokenHelper.IsDollar(ref reader) && !isConstant)
             {
-                return ParseVariable(context, in reader);
+                return ParseVariable(context, ref reader);
             }
 
-            throw ParserHelper.Unexpected(in reader, reader.Kind);
+            throw ParserHelper.Unexpected(ref reader, reader.Kind);
         }
 
         private static StringValueNode ParseStringLiteral(
             Utf8ParserContext context,
-            in Utf8GraphQLReader reader)
+            ref Utf8GraphQLReader reader)
         {
-            context.Start(in reader);
+            context.Start(ref reader);
             bool isBlock = reader.Kind == TokenKind.BlockString;
-            string value = ParserHelper.ExpectString(in reader);
-            Location location = context.CreateLocation(in reader);
+            string value = ParserHelper.ExpectString(ref reader);
+            Location location = context.CreateLocation(ref reader);
 
             return new StringValueNode(location, value, isBlock);
         }
@@ -88,10 +88,10 @@ namespace HotChocolate.Language
         /// </param>
         private static ListValueNode ParseList(
             Utf8ParserContext context,
-            in Utf8GraphQLReader reader,
+            ref Utf8GraphQLReader reader,
             bool isConstant)
         {
-            context.Start(in reader);
+            context.Start(ref reader);
 
             if (reader.Kind != TokenKind.LeftBracket)
             {
@@ -100,7 +100,7 @@ namespace HotChocolate.Language
                         CultureInfo.InvariantCulture,
                         LangResources.ParseMany_InvalidOpenToken,
                         TokenKind.LeftBracket,
-                        TokenVisualizer.Visualize(reader)));
+                        TokenVisualizer.Visualize(in reader)));
             }
 
             var items = new List<IValueNode>();
@@ -110,13 +110,13 @@ namespace HotChocolate.Language
 
             while (reader.Kind != TokenKind.RightBracket)
             {
-                items.Add(ParseValueLiteral(context, in reader, isConstant));
+                items.Add(ParseValueLiteral(context, ref reader, isConstant));
             }
 
             // skip closing token
-            ParserHelper.Expect(in reader, TokenKind.RightBracket);
+            ParserHelper.Expect(ref reader, TokenKind.RightBracket);
 
-            Location location = context.CreateLocation(in reader);
+            Location location = context.CreateLocation(ref reader);
 
             return new ListValueNode
             (
@@ -138,10 +138,10 @@ namespace HotChocolate.Language
         /// </param>
         private static ObjectValueNode ParseObject(
             Utf8ParserContext context,
-            in Utf8GraphQLReader reader,
+            ref Utf8GraphQLReader reader,
             bool isConstant)
         {
-            context.Start(in reader);
+            context.Start(ref reader);
 
             if (reader.Kind != TokenKind.LeftBrace)
             {
@@ -150,7 +150,7 @@ namespace HotChocolate.Language
                         CultureInfo.InvariantCulture,
                         LangResources.ParseMany_InvalidOpenToken,
                         TokenKind.LeftBrace,
-                        TokenVisualizer.Visualize(reader)));
+                        TokenVisualizer.Visualize(in reader)));
             }
 
             var fields = new List<ObjectFieldNode>();
@@ -160,13 +160,13 @@ namespace HotChocolate.Language
 
             while (reader.Kind != TokenKind.RightBrace)
             {
-                fields.Add(ParseObjectField(context, in reader, isConstant));
+                fields.Add(ParseObjectField(context, ref reader, isConstant));
             }
 
             // skip closing token
-            ParserHelper.Expect(in reader, TokenKind.RightBrace);
+            ParserHelper.Expect(ref reader, TokenKind.RightBrace);
 
-            Location location = context.CreateLocation(in reader);
+            Location location = context.CreateLocation(ref reader);
 
             return new ObjectValueNode
             (
@@ -177,16 +177,16 @@ namespace HotChocolate.Language
 
         private static ObjectFieldNode ParseObjectField(
             Utf8ParserContext context,
-            in Utf8GraphQLReader reader,
+            ref Utf8GraphQLReader reader,
             bool isConstant)
         {
-            context.Start(in reader);
+            context.Start(ref reader);
 
-            NameNode name = ParseName(context, in reader);
-            ParserHelper.ExpectColon(in reader);
-            IValueNode value = ParseValueLiteral(context, in reader, isConstant);
+            NameNode name = ParseName(context, ref reader);
+            ParserHelper.ExpectColon(ref reader);
+            IValueNode value = ParseValueLiteral(context, ref reader, isConstant);
 
-            Location location = context.CreateLocation(in reader);
+            Location location = context.CreateLocation(ref reader);
 
             return new ObjectFieldNode
             (
@@ -198,17 +198,17 @@ namespace HotChocolate.Language
 
         private static IValueNode ParseScalarValue(
             Utf8ParserContext context,
-            in Utf8GraphQLReader reader)
+            ref Utf8GraphQLReader reader)
         {
-            if (TokenHelper.IsString(in reader))
+            if (TokenHelper.IsString(ref reader))
             {
-                return ParseStringLiteral(context, in reader);
+                return ParseStringLiteral(context, ref reader);
             }
 
-            context.Start(in reader);
+            context.Start(ref reader);
             TokenKind kind = reader.Kind;
-            string value = ParserHelper.ExpectScalarValue(in reader);
-            Location location = context.CreateLocation(in reader);
+            string value = ParserHelper.ExpectScalarValue(ref reader);
+            Location location = context.CreateLocation(ref reader);
 
             if (kind == TokenKind.Float)
             {
@@ -228,41 +228,41 @@ namespace HotChocolate.Language
                 );
             }
 
-            throw ParserHelper.Unexpected(in reader, kind);
+            throw ParserHelper.Unexpected(ref reader, kind);
         }
 
         private static IValueNode ParseEnumValue(
             Utf8ParserContext context,
-            in Utf8GraphQLReader reader)
+            ref Utf8GraphQLReader reader)
         {
-            context.Start(in reader);
+            context.Start(ref reader);
 
             Location location;
 
             if (reader.Value.SequenceEqual(Utf8Keywords.True))
             {
                 reader.Read();
-                location = context.CreateLocation(in reader);
+                location = context.CreateLocation(ref reader);
                 return new BooleanValueNode(location, true);
             }
 
             if (reader.Value.SequenceEqual(Utf8Keywords.False))
             {
                 reader.Read();
-                location = context.CreateLocation(in reader);
+                location = context.CreateLocation(ref reader);
                 return new BooleanValueNode(location, false);
             }
 
             if (reader.Value.SequenceEqual(Utf8Keywords.Null))
             {
                 reader.Read();
-                location = context.CreateLocation(in reader);
+                location = context.CreateLocation(ref reader);
                 return new NullValueNode(location);
             }
 
             string value = reader.GetString(reader.Value);
             reader.Read();
-            location = context.CreateLocation(in reader);
+            location = context.CreateLocation(ref reader);
 
             return new EnumValueNode
             (

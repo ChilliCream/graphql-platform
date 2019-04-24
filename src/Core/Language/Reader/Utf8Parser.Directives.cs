@@ -6,22 +6,22 @@ namespace HotChocolate.Language
     {
         private static DirectiveDefinitionNode ParseDirectiveDefinition(
             Utf8ParserContext context,
-            in Utf8GraphQLReader reader)
+            ref Utf8GraphQLReader reader)
         {
-            context.Start(in reader);
+            context.Start(ref reader);
 
-            StringValueNode description = ParseDescription(context, in reader);
-            ParserHelper.ExpectDirectiveKeyword(in reader);
-            ParserHelper.ExpectAt(in reader);
-            NameNode name = ParseName(context, in reader);
+            StringValueNode description = ParseDescription(context, ref reader);
+            ParserHelper.ExpectDirectiveKeyword(ref reader);
+            ParserHelper.ExpectAt(ref reader);
+            NameNode name = ParseName(context, ref reader);
             List<InputValueDefinitionNode> arguments =
-                ParseArgumentDefinitions(context, in reader);
-            bool isRepeatable = ParserHelper.SkipRepeatableKeyword(in reader);
-            ParserHelper.ExpectOnKeyword(in reader);
+                ParseArgumentDefinitions(context, ref reader);
+            bool isRepeatable = ParserHelper.SkipRepeatableKeyword(ref reader);
+            ParserHelper.ExpectOnKeyword(ref reader);
             List<NameNode> locations =
-                ParseDirectiveLocations(context, in reader);
+                ParseDirectiveLocations(context, ref reader);
 
-            Location location = context.CreateLocation(in reader);
+            Location location = context.CreateLocation(ref reader);
 
             return new DirectiveDefinitionNode
             (
@@ -36,45 +36,45 @@ namespace HotChocolate.Language
 
         private static List<NameNode> ParseDirectiveLocations(
             Utf8ParserContext context,
-            in Utf8GraphQLReader reader)
+            ref Utf8GraphQLReader reader)
         {
             var list = new List<NameNode>();
 
             // skip optional leading pipe.
-            ParserHelper.Skip(in reader, TokenKind.Pipe);
+            ParserHelper.Skip(ref reader, TokenKind.Pipe);
 
             do
             {
-                list.Add(ParseDirectiveLocation(context, in reader));
+                list.Add(ParseDirectiveLocation(context, ref reader));
             }
-            while (ParserHelper.Skip(in reader, TokenKind.Pipe));
+            while (ParserHelper.Skip(ref reader, TokenKind.Pipe));
 
             return list;
         }
 
         private static NameNode ParseDirectiveLocation(
             Utf8ParserContext context,
-            in Utf8GraphQLReader reader)
+            ref Utf8GraphQLReader reader)
         {
             TokenKind kind = reader.Kind;
-            NameNode name = ParseName(context, in reader);
+            NameNode name = ParseName(context, ref reader);
             if (DirectiveLocation.IsValidName(name.Value))
             {
                 return name;
             }
-            throw ParserHelper.Unexpected(in reader, kind);
+            throw ParserHelper.Unexpected(ref reader, kind);
         }
 
         private static List<DirectiveNode> ParseDirectives(
             Utf8ParserContext context,
-            in Utf8GraphQLReader reader,
+            ref Utf8GraphQLReader reader,
             bool isConstant)
         {
             var list = new List<DirectiveNode>();
 
-            while (TokenHelper.IsAt(in reader))
+            while (TokenHelper.IsAt(ref reader))
             {
-                list.Add(ParseDirective(context, in reader, isConstant));
+                list.Add(ParseDirective(context, ref reader, isConstant));
             }
 
             return list;
@@ -82,17 +82,17 @@ namespace HotChocolate.Language
 
         private static DirectiveNode ParseDirective(
             Utf8ParserContext context,
-            in Utf8GraphQLReader reader,
+            ref Utf8GraphQLReader reader,
             bool isConstant)
         {
-            context.Start(in reader);
+            context.Start(ref reader);
 
-            ParserHelper.ExpectAt(in reader);
-            NameNode name = ParseName(context, in reader);
+            ParserHelper.ExpectAt(ref reader);
+            NameNode name = ParseName(context, ref reader);
             List<ArgumentNode> arguments =
-                ParseArguments(context, in reader, isConstant);
+                ParseArguments(context, ref reader, isConstant);
 
-            Location location = context.CreateLocation(in reader);
+            Location location = context.CreateLocation(ref reader);
 
             return new DirectiveNode
             (

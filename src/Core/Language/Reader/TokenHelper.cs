@@ -18,52 +18,52 @@ namespace HotChocolate.Language
             _isScalar[(int)TokenKind.Float] = true;
         }
 
-        public static bool IsDescription(in Utf8GraphQLReader reader)
+        public static bool IsDescription(ref Utf8GraphQLReader reader)
         {
             return _isString[(int)reader.Kind];
         }
 
-        public static bool IsString(in Utf8GraphQLReader reader)
+        public static bool IsString(ref Utf8GraphQLReader reader)
         {
             return _isString[(int)reader.Kind];
         }
 
-        public static bool IsScalarValue(in Utf8GraphQLReader reader)
+        public static bool IsScalarValue(ref Utf8GraphQLReader reader)
         {
             return _isScalar[(int)reader.Kind];
         }
 
-        public static bool IsName(in Utf8GraphQLReader reader)
+        public static bool IsName(ref Utf8GraphQLReader reader)
         {
             return reader.Kind == TokenKind.Name;
         }
 
-        public static bool IsAt(in Utf8GraphQLReader reader)
+        public static bool IsAt(ref Utf8GraphQLReader reader)
         {
             return reader.Kind == TokenKind.At;
         }
 
-        public static bool IsDollar(in Utf8GraphQLReader reader)
+        public static bool IsDollar(ref Utf8GraphQLReader reader)
         {
             return reader.Kind == TokenKind.Dollar;
         }
 
-        public static bool IsColon(in Utf8GraphQLReader reader)
+        public static bool IsColon(ref Utf8GraphQLReader reader)
         {
             return reader.Kind == TokenKind.Colon;
         }
 
-        public static bool IsLeftBrace(in Utf8GraphQLReader reader)
+        public static bool IsLeftBrace(ref Utf8GraphQLReader reader)
         {
             return reader.Kind == TokenKind.LeftBrace;
         }
 
-        public static bool IsLeftParenthesis(in Utf8GraphQLReader reader)
+        public static bool IsLeftParenthesis(ref Utf8GraphQLReader reader)
         {
             return reader.Kind == TokenKind.LeftParenthesis;
         }
 
-        public static bool IsSpread(in Utf8GraphQLReader reader)
+        public static bool IsSpread(ref Utf8GraphQLReader reader)
         {
             return reader.Kind == TokenKind.Spread;
         }
