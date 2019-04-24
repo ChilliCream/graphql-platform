@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Language.Properties;
+using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Language
 {
@@ -63,6 +64,7 @@ namespace HotChocolate.Language
             throw ParserHelper.Unexpected(ref reader, reader.Kind);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static StringValueNode ParseStringLiteral(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
@@ -86,6 +88,7 @@ namespace HotChocolate.Language
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ListValueNode ParseList(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader,
@@ -136,6 +139,7 @@ namespace HotChocolate.Language
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ObjectValueNode ParseObject(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader,
@@ -175,6 +179,7 @@ namespace HotChocolate.Language
             );
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ObjectFieldNode ParseObjectField(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader,
@@ -196,6 +201,7 @@ namespace HotChocolate.Language
             );
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static IValueNode ParseScalarValue(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
@@ -231,6 +237,7 @@ namespace HotChocolate.Language
             throw ParserHelper.Unexpected(ref reader, kind);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static IValueNode ParseEnumValue(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)

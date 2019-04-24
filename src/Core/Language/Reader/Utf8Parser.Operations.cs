@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
@@ -14,6 +15,7 @@ namespace HotChocolate.Language
         /// OperationType? OperationName? ($x : Type = DefaultValue?)? SelectionSet
         /// </summary>
         /// <param name="context">The parser context.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static OperationDefinitionNode ParseOperationDefinition(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
@@ -53,6 +55,7 @@ namespace HotChocolate.Language
         /// SelectionSet
         /// </summary>
         /// <param name="context">The parser context.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static OperationDefinitionNode ParseOperationDefinitionShortHandForm(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
@@ -75,6 +78,7 @@ namespace HotChocolate.Language
         /// Parses the <see cref="OperationType" />.
         /// </summary>
         /// <param name="context">The parser context.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static OperationType ParseOperationType(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
@@ -83,16 +87,19 @@ namespace HotChocolate.Language
             {
                 if (reader.Value.SequenceEqual(Utf8Keywords.Query))
                 {
+                    reader.Read();
                     return OperationType.Query;
                 }
 
                 if (reader.Value.SequenceEqual(Utf8Keywords.Mutation))
                 {
+                    reader.Read();
                     return OperationType.Mutation;
                 }
 
                 if (reader.Value.SequenceEqual(Utf8Keywords.Subscription))
                 {
+                    reader.Read();
                     return OperationType.Subscription;
                 }
             }
@@ -106,6 +113,7 @@ namespace HotChocolate.Language
         /// ( VariableDefinition+ )
         /// </summary>
         /// <param name="context">The parser context.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static List<VariableDefinitionNode> ParseVariableDefinitions(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
@@ -136,6 +144,7 @@ namespace HotChocolate.Language
         /// $variable : Type = DefaultValue?
         /// </summary>
         /// <param name="context">The parser context.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static VariableDefinitionNode ParseVariableDefinition(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
@@ -166,6 +175,7 @@ namespace HotChocolate.Language
         /// $Name
         /// </summary>
         /// <param name="context">The parser context.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static VariableNode ParseVariable(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
@@ -233,6 +243,7 @@ namespace HotChocolate.Language
         /// - InlineFragment
         /// </summary>
         /// <param name="context">The parser context.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ISelectionNode ParseSelection(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
@@ -250,6 +261,7 @@ namespace HotChocolate.Language
         /// Alias? : Name Arguments? Directives? SelectionSet?
         /// </summary>
         /// <param name="context">The parser context.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static FieldNode ParseField(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
@@ -290,6 +302,7 @@ namespace HotChocolate.Language
         /// Name : Value[isConstant]
         /// </summary>
         /// <param name="context">The parser context.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static List<ArgumentNode> ParseArguments(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader,
@@ -321,6 +334,7 @@ namespace HotChocolate.Language
         /// Name : Value[isConstant]
         /// </summary>
         /// <param name="context">The parser context.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static ArgumentNode ParseArgument(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader,

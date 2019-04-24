@@ -1,0 +1,926 @@
+{
+  "Kind": "Document",
+  "Location": null,
+  "Definitions": [
+    {
+      "Kind": "OperationDefinition",
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "IntrospectionQuery"
+      },
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": null,
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": null,
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": null,
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "name"
+                        },
+                        "Directives": []
+                      }
+                    ]
+                  },
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "queryType"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": null,
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "name"
+                        },
+                        "Directives": []
+                      }
+                    ]
+                  },
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "mutationType"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": null,
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "name"
+                        },
+                        "Directives": []
+                      }
+                    ]
+                  },
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "subscriptionType"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": null,
+                    "Selections": [
+                      {
+                        "Kind": "FragmentSpread",
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "FullType"
+                        },
+                        "Directives": []
+                      }
+                    ]
+                  },
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "types"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": null,
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "name"
+                        },
+                        "Directives": []
+                      },
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "description"
+                        },
+                        "Directives": []
+                      },
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": {
+                          "Kind": "SelectionSet",
+                          "Location": null,
+                          "Selections": [
+                            {
+                              "Kind": "FragmentSpread",
+                              "Location": null,
+                              "Name": {
+                                "Kind": "Name",
+                                "Location": null,
+                                "Value": "InputValue"
+                              },
+                              "Directives": []
+                            }
+                          ]
+                        },
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "args"
+                        },
+                        "Directives": []
+                      },
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "onOperation"
+                        },
+                        "Directives": []
+                      },
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "onFragment"
+                        },
+                        "Directives": []
+                      },
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "onField"
+                        },
+                        "Directives": []
+                      }
+                    ]
+                  },
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "directives"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "__schema"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    },
+    {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": null,
+        "Name": {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "__Type"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": null,
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "kind"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "name"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "description"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [
+              {
+                "Kind": "Argument",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "includeDeprecated"
+                },
+                "Value": {
+                  "Kind": "BooleanValue",
+                  "Location": null,
+                  "Value": true
+                }
+              }
+            ],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": null,
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "name"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "description"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": null,
+                    "Selections": [
+                      {
+                        "Kind": "FragmentSpread",
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "InputValue"
+                        },
+                        "Directives": []
+                      }
+                    ]
+                  },
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "args"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": null,
+                    "Selections": [
+                      {
+                        "Kind": "FragmentSpread",
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "TypeRef"
+                        },
+                        "Directives": []
+                      }
+                    ]
+                  },
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "type"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "isDeprecated"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "deprecationReason"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "fields"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": null,
+              "Selections": [
+                {
+                  "Kind": "FragmentSpread",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "InputValue"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "inputFields"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": null,
+              "Selections": [
+                {
+                  "Kind": "FragmentSpread",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "TypeRef"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "interfaces"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [
+              {
+                "Kind": "Argument",
+                "Location": null,
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "includeDeprecated"
+                },
+                "Value": {
+                  "Kind": "BooleanValue",
+                  "Location": null,
+                  "Value": true
+                }
+              }
+            ],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": null,
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "name"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "description"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "isDeprecated"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "deprecationReason"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "enumValues"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": null,
+              "Selections": [
+                {
+                  "Kind": "FragmentSpread",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "TypeRef"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "possibleTypes"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "FullType"
+      },
+      "Directives": []
+    },
+    {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": null,
+        "Name": {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "__InputValue"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": null,
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "name"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "description"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": null,
+              "Selections": [
+                {
+                  "Kind": "FragmentSpread",
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "TypeRef"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "type"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "defaultValue"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "InputValue"
+      },
+      "Directives": []
+    },
+    {
+      "Kind": "FragmentDefinition",
+      "VariableDefinitions": [],
+      "TypeCondition": {
+        "Kind": "NamedType",
+        "Location": null,
+        "Name": {
+          "Kind": "Name",
+          "Location": null,
+          "Value": "__Type"
+        }
+      },
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": null,
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "kind"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": null,
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "name"
+            },
+            "Directives": []
+          },
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": null,
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "kind"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "name"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": null,
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "kind"
+                        },
+                        "Directives": []
+                      },
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "name"
+                        },
+                        "Directives": []
+                      },
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": {
+                          "Kind": "SelectionSet",
+                          "Location": null,
+                          "Selections": [
+                            {
+                              "Kind": "Field",
+                              "Alias": null,
+                              "Arguments": [],
+                              "SelectionSet": null,
+                              "Location": null,
+                              "Name": {
+                                "Kind": "Name",
+                                "Location": null,
+                                "Value": "kind"
+                              },
+                              "Directives": []
+                            },
+                            {
+                              "Kind": "Field",
+                              "Alias": null,
+                              "Arguments": [],
+                              "SelectionSet": null,
+                              "Location": null,
+                              "Name": {
+                                "Kind": "Name",
+                                "Location": null,
+                                "Value": "name"
+                              },
+                              "Directives": []
+                            }
+                          ]
+                        },
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "ofType"
+                        },
+                        "Directives": []
+                      }
+                    ]
+                  },
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "ofType"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "ofType"
+            },
+            "Directives": []
+          }
+        ]
+      },
+      "Location": null,
+      "Name": {
+        "Kind": "Name",
+        "Location": null,
+        "Value": "TypeRef"
+      },
+      "Directives": []
+    }
+  ]
+}

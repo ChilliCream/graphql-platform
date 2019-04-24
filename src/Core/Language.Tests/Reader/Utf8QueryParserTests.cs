@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Text;
 using ChilliCream.Testing;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language
@@ -199,7 +200,23 @@ namespace HotChocolate.Language
                 new ParserOptions(noLocations: true));
 
             // assert
-            document.Snapshot();
+            document.MatchSnapshot();
+        }
+
+        [Fact]
+        public void IntrospectionQuery()
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                FileResource.Open("IntrospectionQuery.graphql"));
+
+            // act
+            Utf8Parser parser = new Utf8Parser();
+            DocumentNode document = parser.Parse(sourceText,
+                new ParserOptions(noLocations: true));
+
+            // assert
+            document.MatchSnapshot();
         }
     }
 }

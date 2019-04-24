@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Language
 {
@@ -12,6 +13,7 @@ namespace HotChocolate.Language
         /// <see cref="ParseInlineFragment" />.
         /// </summary>
         /// <param name="context">The parser context.</param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ISelectionNode ParseFragment(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)

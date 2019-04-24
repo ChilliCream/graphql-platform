@@ -10,7 +10,8 @@ namespace HotChocolate.Benchmark.Tests
         static void Main(string[] args)
         {
             //BenchmarkRunner.Run<ParserBenchmarks>();
-            BenchmarkRunner.Run<LexerBenchmarksV9>();
+            // BenchmarkRunner.Run<LexerBenchmarksV9>();
+            BenchmarkRunner.Run<ParserBenchmarksV9>();
             // BenchmarkRunner.Run<QueryExecutorWithCacheBenchmarks>();
             // BenchmarkRunner.Run<QueryExecutorBenchmarks>();
             // BenchmarkRunner.Run<TimestampBenchmarks>();

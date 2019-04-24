@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Language
 {
@@ -80,6 +81,7 @@ namespace HotChocolate.Language
             return list;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static DirectiveNode ParseDirective(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader,
