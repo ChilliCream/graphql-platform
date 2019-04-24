@@ -42,70 +42,80 @@ namespace HotChocolate.Language
             return new DocumentNode(location, definitions.AsReadOnly());
         }
 
-        private static IDefinitionNode ParseDefinition(ParserContext context)
+        private static IDefinitionNode ParseDefinition(
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
-            SyntaxToken token = context.Current;
-            if (token.IsDescription())
+            if (TokenHelper.IsDescription(in reader))
             {
-                token = token.Peek();
+                context.Description = ParseDescription(context, in reader);
             }
 
-            if (token.IsName())
+            if (reader.Kind == TokenKind.Name)
             {
-                switch (token.Value)
+                if (reader.Value.SequenceEqual(Utf8Keywords.Query)
+                    || reader.Value.SequenceEqual(Utf8Keywords.Mutation)
+                    || reader.Value.SequenceEqual(Utf8Keywords.Subscription))
                 {
-                    case Keywords.Query:
-                    case Keywords.Mutation:
-                    case Keywords.Subscription:
-                    case Keywords.Fragment:
-                        return ParseExecutableDefinition(context);
+                    return ParseOperationDefinition(context, in reader);
+                }
 
-                    case Keywords.Schema:
-                    case Keywords.Scalar:
-                    case Keywords.Type:
-                    case Keywords.Interface:
-                    case Keywords.Union:
-                    case Keywords.Enum:
-                    case Keywords.Input:
-                    case Keywords.Extend:
-                    case Keywords.Directive:
-                        return ParseTypeSystemDefinition(context);
+                if (reader.Value.SequenceEqual(Utf8Keywords.Fragment))
+                {
+                    return ParseFragmentDefinition(context, in reader);
+                }
+
+                if (reader.Value.SequenceEqual(Utf8Keywords.Schema))
+                {
+                    ParseSchemaDefinition(context, in reader);
+                }
+
+                if (reader.Value.SequenceEqual(Utf8Keywords.Scalar))
+                {
+                    return ParseScalarTypeDefinition(context, in reader);
+                }
+
+                if (reader.Value.SequenceEqual(Utf8Keywords.Type))
+                {
+                    return ParseObjectTypeDefinition(context, in reader);
+                }
+
+                if (reader.Value.SequenceEqual(Utf8Keywords.Interface))
+                {
+                    return ParseInterfaceTypeDefinition(context, in reader);
+                }
+
+                if (reader.Value.SequenceEqual(Utf8Keywords.Union))
+                {
+                    return ParseUnionTypeDefinition(context, in reader);
+                }
+
+                if (reader.Value.SequenceEqual(Utf8Keywords.Enum))
+                {
+                    return ParseEnumTypeDefinition(context, in reader);
+                }
+
+                if (reader.Value.SequenceEqual(Utf8Keywords.Input))
+                {
+                    return ParseInputObjectTypeDefinition(context, in reader);
+                }
+
+                if (reader.Value.SequenceEqual(Utf8Keywords.Extend))
+                {
+                    return ParseTypeExtension(context, in reader);
+                }
+
+                if (reader.Value.SequenceEqual(Utf8Keywords.Directive))
+                {
+                    return ParseDirectiveDefinition(context, in reader);
                 }
             }
-            else if (token.IsLeftBrace())
+            else if (reader.Kind == TokenKind.LeftBrace)
             {
-                return ParseExecutableDefinition(context);
-            }
-            else if (token.IsDescription())
-            {
-                return ParseTypeSystemDefinition(context);
+                return ParseOperationDefinition(context, in reader);
             }
 
-            throw context.Unexpected(token);
-        }
-
-        private static IExecutableDefinitionNode ParseExecutableDefinition(
-            ParserContext context)
-        {
-            if (context.Current.IsName())
-            {
-                switch (context.Current.Value)
-                {
-                    case Keywords.Query:
-                    case Keywords.Mutation:
-                    case Keywords.Subscription:
-                        return ParseOperationDefinition(context);
-
-                    case Keywords.Fragment:
-                        return ParseFragmentDefinition(context);
-                }
-            }
-            else if (context.Current.IsLeftBrace())
-            {
-                return ParseOperationDefinition(context);
-            }
-
-            throw context.Unexpected(context.Current);
+            throw ParserHelper.Unexpected(in reader, reader.Kind);
         }
 
         public static Parser Default { get; } = new Parser();

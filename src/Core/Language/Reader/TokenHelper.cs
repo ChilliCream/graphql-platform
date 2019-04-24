@@ -67,17 +67,5 @@ namespace HotChocolate.Language
         {
             return reader.Kind == TokenKind.Spread;
         }
-
-        public static bool IsOnKeyword(in Utf8GraphQLReader reader)
-        {
-            return reader.Kind == TokenKind.Name
-                && reader.Value.SequenceEqual(Utf8Keywords.On);
-        }
-
-         public static bool IsSchemaKeyword(in Utf8GraphQLReader reader)
-        {
-            return reader.Kind == TokenKind.Name
-                && reader.Value.SequenceEqual(Utf8Keywords.Schema);
-        }
     }
 }

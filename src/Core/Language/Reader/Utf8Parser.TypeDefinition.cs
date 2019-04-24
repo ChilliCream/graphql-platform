@@ -8,62 +8,6 @@ namespace HotChocolate.Language
     public partial class Utf8Parser
     {
         /// <summary>
-        /// Parses a type definition.
-        /// <see cref="ITypeSystemDefinitionNode" />:
-        /// TypeSystemDefinition:
-        /// - SchemaDefinition
-        /// - TypeDefinition
-        /// - TypeExtension
-        /// - DirectiveDefinition
-        ///
-        /// TypeDefinition:
-        /// - ScalarTypeDefinition
-        /// - ObjectTypeDefinition
-        /// - InterfaceTypeDefinition
-        /// - UnionTypeDefinition
-        /// - EnumTypeDefinition
-        /// - InputObjectTypeDefinition
-        /// </summary>
-        /// <param name="context">The parser context.</param>
-        private static ITypeSystemDefinitionNode ParseTypeSystemDefinition(
-            ParserContext context)
-        {
-            // Many definitions begin with a description and require a lookahead.
-            SyntaxToken keywordToken = context.Current;
-            if (keywordToken.IsDescription())
-            {
-                keywordToken = keywordToken.Peek();
-            }
-
-            if (keywordToken.IsName())
-            {
-                switch (keywordToken.Value)
-                {
-                    case Keywords.Schema:
-                        return ParseSchemaDefinition(context);
-                    case Keywords.Scalar:
-                        return ParseScalarTypeDefinition(context);
-                    case Keywords.Type:
-                        return ParseObjectTypeDefinition(context);
-                    case Keywords.Interface:
-                        return ParseInterfaceTypeDefinition(context);
-                    case Keywords.Union:
-                        return ParseUnionTypeDefinition(context);
-                    case Keywords.Enum:
-                        return ParseEnumTypeDefinition(context);
-                    case Keywords.Input:
-                        return ParseInputObjectTypeDefinition(context);
-                    case Keywords.Extend:
-                        return ParseTypeExtension(context);
-                    case Keywords.Directive:
-                        return ParseDirectiveDefinition(context);
-                }
-            }
-
-            throw context.Unexpected(keywordToken);
-        }
-
-        /// <summary>
         /// Parses a description.
         /// <see cref="StringValueNode" />:
         /// StringValue
@@ -225,20 +169,21 @@ namespace HotChocolate.Language
         /// </summary>
         /// <param name="context">The parser context.</param>
         private static List<NamedTypeNode> ParseImplementsInterfaces(
-            ParserContext context)
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
             var list = new List<NamedTypeNode>();
 
-            if (context.SkipKeyword(Keywords.Implements))
+            if (ParserHelper.SkipKeyword(in reader, Utf8Keywords.Implements))
             {
                 // skip optional leading amperdand.
-                context.Skip(TokenKind.Ampersand);
+                ParserHelper.Skip(in reader, TokenKind.Ampersand);
 
                 do
                 {
-                    list.Add(ParseNamedType(context));
+                    list.Add(ParseNamedType(context, in reader));
                 }
-                while (context.Skip(TokenKind.Ampersand));
+                while (ParserHelper.Skip(in reader, TokenKind.Ampersand));
             }
 
             return list;
@@ -251,14 +196,25 @@ namespace HotChocolate.Language
         /// </summary>
         /// <param name="context">The parser context.</param>
         private static List<FieldDefinitionNode> ParseFieldsDefinition(
-            ParserContext context)
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
-            if (context.Current.IsLeftBrace())
+            if (reader.Kind == TokenKind.LeftBrace)
             {
-                return ParseMany(context,
-                    TokenKind.LeftBrace,
-                    ParseFieldDefinition,
-                    TokenKind.RightBrace);
+                var list = new List<FieldDefinitionNode>();
+
+                // skip opening token
+                reader.Read();
+
+                while (reader.Kind != TokenKind.LeftBrace)
+                {
+                    list.Add(ParseFieldDefinition(context, in reader));
+                }
+
+                // skip closing token
+                ParserHelper.Expect(in reader, TokenKind.RightBrace);
+
+                return list;
             }
             return new List<FieldDefinitionNode>();
         }
@@ -271,18 +227,21 @@ namespace HotChocolate.Language
         /// </summary>
         /// <param name="context">The parser context.</param>
         private static FieldDefinitionNode ParseFieldDefinition(
-            ParserContext context)
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
-            SyntaxToken start = context.Current;
-            StringValueNode description = ParseDescription(context);
-            NameNode name = ParseName(context);
+            context.Start(in reader);
+
+            StringValueNode description = ParseDescription(context, in reader);
+            NameNode name = ParseName(context, in reader);
             List<InputValueDefinitionNode> arguments =
-                ParseArgumentDefinitions(context);
-            context.ExpectColon();
-            ITypeNode type = ParseTypeReference(context);
+                ParseArgumentDefinitions(context, in reader);
+            ParserHelper.ExpectColon(in reader);
+            ITypeNode type = ParseTypeReference(context, in reader);
             List<DirectiveNode> directives =
-                ParseDirectives(context, true);
-            Location location = context.CreateLocation(start);
+                ParseDirectives(context, in reader, true);
+
+            Location location = context.CreateLocation(in reader);
 
             return new FieldDefinitionNode
             (
@@ -311,6 +270,8 @@ namespace HotChocolate.Language
                     TokenKind.LeftParenthesis,
                     ParseInputValueDefinition,
                     TokenKind.RightParenthesis);
+
+
             }
             return new List<InputValueDefinitionNode>();
         }

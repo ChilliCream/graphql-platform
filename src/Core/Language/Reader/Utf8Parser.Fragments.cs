@@ -43,7 +43,8 @@ namespace HotChocolate.Language
         /// </summary>
         /// <param name="context">The parser context.</param>
         private static FragmentDefinitionNode ParseFragmentDefinition(
-            ParserContext context)
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
             SyntaxToken start = context.Current;
             context.ExpectFragmentKeyword();

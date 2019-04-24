@@ -11,5 +11,7 @@ namespace HotChocolate.Language
         {
 
         }
+
+        public StringValueNode Description { get; set; }
     }
 }

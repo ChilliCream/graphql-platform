@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Language.Properties;
 
@@ -16,31 +17,43 @@ namespace HotChocolate.Language
 
             if (reader.Kind == TokenKind.Name)
             {
-                if (TokenHelper.IsSchemaKeyword(in reader))
+                if (reader.Value.SequenceEqual(Utf8Keywords.Schema))
                 {
                     return ParseSchemaExtension(context, in reader);
                 }
 
-                switch (reade.Value)
+                if (reader.Value.SequenceEqual(Utf8Keywords.Scalar))
                 {
-                    case Keywords.Schema:
+                    return ParseScalarTypeExtension(context, in reader);
+                }
 
-                    case Keywords.Scalar:
-                        return ParseScalarTypeExtension(context);
-                    case Keywords.Type:
-                        return ParseObjectTypeExtension(context);
-                    case Keywords.Interface:
-                        return ParseInterfaceTypeExtension(context);
-                    case Keywords.Union:
-                        return ParseUnionTypeExtension(context);
-                    case Keywords.Enum:
-                        return ParseEnumTypeExtension(context);
-                    case Keywords.Input:
-                        return ParseInputObjectTypeExtension(context);
+                if (reader.Value.SequenceEqual(Utf8Keywords.Type))
+                {
+                    return ParseObjectTypeExtension(context, in reader);
+                }
+
+                if (reader.Value.SequenceEqual(Utf8Keywords.Interface))
+                {
+                    return ParseInterfaceTypeExtension(context, in reader);
+                }
+
+                if (reader.Value.SequenceEqual(Utf8Keywords.Union))
+                {
+                    return ParseUnionTypeExtension(context, in reader);
+                }
+
+                if (reader.Value.SequenceEqual(Utf8Keywords.Enum))
+                {
+                    return ParseEnumTypeExtension(context, in reader);
+                }
+
+                if (reader.Value.SequenceEqual(Utf8Keywords.Input))
+                {
+                    return ParseInputObjectTypeExtension(context, in reader);
                 }
             }
 
-            throw context.Unexpected(keywordToken);
+            throw ParserHelper.Unexpected(in reader, reader.Kind);
         }
 
         /// <summary>
@@ -54,7 +67,7 @@ namespace HotChocolate.Language
             Utf8ParserContext context,
             in Utf8GraphQLReader reader)
         {
-            ParserHelper.ExpectSchemaKeyword(in reader);
+            reader.Read();
 
             List<DirectiveNode> directives =
                 ParseDirectives(context, in reader, true);
@@ -64,10 +77,10 @@ namespace HotChocolate.Language
 
             if (directives.Count == 0 && operationTypeDefinitions.Count == 0)
             {
-                throw context.Unexpected(start);
+                throw ParserHelper.Unexpected(in reader, reader.Kind);
             }
 
-            Location location = context.CreateLocation(start);
+            Location location = context.CreateLocation(in reader);
 
             return new SchemaExtensionNode
             (
@@ -103,19 +116,19 @@ namespace HotChocolate.Language
         }
 
         private static ScalarTypeExtensionNode ParseScalarTypeExtension(
-            ParserContext context)
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
-            SyntaxToken start = context.Current;
-            context.ExpectExtendKeyword();
-            context.ExpectScalarKeyword();
-            NameNode name = ParseName(context);
+            reader.Read();
+
+            NameNode name = ParseName(context, in reader);
             List<DirectiveNode> directives =
-                ParseDirectives(context, true);
+                ParseDirectives(context, in reader, true);
             if (directives.Count == 0)
             {
-                throw context.Unexpected(start);
+                throw ParserHelper.Unexpected(in reader, reader.Kind);
             }
-            Location location = context.CreateLocation(start);
+            Location location = context.CreateLocation(in reader);
 
             return new ScalarTypeExtensionNode
             (
@@ -126,25 +139,23 @@ namespace HotChocolate.Language
         }
 
         private static ObjectTypeExtensionNode ParseObjectTypeExtension(
-            ParserContext context)
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
-            SyntaxToken start = context.Current;
-            context.ExpectExtendKeyword();
-            context.ExpectTypeKeyword();
-            NameNode name = ParseName(context);
+            NameNode name = ParseName(context, in reader);
             List<NamedTypeNode> interfaces =
-                ParseImplementsInterfaces(context);
+                ParseImplementsInterfaces(context, in reader);
             List<DirectiveNode> directives =
-                ParseDirectives(context, true);
+                ParseDirectives(context, in reader, true);
             List<FieldDefinitionNode> fields =
-                ParseFieldsDefinition(context);
-            Location location = context.CreateLocation(start);
+                ParseFieldsDefinition(context, in reader);
+            Location location = context.CreateLocation(in reader);
 
             if (interfaces.Count == 0
                 && directives.Count == 0
                 && fields.Count == 0)
             {
-                throw context.Unexpected(start);
+                throw ParserHelper.Unexpected(in reader, reader.Kind);
             }
 
             return new ObjectTypeExtensionNode
