@@ -11,36 +11,40 @@
         /// - NonNullType
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static ITypeNode ParseTypeReference(ParserContext context)
+        private static ITypeNode ParseTypeReference(
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
-            SyntaxToken start = context.Current;
             ITypeNode type;
             Location location;
 
-            if (context.Skip(TokenKind.LeftBracket))
+            if (reader.Kind == TokenKind.LeftBracket)
             {
-                type = ParseTypeReference(context);
-                context.ExpectRightBracket();
-                location = context.CreateLocation(start);
-
+                context.Start(in reader);
+                reader.Read();
+                type = ParseTypeReference(context, in reader);
+                ParserHelper.ExpectRightBracket(in reader);
+                location = context.CreateLocation(in reader);
                 type = new ListTypeNode(location, type);
             }
             else
             {
-                type = ParseNamedType(context);
+                type = ParseNamedType(context, in reader);
             }
 
-            if (context.Skip(TokenKind.Bang))
+            if (reader.Kind == TokenKind.Bang)
             {
                 if (type is INullableTypeNode nt)
                 {
+                    context.Start(in reader);
+                    reader.Read();
                     return new NonNullTypeNode
                     (
-                        context.CreateLocation(start),
+                        context.CreateLocation(in reader),
                         nt
                     );
                 }
-                context.Unexpected(context.Current.Previous);
+                ParserHelper.Unexpected(in reader, TokenKind.Bang);
             }
 
             return type;
@@ -52,11 +56,13 @@
         /// Name
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static NamedTypeNode ParseNamedType(ParserContext context)
+        private static NamedTypeNode ParseNamedType(
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
-            SyntaxToken start = context.Current;
-            NameNode name = ParseName(context);
-            Location location = context.CreateLocation(start);
+            context.Start(in reader);
+            NameNode name = ParseName(context, in reader);
+            Location location = context.CreateLocation(in reader);
 
             return new NamedTypeNode
             (

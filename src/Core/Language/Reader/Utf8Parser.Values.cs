@@ -75,13 +75,6 @@ namespace HotChocolate.Language
             return new StringValueNode(location, value, isBlock);
         }
 
-        private static IValueNode ParseConstantValue(
-            Utf8ParserContext context,
-            in Utf8GraphQLReader reader)
-        {
-            return ParseValueLiteral(context, in reader, true);
-        }
-
         /// <summary>
         /// Parses a list value.
         /// <see cref="ListValueNode" />:

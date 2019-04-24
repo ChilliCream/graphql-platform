@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
+using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
@@ -85,22 +87,42 @@ namespace HotChocolate.Language
         /// </summary>
         /// <param name="context">The parser context.</param>
         private static SchemaDefinitionNode ParseSchemaDefinition(
-            ParserContext context)
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
-            SyntaxToken start = context.Current;
-            context.SkipDescription();
-            context.ExpectSchemaKeyword();
+            context.Start(in reader);
+
+            ParserHelper.SkipDescription(in reader);
+            ParserHelper.ExpectSchemaKeyword(in reader);
 
             List<DirectiveNode> directives =
-                ParseDirectives(context, true);
+                ParseDirectives(context, in reader, true);
 
-            List<OperationTypeDefinitionNode> operationTypeDefinitions =
-                ParseMany(context,
-                    TokenKind.LeftBrace,
-                    ParseOperationTypeDefinition,
-                    TokenKind.RightBrace);
+            if (reader.Kind != TokenKind.LeftBrace)
+            {
+                throw new SyntaxException(reader,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        LangResources.ParseMany_InvalidOpenToken,
+                        TokenKind.LeftBrace,
+                        TokenVisualizer.Visualize(reader)));
+            }
 
-            Location location = context.CreateLocation(start);
+            var operationTypeDefinitions = new List<OperationTypeDefinitionNode>();
+
+            // skip opening token
+            reader.Read();
+
+            while (reader.Kind != TokenKind.RightBrace)
+            {
+                operationTypeDefinitions.Add(
+                    ParseOperationTypeDefinition(context, in reader));
+            }
+
+            // skip closing token
+            ParserHelper.Expect(in reader, TokenKind.RightBrace);
+
+            Location location = context.CreateLocation(in reader);
 
             return new SchemaDefinitionNode
             (
@@ -117,12 +139,15 @@ namespace HotChocolate.Language
         /// </summary>
         /// <param name="context">The parser context.</param>
         private static OperationTypeDefinitionNode ParseOperationTypeDefinition(
-            ParserContext context)
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
-            SyntaxToken start = context.Current;
-            OperationType operation = ParseOperationType(context);
+            context.Start(in reader);
+
+            OperationType operation = ParseOperationType(context, in reader);
             context.ExpectColon();
-            NamedTypeNode type = ParseNamedType(context);
+            NamedTypeNode type = ParseNamedType(context, in reader);
+
             Location location = context.CreateLocation(start);
 
             return new OperationTypeDefinitionNode

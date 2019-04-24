@@ -188,56 +188,44 @@ namespace HotChocolate.Language
                 $"Unexpected token: {TokenVisualizer.Visualize(kind)}.");
         }
 
-        public static SyntaxToken SkipDescription(this ParserContext context)
+        public static void SkipDescription(in Utf8GraphQLReader reader)
         {
-            if (context.Current.IsDescription())
+            if (TokenHelper.IsDescription(in reader))
             {
-                context.MoveNext();
-                return context.Current;
+                reader.Read();
             }
-            return context.Current;
         }
 
-        public static void SkipWhile(this ParserContext context, TokenKind kind)
+        public static void SkipWhile(in Utf8GraphQLReader reader, TokenKind kind)
         {
-            while (context.Skip(kind)) ;
+            while (Skip(in reader, kind)) ;
         }
 
-        public static bool Skip(this ParserContext context, TokenKind kind)
+        public static bool Skip(in Utf8GraphQLReader reader, TokenKind kind)
         {
-            bool match = context.Current.Kind == kind;
-            if (match)
+            if (reader.Kind == kind)
             {
-                context.MoveNext();
-            }
-            return match;
-        }
-
-        public static bool SkipRepeatableKeyword(this ParserContext context)
-        {
-            return SkipKeyword(context, Keywords.Repeatable);
-        }
-
-        public static bool SkipKeyword(
-            this ParserContext context,
-            string keyword)
-        {
-            if (context.Current.IsName() && context.Current.Value == keyword)
-            {
-                context.MoveNext();
-                return true;
+                return reader.Read();
             }
             return false;
         }
 
-        public static bool Peek(this ParserContext context, TokenKind kind)
+        public static bool SkipRepeatableKeyword(in Utf8GraphQLReader reader)
         {
-            return context.Current.Peek().Kind == kind;
+            return SkipKeyword(in reader, Utf8Keywords.Repeatable);
         }
 
-        public static bool IsEndOfFile(this ParserContext context)
+        public static bool SkipKeyword(
+            in Utf8GraphQLReader reader,
+            byte[] keyword)
         {
-            return context.Current.Kind == TokenKind.EndOfFile;
+            if (TokenHelper.IsName(in reader)
+                && reader.Value.SequenceEqual(keyword))
+            {
+                reader.Read();
+                return true;
+            }
+            return false;
         }
     }
 }

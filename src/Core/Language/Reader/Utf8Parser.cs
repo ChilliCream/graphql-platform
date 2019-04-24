@@ -110,17 +110,4 @@ namespace HotChocolate.Language
 
         public static Parser Default { get; } = new Parser();
     }
-
-    public class Utf8ParserContext
-    {
-        public void Start(in Utf8GraphQLReader reader)
-        {
-            // use stack for token info
-        }
-
-        public Location CreateLocation(in Utf8GraphQLReader reader)
-        {
-
-        }
-    }
 }

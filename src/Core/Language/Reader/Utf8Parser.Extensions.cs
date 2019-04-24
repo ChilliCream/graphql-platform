@@ -1,20 +1,30 @@
 ﻿using System.Collections.Generic;
+using System.Globalization;
+using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
     public partial class Utf8Parser
     {
         private static ITypeExtensionNode ParseTypeExtension(
-            ParserContext context)
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
-            SyntaxToken keywordToken = context.Current.Peek();
+            context.Start(in reader);
 
-            if (keywordToken.Kind == TokenKind.Name)
+            ParserHelper.ExpectExtendKeyword(in reader);
+
+            if (reader.Kind == TokenKind.Name)
             {
-                switch (keywordToken.Value)
+                if (TokenHelper.IsSchemaKeyword(in reader))
+                {
+                    return ParseSchemaExtension(context, in reader);
+                }
+
+                switch (reade.Value)
                 {
                     case Keywords.Schema:
-                        return ParseSchemaExtension(context);
+
                     case Keywords.Scalar:
                         return ParseScalarTypeExtension(context);
                     case Keywords.Type:
@@ -41,17 +51,16 @@ namespace HotChocolate.Language
         /// </summary>
         /// <param name="context">The parser context.</param>
         private static SchemaExtensionNode ParseSchemaExtension(
-            ParserContext context)
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
-            SyntaxToken start = context.Current;
-            context.ExpectExtendKeyword();
-            context.ExpectSchemaKeyword();
+            ParserHelper.ExpectSchemaKeyword(in reader);
 
             List<DirectiveNode> directives =
-                ParseDirectives(context, true);
+                ParseDirectives(context, in reader, true);
 
             List<OperationTypeDefinitionNode> operationTypeDefinitions =
-                ParseOperationTypeDefinitions(context);
+                ParseOperationTypeDefinitions(context, in reader);
 
             if (directives.Count == 0 && operationTypeDefinitions.Count == 0)
             {
@@ -69,15 +78,27 @@ namespace HotChocolate.Language
         }
 
         private static List<OperationTypeDefinitionNode> ParseOperationTypeDefinitions(
-            ParserContext context)
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
-            if (context.Current.IsLeftBrace())
+            if (reader.Kind == TokenKind.LeftBrace)
             {
-                return ParseMany(context,
-                    TokenKind.LeftBrace,
-                    ParseOperationTypeDefinition,
-                    TokenKind.RightBrace);
+                var list = new List<OperationTypeDefinitionNode>();
+
+                // skip opening token
+                reader.Read();
+
+                while (reader.Kind != TokenKind.RightBrace)
+                {
+                    list.Add(ParseOperationTypeDefinition(context, in reader));
+                }
+
+                // skip closing token
+                ParserHelper.Expect(in reader, TokenKind.RightBrace);
+
+                return list;
             }
+
             return new List<OperationTypeDefinitionNode>();
         }
 

@@ -41,50 +41,58 @@ namespace HotChocolate.Language
             var list = new List<NameNode>();
 
             // skip optional leading pipe.
-            context.Skip(TokenKind.Pipe);
+            ParserHelper.Skip(in reader, TokenKind.Pipe);
 
             do
             {
-                list.Add(ParseDirectiveLocation(context));
+                list.Add(ParseDirectiveLocation(context, in reader));
             }
-            while (context.Skip(TokenKind.Pipe));
+            while (ParserHelper.Skip(in reader, TokenKind.Pipe));
 
             return list;
         }
 
-        private static NameNode ParseDirectiveLocation(ParserContext context)
+        private static NameNode ParseDirectiveLocation(
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader)
         {
-            SyntaxToken start = context.Current;
-            NameNode name = ParseName(context);
+            TokenKind kind = reader.Kind;
+            NameNode name = ParseName(context, in reader);
             if (DirectiveLocation.IsValidName(name.Value))
             {
                 return name;
             }
-            throw context.Unexpected(start);
+            throw ParserHelper.Unexpected(in reader, kind);
         }
 
         private static List<DirectiveNode> ParseDirectives(
-            ParserContext context, bool isConstant)
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader,
+            bool isConstant)
         {
             var list = new List<DirectiveNode>();
 
-            while (context.Current.IsAt())
+            while (TokenHelper.IsAt(in reader))
             {
-                list.Add(ParseDirective(context, isConstant));
+                list.Add(ParseDirective(context, in reader, isConstant));
             }
 
             return list;
         }
 
         private static DirectiveNode ParseDirective(
-            ParserContext context, bool isConstant)
+            Utf8ParserContext context,
+            in Utf8GraphQLReader reader,
+            bool isConstant)
         {
-            SyntaxToken start = context.Current;
-            context.ExpectAt();
-            NameNode name = ParseName(context);
+            context.Start(in reader);
+
+            ParserHelper.ExpectAt(in reader);
+            NameNode name = ParseName(context, in reader);
             List<ArgumentNode> arguments =
-                ParseArguments(context, isConstant);
-            Location location = context.CreateLocation(start);
+                ParseArguments(context, in reader, isConstant);
+
+            Location location = context.CreateLocation(in reader);
 
             return new DirectiveNode
             (
