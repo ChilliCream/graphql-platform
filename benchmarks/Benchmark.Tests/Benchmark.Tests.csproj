@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <RootNamespace>HotChocolate.Benchmark.Tests</RootNamespace>
     <IsPackable>false</IsPackable>
     <LangVersion>7.3</LangVersion>

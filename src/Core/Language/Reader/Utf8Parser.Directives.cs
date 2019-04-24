@@ -5,6 +5,8 @@ namespace HotChocolate.Language
 {
     public partial class Utf8Parser
     {
+        private static readonly List<DirectiveNode> _emptyDirectives =
+            new List<DirectiveNode>();
         private static DirectiveDefinitionNode ParseDirectiveDefinition(
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
@@ -71,14 +73,19 @@ namespace HotChocolate.Language
             ref Utf8GraphQLReader reader,
             bool isConstant)
         {
-            var list = new List<DirectiveNode>();
-
-            while (TokenHelper.IsAt(ref reader))
+            if (reader.Kind == TokenKind.At)
             {
-                list.Add(ParseDirective(context, ref reader, isConstant));
+                var list = new List<DirectiveNode>();
+
+                while (reader.Kind == TokenKind.At)
+                {
+                    list.Add(ParseDirective(context, ref reader, isConstant));
+                }
+
+                return list;
             }
 
-            return list;
+            return _emptyDirectives;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
