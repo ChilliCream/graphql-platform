@@ -14,7 +14,6 @@ namespace HotChocolate.Language
             ref Utf8GraphQLReader reader)
         {
             context.Start(ref reader);
-
             string name = ParserHelper.ExpectName(ref reader);
             Location location = context.CreateLocation(ref reader);
 

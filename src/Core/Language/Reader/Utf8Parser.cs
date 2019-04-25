@@ -115,7 +115,8 @@ namespace HotChocolate.Language
             }
             else if (reader.Kind == TokenKind.LeftBrace)
             {
-                return ParseOperationDefinition(context, ref reader);
+                return ParseOperationDefinitionShortHandForm(
+                    context, ref reader);
             }
 
             throw ParserHelper.Unexpected(ref reader, reader.Kind);

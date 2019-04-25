@@ -28,11 +28,6 @@ namespace HotChocolate.Language
         {
             context.Start(ref reader);
 
-            if (reader.Kind == TokenKind.LeftBrace)
-            {
-                return ParseOperationDefinitionShortHandForm(context, ref reader);
-            }
-
             OperationType operation = ParseOperationType(context, ref reader);
             NameNode name = reader.Kind == TokenKind.Name
                 ? ParseName(context, ref reader)
@@ -66,6 +61,7 @@ namespace HotChocolate.Language
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
         {
+            context.Start(ref reader);
             SelectionSetNode selectionSet = ParseSelectionSet(context, ref reader);
             Location location = context.CreateLocation(ref reader);
 
@@ -131,7 +127,7 @@ namespace HotChocolate.Language
                 // skip opening token
                 ParserHelper.MoveNext(ref reader);
 
-                while (reader.Kind != TokenKind.LeftParenthesis)
+                while (reader.Kind != TokenKind.RightParenthesis)
                 {
                     list.Add(ParseVariableDefinition(context, ref reader));
                 }
@@ -187,6 +183,7 @@ namespace HotChocolate.Language
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
         {
+            context.Start(ref reader);
             ParserHelper.ExpectDollar(ref reader);
             NameNode name = ParseName(context, ref reader);
             Location location = context.CreateLocation(ref reader);

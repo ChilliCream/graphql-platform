@@ -591,10 +591,11 @@ namespace HotChocolate.Language
                 else
                 {
                     ++Position;
-                    if (IsEndOfStream())
-                    {
-                        return;
-                    }
+                }
+
+                if (IsEndOfStream())
+                {
+                    return;
                 }
                 code = ref GraphQLData[Position];
             }

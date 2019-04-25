@@ -216,7 +216,7 @@ namespace HotChocolate.Language
                 // skip opening token
                 ParserHelper.MoveNext(ref reader);
 
-                while (reader.Kind != TokenKind.LeftBrace)
+                while (reader.Kind != TokenKind.RightBrace)
                 {
                     list.Add(ParseFieldDefinition(context, ref reader));
                 }
@@ -281,7 +281,7 @@ namespace HotChocolate.Language
                 // skip opening token
                 ParserHelper.MoveNext(ref reader);
 
-                while (reader.Kind != TokenKind.LeftParenthesis)
+                while (reader.Kind != TokenKind.RightParenthesis)
                 {
                     list.Add(ParseInputValueDefinition(context, ref reader));
                 }
@@ -476,7 +476,7 @@ namespace HotChocolate.Language
                 // skip opening token
                 ParserHelper.MoveNext(ref reader);
 
-                while (reader.Kind != TokenKind.LeftBrace)
+                while (reader.Kind != TokenKind.RightBrace)
                 {
                     list.Add(ParseEnumValueDefinition(context, ref reader));
                 }
@@ -555,7 +555,7 @@ namespace HotChocolate.Language
                 // skip opening token
                 ParserHelper.MoveNext(ref reader);
 
-                while (reader.Kind != TokenKind.LeftBrace)
+                while (reader.Kind != TokenKind.RightBrace)
                 {
                     list.Add(ParseInputValueDefinition(context, ref reader));
                 }
