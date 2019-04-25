@@ -19,11 +19,10 @@ namespace HotChocolate.Language
             var tokens = new List<SyntaxTokenInfo>();
             var reader = new Utf8GraphQLReader(sourceText);
 
-            do
+            while (reader.Read())
             {
                 tokens.Add(SyntaxTokenInfo.FromReader(in reader));
             }
-            while (reader.Read());
 
             // assert
             tokens.MatchSnapshot();
@@ -40,11 +39,10 @@ namespace HotChocolate.Language
             var tokens = new List<SyntaxTokenInfo>();
             var reader = new Utf8GraphQLReader(sourceText);
 
-            do
+            while (reader.Read())
             {
                 tokens.Add(SyntaxTokenInfo.FromReader(in reader));
             }
-            while (reader.Read());
 
             // assert
             tokens.MatchSnapshot();
@@ -61,11 +59,10 @@ namespace HotChocolate.Language
             var tokens = new List<SyntaxTokenInfo>();
             var reader = new Utf8GraphQLReader(sourceText);
 
-            do
+            while (reader.Read())
             {
                 tokens.Add(SyntaxTokenInfo.FromReader(in reader));
             }
-            while (reader.Read());
 
             // assert
             tokens.MatchSnapshot();
@@ -82,11 +79,10 @@ namespace HotChocolate.Language
             var tokens = new List<SyntaxTokenInfo>();
             var reader = new Utf8GraphQLReader(sourceText);
 
-            do
+            while (reader.Read())
             {
                 tokens.Add(SyntaxTokenInfo.FromReader(in reader));
             }
-            while (reader.Read());
 
             // assert
             tokens.MatchSnapshot();
@@ -103,11 +99,10 @@ namespace HotChocolate.Language
             var tokens = new List<SyntaxTokenInfo>();
             var reader = new Utf8GraphQLReader(sourceText);
 
-            do
+            while (reader.Read())
             {
                 tokens.Add(SyntaxTokenInfo.FromReader(in reader));
             }
-            while (reader.Read());
 
             // assert
             tokens.MatchSnapshot();
@@ -124,11 +119,30 @@ namespace HotChocolate.Language
             var tokens = new List<SyntaxTokenInfo>();
             var reader = new Utf8GraphQLReader(sourceText);
 
-            do
+            while (reader.Read())
             {
                 tokens.Add(SyntaxTokenInfo.FromReader(in reader));
             }
-            while (reader.Read());
+
+            // assert
+            tokens.MatchSnapshot();
+        }
+
+         [Fact]
+        public void Read_String_SkipEscapes()
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                "abc \"def\\\"\" ghi");
+
+            // act
+            var tokens = new List<SyntaxTokenInfo>();
+            var reader = new Utf8GraphQLReader(sourceText);
+
+            while (reader.Read())
+            {
+                tokens.Add(SyntaxTokenInfo.FromReader(in reader));
+            }
 
             // assert
             tokens.MatchSnapshot();

@@ -1,12 +1,5 @@
 ﻿[
   {
-    "Kind": "StartOfFile",
-    "Start": 0,
-    "End": 0,
-    "Line": 1,
-    "Column": 1
-  },
-  {
     "Kind": "LeftBrace",
     "Start": 0,
     "End": 1,
@@ -42,8 +35,8 @@
     "Column": 7
   },
   {
-    "Kind": "String",
-    "Start": 25,
+    "Kind": "BlockString",
+    "Start": 8,
     "End": 26,
     "Line": 2,
     "Column": 1

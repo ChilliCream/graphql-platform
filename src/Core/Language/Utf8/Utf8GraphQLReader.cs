@@ -163,7 +163,10 @@ namespace HotChocolate.Language
                     Position += 2;
                     ReadBlockStringToken();
                 }
-                ReadStringValueToken();
+                else
+                {
+                    ReadStringValueToken();
+                }
                 return true;
             }
 
@@ -475,7 +478,7 @@ namespace HotChocolate.Language
                     Kind = TokenKind.String;
                     Start = start;
                     End = Position;
-                    _value = GraphQLData.Slice(start, Position - start);
+                    _value = GraphQLData.Slice(start + 1, Position - start - 3);
                     Position++;
                     return;
                 }
@@ -511,7 +514,7 @@ namespace HotChocolate.Language
         /// </returns>
         private void ReadBlockStringToken()
         {
-            var start = Position;
+            var start = Position - 2;
 
             ref readonly byte code = ref GraphQLData[++Position];
 
@@ -522,12 +525,10 @@ namespace HotChocolate.Language
                     && ReaderHelper.IsQuote(in GraphQLData[Position + 1])
                     && ReaderHelper.IsQuote(in GraphQLData[Position + 2]))
                 {
-                    var length = Position - start - 2;
-
-                    Kind = TokenKind.String;
+                    Kind = TokenKind.BlockString;
                     Start = start;
-                    End = Position;
-                    _value = GraphQLData.Slice(start, length);
+                    End = Position + 2;
+                    _value = GraphQLData.Slice(start + 3, Position - start - 3);
 
                     int newLines = BlockStringHelper.CountLines(in _value) - 1;
                     if (newLines > 0)
@@ -535,7 +536,7 @@ namespace HotChocolate.Language
                         NewLine(newLines);
                     }
 
-                    Position++;
+                    Position = End + 1;
                     return;
                 }
 
