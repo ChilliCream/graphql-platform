@@ -48,32 +48,38 @@ namespace HotChocolate.Language
 
             ReadOnlySpan<byte> line;
 
-            if (commonIndent.HasValue && commonIndent.Value > 0)
+            bool trim = commonIndent.HasValue && commonIndent.Value > 0;
+
+            position = 0;
+            line = GetNextLine(in data, ref position);
+            line.CopyTo(trimmedData);
+            int writePosition = line.Length;
+            trimmedData[writePosition] = ReaderHelper.NewLine;
+
+            while (position < data.Length)
             {
-                position = 0;
                 line = GetNextLine(in data, ref position);
-                line.CopyTo(trimmedData);
-                int writePosition = line.Length;
-                trimmedData[writePosition] = ReaderHelper.NewLine;
-
-                while (position < data.Length)
+                if (trim && line.Length > commonIndent.Value)
                 {
-                    line = GetNextLine(in data, ref position);
-                    if (commonIndent.Value > 0)
-                    {
-                        line = line.Slice(commonIndent.Value);
-                    }
+                    line = line.Slice(commonIndent.Value);
+                }
 
-                    for (int i = 0; i < line.Length; i++)
-                    {
-                        trimmedData[++writePosition] = line[i];
-                    }
+                for (int i = 0; i < line.Length; i++)
+                {
+                    trimmedData[++writePosition] = line[i];
+                }
 
-                    trimmedData[++writePosition] = ReaderHelper.NewLine;
+                int next = writePosition + 1;
+                if (trimmedData.Length > next)
+                {
+                    trimmedData[next] = ReaderHelper.NewLine;
+                    writePosition = next;
                 }
             }
 
-            // Remove leading and trailing blank lines.
+            trimmedData = trimmedData.Slice(0, writePosition + 1);
+
+            // Remove leading blank lines.
             position = 0;
             while (position < trimmedData.Length)
             {
@@ -89,15 +95,15 @@ namespace HotChocolate.Language
                 }
             }
 
+            // Remove trailing blank lines.
             position = trimmedData.Length - 1;
             while (trimmedData.Length > 0)
             {
                 line = GetNextLineReverse(in trimmedData, ref position);
                 if (line.Length == 0)
                 {
-                    trimmedData = trimmedData.Slice(
-                        0, trimmedData.Length - position);
-                    position = 0;
+                    trimmedData = trimmedData.Slice(0, position + 1);
+                    position = trimmedData.Length - 1;
                 }
                 else
                 {
@@ -143,10 +149,8 @@ namespace HotChocolate.Language
             in Span<byte> data,
             ref int position)
         {
-            int start = position;
-            GoToPreviousLine(in data, ref position);
-            int length = start - position;
-            return data.Slice(start, length);
+            int length = GoToPreviousLine(in data, ref position);
+            return data.Slice(position, length);
         }
 
         private static int GoToNextLine(
@@ -252,6 +256,12 @@ namespace HotChocolate.Language
                     position--;
                     break;
                 }
+
+                if(position == 0)
+                {
+                    break;
+                }
+
                 position--;
                 i++;
             }

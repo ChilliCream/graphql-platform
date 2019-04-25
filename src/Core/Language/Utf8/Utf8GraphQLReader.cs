@@ -528,7 +528,13 @@ namespace HotChocolate.Language
                     Start = start;
                     End = Position;
                     _value = GraphQLData.Slice(start, length);
-                    NewLine(BlockStringHelper.CountLines(in _value) - 1);
+
+                    int newLines = BlockStringHelper.CountLines(in _value) - 1;
+                    if (newLines > 0)
+                    {
+                        NewLine(newLines);
+                    }
+
                     Position++;
                     return;
                 }

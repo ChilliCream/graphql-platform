@@ -112,18 +112,26 @@ namespace HotChocolate.Language
             // assert
             tokens.MatchSnapshot();
         }
-    }
 
-    public class BlockStringHelperTests
-    {
         [Fact]
-        public void Foo()
+        public void Read_BlockString_SkipEscapes()
         {
-            string blockString = FileResource.Open("BlockString.txt");
-            byte[] input = Encoding.UTF8.GetBytes(blockString);
-            var output = new Span<byte>(new byte[input.Length]);
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                "abc \"\"\"def\\\"\"\"\"\"\" ghi");
 
-            BlockStringHelper.TrimBlockStringToken(input, ref output);
+            // act
+            var tokens = new List<SyntaxTokenInfo>();
+            var reader = new Utf8GraphQLReader(sourceText);
+
+            do
+            {
+                tokens.Add(SyntaxTokenInfo.FromReader(in reader));
+            }
+            while (reader.Read());
+
+            // assert
+            tokens.MatchSnapshot();
         }
     }
 }
