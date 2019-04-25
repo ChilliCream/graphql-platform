@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -35,6 +36,21 @@ namespace HotChocolate.Types
         }
 
         protected virtual void Configure(IUnionTypeDescriptor descriptor) { }
+
+        protected override void OnRegisterDependencies(
+            IInitializationContext context,
+            UnionTypeDefinition definition)
+        {
+            base.OnRegisterDependencies(context, definition);
+
+            context.RegisterDependencyRange(
+                definition.Types,
+                TypeDependencyKind.Default);
+
+            context.RegisterDependencyRange(
+                definition.Directives.Select(t => t.TypeReference),
+                TypeDependencyKind.Completed);
+        }
 
         internal override void Merge(
             ICompletionContext context,
