@@ -43,5 +43,11 @@ namespace HotChocolate.Configuration
             _builder.Use(middleware);
             return this;
         }
+
+        public ISchemaConfiguration Extend(Action<ISchemaBuilder> build)
+        {
+            build(_builder);
+            return this;
+        }
     }
 }

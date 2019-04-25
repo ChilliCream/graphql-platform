@@ -38,7 +38,8 @@ namespace HotChocolate.Configuration
 
         ISchemaConfiguration RegisterSubscriptionType(Type type);
 
-        ISchemaConfiguration RegisterDirective<T>() where T : DirectiveType, new();
+        ISchemaConfiguration RegisterDirective<T>()
+            where T : DirectiveType, new();
 
         ISchemaConfiguration RegisterDirective(Type type);
 
@@ -59,6 +60,9 @@ namespace HotChocolate.Configuration
 
         ISchemaConfiguration Use(FieldMiddleware middleware);
 
-        ISchemaConfiguration RegisterServiceProvider(IServiceProvider serviceProvider);
+        ISchemaConfiguration RegisterServiceProvider(
+            IServiceProvider serviceProvider);
+
+        ISchemaConfiguration Extend(Action<ISchemaBuilder> build);
     }
 }
