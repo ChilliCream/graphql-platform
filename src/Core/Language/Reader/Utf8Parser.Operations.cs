@@ -93,19 +93,19 @@ namespace HotChocolate.Language
             {
                 if (reader.Value.SequenceEqual(Utf8Keywords.Query))
                 {
-                    reader.Read();
+                    ParserHelper.MoveNext(ref reader);
                     return OperationType.Query;
                 }
 
                 if (reader.Value.SequenceEqual(Utf8Keywords.Mutation))
                 {
-                    reader.Read();
+                    ParserHelper.MoveNext(ref reader);
                     return OperationType.Mutation;
                 }
 
                 if (reader.Value.SequenceEqual(Utf8Keywords.Subscription))
                 {
-                    reader.Read();
+                    ParserHelper.MoveNext(ref reader);
                     return OperationType.Subscription;
                 }
             }
@@ -129,7 +129,7 @@ namespace HotChocolate.Language
                 var list = new List<VariableDefinitionNode>();
 
                 // skip opening token
-                reader.Read();
+                ParserHelper.MoveNext(ref reader);
 
                 while (reader.Kind != TokenKind.LeftParenthesis)
                 {
@@ -224,7 +224,7 @@ namespace HotChocolate.Language
             var selections = new List<ISelectionNode>();
 
             // skip opening token
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             while (reader.Kind != TokenKind.RightBrace)
             {
@@ -321,7 +321,7 @@ namespace HotChocolate.Language
                 var list = new List<ArgumentNode>();
 
                 // skip opening token
-                reader.Read();
+                ParserHelper.MoveNext(ref reader);
 
                 while (reader.Kind != TokenKind.RightParenthesis)
                 {

@@ -55,7 +55,7 @@ namespace HotChocolate.Language
             var operationTypeDefinitions = new List<OperationTypeDefinitionNode>();
 
             // skip opening token
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             while (reader.Kind != TokenKind.RightBrace)
             {
@@ -116,7 +116,7 @@ namespace HotChocolate.Language
             context.Start(ref reader);
 
             // skip scalar keyword
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             NameNode name = ParseName(context, ref reader);
             StringValueNode description = context.PopDescription();
@@ -148,7 +148,7 @@ namespace HotChocolate.Language
             context.Start(ref reader);
 
             // skip type keyword
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             NameNode name = ParseName(context, ref reader);
             StringValueNode description = context.PopDescription();
@@ -214,7 +214,7 @@ namespace HotChocolate.Language
                 var list = new List<FieldDefinitionNode>();
 
                 // skip opening token
-                reader.Read();
+                ParserHelper.MoveNext(ref reader);
 
                 while (reader.Kind != TokenKind.LeftBrace)
                 {
@@ -279,7 +279,7 @@ namespace HotChocolate.Language
                 var list = new List<InputValueDefinitionNode>();
 
                 // skip opening token
-                reader.Read();
+                ParserHelper.MoveNext(ref reader);
 
                 while (reader.Kind != TokenKind.LeftParenthesis)
                 {
@@ -344,7 +344,7 @@ namespace HotChocolate.Language
         {
             context.Start(ref reader);
 
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             NameNode name = ParseName(context, ref reader);
             StringValueNode description = context.PopDescription();
@@ -378,7 +378,7 @@ namespace HotChocolate.Language
         {
             context.Start(ref reader);
 
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             NameNode name = ParseName(context, ref reader);
             StringValueNode description = context.PopDescription();
@@ -438,7 +438,7 @@ namespace HotChocolate.Language
         {
             context.Start(ref reader);
 
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             NameNode name = ParseName(context, ref reader);
             StringValueNode description = context.PopDescription();
@@ -474,7 +474,7 @@ namespace HotChocolate.Language
                 var list = new List<EnumValueDefinitionNode>();
 
                 // skip opening token
-                reader.Read();
+                ParserHelper.MoveNext(ref reader);
 
                 while (reader.Kind != TokenKind.LeftBrace)
                 {
@@ -523,7 +523,7 @@ namespace HotChocolate.Language
         {
             context.Start(ref reader);
 
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             NameNode name = ParseName(context, ref reader);
             StringValueNode description = context.PopDescription();
@@ -553,7 +553,7 @@ namespace HotChocolate.Language
                 var list = new List<InputValueDefinitionNode>();
 
                 // skip opening token
-                reader.Read();
+                ParserHelper.MoveNext(ref reader);
 
                 while (reader.Kind != TokenKind.LeftBrace)
                 {

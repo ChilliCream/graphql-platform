@@ -16,7 +16,7 @@ namespace HotChocolate.Language
             // extensions do not have a description
             context.PopDescription();
 
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             if (reader.Kind == TokenKind.Name)
             {
@@ -70,7 +70,7 @@ namespace HotChocolate.Language
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
         {
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             List<DirectiveNode> directives =
                 ParseDirectives(context, ref reader, true);
@@ -102,7 +102,7 @@ namespace HotChocolate.Language
                 var list = new List<OperationTypeDefinitionNode>();
 
                 // skip opening token
-                reader.Read();
+                ParserHelper.MoveNext(ref reader);
 
                 while (reader.Kind != TokenKind.RightBrace)
                 {
@@ -122,7 +122,7 @@ namespace HotChocolate.Language
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
         {
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             NameNode name = ParseName(context, ref reader);
             List<DirectiveNode> directives =
@@ -145,7 +145,7 @@ namespace HotChocolate.Language
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
         {
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             NameNode name = ParseName(context, ref reader);
             List<NamedTypeNode> interfaces =
@@ -177,7 +177,7 @@ namespace HotChocolate.Language
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
         {
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             NameNode name = ParseName(context, ref reader);
             List<DirectiveNode> directives =
@@ -205,7 +205,7 @@ namespace HotChocolate.Language
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
         {
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             NameNode name = ParseName(context, ref reader);
             List<DirectiveNode> directives =
@@ -232,7 +232,7 @@ namespace HotChocolate.Language
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
         {
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             NameNode name = ParseName(context, ref reader);
             List<DirectiveNode> directives =
@@ -259,14 +259,14 @@ namespace HotChocolate.Language
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
         {
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             NameNode name = ParseName(context, ref reader);
             List<DirectiveNode> directives =
                 ParseDirectives(context, ref reader, true);
             List<InputValueDefinitionNode> fields =
                 ParseInputFieldsDefinition(context, ref reader);
-            Location location = context.CreateLocation( ref reader);
+            Location location = context.CreateLocation(ref reader);
 
             if (directives.Count == 0 && fields.Count == 0)
             {

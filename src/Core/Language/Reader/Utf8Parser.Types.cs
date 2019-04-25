@@ -21,7 +21,7 @@
             if (reader.Kind == TokenKind.LeftBracket)
             {
                 context.Start(ref reader);
-                reader.Read();
+                ParserHelper.MoveNext(ref reader);
                 type = ParseTypeReference(context, ref reader);
                 ParserHelper.ExpectRightBracket(ref reader);
                 location = context.CreateLocation(ref reader);
@@ -37,7 +37,7 @@
                 if (type is INullableTypeNode nt)
                 {
                     context.Start(ref reader);
-                    reader.Read();
+                    ParserHelper.MoveNext(ref reader);
                     return new NonNullTypeNode
                     (
                         context.CreateLocation(ref reader),

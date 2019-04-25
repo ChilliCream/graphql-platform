@@ -145,7 +145,7 @@ namespace HotChocolate.Language
 
             if (ReaderHelper.IsDigitOrMinus(in code))
             {
-                ReadDigits(in code);
+                ReadNumberToken(in code);
                 return true;
             }
 
@@ -387,6 +387,7 @@ namespace HotChocolate.Language
             Start = start;
             End = Position;
             _value = GraphQLData.Slice(start, Position - start);
+            Position++;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -475,6 +476,7 @@ namespace HotChocolate.Language
                     Start = start;
                     End = Position;
                     _value = GraphQLData.Slice(start, Position - start);
+                    Position++;
                     return;
                 }
 
@@ -527,6 +529,7 @@ namespace HotChocolate.Language
                     End = Position;
                     _value = GraphQLData.Slice(start, length);
                     NewLine(BlockStringHelper.CountLines(in _value) - 1);
+                    Position++;
                     return;
                 }
 
@@ -562,19 +565,37 @@ namespace HotChocolate.Language
             }
 
             ref readonly byte code = ref GraphQLData[Position];
+
             while (ReaderHelper.IsWhitespace(in code))
             {
-                if (ReaderHelper.IsNewLine(in code))
+                if (code == ReaderHelper.NewLine)
                 {
+                    Position++;
+                    if (!IsEndOfStream()
+                        && GraphQLData[Position + 1] == ReaderHelper.Return)
+                    {
+                        Position++;
+                    }
                     NewLine();
                 }
-
-                ++Position;
-                if (IsEndOfStream())
+                else if (code == ReaderHelper.Return)
                 {
-                    return;
+                    Position++;
+                    if (!IsEndOfStream()
+                        && GraphQLData[Position + 1] == ReaderHelper.NewLine)
+                    {
+                        Position++;
+                    }
+                    NewLine();
                 }
-
+                else
+                {
+                    ++Position;
+                    if (IsEndOfStream())
+                    {
+                        return;
+                    }
+                }
                 code = ref GraphQLData[Position];
             }
         }

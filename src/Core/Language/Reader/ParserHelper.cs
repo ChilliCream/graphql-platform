@@ -11,7 +11,7 @@ namespace HotChocolate.Language
             if (reader.Kind == TokenKind.Name)
             {
                 string name = reader.GetString(reader.Value);
-                reader.Read();
+                MoveNext(ref reader);
                 return name;
             }
 
@@ -49,7 +49,7 @@ namespace HotChocolate.Language
             if (TokenHelper.IsString(ref reader))
             {
                 string value = reader.GetString();
-                reader.Read();
+                MoveNext(ref reader);
                 return value;
             }
 
@@ -64,7 +64,7 @@ namespace HotChocolate.Language
             if (TokenHelper.IsScalarValue(ref reader))
             {
                 string value = reader.GetString(reader.Value);
-                reader.Read();
+                MoveNext(ref reader);
                 return value;
             }
 
@@ -86,7 +86,7 @@ namespace HotChocolate.Language
         {
             if (reader.Kind == kind)
             {
-                reader.Read();
+                MoveNext(ref reader);
                 return;
             }
 
@@ -130,7 +130,7 @@ namespace HotChocolate.Language
             if (TokenHelper.IsName(ref reader)
                 && reader.Value.SequenceEqual(keyword))
             {
-                reader.Read();
+                MoveNext(ref reader);
                 return;
             }
             throw new SyntaxException(reader,
@@ -163,7 +163,7 @@ namespace HotChocolate.Language
         {
             if (TokenHelper.IsDescription(ref reader))
             {
-                reader.Read();
+                MoveNext(ref reader);
             }
         }
 
@@ -172,7 +172,7 @@ namespace HotChocolate.Language
         {
             if (reader.Kind == kind)
             {
-                return reader.Read();
+                return MoveNext(ref reader);
             }
             return false;
         }
@@ -191,10 +191,16 @@ namespace HotChocolate.Language
             if (TokenHelper.IsName(ref reader)
                 && reader.Value.SequenceEqual(keyword))
             {
-                reader.Read();
+                MoveNext(ref reader);
                 return true;
             }
             return false;
+        }
+
+        public static bool MoveNext(ref Utf8GraphQLReader reader)
+        {
+            while (reader.Read() && reader.Kind == TokenKind.Comment) ;
+            return !reader.IsEndOfStream();
         }
     }
 }

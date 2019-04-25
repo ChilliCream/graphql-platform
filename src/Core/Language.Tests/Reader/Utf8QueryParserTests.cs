@@ -16,7 +16,8 @@ namespace HotChocolate.Language
 
             // act
             Utf8Parser parser = new Utf8Parser();
-            DocumentNode document = parser.Parse(sourceText, ParserOptions.Default);
+            DocumentNode document =
+                parser.Parse(sourceText, ParserOptions.Default);
 
             // assert
             Assert.Collection(document.Definitions,

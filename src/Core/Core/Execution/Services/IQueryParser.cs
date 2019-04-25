@@ -1,4 +1,5 @@
-﻿using HotChocolate.Language;
+﻿using System;
+using HotChocolate.Language;
 
 namespace HotChocolate.Execution
 {

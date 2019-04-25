@@ -109,7 +109,7 @@ namespace HotChocolate.Language
             var items = new List<IValueNode>();
 
             // skip opening token
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             while (reader.Kind != TokenKind.RightBracket)
             {
@@ -160,7 +160,7 @@ namespace HotChocolate.Language
             var fields = new List<ObjectFieldNode>();
 
             // skip opening token
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             while (reader.Kind != TokenKind.RightBrace)
             {
@@ -248,27 +248,27 @@ namespace HotChocolate.Language
 
             if (reader.Value.SequenceEqual(Utf8Keywords.True))
             {
-                reader.Read();
+                ParserHelper.MoveNext(ref reader);
                 location = context.CreateLocation(ref reader);
                 return new BooleanValueNode(location, true);
             }
 
             if (reader.Value.SequenceEqual(Utf8Keywords.False))
             {
-                reader.Read();
+                ParserHelper.MoveNext(ref reader);
                 location = context.CreateLocation(ref reader);
                 return new BooleanValueNode(location, false);
             }
 
             if (reader.Value.SequenceEqual(Utf8Keywords.Null))
             {
-                reader.Read();
+                ParserHelper.MoveNext(ref reader);
                 location = context.CreateLocation(ref reader);
                 return new NullValueNode(location);
             }
 
             string value = reader.GetString(reader.Value);
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
             location = context.CreateLocation(ref reader);
 
             return new EnumValueNode

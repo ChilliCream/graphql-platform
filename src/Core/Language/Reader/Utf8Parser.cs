@@ -33,7 +33,7 @@ namespace HotChocolate.Language
 
             context.Start(ref reader);
 
-            reader.Read();
+            ParserHelper.MoveNext(ref reader);
 
             while (reader.Kind != TokenKind.EndOfFile)
             {

@@ -31,7 +31,7 @@ namespace HotChocolate.Language
             NamedTypeNode typeCondition = null;
             if (isOnKeyword)
             {
-                reader.Read();
+                ParserHelper.MoveNext(ref reader);
                 typeCondition = ParseNamedType(context, ref reader);
             }
 
