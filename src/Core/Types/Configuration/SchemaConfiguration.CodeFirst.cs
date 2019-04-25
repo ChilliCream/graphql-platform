@@ -5,83 +5,101 @@ namespace HotChocolate.Configuration
 {
     internal partial class SchemaConfiguration
     {
-        public void RegisterType<T>()
+        public ISchemaConfiguration RegisterType<T>()
         {
             _builder.AddType<T>();
+            return this;
         }
 
-        public void RegisterType(Type type)
+        public ISchemaConfiguration RegisterType(Type type)
         {
             _builder.AddType(type);
+            return this;
         }
 
-        public void RegisterQueryType<T>() where T : class
+        public ISchemaConfiguration RegisterQueryType<T>() where T : class
         {
             _builder.AddQueryType<T>();
+            return this;
         }
 
-        public void RegisterQueryType(Type type)
+        public ISchemaConfiguration RegisterQueryType(Type type)
         {
             _builder.AddQueryType(type);
+            return this;
         }
 
-        public void RegisterMutationType<T>() where T : class
+        public ISchemaConfiguration RegisterMutationType<T>() where T : class
         {
             _builder.AddMutationType<T>();
+            return this;
         }
 
-        public void RegisterMutationType(Type type)
+        public ISchemaConfiguration RegisterMutationType(Type type)
         {
             _builder.AddMutationType(type);
+            return this;
         }
 
-        public void RegisterSubscriptionType<T>() where T : class
+        public ISchemaConfiguration RegisterSubscriptionType<T>()
+            where T : class
         {
             _builder.AddSubscriptionType<T>();
+            return this;
         }
 
-        public void RegisterSubscriptionType(Type type)
+        public ISchemaConfiguration RegisterSubscriptionType(Type type)
         {
             _builder.AddSubscriptionType(type);
+            return this;
         }
 
-        public void RegisterType<T>(T namedType)
+        public ISchemaConfiguration RegisterType<T>(T namedType)
             where T : class, INamedType
         {
             _builder.AddType(namedType);
+            return this;
         }
 
-        public void RegisterQueryType<T>(T objectType)
+        public ISchemaConfiguration RegisterQueryType<T>(T objectType)
             where T : ObjectType
         {
             _builder.AddQueryType(objectType);
+            return this;
         }
 
-        public void RegisterMutationType<T>(T objectType)
+        public ISchemaConfiguration RegisterMutationType<T>(T objectType)
             where T : ObjectType
         {
             _builder.AddMutationType(objectType);
+            return this;
         }
 
-        public void RegisterSubscriptionType<T>(T objectType)
+        public ISchemaConfiguration RegisterSubscriptionType<T>(T objectType)
             where T : ObjectType
         {
             _builder.AddSubscriptionType(objectType);
+            return this;
         }
 
-        public void RegisterDirective<T>() where T : DirectiveType, new()
+        public ISchemaConfiguration RegisterDirective<T>()
+            where T : DirectiveType, new()
         {
             _builder.AddDirectiveType<T>();
+            return this;
         }
 
-        public void RegisterDirective(Type type)
+        public ISchemaConfiguration RegisterDirective(Type type)
         {
             _builder.AddDirectiveType(type);
+            return this;
         }
 
-        public void RegisterDirective<T>(T directive) where T : DirectiveType
+        public ISchemaConfiguration RegisterDirective<T>(T directive)
+            where T : DirectiveType
         {
             _builder.AddDirectiveType(directive);
+            return this;
         }
     }
 }
