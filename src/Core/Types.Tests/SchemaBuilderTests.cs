@@ -479,7 +479,7 @@ namespace HotChocolate
         public void AddType_TypeIsResolverTypeByName_QueryContainsBazField()
         {
             // arrange
-            string schemaSDL = "type Query { foo: String }";
+            string schemaSDL = "type Query { foo: String baz: String }";
 
             // act
             ISchema schema = SchemaBuilder.New()
