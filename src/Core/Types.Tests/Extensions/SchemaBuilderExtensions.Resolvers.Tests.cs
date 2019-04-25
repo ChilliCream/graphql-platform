@@ -255,6 +255,65 @@ namespace HotChocolate
                 .MatchSnapshot();
         }
 
+        [Fact]
+        public void AddResolverObject_BuilderIsNull_ArgNullExcept()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+
+            // act
+            Action action = () => SchemaBuilderExtensions
+                .AddResolver(
+                    null,
+                    "A",
+                    "B",
+                    new Func<object>(() => "abc"));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+
+        [Fact]
+        public void AddResolverObject_ResolverIsNull_ArgNullExcept()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+
+            // act
+            Action action = () => SchemaBuilderExtensions
+                .AddResolver(
+                    builder,
+                    "A",
+                    "B",
+                    (Func<object>)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddResolverObject_ResolveField()
+        {
+            // arrange
+            var builder = new SchemaBuilder();
+            builder.AddDocumentFromString("type Query { foo: String }");
+
+            // act
+            SchemaBuilderExtensions
+                .AddResolver(
+                    builder,
+                    "Query",
+                    "foo",
+                    new Func<object>(() => "bar"));
+
+            // assert
+            builder.Create()
+                .MakeExecutable()
+                .ExecuteAsync("{ foo }")
+                .Result
+                .MatchSnapshot();
+        }
     }
 }
 
