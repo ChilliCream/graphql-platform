@@ -99,5 +99,26 @@ namespace HotChocolate.Language
             {
             }
         }
+
+        [InlineData("\\u0024", "$")]
+        [InlineData("\\u00A2", "¢")]
+        [Theory]
+        public void Unescape_UnicodeEscapeChars_OutputIsUnescaped(
+           string escaped, string unescaped)
+        {
+            // arrange
+            byte[] inputData = Encoding.UTF8.GetBytes("hello_123_" + escaped);
+            byte[] outputBuffer = new byte[inputData.Length];
+
+            var input = new ReadOnlySpan<byte>(inputData);
+            var output = new Span<byte>(outputBuffer);
+
+            // act
+            Utf8Helper.Unescape(in input, ref output, false);
+
+            // assert
+            Assert.Equal("hello_123_" + unescaped,
+                Encoding.UTF8.GetString(output.ToArray()));
+        }
     }
 }
