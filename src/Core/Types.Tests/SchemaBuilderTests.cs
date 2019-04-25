@@ -461,13 +461,31 @@ namespace HotChocolate
         }
 
         [Fact(Skip = "Fix THIS")]
-        public void AddType_TypeIsResolverTypeByName_QueryContainsBazField()
+        public void AddType_TypeIsResolverTypeByType_QueryContainsBazField()
         {
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddType(typeof(QueryType))
                 .AddType(typeof(QueryResolverOnType))
+                .Create();
+
+            // assert
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            Assert.True(queryType.Fields.ContainsField("baz"));
+        }
+
+        [Fact]
+        public void AddType_TypeIsResolverTypeByName_QueryContainsBazField()
+        {
+            // arrange
+            string schemaSDL = "type Query { foo: String baz: String }";
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(schemaSDL)
+                .AddResolver("Query", "foo", "baz")
+                .AddType(typeof(QueryResolverOnName))
                 .Create();
 
             // assert

@@ -9,12 +9,11 @@ namespace HotChocolate
 {
     public static partial class SchemaBuilderExtensions
     {
-        public static ISchemaBuilder AddResolver<TSchema>(
-            this ISchemaBuilder builder,
+        private static ISchemaBuilder AddResolverInternal(
+            ISchemaBuilder builder,
             NameString typeName,
             NameString fieldName,
             FieldResolverDelegate resolver)
-            where TSchema : ISchema
         {
             if (builder == null)
             {
@@ -43,7 +42,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return builder.AddResolver(typeName, fieldName,
+            return AddResolverInternal(builder, typeName, fieldName,
                 ctx => Task.FromResult(resolver(ctx)));
         }
 
@@ -63,7 +62,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return builder.AddResolver(typeName, fieldName,
+            return AddResolverInternal(builder, typeName, fieldName,
                 ctx => resolver(ctx));
         }
 
@@ -83,7 +82,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return builder.AddResolver(typeName, fieldName,
+            return AddResolverInternal(builder, typeName, fieldName,
                 ctx => Task.FromResult<object>(resolver(ctx)));
         }
 
@@ -103,7 +102,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return builder.AddResolver(typeName, fieldName,
+            return AddResolverInternal(builder, typeName, fieldName,
                 async ctx =>
                 {
                     Task<TResult> resolverTask = resolver(ctx);
@@ -133,7 +132,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return builder.AddResolver(typeName, fieldName,
+            return AddResolverInternal(builder, typeName, fieldName,
                 ctx => Task.FromResult(resolver()));
         }
 
@@ -153,7 +152,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return builder.AddResolver(typeName, fieldName,
+            return AddResolverInternal(builder, typeName, fieldName,
                 ctx => resolver());
         }
 
@@ -173,7 +172,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return builder.AddResolver(typeName, fieldName,
+            return AddResolverInternal(builder, typeName, fieldName,
                 ctx => Task.FromResult<object>(resolver()));
         }
 
@@ -203,7 +202,8 @@ namespace HotChocolate
                 return await resolverTask.ConfigureAwait(false);
             };
 
-            return AddResolver(builder, typeName, fieldName, resolverDelegate);
+            return AddResolverInternal(
+                builder, typeName, fieldName, resolverDelegate);
         }
 
         // Resolver(IResolverContext, CancellationToken)
@@ -224,8 +224,8 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return builder.AddResolver(typeName, fieldName,
-                ctx => resolver(ctx, ctx.RequestAborted));
+            return AddResolverInternal(builder, typeName, fieldName,
+                ctx => Task.FromResult(resolver(ctx, ctx.RequestAborted)));
         }
 
         public static ISchemaBuilder AddResolver<TResult>(
@@ -244,7 +244,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(resolver));
             }
 
-            return builder.AddResolver(typeName, fieldName,
+            return AddResolverInternal(builder, typeName, fieldName,
                 ctx => Task.FromResult<object>(
                     resolver(ctx, ctx.RequestAborted)));
         }
@@ -276,7 +276,8 @@ namespace HotChocolate
                 return await resolverTask.ConfigureAwait(false);
             };
 
-            return AddResolver(builder, typeName, fieldName, resolverDelegate);
+            return AddResolverInternal(
+                builder, typeName, fieldName, resolverDelegate);
         }
 
         // Constant
@@ -292,7 +293,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.AddResolver(typeName, fieldName,
+            return AddResolverInternal(builder, typeName, fieldName,
                 ctx => Task.FromResult(constantResult));
         }
 
@@ -307,7 +308,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.AddResolver(typeName, fieldName,
+            return AddResolverInternal(builder, typeName, fieldName,
                 ctx => Task.FromResult<object>(constantResult));
         }
     }
