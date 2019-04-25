@@ -1,9 +1,11 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.FileSystemGlobbing.Abstractions;
 using Newtonsoft.Json;
 
 namespace HotChocolate.AspNetCore
@@ -57,28 +59,32 @@ namespace HotChocolate.AspNetCore
 
 
         public static Task<HttpResponseMessage> SendMultipartRequestAsync<TObject>(
-            this TestServer testServer, TObject requestBody, string path = null)
-        {
-            return SendPostMultipartRequestAsync(
-                testServer,
-                JsonConvert.SerializeObject(requestBody),
-                path?.TrimStart('/'));
-        }
-
-        public static Task<HttpResponseMessage> SendPostMultipartRequestAsync(
-            this TestServer testServer, string requestBody, string path = null)
+            this TestServer testServer,
+            TObject requestBody,
+            string path = null,
+            params (Stream stream, string name, string fileName)[] files)
         {
             var boundary = Guid.NewGuid().ToString("N");
             var content = new MultipartFormDataContent(boundary)
             {
-                {
-                    new StringContent(requestBody, Encoding.UTF8, "application/json"),
-                    "operations"
-                }
+                { new StringContent(
+                    JsonConvert.SerializeObject(requestBody),
+                    Encoding.UTF8, "application/json"),
+                    "operations" }
             };
 
+            if (files?.Length > 0)
+            {
+                foreach (var (stream, name, fileName) in files)
+                {
+                    content.Add(new StreamContent(stream), name, fileName);
+                }
+            }
+
             return SendPostRequestAsync(
-                testServer, content, path);
+                testServer,
+                content,
+                path?.TrimStart('/'));
         }
 
         private static string CreateUrl(string path)

@@ -117,6 +117,7 @@ namespace HotChocolate
             schemaConfiguration.RegisterType(typeof(DateType));
             schemaConfiguration.RegisterType(typeof(UuidType));
             schemaConfiguration.RegisterType(typeof(UrlType));
+            schemaConfiguration.RegisterType(typeof(UploadType));
 
             return schemaConfiguration;
         }

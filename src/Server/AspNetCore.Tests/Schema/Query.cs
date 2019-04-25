@@ -1,5 +1,6 @@
 ﻿using System;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore
@@ -75,6 +76,11 @@ namespace HotChocolate.AspNetCore
         public TestEnum GetWithNestedEnum(Bar bar)
         {
             return bar.A;
+        }
+
+        public bool UploadFile(Upload upload)
+        {
+            return true;
         }
     }
 }

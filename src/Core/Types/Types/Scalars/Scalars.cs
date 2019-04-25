@@ -41,6 +41,8 @@ namespace HotChocolate.Types
                     typeof(MultiplierPathType), TypeContext.None) },
                 { typeof(NameString), new ClrTypeReference(
                     typeof(NameType), TypeContext.None) },
+                { typeof(Upload), new ClrTypeReference(
+                    typeof(UploadType), TypeContext.None)}
             };
 
         private static readonly Dictionary<NameString, IClrTypeReference> _nameLookup =
@@ -80,6 +82,8 @@ namespace HotChocolate.Types
                     typeof(NameType), TypeContext.None) },
                 { "PaginationAmount", new ClrTypeReference(
                     typeof(PaginationAmountType), TypeContext.None) },
+                { "Upload", new ClrTypeReference(
+                    typeof(UploadType), TypeContext.None) }
            };
 
         internal static bool TryGetScalar(
