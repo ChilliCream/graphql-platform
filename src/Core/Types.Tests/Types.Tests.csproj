@@ -21,7 +21,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <PackageReference Include="Moq" Version="4.10.1" />
     <PackageReference Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
-    <PackageReference Include="Snapshooter.Xunit" Version="0.4.0" />
+    <PackageReference Include="Snapshooter.Xunit" Version="0.4.1" />
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.4.0-beta.1.build3958" />
   </ItemGroup>
 
@@ -40,6 +40,12 @@
     <None Update="xunit.runner.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Configuration\__snapshots__\__mismatch__\" />
+    <Folder Include="Types\__snapshots__\__mismatch__\" />
+    <Folder Include="__snapshots__\__mismatch__\" />
   </ItemGroup>
 
 </Project>

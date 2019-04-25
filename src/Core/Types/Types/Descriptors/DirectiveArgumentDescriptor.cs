@@ -1,107 +1,104 @@
 ﻿using System.Reflection;
 using HotChocolate.Language;
-using HotChocolate.Utilities;
+using HotChocolate.Types.Descriptors.Definitions;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors
 {
-    internal class DirectiveArgumentDescriptor
-        : ArgumentDescriptor
+    public class DirectiveArgumentDescriptor
+        : ArgumentDescriptorBase<DirectiveArgumentDefinition>
         , IDirectiveArgumentDescriptor
-        , IDescriptionFactory<DirectiveArgumentDescription>
     {
-        public DirectiveArgumentDescriptor(string argumentName)
-            : base(new DirectiveArgumentDescription())
+        public DirectiveArgumentDescriptor(
+            IDescriptorContext context,
+            NameString argumentName)
+            : base(context)
         {
-            InputDescription.Name = argumentName;
-            InputDescription.DefaultValue = NullValueNode.Default;
+            Definition.Name = argumentName;
+            Definition.DefaultValue = NullValueNode.Default;
         }
 
         public DirectiveArgumentDescriptor(
-            string argumentName, PropertyInfo property)
-            : this(argumentName)
+            IDescriptorContext context,
+            PropertyInfo property)
+            : base(context)
         {
-            InputDescription.Description = property.GetGraphQLDescription();
-            InputDescription.Property = property;
-            InputDescription.TypeReference = property.GetInputType();
+            Definition.Name = context.Naming.GetMemberName(
+                property, MemberKind.DirectiveArgument);
+            Definition.Description = context.Naming.GetMemberDescription(
+                property, MemberKind.DirectiveArgument);
+            Definition.Type = context.Inspector.GetInputReturnType(property);
+            Definition.Property = property;
         }
 
-        protected new DirectiveArgumentDescription InputDescription
-            => (DirectiveArgumentDescription)base.InputDescription;
-
-        public new DirectiveArgumentDescription CreateDescription()
+        public new IDirectiveArgumentDescriptor SyntaxNode(
+            InputValueDefinitionNode inputValueDefinition)
         {
-            return InputDescription;
-        }
-
-        protected void Ignore()
-        {
-            InputDescription.Ignored = true;
-        }
-
-        #region IDirectiveArgumentDescriptor
-
-        IDirectiveArgumentDescriptor IDirectiveArgumentDescriptor.Name(
-            NameString name)
-        {
-            InputDescription.Name = name;
+            base.SyntaxNode(inputValueDefinition);
             return this;
         }
 
-        IDirectiveArgumentDescriptor IDirectiveArgumentDescriptor.DefaultValue(
-            IValueNode defaultValue)
+        public IDirectiveArgumentDescriptor Name(
+            NameString value)
         {
-            DefaultValue(defaultValue);
+            Definition.Name = value.EnsureNotEmpty(nameof(value));
+            return this;
+        }
+        public new IDirectiveArgumentDescriptor Description(string value)
+        {
+            base.Description(value);
             return this;
         }
 
-        IDirectiveArgumentDescriptor IDirectiveArgumentDescriptor.DefaultValue(
-            object defaultValue)
+        public new IDirectiveArgumentDescriptor Type<TInputType>()
+            where TInputType : IInputType
         {
-            DefaultValue(defaultValue);
+            base.Type<TInputType>();
             return this;
         }
 
-        IDirectiveArgumentDescriptor IDirectiveArgumentDescriptor.Description(
-            string description)
+        public new IDirectiveArgumentDescriptor Type<TInputType>(
+            TInputType inputType)
+            where TInputType : class, IInputType
         {
-            Description(description);
+            base.Type(inputType);
             return this;
         }
 
-        IDirectiveArgumentDescriptor IDirectiveArgumentDescriptor.Ignore()
+        public new IDirectiveArgumentDescriptor Type(
+            ITypeNode typeNode)
         {
-            Ignore();
+            base.Type(typeNode);
             return this;
         }
 
-        IDirectiveArgumentDescriptor IDirectiveArgumentDescriptor.SyntaxNode(
-            InputValueDefinitionNode syntaxNode)
+        public new IDirectiveArgumentDescriptor DefaultValue(
+            IValueNode value)
         {
-            SyntaxNode(syntaxNode);
+            base.DefaultValue(value);
             return this;
         }
 
-        IDirectiveArgumentDescriptor
-            IDirectiveArgumentDescriptor.Type<TInputType>()
+        public new IDirectiveArgumentDescriptor DefaultValue(
+            object value)
         {
-            Type<TInputType>();
+            base.DefaultValue(value);
             return this;
         }
 
-        IDirectiveArgumentDescriptor
-            IDirectiveArgumentDescriptor.Type<TInputType>(TInputType inputType)
+        public IDirectiveArgumentDescriptor Ignore()
         {
-            Type(inputType);
+            Definition.Ignore = true;
             return this;
         }
 
-        IDirectiveArgumentDescriptor IDirectiveArgumentDescriptor.Type(
-            ITypeNode type)
-        {
-            Type(type);
-            return this;
-        }
+        public static DirectiveArgumentDescriptor New(
+            IDescriptorContext context,
+            NameString argumentName) =>
+            new DirectiveArgumentDescriptor(context, argumentName);
 
-        #endregion
+        public static DirectiveArgumentDescriptor New(
+            IDescriptorContext context,
+            PropertyInfo property) =>
+            new DirectiveArgumentDescriptor(context, property);
     }
 }

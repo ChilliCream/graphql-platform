@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Types;
@@ -272,7 +272,7 @@ namespace HotChocolate.Execution
             string query = "mutation { foo }";
 
             var schema = Schema.Create(
-                "type Mutation { bar: String }",
+                "type Query { a: String } type Mutation { bar: String }",
                 c => c.Use(next => context => Task.CompletedTask));
             IQueryExecutor executor = schema.MakeExecutable();
 

@@ -1,4 +1,7 @@
-﻿using System;
+using System;
+using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Relay
@@ -6,21 +9,16 @@ namespace HotChocolate.Types.Relay
     public class EdgeType<T>
         : ObjectType<IEdge>
         , IEdgeType
-        where T : IOutputType, new()
+        where T : IOutputType
     {
         public IOutputType EntityType { get; private set; }
 
         protected override void Configure(
             IObjectTypeDescriptor<IEdge> descriptor)
         {
-            if (!NamedTypeInfoFactory.Default.TryExtractName(
-                typeof(T), out NameString name))
-            {
-                throw new InvalidOperationException(
-                    $"Unable to extract a name from {typeof(T).FullName}.");
-            }
+            descriptor.Name(dependency => dependency.Name + "Edge")
+                .DependsOn<T>();
 
-            descriptor.Name(name + "Edge");
             descriptor.Description("An edge in a connection.");
 
             descriptor.BindFields(BindingBehavior.Explicit);
@@ -36,21 +34,14 @@ namespace HotChocolate.Types.Relay
                 .Type<T>();
         }
 
-        protected override void OnRegisterDependencies(
-            ITypeInitializationContext context)
-        {
-            base.OnRegisterDependencies(context);
-
-            context.RegisterType(new TypeReference(typeof(T)));
-        }
-
         protected override void OnCompleteType(
-            ITypeInitializationContext context)
+            ICompletionContext context,
+            ObjectTypeDefinition definition)
         {
-            EntityType = context.GetType<T>(
-                new TypeReference(typeof(T)));
+            base.OnCompleteType(context, definition);
 
-            base.OnCompleteType(context);
+            EntityType = context.GetType<T>(
+                ClrTypeReference.FromSchemaType<T>());
         }
     }
 }

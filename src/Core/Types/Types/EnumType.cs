@@ -1,34 +1,36 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
     public class EnumType
-        : NamedTypeBase
+        : NamedTypeBase<EnumTypeDefinition>
         , ILeafType
     {
+        private readonly Action<IEnumTypeDescriptor> _configure;
         private readonly Dictionary<string, EnumValue> _nameToValues =
             new Dictionary<string, EnumValue>();
         private readonly Dictionary<object, EnumValue> _valueToValues =
             new Dictionary<object, EnumValue>();
 
         protected EnumType()
-            : base(TypeKind.Enum)
         {
-            Initialize(Configure);
+            _configure = Configure;
         }
 
         public EnumType(Action<IEnumTypeDescriptor> configure)
-            : base(TypeKind.Enum)
         {
-            Initialize(configure);
+            _configure = configure
+                ?? throw new ArgumentNullException(nameof(configure));
         }
 
-        public Type ClrType { get; private set; }
+        public override TypeKind Kind => TypeKind.Enum;
 
         public EnumTypeDefinitionNode SyntaxNode { get; private set; }
 
@@ -136,9 +138,10 @@ namespace HotChocolate.Types
             }
 
             // schema first unbound enum type
-            if (value is string s && ClrType == typeof(string)
+            if (ClrType == typeof(object)
                 && _nameToValues.TryGetValue(
-                    s.ToUpperInvariant(), out enumValue))
+                    value.ToString().ToUpperInvariant(),
+                    out enumValue))
             {
                 return enumValue.Name;
             }
@@ -179,86 +182,53 @@ namespace HotChocolate.Types
 
         #endregion
 
-        #region Configuration
+        #region Initialization
 
-        internal virtual EnumTypeDescriptor CreateDescriptor() =>
-            new EnumTypeDescriptor(GetType().Name);
+        protected override EnumTypeDefinition CreateDefinition(
+            IInitializationContext context)
+        {
+            var descriptor = EnumTypeDescriptor.New(
+                DescriptorContext.Create(context.Services),
+                GetType());
+            _configure(descriptor);
+            return descriptor.CreateDefinition();
+        }
 
         protected virtual void Configure(IEnumTypeDescriptor descriptor) { }
 
-        #endregion
-
-        #region  Initialization
-
-        private void Initialize(Action<IEnumTypeDescriptor> configure)
+        protected override void OnRegisterDependencies(
+            IInitializationContext context,
+            EnumTypeDefinition definition)
         {
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
+            base.OnRegisterDependencies(context, definition);
+            context.RegisterDependencies(definition);
+        }
 
-            EnumTypeDescriptor descriptor = CreateDescriptor();
-            configure(descriptor);
+        protected override void OnCompleteType(
+            ICompletionContext context,
+            EnumTypeDefinition definition)
+        {
+            base.OnCompleteType(context, definition);
 
-            EnumTypeDescription description = descriptor.CreateDescription();
+            SyntaxNode = definition.SyntaxNode;
 
-            foreach (EnumValue enumValue in description.Values
+            foreach (EnumValue enumValue in definition.Values
                 .Select(t => new EnumValue(t)))
             {
                 _nameToValues[enumValue.Name] = enumValue;
                 _valueToValues[enumValue.Value] = enumValue;
             }
 
-            SyntaxNode = description.SyntaxNode;
-            ClrType = description.ClrType;
-
-            Initialize(description.Name, description.Description,
-                new DirectiveCollection(
-                    this,
-                    DirectiveLocation.Enum,
-                    description.Directives));
-        }
-
-        protected override void OnCompleteType(
-            ITypeInitializationContext context)
-        {
             if (!Values.Any())
             {
-                context.ReportError(new SchemaError(
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        TypeResources.EnumType_NoValues,
-                        Name)));
+                context.ReportError(
+                    SchemaErrorBuilder.New()
+                        .SetMessage(TypeResources.EnumType_NoValues, Name)
+                        .SetCode(TypeErrorCodes.NoEnumValues)
+                        .SetTypeSystemObject(this)
+                        .AddSyntaxNode(SyntaxNode)
+                        .Build());
             }
-        }
-
-        #endregion
-    }
-
-    public class EnumType<T>
-        : EnumType
-    {
-        public EnumType()
-        {
-        }
-
-        public EnumType(Action<IEnumTypeDescriptor<T>> configure)
-            : base(d => configure((IEnumTypeDescriptor<T>)d))
-        {
-        }
-
-        #region Configuration
-
-        internal sealed override EnumTypeDescriptor CreateDescriptor() =>
-            new EnumTypeDescriptor<T>();
-
-        protected sealed override void Configure(IEnumTypeDescriptor descriptor)
-        {
-            Configure((IEnumTypeDescriptor<T>)descriptor);
-        }
-
-        protected virtual void Configure(IEnumTypeDescriptor<T> descriptor)
-        {
         }
 
         #endregion

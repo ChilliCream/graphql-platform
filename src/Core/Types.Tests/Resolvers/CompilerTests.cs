@@ -59,7 +59,7 @@ namespace HotChocolate.Resolvers
             Assembly assembly = CSharpCompiler.Compile(sourceText);
 
             // assert
-            Foo foo = new Foo { Bar = Guid.NewGuid().ToString() };
+            var foo = new Foo { Bar = Guid.NewGuid().ToString() };
 
             object obj = assembly.CreateInstance("FS.DynamicFoo");
             Assert.NotNull(obj);

@@ -11,7 +11,7 @@ namespace HotChocolate.Language
             string sourceText = "type a { b: String c: Int }";
 
             // act
-            Parser parser = new Parser();
+            var parser = new Parser();
             DocumentNode document = parser.Parse(sourceText);
 
             // assert
@@ -45,7 +45,7 @@ namespace HotChocolate.Language
             string sourceText = "interface a { b: String c: Int }";
 
             // act
-            Parser parser = new Parser();
+            var parser = new Parser();
             DocumentNode document = parser.Parse(sourceText);
 
             // assert

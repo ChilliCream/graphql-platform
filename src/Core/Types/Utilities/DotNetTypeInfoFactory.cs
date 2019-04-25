@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -51,7 +51,7 @@ namespace HotChocolate.Utilities
 
             if (CanHandle(type))
             {
-                List<Type> components = RemoveNonNullComponents(type).ToList();
+                var components = RemoveNonNullComponents(type).ToList();
 
                 if (components.Count == 2
                     && IsListType(components[0])
@@ -137,7 +137,7 @@ namespace HotChocolate.Utilities
 
         private static Type MakeNonNullType(Type nullableType)
         {
-            var wrapper = typeof(NativeType<>).MakeGenericType(nullableType);
+            Type wrapper = typeof(NativeType<>).MakeGenericType(nullableType);
             return typeof(NonNullType<>).MakeGenericType(wrapper);
         }
 

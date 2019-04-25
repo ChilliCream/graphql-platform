@@ -15,7 +15,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             if (descriptor.Parameter != null
                 && descriptor.Parameter.IsDefined(typeof(DirectiveArgumentAttribute)))
             {
-                var attribute = descriptor.Parameter
+                DirectiveArgumentAttribute attribute = descriptor.Parameter
                     .GetCustomAttribute<DirectiveArgumentAttribute>();
                 if (attribute.Name != null)
                 {

@@ -4,6 +4,8 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -11,6 +13,7 @@ using HotChocolate.Stitching.Delegation;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Stitching
 {
@@ -90,7 +93,7 @@ namespace HotChocolate.Stitching
 
             var requestBuilder = new RemoteQueryRequestBuilder();
 
-            AddVariables(context.Schema, schemaName,
+            AddVariables(context, schemaName,
                 requestBuilder, query, variableValues);
 
             requestBuilder.SetQuery(query);
@@ -282,6 +285,10 @@ namespace HotChocolate.Stitching
             IOutputField field,
             ICollection<VariableValue> variables)
         {
+            ITypeConversion typeConversion =
+                context.Service<IServiceProvider>()
+                    .GetTypeConversion();
+
             foreach (ArgumentNode argument in component.Arguments)
             {
                 if (!field.Arguments.TryGetField(argument.Name.Value,
@@ -299,8 +306,43 @@ namespace HotChocolate.Stitching
 
                 if (argument.Value is ScopedVariableNode sv)
                 {
-                    variables.Add(_resolvers.Resolve(
-                        context, sv, arg.Type.ToTypeNode()));
+                    VariableValue variable =
+                        _resolvers.Resolve(context, sv, arg.Type.ToTypeNode());
+
+                    if (context.Schema.TryGetType(
+                        arg.Type.NamedType().Name,
+                        out ILeafType leafType))
+                    {
+                        object value = variable.Value;
+
+                        if (!leafType.IsInstanceOfType(value))
+                        {
+                            value = typeConversion.Convert(
+                                typeof(object), leafType.ClrType, value);
+                        }
+
+                        variable = new VariableValue
+                        (
+                            variable.Name,
+                            variable.Type,
+                            leafType.Serialize(value),
+                            variable.DefaultValue
+                        );
+                    }
+                    else
+                    {
+                        // TODO : resources
+                        throw new QueryException(
+                            ErrorBuilder.New()
+                                .SetMessage(string.Format(
+                                    CultureInfo.InvariantCulture,
+                                    "Serialize argument {0} of type {1}.",
+                                    arg.Name, arg.Type.Visualize()))
+                                .SetPath(context.Path)
+                                .Build());
+                    }
+
+                    variables.Add(variable);
                 }
             }
         }
@@ -326,7 +368,7 @@ namespace HotChocolate.Stitching
         }
 
         private static void AddVariables(
-            ISchema schema,
+            IResolverContext context,
             NameString schemaName,
             IRemoteQueryRequestBuilder builder,
             DocumentNode query,
@@ -344,15 +386,13 @@ namespace HotChocolate.Stitching
                 {
                     object value = variableValue.Value;
 
-                    if (schema.TryGetType(
+                    if (context.Schema.TryGetType(
                         variableValue.Type.NamedType().Name.Value,
                         out InputObjectType inputType))
                     {
+                        var wrapped = WrapType(inputType, variableValue.Type);
                         value = ObjectVariableRewriter.RewriteVariable(
-                            schemaName,
-                            WrapType(inputType,
-                            variableValue.Type),
-                            value);
+                            schemaName, wrapped, value);
                     }
 
                     builder.AddVariableValue(variableValue.Name, value);

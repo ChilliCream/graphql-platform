@@ -68,7 +68,5 @@ namespace HotChocolate.Stitching.Utilities
                 return value;
             }
         }
-
-
     }
 }

@@ -87,7 +87,7 @@ namespace HotChocolate.Execution
                 && obj is IList<object> locations)
             {
                 var locs = new List<Location>();
-                foreach (var loc in locations
+                foreach (IDictionary<string, object> loc in locations
                     .OfType<IDictionary<string, object>>())
                 {
                     locs.Add(new Location(
@@ -292,7 +292,7 @@ namespace HotChocolate.Execution
         }
 
         protected internal static IReadOnlyList<Location> CreateLocations(
-            params Language.ISyntaxNode[] syntaxNodes)
+            params ISyntaxNode[] syntaxNodes)
         {
             if (syntaxNodes?.Length == 0)
             {

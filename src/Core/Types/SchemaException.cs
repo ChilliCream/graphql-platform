@@ -11,14 +11,14 @@ namespace HotChocolate
     public class SchemaException
         : Exception
     {
-        public SchemaException(params SchemaError[] errors)
+        public SchemaException(params ISchemaError[] errors)
             : base(CreateErrorMessage(errors))
         {
             Errors = errors;
             Debug.WriteLine(Message);
         }
 
-        public SchemaException(IEnumerable<SchemaError> errors)
+        public SchemaException(IEnumerable<ISchemaError> errors)
             : base(CreateErrorMessage(errors.ToArray()))
         {
             Errors = errors.ToArray();
@@ -32,10 +32,10 @@ namespace HotChocolate
         {
         }
 
-        public IReadOnlyCollection<SchemaError> Errors { get; }
+        public IReadOnlyCollection<ISchemaError> Errors { get; }
 
         private static string CreateErrorMessage(
-            IReadOnlyCollection<SchemaError> errors)
+            IReadOnlyCollection<ISchemaError> errors)
         {
             if (errors == null || errors.Count == 0)
             {
@@ -50,7 +50,7 @@ namespace HotChocolate
             var message = new StringBuilder();
 
             message.AppendLine("Multiple schema errors occured:");
-            foreach (SchemaError error in errors)
+            foreach (ISchemaError error in errors)
             {
                 message.AppendLine(CreateErrorMessage(error));
             }
@@ -58,15 +58,15 @@ namespace HotChocolate
             return message.ToString();
         }
 
-        private static string CreateErrorMessage(SchemaError error)
+        private static string CreateErrorMessage(ISchemaError error)
         {
-            if (error.Type == null)
+            if (error.TypeSystemObject == null)
             {
                 return error.Message;
             }
             else
             {
-                return $"{error.Message} - Type: {error.Type.Name}";
+                return $"{error.Message} - Type: {error.TypeSystemObject.Name}";
             }
         }
     }

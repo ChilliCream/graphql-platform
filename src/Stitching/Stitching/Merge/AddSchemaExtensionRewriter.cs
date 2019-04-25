@@ -45,7 +45,7 @@ namespace HotChocolate.Stitching.Merge
                 current = current.WithDefinitions(definitions);
             }
 
-            var context = new MergeContext(schema, extensions);
+            var context = new MergeContext(current, extensions);
             current = RewriteDocument(current, context);
             return current;
         }

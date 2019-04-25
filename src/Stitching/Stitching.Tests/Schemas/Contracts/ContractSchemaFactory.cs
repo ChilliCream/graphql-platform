@@ -1,3 +1,4 @@
+using HotChocolate.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Stitching.Schemas.Contracts
@@ -24,6 +25,7 @@ namespace HotChocolate.Stitching.Schemas.Contracts
             configuration.RegisterType<SomeOtherContractType>();
             configuration.RegisterDirective<CustomDirectiveType>();
 
+            configuration.RegisterExtendedScalarTypes();
             configuration.UseGlobalObjectIdentifier();
         }
 

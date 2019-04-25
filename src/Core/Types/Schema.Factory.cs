@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+using System;
 using HotChocolate.Configuration;
-using HotChocolate.Utilities;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace HotChocolate
 {
@@ -41,23 +37,9 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            SchemaContext context = SchemaContextFactory.Create();
-
-            // deserialize schema objects
-            var visitor = new SchemaSyntaxVisitor(
-                context.Types,
-                context.Directives);
-
-            visitor.Visit(schemaDocument, null);
-
-            return CreateSchema(context, c =>
-            {
-                c.Options.QueryTypeName = visitor.QueryTypeName;
-                c.Options.MutationTypeName = visitor.MutationTypeName;
-                c.Options.SubscriptionTypeName = visitor.SubscriptionTypeName;
-
-                configure(c);
-            });
+            SchemaBuilder builder = CreateSchemaBuilder(configure);
+            builder.AddDocument(sp => schemaDocument);
+            return builder.Create();
         }
 
         public static Schema Create(
@@ -68,68 +50,17 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            SchemaContext context = SchemaContextFactory.Create();
-            return CreateSchema(context, configure);
+            SchemaBuilder builder = CreateSchemaBuilder(configure);
+            return builder.Create();
         }
 
-        private static Schema CreateSchema(
-            SchemaContext context,
+        private static SchemaBuilder CreateSchemaBuilder(
             Action<ISchemaConfiguration> configure)
         {
-            var errors = new List<SchemaError>();
+            var configuration = new SchemaConfiguration();
+            configure(configuration);
 
-            IReadOnlySchemaOptions options = ExecuteSchemaConfiguration(
-                context, configure, errors);
-
-
-            if (!context.Types.TryGetType(
-                options.QueryTypeName, out ObjectType ot))
-            {
-                errors.Add(new SchemaError(
-                    "Schema is missing the mandatory `Query` type."));
-            }
-
-            if (options.StrictValidation && errors.Any())
-            {
-                throw new SchemaException(errors);
-            }
-
-            return new Schema(
-                context.Services ?? new EmptyServiceProvider(),
-                context,
-                options);
-        }
-
-        private static IReadOnlySchemaOptions ExecuteSchemaConfiguration(
-            SchemaContext context,
-            Action<ISchemaConfiguration> configure,
-            List<SchemaError> errors)
-        {
-            try
-            {
-                // configure resolvers, custom types and type mappings.
-                var configuration = new SchemaConfiguration(
-                    context.RegisterServiceProvider,
-                    context.Types,
-                    context.Resolvers,
-                    context.Directives);
-
-                configure(configuration);
-
-                var options = new ReadOnlySchemaOptions(configuration.Options);
-                var typeFinalizer = new TypeFinalizer(configuration);
-                typeFinalizer.FinalizeTypes(context, options.QueryTypeName);
-                errors.AddRange(typeFinalizer.Errors);
-
-                return options;
-            }
-            catch (Exception ex)
-            {
-                throw new SchemaException(new[]
-                {
-                    new SchemaError(ex.Message, null, ex)
-                });
-            }
+            return configuration.CreateBuilder();
         }
     }
 }

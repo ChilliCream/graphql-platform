@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
+using HotChocolate.Configuration.Bindings;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Configuration
@@ -7,53 +7,46 @@ namespace HotChocolate.Configuration
     internal partial class SchemaConfiguration
         : ISchemaConfiguration
     {
-        private readonly List<ResolverBindingInfo> _resolverBindings =
-            new List<ResolverBindingInfo>();
-        private readonly List<TypeBindingInfo> _typeBindings =
-            new List<TypeBindingInfo>();
-        private readonly Action<IServiceProvider> _registerServiceProvider;
-        private readonly ITypeRegistry _typeRegistry;
-        private readonly IResolverRegistry _resolverRegistry;
-        private readonly IDirectiveRegistry _directiveRegistry;
+        private readonly SchemaBuilder _builder = SchemaBuilder.New();
 
-        public SchemaConfiguration(
-            Action<IServiceProvider> registerServiceProvider,
-            ITypeRegistry typeRegistry,
-            IResolverRegistry resolverRegistry,
-            IDirectiveRegistry directiveRegistry)
-        {
-            _registerServiceProvider = registerServiceProvider
-                ?? throw new ArgumentNullException(
-                        nameof(registerServiceProvider));
-            _typeRegistry = typeRegistry
-                ?? throw new ArgumentNullException(nameof(typeRegistry));
-            _resolverRegistry = resolverRegistry
-                ?? throw new ArgumentNullException(nameof(resolverRegistry));
-            _directiveRegistry = directiveRegistry
-                ?? throw new ArgumentNullException(nameof(directiveRegistry));
-        }
 
         public ISchemaOptions Options { get; set; } = new SchemaOptions();
 
-        internal IReadOnlyCollection<TypeBindingInfo> TypeBindings =>
-            _typeBindings;
-
-        internal IReadOnlyCollection<ResolverBindingInfo> ResolverBindings =>
-            _resolverBindings;
-
-        public void RegisterServiceProvider(IServiceProvider serviceProvider)
+        public SchemaBuilder CreateBuilder()
         {
-            _registerServiceProvider(serviceProvider);
+            foreach (IBindingBuilder bindingBuilder in _bindingBuilders)
+            {
+                if (bindingBuilder.IsComplete())
+                {
+                    _builder.AddBinding(bindingBuilder.Create());
+                }
+            }
+
+            _builder.SetOptions(Options);
+
+            return _builder;
         }
 
-        public IMiddlewareConfiguration Use(FieldMiddleware middleware)
+        public ISchemaConfiguration RegisterServiceProvider(IServiceProvider serviceProvider)
+        {
+            _builder.AddServices(serviceProvider);
+            return this;
+        }
+
+        public ISchemaConfiguration Use(FieldMiddleware middleware)
         {
             if (middleware == null)
             {
                 throw new ArgumentNullException(nameof(middleware));
             }
 
-            _resolverRegistry.RegisterMiddleware(middleware);
+            _builder.Use(middleware);
+            return this;
+        }
+
+        public ISchemaConfiguration Extend(Action<ISchemaBuilder> build)
+        {
+            build(_builder);
             return this;
         }
     }

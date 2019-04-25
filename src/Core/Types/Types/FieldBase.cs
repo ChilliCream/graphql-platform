@@ -1,86 +1,71 @@
-﻿using System;
+using System;
+using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Configuration;
+using System.Collections.Generic;
 
 namespace HotChocolate.Types
 {
-    public class FieldBase<T>
-        : TypeSystemBase
-        , IField
+    public abstract class FieldBase<TType, TDefinition>
+        : IField
         , IHasDirectives
-        where T : IType
+        , IHasClrType
+        where TType : IType
+        where TDefinition : FieldDefinitionBase
     {
-        protected FieldBase(
-            FieldDescriptionBase description,
-            DirectiveLocation location)
+        private TDefinition _definition;
+        private Dictionary<string, object> _contextData;
+
+        protected FieldBase(TDefinition definition)
         {
-            if (description == null)
+            if (definition == null)
             {
-                throw new ArgumentNullException(nameof(description));
+                throw new ArgumentNullException(nameof(definition));
             }
 
-            if (string.IsNullOrEmpty(description.Name))
-            {
-                throw new ArgumentException(
-                    "The name of a field mustn't be null or empty.",
-                    nameof(description));
-            }
-
-            Name = description.Name;
-            Description = description.Description;
-            TypeReference = description.TypeReference;
-
-            var directives = new DirectiveCollection(
-                this,
-                location,
-                description.Directives);
-            RegisterForInitialization(directives);
-
-            Directives = directives;
+            _definition = definition;
+            Name = definition.Name.EnsureNotEmpty(nameof(definition.Name));
+            Description = definition.Description;
         }
 
-        public IHasName DeclaringType { get; private set; }
+        public ITypeSystemObject DeclaringType { get; private set; }
 
         public NameString Name { get; }
 
         public string Description { get; }
 
-        public T Type { get; private set; }
+        public TType Type { get; private set; }
 
-        public IDirectiveCollection Directives { get; }
+        public IDirectiveCollection Directives { get; private set; }
 
-        protected TypeReference TypeReference { get; }
+        public virtual Type ClrType { get; private set; }
 
-        protected override void OnRegisterDependencies(
-            ITypeInitializationContext context)
+        public IReadOnlyDictionary<string, object> ContextData =>
+            _contextData;
+
+        internal void CompleteField(ICompletionContext context)
         {
-            base.OnRegisterDependencies(context);
+            DeclaringType = context.Type;
+            Type = context.GetType<TType>(_definition.Type);
+            ClrType = Type.NamedType() is IHasClrType hasClrType
+                ? hasClrType.ClrType
+                : typeof(object);
 
-            if (context.Type == null)
-            {
-                throw new InvalidOperationException(
-                    "It is not allowed to initialize a field without " +
-                    "a type context.");
-            }
+            var directives = new DirectiveCollection(
+                this, _definition.Directives);
+            directives.CompleteCollection(context);
+            Directives = directives;
 
-            if (TypeReference != null)
-            {
-                context.RegisterType(TypeReference);
-            }
+            OnCompleteField(context, _definition);
+
+            _contextData = new Dictionary<string, object>(
+                _definition.ContextData);
+            _definition = null;
         }
 
-        protected override void OnCompleteType(
-            ITypeInitializationContext context)
+        protected virtual void OnCompleteField(
+            ICompletionContext context,
+            TDefinition definition)
         {
-            base.OnCompleteType(context);
-
-            if (context.Type == null)
-            {
-                throw new InvalidOperationException(
-                    "It is not allowed to initialize a field without " +
-                    "a type context.");
-            }
-
-            DeclaringType = context.Type;
-            Type = context.ResolveFieldType<T>(this, TypeReference);
         }
     }
 }

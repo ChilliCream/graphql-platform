@@ -10,10 +10,10 @@ namespace HotChocolate.Types
         public void ParseLiteral()
         {
             // arrange
-            BooleanValueNode literal = new BooleanValueNode(null, true);
+            var literal = new BooleanValueNode(null, true);
 
             // act
-            BooleanType booleanType = new BooleanType();
+            var booleanType = new BooleanType();
             object result = booleanType.ParseLiteral(literal);
 
             // assert
@@ -25,12 +25,12 @@ namespace HotChocolate.Types
         public void IsInstanceOfType()
         {
             // arrange
-            BooleanValueNode boolLiteral = new BooleanValueNode(null, true);
-            StringValueNode stringLiteral = new StringValueNode(null, "12345", false);
+            var boolLiteral = new BooleanValueNode(null, true);
+            var stringLiteral = new StringValueNode(null, "12345", false);
             NullValueNode nullLiteral = NullValueNode.Default;
 
             // act
-            BooleanType booleanType = new BooleanType();
+            var booleanType = new BooleanType();
             bool isIntLiteralInstanceOf = booleanType.IsInstanceOfType(boolLiteral);
             bool isStringLiteralInstanceOf = booleanType.IsInstanceOfType(stringLiteral);
             bool isNullLiteralInstanceOf = booleanType.IsInstanceOfType(nullLiteral);
@@ -45,7 +45,7 @@ namespace HotChocolate.Types
         public void EnsureBooleanTypeKindIsCorret()
         {
             // arrange
-            BooleanType type = new BooleanType();
+            var type = new BooleanType();
 
             // act
             TypeKind kind = type.Kind;
@@ -58,7 +58,7 @@ namespace HotChocolate.Types
         public void Serialize_Null_Null()
         {
             // arrange
-            BooleanType booleanType = new BooleanType();
+            var booleanType = new BooleanType();
 
             // act
             object result = booleanType.Serialize(null);
@@ -71,7 +71,7 @@ namespace HotChocolate.Types
         public void Serialize_True_True()
         {
             // arrange
-            BooleanType booleanType = new BooleanType();
+            var booleanType = new BooleanType();
 
             // act
             object result = booleanType.Serialize(true);
@@ -85,7 +85,7 @@ namespace HotChocolate.Types
         public void Serialize_String_Exception()
         {
             // arrange
-            BooleanType booleanType = new BooleanType();
+            var booleanType = new BooleanType();
 
             // act
             Action a = () => booleanType.Serialize("foo");
@@ -98,7 +98,7 @@ namespace HotChocolate.Types
         public void Deserialize_Null_Null()
         {
             // arrange
-            BooleanType booleanType = new BooleanType();
+            var booleanType = new BooleanType();
 
             // act
             object result = booleanType.Serialize(null);
@@ -111,7 +111,7 @@ namespace HotChocolate.Types
         public void Deserialize_True_True()
         {
             // arrange
-            BooleanType booleanType = new BooleanType();
+            var booleanType = new BooleanType();
 
             // act
             object result = booleanType.Serialize(true);
@@ -125,7 +125,7 @@ namespace HotChocolate.Types
         public void Deserialize_String_Exception()
         {
             // arrange
-            BooleanType booleanType = new BooleanType();
+            var booleanType = new BooleanType();
 
             // act
             Action a = () => booleanType.Serialize("foo");

@@ -9,10 +9,8 @@ namespace HotChocolate.Types
         public ShortType()
             : base("Short")
         {
+            Description = TypeResources.ShortType_Description;
         }
-
-        public override string Description =>
-            TypeResources.ShortType_Description;
 
         protected override bool TryParseValue(string s, out short value) =>
             short.TryParse(

@@ -4,7 +4,13 @@ namespace HotChocolate.Language
 {
     public sealed class NamedTypeNode
         : INullableTypeNode
+        , IEquatable<NamedTypeNode>
     {
+        public NamedTypeNode(string name)
+            : this(null, new NameNode(name))
+        {
+        }
+
         public NamedTypeNode(NameNode name)
             : this(null, name)
         {
@@ -22,11 +28,6 @@ namespace HotChocolate.Language
 
         public NameNode Name { get; }
 
-        public override string ToString()
-        {
-            return Name.Value;
-        }
-
         public NamedTypeNode WithLocation(Location location)
         {
             return new NamedTypeNode(location, Name);
@@ -35,6 +36,51 @@ namespace HotChocolate.Language
         public NamedTypeNode WithName(NameNode name)
         {
             return new NamedTypeNode(Location, name);
+        }
+
+        public bool Equals(NamedTypeNode other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, other))
+            {
+                return true;
+            }
+
+            return Name.Value.Equals(
+                other.Name.Value,
+                StringComparison.Ordinal);
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is null)
+            {
+                return false;
+            }
+
+            if (ReferenceEquals(this, obj))
+            {
+                return true;
+            }
+
+            return Equals(obj as NamedTypeNode);
+        }
+
+        public override int GetHashCode()
+        {
+            unchecked
+            {
+                return Name.Value.GetHashCode() * 397;
+            }
+        }
+
+        public override string ToString()
+        {
+            return Name.Value;
         }
     }
 }

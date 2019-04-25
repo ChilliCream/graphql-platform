@@ -43,7 +43,7 @@ namespace HotChocolate.Integration.DataLoader
         public List<string> GetLoads([
             DataLoader]TestDataLoader testDataLoader)
         {
-            List<string> list = new List<string>();
+            var list = new List<string>();
 
             foreach (IReadOnlyList<string> request in testDataLoader.Loads)
             {
@@ -56,7 +56,7 @@ namespace HotChocolate.Integration.DataLoader
         public List<string> GetLoads2(
             [DataLoader("fooBar")]TestDataLoader testDataLoader)
         {
-            List<string> list = new List<string>();
+            var list = new List<string>();
 
             foreach (IReadOnlyList<string> request in testDataLoader.Loads)
             {

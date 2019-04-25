@@ -1,5 +1,6 @@
 ﻿namespace HotChocolate.Types.Introspection
 {
+    // TODO : resources
     [Introspection]
     internal sealed class __Schema
         : ObjectType<ISchema>
@@ -14,6 +15,10 @@
                 "the entry points for query, mutation, and subscription operations.");
 
             descriptor.BindFields(BindingBehavior.Explicit);
+
+            descriptor.Field("description")
+                .Type<StringType>()
+                .Resolver(c => c.Schema.Description);
 
             descriptor.Field("types")
                 .Description("A list of all types supported by this server.")

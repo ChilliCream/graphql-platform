@@ -1,4 +1,5 @@
-﻿using System.Linq;
+using System;
+using System.Linq;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Factories
@@ -28,6 +29,18 @@ namespace HotChocolate.Types.Factories
             }
 
             return null;
+        }
+
+        public static bool IsDeprecationReason(this DirectiveNode directiveNode)
+        {
+            if (directiveNode == null)
+            {
+                throw new System.ArgumentNullException(nameof(directiveNode));
+            }
+
+            return string.Equals(directiveNode.Name.Value,
+                WellKnownDirectives.Deprecated,
+                StringComparison.Ordinal);
         }
     }
 }

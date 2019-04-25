@@ -13,7 +13,7 @@ namespace HotChocolate.Language
         {
             // arrange
             string nameTokenValue = "helloWorld_123";
-            Source source = new Source(sourceText);
+            var source = new Source(sourceText);
 
             // act
             SyntaxToken token = Lexer.Default.Read(source);

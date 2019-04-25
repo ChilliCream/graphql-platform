@@ -14,7 +14,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
         public async Task ExecuteHelloWorldCodeFirstQuery()
         {
             // arrange
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.RegisterServiceProvider(CreateServiceProvider());
                 c.RegisterQueryType<QueryHelloWorld>();
@@ -35,7 +35,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
         public async Task ExecuteHelloWorldCodeFirstQueryWithArgument()
         {
             // arrange
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.RegisterServiceProvider(CreateServiceProvider());
                 c.RegisterQueryType<QueryHelloWorld>();
@@ -56,7 +56,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
         public async Task ExecuteHelloWorldCodeFirstClrQuery()
         {
             // arrange
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.RegisterServiceProvider(CreateServiceProvider());
                 c.RegisterQueryType<QueryHelloWorldClr>();
@@ -76,7 +76,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
         public async Task ExecuteHelloWorldCodeFirstClrQueryWithArgument()
         {
             // arrange
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.RegisterServiceProvider(CreateServiceProvider());
                 c.RegisterQueryType<QueryHelloWorldClr>();
@@ -96,7 +96,7 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
         public async Task ExecuteHelloWorldCodeFirstMutation()
         {
             // arrange
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.RegisterServiceProvider(CreateServiceProvider());
                 c.RegisterQueryType<QueryHelloWorld>();

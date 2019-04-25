@@ -11,8 +11,8 @@ namespace HotChocolate.Language
         public void EnsureTokensAreDoublyLinked()
         {
             // arrange
-            Source source = new Source(@"type foo");
-            Lexer lexer = new Lexer();
+            var source = new Source(@"type foo");
+            var lexer = new Lexer();
 
             // act
             SyntaxToken token = lexer.Read(source);
@@ -56,35 +56,6 @@ namespace HotChocolate.Language
 
             Assert.True(lexer.Read());
             Assert.Equal(TokenKind.EndOfFile, lexer.Kind);
-        }
-
-        [Fact]
-        public void IntrospectionQueryV11()
-        {
-            var source = new ReadOnlySpan<byte>(
-                Encoding.UTF8.GetBytes(
-                    FileResource.Open("IntrospectionQuery.graphql")));
-            var reader = new Utf8GraphQLReader(source);
-            while (reader.Read()) { }
-        }
-
-        [Fact]
-        public void Foo()
-        {
-            int a = CharToHex('E') << 4;
-            int b = CharToHex('4');
-            var c = Encoding.UTF8.GetBytes("ä");
-        }
-
-        private static int CharToHex(int a)
-        {
-            return a >= 48 && a <= 57
-              ? a - 48 // 0-9
-              : a >= 65 && a <= 70
-                ? a - 55 // A-F
-                : a >= 97 && a <= 102
-                  ? a - 87 // a-f
-                  : -1;
         }
     }
 }

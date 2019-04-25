@@ -7,8 +7,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types
 {
     public class ListType
-        : TypeBase
-        , IOutputType
+        : IOutputType
         , IInputType
         , INullableType
     {
@@ -16,7 +15,6 @@ namespace HotChocolate.Types
         private readonly IInputType _inputType;
 
         public ListType(IType elementType)
-            : base(TypeKind.List)
         {
             if (elementType == null)
             {
@@ -25,6 +23,7 @@ namespace HotChocolate.Types
 
             if (elementType.IsListType())
             {
+                // TODO : resources
                 throw new ArgumentException(
                     "It is not possible to put a list type into list type.",
                     nameof(elementType));
@@ -36,6 +35,8 @@ namespace HotChocolate.Types
             ElementType = elementType;
             ClrType = this.ToClrType();
         }
+
+        public TypeKind Kind => TypeKind.List;
 
         public IType ElementType { get; }
 
@@ -53,6 +54,7 @@ namespace HotChocolate.Types
                 return IsInstanceOfTypeInternal(literal);
             }
 
+            // TODO : resources
             throw new InvalidOperationException(
                 "The specified type is not an input type.");
         }
@@ -96,6 +98,7 @@ namespace HotChocolate.Types
                 return ParseLiteralInternal(literal);
             }
 
+            // TODO : resources
             throw new InvalidOperationException(
                 "The specified type is not an input type.");
         }
@@ -117,6 +120,7 @@ namespace HotChocolate.Types
                 return CreateArray(listValueLiteral);
             }
 
+            // TODO : resources
             throw new ArgumentException(
                 "The specified literal cannot be handled by this list type.");
         }
@@ -162,6 +166,7 @@ namespace HotChocolate.Types
                 return elementType == ElementType.ToClrType();
             }
 
+            // TODO : resources
             throw new InvalidOperationException(
                 "The specified type is not an input type.");
         }
@@ -186,43 +191,9 @@ namespace HotChocolate.Types
                 }
             }
 
+            // TODO : resources
             throw new InvalidOperationException(
                 "The specified type is not an input type.");
-        }
-    }
-
-    // this is just a marker type for the fluent code-first api.
-    public sealed class ListType<T>
-        : IOutputType
-        , IInputType
-        where T : IType
-    {
-        private ListType()
-        {
-        }
-
-        public Type ClrType => throw new NotSupportedException();
-
-        public TypeKind Kind => throw new NotSupportedException();
-
-        public bool IsInstanceOfType(IValueNode literal)
-        {
-            throw new NotSupportedException();
-        }
-
-        public bool IsInstanceOfType(object value)
-        {
-            throw new NotSupportedException();
-        }
-
-        public object ParseLiteral(IValueNode literal)
-        {
-            throw new NotSupportedException();
-        }
-
-        public IValueNode ParseValue(object value)
-        {
-            throw new NotSupportedException();
         }
     }
 }

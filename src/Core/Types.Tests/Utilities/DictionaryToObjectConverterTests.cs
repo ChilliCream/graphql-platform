@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using ChilliCream.Testing;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Utilities
@@ -27,7 +28,7 @@ namespace HotChocolate.Utilities
             object converted = converter.Convert(foo, typeof(Foo));
 
             // assert
-            converted.Snapshot();
+            converted.MatchSnapshot();
         }
 
         [Fact]
@@ -49,7 +50,7 @@ namespace HotChocolate.Utilities
             object converted = converter.Convert(bar, typeof(Bar));
 
             // assert
-            converted.Snapshot();
+            converted.MatchSnapshot();
         }
 
         [Fact]
@@ -74,7 +75,7 @@ namespace HotChocolate.Utilities
                 list, typeof(ICollection<Bar>));
 
             // assert
-            converted.Snapshot();
+            converted.MatchSnapshot();
         }
 
         [Fact]
@@ -90,7 +91,7 @@ namespace HotChocolate.Utilities
                 input, typeof(int));
 
             // assert
-            converted.Snapshot();
+            converted.MatchSnapshot();
         }
 
         public class Foo

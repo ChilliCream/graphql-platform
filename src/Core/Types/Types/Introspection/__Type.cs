@@ -3,6 +3,7 @@ using System.Linq;
 
 namespace HotChocolate.Types.Introspection
 {
+    // TODO : resources
     [Introspection]
     internal sealed class __Type
         : ObjectType<IType>

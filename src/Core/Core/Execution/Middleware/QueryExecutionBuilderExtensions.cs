@@ -249,7 +249,7 @@ namespace HotChocolate.Execution
             }
 
             return builder.UseField(
-                FieldClassMiddlewareFactory.Create<MapMiddleware>(
+                FieldClassMiddlewareFactory.Create(
                     (s, n) => new MapMiddleware(
                         n, fieldReference, middleware(n))));
         }
@@ -271,7 +271,7 @@ namespace HotChocolate.Execution
             }
 
             return builder.UseField(
-                FieldClassMiddlewareFactory.Create<MapMiddleware>(
+                FieldClassMiddlewareFactory.Create(
                     (s, n) =>
                     {
                         FieldMiddleware classMiddleware =
@@ -304,7 +304,7 @@ namespace HotChocolate.Execution
             }
 
             return builder.UseField(
-                FieldClassMiddlewareFactory.Create<MapMiddleware>(
+                FieldClassMiddlewareFactory.Create(
                     (s, n) =>
                     {
                         FieldMiddleware classMiddleware =

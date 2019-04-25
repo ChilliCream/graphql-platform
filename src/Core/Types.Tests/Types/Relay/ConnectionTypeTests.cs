@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using Snapshooter.Xunit;
 using Xunit;
@@ -9,13 +8,15 @@ using Xunit;
 namespace HotChocolate.Types.Relay
 {
     public class ConnectionTypeTests
+        : TypeTestBase
     {
         [Fact]
         public void CheckThatNameIsCorrect()
         {
             // arrange
             // act
-            var type = new ConnectionType<StringType>();
+            ConnectionType<StringType> type =
+                CreateType(new ConnectionType<StringType>());
 
             // assert
             Assert.Equal("StringConnection", type.Name);
@@ -25,27 +26,12 @@ namespace HotChocolate.Types.Relay
         public void CheckFieldsAreCorrect()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-
             // act
-            var type = new ConnectionType<StringType>();
+            ConnectionType<StringType> type = CreateType(new ConnectionType<StringType>());
 
             // assert
-            INeedsInitialization init = type;
-
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), type, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Collection(type.Fields.Where(t => !t.IsIntrospectionField),
-                t =>
-                {
-                    Assert.Equal("pageInfo", t.Name);
-                    Assert.IsType<NonNullType>(t.Type);
-                    Assert.IsType<PageInfoType>(((NonNullType)t.Type).Type);
-                },
+            Assert.Collection(
+                type.Fields.Where(t => !t.IsIntrospectionField).OrderBy(t => t.Name),
                 t =>
                 {
                     Assert.Equal("edges", t.Name);
@@ -53,6 +39,12 @@ namespace HotChocolate.Types.Relay
                     Assert.IsType<NonNullType>(((ListType)t.Type).ElementType);
                     Assert.IsType<EdgeType<StringType>>(
                         ((NonNullType)((ListType)t.Type).ElementType).Type);
+                },
+                t =>
+                {
+                    Assert.Equal("pageInfo", t.Name);
+                    Assert.IsType<NonNullType>(t.Type);
+                    Assert.IsType<PageInfoType>(((NonNullType)t.Type).Type);
                 });
         }
 

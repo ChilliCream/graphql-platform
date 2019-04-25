@@ -158,7 +158,7 @@ namespace HotChocolate.Execution
             // arrange
             // act
             Action action = () => QueryExecutionBuilderExtensions
-                .Use<object>(null, (sp, next) => new object());
+                .Use(null, (sp, next) => new object());
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -194,7 +194,7 @@ namespace HotChocolate.Execution
             // arrange
             // act
             Action action = () => QueryExecutionBuilderExtensions
-                .UseField<object>(null, (sp, next) => new object());
+                .UseField(null, (sp, next) => new object());
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -291,7 +291,7 @@ namespace HotChocolate.Execution
             // arrange
             // act
             Action action = () => QueryExecutionBuilderExtensions
-                .MapField<object>(
+                .MapField(
                     null,
                     new FieldReference("a", "b"),
                     (sp, next) => new object());
@@ -306,7 +306,7 @@ namespace HotChocolate.Execution
             // arrange
             // act
             Action action = () => QueryExecutionBuilderExtensions
-                .MapField<object>(
+                .MapField(
                     QueryExecutionBuilder.New(),
                     null,
                     (sp, next) => new object());

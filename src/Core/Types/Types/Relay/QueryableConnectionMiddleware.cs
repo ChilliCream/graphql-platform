@@ -56,7 +56,7 @@ namespace HotChocolate.Types.Relay
 
             if (source != null)
             {
-                var connectionResolver = _createConnectionResolver(
+                IConnectionResolver connectionResolver = _createConnectionResolver(
                     source, pagingDetails);
 
                 context.Result = await connectionResolver

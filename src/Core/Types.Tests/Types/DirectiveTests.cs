@@ -1,9 +1,10 @@
-﻿using HotChocolate.Language;
+using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Types
 {
     public class DirectiveTests
+        : TypeTestBase
     {
         [Fact]
         public void ConvertCustomDirectiveToDirectiveNode()
@@ -96,10 +97,10 @@ namespace HotChocolate.Types
 
         private static ISchema CreateSchema()
         {
-            return Schema.Create(c =>
+            return CreateSchema(b => 
             {
-                c.RegisterDirective<FooDirectiveType>();
-                c.RegisterType<InputObjectType<FooChild>>();
+                b.AddDirectiveType<FooDirectiveType>();
+                b.AddType<InputObjectType<FooChild>>();
             });
         }
 

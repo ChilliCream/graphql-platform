@@ -2,6 +2,7 @@
 using ChilliCream.Testing;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Utilities
@@ -13,9 +14,13 @@ namespace HotChocolate.Utilities
         {
             // arrange
             ISchema schema = Schema.Create(
-                c => c.RegisterType<InputObjectType<Foo>>());
+                c =>
+                {
+                    c.RegisterQueryType<DummyQuery>();
+                    c.RegisterType<InputObjectType<Foo>>();
+                });
 
-            var type = schema.GetType<InputObjectType>("FooInput");
+            InputObjectType type = schema.GetType<InputObjectType>("FooInput");
 
             var bar1 = new Bar { Number = 1, Baz = Baz.Bar };
             var bar2 = new Bar { Number = 2, Baz = Baz.Bar };
@@ -32,7 +37,7 @@ namespace HotChocolate.Utilities
             ObjectValueNode valueNode = converter.Convert(type, foo);
 
             // assert
-            valueNode.Snapshot();
+            valueNode.MatchSnapshot();
         }
 
         [Fact]
@@ -40,9 +45,13 @@ namespace HotChocolate.Utilities
         {
             // arrange
             ISchema schema = Schema.Create(
-                c => c.RegisterType<InputObjectType<Foo>>());
+                c =>
+                {
+                    c.RegisterQueryType<DummyQuery>();
+                    c.RegisterType<InputObjectType<Foo>>();
+                });
 
-            var type = schema.GetType<InputObjectType>("FooInput");
+            InputObjectType type = schema.GetType<InputObjectType>("FooInput");
 
             var bar2 = new Bar { Number = 2, Baz = Baz.Bar };
             var bar3 = new Bar { Number = 3, Baz = Baz.Foo };
@@ -58,7 +67,7 @@ namespace HotChocolate.Utilities
             ObjectValueNode valueNode = converter.Convert(type, foo);
 
             // assert
-            valueNode.Snapshot();
+            valueNode.MatchSnapshot();
         }
 
         [Fact]
@@ -66,9 +75,13 @@ namespace HotChocolate.Utilities
         {
             // arrange
             ISchema schema = Schema.Create(
-                c => c.RegisterType<InputObjectType<Foo>>());
+                c =>
+                {
+                    c.RegisterQueryType<DummyQuery>();
+                    c.RegisterType<InputObjectType<Foo>>();
+                });
 
-            var type = schema.GetType<InputObjectType>("FooInput");
+            InputObjectType type = schema.GetType<InputObjectType>("FooInput");
 
             var bar1 = new Bar { Number = 1, Baz = Baz.Bar };
             var bar2 = new Bar { Number = 2, Baz = Baz.Bar };
@@ -84,7 +97,7 @@ namespace HotChocolate.Utilities
             ObjectValueNode valueNode = converter.Convert(type, foo);
 
             // assert
-            valueNode.Snapshot();
+            valueNode.MatchSnapshot();
         }
 
         public class Foo
@@ -105,6 +118,11 @@ namespace HotChocolate.Utilities
         {
             Foo,
             Bar
+        }
+
+        public class DummyQuery
+        {
+            public string Foo { get; set; }
         }
     }
 }

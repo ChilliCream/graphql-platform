@@ -2,47 +2,44 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
     public class InputField
-        : FieldBase<IInputType>
+        : FieldBase<IInputType, InputFieldDefinition>
         , IInputField
         , IHasClrType
     {
-        private readonly object _nativeDefaultValue;
-
-        private InputField(
-            ArgumentDescription argumentDescription,
-            DirectiveLocation location)
-            : base(argumentDescription, location)
+        public InputField(InputFieldDefinition definition)
+            : base(definition)
         {
-            _nativeDefaultValue = argumentDescription.NativeDefaultValue;
-            SyntaxNode = argumentDescription.SyntaxNode;
-            DefaultValue = argumentDescription.DefaultValue;
-        }
-
-        internal InputField(ArgumentDescription argumentDescription)
-            : this(argumentDescription, DirectiveLocation.ArgumentDefinition)
-        {
-        }
-
-        internal InputField(InputFieldDescription inputFieldDescription)
-            : this(inputFieldDescription,
-                DirectiveLocation.InputFieldDefinition)
-        {
-            Property = inputFieldDescription.Property;
+            SyntaxNode = definition.SyntaxNode;
+            DefaultValue = definition.DefaultValue;
+            Property = definition.Property;
         }
 
         public InputValueDefinitionNode SyntaxNode { get; }
 
         public IValueNode DefaultValue { get; private set; }
 
-        private PropertyInfo Property { get; set; }
+        protected PropertyInfo Property { get; private set; }
 
-        public Type ClrType => Property?.PropertyType ?? typeof(object);
+        public new InputObjectType DeclaringType =>
+            (InputObjectType)base.DeclaringType;
+
+        public override Type ClrType
+        {
+            get
+            {
+                return Property == null
+                    ? base.ClrType
+                    : Property.PropertyType;
+            }
+        }
 
         public void SetValue(object obj, object value)
         {
@@ -51,21 +48,14 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(obj));
             }
 
-            if (DeclaringType is InputObjectType type)
-            {
-                bool success = Property == null
-                    ? TrySetValueOnUnknownType(obj, value)
-                    : TrySetValueOnKnownType(obj, value);
+            bool success = Property == null
+                ? TrySetValueOnUnknownType(obj, value)
+                : TrySetValueOnKnownType(obj, value);
 
-                if (!success)
-                {
-                    // TODO : Resources
-                    throw new InvalidOperationException();
-                }
-            }
-            else
+            if (!success)
             {
-                throw new NotSupportedException();
+                // TODO : Resources
+                throw new InvalidOperationException();
             }
         }
 
@@ -103,24 +93,17 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(obj));
             }
 
-            if (DeclaringType is InputObjectType type)
-            {
-                bool success = Property == null
-                    ? TryGetValueOnUnknownType(obj, out object value)
-                    : TryGetValueOnKnownType(obj, out value);
+            bool success = Property == null
+                ? TryGetValueOnUnknownType(obj, out object value)
+                : TryGetValueOnKnownType(obj, out value);
 
-                if (!success)
-                {
-                    // TODO : Resources
-                    throw new InvalidOperationException();
-                }
-
-                return value;
-            }
-            else
+            if (!success)
             {
-                throw new NotSupportedException();
+                // TODO : Resources
+                throw new InvalidOperationException();
             }
+
+            return value;
         }
 
         private bool TryGetValueOnUnknownType(object obj, out object value)
@@ -151,56 +134,14 @@ namespace HotChocolate.Types
             return true;
         }
 
-        #region Initialization
-
-        protected override void OnCompleteType(
-            ITypeInitializationContext context)
+        protected override void OnCompleteField(
+            ICompletionContext context,
+            InputFieldDefinition definition)
         {
-            base.OnCompleteType(context);
-
-            if (Type != null)
-            {
-                CompleteDefaultValue(context, Type);
-
-                if (context.Type is InputObjectType iot
-                    && Property == null
-                    && context.TryGetProperty(
-                        iot, Name,
-                        out PropertyInfo property))
-                {
-                    Property = property;
-                }
-            }
+            base.OnCompleteField(context, definition);
+            DefaultValue = FieldInitHelper.CreateDefaultValue(
+                context, definition, Type);
+            Property = definition.Property;
         }
-
-        private void CompleteDefaultValue(
-            ITypeInitializationContext context,
-            IInputType type)
-        {
-            try
-            {
-                if (DefaultValue == null)
-                {
-                    if (_nativeDefaultValue == null)
-                    {
-                        DefaultValue = NullValueNode.Default;
-                    }
-                    else
-                    {
-                        DefaultValue = type.ParseValue(_nativeDefaultValue);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                context.ReportError(new SchemaError(
-                    "Could not parse the native value of input field " +
-                    $"`{context.Type.Name}.{Name}`.",
-                    context.Type as INamedType,
-                    ex));
-            }
-        }
-
-        #endregion
     }
 }

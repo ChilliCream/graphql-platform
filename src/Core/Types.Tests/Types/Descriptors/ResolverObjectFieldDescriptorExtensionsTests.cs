@@ -404,7 +404,7 @@ namespace HotChocolate.Types
             // act
             Action action = () =>
                 ResolverObjectFieldDescriptorExtensions
-                    .Resolver<object>(
+                    .Resolver(
                         null,
                         new Func<IResolverContext, CancellationToken,
                             Task<object>>((c, ct) =>
@@ -423,7 +423,7 @@ namespace HotChocolate.Types
             // act
             Action action = () =>
                 ResolverObjectFieldDescriptorExtensions
-                    .Resolver<object>(
+                    .Resolver(
                         descriptor.Object,
                         default(Func<IResolverContext, CancellationToken,
                             Task<object>>));

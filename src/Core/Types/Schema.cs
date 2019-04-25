@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate
 {
@@ -13,37 +14,18 @@ namespace HotChocolate
     /// the entry points for query, mutation, and subscription operations.
     /// </summary>
     public partial class Schema
-        : ISchema
+        : TypeSystemObjectBase<SchemaTypeDefinition>
+        , ISchema
     {
-        private readonly SchemaTypes _types;
-        private readonly Dictionary<NameString, DirectiveType> _directiveTypes;
+        private SchemaTypes _types;
+        private Dictionary<NameString, DirectiveType> _directiveTypes;
 
-        private Schema(
-            IServiceProvider services,
-            ISchemaContext context,
-            IReadOnlySchemaOptions options)
-        {
-            Services = services;
-            _types = SchemaTypes.Create(
-                context.Types.GetTypes(),
-                context.Types.GetTypeBindings(),
-                options);
-            _directiveTypes = context.Directives
-                .GetDirectiveTypes()
-                .ToDictionary(t => t.Name);
-            DirectiveTypes = _directiveTypes.Values;
-            Options = options;
-        }
-
-        /// <summary>
-        /// Gets the schema options.
-        /// </summary>
-        public IReadOnlySchemaOptions Options { get; }
+        public IDirectiveCollection Directives { get; private set; }
 
         /// <summary>
         /// Gets the global schema services.
         /// </summary>
-        public IServiceProvider Services { get; }
+        public IServiceProvider Services { get; private set; }
 
         /// <summary>
         /// The type that query operations will be rooted at.
@@ -70,7 +52,11 @@ namespace HotChocolate
         /// <summary>
         /// Gets all the direcives that are supported by this schema.
         /// </summary>
-        public IReadOnlyCollection<DirectiveType> DirectiveTypes { get; }
+        public IReadOnlyCollection<DirectiveType> DirectiveTypes
+        {
+            get;
+            private set;
+        }
 
         /// <summary>
         /// Gets a type by its name and kind.
@@ -101,7 +87,7 @@ namespace HotChocolate
         public bool TryGetType<T>(NameString typeName, out T type)
             where T : INamedType
         {
-            return _types.TryGetType<T>(
+            return _types.TryGetType(
                 typeName.EnsureNotEmpty(nameof(typeName)),
                 out type);
         }

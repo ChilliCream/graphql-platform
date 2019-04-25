@@ -253,7 +253,7 @@ namespace HotChocolate.Types
         {
             // arrange
             var a = new MultiplierPathString("Foo");
-            var b = a;
+            MultiplierPathString b = a;
 
             // act
             bool result = a == b;
@@ -323,7 +323,7 @@ namespace HotChocolate.Types
         {
             // arrange
             var a = new MultiplierPathString("Foo");
-            var b = a;
+            MultiplierPathString b = a;
 
             // act
             bool result = a != b;

@@ -9,10 +9,10 @@ namespace HotChocolate.Types
         public void EnsureInnerTypeIsCorrectlySet()
         {
             // arrange
-            StringType innerType = new StringType();
+            var innerType = new StringType();
 
             // act
-            NonNullType type = new NonNullType(innerType);
+            var type = new NonNullType(innerType);
 
             // assert
             Assert.Equal(innerType, type.Type);
@@ -23,7 +23,7 @@ namespace HotChocolate.Types
         public void EnsureNativeTypeIsCorrectlyDetected()
         {
             // act
-            NonNullType type = new NonNullType(new StringType());
+            var type = new NonNullType(new StringType());
 
             // assert
             Assert.Equal(typeof(string), type.ClrType);
@@ -33,9 +33,9 @@ namespace HotChocolate.Types
         public void EnsureInstanceOfIsDelegatedToInnerType()
         {
             // arrange
-            ListType innerType = new ListType(new StringType());
+            var innerType = new ListType(new StringType());
 
-            NonNullType type = new NonNullType(innerType);
+            var type = new NonNullType(innerType);
             bool shouldBeFalse = type.IsInstanceOfType(
                 new IntValueNode("123"));
             bool shouldBeTrue = type.IsInstanceOfType(

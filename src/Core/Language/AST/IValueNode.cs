@@ -6,11 +6,12 @@ namespace HotChocolate.Language
         : ISyntaxNode
         , IEquatable<IValueNode>
     {
+        object Value { get; }
     }
 
     public interface IValueNode<out T>
         : IValueNode
     {
-        T Value { get; }
+        new T Value { get; }
     }
 }

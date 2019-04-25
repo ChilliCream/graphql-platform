@@ -47,7 +47,7 @@ namespace HotChocolate.Execution.Instrumentation
                 StartTimestamp = 1113752464890200,
                 EndTimestamp = 1113752484850000
             };
-            TimeSpan duration = TimeSpan.FromMilliseconds(122);
+            var duration = TimeSpan.FromMilliseconds(122);
 
             builder.SetRequestStartTime(startTime, startTimestamp);
             builder.SetParsingResult(1113752394890300, 1113752402820700);

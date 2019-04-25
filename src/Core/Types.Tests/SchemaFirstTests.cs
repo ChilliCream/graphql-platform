@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
-using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -10,7 +9,7 @@ namespace HotChocolate
     public class SchemaFirstTests
     {
         [Fact]
-        public async Task CommentsAreCorrectlyRead()
+        public async Task DescriptionsAreCorrectlyRead()
         {
             // arrange
             string source = FileResource.Open(

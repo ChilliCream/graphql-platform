@@ -1,6 +1,8 @@
 ﻿using System;
+using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
-using HotChocolate.Utilities;
+using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Relay
 {
@@ -29,14 +31,9 @@ namespace HotChocolate.Types.Relay
         protected new static void Configure(
             IObjectTypeDescriptor<IConnection> descriptor)
         {
-            if (!NamedTypeInfoFactory.Default.TryExtractName(
-                typeof(T), out NameString name))
-            {
-                throw new InvalidOperationException(
-                    $"Unable to extract a name from {typeof(T).FullName}.");
-            }
+            descriptor.Name(dependency => dependency.Name + "Connection")
+                .DependsOn<T>();
 
-            descriptor.Name(name + "Connection");
             descriptor.Description("A connection to a list of items.");
 
             descriptor.BindFields(BindingBehavior.Explicit);
@@ -53,21 +50,24 @@ namespace HotChocolate.Types.Relay
         }
 
         protected override void OnRegisterDependencies(
-            ITypeInitializationContext context)
+            IInitializationContext context,
+            ObjectTypeDefinition definition)
         {
-            base.OnRegisterDependencies(context);
+            base.OnRegisterDependencies(context, definition);
 
-            context.RegisterType(new TypeReference(typeof(T)));
-            context.RegisterType(new TypeReference(typeof(EdgeType<T>)));
+            context.RegisterDependency(
+                ClrTypeReference.FromSchemaType<EdgeType<T>>(),
+                TypeDependencyKind.Default);
         }
 
         protected override void OnCompleteType(
-            ITypeInitializationContext context)
+            ICompletionContext context,
+            ObjectTypeDefinition definition)
         {
-            EdgeType = context.GetType<EdgeType<T>>(
-                new TypeReference(typeof(EdgeType<T>)));
+            base.OnCompleteType(context, definition);
 
-            base.OnCompleteType(context);
+            EdgeType = context.GetType<EdgeType<T>>(
+                ClrTypeReference.FromSchemaType<EdgeType<T>>());
         }
 
         public static ConnectionType<T> CreateWithTotalCount()

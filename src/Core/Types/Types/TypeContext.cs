@@ -2,8 +2,8 @@
 {
     public enum TypeContext
     {
-        None,
-        Output,
-        Input
+        None = 0,
+        Output = 2,
+        Input = 4
     }
 }

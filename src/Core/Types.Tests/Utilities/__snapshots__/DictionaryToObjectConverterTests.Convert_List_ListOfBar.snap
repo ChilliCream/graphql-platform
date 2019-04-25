@@ -1,0 +1,20 @@
+﻿[
+  {
+    "State": "On",
+    "Bazs": [
+      {
+        "Number": 1.5
+      }
+    ],
+    "BazArray": [
+      {
+        "Number": 1.5
+      }
+    ],
+    "StringArray": [
+      "a",
+      "1",
+      "True"
+    ]
+  }
+]

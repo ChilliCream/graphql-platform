@@ -9,7 +9,7 @@ namespace HotChocolate.Runtime
         {
             // arrange
             string removedValue = null;
-            Cache<string> cache = new Cache<string>(10);
+            var cache = new Cache<string>(10);
             cache.RemovedEntry += (s, e) => { removedValue = e.Value; };
             for (int i = 0; i < 10; i++)
             {

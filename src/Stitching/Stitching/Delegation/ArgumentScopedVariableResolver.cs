@@ -35,7 +35,7 @@ namespace HotChocolate.Stitching.Delegation
                     nameof(variable));
             }
 
-            InputField argument = context.Field.Arguments.FirstOrDefault(t =>
+            IInputField argument = context.Field.Arguments.FirstOrDefault(t =>
                 t.Name.Value.EqualsOrdinal(variable.Name.Value));
 
             if (argument == null)

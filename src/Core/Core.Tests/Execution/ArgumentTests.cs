@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
         public async Task ListOfInt()
         {
             // arrange
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.Options.StrictValidation = true;
 
@@ -29,7 +29,7 @@ namespace HotChocolate.Execution
                 c.RegisterType(new ObjectType<Bar>());
             });
 
-            ListValueNode list = new ListValueNode(new List<IValueNode>
+            var list = new ListValueNode(new List<IValueNode>
             {
                 new IntValueNode(1),
                 new IntValueNode(2),
@@ -51,7 +51,7 @@ namespace HotChocolate.Execution
         public async Task ListOfFoo()
         {
             // arrange
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.RegisterQueryType(new ObjectType<Query>(d =>
                 {
@@ -67,7 +67,7 @@ namespace HotChocolate.Execution
                 c.RegisterType(new InputObjectType<Foo>());
             });
 
-            ListValueNode list = new ListValueNode(new List<IValueNode>
+            var list = new ListValueNode(new List<IValueNode>
             {
                 new ObjectValueNode(new[] {
                     new ObjectFieldNode("bar", new StringValueNode("123")) }),
@@ -92,7 +92,7 @@ namespace HotChocolate.Execution
         public async Task SingleInt()
         {
             // arrange
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.RegisterQueryType(new ObjectType<Query>(d =>
                 {
@@ -106,7 +106,7 @@ namespace HotChocolate.Execution
                 c.RegisterType(new ObjectType<Bar>());
             });
 
-            IntValueNode value = new IntValueNode(123);
+            var value = new IntValueNode(123);
 
             // act
             IExecutionResult result =
@@ -123,7 +123,7 @@ namespace HotChocolate.Execution
         public async Task SingleFoo()
         {
             // arrange
-            Schema schema = Schema.Create(c =>
+            var schema = Schema.Create(c =>
             {
                 c.RegisterQueryType(new ObjectType<Query>(d =>
                 {
@@ -138,7 +138,7 @@ namespace HotChocolate.Execution
                 c.RegisterType(new InputObjectType<Foo>());
             });
 
-            ObjectValueNode obj = new ObjectValueNode(new List<ObjectFieldNode>
+            var obj = new ObjectValueNode(new List<ObjectFieldNode>
             {
                 new ObjectFieldNode("bar", new StringValueNode("123"))
             });
@@ -169,7 +169,7 @@ namespace HotChocolate.Execution
 
             public List<Bar> ListOfFoo(List<Foo> foo)
             {
-                List<Bar> bar = new List<Bar>();
+                var bar = new List<Bar>();
                 foreach (Foo f in foo)
                 {
                     bar.Add(SingleFoo(f));
@@ -179,7 +179,7 @@ namespace HotChocolate.Execution
 
             public List<Bar> ListOfInt(List<int> foo)
             {
-                List<Bar> bar = new List<Bar>();
+                var bar = new List<Bar>();
                 foreach (int f in foo)
                 {
                     bar.Add(SingleInt(f));

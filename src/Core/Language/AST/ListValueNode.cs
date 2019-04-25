@@ -51,6 +51,8 @@ namespace HotChocolate.Language
         IReadOnlyList<IValueNode> IValueNode<IReadOnlyList<IValueNode>>.Value =>
             Items;
 
+        object IValueNode.Value => Items;
+
         /// <summary>
         /// Determines whether the specified <see cref="ListValueNode"/>
         /// is equal to the current <see cref="ListValueNode"/>.

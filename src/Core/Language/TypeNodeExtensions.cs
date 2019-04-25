@@ -48,5 +48,49 @@ namespace HotChocolate.Language
 
             throw new NotSupportedException();
         }
+
+        public static bool IsEqualTo(this ITypeNode x, ITypeNode y)
+        {
+            if (x is null)
+            {
+                return y is null;
+            }
+
+            if (y is null)
+            {
+                return x is null;
+            }
+
+            if (x is NonNullTypeNode nnx)
+            {
+                if (y is NonNullTypeNode nny)
+                {
+                    return IsEqualTo(nnx.Type, nny.Type);
+                }
+                return false;
+            }
+
+            if (x is ListTypeNode lx)
+            {
+                if (y is ListTypeNode ly)
+                {
+                    return IsEqualTo(lx.Type, ly.Type);
+                }
+                return false;
+            }
+
+            if (x is NamedTypeNode nx)
+            {
+                if (y is NamedTypeNode ny)
+                {
+                    return nx.Name.Value.Equals(
+                        ny.Name.Value,
+                        StringComparison.Ordinal);
+                }
+                return false;
+            }
+
+            throw new NotSupportedException();
+        }
     }
 }

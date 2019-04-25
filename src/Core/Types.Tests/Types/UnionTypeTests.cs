@@ -1,34 +1,104 @@
-using System.Collections.Generic;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Types
 {
     public class UnionTypeTests
+        : TypeTestBase
     {
+        [Fact]
+        public void UnionType_DynamicName()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new UnionType(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn<StringType>()
+                    .Type<FooType>()
+                    .Type<BarType>()));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            UnionType type = schema.GetType<UnionType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void UnionType_DynamicName_NonGeneric()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new UnionType(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn(typeof(StringType))
+                    .Type<FooType>()
+                    .Type<BarType>()));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            UnionType type = schema.GetType<UnionType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void GenericUnionType_DynamicName()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new UnionType<IFooOrBar>(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn<StringType>()));
+
+                c.RegisterType(new FooType());
+                c.RegisterType(new BarType());
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            UnionType type = schema.GetType<UnionType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
+        [Fact]
+        public void GenericUnionType_DynamicName_NonGeneric()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new UnionType<IFooOrBar>(d => d
+                    .Name(dep => dep.Name + "Foo")
+                    .DependsOn(typeof(StringType))));
+
+                c.RegisterType(new FooType());
+                c.RegisterType(new BarType());
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            UnionType type = schema.GetType<UnionType>("StringFoo");
+            Assert.NotNull(type);
+        }
+
         [Fact]
         public void DeclareUnion_ByProvidingExplicitTypeSet()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-
             // act
-            var fooType = new UnionType(d => d
+            UnionType fooBarType = CreateType(new UnionType(d => d
                 .Type<FooType>()
-                .Type<BarType>());
+                .Type<BarType>()));
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Empty(errors);
-            Assert.Collection(fooType.Types.Values,
+            Assert.Collection(fooBarType.Types.Values,
                 t => Assert.Equal("Foo", t.Name),
                 t => Assert.Equal("Bar", t.Name));
         }
@@ -37,51 +107,28 @@ namespace HotChocolate.Types
         public void DeclareUnion_InferTypeSetFromMarkerInterface()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Types.RegisterType(new FooType());
-            schemaContext.Types.RegisterType(new BarType());
-
             // act
-            var fooType = new UnionType<IFooOrBar>();
+            UnionType<IFooOrBar> fooBarType = CreateType(
+                new UnionType<IFooOrBar>(),
+                b => b.AddTypes(new FooType(), new BarType()));
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Empty(errors);
-            Assert.Collection(fooType.Types.Values,
+            Assert.Collection(fooBarType.Types.Values,
                 t => Assert.Equal("Foo", t.Name),
                 t => Assert.Equal("Bar", t.Name));
         }
-
 
         [Fact]
         public void DeclareUnion_MarkerInterfaceAndTypeSet()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Types.RegisterType(new FooType());
-            schemaContext.Types.RegisterType(new BarType());
-
             // act
-            var fooType = new UnionType<IFooOrBar>(c => c.Type<BazType>());
+            UnionType<IFooOrBar> fooBarType = CreateType(
+                new UnionType<IFooOrBar>(c => c.Type<BazType>()),
+                b => b.AddTypes(new FooType(), new BarType()));
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Empty(errors);
-            Assert.Collection(fooType.Types.Values,
+            Assert.Collection(fooBarType.Types.Values,
                 t => Assert.Equal("Baz", t.Name),
                 t => Assert.Equal("Foo", t.Name),
                 t => Assert.Equal("Bar", t.Name));
@@ -91,130 +138,75 @@ namespace HotChocolate.Types
         public void UnionType_AddDirectives_NameArgs()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
-            var fooType = new UnionType(d => d
+            UnionType fooBarType = CreateType(new UnionType(d => d
                 .Directive("foo")
                 .Type<FooType>()
-                .Type<BarType>());
+                .Type<BarType>()),
+                b => b.AddDirectiveType<FooDirectiveType>());
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Empty(errors);
-            Assert.NotEmpty(fooType.Directives["foo"]);
+            Assert.NotEmpty(fooBarType.Directives["foo"]);
         }
 
         [Fact]
         public void UnionType_AddDirectives_NameArgs2()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
-            var fooType = new UnionType<SimpleInput>(d => d
+            UnionType fooBarType = CreateType(new UnionType(d => d
                 .Directive(new NameString("foo"))
                 .Type<FooType>()
-                .Type<BarType>());
+                .Type<BarType>()),
+                b => b.AddDirectiveType<FooDirectiveType>());
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Empty(errors);
-            Assert.NotEmpty(fooType.Directives["foo"]);
+            Assert.NotEmpty(fooBarType.Directives["foo"]);
         }
 
         [Fact]
         public void UnionType_AddDirectives_DirectiveNode()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
-            var fooType = new UnionType(d => d
+            UnionType fooBarType = CreateType(new UnionType(d => d
                 .Directive(new DirectiveNode("foo"))
                 .Type<FooType>()
-                .Type<BarType>());
+                .Type<BarType>()),
+                b => b.AddDirectiveType<FooDirectiveType>());
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Empty(errors);
-            Assert.NotEmpty(fooType.Directives["foo"]);
+            Assert.NotEmpty(fooBarType.Directives["foo"]);
         }
 
         [Fact]
         public void UnionType_AddDirectives_DirectiveClassInstance()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
-            var fooType = new UnionType(
-                d => d.Directive(new FooDirective())
-                    .Type<FooType>()
-                .Type<BarType>());
+            UnionType fooBarType = CreateType(new UnionType(d => d
+                .Directive(new FooDirective())
+                .Type<FooType>()
+                .Type<BarType>()),
+                b => b.AddDirectiveType<FooDirectiveType>());
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Empty(errors);
-            Assert.NotEmpty(fooType.Directives["foo"]);
+            Assert.NotEmpty(fooBarType.Directives["foo"]);
         }
 
         [Fact]
         public void UnionType_AddDirectives_DirectiveType()
         {
             // arrange
-            var errors = new List<SchemaError>();
-            var schemaContext = new SchemaContext();
-            schemaContext.Directives.RegisterDirectiveType<FooDirectiveType>();
-
             // act
-            var fooType = new UnionType(
-                d => d.Directive<FooDirective>()
-                    .Type<FooType>()
-                .Type<BarType>());
+            UnionType fooBarType = CreateType(new UnionType(d => d
+                .Directive<FooDirective>()
+                .Type<FooType>()
+                .Type<BarType>()),
+                b => b.AddDirectiveType<FooDirectiveType>());
 
             // assert
-            schemaContext.Types.RegisterType(fooType);
-            INeedsInitialization init = fooType;
-            var initializationContext = new TypeInitializationContext(
-                schemaContext, a => errors.Add(a), fooType, false);
-            init.RegisterDependencies(initializationContext);
-            schemaContext.CompleteTypes();
-
-            Assert.Empty(errors);
-            Assert.NotEmpty(fooType.Directives["foo"]);
+            Assert.NotEmpty(fooBarType.Directives["foo"]);
         }
 
         public class FooType

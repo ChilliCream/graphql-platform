@@ -53,7 +53,7 @@ namespace HotChocolate.Resolvers
             var assemblyName = "HotChocolate.Resolvers.CodeGeneration" +
                 $"._{Guid.NewGuid().ToString("N")}.dll";
 
-            CSharpCompilation compilation = CSharpCompilation.Create(
+            var compilation = CSharpCompilation.Create(
                 assemblyName, syntaxTree, ResolveReferences(), _options);
 
             using (var stream = new MemoryStream())

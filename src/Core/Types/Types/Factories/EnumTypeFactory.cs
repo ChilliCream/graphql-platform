@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Factories
@@ -6,13 +8,34 @@ namespace HotChocolate.Types.Factories
     internal sealed class EnumTypeFactory
         : ITypeFactory<EnumTypeDefinitionNode, EnumType>
     {
-        public EnumType Create(EnumTypeDefinitionNode node)
+        public EnumType Create(
+            IBindingLookup bindingLookup,
+            EnumTypeDefinitionNode node)
         {
+            if (bindingLookup == null)
+            {
+                throw new ArgumentNullException(nameof(bindingLookup));
+            }
+
+            if (node == null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
+            ITypeBindingInfo bindingInfo =
+                bindingLookup.GetBindingInfo(node.Name.Value);
+
             return new EnumType(d =>
             {
                 d.SyntaxNode(node)
                     .Name(node.Name.Value)
                     .Description(node.Description?.Value);
+
+                if (bindingInfo.SourceType != null)
+                {
+                    d.Extend().OnBeforeCreate(
+                        t => t.ClrType = bindingInfo.SourceType);
+                }
 
                 foreach (DirectiveNode directive in node.Directives)
                 {

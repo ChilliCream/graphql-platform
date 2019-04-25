@@ -128,8 +128,8 @@ Task("PublishTemplates")
         OutputDirectory = "src/Templates"
     };
 
-    ReplaceTextInFiles("src/Templates/StarWars/content/StarWars/StarWars.csproj", "0.8.0", packageVersion);
-    ReplaceTextInFiles("src/Templates/Server/content/HotChocolate.Server.csproj", "0.8.0", packageVersion);
+    ReplaceTextInFiles("src/Templates/StarWars/content/StarWars/StarWars.csproj", "0.8.2", packageVersion);
+    ReplaceTextInFiles("src/Templates/Server/content/HotChocolate.Server.csproj", "0.8.2", packageVersion);
     NuGetPack("src/Templates/StarWars/HotChocolate.Templates.StarWars.nuspec", nuGetPackSettings);
     NuGetPack("src/Templates/Server/HotChocolate.Templates.Server.nuspec", nuGetPackSettings);
 });
@@ -228,8 +228,9 @@ Task("SonarBegin")
         Version = packageVersion,
         ArgumentCustomization = args => {
             var a = args;
-
-            if(!string.IsNullOrEmpty(sonarPrKey))
+            // TODO : ENABLE THIS BEFORE COMPLETING THE PR
+            // if(!string.IsNullOrEmpty(sonarPrKey))
+            if(true == false)
             {
                 a = a.Append($"/d:sonar.pullrequest.key=\"{sonarPrKey}\"");
                 a = a.Append($"/d:sonar.pullrequest.branch=\"{sonarBranch}\"");

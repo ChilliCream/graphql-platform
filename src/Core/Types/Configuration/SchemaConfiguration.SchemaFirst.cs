@@ -1,4 +1,6 @@
-﻿using System;
+﻿using System.Collections.Generic;
+using System;
+using HotChocolate.Configuration.Bindings;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
@@ -6,6 +8,9 @@ namespace HotChocolate.Configuration
 {
     internal partial class SchemaConfiguration
     {
+        private List<IBindingBuilder> _bindingBuilders =
+            new List<IBindingBuilder>();
+
         public IBindResolverDelegate BindResolver(
             FieldResolverDelegate fieldResolver)
         {
@@ -14,45 +19,41 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(fieldResolver));
             }
 
-            var bindingInfo =
-                new ResolverDelegateBindingInfo
-                {
-                    FieldResolver = fieldResolver
-                };
-            _resolverBindings.Add(bindingInfo);
-            return new BindResolverDelegate(bindingInfo);
+            IResolverBindingBuilder builder =
+                ResolverBindingBuilder.New()
+                    .SetResolver(fieldResolver);
+            _bindingBuilders.Add(builder);
+            return new BindResolverDelegate(builder);
         }
 
         public IBindResolver<TResolver> BindResolver<TResolver>(
             BindingBehavior bindingBehavior)
             where TResolver : class
         {
-            var bindingInfo =
-                new ResolverCollectionBindingInfo
-                {
-                    Behavior = bindingBehavior,
-                    ResolverType = typeof(TResolver)
-                };
-            _resolverBindings.Add(bindingInfo);
-            return new BindResolver<TResolver>(bindingInfo);
+            IResolverTypeBindingBuilder builder =
+                ResolverTypeBindingBuilder.New()
+                    .SetFieldBinding(bindingBehavior)
+                    .SetResolverType(typeof(TResolver));
+            _bindingBuilders.Add(builder);
+            return new BindResolver<TResolver>(builder);
         }
 
         public IBindType<T> BindType<T>(
             BindingBehavior bindingBehavior)
             where T : class
         {
-            var bindingInfo = new TypeBindingInfo
-            {
-                Behavior = bindingBehavior,
-                Type = typeof(T)
-            };
-            _typeBindings.Add(bindingInfo);
-            return new BindType<T>(bindingInfo);
+            IComplexTypeBindingBuilder builder =
+                ComplexTypeBindingBuilder.New()
+                    .SetFieldBinding(bindingBehavior)
+                    .SetType(typeof(T));
+            _bindingBuilders.Add(builder);
+            return new BindType<T>(builder);
         }
 
-        public void RegisterIsOfType(IsOfTypeFallback isOfType)
+        public ISchemaConfiguration RegisterIsOfType(IsOfTypeFallback isOfType)
         {
-            _typeRegistry.IsOfType = isOfType;
+            _builder.SetTypeResolver(isOfType);
+            return this;
         }
     }
 }
