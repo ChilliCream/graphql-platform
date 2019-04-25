@@ -1,4 +1,4 @@
-{
+﻿{
   "Kind": "SelectionSet",
   "Location": {
     "Start": 0,
@@ -8,23 +8,14 @@
       "Start": 0,
       "End": 0,
       "Line": 1,
-      "Column": 1,
-      "Value": null,
-      "Previous": null,
-      "Next": null
+      "Column": 1
     },
     "EndToken": {
       "Kind": "StartOfFile",
       "Start": 0,
       "End": 0,
       "Line": 1,
-      "Column": 1,
-      "Value": null,
-      "Previous": null,
-      "Next": null
-    },
-    "Source": {
-      "Text": "foo"
+      "Column": 1
     }
   },
   "Selections": [

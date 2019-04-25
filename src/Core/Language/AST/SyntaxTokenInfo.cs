@@ -1,6 +1,6 @@
 namespace HotChocolate.Language
 {
-    public struct SyntaxTokenInfo
+    public sealed class SyntaxTokenInfo
     {
         public SyntaxTokenInfo(
             TokenKind kind,

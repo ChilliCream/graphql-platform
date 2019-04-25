@@ -1,8 +1,12 @@
+using System.Collections.Generic;
+
 namespace HotChocolate.Language
 {
     public class Utf8ParserContext
     {
         private StringValueNode _description;
+        private Stack<SyntaxTokenInfo> _startTokens =
+            new Stack<SyntaxTokenInfo>();
 
         public Utf8ParserContext(ParserOptions options)
         {
@@ -13,12 +17,32 @@ namespace HotChocolate.Language
 
         public void Start(ref Utf8GraphQLReader reader)
         {
-            // use stack for token info
+            if (!Options.NoLocations)
+            {
+                var start = new SyntaxTokenInfo(
+                    reader.Kind,
+                    reader.Start,
+                    reader.End,
+                    reader.Line,
+                    reader.Column);
+                _startTokens.Push(start);
+            }
         }
 
         public Location CreateLocation(ref Utf8GraphQLReader reader)
         {
-            return null;
+            if (Options.NoLocations)
+            {
+                return null;
+            }
+
+            var end = new SyntaxTokenInfo(
+                reader.Kind,
+                reader.Start,
+                reader.End,
+                reader.Line,
+                reader.Column);
+            return new Location(_startTokens.Pop(), end);
         }
 
         public void PushDescription(StringValueNode description)

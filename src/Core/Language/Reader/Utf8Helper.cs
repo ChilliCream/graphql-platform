@@ -14,16 +14,37 @@ namespace HotChocolate.Language
             ref Span<byte> unescapedString,
             bool isBlockString)
         {
-            int readPosition = 0;
+            int readPosition = -1;
             int writePosition = 0;
-            ref readonly byte code = ref escapedString[readPosition];
+            int eofPosition = escapedString.Length - 1;
 
-            while (readPosition < escapedString.Length)
+            do
             {
+                ref readonly byte code = ref escapedString[++readPosition];
+
                 if (ReaderHelper.IsBackslash(in code))
                 {
                     code = ref escapedString[++readPosition];
-                    if (ReaderHelper.IsValidEscapeCharacter(code))
+
+                    if (isBlockString
+                         && ReaderHelper.IsQuote(in code))
+                    {
+                        if (ReaderHelper.IsQuote(
+                             in escapedString[readPosition + 1])
+                         && ReaderHelper.IsQuote(
+                             in escapedString[readPosition + 2]))
+                        {
+                            unescapedString[writePosition++] = ReaderHelper.Quote;
+                            unescapedString[writePosition++] = ReaderHelper.Quote;
+                            unescapedString[writePosition++] = ReaderHelper.Quote;
+                        }
+                        else
+                        {
+                            // TODO : Syntax Exception
+                            throw new Exception();
+                        }
+                    }
+                    else if (ReaderHelper.IsValidEscapeCharacter(code))
                     {
                         unescapedString[writePosition++] =
                             ReaderHelper.EscapeCharacter(in code);
@@ -38,18 +59,6 @@ namespace HotChocolate.Language
                             ref writePosition,
                             ref unescapedString);
                     }
-                    else if (isBlockString
-                        && ReaderHelper.IsQuote(
-                            in escapedString[readPosition])
-                        && ReaderHelper.IsQuote(
-                            in escapedString[readPosition + 1])
-                        && ReaderHelper.IsQuote(
-                            in escapedString[readPosition + 2]))
-                    {
-                        unescapedString[writePosition++] = ReaderHelper.Quote;
-                        unescapedString[writePosition++] = ReaderHelper.Quote;
-                        unescapedString[writePosition++] = ReaderHelper.Quote;
-                    }
                     else
                     {
                         // TODO : Syntax Exception
@@ -60,7 +69,7 @@ namespace HotChocolate.Language
                 {
                     unescapedString[writePosition++] = code;
                 }
-            }
+            } while (readPosition < eofPosition);
 
             int length = unescapedString.Length - writePosition;
             if (length > 0)
