@@ -34,28 +34,5 @@ namespace HotChocolate.Language
             Assert.Equal(token.Next.Next, token.Next.Next.Next.Previous);
             Assert.Null(token.Next.Next.Next.Next);
         }
-
-        [Fact]
-        public void SimpleReaderTest()
-        {
-            var source = new ReadOnlySpan<byte>(
-                Encoding.UTF8.GetBytes("type foo"));
-            var lexer = new Utf8GraphQLReader(source);
-
-            Assert.Equal(TokenKind.StartOfFile, lexer.Kind);
-
-            Assert.True(lexer.Read());
-            Assert.Equal(TokenKind.Name, lexer.Kind);
-            Assert.Equal("type",
-                Encoding.UTF8.GetString(lexer.Value.ToArray()));
-
-            Assert.True(lexer.Read());
-            Assert.Equal(TokenKind.Name, lexer.Kind);
-            Assert.Equal("foo",
-                Encoding.UTF8.GetString(lexer.Value.ToArray()));
-
-            Assert.True(lexer.Read());
-            Assert.Equal(TokenKind.EndOfFile, lexer.Kind);
-        }
     }
 }
