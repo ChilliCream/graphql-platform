@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Text;
 using ChilliCream.Testing;
@@ -111,7 +112,18 @@ namespace HotChocolate.Language
             // assert
             tokens.MatchSnapshot();
         }
+    }
 
-        //kitchen-sink.graphql
+    public class BlockStringHelperTests
+    {
+        [Fact]
+        public void Foo()
+        {
+            string blockString = FileResource.Open("BlockString.txt");
+            byte[] input = Encoding.UTF8.GetBytes(blockString);
+            var output = new Span<byte>(new byte[input.Length]);
+
+            BlockStringHelper.TrimBlockStringToken(input, ref output);
+        }
     }
 }

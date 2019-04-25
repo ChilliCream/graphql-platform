@@ -219,5 +219,21 @@ namespace HotChocolate.Language
             // assert
             document.MatchSnapshot();
         }
+
+        [Fact]
+        public void KitchenSinkQueryQuery()
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                FileResource.Open("kitchen-sink.graphql"));
+
+            // act
+            Utf8Parser parser = new Utf8Parser();
+            DocumentNode document = parser.Parse(sourceText,
+                new ParserOptions(noLocations: true));
+
+            // assert
+            document.MatchSnapshot();
+        }
     }
 }

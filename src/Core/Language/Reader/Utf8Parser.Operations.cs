@@ -276,7 +276,7 @@ namespace HotChocolate.Language
             NameNode name = ParseName(context, ref reader);
             NameNode alias = null;
 
-            if (TokenHelper.IsColon(ref reader))
+            if (ParserHelper.Skip(ref reader, TokenKind.Colon))
             {
                 alias = name;
                 name = ParseName(context, ref reader);

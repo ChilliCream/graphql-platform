@@ -33,8 +33,9 @@ namespace HotChocolate.Language
                 int lineLength = indent + GoToNextLine(in data, ref position);
 
                 if (
-                  indent < lineLength &&
-                  (commonIndent == null || indent < commonIndent)
+                    lineLength > 0 &&
+                    indent <= lineLength &&
+                    (commonIndent == null || indent < commonIndent)
                 )
                 {
                     commonIndent = indent;
@@ -47,7 +48,7 @@ namespace HotChocolate.Language
 
             ReadOnlySpan<byte> line;
 
-            if (commonIndent.HasValue)
+            if (commonIndent.HasValue && commonIndent.Value > 0)
             {
                 position = 0;
                 line = GetNextLine(in data, ref position);
@@ -163,6 +164,7 @@ namespace HotChocolate.Language
                     {
                         position = next;
                     }
+                    position++;
                     break;
                 }
                 else if (data[position] == ReaderHelper.Return)
@@ -173,6 +175,7 @@ namespace HotChocolate.Language
                     {
                         position = next;
                     }
+                    position++;
                     break;
                 }
 
@@ -197,6 +200,7 @@ namespace HotChocolate.Language
                     {
                         position = next;
                     }
+                    position++;
                     break;
                 }
 
@@ -208,6 +212,7 @@ namespace HotChocolate.Language
                     {
                         position = next;
                     }
+                    position++;
                     break;
                 }
                 else { }
@@ -232,6 +237,7 @@ namespace HotChocolate.Language
                     {
                         position = next;
                     }
+                    position--;
                     break;
                 }
 
@@ -243,6 +249,7 @@ namespace HotChocolate.Language
                     {
                         position = next;
                     }
+                    position--;
                     break;
                 }
                 position--;
