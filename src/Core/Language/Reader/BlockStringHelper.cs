@@ -143,7 +143,7 @@ namespace HotChocolate.Language
             ref int position)
         {
             int start = position;
-            GoToNextLine(in data, ref position);
+            GoToPreviousLine(in data, ref position);
             int length = start - position;
             return data.Slice(start, length);
         }
@@ -157,25 +157,25 @@ namespace HotChocolate.Language
             {
                 if (data[position] == ReaderHelper.NewLine)
                 {
-                    if (position < data.Length
-                        && data[position + 1] == ReaderHelper.Return)
+                    int next = position + 1;
+                    if (next < data.Length
+                        && data[next] == ReaderHelper.Return)
                     {
-                        position++;
+                        position = next;
                     }
-                    position++;
+                    break;
+                }
+                else if (data[position] == ReaderHelper.Return)
+                {
+                    int next = position + 1;
+                    if (next < data.Length
+                        && data[next] == ReaderHelper.NewLine)
+                    {
+                        position = next;
+                    }
                     break;
                 }
 
-                if (data[position] == ReaderHelper.Return)
-                {
-                    if (position < data.Length
-                        && data[position + 1] == ReaderHelper.NewLine)
-                    {
-                        position++;
-                    }
-                    position++;
-                    break;
-                }
                 position++;
                 i++;
             }
@@ -191,25 +191,26 @@ namespace HotChocolate.Language
             {
                 if (data[position] == ReaderHelper.NewLine)
                 {
-                    if (position < data.Length
-                        && data[position + 1] == ReaderHelper.Return)
+                    int next = position + 1;
+                    if (next < data.Length
+                        && data[next] == ReaderHelper.Return)
                     {
-                        position++;
+                        position = next;
                     }
-                    position++;
                     break;
                 }
 
                 if (data[position] == ReaderHelper.Return)
                 {
-                    if (position < data.Length
-                        && data[position + 1] == ReaderHelper.NewLine)
+                    int next = position + 1;
+                    if (next < data.Length
+                        && data[next] == ReaderHelper.NewLine)
                     {
-                        position++;
+                        position = next;
                     }
-                    position++;
                     break;
                 }
+                else { }
                 position++;
                 i++;
             }
@@ -225,23 +226,23 @@ namespace HotChocolate.Language
             {
                 if (data[position] == ReaderHelper.NewLine)
                 {
-                    if (position > 0
-                        && data[position - 1] == ReaderHelper.Return)
+                    int next = position - 1;
+                    if (next > 0
+                        && data[next] == ReaderHelper.Return)
                     {
-                        position--;
+                        position = next;
                     }
-                    position--;
                     break;
                 }
 
                 if (data[position] == ReaderHelper.Return)
                 {
-                    if (position > 0
-                        && data[position - 1] == ReaderHelper.NewLine)
+                    int next = position - 1;
+                    if (next > 0
+                        && data[next] == ReaderHelper.NewLine)
                     {
-                        position--;
+                        position = next;
                     }
-                    position--;
                     break;
                 }
                 position--;

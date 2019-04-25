@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using ChilliCream.Testing;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -89,5 +90,28 @@ namespace HotChocolate.Language
             // assert
             tokens.MatchSnapshot();
         }
+
+        [Fact]
+        public void Read_KitchenSinkQuery()
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                FileResource.Open("kitchen-sink.graphql"));
+
+            // act
+            var tokens = new List<SyntaxTokenInfo>();
+            var reader = new Utf8GraphQLReader(sourceText);
+
+            do
+            {
+                tokens.Add(SyntaxTokenInfo.FromReader(in reader));
+            }
+            while (reader.Read());
+
+            // assert
+            tokens.MatchSnapshot();
+        }
+
+        //kitchen-sink.graphql
     }
 }
