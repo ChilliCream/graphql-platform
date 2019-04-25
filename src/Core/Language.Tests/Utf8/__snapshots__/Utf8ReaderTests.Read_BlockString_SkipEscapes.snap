@@ -1,0 +1,30 @@
+﻿[
+  {
+    "Kind": "StartOfFile",
+    "Start": 0,
+    "End": 0,
+    "Line": 1,
+    "Column": 1
+  },
+  {
+    "Kind": "Name",
+    "Start": 0,
+    "End": 3,
+    "Line": 1,
+    "Column": 1
+  },
+  {
+    "Kind": "String",
+    "Start": 15,
+    "End": 16,
+    "Line": 1,
+    "Column": 5
+  },
+  {
+    "Kind": "Name",
+    "Start": 18,
+    "End": 21,
+    "Line": 1,
+    "Column": 19
+  }
+]
