@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Text;
 using ChilliCream.Testing;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -191,7 +192,7 @@ namespace HotChocolate.Language
                 hero {
                     name
                     # Queries can have comments!
-                    friends {
+                    friends(a:""foo"" b: 123456 c:null d:     true) {
                         name
                     }
                 }
@@ -204,6 +205,8 @@ namespace HotChocolate.Language
 
             // assert
             document.MatchSnapshot();
+            QuerySyntaxSerializer.Serialize(document)
+                .MatchSnapshot(new SnapshotNameExtension("serialized"));
         }
 
         [Fact]
@@ -237,5 +240,158 @@ namespace HotChocolate.Language
             // assert
             document.MatchSnapshot();
         }
+
+        [Fact]
+        public void QueryWithStringArg()
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                FileResource.Open("QueryWithStringArg.graphql"));
+
+            // act
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
+
+            // assert
+            document.MatchSnapshot();
+        }
+
+
+        [Fact]
+        public void StringArg()
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                "{ a(b:\"Q3VzdG9tZXIteDE=\") }");
+
+            // act
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
+
+            // assert
+            StringValueNode value = Assert.IsType<StringValueNode>(
+                document.Definitions.OfType<OperationDefinitionNode>().First()
+                .SelectionSet.Selections.OfType<FieldNode>().First()
+                .Arguments.First().Value);
+
+            Assert.Equal("Q3VzdG9tZXIteDE=", value.Value);
+        }
+
+        [InlineData("1234")]
+        [InlineData("-1234")]
+        [Theory]
+        public void IntArg(string arg)
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                "{ a(b:" + arg + ") }");
+
+            // act
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
+
+            // assert
+            IntValueNode value = Assert.IsType<IntValueNode>(
+                document.Definitions.OfType<OperationDefinitionNode>().First()
+                .SelectionSet.Selections.OfType<FieldNode>().First()
+                .Arguments.First().Value);
+
+            Assert.Equal(arg, value.Value);
+        }
+
+        [InlineData("1234.123")]
+        [InlineData("-1234.123")]
+        [InlineData("1e50")]
+        [InlineData("6.0221413e23")]
+        [Theory]
+        public void FloatArg(string arg)
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                "{ a(b:" + arg + ") }");
+
+            // act
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
+
+            // assert
+            FloatValueNode value = Assert.IsType<FloatValueNode>(
+                document.Definitions.OfType<OperationDefinitionNode>().First()
+                .SelectionSet.Selections.OfType<FieldNode>().First()
+                .Arguments.First().Value);
+
+            Assert.Equal(arg, value.Value);
+        }
+
+        [InlineData("true", true)]
+        [InlineData("false", false)]
+        [Theory]
+        public void BooleanArg(string arg, bool expected)
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                "{ a(b:" + arg + ") }");
+
+            // act
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
+
+            // assert
+            BooleanValueNode value = Assert.IsType<BooleanValueNode>(
+                document.Definitions.OfType<OperationDefinitionNode>().First()
+                .SelectionSet.Selections.OfType<FieldNode>().First()
+                .Arguments.First().Value);
+
+            Assert.Equal(expected, value.Value);
+        }
+
+        [InlineData("ABC")]
+        [InlineData("DEF")]
+        [Theory]
+        public void EnumArg(string arg)
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                "{ a(b:" + arg + ") }");
+
+            // acts
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
+
+            // assert
+            EnumValueNode value = Assert.IsType<EnumValueNode>(
+                document.Definitions.OfType<OperationDefinitionNode>().First()
+                .SelectionSet.Selections.OfType<FieldNode>().First()
+                .Arguments.First().Value);
+
+            Assert.Equal(arg, value.Value);
+        }
+
+        [Fact]
+        public void NullArg()
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                "{ a(b:null) }");
+
+            // acts
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
+
+            // assert
+            Assert.IsType<NullValueNode>(
+                document.Definitions.OfType<OperationDefinitionNode>().First()
+                .SelectionSet.Selections.OfType<FieldNode>().First()
+                .Arguments.First().Value);
+        }
     }
 }
+
+

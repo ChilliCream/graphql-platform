@@ -2,7 +2,7 @@
   "Kind": "Document",
   "Location": {
     "Start": 0,
-    "End": 211,
+    "End": 249,
     "Line": 1,
     "Column": 1
   },
@@ -11,7 +11,7 @@
       "Kind": "OperationDefinition",
       "Location": {
         "Start": 0,
-        "End": 211,
+        "End": 249,
         "Line": 1,
         "Column": 1
       },
@@ -23,7 +23,7 @@
         "Kind": "SelectionSet",
         "Location": {
           "Start": 0,
-          "End": 211,
+          "End": 249,
           "Line": 1,
           "Column": 1
         },
@@ -36,9 +36,9 @@
               "Kind": "SelectionSet",
               "Location": {
                 "Start": 23,
-                "End": 211,
+                "End": 249,
                 "Line": 2,
-                "Column": 22
+                "Column": 23
               },
               "Selections": [
                 {
@@ -50,7 +50,7 @@
                     "Start": 45,
                     "End": 126,
                     "Line": 3,
-                    "Column": 21
+                    "Column": 22
                   },
                   "Name": {
                     "Kind": "Name",
@@ -58,7 +58,7 @@
                       "Start": 45,
                       "End": 126,
                       "Line": 3,
-                      "Column": 21
+                      "Column": 22
                     },
                     "Value": "name"
                   },
@@ -67,14 +67,132 @@
                 {
                   "Kind": "Field",
                   "Alias": null,
-                  "Arguments": [],
+                  "Arguments": [
+                    {
+                      "Kind": "Argument",
+                      "Location": {
+                        "Start": 127,
+                        "End": 136,
+                        "Line": 5,
+                        "Column": 30
+                      },
+                      "Name": {
+                        "Kind": "Name",
+                        "Location": {
+                          "Start": 127,
+                          "End": 129,
+                          "Line": 5,
+                          "Column": 30
+                        },
+                        "Value": "a"
+                      },
+                      "Value": {
+                        "Kind": "StringValue",
+                        "Location": {
+                          "Start": 129,
+                          "End": 136,
+                          "Line": 5,
+                          "Column": 32
+                        },
+                        "Value": "foo",
+                        "Block": false
+                      }
+                    },
+                    {
+                      "Kind": "Argument",
+                      "Location": {
+                        "Start": 135,
+                        "End": 146,
+                        "Line": 5,
+                        "Column": 38
+                      },
+                      "Name": {
+                        "Kind": "Name",
+                        "Location": {
+                          "Start": 135,
+                          "End": 137,
+                          "Line": 5,
+                          "Column": 38
+                        },
+                        "Value": "b"
+                      },
+                      "Value": {
+                        "Kind": "IntValue",
+                        "Location": {
+                          "Start": 138,
+                          "End": 146,
+                          "Line": 5,
+                          "Column": 41
+                        },
+                        "Value": "123456"
+                      }
+                    },
+                    {
+                      "Kind": "Argument",
+                      "Location": {
+                        "Start": 145,
+                        "End": 153,
+                        "Line": 5,
+                        "Column": 48
+                      },
+                      "Name": {
+                        "Kind": "Name",
+                        "Location": {
+                          "Start": 145,
+                          "End": 147,
+                          "Line": 5,
+                          "Column": 48
+                        },
+                        "Value": "c"
+                      },
+                      "Value": {
+                        "Kind": "NullValue",
+                        "Location": {
+                          "Start": 147,
+                          "End": 153,
+                          "Line": 5,
+                          "Column": 50
+                        },
+                        "Value": null
+                      }
+                    },
+                    {
+                      "Kind": "Argument",
+                      "Location": {
+                        "Start": 152,
+                        "End": 164,
+                        "Line": 5,
+                        "Column": 55
+                      },
+                      "Name": {
+                        "Kind": "Name",
+                        "Location": {
+                          "Start": 152,
+                          "End": 154,
+                          "Line": 5,
+                          "Column": 55
+                        },
+                        "Value": "d"
+                      },
+                      "Value": {
+                        "Kind": "BooleanValue",
+                        "Location": {
+                          "Start": 159,
+                          "End": 164,
+                          "Line": 5,
+                          "Column": 62
+                        },
+                        "Value": true
+                      }
+                    }
+                  ],
                   "SelectionSet": {
                     "Kind": "SelectionSet",
                     "Location": {
-                      "Start": 127,
-                      "End": 197,
+                      "Start": 165,
+                      "End": 235,
                       "Line": 5,
-                      "Column": 29
+                      "Column": 68
                     },
                     "Selections": [
                       {
@@ -83,18 +201,18 @@
                         "Arguments": [],
                         "SelectionSet": null,
                         "Location": {
-                          "Start": 153,
-                          "End": 179,
+                          "Start": 191,
+                          "End": 217,
                           "Line": 6,
-                          "Column": 25
+                          "Column": 26
                         },
                         "Name": {
                           "Kind": "Name",
                           "Location": {
-                            "Start": 153,
-                            "End": 179,
+                            "Start": 191,
+                            "End": 217,
                             "Line": 6,
-                            "Column": 25
+                            "Column": 26
                           },
                           "Value": "name"
                         },
@@ -104,17 +222,17 @@
                   },
                   "Location": {
                     "Start": 119,
-                    "End": 197,
+                    "End": 235,
                     "Line": 5,
-                    "Column": 21
+                    "Column": 22
                   },
                   "Name": {
                     "Kind": "Name",
                     "Location": {
                       "Start": 119,
-                      "End": 128,
+                      "End": 127,
                       "Line": 5,
-                      "Column": 21
+                      "Column": 22
                     },
                     "Value": "friends"
                   },
@@ -124,9 +242,9 @@
             },
             "Location": {
               "Start": 18,
-              "End": 211,
+              "End": 249,
               "Line": 2,
-              "Column": 17
+              "Column": 18
             },
             "Name": {
               "Kind": "Name",
@@ -134,7 +252,7 @@
                 "Start": 18,
                 "End": 24,
                 "Line": 2,
-                "Column": 17
+                "Column": 18
               },
               "Value": "hero"
             },

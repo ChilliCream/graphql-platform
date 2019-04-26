@@ -172,7 +172,7 @@ namespace HotChocolate.Language
 
             ref readonly byte code = ref GraphQLData[Position];
 
-            if (GraphQLConstants.IsLetterOrDigitOrUnderscore(in code))
+            if (GraphQLConstants.IsLetterOrUnderscore(in code))
             {
                 ReadNameToken();
                 return true;
@@ -431,7 +431,6 @@ namespace HotChocolate.Language
             Start = start;
             End = Position;
             _value = GraphQLData.Slice(start, Position - start);
-            Position++;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -520,7 +519,7 @@ namespace HotChocolate.Language
                     Kind = TokenKind.String;
                     Start = start;
                     End = Position;
-                    _value = GraphQLData.Slice(start + 1, Position - start - 3);
+                    _value = GraphQLData.Slice(start + 1, Position - start - 1);
                     Position++;
                     return;
                 }
@@ -619,33 +618,32 @@ namespace HotChocolate.Language
             {
                 if (code == GraphQLConstants.NewLine)
                 {
-                    Position++;
-                    if (!IsEndOfStream()
-                        && GraphQLData[Position + 1] == GraphQLConstants.Return)
+                    int next = Position + 1;
+                    if (next < GraphQLData.Length
+                        && GraphQLData[next] == GraphQLConstants.Return)
                     {
-                        Position++;
+                        Position = next;
                     }
                     NewLine();
                 }
                 else if (code == GraphQLConstants.Return)
                 {
-                    Position++;
-                    if (!IsEndOfStream()
-                        && GraphQLData[Position + 1] == GraphQLConstants.NewLine)
+                    int next = Position + 1;
+                    if (next < GraphQLData.Length
+                        && GraphQLData[next] == GraphQLConstants.NewLine)
                     {
-                        Position++;
+                        Position = next;
                     }
                     NewLine();
                 }
-                else
-                {
-                    ++Position;
-                }
+
+                Position++;
 
                 if (IsEndOfStream())
                 {
                     return;
                 }
+
                 code = ref GraphQLData[Position];
             }
         }
