@@ -150,6 +150,8 @@ namespace HotChocolate.Language
 
         private bool SkipColon() => Skip(TokenKind.Colon);
 
+        private bool SkipAmpersand() => Skip(TokenKind.Ampersand);
+
         private bool Skip(TokenKind kind)
         {
             if (_reader.Kind == kind)
@@ -162,6 +164,9 @@ namespace HotChocolate.Language
         private bool SkipRepeatableKeyword() =>
             SkipKeyword(GraphQLKeywords.Repeatable);
 
+        private bool SkipImplementsKeyword() =>
+            SkipKeyword(GraphQLKeywords.Implements);
+
         private bool SkipKeyword(ReadOnlySpan<byte> keyword)
         {
             if (_reader.Kind == TokenKind.Name
@@ -171,6 +176,13 @@ namespace HotChocolate.Language
                 return true;
             }
             return false;
+        }
+
+        private StringValueNode TakeDescription()
+        {
+            StringValueNode description = _description;
+            _description = null;
+            return description;
         }
 
         private SyntaxException Unexpected(TokenKind kind)

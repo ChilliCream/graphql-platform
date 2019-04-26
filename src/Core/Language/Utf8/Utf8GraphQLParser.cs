@@ -54,6 +54,7 @@ namespace HotChocolate.Language
 
         private IDefinitionNode ParseDefinition()
         {
+            _description = null;
             if (TokenHelper.IsDescription(in _reader))
             {
                 _description = ParseDescription();

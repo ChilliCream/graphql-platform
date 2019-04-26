@@ -7,6 +7,13 @@ namespace HotChocolate.Language
     // Implements the parsing rules in the Type Definition section.
     public ref partial struct Utf8GraphQLParser
     {
+        private static readonly List<EnumValueDefinitionNode> emptyEnumValues =
+            new List<EnumValueDefinitionNode>();
+        private static readonly List<InputValueDefinitionNode> _emptyInputVals =
+            new List<InputValueDefinitionNode>();
+        private static List<FieldDefinitionNode> _emptyFieldDefinitions =
+            new List<FieldDefinitionNode>();
+
         /// <summary>
         /// Parses a description.
         /// <see cref="StringValueNode" />:
@@ -28,47 +35,45 @@ namespace HotChocolate.Language
         /// schema Directives[isConstant:true]? { OperationTypeDefinition+ }
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static SchemaDefinitionNode ParseSchemaDefinition(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private SchemaDefinitionNode ParseSchemaDefinition()
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
-            ParserHelper.SkipDescription(ref reader);
-            ParserHelper.ExpectSchemaKeyword(ref reader);
+            // skip schema keyword
+            MoveNext();
 
-            List<DirectiveNode> directives =
-                ParseDirectives(context, ref reader, true);
+            List<DirectiveNode> directives = ParseDirectives(true);
 
-            if (reader.Kind != TokenKind.LeftBrace)
+            if (_reader.Kind != TokenKind.LeftBrace)
             {
-                throw new SyntaxException(reader,
+                throw new SyntaxException(_reader,
                     string.Format(
                         CultureInfo.InvariantCulture,
                         LangResources.ParseMany_InvalidOpenToken,
                         TokenKind.LeftBrace,
-                        TokenVisualizer.Visualize(in reader)));
+                        TokenVisualizer.Visualize(in _reader)));
             }
 
-            var operationTypeDefinitions = new List<OperationTypeDefinitionNode>();
+            var operationTypeDefinitions =
+                new List<OperationTypeDefinitionNode>();
 
             // skip opening token
-            ParserHelper.MoveNext(ref reader);
+            MoveNext();
 
-            while (reader.Kind != TokenKind.RightBrace)
+            while (_reader.Kind != TokenKind.RightBrace)
             {
-                operationTypeDefinitions.Add(
-                    ParseOperationTypeDefinition(context, ref reader));
+                operationTypeDefinitions.Add(ParseOperationTypeDefinition());
             }
 
             // skip closing token
-            ParserHelper.Expect(ref reader, TokenKind.RightBrace);
+            ExpectRightBrace();
 
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new SchemaDefinitionNode
             (
                 location,
+                TakeDescription(),
                 directives,
                 operationTypeDefinitions
             );
@@ -80,17 +85,15 @@ namespace HotChocolate.Language
         /// OperationType : NamedType
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static OperationTypeDefinitionNode ParseOperationTypeDefinition(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private OperationTypeDefinitionNode ParseOperationTypeDefinition()
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
-            OperationType operation = ParseOperationType(context, ref reader);
-            ParserHelper.ExpectColon(ref reader);
-            NamedTypeNode type = ParseNamedType(context, ref reader);
+            OperationType operation = ParseOperationType();
+            ExpectColon();
+            NamedTypeNode type = ParseNamedType();
 
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new OperationTypeDefinitionNode
             (
@@ -107,27 +110,23 @@ namespace HotChocolate.Language
         /// scalar Name Directives[isConstant=true]?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static ScalarTypeDefinitionNode ParseScalarTypeDefinition(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private ScalarTypeDefinitionNode ParseScalarTypeDefinition()
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
             // skip scalar keyword
-            ParserHelper.MoveNext(ref reader);
+            MoveNext();
 
-            NameNode name = ParseName(context, ref reader);
-            StringValueNode description = context.PopDescription();
-            List<DirectiveNode> directives =
-                ParseDirectives(context, ref reader, true);
+            NameNode name = ParseName();
+            List<DirectiveNode> directives = ParseDirectives(true);
 
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new ScalarTypeDefinitionNode
             (
                 location,
                 name,
-                description,
+                TakeDescription(),
                 directives
             );
         }
@@ -139,31 +138,25 @@ namespace HotChocolate.Language
         /// type Name ImplementsInterfaces? Directives[isConstant=true]? FieldsDefinition?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static ObjectTypeDefinitionNode ParseObjectTypeDefinition(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private ObjectTypeDefinitionNode ParseObjectTypeDefinition()
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
             // skip type keyword
-            ParserHelper.MoveNext(ref reader);
+            MoveNext();
 
-            NameNode name = ParseName(context, ref reader);
-            StringValueNode description = context.PopDescription();
-            List<NamedTypeNode> interfaces =
-                ParseImplementsInterfaces(context, ref reader);
-            List<DirectiveNode> directives =
-                ParseDirectives(context, ref reader, true);
-            List<FieldDefinitionNode> fields =
-                ParseFieldsDefinition(context, ref reader);
+            NameNode name = ParseName();
+            List<NamedTypeNode> interfaces = ParseImplementsInterfaces();
+            List<DirectiveNode> directives = ParseDirectives(true);
+            List<FieldDefinitionNode> fields = ParseFieldsDefinition();
 
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new ObjectTypeDefinitionNode
             (
                 location,
                 name,
-                description,
+                TakeDescription(),
                 directives,
                 interfaces,
                 fields
@@ -176,22 +169,20 @@ namespace HotChocolate.Language
         /// implements &amp;? NamedType
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static List<NamedTypeNode> ParseImplementsInterfaces(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private List<NamedTypeNode> ParseImplementsInterfaces()
         {
             var list = new List<NamedTypeNode>();
 
-            if (ParserHelper.SkipKeyword(ref reader, GraphQLKeywords.Implements))
+            if (SkipImplementsKeyword())
             {
                 // skip optional leading amperdand.
-                ParserHelper.Skip(ref reader, TokenKind.Ampersand);
+                SkipAmpersand();
 
                 do
                 {
-                    list.Add(ParseNamedType(context, ref reader));
+                    list.Add(ParseNamedType());
                 }
-                while (ParserHelper.Skip(ref reader, TokenKind.Ampersand));
+                while (SkipAmpersand());
             }
 
             return list;
@@ -203,29 +194,30 @@ namespace HotChocolate.Language
         /// { FieldDefinition+ }
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static List<FieldDefinitionNode> ParseFieldsDefinition(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private List<FieldDefinitionNode> ParseFieldsDefinition()
         {
-            if (reader.Kind == TokenKind.LeftBrace)
+            if (_reader.Kind == TokenKind.LeftBrace)
             {
                 var list = new List<FieldDefinitionNode>();
 
                 // skip opening token
-                ParserHelper.MoveNext(ref reader);
+                MoveNext();
 
-                while (reader.Kind != TokenKind.RightBrace)
+                while (_reader.Kind != TokenKind.RightBrace)
                 {
-                    list.Add(ParseFieldDefinition(context, ref reader));
+                    list.Add(ParseFieldDefinition());
                 }
 
                 // skip closing token
-                ParserHelper.Expect(ref reader, TokenKind.RightBrace);
+                ExpectRightBrace();
 
                 return list;
             }
-            return new List<FieldDefinitionNode>();
+            return _emptyFieldDefinitions;
         }
+
+
+
 
         /// <summary>
         /// Parses a interface type or object type field definition.
@@ -234,22 +226,19 @@ namespace HotChocolate.Language
         /// Name ArgumentsDefinition? : Type Directives[isConstant=true]?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static FieldDefinitionNode ParseFieldDefinition(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private FieldDefinitionNode ParseFieldDefinition()
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
-            StringValueNode description = ParseDescription(context, ref reader);
-            NameNode name = ParseName(context, ref reader);
+            StringValueNode description = ParseDescription();
+            NameNode name = ParseName();
             List<InputValueDefinitionNode> arguments =
-                ParseArgumentDefinitions(context, ref reader);
-            ParserHelper.ExpectColon(ref reader);
-            ITypeNode type = ParseTypeReference(context, ref reader);
-            List<DirectiveNode> directives =
-                ParseDirectives(context, ref reader, true);
+                ParseArgumentDefinitions();
+            ExpectColon();
+            ITypeNode type = ParseTypeReference();
+            List<DirectiveNode> directives = ParseDirectives(true);
 
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new FieldDefinitionNode
             (
@@ -270,24 +259,25 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private List<InputValueDefinitionNode> ParseArgumentDefinitions()
         {
-            if (reader.Kind == TokenKind.LeftParenthesis)
+            if (_reader.Kind == TokenKind.LeftParenthesis)
             {
                 var list = new List<InputValueDefinitionNode>();
 
                 // skip opening token
-                ParserHelper.MoveNext(ref reader);
+                MoveNext();
 
-                while (reader.Kind != TokenKind.RightParenthesis)
+                while (_reader.Kind != TokenKind.RightParenthesis)
                 {
-                    list.Add(ParseInputValueDefinition(context, ref reader));
+                    list.Add(ParseInputValueDefinition());
                 }
 
                 // skip closing token
-                ParserHelper.Expect(ref reader, TokenKind.RightParenthesis);
+                ExpectRightParenthesis();
 
                 return list;
             }
-            return new List<InputValueDefinitionNode>();
+
+            return _emptyInputVals;
         }
 
         /// <summary>
@@ -296,25 +286,23 @@ namespace HotChocolate.Language
         /// Description? Name : Type DefaultValue? Directives[isConstant=true]?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static InputValueDefinitionNode ParseInputValueDefinition(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private InputValueDefinitionNode ParseInputValueDefinition()
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
-            StringValueNode description = ParseDescription(context, ref reader);
-            NameNode name = ParseName(context, ref reader);
-            ParserHelper.ExpectColon(ref reader);
-            ITypeNode type = ParseTypeReference(context, ref reader);
+            StringValueNode description = ParseDescription();
+            NameNode name = ParseName();
+            ExpectColon();
+            ITypeNode type = ParseTypeReference();
             IValueNode defaultValue = null;
-            if (ParserHelper.Skip(ref reader, TokenKind.Equal))
+            if (SkipEqual())
             {
-                defaultValue = ParseValueLiteral(context, ref reader, true);
+                defaultValue = ParseValueLiteral(true);
             }
             List<DirectiveNode> directives =
-                ParseDirectives(context, ref reader, true);
+                ParseDirectives(true);
 
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new InputValueDefinitionNode
             (
@@ -334,28 +322,25 @@ namespace HotChocolate.Language
         /// FieldsDefinition?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static InterfaceTypeDefinitionNode ParseInterfaceTypeDefinition(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private InterfaceTypeDefinitionNode ParseInterfaceTypeDefinition()
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
-            ParserHelper.MoveNext(ref reader);
+            MoveNext();
 
-            NameNode name = ParseName(context, ref reader);
-            StringValueNode description = context.PopDescription();
+            NameNode name = ParseName();
             List<DirectiveNode> directives =
-                ParseDirectives(context, ref reader, true);
+                ParseDirectives(true);
             List<FieldDefinitionNode> fields =
-                ParseFieldsDefinition(context, ref reader);
+                ParseFieldsDefinition();
 
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new InterfaceTypeDefinitionNode
             (
                 location,
                 name,
-                description,
+                TakeDescription(),
                 directives,
                 fields
             );
@@ -368,28 +353,24 @@ namespace HotChocolate.Language
         /// UnionMemberTypes?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static UnionTypeDefinitionNode ParseUnionTypeDefinition(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private UnionTypeDefinitionNode ParseUnionTypeDefinition()
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
-            ParserHelper.MoveNext(ref reader);
+            MoveNext();
 
-            NameNode name = ParseName(context, ref reader);
-            StringValueNode description = context.PopDescription();
+            NameNode name = ParseName();
             List<DirectiveNode> directives =
-                ParseDirectives(context, ref reader, true);
-            List<NamedTypeNode> types =
-                ParseUnionMemberTypes(context, ref reader);
+                ParseDirectives(true);
+            List<NamedTypeNode> types = ParseUnionMemberTypes();
 
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new UnionTypeDefinitionNode
             (
                 location,
                 name,
-                description,
+                TakeDescription(),
                 directives,
                 types
             );
@@ -401,22 +382,20 @@ namespace HotChocolate.Language
         /// = `|`? NamedType
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static List<NamedTypeNode> ParseUnionMemberTypes(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private List<NamedTypeNode> ParseUnionMemberTypes()
         {
             var list = new List<NamedTypeNode>();
 
-            if (ParserHelper.Skip(ref reader, TokenKind.Equal))
+            if (SkipEqual())
             {
                 // skip optional leading pipe (might not exist!)
-                ParserHelper.Skip(ref reader, TokenKind.Pipe);
+                SkipPipe();
 
                 do
                 {
-                    list.Add(ParseNamedType(context, ref reader));
+                    list.Add(ParseNamedType());
                 }
-                while (ParserHelper.Skip(ref reader, TokenKind.Pipe));
+                while (SkipPipe());
             }
 
             return list;
@@ -428,28 +407,23 @@ namespace HotChocolate.Language
         /// Description? enum Name Directives[Const]? EnumValuesDefinition?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static EnumTypeDefinitionNode ParseEnumTypeDefinition(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private EnumTypeDefinitionNode ParseEnumTypeDefinition()
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
-            ParserHelper.MoveNext(ref reader);
+            MoveNext();
 
-            NameNode name = ParseName(context, ref reader);
-            StringValueNode description = context.PopDescription();
-            List<DirectiveNode> directives =
-                ParseDirectives(context, ref reader, true);
-            List<EnumValueDefinitionNode> values =
-                ParseEnumValuesDefinition(context, ref reader);
+            NameNode name = ParseName();
+            List<DirectiveNode> directives = ParseDirectives(true);
+            List<EnumValueDefinitionNode> values = ParseEnumValuesDefinition();
 
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new EnumTypeDefinitionNode
             (
                 location,
                 name,
-                description,
+                TakeDescription(),
                 directives,
                 values
             );
@@ -461,29 +435,30 @@ namespace HotChocolate.Language
         /// { EnumValueDefinition+ }
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static List<EnumValueDefinitionNode> ParseEnumValuesDefinition(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private List<EnumValueDefinitionNode> ParseEnumValuesDefinition()
         {
-            if (reader.Kind == TokenKind.LeftBrace)
+            if (_reader.Kind == TokenKind.LeftBrace)
             {
                 var list = new List<EnumValueDefinitionNode>();
 
                 // skip opening token
-                ParserHelper.MoveNext(ref reader);
+                MoveNext();
 
-                while (reader.Kind != TokenKind.RightBrace)
+                while (_reader.Kind != TokenKind.RightBrace)
                 {
-                    list.Add(ParseEnumValueDefinition(context, ref reader));
+                    list.Add(ParseEnumValueDefinition());
                 }
 
                 // skip closing token
-                ParserHelper.Expect(ref reader, TokenKind.RightBrace);
+                ExpectRightBrace();
 
                 return list;
             }
-            return new List<EnumValueDefinitionNode>();
+
+            return emptyEnumValues;
         }
+
+
 
         /// <summary>
         /// Parses an enum value definitions.
@@ -491,18 +466,16 @@ namespace HotChocolate.Language
         /// Description? EnumValue Directives[isConstant=true]?
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static EnumValueDefinitionNode ParseEnumValueDefinition(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private EnumValueDefinitionNode ParseEnumValueDefinition()
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
-            StringValueNode description = ParseDescription(context, ref reader);
-            NameNode name = ParseName(context, ref reader);
+            StringValueNode description = ParseDescription();
+            NameNode name = ParseName();
             List<DirectiveNode> directives =
-                ParseDirectives(context, ref reader, true);
+                ParseDirectives(true);
 
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new EnumValueDefinitionNode
             (
@@ -513,55 +486,51 @@ namespace HotChocolate.Language
             );
         }
 
-        private static InputObjectTypeDefinitionNode ParseInputObjectTypeDefinition(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private InputObjectTypeDefinitionNode ParseInputObjectTypeDefinition()
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
-            ParserHelper.MoveNext(ref reader);
+            MoveNext();
 
-            NameNode name = ParseName(context, ref reader);
-            StringValueNode description = context.PopDescription();
+            NameNode name = ParseName();
             List<DirectiveNode> directives =
-                ParseDirectives(context, ref reader, true);
+                ParseDirectives(true);
             List<InputValueDefinitionNode> fields =
-                ParseInputFieldsDefinition(context, ref reader);
+                ParseInputFieldsDefinition();
 
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new InputObjectTypeDefinitionNode
             (
                 location,
                 name,
-                description,
+                TakeDescription(),
                 directives,
                 fields
             );
         }
 
-        private static List<InputValueDefinitionNode> ParseInputFieldsDefinition(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private List<InputValueDefinitionNode> ParseInputFieldsDefinition()
         {
-            if (reader.Kind == TokenKind.LeftBrace)
+            if (_reader.Kind == TokenKind.LeftBrace)
             {
                 var list = new List<InputValueDefinitionNode>();
 
                 // skip opening token
-                ParserHelper.MoveNext(ref reader);
+                MoveNext();
 
-                while (reader.Kind != TokenKind.RightBrace)
+                while (_reader.Kind != TokenKind.RightBrace)
                 {
-                    list.Add(ParseInputValueDefinition(context, ref reader));
+                    list.Add(ParseInputValueDefinition());
                 }
 
                 // skip closing token
-                ParserHelper.Expect(ref reader, TokenKind.RightBrace);
+                ExpectRightBrace();
 
                 return list;
             }
-            return new List<InputValueDefinitionNode>();
+
+            return _emptyInputVals;
         }
     }
 }
