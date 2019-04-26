@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using Microsoft.AspNetCore.Http.Features;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
 
@@ -20,6 +19,7 @@ using HttpContext = Microsoft.Owin.IOwinContext;
 using RequestDelegate = Microsoft.Owin.OwinMiddleware;
 #else
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 #endif
@@ -68,7 +68,7 @@ namespace HotChocolate.AspNetCore
 
 
             var boundary = MultipartRequestHelper.GetBoundary(context.Request.ContentType);
-            var data = new List<ClientQueryRequestFile>();
+            var data = new List<(string name, string filename, Stream stream)>();
             var requestString = string.Empty;
 
 #if ASPNETCLASSIC
@@ -124,7 +124,7 @@ namespace HotChocolate.AspNetCore
                     continue;
                 }
 
-                data.Add(new ClientQueryRequestFile(name, filename, section.Body));
+                data.Add((name, filename, section.Body));
 
             } while (section != null);
 
@@ -137,14 +137,14 @@ namespace HotChocolate.AspNetCore
                 throw new Exception("Invalid request.");
             }
 
-            var mapData = data.FirstOrDefault(x => x.Name == "map");
+            var mapData = data.FirstOrDefault(x => x.name == "map");
             Dictionary<string, string[]> map = null;
             try
             {
-                if (mapData != null)
+                if (mapData != default)
                 {
-                    mapData.Stream.Seek(0, SeekOrigin.Begin);
-                    using (var sr = new StreamReader(mapData.Stream))
+                    mapData.stream.Seek(0, SeekOrigin.Begin);
+                    using (var sr = new StreamReader(mapData.stream))
                     {
                         map = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(
                             await sr.ReadToEndAsync());
@@ -173,9 +173,9 @@ namespace HotChocolate.AspNetCore
                 {
                     var split = variable.Split('.');
 
-                    var d = data.First(x => x.Name == mapItem.Key);
-                    d.Stream.Seek(0, SeekOrigin.Begin);
-                    var upload = new Upload(d.FileName, d.Stream);
+                    var (_, filename, stream) = data.First(x => x.name == mapItem.Key);
+                    stream.Seek(0, SeekOrigin.Begin);
+                    var upload = new Upload(filename, stream);
 
                     var key = split[1];
 
