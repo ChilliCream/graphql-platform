@@ -31,37 +31,34 @@ namespace HotChocolate.Language
         /// Defines if only constant values are allowed;
         /// otherwise, variables are allowed.
         /// </param>
-        private static IValueNode ParseValueLiteral(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader,
-            bool isConstant)
+        private IValueNode ParseValueLiteral(bool isConstant)
         {
-            if (reader.Kind == TokenKind.LeftBracket)
+            if (_reader.Kind == TokenKind.LeftBracket)
             {
-                return ParseList(context, ref reader, isConstant);
+                return ParseList(isConstant);
             }
 
-            if (reader.Kind == TokenKind.LeftBrace)
+            if (_reader.Kind == TokenKind.LeftBrace)
             {
-                return ParseObject(context, ref reader, isConstant);
+                return ParseObject(isConstant);
             }
 
-            if (TokenHelper.IsScalarValue(ref reader))
+            if (TokenHelper.IsScalarValue(in _reader))
             {
-                return ParseScalarValue(context, ref reader);
+                return ParseScalarValue();
             }
 
-            if (TokenHelper.IsName(ref reader))
+            if (_reader.Kind == TokenKind.Name)
             {
-                return ParseEnumValue(context, ref reader);
+                return ParseEnumValue();
             }
 
-            if (TokenHelper.IsDollar(ref reader) && !isConstant)
+            if (_reader.Kind == TokenKind.Dollar && !isConstant)
             {
-                return ParseVariable(context, ref reader);
+                return ParseVariable();
             }
 
-            throw ParserHelper.Unexpected(ref reader, reader.Kind);
+            throw Unexpected(_reader.Kind);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -70,7 +67,7 @@ namespace HotChocolate.Language
             TokenInfo start = TokenInfo.FromReader(in _reader);
 
             bool isBlock = _reader.Kind == TokenKind.BlockString;
-            string value = ParserHelper.ExpectString(ref reader);
+            string value = ExpectString();
             Location location = CreateLocation(in start);
 
             return new StringValueNode(location, value, isBlock);
@@ -88,35 +85,32 @@ namespace HotChocolate.Language
         /// otherwise, variables are allowed.
         /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ListValueNode ParseList(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader,
-            bool isConstant)
+        private ListValueNode ParseList(bool isConstant)
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
-            if (reader.Kind != TokenKind.LeftBracket)
+            if (_reader.Kind != TokenKind.LeftBracket)
             {
-                throw new SyntaxException(reader,
+                throw new SyntaxException(_reader,
                     string.Format(
                         CultureInfo.InvariantCulture,
                         LangResources.ParseMany_InvalidOpenToken,
                         TokenKind.LeftBracket,
-                        TokenVisualizer.Visualize(in reader)));
+                        TokenVisualizer.Visualize(in _reader)));
             }
 
             var items = new List<IValueNode>();
 
             // skip opening token
-            ParserHelper.MoveNext(ref reader);
+            MoveNext();
 
-            while (reader.Kind != TokenKind.RightBracket)
+            while (_reader.Kind != TokenKind.RightBracket)
             {
-                items.Add(ParseValueLiteral(context, ref reader, isConstant));
+                items.Add(ParseValueLiteral(isConstant));
             }
 
             // skip closing token
-            ParserHelper.Expect(ref reader, TokenKind.RightBracket);
+            Expect(TokenKind.RightBracket);
 
             Location location = CreateLocation(in start);
 
@@ -139,35 +133,32 @@ namespace HotChocolate.Language
         /// otherwise, variables are allowed.
         /// </param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ObjectValueNode ParseObject(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader,
-            bool isConstant)
+        private ObjectValueNode ParseObject(bool isConstant)
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
-            if (reader.Kind != TokenKind.LeftBrace)
+            if (_reader.Kind != TokenKind.LeftBrace)
             {
-                throw new SyntaxException(reader,
+                throw new SyntaxException(_reader,
                     string.Format(
                         CultureInfo.InvariantCulture,
                         LangResources.ParseMany_InvalidOpenToken,
                         TokenKind.LeftBrace,
-                        TokenVisualizer.Visualize(in reader)));
+                        TokenVisualizer.Visualize(in _reader)));
             }
 
             var fields = new List<ObjectFieldNode>();
 
             // skip opening token
-            ParserHelper.MoveNext(ref reader);
+            MoveNext();
 
-            while (reader.Kind != TokenKind.RightBrace)
+            while (_reader.Kind != TokenKind.RightBrace)
             {
-                fields.Add(ParseObjectField(context, ref reader, isConstant));
+                fields.Add(ParseObjectField(isConstant));
             }
 
             // skip closing token
-            ParserHelper.Expect(ref reader, TokenKind.RightBrace);
+            Expect(TokenKind.RightBrace);
 
             Location location = CreateLocation(in start);
 
@@ -179,16 +170,13 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static ObjectFieldNode ParseObjectField(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader,
-            bool isConstant)
+        private ObjectFieldNode ParseObjectField(bool isConstant)
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
-            NameNode name = ParseName(context, ref reader);
-            ParserHelper.ExpectColon(ref reader);
-            IValueNode value = ParseValueLiteral(context, ref reader, isConstant);
+            NameNode name = ParseName();
+            ParserHelper.ExpectColon(ref _reader);
+            IValueNode value = ParseValueLiteral(isConstant);
 
             Location location = CreateLocation(in start);
 
@@ -201,18 +189,16 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static IValueNode ParseScalarValue(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private IValueNode ParseScalarValue()
         {
-            if (TokenHelper.IsString(ref reader))
+            if (TokenHelper.IsString(in _reader))
             {
-                return ParseStringLiteral(context, ref reader);
+                return ParseStringLiteral();
             }
 
-            context.Start(ref reader);
-            TokenKind kind = reader.Kind;
-            string value = ParserHelper.ExpectScalarValue(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenKind kind = _reader.Kind;
+            string value = ExpectScalarValue();
             Location location = CreateLocation(in start);
 
             if (kind == TokenKind.Float)
@@ -233,42 +219,40 @@ namespace HotChocolate.Language
                 );
             }
 
-            throw ParserHelper.Unexpected(ref reader, kind);
+            throw Unexpected(kind);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static IValueNode ParseEnumValue(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private IValueNode ParseEnumValue()
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
             Location location;
 
-            if (reader.Value.SequenceEqual(GraphQLKeywords.True))
+            if (_reader.Value.SequenceEqual(GraphQLKeywords.True))
             {
-                ParserHelper.MoveNext(ref reader);
-                location = context.CreateLocation(ref reader);
+                MoveNext();
+                location = CreateLocation(in start);
                 return new BooleanValueNode(location, true);
             }
 
-            if (reader.Value.SequenceEqual(GraphQLKeywords.False))
+            if (_reader.Value.SequenceEqual(GraphQLKeywords.False))
             {
-                ParserHelper.MoveNext(ref reader);
-                location = context.CreateLocation(ref reader);
+                MoveNext();
+                location = CreateLocation(in start);
                 return new BooleanValueNode(location, false);
             }
 
-            if (reader.Value.SequenceEqual(GraphQLKeywords.Null))
+            if (_reader.Value.SequenceEqual(GraphQLKeywords.Null))
             {
-                ParserHelper.MoveNext(ref reader);
-                location = context.CreateLocation(ref reader);
+                MoveNext();
+                location = CreateLocation(in start);
                 return new NullValueNode(location);
             }
 
-            string value = reader.GetString(reader.Value);
-            ParserHelper.MoveNext(ref reader);
-            location = context.CreateLocation(ref reader);
+            string value = _reader.GetString(_reader.Value);
+            MoveNext();
+            location = location = CreateLocation(in start);
 
             return new EnumValueNode
             (

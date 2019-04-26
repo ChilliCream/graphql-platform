@@ -24,7 +24,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static OperationDefinitionNode ParseOperationDefinition()
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
             OperationType operation = ParseOperationType(context, ref reader);
             NameNode name = reader.Kind == TokenKind.Name
@@ -35,7 +35,7 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives =
                 ParseDirectives(context, ref reader, false);
             SelectionSetNode selectionSet = ParseSelectionSet(context, ref reader);
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new OperationDefinitionNode
             (
@@ -59,9 +59,9 @@ namespace HotChocolate.Language
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
             SelectionSetNode selectionSet = ParseSelectionSet(context, ref reader);
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new OperationDefinitionNode
             (
@@ -150,7 +150,7 @@ namespace HotChocolate.Language
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
             VariableNode variable = ParseVariable(context, ref reader);
             ParserHelper.ExpectColon(ref reader);
@@ -159,7 +159,7 @@ namespace HotChocolate.Language
                 ? ParseValueLiteral(context, ref reader, true)
                 : null;
 
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new VariableDefinitionNode
             (
@@ -177,14 +177,12 @@ namespace HotChocolate.Language
         /// </summary>
         /// <param name="context">The parser context.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static VariableNode ParseVariable(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private VariableNode ParseVariable()
         {
-            context.Start(ref reader);
-            ParserHelper.ExpectDollar(ref reader);
-            NameNode name = ParseName(context, ref reader);
-            Location location = context.CreateLocation(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
+            ExpectDollar();
+            NameNode name = ParseName();
+            Location location = CreateLocation(in start);
 
             return new VariableNode
             (
@@ -204,7 +202,7 @@ namespace HotChocolate.Language
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
             if (reader.Kind != TokenKind.LeftBrace)
             {
@@ -229,7 +227,7 @@ namespace HotChocolate.Language
             // skip closing token
             ParserHelper.Expect(ref reader, TokenKind.RightBrace);
 
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new SelectionSetNode
             (
@@ -269,7 +267,7 @@ namespace HotChocolate.Language
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
             NameNode name = ParseName(context, ref reader);
             NameNode alias = null;
@@ -286,7 +284,7 @@ namespace HotChocolate.Language
                 ? ParseSelectionSet(context, ref reader)
                 : null;
 
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new FieldNode
             (
@@ -344,13 +342,13 @@ namespace HotChocolate.Language
             ref Utf8GraphQLReader reader,
             bool isConstant)
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
             NameNode name = ParseName(context, ref reader);
             ParserHelper.ExpectColon(ref reader);
             IValueNode value = ParseValueLiteral(context, ref reader, isConstant);
 
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new ArgumentNode
             (
