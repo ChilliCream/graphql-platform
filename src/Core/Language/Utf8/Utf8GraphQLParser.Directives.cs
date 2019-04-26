@@ -7,6 +7,7 @@ namespace HotChocolate.Language
     {
         private static readonly List<DirectiveNode> _emptyDirectives =
             new List<DirectiveNode>();
+
         private DirectiveDefinitionNode ParseDirectiveDefinition()
         {
             TokenInfo start = TokenInfo.FromReader(in _reader);
@@ -38,49 +39,44 @@ namespace HotChocolate.Language
             );
         }
 
-        private static List<NameNode> ParseDirectiveLocations(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private List<NameNode> ParseDirectiveLocations()
         {
             var list = new List<NameNode>();
 
             // skip optional leading pipe.
-            ParserHelper.Skip(ref reader, TokenKind.Pipe);
+            SkipPipe();
 
             do
             {
-                list.Add(ParseDirectiveLocation(context, ref reader));
+                list.Add(ParseDirectiveLocation());
             }
-            while (ParserHelper.Skip(ref reader, TokenKind.Pipe));
+            while (SkipPipe());
 
             return list;
         }
 
-        private static NameNode ParseDirectiveLocation(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private NameNode ParseDirectiveLocation()
         {
-            TokenKind kind = reader.Kind;
-            NameNode name = ParseName(context, ref reader);
+            TokenKind kind = _reader.Kind;
+            NameNode name = ParseName();
+
             if (DirectiveLocation.IsValidName(name.Value))
             {
                 return name;
             }
-            throw ParserHelper.Unexpected(ref reader, kind);
+
+            throw Unexpected(kind);
         }
 
-        private static List<DirectiveNode> ParseDirectives(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader,
-            bool isConstant)
+        private List<DirectiveNode> ParseDirectives(bool isConstant)
         {
-            if (reader.Kind == TokenKind.At)
+            if (_reader.Kind == TokenKind.At)
             {
                 var list = new List<DirectiveNode>();
 
-                while (reader.Kind == TokenKind.At)
+                while (_reader.Kind == TokenKind.At)
                 {
-                    list.Add(ParseDirective(context, ref reader, isConstant));
+                    list.Add(ParseDirective(isConstant));
                 }
 
                 return list;
@@ -90,17 +86,13 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static DirectiveNode ParseDirective(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader,
-            bool isConstant)
+        private DirectiveNode ParseDirective(bool isConstant)
         {
             TokenInfo start = TokenInfo.FromReader(in _reader);
 
-            ParserHelper.ExpectAt(ref reader);
-            NameNode name = ParseName(context, ref reader);
-            List<ArgumentNode> arguments =
-                ParseArguments(context, ref reader, isConstant);
+            ExpectAt();
+            NameNode name = ParseName();
+            List<ArgumentNode> arguments = ParseArguments(isConstant);
 
             Location location = CreateLocation(in start);
 

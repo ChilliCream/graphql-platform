@@ -73,21 +73,40 @@ namespace HotChocolate.Language
 
         public unsafe string GetString()
         {
-            byte[] unescaped = ArrayPool<byte>.Shared.Rent(_value.Length);
+            bool isBlockString = Kind == TokenKind.BlockString;
 
-            try
+            int length = checked((int)_value.Length);
+            bool useStackalloc =
+                _value.Length <= GraphQLConstants.StackallocThreshold;
+
+            byte[] escapedArray = null;
+            byte[] unescapedArray = null;
+
+            Span<byte> escapedSpan = useStackalloc
+                ? stackalloc byte[_value.Length]
+                : (escapedArray = ArrayPool<byte>.Shared.Rent(_value.Length));
+
+            Span<byte> unescapedSpan = useStackalloc
+                ? stackalloc byte[_value.Length]
+                : (unescapedArray = ArrayPool<byte>.Shared.Rent(_value.Length));
+
+            _value.CopyTo(escapedSpan);
+            escapedSpan = escapedSpan.Slice(0, length);
+
+            UnescapeValue(escapedSpan, unescapedSpan, isBlockString);
+
+            fixed (byte* bytePtr = unescapedSpan)
             {
-                var unescapedSpan = new Span<byte>(unescaped);
-                UnescapeValue(ref unescapedSpan);
-
-                fixed (byte* bytePtr = unescaped)
-                {
-                    return _utf8Encoding.GetString(bytePtr, _value.Length);
-                }
+                return _utf8Encoding.GetString(bytePtr, _value.Length);
             }
-            finally
+
+            if (escapedArray != null)
             {
-                ArrayPool<byte>.Shared.Return(unescaped);
+                escapedSpan.Clear();
+                unescapedSpan.Clear();
+
+                ArrayPool<byte>.Shared.Return(escapedArray);
+                ArrayPool<byte>.Shared.Return(unescapedArray);
             }
         }
 
@@ -99,7 +118,24 @@ namespace HotChocolate.Language
             }
         }
 
-        public void UnescapeValue(ref Span<byte> unescapedValue)
+        private static void UnescapeValue(
+            ReadOnlySpan<byte> escaped,
+            Span<byte> unescapedValue,
+            bool isBlockString)
+        {
+            Utf8Helper.Unescape(
+                in escaped,
+                ref unescapedValue,
+                isBlockString);
+
+            if (isBlockString)
+            {
+                BlockStringHelper.TrimBlockStringToken(
+                    unescapedValue, ref unescapedValue);
+            }
+        }
+
+        public void UnescapeValue(Span<byte> unescapedValue)
         {
             bool isBlockString = Kind == TokenKind.BlockString;
 

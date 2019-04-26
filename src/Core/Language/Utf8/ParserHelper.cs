@@ -66,10 +66,11 @@ namespace HotChocolate.Language
                 $"{TokenVisualizer.Visualize(in reader)}.");
         }
 
-        public static void ExpectSpread(ref Utf8GraphQLReader reader)
-        {
+        public static void ExpectSpread(ref Utf8GraphQLReader reader) =>
             Expect(ref reader, TokenKind.Spread);
-        }
+
+        public static void ExpectRightParenthesis(ref Utf8GraphQLReader reader) =>
+            Expect(ref reader, TokenKind.RightParenthesis);
 
         public static void Expect(
             ref Utf8GraphQLReader reader,

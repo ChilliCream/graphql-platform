@@ -52,25 +52,17 @@ namespace HotChocolate.Language
                 $"Expected a name token: {TokenVisualizer.Visualize(in _reader)}.");
         }
 
-        private void ExpectColon()
-        {
+        private void ExpectColon() =>
             Expect(TokenKind.Colon);
-        }
 
-        private void ExpectDollar()
-        {
+        private void ExpectDollar() =>
             Expect(TokenKind.Dollar);
-        }
 
-        private void ExpectAt()
-        {
+        private void ExpectAt() =>
             Expect(TokenKind.At);
-        }
 
-        private void ExpectRightBracket()
-        {
+        private void ExpectRightBracket() =>
             Expect(TokenKind.RightBracket);
-        }
 
         private string ExpectString()
         {
@@ -102,10 +94,14 @@ namespace HotChocolate.Language
                 $"{TokenVisualizer.Visualize(in _reader)}.");
         }
 
-        private void ExpectSpread(ref Utf8GraphQLReader reader)
-        {
+        private void ExpectSpread() =>
             Expect(TokenKind.Spread);
-        }
+
+        public void ExpectRightParenthesis() =>
+            Expect(TokenKind.RightParenthesis);
+
+        public void ExpectRightBrace() =>
+            Expect(TokenKind.RightBrace);
 
         private void Expect(TokenKind kind)
         {
@@ -117,25 +113,17 @@ namespace HotChocolate.Language
             }
         }
 
-        private void ExpectSchemaKeyword()
-        {
+        private void ExpectSchemaKeyword() =>
             ExpectKeyword(GraphQLKeywords.Schema);
-        }
 
-        private void ExpectDirectiveKeyword()
-        {
+        private void ExpectDirectiveKeyword() =>
             ExpectKeyword(GraphQLKeywords.Directive);
-        }
 
-        private void ExpectOnKeyword()
-        {
+        private void ExpectOnKeyword() =>
             ExpectKeyword(GraphQLKeywords.On);
-        }
 
-        private void ExpectFragmentKeyword()
-        {
+        private void ExpectFragmentKeyword() =>
             ExpectKeyword(GraphQLKeywords.Fragment);
-        }
 
         private void ExpectKeyword(ReadOnlySpan<byte> keyword)
         {
@@ -156,6 +144,12 @@ namespace HotChocolate.Language
             }
         }
 
+        private bool SkipPipe() => Skip(TokenKind.Pipe);
+
+        private bool SkipEqual() => Skip(TokenKind.Equal);
+
+        private bool SkipColon() => Skip(TokenKind.Colon);
+
         private bool Skip(TokenKind kind)
         {
             if (_reader.Kind == kind)
@@ -165,10 +159,8 @@ namespace HotChocolate.Language
             return false;
         }
 
-        private bool SkipRepeatableKeyword()
-        {
-            return SkipKeyword(GraphQLKeywords.Repeatable);
-        }
+        private bool SkipRepeatableKeyword() =>
+            SkipKeyword(GraphQLKeywords.Repeatable);
 
         private bool SkipKeyword(ReadOnlySpan<byte> keyword)
         {

@@ -11,40 +11,44 @@
         /// - NonNullType
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static ITypeNode ParseTypeReference(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private ITypeNode ParseTypeReference()
         {
             ITypeNode type;
             Location location;
 
-            if (reader.Kind == TokenKind.LeftBracket)
+            if (_reader.Kind == TokenKind.LeftBracket)
             {
-                context.Start(ref reader);
-                ParserHelper.MoveNext(ref reader);
-                type = ParseTypeReference(context, ref reader);
-                ParserHelper.ExpectRightBracket(ref reader);
-                location = context.CreateLocation(ref reader);
+                TokenInfo start = TokenInfo.FromReader(in _reader);
+
+                MoveNext();
+                type = ParseTypeReference();
+                ExpectRightBracket();
+
+                location = CreateLocation(in start);
+
                 type = new ListTypeNode(location, type);
             }
             else
             {
-                type = ParseNamedType(context, ref reader);
+                type = ParseNamedType();
             }
 
-            if (reader.Kind == TokenKind.Bang)
+            if (_reader.Kind == TokenKind.Bang)
             {
                 if (type is INullableTypeNode nt)
                 {
-                    context.Start(ref reader);
-                    ParserHelper.MoveNext(ref reader);
+                    TokenInfo start = TokenInfo.FromReader(in _reader);
+                    MoveNext();
+                    location = CreateLocation(in start);
+
                     return new NonNullTypeNode
                     (
-                        context.CreateLocation(ref reader),
+                        location,
                         nt
                     );
                 }
-                ParserHelper.Unexpected(ref reader, TokenKind.Bang);
+
+                Unexpected(TokenKind.Bang);
             }
 
             return type;
@@ -56,13 +60,11 @@
         /// Name
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static NamedTypeNode ParseNamedType(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private NamedTypeNode ParseNamedType()
         {
-            context.Start(ref reader);
-            NameNode name = ParseName(context, ref reader);
-            Location location = context.CreateLocation(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
+            NameNode name = ParseName();
+            Location location = CreateLocation(in start);
 
             return new NamedTypeNode
             (

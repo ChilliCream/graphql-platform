@@ -20,6 +20,8 @@
         private static readonly bool[] _isDigitOrMinus =
             new bool[char.MaxValue + 1];
 
+        public const int StackallocThreshold = 256;
+
         public const byte A = (byte)'a';
         public const byte Z = (byte)'z';
         public const byte Hyphen = (byte)'-';

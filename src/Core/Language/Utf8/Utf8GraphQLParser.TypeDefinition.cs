@@ -268,9 +268,7 @@ namespace HotChocolate.Language
         /// ( InputValueDefinition+ )
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static List<InputValueDefinitionNode> ParseArgumentDefinitions(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private List<InputValueDefinitionNode> ParseArgumentDefinitions()
         {
             if (reader.Kind == TokenKind.LeftParenthesis)
             {

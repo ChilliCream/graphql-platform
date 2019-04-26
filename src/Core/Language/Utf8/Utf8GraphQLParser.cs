@@ -7,6 +7,7 @@ namespace HotChocolate.Language
     {
         private readonly ParserOptions _options;
         private readonly bool _createLocation;
+        private readonly bool _allowFragmentVars;
         private Utf8GraphQLReader _reader;
         private StringValueNode _description;
 
@@ -28,6 +29,7 @@ namespace HotChocolate.Language
 
             _options = options;
             _createLocation = !options.NoLocations;
+            _allowFragmentVars = options.Experimental.AllowFragmentVariables;
             _reader = new Utf8GraphQLReader(graphQLData);
             _description = null;
         }
@@ -118,7 +120,7 @@ namespace HotChocolate.Language
             }
             else if (_reader.Kind == TokenKind.LeftBrace)
             {
-                return ParseOperationDefinitionShortHandForm();
+                return ParseShortOperationDefinition();
             }
 
             throw ParserHelper.Unexpected(reader.Kind);
