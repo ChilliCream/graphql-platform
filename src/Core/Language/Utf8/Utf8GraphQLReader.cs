@@ -697,5 +697,18 @@ namespace HotChocolate.Language
         {
             return Position >= GraphQLData.Length;
         }
+
+        public unsafe static int ConvertToBytes(string s, byte[] buffer)
+        {
+            fixed (byte* bytePtr = buffer)
+            {
+                fixed (char* stringPtr = s)
+                {
+                    return _utf8Encoding.GetBytes(
+                        stringPtr, s.Length,
+                        bytePtr, buffer.Length);
+                }
+            }
+        }
     }
 }
