@@ -90,23 +90,28 @@ namespace HotChocolate.Language
                 ? stackalloc byte[_value.Length]
                 : (unescapedArray = ArrayPool<byte>.Shared.Rent(_value.Length));
 
-            _value.CopyTo(escapedSpan);
-            escapedSpan = escapedSpan.Slice(0, length);
-
-            UnescapeValue(escapedSpan, unescapedSpan, isBlockString);
-
-            fixed (byte* bytePtr = unescapedSpan)
+            try
             {
-                return _utf8Encoding.GetString(bytePtr, _value.Length);
+                _value.CopyTo(escapedSpan);
+                escapedSpan = escapedSpan.Slice(0, length);
+
+                UnescapeValue(escapedSpan, unescapedSpan, isBlockString);
+
+                fixed (byte* bytePtr = unescapedSpan)
+                {
+                    return _utf8Encoding.GetString(bytePtr, _value.Length);
+                }
             }
-
-            if (escapedArray != null)
+            finally
             {
-                escapedSpan.Clear();
-                unescapedSpan.Clear();
+                if (escapedArray != null)
+                {
+                    escapedSpan.Clear();
+                    unescapedSpan.Clear();
 
-                ArrayPool<byte>.Shared.Return(escapedArray);
-                ArrayPool<byte>.Shared.Return(unescapedArray);
+                    ArrayPool<byte>.Shared.Return(escapedArray);
+                    ArrayPool<byte>.Shared.Return(unescapedArray);
+                }
             }
         }
 

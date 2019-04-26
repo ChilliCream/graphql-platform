@@ -3,20 +3,8 @@
   "Location": {
     "Start": 0,
     "End": 0,
-    "StartToken": {
-      "Kind": "StartOfFile",
-      "Start": 0,
-      "End": 0,
-      "Line": 1,
-      "Column": 1
-    },
-    "EndToken": {
-      "Kind": "StartOfFile",
-      "Start": 0,
-      "End": 0,
-      "Line": 1,
-      "Column": 1
-    }
+    "Line": 0,
+    "Column": 0
   },
   "Selections": [
     {

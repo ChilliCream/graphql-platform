@@ -32,6 +32,7 @@ namespace HotChocolate.Language
                         if (escapedString[readPosition + 1] == GraphQLConstants.Quote
                             && escapedString[readPosition + 2] == GraphQLConstants.Quote)
                         {
+                            readPosition += 2;
                             unescapedString[writePosition++] = GraphQLConstants.Quote;
                             unescapedString[writePosition++] = GraphQLConstants.Quote;
                             unescapedString[writePosition++] = GraphQLConstants.Quote;

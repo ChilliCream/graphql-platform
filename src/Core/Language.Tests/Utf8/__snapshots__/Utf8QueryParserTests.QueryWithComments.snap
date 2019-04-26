@@ -1,17 +1,32 @@
 ﻿{
   "Kind": "Document",
-  "Location": null,
+  "Location": {
+    "Start": 0,
+    "End": 211,
+    "Line": 1,
+    "Column": 1
+  },
   "Definitions": [
     {
       "Kind": "OperationDefinition",
-      "Location": null,
+      "Location": {
+        "Start": 0,
+        "End": 211,
+        "Line": 1,
+        "Column": 1
+      },
       "Name": null,
       "Operation": "Query",
       "VariableDefinitions": [],
       "Directives": [],
       "SelectionSet": {
         "Kind": "SelectionSet",
-        "Location": null,
+        "Location": {
+          "Start": 0,
+          "End": 211,
+          "Line": 1,
+          "Column": 1
+        },
         "Selections": [
           {
             "Kind": "Field",
@@ -19,17 +34,32 @@
             "Arguments": [],
             "SelectionSet": {
               "Kind": "SelectionSet",
-              "Location": null,
+              "Location": {
+                "Start": 23,
+                "End": 211,
+                "Line": 2,
+                "Column": 22
+              },
               "Selections": [
                 {
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
                   "SelectionSet": null,
-                  "Location": null,
+                  "Location": {
+                    "Start": 45,
+                    "End": 126,
+                    "Line": 3,
+                    "Column": 21
+                  },
                   "Name": {
                     "Kind": "Name",
-                    "Location": null,
+                    "Location": {
+                      "Start": 45,
+                      "End": 126,
+                      "Line": 3,
+                      "Column": 21
+                    },
                     "Value": "name"
                   },
                   "Directives": []
@@ -40,37 +70,72 @@
                   "Arguments": [],
                   "SelectionSet": {
                     "Kind": "SelectionSet",
-                    "Location": null,
+                    "Location": {
+                      "Start": 127,
+                      "End": 197,
+                      "Line": 5,
+                      "Column": 29
+                    },
                     "Selections": [
                       {
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
                         "SelectionSet": null,
-                        "Location": null,
+                        "Location": {
+                          "Start": 153,
+                          "End": 179,
+                          "Line": 6,
+                          "Column": 25
+                        },
                         "Name": {
                           "Kind": "Name",
-                          "Location": null,
+                          "Location": {
+                            "Start": 153,
+                            "End": 179,
+                            "Line": 6,
+                            "Column": 25
+                          },
                           "Value": "name"
                         },
                         "Directives": []
                       }
                     ]
                   },
-                  "Location": null,
+                  "Location": {
+                    "Start": 119,
+                    "End": 197,
+                    "Line": 5,
+                    "Column": 21
+                  },
                   "Name": {
                     "Kind": "Name",
-                    "Location": null,
+                    "Location": {
+                      "Start": 119,
+                      "End": 128,
+                      "Line": 5,
+                      "Column": 21
+                    },
                     "Value": "friends"
                   },
                   "Directives": []
                 }
               ]
             },
-            "Location": null,
+            "Location": {
+              "Start": 18,
+              "End": 211,
+              "Line": 2,
+              "Column": 17
+            },
             "Name": {
               "Kind": "Name",
-              "Location": null,
+              "Location": {
+                "Start": 18,
+                "End": 24,
+                "Line": 2,
+                "Column": 17
+              },
               "Value": "hero"
             },
             "Directives": []

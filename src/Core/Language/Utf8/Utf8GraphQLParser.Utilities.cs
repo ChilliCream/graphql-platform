@@ -156,7 +156,8 @@ namespace HotChocolate.Language
         {
             if (_reader.Kind == kind)
             {
-                return MoveNext();
+                MoveNext();
+                return true;
             }
             return false;
         }

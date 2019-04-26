@@ -56,7 +56,7 @@ namespace HotChocolate.Language
         [InlineData("\\\"\"\"", "\"\"\"")]
         [Theory]
         public void Unescape_BlockStringEscapeChars_OutputIsUnescaped(
-           string escaped, string unescaped)
+          string escaped, string unescaped)
         {
             // arrange
             byte[] inputData = Encoding.UTF8.GetBytes("hello_123_" + escaped);
