@@ -37,7 +37,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private SchemaDefinitionNode ParseSchemaDefinition()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             // skip schema keyword
             MoveNext();
@@ -87,7 +87,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private OperationTypeDefinitionNode ParseOperationTypeDefinition()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             OperationType operation = ParseOperationType();
             ExpectColon();
@@ -112,7 +112,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private ScalarTypeDefinitionNode ParseScalarTypeDefinition()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             // skip scalar keyword
             MoveNext();
@@ -140,7 +140,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private ObjectTypeDefinitionNode ParseObjectTypeDefinition()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             // skip type keyword
             MoveNext();
@@ -228,7 +228,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private FieldDefinitionNode ParseFieldDefinition()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             StringValueNode description = ParseDescription();
             NameNode name = ParseName();
@@ -288,7 +288,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private InputValueDefinitionNode ParseInputValueDefinition()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             StringValueNode description = ParseDescription();
             NameNode name = ParseName();
@@ -324,7 +324,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private InterfaceTypeDefinitionNode ParseInterfaceTypeDefinition()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             MoveNext();
 
@@ -355,7 +355,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private UnionTypeDefinitionNode ParseUnionTypeDefinition()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             MoveNext();
 
@@ -409,7 +409,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private EnumTypeDefinitionNode ParseEnumTypeDefinition()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             MoveNext();
 
@@ -468,7 +468,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private EnumValueDefinitionNode ParseEnumValueDefinition()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             StringValueNode description = ParseDescription();
             NameNode name = ParseName();
@@ -488,7 +488,7 @@ namespace HotChocolate.Language
 
         private InputObjectTypeDefinitionNode ParseInputObjectTypeDefinition()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             MoveNext();
 

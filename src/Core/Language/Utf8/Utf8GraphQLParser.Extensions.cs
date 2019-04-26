@@ -12,7 +12,7 @@ namespace HotChocolate.Language
 
         private ITypeExtensionNode ParseTypeExtension()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             // extensions do not have a description
             TakeDescription();

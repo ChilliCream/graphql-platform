@@ -41,15 +41,6 @@ namespace HotChocolate.Language
             /// <see cref="SyntaxToken" /> begins.
             /// </summary>
             public int Column { get; }
-
-            public static TokenInfo FromReader(in Utf8GraphQLReader reader)
-            {
-                return new TokenInfo(
-                    reader.Start,
-                    reader.End,
-                    reader.Line,
-                    reader.Column);
-            }
         }
     }
 

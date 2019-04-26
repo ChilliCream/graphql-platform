@@ -64,7 +64,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private StringValueNode ParseStringLiteral()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             bool isBlock = _reader.Kind == TokenKind.BlockString;
             string value = ExpectString();
@@ -87,7 +87,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ListValueNode ParseList(bool isConstant)
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             if (_reader.Kind != TokenKind.LeftBracket)
             {
@@ -135,7 +135,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ObjectValueNode ParseObject(bool isConstant)
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             if (_reader.Kind != TokenKind.LeftBrace)
             {
@@ -172,7 +172,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ObjectFieldNode ParseObjectField(bool isConstant)
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             NameNode name = ParseName();
             ExpectColon();
@@ -196,7 +196,7 @@ namespace HotChocolate.Language
                 return ParseStringLiteral();
             }
 
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
             TokenKind kind = _reader.Kind;
             string value = ExpectScalarValue();
             Location location = CreateLocation(in start);
@@ -225,7 +225,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private IValueNode ParseEnumValue()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             Location location;
 

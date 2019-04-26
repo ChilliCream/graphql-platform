@@ -18,7 +18,7 @@
 
             if (_reader.Kind == TokenKind.LeftBracket)
             {
-                TokenInfo start = TokenInfo.FromReader(in _reader);
+                TokenInfo start = Start();
 
                 MoveNext();
                 type = ParseTypeReference();
@@ -37,7 +37,7 @@
             {
                 if (type is INullableTypeNode nt)
                 {
-                    TokenInfo start = TokenInfo.FromReader(in _reader);
+                    TokenInfo start = Start();
                     MoveNext();
                     location = CreateLocation(in start);
 
@@ -62,7 +62,7 @@
         /// <param name="context">The parser context.</param>
         private NamedTypeNode ParseNamedType()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
             NameNode name = ParseName();
             Location location = CreateLocation(in start);
 

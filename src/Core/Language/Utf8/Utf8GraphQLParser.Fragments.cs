@@ -16,7 +16,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ISelectionNode ParseFragment()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             ExpectSpread();
             var isOnKeyword = _reader.Value.SequenceEqual(GraphQLKeywords.On);
@@ -44,7 +44,7 @@ namespace HotChocolate.Language
         /// <param name="context">The parser context.</param>
         private FragmentDefinitionNode ParseFragmentDefinition()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             ExpectFragmentKeyword();
 

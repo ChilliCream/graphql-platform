@@ -24,7 +24,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private OperationDefinitionNode ParseOperationDefinition()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             OperationType operation = ParseOperationType();
             NameNode name = _reader.Kind == TokenKind.Name
@@ -57,7 +57,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private OperationDefinitionNode ParseShortOperationDefinition()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
             SelectionSetNode selectionSet = ParseSelectionSet();
             Location location = CreateLocation(in start);
 
@@ -142,7 +142,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private VariableDefinitionNode ParseVariableDefinition()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             VariableNode variable = ParseVariable();
             ExpectColon();
@@ -171,7 +171,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private VariableNode ParseVariable()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
             ExpectDollar();
             NameNode name = ParseName();
             Location location = CreateLocation(in start);
@@ -192,7 +192,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private SelectionSetNode ParseSelectionSet()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             if (_reader.Kind != TokenKind.LeftBrace)
             {
@@ -253,7 +253,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private FieldNode ParseField()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             NameNode name = ParseName();
             NameNode alias = null;
@@ -322,7 +322,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private ArgumentNode ParseArgument(bool isConstant)
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             NameNode name = ParseName();
             ExpectColon();

@@ -12,7 +12,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private NameNode ParseName()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
             string name = ExpectName();
             Location location = CreateLocation(in start);
 
@@ -29,6 +29,17 @@ namespace HotChocolate.Language
             return !_reader.IsEndOfStream();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private TokenInfo Start() =>
+            _createLocation
+                ? new TokenInfo(
+                    _reader.Start,
+                    _reader.End,
+                    _reader.Line,
+                    _reader.Column)
+                : default;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Location CreateLocation(in TokenInfo start) =>
             _createLocation
                 ? new Location(
@@ -38,6 +49,7 @@ namespace HotChocolate.Language
                     start.Column)
                 : null;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private string ExpectName()
         {
             if (_reader.Kind == TokenKind.Name)
@@ -64,6 +76,7 @@ namespace HotChocolate.Language
         private void ExpectRightBracket() =>
             Expect(TokenKind.RightBracket);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private string ExpectString()
         {
             if (TokenHelper.IsString(in _reader))
@@ -79,6 +92,7 @@ namespace HotChocolate.Language
                 $"{TokenVisualizer.Visualize(in _reader)}.");
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private string ExpectScalarValue()
         {
             if (TokenHelper.IsScalarValue(in _reader))
@@ -103,6 +117,7 @@ namespace HotChocolate.Language
         private void ExpectRightBrace() =>
             Expect(TokenKind.RightBrace);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Expect(TokenKind kind)
         {
             if (!Skip(kind))
@@ -125,6 +140,7 @@ namespace HotChocolate.Language
         private void ExpectFragmentKeyword() =>
             ExpectKeyword(GraphQLKeywords.Fragment);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ExpectKeyword(ReadOnlySpan<byte> keyword)
         {
             if (!SkipKeyword(keyword))
@@ -136,14 +152,6 @@ namespace HotChocolate.Language
             }
         }
 
-        private void SkipDescription()
-        {
-            if (TokenHelper.IsDescription(in _reader))
-            {
-                MoveNext();
-            }
-        }
-
         private bool SkipPipe() => Skip(TokenKind.Pipe);
 
         private bool SkipEqual() => Skip(TokenKind.Equal);
@@ -152,6 +160,7 @@ namespace HotChocolate.Language
 
         private bool SkipAmpersand() => Skip(TokenKind.Ampersand);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool Skip(TokenKind kind)
         {
             if (_reader.Kind == kind)
@@ -168,6 +177,7 @@ namespace HotChocolate.Language
         private bool SkipImplementsKeyword() =>
             SkipKeyword(GraphQLKeywords.Implements);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private bool SkipKeyword(ReadOnlySpan<byte> keyword)
         {
             if (_reader.Kind == TokenKind.Name
@@ -179,6 +189,7 @@ namespace HotChocolate.Language
             return false;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private StringValueNode TakeDescription()
         {
             StringValueNode description = _description;

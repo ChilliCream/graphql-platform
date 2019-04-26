@@ -10,7 +10,7 @@ namespace HotChocolate.Language
 
         private DirectiveDefinitionNode ParseDirectiveDefinition()
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             StringValueNode description = ParseDescription();
 
@@ -88,7 +88,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private DirectiveNode ParseDirective(bool isConstant)
         {
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             ExpectAt();
             NameNode name = ParseName();

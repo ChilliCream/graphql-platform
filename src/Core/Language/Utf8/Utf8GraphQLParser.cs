@@ -44,7 +44,7 @@ namespace HotChocolate.Language
         {
             var definitions = new List<IDefinitionNode>();
 
-            TokenInfo start = TokenInfo.FromReader(in _reader);
+            TokenInfo start = Start();
 
             MoveNext();
 

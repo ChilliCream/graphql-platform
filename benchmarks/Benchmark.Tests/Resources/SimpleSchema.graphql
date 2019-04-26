@@ -1,9 +1,0 @@
-type xyz {
-  x: String
-  y: Test
-}
-
-type Test {
-  a: String
-  b: Int
-}
