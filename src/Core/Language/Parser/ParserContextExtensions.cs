@@ -166,18 +166,10 @@
             }
 
             return new Location(
-                new SyntaxTokenInfo(
-                    start.Kind,
-                    start.Start,
-                    start.End,
-                    start.Line,
-                    start.Column),
-                new SyntaxTokenInfo(
-                    context.Current.Kind,
-                    context.Current.Start,
-                    context.Current.End,
-                    context.Current.Line,
-                    context.Current.Column));
+                start.Start,
+                context.Current.End,
+                start.Line,
+                start.Column);
         }
 
         public static SyntaxException Unexpected(

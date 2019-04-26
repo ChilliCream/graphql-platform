@@ -5,7 +5,7 @@ using HotChocolate.Language.Properties;
 namespace HotChocolate.Language
 {
     // Implements the parsing rules in the Type Definition section.
-    public partial class Utf8Parser
+    public ref partial struct Utf8GraphQLParser
     {
         /// <summary>
         /// Parses a description.
@@ -13,13 +13,11 @@ namespace HotChocolate.Language
         /// StringValue
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static StringValueNode ParseDescription(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private StringValueNode ParseDescription()
         {
-            if (TokenHelper.IsDescription(ref reader))
+            if (TokenHelper.IsDescription(in _reader))
             {
-                return ParseStringLiteral(context, ref reader);
+                return ParseStringLiteral();
             }
             return null;
         }
@@ -184,7 +182,7 @@ namespace HotChocolate.Language
         {
             var list = new List<NamedTypeNode>();
 
-            if (ParserHelper.SkipKeyword(ref reader, Utf8Keywords.Implements))
+            if (ParserHelper.SkipKeyword(ref reader, GraphQLKeywords.Implements))
             {
                 // skip optional leading amperdand.
                 ParserHelper.Skip(ref reader, TokenKind.Ampersand);

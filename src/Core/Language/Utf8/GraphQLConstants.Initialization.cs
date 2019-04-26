@@ -1,8 +1,8 @@
 ﻿namespace HotChocolate.Language
 {
-    internal static partial class ReaderHelper
+    internal static partial class GraphQLConstants
     {
-        static ReaderHelper()
+        static GraphQLConstants()
         {
             InitializeIsControlCharacterCache();
             InitializeIsEscapeCharacterCache();

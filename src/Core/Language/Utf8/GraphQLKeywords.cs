@@ -1,6 +1,6 @@
 ﻿namespace HotChocolate.Language
 {
-    internal static class Utf8Keywords
+    internal static class GraphQLKeywords
     {
         // type system
         public static readonly byte[] Schema = new byte[]

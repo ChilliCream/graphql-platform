@@ -4,12 +4,12 @@ namespace HotChocolate.Language
 {
     public sealed class Location
     {
-        public Location()
+        public Location(int start, int end, int line, int column)
         {
-            StartToken = start;
-            EndToken = end;
-            Start = start.Start;
-            End = end.End;
+            Start = start;
+            End = end;
+            Line = line;
+            Column = column;
         }
 
         /// <summary>

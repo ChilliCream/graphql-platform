@@ -5,7 +5,7 @@
     /// that are used to tokenize a GraphQL source text.
     /// These utilities are used by the lexer dfault implementation.
     /// </summary>
-    internal static partial class ReaderHelper
+    internal static partial class GraphQLConstants
     {
         private static readonly bool[] _isLetterOrUnderscore =
             new bool[char.MaxValue + 1];
@@ -20,19 +20,20 @@
         private static readonly bool[] _isDigitOrMinus =
             new bool[char.MaxValue + 1];
 
-        private const byte _a = (byte)'a';
-        private const byte _z = (byte)'z';
-        private const byte _hyphen = (byte)'-';
-        private const byte _underscore = (byte)'_';
-        private const byte _plus = (byte)'+';
-        private const byte _backslash = (byte)'\\';
-        private const byte _b = (byte)'b';
-        private const byte _besc = (byte)'\b';
-        private const byte _f = (byte)'f';
-        private const byte _fesc = (byte)'\f';
-        private const byte _n = (byte)'n';
-        private const byte _r = (byte)'r';
-        private const byte _t = (byte)'t';
+        public const byte A = (byte)'a';
+        public const byte Z = (byte)'z';
+        public const byte Hyphen = (byte)'-';
+        public const byte Underscore = (byte)'_';
+        public const byte Plus = (byte)'+';
+        public const byte Minus = (byte)'-';
+        public const byte Backslash = (byte)'\\';
+        public const byte B = (byte)'b';
+        public const byte Backspace = (byte)'\b';
+        public const byte F = (byte)'f';
+        public const byte Formfeed = (byte)'\f';
+        public const byte N = (byte)'n';
+        public const byte R = (byte)'r';
+        public const byte T = (byte)'t';
 
         public const byte Bang = (byte)'!';
         public const byte Dollar = (byte)'$';
@@ -66,7 +67,7 @@
         public static bool IsLetter(in this byte c)
         {
             byte normalized = (byte)(c | 0x20);
-            return (normalized >= _a && normalized <= _z);
+            return (normalized >= A && normalized <= Z);
         }
 
         public static bool IsLetterOrUnderscore(in this byte c)
@@ -84,46 +85,6 @@
             return _isDigitOrMinus[c];
         }
 
-        public static bool IsDot(in this byte c)
-        {
-            return c == Dot;
-        }
-
-        public static bool IsHyphen(in this byte c)
-        {
-            return c == _hyphen;
-        }
-
-        public static bool IsUnderscore(in this byte c)
-        {
-            return c == _underscore;
-        }
-
-        public static bool IsMinus(in this byte c)
-        {
-            return IsHyphen(in c);
-        }
-
-        public static bool IsPlus(in this byte c)
-        {
-            return c == _plus;
-        }
-
-        public static bool IsQuote(in this byte c)
-        {
-            return c == Quote;
-        }
-
-        public static bool IsBackslash(in this byte c)
-        {
-            return c == _backslash;
-        }
-
-        public static bool IsHash(in this byte c)
-        {
-            return c == Hash;
-        }
-
         public static bool IsPunctuator(in this byte c)
         {
             return _isPunctuator[c];
@@ -132,18 +93,6 @@
         public static bool IsWhitespace(in this byte c)
         {
             return _isWhitespace[c];
-        }
-
-        public static bool IsNewLine(in this byte c)
-        {
-            // 0x000a
-            return c == NewLine;
-        }
-
-        public static bool IsReturn(in this byte c)
-        {
-            // 0x000d
-            return c == Return;
         }
 
         public static bool IsValidEscapeCharacter(in this byte c)
@@ -155,15 +104,15 @@
         {
             switch (c)
             {
-                case _b:
-                    return _besc;
-                case _f:
-                    return _fesc;
-                case _n:
+                case B:
+                    return Backspace;
+                case F:
+                    return Formfeed;
+                case N:
                     return NewLine;
-                case _r:
+                case R:
                     return Return;
-                case _t:
+                case T:
                     return Tab;
                 default:
                     return c;

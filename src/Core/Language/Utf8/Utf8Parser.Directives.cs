@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Language
 {
-    public partial class Utf8Parser
+    public ref partial struct Utf8GraphQLParser
     {
         private static readonly List<DirectiveNode> _emptyDirectives =
             new List<DirectiveNode>();

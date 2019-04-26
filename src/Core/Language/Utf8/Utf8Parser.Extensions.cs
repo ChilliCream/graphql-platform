@@ -5,7 +5,7 @@ using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
-    public partial class Utf8Parser
+    public ref partial struct Utf8GraphQLParser
     {
         private static ITypeExtensionNode ParseTypeExtension(
             Utf8ParserContext context,
@@ -20,37 +20,37 @@ namespace HotChocolate.Language
 
             if (reader.Kind == TokenKind.Name)
             {
-                if (reader.Value.SequenceEqual(Utf8Keywords.Schema))
+                if (reader.Value.SequenceEqual(GraphQLKeywords.Schema))
                 {
                     return ParseSchemaExtension(context, ref reader);
                 }
 
-                if (reader.Value.SequenceEqual(Utf8Keywords.Scalar))
+                if (reader.Value.SequenceEqual(GraphQLKeywords.Scalar))
                 {
                     return ParseScalarTypeExtension(context, ref reader);
                 }
 
-                if (reader.Value.SequenceEqual(Utf8Keywords.Type))
+                if (reader.Value.SequenceEqual(GraphQLKeywords.Type))
                 {
                     return ParseObjectTypeExtension(context, ref reader);
                 }
 
-                if (reader.Value.SequenceEqual(Utf8Keywords.Interface))
+                if (reader.Value.SequenceEqual(GraphQLKeywords.Interface))
                 {
                     return ParseInterfaceTypeExtension(context, ref reader);
                 }
 
-                if (reader.Value.SequenceEqual(Utf8Keywords.Union))
+                if (reader.Value.SequenceEqual(GraphQLKeywords.Union))
                 {
                     return ParseUnionTypeExtension(context, ref reader);
                 }
 
-                if (reader.Value.SequenceEqual(Utf8Keywords.Enum))
+                if (reader.Value.SequenceEqual(GraphQLKeywords.Enum))
                 {
                     return ParseEnumTypeExtension(context, ref reader);
                 }
 
-                if (reader.Value.SequenceEqual(Utf8Keywords.Input))
+                if (reader.Value.SequenceEqual(GraphQLKeywords.Input))
                 {
                     return ParseInputObjectTypeExtension(context, ref reader);
                 }

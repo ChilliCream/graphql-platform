@@ -1,7 +1,7 @@
 ﻿namespace HotChocolate.Language
 {
     // Implements the parsing rules in the Types section.
-    public partial class Utf8Parser
+    public ref partial struct Utf8GraphQLParser
     {
         /// <summary>
         /// Parses a type reference.

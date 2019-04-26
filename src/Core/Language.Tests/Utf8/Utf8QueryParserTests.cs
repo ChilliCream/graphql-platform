@@ -15,7 +15,7 @@ namespace HotChocolate.Language
             byte[] sourceText = Encoding.UTF8.GetBytes("{ x { y } }");
 
             // act
-            Utf8Parser parser = new Utf8Parser();
+            Utf8GraphQLParser parser = new Utf8GraphQLParser();
             DocumentNode document =
                 parser.Parse(sourceText, ParserOptions.Default);
 
@@ -69,7 +69,7 @@ namespace HotChocolate.Language
                 operation + " a($s : String = \"hello\") { x { y } }");
 
             // act
-            Utf8Parser parser = new Utf8Parser();
+            Utf8GraphQLParser parser = new Utf8GraphQLParser();
             DocumentNode document = parser.Parse(sourceText, ParserOptions.Default);
 
             // assert
@@ -126,7 +126,7 @@ namespace HotChocolate.Language
                 "query a { x { ... y } } fragment y on Type { z } ");
 
             // act
-            Utf8Parser parser = new Utf8Parser();
+            Utf8GraphQLParser parser = new Utf8GraphQLParser();
             DocumentNode document = parser.Parse(sourceText, ParserOptions.Default);
 
             // assert
@@ -196,7 +196,7 @@ namespace HotChocolate.Language
             }");
 
             // act
-            Utf8Parser parser = new Utf8Parser();
+            Utf8GraphQLParser parser = new Utf8GraphQLParser();
             DocumentNode document = parser.Parse(sourceText,
                 new ParserOptions(noLocations: true));
 
@@ -212,7 +212,7 @@ namespace HotChocolate.Language
                 FileResource.Open("IntrospectionQuery.graphql"));
 
             // act
-            Utf8Parser parser = new Utf8Parser();
+            Utf8GraphQLParser parser = new Utf8GraphQLParser();
             DocumentNode document = parser.Parse(sourceText,
                 new ParserOptions(noLocations: true));
 
@@ -228,7 +228,7 @@ namespace HotChocolate.Language
                 FileResource.Open("kitchen-sink.graphql"));
 
             // act
-            Utf8Parser parser = new Utf8Parser();
+            Utf8GraphQLParser parser = new Utf8GraphQLParser();
             DocumentNode document = parser.Parse(sourceText,
                 new ParserOptions());
 

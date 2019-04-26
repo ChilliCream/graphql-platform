@@ -5,7 +5,6 @@ namespace HotChocolate.Language
 {
     internal static class ParserHelper
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string ExpectName(ref Utf8GraphQLReader reader)
         {
             if (reader.Kind == TokenKind.Name)
@@ -19,31 +18,26 @@ namespace HotChocolate.Language
                 $"Expected a name token: {TokenVisualizer.Visualize(in reader)}.");
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ExpectColon(ref Utf8GraphQLReader reader)
         {
             Expect(ref reader, TokenKind.Colon);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ExpectDollar(ref Utf8GraphQLReader reader)
         {
             Expect(ref reader, TokenKind.Dollar);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ExpectAt(ref Utf8GraphQLReader reader)
         {
             Expect(ref reader, TokenKind.At);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ExpectRightBracket(ref Utf8GraphQLReader reader)
         {
             Expect(ref reader, TokenKind.RightBracket);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string ExpectString(ref Utf8GraphQLReader reader)
         {
             if (TokenHelper.IsString(ref reader))
@@ -58,7 +52,6 @@ namespace HotChocolate.Language
                 $"{TokenVisualizer.Visualize(in reader)}.");
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string ExpectScalarValue(ref Utf8GraphQLReader reader)
         {
             if (TokenHelper.IsScalarValue(ref reader))
@@ -73,13 +66,11 @@ namespace HotChocolate.Language
                 $"{TokenVisualizer.Visualize(in reader)}.");
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ExpectSpread(ref Utf8GraphQLReader reader)
         {
             Expect(ref reader, TokenKind.Spread);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Expect(
             ref Utf8GraphQLReader reader,
             TokenKind kind)
@@ -94,35 +85,30 @@ namespace HotChocolate.Language
                 $"Expected a name token: {reader.Kind}.");
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ExpectSchemaKeyword(
             ref Utf8GraphQLReader reader)
         {
-            ExpectKeyword(ref reader, Utf8Keywords.Schema);
+            ExpectKeyword(ref reader, GraphQLKeywords.Schema);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ExpectDirectiveKeyword(
             ref Utf8GraphQLReader reader)
         {
-            ExpectKeyword(ref reader, Utf8Keywords.Directive);
+            ExpectKeyword(ref reader, GraphQLKeywords.Directive);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ExpectOnKeyword(
             ref Utf8GraphQLReader reader)
         {
-            ExpectKeyword(ref reader, Utf8Keywords.On);
+            ExpectKeyword(ref reader, GraphQLKeywords.On);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ExpectFragmentKeyword(
             ref Utf8GraphQLReader reader)
         {
-            ExpectKeyword(ref reader, Utf8Keywords.Fragment);
+            ExpectKeyword(ref reader, GraphQLKeywords.Fragment);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ExpectKeyword(
             ref Utf8GraphQLReader reader,
             byte[] keyword)
@@ -138,19 +124,6 @@ namespace HotChocolate.Language
                 $"{TokenVisualizer.Visualize(in reader)}");
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static SyntaxTokenInfo CreateTokenInfo(
-            ref Utf8GraphQLReader reader)
-        {
-            return new SyntaxTokenInfo(
-                reader.Kind,
-                reader.Start,
-                reader.End,
-                reader.Line,
-                reader.Column);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static SyntaxException Unexpected(
             ref Utf8GraphQLReader reader, TokenKind kind)
         {
@@ -158,7 +131,6 @@ namespace HotChocolate.Language
                 $"Unexpected token: {TokenVisualizer.Visualize(kind)}.");
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void SkipDescription(ref Utf8GraphQLReader reader)
         {
             if (TokenHelper.IsDescription(ref reader))
@@ -167,7 +139,6 @@ namespace HotChocolate.Language
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool Skip(ref Utf8GraphQLReader reader, TokenKind kind)
         {
             if (reader.Kind == kind)
@@ -177,13 +148,11 @@ namespace HotChocolate.Language
             return false;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool SkipRepeatableKeyword(ref Utf8GraphQLReader reader)
         {
-            return SkipKeyword(ref reader, Utf8Keywords.Repeatable);
+            return SkipKeyword(ref reader, GraphQLKeywords.Repeatable);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool SkipKeyword(
             ref Utf8GraphQLReader reader,
             byte[] keyword)

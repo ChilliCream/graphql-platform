@@ -22,21 +22,21 @@ namespace HotChocolate.Language
             {
                 ref readonly byte code = ref escapedString[++readPosition];
 
-                if (ReaderHelper.IsBackslash(in code))
+                if (GraphQLConstants.IsBackslash(in code))
                 {
                     code = ref escapedString[++readPosition];
 
                     if (isBlockString
-                         && ReaderHelper.IsQuote(in code))
+                         && GraphQLConstants.IsQuote(in code))
                     {
-                        if (ReaderHelper.IsQuote(
+                        if (GraphQLConstants.IsQuote(
                              in escapedString[readPosition + 1])
-                         && ReaderHelper.IsQuote(
+                         && GraphQLConstants.IsQuote(
                              in escapedString[readPosition + 2]))
                         {
-                            unescapedString[writePosition++] = ReaderHelper.Quote;
-                            unescapedString[writePosition++] = ReaderHelper.Quote;
-                            unescapedString[writePosition++] = ReaderHelper.Quote;
+                            unescapedString[writePosition++] = GraphQLConstants.Quote;
+                            unescapedString[writePosition++] = GraphQLConstants.Quote;
+                            unescapedString[writePosition++] = GraphQLConstants.Quote;
                         }
                         else
                         {
@@ -44,12 +44,12 @@ namespace HotChocolate.Language
                             throw new Exception();
                         }
                     }
-                    else if (ReaderHelper.IsValidEscapeCharacter(code))
+                    else if (GraphQLConstants.IsValidEscapeCharacter(code))
                     {
                         unescapedString[writePosition++] =
-                            ReaderHelper.EscapeCharacter(in code);
+                            GraphQLConstants.EscapeCharacter(in code);
                     }
-                    else if (code == ReaderHelper.U)
+                    else if (code == GraphQLConstants.U)
                     {
                         UnescapeUtf8Hex(
                             in escapedString[++readPosition],

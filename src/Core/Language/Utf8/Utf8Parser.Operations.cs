@@ -7,7 +7,7 @@ using HotChocolate.Language.Properties;
 namespace HotChocolate.Language
 {
     // Implements the parsing rules in the Operations section.
-    public partial class Utf8Parser
+    public ref partial struct Utf8GraphQLParser
     {
         private static readonly List<VariableDefinitionNode> _emptyVariableDefinitions =
             new List<VariableDefinitionNode>();
@@ -87,19 +87,19 @@ namespace HotChocolate.Language
         {
             if (reader.Kind == TokenKind.Name)
             {
-                if (reader.Value.SequenceEqual(Utf8Keywords.Query))
+                if (reader.Value.SequenceEqual(GraphQLKeywords.Query))
                 {
                     ParserHelper.MoveNext(ref reader);
                     return OperationType.Query;
                 }
 
-                if (reader.Value.SequenceEqual(Utf8Keywords.Mutation))
+                if (reader.Value.SequenceEqual(GraphQLKeywords.Mutation))
                 {
                     ParserHelper.MoveNext(ref reader);
                     return OperationType.Mutation;
                 }
 
-                if (reader.Value.SequenceEqual(Utf8Keywords.Subscription))
+                if (reader.Value.SequenceEqual(GraphQLKeywords.Subscription))
                 {
                     ParserHelper.MoveNext(ref reader);
                     return OperationType.Subscription;

@@ -131,34 +131,34 @@ namespace HotChocolate.Language
 
             ref readonly byte code = ref GraphQLData[Position];
 
-            if (ReaderHelper.IsLetterOrDigitOrUnderscore(in code))
+            if (GraphQLConstants.IsLetterOrDigitOrUnderscore(in code))
             {
                 ReadNameToken();
                 return true;
             }
 
-            if (ReaderHelper.IsPunctuator(in code))
+            if (GraphQLConstants.IsPunctuator(in code))
             {
                 ReadPunctuatorToken(in code);
                 return true;
             }
 
-            if (ReaderHelper.IsDigitOrMinus(in code))
+            if (GraphQLConstants.IsDigitOrMinus(in code))
             {
                 ReadNumberToken(in code);
                 return true;
             }
 
-            if (ReaderHelper.IsHash(in code))
+            if (code == GraphQLConstants.Hash)
             {
                 ReadCommentToken();
                 return true;
             }
 
-            if (ReaderHelper.IsQuote(in code))
+            if (code == GraphQLConstants.Quote)
             {
-                if (ReaderHelper.IsQuote(in GraphQLData[Position + 1])
-                    && ReaderHelper.IsQuote(in GraphQLData[Position + 2]))
+                if (GraphQLData[Position + 1] == GraphQLConstants.Quote
+                    && GraphQLData[Position + 2] == GraphQLConstants.Quote)
                 {
                     Position += 2;
                     ReadBlockStringToken();
@@ -196,7 +196,7 @@ namespace HotChocolate.Language
                 position++;
             }
             while (position < GraphQLData.Length
-                && ReaderHelper.IsLetterOrDigitOrUnderscore(
+                && GraphQLConstants.IsLetterOrDigitOrUnderscore(
                     in GraphQLData[position]));
 
             Kind = TokenKind.Name;
@@ -233,61 +233,61 @@ namespace HotChocolate.Language
 
             switch (code)
             {
-                case ReaderHelper.Bang:
+                case GraphQLConstants.Bang:
                     Kind = TokenKind.Bang;
                     break;
 
-                case ReaderHelper.Dollar:
+                case GraphQLConstants.Dollar:
                     Kind = TokenKind.Dollar;
                     break;
 
-                case ReaderHelper.Ampersand:
+                case GraphQLConstants.Ampersand:
                     Kind = TokenKind.Ampersand;
                     break;
 
-                case ReaderHelper.LeftParenthesis:
+                case GraphQLConstants.LeftParenthesis:
                     Kind = TokenKind.LeftParenthesis;
                     break;
 
-                case ReaderHelper.RightParenthesis:
+                case GraphQLConstants.RightParenthesis:
                     Kind = TokenKind.RightParenthesis;
                     break;
 
-                case ReaderHelper.Colon:
+                case GraphQLConstants.Colon:
                     Kind = TokenKind.Colon;
                     break;
 
-                case ReaderHelper.Equal:
+                case GraphQLConstants.Equal:
                     Kind = TokenKind.Equal;
                     break;
 
-                case ReaderHelper.At:
+                case GraphQLConstants.At:
                     Kind = TokenKind.At;
                     break;
 
-                case ReaderHelper.LeftBracket:
+                case GraphQLConstants.LeftBracket:
                     Kind = TokenKind.LeftBracket;
                     break;
 
-                case ReaderHelper.RightBracket:
+                case GraphQLConstants.RightBracket:
                     Kind = TokenKind.RightBracket;
                     break;
 
-                case ReaderHelper.LeftBrace:
+                case GraphQLConstants.LeftBrace:
                     Kind = TokenKind.LeftBrace;
                     break;
 
-                case ReaderHelper.RightBrace:
+                case GraphQLConstants.RightBrace:
                     Kind = TokenKind.RightBrace;
                     break;
 
-                case ReaderHelper.Pipe:
+                case GraphQLConstants.Pipe:
                     Kind = TokenKind.Pipe;
                     break;
 
-                case ReaderHelper.Dot:
-                    if (ReaderHelper.IsDot(in GraphQLData[Position])
-                        && ReaderHelper.IsDot(in GraphQLData[Position + 1]))
+                case GraphQLConstants.Dot:
+                    if (GraphQLData[Position] == GraphQLConstants.Dot
+                        && GraphQLData[Position + 1] == GraphQLConstants.Dot)
                     {
                         Position += 2;
                         End = Position;
@@ -332,15 +332,15 @@ namespace HotChocolate.Language
             ref readonly byte code = ref firstCode;
             var isFloat = false;
 
-            if (ReaderHelper.IsMinus(in code))
+            if (code == GraphQLConstants.Minus)
             {
                 code = ref GraphQLData[++Position];
             }
 
-            if (code == ReaderHelper.Zero)
+            if (code == GraphQLConstants.Zero)
             {
                 code = ref GraphQLData[++Position];
-                if (ReaderHelper.IsDigit(in code))
+                if (GraphQLConstants.IsDigit(in code))
                 {
                     throw new SyntaxException(this,
                         $"Invalid number, unexpected digit after 0: {code}.");
@@ -359,7 +359,7 @@ namespace HotChocolate.Language
                 }
             }
 
-            if (code.IsDot())
+            if (code == GraphQLConstants.Dot)
             {
                 isFloat = true;
                 code = ref GraphQLData[++Position];
@@ -374,12 +374,12 @@ namespace HotChocolate.Language
                 }
             }
 
-            if ((code | (char)0x20) == ReaderHelper.E)
+            if ((code | (char)0x20) == GraphQLConstants.E)
             {
                 isFloat = true;
                 code = ref GraphQLData[++Position];
-                if (ReaderHelper.IsPlus(in code)
-                    || ReaderHelper.IsMinus(in code))
+                if (code == GraphQLConstants.Plus
+                    || code == GraphQLConstants.Minus)
                 {
                     code = ref GraphQLData[++Position];
                 }
@@ -403,7 +403,7 @@ namespace HotChocolate.Language
             }
 
             while (++Position < GraphQLData.Length
-                && ReaderHelper.IsDigit(GraphQLData[Position]))
+                && GraphQLConstants.IsDigit(GraphQLData[Position]))
             { }
         }
 
@@ -426,15 +426,15 @@ namespace HotChocolate.Language
             bool trim = true;
 
             while (++Position < GraphQLData.Length
-                && !ReaderHelper.IsControlCharacter(in GraphQLData[Position]))
+                && !GraphQLConstants.IsControlCharacter(in GraphQLData[Position]))
             {
                 if (trim)
                 {
                     switch (GraphQLData[Position])
                     {
-                        case ReaderHelper.Hash:
-                        case ReaderHelper.Space:
-                        case ReaderHelper.Tab:
+                        case GraphQLConstants.Hash:
+                        case GraphQLConstants.Space:
+                        case GraphQLConstants.Tab:
                             trimStart = Position;
                             break;
 
@@ -470,10 +470,11 @@ namespace HotChocolate.Language
 
             ref readonly byte code = ref GraphQLData[++Position];
 
-            while (!ReaderHelper.IsNewLine(in code))
+            while (code != GraphQLConstants.NewLine
+                && code != GraphQLConstants.Return)
             {
                 // closing Quote (")
-                if (ReaderHelper.IsQuote(in code))
+                if (code == GraphQLConstants.Quote)
                 {
                     Kind = TokenKind.String;
                     Start = start;
@@ -484,14 +485,14 @@ namespace HotChocolate.Language
                 }
 
                 // SourceCharacter
-                if (ReaderHelper.IsControlCharacter(in code))
+                if (GraphQLConstants.IsControlCharacter(in code))
                 {
                     throw new SyntaxException(this,
                         $"Invalid character within String: {code}.");
                 }
 
-                if (ReaderHelper.IsBackslash(in code)
-                    && ReaderHelper.IsQuote(in GraphQLData[Position + 1]))
+                if (code == GraphQLConstants.Backslash
+                    && GraphQLData[Position + 1] == GraphQLConstants.Quote)
                 {
                     Position++;
                 }
@@ -521,9 +522,9 @@ namespace HotChocolate.Language
             while (!IsEndOfStream())
             {
                 // Closing Triple-Quote (""")
-                if (code.IsQuote()
-                    && ReaderHelper.IsQuote(in GraphQLData[Position + 1])
-                    && ReaderHelper.IsQuote(in GraphQLData[Position + 2]))
+                if (code == GraphQLConstants.Quote
+                    && GraphQLData[Position + 1] == GraphQLConstants.Quote
+                    && GraphQLData[Position + 2] == GraphQLConstants.Quote)
                 {
                     Kind = TokenKind.BlockString;
                     Start = start;
@@ -542,17 +543,17 @@ namespace HotChocolate.Language
 
                 // SourceCharacter
                 if (code.IsControlCharacter()
-                    && !code.IsNewLine()
-                    && !code.IsReturn())
+                    && code != GraphQLConstants.NewLine
+                    && code != GraphQLConstants.Return)
                 {
                     throw new SyntaxException(this,
                         $"Invalid character within String: ${code}.");
                 }
 
-                if (ReaderHelper.IsBackslash(in code)
-                    && ReaderHelper.IsQuote(in GraphQLData[Position + 1])
-                    && ReaderHelper.IsQuote(in GraphQLData[Position + 2])
-                    && ReaderHelper.IsQuote(in GraphQLData[Position + 3]))
+                if (code == GraphQLConstants.Backslash
+                    && GraphQLData[Position + 1] == GraphQLConstants.Quote
+                    && GraphQLData[Position + 2] == GraphQLConstants.Quote
+                    && GraphQLData[Position + 3] == GraphQLConstants.Quote)
                 {
                     Position += 3;
                 }
@@ -573,23 +574,23 @@ namespace HotChocolate.Language
 
             ref readonly byte code = ref GraphQLData[Position];
 
-            while (ReaderHelper.IsWhitespace(in code))
+            while (GraphQLConstants.IsWhitespace(in code))
             {
-                if (code == ReaderHelper.NewLine)
+                if (code == GraphQLConstants.NewLine)
                 {
                     Position++;
                     if (!IsEndOfStream()
-                        && GraphQLData[Position + 1] == ReaderHelper.Return)
+                        && GraphQLData[Position + 1] == GraphQLConstants.Return)
                     {
                         Position++;
                     }
                     NewLine();
                 }
-                else if (code == ReaderHelper.Return)
+                else if (code == GraphQLConstants.Return)
                 {
                     Position++;
                     if (!IsEndOfStream()
-                        && GraphQLData[Position + 1] == ReaderHelper.NewLine)
+                        && GraphQLData[Position + 1] == GraphQLConstants.NewLine)
                     {
                         Position++;
                     }

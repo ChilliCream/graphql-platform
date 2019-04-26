@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 namespace HotChocolate.Language
 {
     // Implements the parsing rules in the Fragments section.
-    public partial class Utf8Parser
+    public ref partial struct Utf8GraphQLParser
     {
         /// <summary>
         /// Parses a fragment spred or inline fragment within a selection set.
@@ -21,7 +21,7 @@ namespace HotChocolate.Language
             context.Start(ref reader);
 
             ParserHelper.ExpectSpread(ref reader);
-            var isOnKeyword = reader.Value.SequenceEqual(Utf8Keywords.On);
+            var isOnKeyword = reader.Value.SequenceEqual(GraphQLKeywords.On);
 
             if (!isOnKeyword && TokenHelper.IsName(ref reader))
             {
@@ -166,7 +166,7 @@ namespace HotChocolate.Language
             Utf8ParserContext context,
             ref Utf8GraphQLReader reader)
         {
-            if (reader.Value.SequenceEqual(Utf8Keywords.On))
+            if (reader.Value.SequenceEqual(GraphQLKeywords.On))
             {
                 throw ParserHelper.Unexpected(ref reader, reader.Kind);
             }

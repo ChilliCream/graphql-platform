@@ -54,7 +54,7 @@ namespace HotChocolate.Language
             line = GetNextLine(in data, ref position);
             line.CopyTo(trimmedData);
             int writePosition = line.Length;
-            trimmedData[writePosition] = ReaderHelper.NewLine;
+            trimmedData[writePosition] = GraphQLConstants.NewLine;
 
             while (position < data.Length)
             {
@@ -72,7 +72,7 @@ namespace HotChocolate.Language
                 int next = writePosition + 1;
                 if (trimmedData.Length > next)
                 {
-                    trimmedData[next] = ReaderHelper.NewLine;
+                    trimmedData[next] = GraphQLConstants.NewLine;
                     writePosition = next;
                 }
             }
@@ -118,8 +118,8 @@ namespace HotChocolate.Language
         {
             int i = 0;
             while (position < chunk.Length
-                && (chunk[position] == ReaderHelper.Space
-                    || chunk[position] == ReaderHelper.Space))
+                && (chunk[position] == GraphQLConstants.Space
+                    || chunk[position] == GraphQLConstants.Space))
             {
                 i++;
                 position++;
@@ -160,22 +160,22 @@ namespace HotChocolate.Language
             int i = 0;
             while (position < data.Length)
             {
-                if (data[position] == ReaderHelper.NewLine)
+                if (data[position] == GraphQLConstants.NewLine)
                 {
                     int next = position + 1;
                     if (next < data.Length
-                        && data[next] == ReaderHelper.Return)
+                        && data[next] == GraphQLConstants.Return)
                     {
                         position = next;
                     }
                     position++;
                     break;
                 }
-                else if (data[position] == ReaderHelper.Return)
+                else if (data[position] == GraphQLConstants.Return)
                 {
                     int next = position + 1;
                     if (next < data.Length
-                        && data[next] == ReaderHelper.NewLine)
+                        && data[next] == GraphQLConstants.NewLine)
                     {
                         position = next;
                     }
@@ -196,11 +196,11 @@ namespace HotChocolate.Language
             int i = 0;
             while (position < data.Length)
             {
-                if (data[position] == ReaderHelper.NewLine)
+                if (data[position] == GraphQLConstants.NewLine)
                 {
                     int next = position + 1;
                     if (next < data.Length
-                        && data[next] == ReaderHelper.Return)
+                        && data[next] == GraphQLConstants.Return)
                     {
                         position = next;
                     }
@@ -208,11 +208,11 @@ namespace HotChocolate.Language
                     break;
                 }
 
-                if (data[position] == ReaderHelper.Return)
+                if (data[position] == GraphQLConstants.Return)
                 {
                     int next = position + 1;
                     if (next < data.Length
-                        && data[next] == ReaderHelper.NewLine)
+                        && data[next] == GraphQLConstants.NewLine)
                     {
                         position = next;
                     }
@@ -233,11 +233,11 @@ namespace HotChocolate.Language
             int i = 0;
             while (position >= 0)
             {
-                if (data[position] == ReaderHelper.NewLine)
+                if (data[position] == GraphQLConstants.NewLine)
                 {
                     int next = position - 1;
                     if (next > 0
-                        && data[next] == ReaderHelper.Return)
+                        && data[next] == GraphQLConstants.Return)
                     {
                         position = next;
                     }
@@ -245,11 +245,11 @@ namespace HotChocolate.Language
                     break;
                 }
 
-                if (data[position] == ReaderHelper.Return)
+                if (data[position] == GraphQLConstants.Return)
                 {
                     int next = position - 1;
                     if (next > 0
-                        && data[next] == ReaderHelper.NewLine)
+                        && data[next] == GraphQLConstants.NewLine)
                     {
                         position = next;
                     }
@@ -257,7 +257,7 @@ namespace HotChocolate.Language
                     break;
                 }
 
-                if(position == 0)
+                if (position == 0)
                 {
                     break;
                 }
