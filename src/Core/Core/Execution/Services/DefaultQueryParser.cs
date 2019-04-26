@@ -1,4 +1,5 @@
-﻿using HotChocolate.Language;
+﻿using System.Text;
+using HotChocolate.Language;
 
 namespace HotChocolate.Execution
 {
@@ -7,7 +8,9 @@ namespace HotChocolate.Execution
     {
         public DocumentNode Parse(string queryText)
         {
-            return Parser.Default.Parse(queryText);
+            return new Utf8GraphQLParser(
+                Encoding.UTF8.GetBytes(queryText),
+                ParserOptions.Default).Parse();
         }
     }
 }
