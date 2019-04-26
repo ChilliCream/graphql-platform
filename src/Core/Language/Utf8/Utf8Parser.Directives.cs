@@ -7,24 +7,25 @@ namespace HotChocolate.Language
     {
         private static readonly List<DirectiveNode> _emptyDirectives =
             new List<DirectiveNode>();
-        private static DirectiveDefinitionNode ParseDirectiveDefinition(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private DirectiveDefinitionNode ParseDirectiveDefinition()
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
-            StringValueNode description = ParseDescription(context, ref reader);
-            ParserHelper.ExpectDirectiveKeyword(ref reader);
-            ParserHelper.ExpectAt(ref reader);
-            NameNode name = ParseName(context, ref reader);
+            StringValueNode description = ParseDescription();
+
+            ExpectDirectiveKeyword();
+            ExpectAt();
+
+            NameNode name = ParseName();
             List<InputValueDefinitionNode> arguments =
-                ParseArgumentDefinitions(context, ref reader);
-            bool isRepeatable = ParserHelper.SkipRepeatableKeyword(ref reader);
-            ParserHelper.ExpectOnKeyword(ref reader);
-            List<NameNode> locations =
-                ParseDirectiveLocations(context, ref reader);
+                ParseArgumentDefinitions();
 
-            Location location = context.CreateLocation(ref reader);
+            bool isRepeatable = SkipRepeatableKeyword();
+            ExpectOnKeyword();
+
+            List<NameNode> locations = ParseDirectiveLocations();
+
+            Location location = CreateLocation(in start);
 
             return new DirectiveDefinitionNode
             (
@@ -94,14 +95,14 @@ namespace HotChocolate.Language
             ref Utf8GraphQLReader reader,
             bool isConstant)
         {
-            context.Start(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
 
             ParserHelper.ExpectAt(ref reader);
             NameNode name = ParseName(context, ref reader);
             List<ArgumentNode> arguments =
                 ParseArguments(context, ref reader, isConstant);
 
-            Location location = context.CreateLocation(ref reader);
+            Location location = CreateLocation(in start);
 
             return new DirectiveNode
             (

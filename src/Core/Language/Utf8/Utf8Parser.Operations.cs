@@ -22,9 +22,7 @@ namespace HotChocolate.Language
         /// </summary>
         /// <param name="context">The parser context.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static OperationDefinitionNode ParseOperationDefinition(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private static OperationDefinitionNode ParseOperationDefinition()
         {
             context.Start(ref reader);
 

@@ -22,17 +22,15 @@ namespace HotChocolate.Language
             {
                 ref readonly byte code = ref escapedString[++readPosition];
 
-                if (GraphQLConstants.IsBackslash(in code))
+                if (code == GraphQLConstants.Backslash)
                 {
                     code = ref escapedString[++readPosition];
 
                     if (isBlockString
-                         && GraphQLConstants.IsQuote(in code))
+                         && code == GraphQLConstants.Quote)
                     {
-                        if (GraphQLConstants.IsQuote(
-                             in escapedString[readPosition + 1])
-                         && GraphQLConstants.IsQuote(
-                             in escapedString[readPosition + 2]))
+                        if (escapedString[readPosition + 1] == GraphQLConstants.Quote
+                            && escapedString[readPosition + 2] == GraphQLConstants.Quote)
                         {
                             unescapedString[writePosition++] = GraphQLConstants.Quote;
                             unescapedString[writePosition++] = GraphQLConstants.Quote;

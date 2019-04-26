@@ -10,13 +10,11 @@ namespace HotChocolate.Language
     public ref partial struct Utf8GraphQLParser
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static NameNode ParseName(
-            Utf8ParserContext context,
-            ref Utf8GraphQLReader reader)
+        private NameNode ParseName()
         {
-            context.Start(ref reader);
-            string name = ParserHelper.ExpectName(ref reader);
-            Location location = context.CreateLocation(ref reader);
+            TokenInfo start = TokenInfo.FromReader(in _reader);
+            string name = ExpectName();
+            Location location = CreateLocation(in start);
 
             return new NameNode
             (
@@ -40,35 +38,36 @@ namespace HotChocolate.Language
                     start.Column)
                 : null;
 
-        private static string ExpectName(ref Utf8GraphQLReader reader)
+        private string ExpectName()
         {
-            if (reader.Kind == TokenKind.Name)
+            if (_reader.Kind == TokenKind.Name)
             {
-                string name = reader.GetString(reader.Value);
-                MoveNext(ref reader);
+                string name = _reader.GetString(_reader.Value);
+                MoveNext();
                 return name;
             }
 
-            throw new SyntaxException(reader,
-                $"Expected a name token: {TokenVisualizer.Visualize(in reader)}.");
+            // TODO : resources
+            throw new SyntaxException(_reader,
+                $"Expected a name token: {TokenVisualizer.Visualize(in _reader)}.");
         }
 
-        private static void ExpectColon(ref Utf8GraphQLReader reader)
+        private void ExpectColon()
         {
-            Expect(ref reader, TokenKind.Colon);
+            Expect(TokenKind.Colon);
         }
 
-        private static void ExpectDollar(ref Utf8GraphQLReader reader)
+        private void ExpectDollar()
         {
-            Expect(ref reader, TokenKind.Dollar);
+            Expect(TokenKind.Dollar);
         }
 
-        private static void ExpectAt(ref Utf8GraphQLReader reader)
+        private void ExpectAt()
         {
-            Expect(ref reader, TokenKind.At);
+            Expect(TokenKind.At);
         }
 
-        private static void ExpectRightBracket(ref Utf8GraphQLReader reader)
+        private void ExpectRightBracket()
         {
             Expect(TokenKind.RightBracket);
         }
@@ -82,6 +81,7 @@ namespace HotChocolate.Language
                 return value;
             }
 
+            // TODO : resources
             throw new SyntaxException(_reader,
                 "Expected a string token: " +
                 $"{TokenVisualizer.Visualize(in _reader)}.");
@@ -96,6 +96,7 @@ namespace HotChocolate.Language
                 return value;
             }
 
+            // TODO : resources
             throw new SyntaxException(_reader,
                 "Expected a scalar value token: " +
                 $"{TokenVisualizer.Visualize(in _reader)}.");
@@ -110,8 +111,9 @@ namespace HotChocolate.Language
         {
             if (!Skip(kind))
             {
-                throw new SyntaxException(reader,
-                    $"Expected a name token: {reader.Kind}.");
+                // TODO : resources
+                throw new SyntaxException(_reader,
+                    $"Expected a name token: {kind}.");
             }
         }
 

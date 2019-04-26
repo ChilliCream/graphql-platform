@@ -57,72 +57,71 @@ namespace HotChocolate.Language
                 _description = ParseDescription();
             }
 
-            if (reader.Kind == TokenKind.Name)
+            if (_reader.Kind == TokenKind.Name)
             {
-                if (reader.Value.SequenceEqual(GraphQLKeywords.Query)
-                    || reader.Value.SequenceEqual(GraphQLKeywords.Mutation)
-                    || reader.Value.SequenceEqual(GraphQLKeywords.Subscription))
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.Query)
+                    || _reader.Value.SequenceEqual(GraphQLKeywords.Mutation)
+                    || _reader.Value.SequenceEqual(GraphQLKeywords.Subscription))
                 {
-                    return ParseOperationDefinition(context, ref reader);
+                    return ParseOperationDefinition();
                 }
 
-                if (reader.Value.SequenceEqual(GraphQLKeywords.Fragment))
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.Fragment))
                 {
-                    return ParseFragmentDefinition(context, ref reader);
+                    return ParseFragmentDefinition();
                 }
 
-                if (reader.Value.SequenceEqual(GraphQLKeywords.Schema))
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.Schema))
                 {
-                    ParseSchemaDefinition(context, ref reader);
+                    return ParseSchemaDefinition();
                 }
 
-                if (reader.Value.SequenceEqual(GraphQLKeywords.Scalar))
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.Scalar))
                 {
-                    return ParseScalarTypeDefinition(context, ref reader);
+                    return ParseScalarTypeDefinition();
                 }
 
-                if (reader.Value.SequenceEqual(GraphQLKeywords.Type))
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.Type))
                 {
-                    return ParseObjectTypeDefinition(context, ref reader);
+                    return ParseObjectTypeDefinition();
                 }
 
-                if (reader.Value.SequenceEqual(GraphQLKeywords.Interface))
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.Interface))
                 {
-                    return ParseInterfaceTypeDefinition(context, ref reader);
+                    return ParseInterfaceTypeDefinition();
                 }
 
-                if (reader.Value.SequenceEqual(GraphQLKeywords.Union))
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.Union))
                 {
-                    return ParseUnionTypeDefinition(context, ref reader);
+                    return ParseUnionTypeDefinition();
                 }
 
-                if (reader.Value.SequenceEqual(GraphQLKeywords.Enum))
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.Enum))
                 {
-                    return ParseEnumTypeDefinition(context, ref reader);
+                    return ParseEnumTypeDefinition();
                 }
 
-                if (reader.Value.SequenceEqual(GraphQLKeywords.Input))
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.Input))
                 {
-                    return ParseInputObjectTypeDefinition(context, ref reader);
+                    return ParseInputObjectTypeDefinition();
                 }
 
-                if (reader.Value.SequenceEqual(GraphQLKeywords.Extend))
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.Extend))
                 {
-                    return ParseTypeExtension(context, ref reader);
+                    return ParseTypeExtension();
                 }
 
-                if (reader.Value.SequenceEqual(GraphQLKeywords.Directive))
+                if (_reader.Value.SequenceEqual(GraphQLKeywords.Directive))
                 {
-                    return ParseDirectiveDefinition(context, ref reader);
+                    return ParseDirectiveDefinition();
                 }
             }
-            else if (reader.Kind == TokenKind.LeftBrace)
+            else if (_reader.Kind == TokenKind.LeftBrace)
             {
-                return ParseOperationDefinitionShortHandForm(
-                    context, ref reader);
+                return ParseOperationDefinitionShortHandForm();
             }
 
-            throw ParserHelper.Unexpected(ref reader, reader.Kind);
+            throw ParserHelper.Unexpected(reader.Kind);
         }
 
         public static Parser Default { get; } = new Parser();
