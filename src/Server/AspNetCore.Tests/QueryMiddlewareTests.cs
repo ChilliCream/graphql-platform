@@ -1,11 +1,9 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using ChilliCream.Testing;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.TestHost;
 using Newtonsoft.Json;
@@ -423,24 +421,23 @@ namespace HotChocolate.AspNetCore
         {
             // arrange
             TestServer server = CreateTestServer("/foo");
+            Stream stream = new MemoryStream(Encoding.UTF8.GetBytes("Hello, world!"));
             var request = new ClientQueryRequest
             {
                 Query = "query Upload($file: Upload!) { uploadFile(upload: $file) }",
                 Variables = JObject.FromObject(new Dictionary<string, object>
                 {
                     { "file", null }
-                })
+                }),
+                Files = new Dictionary<string, ICollection<ClientQueryRequestFile>>
+                {
+                    { "file", new[] { new ClientQueryRequestFile("0", "helloworld.txt", stream) } }
+                }
             };
 
             // act
-            HttpResponseMessage message;
 
-            using (Stream stream = new MemoryStream(Encoding.UTF8.GetBytes("Hello, world!")))
-            {
-                message = await server.SendMultipartRequestAsync(
-                    request, "foo",
-                    (stream, "helloworld", "helloworld.txt"));
-            }
+            var message = await server.SendMultipartRequestAsync(request, "foo");
 
             // assert
             Assert.Equal(HttpStatusCode.OK, message.StatusCode);

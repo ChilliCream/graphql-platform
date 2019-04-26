@@ -1,4 +1,6 @@
 ﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.AspNetCore.Http;
@@ -78,9 +80,13 @@ namespace HotChocolate.AspNetCore
             return bar.A;
         }
 
-        public bool UploadFile(Upload upload)
+        public async Task<string> UploadFile(Upload upload)
         {
-            return true;
+            using (var sr = new StreamReader(upload.Stream))
+            {
+                var text = await sr.ReadToEndAsync();
+                return text;
+            }
         }
     }
 }

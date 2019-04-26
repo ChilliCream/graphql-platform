@@ -25,7 +25,7 @@ namespace HotChocolate.AspNetCore
             descriptor.Field(x => x.UploadFile(default))
                 .Argument("upload", a =>
                     a.Type<NonNullType<UploadType>>())
-                .Type<NonNullType<BooleanType>>();
+                .Type<NonNullType<StringType>>();
         }
     }
 }

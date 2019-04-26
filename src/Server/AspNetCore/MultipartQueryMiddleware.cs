@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,7 +8,9 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Newtonsoft.Json;
 
@@ -65,7 +68,7 @@ namespace HotChocolate.AspNetCore
 
 
             var boundary = MultipartRequestHelper.GetBoundary(context.Request.ContentType);
-            var data = new List<(string name, string filename, Stream stream)>();
+            var data = new List<ClientQueryRequestFile>();
             var requestString = string.Empty;
 
 #if ASPNETCLASSIC
@@ -121,7 +124,7 @@ namespace HotChocolate.AspNetCore
                     continue;
                 }
 
-                data.Add((name, filename, section.Body));
+                data.Add(new ClientQueryRequestFile(name, filename, section.Body));
 
             } while (section != null);
 
@@ -134,13 +137,73 @@ namespace HotChocolate.AspNetCore
                 throw new Exception("Invalid request.");
             }
 
-            var map = data.FirstOrDefault(x => x.name == "map");
+            var mapData = data.FirstOrDefault(x => x.Name == "map");
+            Dictionary<string, string[]> map = null;
+            try
+            {
+                if (mapData != null)
+                {
+                    mapData.Stream.Seek(0, SeekOrigin.Begin);
+                    using (var sr = new StreamReader(mapData.Stream))
+                    {
+                        map = JsonConvert.DeserializeObject<Dictionary<string, string[]>>(
+                            await sr.ReadToEndAsync());
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                throw new Exception(
+                    "Can't read map value. " +
+                    "See https://github.com/jaydenseric/graphql-multipart-request-spec#multipart-form-field-structure");
+            }
+
+            if (map == null)
+            {
+                throw new Exception(
+                    "Map value should be set." +
+                    "See https://github.com/jaydenseric/graphql-multipart-request-spec#multipart-form-field-structure");
+            }
+
+            var variables = request.Variables.ToDictionary();
+
+            foreach (var mapItem in map)
+            {
+                foreach (var variable in mapItem.Value)
+                {
+                    var split = variable.Split('.');
+
+                    var d = data.First(x => x.Name == mapItem.Key);
+                    d.Stream.Seek(0, SeekOrigin.Begin);
+                    var upload = new Upload(d.FileName, d.Stream);
+
+                    var key = split[1];
+
+                    if (split.Length == 2)
+                    {
+                        variables[key] = upload;
+                    }
+                    else
+                    {
+                        ICollection<Upload> collection;
+                        if (variables[key] is ICollection<Upload> c)
+                        {
+                            collection = c;
+                        }
+                        else
+                        {
+                            collection = new Upload[] {};
+                            variables[key] = collection;
+                        }
+                        collection.Add(upload);
+                    }
+                }
+            }
 
             return QueryRequestBuilder.New()
                 .SetQuery(request.Query)
                 .SetOperation(request.OperationName)
-                .SetVariableValues(
-                    QueryMiddlewareUtilities.ToDictionary(request.Variables))
+                .SetVariableValues(variables)
                 .SetServices(serviceProvider);
         }
     }

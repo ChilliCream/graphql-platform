@@ -43,7 +43,18 @@ namespace HotChocolate.Types
 
         public override bool TryDeserialize(object serialized, out object value)
         {
-            throw new NotImplementedException();
+            switch (serialized)
+            {
+                case null:
+                    value = null;
+                    return true;
+                case Upload u:
+                    value = u;
+                    return true;
+                default:
+                    value = null;
+                    return false;
+            }
         }
     }
 }
