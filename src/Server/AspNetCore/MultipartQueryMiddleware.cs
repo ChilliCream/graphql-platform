@@ -73,29 +73,39 @@ namespace HotChocolate.AspNetCore
 
 #if ASPNETCLASSIC
 
-            var content = new MultipartFormDataContent(boundary);
-            foreach (var item in content)
+            using (var content = new StreamContent(context.Request.Body))
             {
-                var contentDispositionStr = item.Headers.GetValues("Content-Disposition").FirstOrDefault();
-                if (string.IsNullOrEmpty(contentDispositionStr))
+
+                content.Headers.ContentType =
+                    System.Net.Http.Headers.MediaTypeHeaderValue.Parse(
+                        context.Request.ContentType);
+
+                var multipart = await content.ReadAsMultipartAsync();
+
+                foreach (var item in multipart.Contents)
                 {
-                    continue;
+                    var contentDispositionStr = item.Headers.GetValues("Content-Disposition")
+                        .FirstOrDefault();
+                    if (string.IsNullOrEmpty(contentDispositionStr))
+                    {
+                        continue;
+                    }
+
+                    var contentDisposition = new ContentDisposition(contentDispositionStr);
+
+                    var name = contentDisposition.Parameters.ContainsKey("name")
+                        ? contentDisposition.Parameters["name"]
+                        : string.Empty;
+                    var filename = contentDisposition.FileName;
+
+                    if (name == "operations")
+                    {
+                        requestString = await item.ReadAsStringAsync();
+                        continue;
+                    }
+
+                    data.Add((name, filename, await item.ReadAsStreamAsync()));
                 }
-
-                var contentDisposition = new ContentDisposition(contentDispositionStr);
-
-                var name = contentDisposition.Parameters.ContainsKey("name")
-                    ? contentDisposition.Parameters["name"]
-                    : string.Empty;
-                var filename = contentDisposition.FileName;
-
-                if (name == "operations")
-                {
-                    requestString = await item.ReadAsStringAsync();
-                    continue;
-                }
-
-                data.Add((name, filename, await item.ReadAsStreamAsync()));
             }
 
 #else
@@ -158,44 +168,41 @@ namespace HotChocolate.AspNetCore
                     "See https://github.com/jaydenseric/graphql-multipart-request-spec#multipart-form-field-structure");
             }
 
-            if (map == null)
-            {
-                throw new Exception(
-                    "Map value should be set." +
-                    "See https://github.com/jaydenseric/graphql-multipart-request-spec#multipart-form-field-structure");
-            }
-
             var variables = request.Variables.ToDictionary();
 
-            foreach (var mapItem in map)
+            if (map != null)
             {
-                foreach (var variable in mapItem.Value)
+                foreach (var mapItem in map)
                 {
-                    var split = variable.Split('.');
-
-                    var (_, filename, stream) = data.First(x => x.name == mapItem.Key);
-                    stream.Seek(0, SeekOrigin.Begin);
-                    var upload = new Upload(filename, stream);
-
-                    var key = split[1];
-
-                    if (split.Length == 2)
+                    foreach (var variable in mapItem.Value)
                     {
-                        variables[key] = upload;
-                    }
-                    else
-                    {
-                        ICollection<Upload> collection;
-                        if (variables[key] is ICollection<Upload> c)
+                        var split = variable.Split('.');
+
+                        var (_, filename, stream) = data.First(x => x.name == mapItem.Key);
+                        stream.Seek(0, SeekOrigin.Begin);
+                        var upload = new Upload(filename, stream);
+
+                        var key = split[1];
+
+                        if (split.Length == 2)
                         {
-                            collection = c;
+                            variables[key] = upload;
                         }
                         else
                         {
-                            collection = new Upload[] {};
-                            variables[key] = collection;
+                            ICollection<Upload> collection;
+                            if (variables[key] is ICollection<Upload> c)
+                            {
+                                collection = c;
+                            }
+                            else
+                            {
+                                collection = new Upload[] { };
+                                variables[key] = collection;
+                            }
+
+                            collection.Add(upload);
                         }
-                        collection.Add(upload);
                     }
                 }
             }

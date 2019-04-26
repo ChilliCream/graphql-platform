@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Types;
@@ -406,6 +408,40 @@ namespace HotChocolate.AspNetClassic
 
             // assert
             Assert.Equal(HttpStatusCode.BadRequest, message.StatusCode);
+        }
+
+
+        [Fact]
+        public async Task HttpPost_UploadTest()
+        {
+            // arrange
+            TestServer server = CreateTestServer("/foo");
+            Stream stream = new MemoryStream(Encoding.UTF8.GetBytes("Hello, world!"));
+            var request = new ClientQueryRequest
+            {
+                Query = "query Upload($file: Upload!) { uploadFile(upload: $file) }",
+                Variables = JObject.FromObject(new Dictionary<string, object>
+                {
+                    { "file", null }
+                }),
+                Files = new Dictionary<string, ICollection<ClientQueryRequestFile>>
+                {
+                    { "file", new[] { new ClientQueryRequestFile("0", "helloworld.txt", stream) } }
+                }
+            };
+
+            // act
+
+            var message = await server.SendMultipartRequestAsync(request, "foo");
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            string json = await message.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert
+                .DeserializeObject<ClientQueryResult>(json);
+            Assert.Null(result.Errors);
+            result.MatchSnapshot();
         }
 
         private TestServer CreateTestServer(string path = null)

@@ -22,6 +22,10 @@ namespace HotChocolate.AspNetClassic
                 .Argument("test", a => a.Type<EnumType<TestEnum>>());
             descriptor.Field("customProperty")
                 .Resolver(ctx => ctx.CustomProperty<string>("foo"));
+            descriptor.Field(x => x.UploadFile(default))
+                .Argument("upload", a =>
+                    a.Type<NonNullType<UploadType>>())
+                .Type<NonNullType<StringType>>();
         }
     }
 }

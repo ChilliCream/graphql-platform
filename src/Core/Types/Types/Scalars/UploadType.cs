@@ -23,7 +23,7 @@ namespace HotChocolate.Types
         public override Type ClrType => typeof(Upload);
         public override bool IsInstanceOfType(IValueNode literal)
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException("`Upload` scalar literal unsupported.");
         }
 
         public override object ParseLiteral(IValueNode literal)

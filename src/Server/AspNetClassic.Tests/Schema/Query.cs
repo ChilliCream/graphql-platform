@@ -1,5 +1,8 @@
 ﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using Microsoft.Owin;
 
 namespace HotChocolate.AspNetClassic
@@ -75,6 +78,15 @@ namespace HotChocolate.AspNetClassic
         public TestEnum GetWithNestedEnum(Bar bar)
         {
             return bar.A;
+        }
+        
+        public async Task<string> UploadFile(Upload upload)
+        {
+            using (var sr = new StreamReader(upload.Stream))
+            {
+                var text = await sr.ReadToEndAsync();
+                return text;
+            }
         }
     }
 }
