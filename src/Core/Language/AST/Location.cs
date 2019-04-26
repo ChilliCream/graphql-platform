@@ -4,9 +4,7 @@ namespace HotChocolate.Language
 {
     public sealed class Location
     {
-        public Location(
-            SyntaxTokenInfo start,
-            SyntaxTokenInfo end)
+        public Location()
         {
             StartToken = start;
             EndToken = end;
@@ -27,15 +25,15 @@ namespace HotChocolate.Language
         public int End { get; }
 
         /// <summary>
-        /// Gets the <see cref="SyntaxToken" /> at which this
-        /// <see cref="ISyntaxNode" /> begins.
+        /// Gets the 1-indexed line number on which this
+        /// <see cref="SyntaxToken" /> appears.
         /// </summary>
-        public SyntaxTokenInfo StartToken { get; }
+        public int Line { get; }
 
         /// <summary>
-        /// Gets the <see cref="SyntaxToken" /> at which this
-        /// <see cref="ISyntaxNode" /> ends.
+        /// Gets the 1-indexed column number at which this
+        /// <see cref="SyntaxToken" /> begins.
         /// </summary>
-        public SyntaxTokenInfo EndToken { get; }
+        public int Column { get; }
     }
 }

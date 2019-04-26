@@ -230,7 +230,7 @@ namespace HotChocolate.Language
             // act
             Utf8Parser parser = new Utf8Parser();
             DocumentNode document = parser.Parse(sourceText,
-                new ParserOptions(noLocations: true));
+                new ParserOptions());
 
             // assert
             document.MatchSnapshot();

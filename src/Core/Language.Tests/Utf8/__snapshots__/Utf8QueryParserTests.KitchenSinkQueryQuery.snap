@@ -1,36 +1,172 @@
 ﻿{
   "Kind": "Document",
-  "Location": null,
+  "Location": {
+    "Start": 0,
+    "End": 1020,
+    "StartToken": {
+      "Kind": "StartOfFile",
+      "Start": 0,
+      "End": 0,
+      "Line": 1,
+      "Column": 1
+    },
+    "EndToken": {
+      "Kind": "EndOfFile",
+      "Start": 1020,
+      "End": 1020,
+      "Line": 60,
+      "Column": 1
+    }
+  },
   "Definitions": [
     {
       "Kind": "OperationDefinition",
-      "Location": null,
+      "Location": {
+        "Start": 172,
+        "End": 539,
+        "StartToken": {
+          "Kind": "Name",
+          "Start": 172,
+          "End": 177,
+          "Line": 6,
+          "Column": 1
+        },
+        "EndToken": {
+          "Kind": "Name",
+          "Start": 531,
+          "End": 539,
+          "Line": 27,
+          "Column": 1
+        }
+      },
       "Name": {
         "Kind": "Name",
-        "Location": null,
+        "Location": {
+          "Start": 178,
+          "End": 188,
+          "StartToken": {
+            "Kind": "Name",
+            "Start": 178,
+            "End": 187,
+            "Line": 6,
+            "Column": 7
+          },
+          "EndToken": {
+            "Kind": "LeftParenthesis",
+            "Start": 187,
+            "End": 188,
+            "Line": 6,
+            "Column": 16
+          }
+        },
         "Value": "queryName"
       },
       "Operation": "Query",
       "VariableDefinitions": [
         {
           "Kind": "VariableDefinition",
-          "Location": null,
+          "Location": {
+            "Start": 188,
+            "End": 208,
+            "StartToken": {
+              "Kind": "Dollar",
+              "Start": 188,
+              "End": 189,
+              "Line": 6,
+              "Column": 17
+            },
+            "EndToken": {
+              "Kind": "Dollar",
+              "Start": 207,
+              "End": 208,
+              "Line": 6,
+              "Column": 36
+            }
+          },
           "Variable": {
             "Kind": "Variable",
-            "Location": null,
+            "Location": {
+              "Start": 188,
+              "End": 193,
+              "StartToken": {
+                "Kind": "Dollar",
+                "Start": 188,
+                "End": 189,
+                "Line": 6,
+                "Column": 17
+              },
+              "EndToken": {
+                "Kind": "Colon",
+                "Start": 192,
+                "End": 193,
+                "Line": 6,
+                "Column": 21
+              }
+            },
             "Name": {
               "Kind": "Name",
-              "Location": null,
+              "Location": {
+                "Start": 189,
+                "End": 193,
+                "StartToken": {
+                  "Kind": "Name",
+                  "Start": 189,
+                  "End": 192,
+                  "Line": 6,
+                  "Column": 18
+                },
+                "EndToken": {
+                  "Kind": "Colon",
+                  "Start": 192,
+                  "End": 193,
+                  "Line": 6,
+                  "Column": 21
+                }
+              },
               "Value": "foo"
             },
             "Value": "foo"
           },
           "Type": {
             "Kind": "NamedType",
-            "Location": null,
+            "Location": {
+              "Start": 194,
+              "End": 208,
+              "StartToken": {
+                "Kind": "Name",
+                "Start": 194,
+                "End": 205,
+                "Line": 6,
+                "Column": 23
+              },
+              "EndToken": {
+                "Kind": "Dollar",
+                "Start": 207,
+                "End": 208,
+                "Line": 6,
+                "Column": 36
+              }
+            },
             "Name": {
               "Kind": "Name",
-              "Location": null,
+              "Location": {
+                "Start": 194,
+                "End": 208,
+                "StartToken": {
+                  "Kind": "Name",
+                  "Start": 194,
+                  "End": 205,
+                  "Line": 6,
+                  "Column": 23
+                },
+                "EndToken": {
+                  "Kind": "Dollar",
+                  "Start": 207,
+                  "End": 208,
+                  "Line": 6,
+                  "Column": 36
+                }
+              },
               "Value": "ComplexType"
             }
           },
@@ -38,29 +174,131 @@
         },
         {
           "Kind": "VariableDefinition",
-          "Location": null,
+          "Location": {
+            "Start": 207,
+            "End": 228,
+            "StartToken": {
+              "Kind": "Dollar",
+              "Start": 207,
+              "End": 208,
+              "Line": 6,
+              "Column": 36
+            },
+            "EndToken": {
+              "Kind": "RightParenthesis",
+              "Start": 227,
+              "End": 228,
+              "Line": 6,
+              "Column": 56
+            }
+          },
           "Variable": {
             "Kind": "Variable",
-            "Location": null,
+            "Location": {
+              "Start": 207,
+              "End": 213,
+              "StartToken": {
+                "Kind": "Dollar",
+                "Start": 207,
+                "End": 208,
+                "Line": 6,
+                "Column": 36
+              },
+              "EndToken": {
+                "Kind": "Colon",
+                "Start": 212,
+                "End": 213,
+                "Line": 6,
+                "Column": 41
+              }
+            },
             "Name": {
               "Kind": "Name",
-              "Location": null,
+              "Location": {
+                "Start": 208,
+                "End": 213,
+                "StartToken": {
+                  "Kind": "Name",
+                  "Start": 208,
+                  "End": 212,
+                  "Line": 6,
+                  "Column": 37
+                },
+                "EndToken": {
+                  "Kind": "Colon",
+                  "Start": 212,
+                  "End": 213,
+                  "Line": 6,
+                  "Column": 41
+                }
+              },
               "Value": "site"
             },
             "Value": "site"
           },
           "Type": {
             "Kind": "NamedType",
-            "Location": null,
+            "Location": {
+              "Start": 214,
+              "End": 220,
+              "StartToken": {
+                "Kind": "Name",
+                "Start": 214,
+                "End": 218,
+                "Line": 6,
+                "Column": 43
+              },
+              "EndToken": {
+                "Kind": "Equal",
+                "Start": 219,
+                "End": 220,
+                "Line": 6,
+                "Column": 48
+              }
+            },
             "Name": {
               "Kind": "Name",
-              "Location": null,
+              "Location": {
+                "Start": 214,
+                "End": 220,
+                "StartToken": {
+                  "Kind": "Name",
+                  "Start": 214,
+                  "End": 218,
+                  "Line": 6,
+                  "Column": 43
+                },
+                "EndToken": {
+                  "Kind": "Equal",
+                  "Start": 219,
+                  "End": 220,
+                  "Line": 6,
+                  "Column": 48
+                }
+              },
               "Value": "Site"
             }
           },
           "DefaultValue": {
             "Kind": "EnumValue",
-            "Location": null,
+            "Location": {
+              "Start": 221,
+              "End": 228,
+              "StartToken": {
+                "Kind": "Name",
+                "Start": 221,
+                "End": 227,
+                "Line": 6,
+                "Column": 50
+              },
+              "EndToken": {
+                "Kind": "RightParenthesis",
+                "Start": 227,
+                "End": 228,
+                "Line": 6,
+                "Column": 56
+              }
+            },
             "Value": "MOBILE"
           }
         }
@@ -68,36 +306,155 @@
       "Directives": [],
       "SelectionSet": {
         "Kind": "SelectionSet",
-        "Location": null,
+        "Location": {
+          "Start": 229,
+          "End": 539,
+          "StartToken": {
+            "Kind": "LeftBrace",
+            "Start": 229,
+            "End": 230,
+            "Line": 6,
+            "Column": 58
+          },
+          "EndToken": {
+            "Kind": "Name",
+            "Start": 531,
+            "End": 539,
+            "Line": 27,
+            "Column": 1
+          }
+        },
         "Selections": [
           {
             "Kind": "Field",
             "Alias": {
               "Kind": "Name",
-              "Location": null,
+              "Location": {
+                "Start": 233,
+                "End": 246,
+                "StartToken": {
+                  "Kind": "Name",
+                  "Start": 233,
+                  "End": 245,
+                  "Line": 7,
+                  "Column": 3
+                },
+                "EndToken": {
+                  "Kind": "Colon",
+                  "Start": 245,
+                  "End": 246,
+                  "Line": 7,
+                  "Column": 15
+                }
+              },
               "Value": "whoever123is"
             },
             "Arguments": [
               {
                 "Kind": "Argument",
-                "Location": null,
+                "Location": {
+                  "Start": 252,
+                  "End": 267,
+                  "StartToken": {
+                    "Kind": "Name",
+                    "Start": 252,
+                    "End": 254,
+                    "Line": 7,
+                    "Column": 22
+                  },
+                  "EndToken": {
+                    "Kind": "RightParenthesis",
+                    "Start": 266,
+                    "End": 267,
+                    "Line": 7,
+                    "Column": 36
+                  }
+                },
                 "Name": {
                   "Kind": "Name",
-                  "Location": null,
+                  "Location": {
+                    "Start": 252,
+                    "End": 255,
+                    "StartToken": {
+                      "Kind": "Name",
+                      "Start": 252,
+                      "End": 254,
+                      "Line": 7,
+                      "Column": 22
+                    },
+                    "EndToken": {
+                      "Kind": "Colon",
+                      "Start": 254,
+                      "End": 255,
+                      "Line": 7,
+                      "Column": 24
+                    }
+                  },
                   "Value": "id"
                 },
                 "Value": {
                   "Kind": "ListValue",
-                  "Location": null,
+                  "Location": {
+                    "Start": 256,
+                    "End": 267,
+                    "StartToken": {
+                      "Kind": "LeftBracket",
+                      "Start": 256,
+                      "End": 257,
+                      "Line": 7,
+                      "Column": 26
+                    },
+                    "EndToken": {
+                      "Kind": "RightParenthesis",
+                      "Start": 266,
+                      "End": 267,
+                      "Line": 7,
+                      "Column": 36
+                    }
+                  },
                   "Items": [
                     {
                       "Kind": "EnumValue",
-                      "Location": null,
+                      "Location": {
+                        "Start": 257,
+                        "End": 265,
+                        "StartToken": {
+                          "Kind": "Name",
+                          "Start": 257,
+                          "End": 260,
+                          "Line": 7,
+                          "Column": 27
+                        },
+                        "EndToken": {
+                          "Kind": "Name",
+                          "Start": 262,
+                          "End": 265,
+                          "Line": 7,
+                          "Column": 32
+                        }
+                      },
                       "Value": "123"
                     },
                     {
                       "Kind": "EnumValue",
-                      "Location": null,
+                      "Location": {
+                        "Start": 262,
+                        "End": 266,
+                        "StartToken": {
+                          "Kind": "Name",
+                          "Start": 262,
+                          "End": 265,
+                          "Line": 7,
+                          "Column": 32
+                        },
+                        "EndToken": {
+                          "Kind": "RightBracket",
+                          "Start": 265,
+                          "End": 266,
+                          "Line": 7,
+                          "Column": 35
+                        }
+                      },
                       "Value": "456"
                     }
                   ]
@@ -106,40 +463,176 @@
             ],
             "SelectionSet": {
               "Kind": "SelectionSet",
-              "Location": null,
+              "Location": {
+                "Start": 268,
+                "End": 529,
+                "StartToken": {
+                  "Kind": "LeftBrace",
+                  "Start": 268,
+                  "End": 269,
+                  "Line": 7,
+                  "Column": 38
+                },
+                "EndToken": {
+                  "Kind": "RightBrace",
+                  "Start": 528,
+                  "End": 529,
+                  "Line": 25,
+                  "Column": 1
+                }
+              },
               "Selections": [
                 {
                   "Kind": "Field",
                   "Alias": null,
                   "Arguments": [],
                   "SelectionSet": null,
-                  "Location": null,
+                  "Location": {
+                    "Start": 274,
+                    "End": 286,
+                    "StartToken": {
+                      "Kind": "Name",
+                      "Start": 274,
+                      "End": 276,
+                      "Line": 8,
+                      "Column": 5
+                    },
+                    "EndToken": {
+                      "Kind": "Spread",
+                      "Start": 283,
+                      "End": 286,
+                      "Line": 9,
+                      "Column": 5
+                    }
+                  },
                   "Name": {
                     "Kind": "Name",
-                    "Location": null,
+                    "Location": {
+                      "Start": 274,
+                      "End": 286,
+                      "StartToken": {
+                        "Kind": "Name",
+                        "Start": 274,
+                        "End": 276,
+                        "Line": 8,
+                        "Column": 5
+                      },
+                      "EndToken": {
+                        "Kind": "Spread",
+                        "Start": 283,
+                        "End": 286,
+                        "Line": 9,
+                        "Column": 5
+                      }
+                    },
                     "Value": "id"
                   },
                   "Directives": []
                 },
                 {
                   "Kind": "InlineFragment",
-                  "Location": null,
+                  "Location": {
+                    "Start": 283,
+                    "End": 461,
+                    "StartToken": {
+                      "Kind": "Spread",
+                      "Start": 283,
+                      "End": 286,
+                      "Line": 9,
+                      "Column": 5
+                    },
+                    "EndToken": {
+                      "Kind": "Spread",
+                      "Start": 458,
+                      "End": 461,
+                      "Line": 18,
+                      "Column": 5
+                    }
+                  },
                   "TypeCondition": {
                     "Kind": "NamedType",
-                    "Location": null,
+                    "Location": {
+                      "Start": 290,
+                      "End": 296,
+                      "StartToken": {
+                        "Kind": "Name",
+                        "Start": 290,
+                        "End": 294,
+                        "Line": 9,
+                        "Column": 12
+                      },
+                      "EndToken": {
+                        "Kind": "At",
+                        "Start": 295,
+                        "End": 296,
+                        "Line": 9,
+                        "Column": 17
+                      }
+                    },
                     "Name": {
                       "Kind": "Name",
-                      "Location": null,
+                      "Location": {
+                        "Start": 290,
+                        "End": 296,
+                        "StartToken": {
+                          "Kind": "Name",
+                          "Start": 290,
+                          "End": 294,
+                          "Line": 9,
+                          "Column": 12
+                        },
+                        "EndToken": {
+                          "Kind": "At",
+                          "Start": 295,
+                          "End": 296,
+                          "Line": 9,
+                          "Column": 17
+                        }
+                      },
                       "Value": "User"
                     }
                   },
                   "Directives": [
                     {
                       "Kind": "Directive",
-                      "Location": null,
+                      "Location": {
+                        "Start": 295,
+                        "End": 303,
+                        "StartToken": {
+                          "Kind": "At",
+                          "Start": 295,
+                          "End": 296,
+                          "Line": 9,
+                          "Column": 17
+                        },
+                        "EndToken": {
+                          "Kind": "LeftBrace",
+                          "Start": 302,
+                          "End": 303,
+                          "Line": 9,
+                          "Column": 24
+                        }
+                      },
                       "Name": {
                         "Kind": "Name",
-                        "Location": null,
+                        "Location": {
+                          "Start": 296,
+                          "End": 303,
+                          "StartToken": {
+                            "Kind": "Name",
+                            "Start": 296,
+                            "End": 301,
+                            "Line": 9,
+                            "Column": 18
+                          },
+                          "EndToken": {
+                            "Kind": "LeftBrace",
+                            "Start": 302,
+                            "End": 303,
+                            "Line": 9,
+                            "Column": 24
+                          }
+                        },
                         "Value": "defer"
                       },
                       "Arguments": []
@@ -147,7 +640,24 @@
                   ],
                   "SelectionSet": {
                     "Kind": "SelectionSet",
-                    "Location": null,
+                    "Location": {
+                      "Start": 302,
+                      "End": 461,
+                      "StartToken": {
+                        "Kind": "LeftBrace",
+                        "Start": 302,
+                        "End": 303,
+                        "Line": 9,
+                        "Column": 24
+                      },
+                      "EndToken": {
+                        "Kind": "Spread",
+                        "Start": 458,
+                        "End": 461,
+                        "Line": 18,
+                        "Column": 5
+                      }
+                    },
                     "Selections": [
                       {
                         "Kind": "Field",
@@ -155,17 +665,68 @@
                         "Arguments": [],
                         "SelectionSet": {
                           "Kind": "SelectionSet",
-                          "Location": null,
+                          "Location": {
+                            "Start": 317,
+                            "End": 453,
+                            "StartToken": {
+                              "Kind": "LeftBrace",
+                              "Start": 317,
+                              "End": 318,
+                              "Line": 10,
+                              "Column": 14
+                            },
+                            "EndToken": {
+                              "Kind": "RightBrace",
+                              "Start": 452,
+                              "End": 453,
+                              "Line": 17,
+                              "Column": 5
+                            }
+                          },
                           "Selections": [
                             {
                               "Kind": "Field",
                               "Alias": null,
                               "Arguments": [],
                               "SelectionSet": null,
-                              "Location": null,
+                              "Location": {
+                                "Start": 327,
+                                "End": 345,
+                                "StartToken": {
+                                  "Kind": "Name",
+                                  "Start": 327,
+                                  "End": 329,
+                                  "Line": 11,
+                                  "Column": 9
+                                },
+                                "EndToken": {
+                                  "Kind": "Name",
+                                  "Start": 340,
+                                  "End": 345,
+                                  "Line": 12,
+                                  "Column": 9
+                                }
+                              },
                               "Name": {
                                 "Kind": "Name",
-                                "Location": null,
+                                "Location": {
+                                  "Start": 327,
+                                  "End": 345,
+                                  "StartToken": {
+                                    "Kind": "Name",
+                                    "Start": 327,
+                                    "End": 329,
+                                    "Line": 11,
+                                    "Column": 9
+                                  },
+                                  "EndToken": {
+                                    "Kind": "Name",
+                                    "Start": 340,
+                                    "End": 345,
+                                    "Line": 12,
+                                    "Column": 9
+                                  }
+                                },
                                 "Value": "id"
                               },
                               "Directives": []
@@ -174,38 +735,174 @@
                               "Kind": "Field",
                               "Alias": {
                                 "Kind": "Name",
-                                "Location": null,
+                                "Location": {
+                                  "Start": 340,
+                                  "End": 346,
+                                  "StartToken": {
+                                    "Kind": "Name",
+                                    "Start": 340,
+                                    "End": 345,
+                                    "Line": 12,
+                                    "Column": 9
+                                  },
+                                  "EndToken": {
+                                    "Kind": "Colon",
+                                    "Start": 345,
+                                    "End": 346,
+                                    "Line": 12,
+                                    "Column": 14
+                                  }
+                                },
                                 "Value": "alias"
                               },
                               "Arguments": [
                                 {
                                   "Kind": "Argument",
-                                  "Location": null,
+                                  "Location": {
+                                    "Start": 354,
+                                    "End": 369,
+                                    "StartToken": {
+                                      "Kind": "Name",
+                                      "Start": 354,
+                                      "End": 359,
+                                      "Line": 12,
+                                      "Column": 23
+                                    },
+                                    "EndToken": {
+                                      "Kind": "Name",
+                                      "Start": 364,
+                                      "End": 369,
+                                      "Line": 12,
+                                      "Column": 33
+                                    }
+                                  },
                                   "Name": {
                                     "Kind": "Name",
-                                    "Location": null,
+                                    "Location": {
+                                      "Start": 354,
+                                      "End": 360,
+                                      "StartToken": {
+                                        "Kind": "Name",
+                                        "Start": 354,
+                                        "End": 359,
+                                        "Line": 12,
+                                        "Column": 23
+                                      },
+                                      "EndToken": {
+                                        "Kind": "Colon",
+                                        "Start": 359,
+                                        "End": 360,
+                                        "Line": 12,
+                                        "Column": 28
+                                      }
+                                    },
                                     "Value": "first"
                                   },
                                   "Value": {
                                     "Kind": "EnumValue",
-                                    "Location": null,
+                                    "Location": {
+                                      "Start": 360,
+                                      "End": 369,
+                                      "StartToken": {
+                                        "Kind": "Name",
+                                        "Start": 360,
+                                        "End": 362,
+                                        "Line": 12,
+                                        "Column": 29
+                                      },
+                                      "EndToken": {
+                                        "Kind": "Name",
+                                        "Start": 364,
+                                        "End": 369,
+                                        "Line": 12,
+                                        "Column": 33
+                                      }
+                                    },
                                     "Value": "10"
                                   }
                                 },
                                 {
                                   "Kind": "Argument",
-                                  "Location": null,
+                                  "Location": {
+                                    "Start": 364,
+                                    "End": 376,
+                                    "StartToken": {
+                                      "Kind": "Name",
+                                      "Start": 364,
+                                      "End": 369,
+                                      "Line": 12,
+                                      "Column": 33
+                                    },
+                                    "EndToken": {
+                                      "Kind": "RightParenthesis",
+                                      "Start": 375,
+                                      "End": 376,
+                                      "Line": 12,
+                                      "Column": 44
+                                    }
+                                  },
                                   "Name": {
                                     "Kind": "Name",
-                                    "Location": null,
+                                    "Location": {
+                                      "Start": 364,
+                                      "End": 370,
+                                      "StartToken": {
+                                        "Kind": "Name",
+                                        "Start": 364,
+                                        "End": 369,
+                                        "Line": 12,
+                                        "Column": 33
+                                      },
+                                      "EndToken": {
+                                        "Kind": "Colon",
+                                        "Start": 369,
+                                        "End": 370,
+                                        "Line": 12,
+                                        "Column": 38
+                                      }
+                                    },
                                     "Value": "after"
                                   },
                                   "Value": {
                                     "Kind": "Variable",
-                                    "Location": null,
+                                    "Location": {
+                                      "Start": 370,
+                                      "End": 376,
+                                      "StartToken": {
+                                        "Kind": "Dollar",
+                                        "Start": 370,
+                                        "End": 371,
+                                        "Line": 12,
+                                        "Column": 39
+                                      },
+                                      "EndToken": {
+                                        "Kind": "RightParenthesis",
+                                        "Start": 375,
+                                        "End": 376,
+                                        "Line": 12,
+                                        "Column": 44
+                                      }
+                                    },
                                     "Name": {
                                       "Kind": "Name",
-                                      "Location": null,
+                                      "Location": {
+                                        "Start": 371,
+                                        "End": 376,
+                                        "StartToken": {
+                                          "Kind": "Name",
+                                          "Start": 371,
+                                          "End": 374,
+                                          "Line": 12,
+                                          "Column": 40
+                                        },
+                                        "EndToken": {
+                                          "Kind": "RightParenthesis",
+                                          "Start": 375,
+                                          "End": 376,
+                                          "Line": 12,
+                                          "Column": 44
+                                        }
+                                      },
                                       "Value": "foo"
                                     },
                                     "Value": "foo"
@@ -214,63 +911,284 @@
                               ],
                               "SelectionSet": {
                                 "Kind": "SelectionSet",
-                                "Location": null,
+                                "Location": {
+                                  "Start": 396,
+                                  "End": 447,
+                                  "StartToken": {
+                                    "Kind": "LeftBrace",
+                                    "Start": 396,
+                                    "End": 397,
+                                    "Line": 12,
+                                    "Column": 65
+                                  },
+                                  "EndToken": {
+                                    "Kind": "RightBrace",
+                                    "Start": 446,
+                                    "End": 447,
+                                    "Line": 16,
+                                    "Column": 7
+                                  }
+                                },
                                 "Selections": [
                                   {
                                     "Kind": "Field",
                                     "Alias": null,
                                     "Arguments": [],
                                     "SelectionSet": null,
-                                    "Location": null,
+                                    "Location": {
+                                      "Start": 408,
+                                      "End": 425,
+                                      "StartToken": {
+                                        "Kind": "Name",
+                                        "Start": 408,
+                                        "End": 410,
+                                        "Line": 13,
+                                        "Column": 11
+                                      },
+                                      "EndToken": {
+                                        "Kind": "Spread",
+                                        "Start": 422,
+                                        "End": 425,
+                                        "Line": 14,
+                                        "Column": 11
+                                      }
+                                    },
                                     "Name": {
                                       "Kind": "Name",
-                                      "Location": null,
+                                      "Location": {
+                                        "Start": 408,
+                                        "End": 425,
+                                        "StartToken": {
+                                          "Kind": "Name",
+                                          "Start": 408,
+                                          "End": 410,
+                                          "Line": 13,
+                                          "Column": 11
+                                        },
+                                        "EndToken": {
+                                          "Kind": "Spread",
+                                          "Start": 422,
+                                          "End": 425,
+                                          "Line": 14,
+                                          "Column": 11
+                                        }
+                                      },
                                       "Value": "id"
                                     },
                                     "Directives": []
                                   },
                                   {
                                     "Kind": "FragmentSpread",
-                                    "Location": null,
+                                    "Location": {
+                                      "Start": 422,
+                                      "End": 439,
+                                      "StartToken": {
+                                        "Kind": "Spread",
+                                        "Start": 422,
+                                        "End": 425,
+                                        "Line": 14,
+                                        "Column": 11
+                                      },
+                                      "EndToken": {
+                                        "Kind": "RightBrace",
+                                        "Start": 438,
+                                        "End": 439,
+                                        "Line": 15,
+                                        "Column": 9
+                                      }
+                                    },
                                     "Name": {
                                       "Kind": "Name",
-                                      "Location": null,
+                                      "Location": {
+                                        "Start": 425,
+                                        "End": 439,
+                                        "StartToken": {
+                                          "Kind": "Name",
+                                          "Start": 425,
+                                          "End": 429,
+                                          "Line": 14,
+                                          "Column": 14
+                                        },
+                                        "EndToken": {
+                                          "Kind": "RightBrace",
+                                          "Start": 438,
+                                          "End": 439,
+                                          "Line": 15,
+                                          "Column": 9
+                                        }
+                                      },
                                       "Value": "frag"
                                     },
                                     "Directives": []
                                   }
                                 ]
                               },
-                              "Location": null,
+                              "Location": {
+                                "Start": 340,
+                                "End": 447,
+                                "StartToken": {
+                                  "Kind": "Name",
+                                  "Start": 340,
+                                  "End": 345,
+                                  "Line": 12,
+                                  "Column": 9
+                                },
+                                "EndToken": {
+                                  "Kind": "RightBrace",
+                                  "Start": 446,
+                                  "End": 447,
+                                  "Line": 16,
+                                  "Column": 7
+                                }
+                              },
                               "Name": {
                                 "Kind": "Name",
-                                "Location": null,
+                                "Location": {
+                                  "Start": 347,
+                                  "End": 354,
+                                  "StartToken": {
+                                    "Kind": "Name",
+                                    "Start": 347,
+                                    "End": 353,
+                                    "Line": 12,
+                                    "Column": 16
+                                  },
+                                  "EndToken": {
+                                    "Kind": "LeftParenthesis",
+                                    "Start": 353,
+                                    "End": 354,
+                                    "Line": 12,
+                                    "Column": 22
+                                  }
+                                },
                                 "Value": "field1"
                               },
                               "Directives": [
                                 {
                                   "Kind": "Directive",
-                                  "Location": null,
+                                  "Location": {
+                                    "Start": 377,
+                                    "End": 397,
+                                    "StartToken": {
+                                      "Kind": "At",
+                                      "Start": 377,
+                                      "End": 378,
+                                      "Line": 12,
+                                      "Column": 46
+                                    },
+                                    "EndToken": {
+                                      "Kind": "LeftBrace",
+                                      "Start": 396,
+                                      "End": 397,
+                                      "Line": 12,
+                                      "Column": 65
+                                    }
+                                  },
                                   "Name": {
                                     "Kind": "Name",
-                                    "Location": null,
+                                    "Location": {
+                                      "Start": 378,
+                                      "End": 386,
+                                      "StartToken": {
+                                        "Kind": "Name",
+                                        "Start": 378,
+                                        "End": 385,
+                                        "Line": 12,
+                                        "Column": 47
+                                      },
+                                      "EndToken": {
+                                        "Kind": "LeftParenthesis",
+                                        "Start": 385,
+                                        "End": 386,
+                                        "Line": 12,
+                                        "Column": 54
+                                      }
+                                    },
                                     "Value": "include"
                                   },
                                   "Arguments": [
                                     {
                                       "Kind": "Argument",
-                                      "Location": null,
+                                      "Location": {
+                                        "Start": 386,
+                                        "End": 395,
+                                        "StartToken": {
+                                          "Kind": "Name",
+                                          "Start": 386,
+                                          "End": 388,
+                                          "Line": 12,
+                                          "Column": 55
+                                        },
+                                        "EndToken": {
+                                          "Kind": "RightParenthesis",
+                                          "Start": 394,
+                                          "End": 395,
+                                          "Line": 12,
+                                          "Column": 63
+                                        }
+                                      },
                                       "Name": {
                                         "Kind": "Name",
-                                        "Location": null,
+                                        "Location": {
+                                          "Start": 386,
+                                          "End": 389,
+                                          "StartToken": {
+                                            "Kind": "Name",
+                                            "Start": 386,
+                                            "End": 388,
+                                            "Line": 12,
+                                            "Column": 55
+                                          },
+                                          "EndToken": {
+                                            "Kind": "Colon",
+                                            "Start": 388,
+                                            "End": 389,
+                                            "Line": 12,
+                                            "Column": 57
+                                          }
+                                        },
                                         "Value": "if"
                                       },
                                       "Value": {
                                         "Kind": "Variable",
-                                        "Location": null,
+                                        "Location": {
+                                          "Start": 390,
+                                          "End": 395,
+                                          "StartToken": {
+                                            "Kind": "Dollar",
+                                            "Start": 390,
+                                            "End": 391,
+                                            "Line": 12,
+                                            "Column": 59
+                                          },
+                                          "EndToken": {
+                                            "Kind": "RightParenthesis",
+                                            "Start": 394,
+                                            "End": 395,
+                                            "Line": 12,
+                                            "Column": 63
+                                          }
+                                        },
                                         "Name": {
                                           "Kind": "Name",
-                                          "Location": null,
+                                          "Location": {
+                                            "Start": 391,
+                                            "End": 395,
+                                            "StartToken": {
+                                              "Kind": "Name",
+                                              "Start": 391,
+                                              "End": 394,
+                                              "Line": 12,
+                                              "Column": 60
+                                            },
+                                            "EndToken": {
+                                              "Kind": "RightParenthesis",
+                                              "Start": 394,
+                                              "End": 395,
+                                              "Line": 12,
+                                              "Column": 63
+                                            }
+                                          },
                                           "Value": "foo"
                                         },
                                         "Value": "foo"
@@ -282,10 +1200,44 @@
                             }
                           ]
                         },
-                        "Location": null,
+                        "Location": {
+                          "Start": 310,
+                          "End": 453,
+                          "StartToken": {
+                            "Kind": "Name",
+                            "Start": 310,
+                            "End": 316,
+                            "Line": 10,
+                            "Column": 7
+                          },
+                          "EndToken": {
+                            "Kind": "RightBrace",
+                            "Start": 452,
+                            "End": 453,
+                            "Line": 17,
+                            "Column": 5
+                          }
+                        },
                         "Name": {
                           "Kind": "Name",
-                          "Location": null,
+                          "Location": {
+                            "Start": 310,
+                            "End": 318,
+                            "StartToken": {
+                              "Kind": "Name",
+                              "Start": 310,
+                              "End": 316,
+                              "Line": 10,
+                              "Column": 7
+                            },
+                            "EndToken": {
+                              "Kind": "LeftBrace",
+                              "Start": 317,
+                              "End": 318,
+                              "Line": 10,
+                              "Column": 14
+                            }
+                          },
                           "Value": "field2"
                         },
                         "Directives": []
@@ -295,32 +1247,151 @@
                 },
                 {
                   "Kind": "InlineFragment",
-                  "Location": null,
+                  "Location": {
+                    "Start": 458,
+                    "End": 506,
+                    "StartToken": {
+                      "Kind": "Spread",
+                      "Start": 458,
+                      "End": 461,
+                      "Line": 18,
+                      "Column": 5
+                    },
+                    "EndToken": {
+                      "Kind": "Spread",
+                      "Start": 503,
+                      "End": 506,
+                      "Line": 21,
+                      "Column": 5
+                    }
+                  },
                   "TypeCondition": null,
                   "Directives": [
                     {
                       "Kind": "Directive",
-                      "Location": null,
+                      "Location": {
+                        "Start": 462,
+                        "End": 483,
+                        "StartToken": {
+                          "Kind": "At",
+                          "Start": 462,
+                          "End": 463,
+                          "Line": 18,
+                          "Column": 9
+                        },
+                        "EndToken": {
+                          "Kind": "LeftBrace",
+                          "Start": 482,
+                          "End": 483,
+                          "Line": 18,
+                          "Column": 29
+                        }
+                      },
                       "Name": {
                         "Kind": "Name",
-                        "Location": null,
+                        "Location": {
+                          "Start": 463,
+                          "End": 468,
+                          "StartToken": {
+                            "Kind": "Name",
+                            "Start": 463,
+                            "End": 467,
+                            "Line": 18,
+                            "Column": 10
+                          },
+                          "EndToken": {
+                            "Kind": "LeftParenthesis",
+                            "Start": 467,
+                            "End": 468,
+                            "Line": 18,
+                            "Column": 14
+                          }
+                        },
                         "Value": "skip"
                       },
                       "Arguments": [
                         {
                           "Kind": "Argument",
-                          "Location": null,
+                          "Location": {
+                            "Start": 468,
+                            "End": 481,
+                            "StartToken": {
+                              "Kind": "Name",
+                              "Start": 468,
+                              "End": 474,
+                              "Line": 18,
+                              "Column": 15
+                            },
+                            "EndToken": {
+                              "Kind": "RightParenthesis",
+                              "Start": 480,
+                              "End": 481,
+                              "Line": 18,
+                              "Column": 27
+                            }
+                          },
                           "Name": {
                             "Kind": "Name",
-                            "Location": null,
+                            "Location": {
+                              "Start": 468,
+                              "End": 475,
+                              "StartToken": {
+                                "Kind": "Name",
+                                "Start": 468,
+                                "End": 474,
+                                "Line": 18,
+                                "Column": 15
+                              },
+                              "EndToken": {
+                                "Kind": "Colon",
+                                "Start": 474,
+                                "End": 475,
+                                "Line": 18,
+                                "Column": 21
+                              }
+                            },
                             "Value": "unless"
                           },
                           "Value": {
                             "Kind": "Variable",
-                            "Location": null,
+                            "Location": {
+                              "Start": 476,
+                              "End": 481,
+                              "StartToken": {
+                                "Kind": "Dollar",
+                                "Start": 476,
+                                "End": 477,
+                                "Line": 18,
+                                "Column": 23
+                              },
+                              "EndToken": {
+                                "Kind": "RightParenthesis",
+                                "Start": 480,
+                                "End": 481,
+                                "Line": 18,
+                                "Column": 27
+                              }
+                            },
                             "Name": {
                               "Kind": "Name",
-                              "Location": null,
+                              "Location": {
+                                "Start": 477,
+                                "End": 481,
+                                "StartToken": {
+                                  "Kind": "Name",
+                                  "Start": 477,
+                                  "End": 480,
+                                  "Line": 18,
+                                  "Column": 24
+                                },
+                                "EndToken": {
+                                  "Kind": "RightParenthesis",
+                                  "Start": 480,
+                                  "End": 481,
+                                  "Line": 18,
+                                  "Column": 27
+                                }
+                              },
                               "Value": "foo"
                             },
                             "Value": "foo"
@@ -331,17 +1402,68 @@
                   ],
                   "SelectionSet": {
                     "Kind": "SelectionSet",
-                    "Location": null,
+                    "Location": {
+                      "Start": 482,
+                      "End": 506,
+                      "StartToken": {
+                        "Kind": "LeftBrace",
+                        "Start": 482,
+                        "End": 483,
+                        "Line": 18,
+                        "Column": 29
+                      },
+                      "EndToken": {
+                        "Kind": "Spread",
+                        "Start": 503,
+                        "End": 506,
+                        "Line": 21,
+                        "Column": 5
+                      }
+                    },
                     "Selections": [
                       {
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
                         "SelectionSet": null,
-                        "Location": null,
+                        "Location": {
+                          "Start": 490,
+                          "End": 498,
+                          "StartToken": {
+                            "Kind": "Name",
+                            "Start": 490,
+                            "End": 492,
+                            "Line": 19,
+                            "Column": 7
+                          },
+                          "EndToken": {
+                            "Kind": "RightBrace",
+                            "Start": 497,
+                            "End": 498,
+                            "Line": 20,
+                            "Column": 5
+                          }
+                        },
                         "Name": {
                           "Kind": "Name",
-                          "Location": null,
+                          "Location": {
+                            "Start": 490,
+                            "End": 498,
+                            "StartToken": {
+                              "Kind": "Name",
+                              "Start": 490,
+                              "End": 492,
+                              "Line": 19,
+                              "Column": 7
+                            },
+                            "EndToken": {
+                              "Kind": "RightBrace",
+                              "Start": 497,
+                              "End": 498,
+                              "Line": 20,
+                              "Column": 5
+                            }
+                          },
                           "Value": "id"
                         },
                         "Directives": []
@@ -351,22 +1473,90 @@
                 },
                 {
                   "Kind": "InlineFragment",
-                  "Location": null,
+                  "Location": {
+                    "Start": 503,
+                    "End": 527,
+                    "StartToken": {
+                      "Kind": "Spread",
+                      "Start": 503,
+                      "End": 506,
+                      "Line": 21,
+                      "Column": 5
+                    },
+                    "EndToken": {
+                      "Kind": "RightBrace",
+                      "Start": 526,
+                      "End": 527,
+                      "Line": 24,
+                      "Column": 3
+                    }
+                  },
                   "TypeCondition": null,
                   "Directives": [],
                   "SelectionSet": {
                     "Kind": "SelectionSet",
-                    "Location": null,
+                    "Location": {
+                      "Start": 507,
+                      "End": 527,
+                      "StartToken": {
+                        "Kind": "LeftBrace",
+                        "Start": 507,
+                        "End": 508,
+                        "Line": 21,
+                        "Column": 9
+                      },
+                      "EndToken": {
+                        "Kind": "RightBrace",
+                        "Start": 526,
+                        "End": 527,
+                        "Line": 24,
+                        "Column": 3
+                      }
+                    },
                     "Selections": [
                       {
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
                         "SelectionSet": null,
-                        "Location": null,
+                        "Location": {
+                          "Start": 515,
+                          "End": 523,
+                          "StartToken": {
+                            "Kind": "Name",
+                            "Start": 515,
+                            "End": 517,
+                            "Line": 22,
+                            "Column": 7
+                          },
+                          "EndToken": {
+                            "Kind": "RightBrace",
+                            "Start": 522,
+                            "End": 523,
+                            "Line": 23,
+                            "Column": 5
+                          }
+                        },
                         "Name": {
                           "Kind": "Name",
-                          "Location": null,
+                          "Location": {
+                            "Start": 515,
+                            "End": 523,
+                            "StartToken": {
+                              "Kind": "Name",
+                              "Start": 515,
+                              "End": 517,
+                              "Line": 22,
+                              "Column": 7
+                            },
+                            "EndToken": {
+                              "Kind": "RightBrace",
+                              "Start": 522,
+                              "End": 523,
+                              "Line": 23,
+                              "Column": 5
+                            }
+                          },
                           "Value": "id"
                         },
                         "Directives": []
@@ -376,10 +1566,44 @@
                 }
               ]
             },
-            "Location": null,
+            "Location": {
+              "Start": 233,
+              "End": 529,
+              "StartToken": {
+                "Kind": "Name",
+                "Start": 233,
+                "End": 245,
+                "Line": 7,
+                "Column": 3
+              },
+              "EndToken": {
+                "Kind": "RightBrace",
+                "Start": 528,
+                "End": 529,
+                "Line": 25,
+                "Column": 1
+              }
+            },
             "Name": {
               "Kind": "Name",
-              "Location": null,
+              "Location": {
+                "Start": 247,
+                "End": 252,
+                "StartToken": {
+                  "Kind": "Name",
+                  "Start": 247,
+                  "End": 251,
+                  "Line": 7,
+                  "Column": 17
+                },
+                "EndToken": {
+                  "Kind": "LeftParenthesis",
+                  "Start": 251,
+                  "End": 252,
+                  "Line": 7,
+                  "Column": 21
+                }
+              },
               "Value": "node"
             },
             "Directives": []
@@ -389,10 +1613,44 @@
     },
     {
       "Kind": "OperationDefinition",
-      "Location": null,
+      "Location": {
+        "Start": 531,
+        "End": 626,
+        "StartToken": {
+          "Kind": "Name",
+          "Start": 531,
+          "End": 539,
+          "Line": 27,
+          "Column": 1
+        },
+        "EndToken": {
+          "Kind": "Name",
+          "Start": 614,
+          "End": 626,
+          "Line": 35,
+          "Column": 1
+        }
+      },
       "Name": {
         "Kind": "Name",
-        "Location": null,
+        "Location": {
+          "Start": 540,
+          "End": 551,
+          "StartToken": {
+            "Kind": "Name",
+            "Start": 540,
+            "End": 549,
+            "Line": 27,
+            "Column": 10
+          },
+          "EndToken": {
+            "Kind": "LeftBrace",
+            "Start": 550,
+            "End": 551,
+            "Line": 27,
+            "Column": 20
+          }
+        },
         "Value": "likeStory"
       },
       "Operation": "Mutation",
@@ -400,7 +1658,24 @@
       "Directives": [],
       "SelectionSet": {
         "Kind": "SelectionSet",
-        "Location": null,
+        "Location": {
+          "Start": 550,
+          "End": 626,
+          "StartToken": {
+            "Kind": "LeftBrace",
+            "Start": 550,
+            "End": 551,
+            "Line": 27,
+            "Column": 20
+          },
+          "EndToken": {
+            "Kind": "Name",
+            "Start": 614,
+            "End": 626,
+            "Line": 35,
+            "Column": 1
+          }
+        },
         "Selections": [
           {
             "Kind": "Field",
@@ -408,22 +1683,90 @@
             "Arguments": [
               {
                 "Kind": "Argument",
-                "Location": null,
+                "Location": {
+                  "Start": 559,
+                  "End": 570,
+                  "StartToken": {
+                    "Kind": "Name",
+                    "Start": 559,
+                    "End": 564,
+                    "Line": 28,
+                    "Column": 8
+                  },
+                  "EndToken": {
+                    "Kind": "RightParenthesis",
+                    "Start": 569,
+                    "End": 570,
+                    "Line": 28,
+                    "Column": 18
+                  }
+                },
                 "Name": {
                   "Kind": "Name",
-                  "Location": null,
+                  "Location": {
+                    "Start": 559,
+                    "End": 565,
+                    "StartToken": {
+                      "Kind": "Name",
+                      "Start": 559,
+                      "End": 564,
+                      "Line": 28,
+                      "Column": 8
+                    },
+                    "EndToken": {
+                      "Kind": "Colon",
+                      "Start": 564,
+                      "End": 565,
+                      "Line": 28,
+                      "Column": 13
+                    }
+                  },
                   "Value": "story"
                 },
                 "Value": {
                   "Kind": "EnumValue",
-                  "Location": null,
+                  "Location": {
+                    "Start": 566,
+                    "End": 570,
+                    "StartToken": {
+                      "Kind": "Name",
+                      "Start": 566,
+                      "End": 569,
+                      "Line": 28,
+                      "Column": 15
+                    },
+                    "EndToken": {
+                      "Kind": "RightParenthesis",
+                      "Start": 569,
+                      "End": 570,
+                      "Line": 28,
+                      "Column": 18
+                    }
+                  },
                   "Value": "123"
                 }
               }
             ],
             "SelectionSet": {
               "Kind": "SelectionSet",
-              "Location": null,
+              "Location": {
+                "Start": 578,
+                "End": 612,
+                "StartToken": {
+                  "Kind": "LeftBrace",
+                  "Start": 578,
+                  "End": 579,
+                  "Line": 28,
+                  "Column": 27
+                },
+                "EndToken": {
+                  "Kind": "RightBrace",
+                  "Start": 611,
+                  "End": 612,
+                  "Line": 33,
+                  "Column": 1
+                }
+              },
               "Selections": [
                 {
                   "Kind": "Field",
@@ -431,46 +1774,199 @@
                   "Arguments": [],
                   "SelectionSet": {
                     "Kind": "SelectionSet",
-                    "Location": null,
+                    "Location": {
+                      "Start": 590,
+                      "End": 610,
+                      "StartToken": {
+                        "Kind": "LeftBrace",
+                        "Start": 590,
+                        "End": 591,
+                        "Line": 29,
+                        "Column": 11
+                      },
+                      "EndToken": {
+                        "Kind": "RightBrace",
+                        "Start": 609,
+                        "End": 610,
+                        "Line": 32,
+                        "Column": 3
+                      }
+                    },
                     "Selections": [
                       {
                         "Kind": "Field",
                         "Alias": null,
                         "Arguments": [],
                         "SelectionSet": null,
-                        "Location": null,
+                        "Location": {
+                          "Start": 598,
+                          "End": 606,
+                          "StartToken": {
+                            "Kind": "Name",
+                            "Start": 598,
+                            "End": 600,
+                            "Line": 30,
+                            "Column": 7
+                          },
+                          "EndToken": {
+                            "Kind": "RightBrace",
+                            "Start": 605,
+                            "End": 606,
+                            "Line": 31,
+                            "Column": 5
+                          }
+                        },
                         "Name": {
                           "Kind": "Name",
-                          "Location": null,
+                          "Location": {
+                            "Start": 598,
+                            "End": 606,
+                            "StartToken": {
+                              "Kind": "Name",
+                              "Start": 598,
+                              "End": 600,
+                              "Line": 30,
+                              "Column": 7
+                            },
+                            "EndToken": {
+                              "Kind": "RightBrace",
+                              "Start": 605,
+                              "End": 606,
+                              "Line": 31,
+                              "Column": 5
+                            }
+                          },
                           "Value": "id"
                         },
                         "Directives": []
                       }
                     ]
                   },
-                  "Location": null,
+                  "Location": {
+                    "Start": 584,
+                    "End": 610,
+                    "StartToken": {
+                      "Kind": "Name",
+                      "Start": 584,
+                      "End": 589,
+                      "Line": 29,
+                      "Column": 5
+                    },
+                    "EndToken": {
+                      "Kind": "RightBrace",
+                      "Start": 609,
+                      "End": 610,
+                      "Line": 32,
+                      "Column": 3
+                    }
+                  },
                   "Name": {
                     "Kind": "Name",
-                    "Location": null,
+                    "Location": {
+                      "Start": 584,
+                      "End": 591,
+                      "StartToken": {
+                        "Kind": "Name",
+                        "Start": 584,
+                        "End": 589,
+                        "Line": 29,
+                        "Column": 5
+                      },
+                      "EndToken": {
+                        "Kind": "LeftBrace",
+                        "Start": 590,
+                        "End": 591,
+                        "Line": 29,
+                        "Column": 11
+                      }
+                    },
                     "Value": "story"
                   },
                   "Directives": []
                 }
               ]
             },
-            "Location": null,
+            "Location": {
+              "Start": 554,
+              "End": 612,
+              "StartToken": {
+                "Kind": "Name",
+                "Start": 554,
+                "End": 558,
+                "Line": 28,
+                "Column": 3
+              },
+              "EndToken": {
+                "Kind": "RightBrace",
+                "Start": 611,
+                "End": 612,
+                "Line": 33,
+                "Column": 1
+              }
+            },
             "Name": {
               "Kind": "Name",
-              "Location": null,
+              "Location": {
+                "Start": 554,
+                "End": 559,
+                "StartToken": {
+                  "Kind": "Name",
+                  "Start": 554,
+                  "End": 558,
+                  "Line": 28,
+                  "Column": 3
+                },
+                "EndToken": {
+                  "Kind": "LeftParenthesis",
+                  "Start": 558,
+                  "End": 559,
+                  "Line": 28,
+                  "Column": 7
+                }
+              },
               "Value": "like"
             },
             "Directives": [
               {
                 "Kind": "Directive",
-                "Location": null,
+                "Location": {
+                  "Start": 571,
+                  "End": 579,
+                  "StartToken": {
+                    "Kind": "At",
+                    "Start": 571,
+                    "End": 572,
+                    "Line": 28,
+                    "Column": 20
+                  },
+                  "EndToken": {
+                    "Kind": "LeftBrace",
+                    "Start": 578,
+                    "End": 579,
+                    "Line": 28,
+                    "Column": 27
+                  }
+                },
                 "Name": {
                   "Kind": "Name",
-                  "Location": null,
+                  "Location": {
+                    "Start": 572,
+                    "End": 579,
+                    "StartToken": {
+                      "Kind": "Name",
+                      "Start": 572,
+                      "End": 577,
+                      "Line": 28,
+                      "Column": 21
+                    },
+                    "EndToken": {
+                      "Kind": "LeftBrace",
+                      "Start": 578,
+                      "End": 579,
+                      "Line": 28,
+                      "Column": 27
+                    }
+                  },
                   "Value": "defer"
                 },
                 "Arguments": []
@@ -482,33 +1978,152 @@
     },
     {
       "Kind": "OperationDefinition",
-      "Location": null,
+      "Location": {
+        "Start": 614,
+        "End": 834,
+        "StartToken": {
+          "Kind": "Name",
+          "Start": 614,
+          "End": 626,
+          "Line": 35,
+          "Column": 1
+        },
+        "EndToken": {
+          "Kind": "Name",
+          "Start": 826,
+          "End": 834,
+          "Line": 48,
+          "Column": 1
+        }
+      },
       "Name": {
         "Kind": "Name",
-        "Location": null,
+        "Location": {
+          "Start": 627,
+          "End": 649,
+          "StartToken": {
+            "Kind": "Name",
+            "Start": 627,
+            "End": 648,
+            "Line": 35,
+            "Column": 14
+          },
+          "EndToken": {
+            "Kind": "LeftParenthesis",
+            "Start": 648,
+            "End": 649,
+            "Line": 35,
+            "Column": 35
+          }
+        },
         "Value": "StoryLikeSubscription"
       },
       "Operation": "Subscription",
       "VariableDefinitions": [
         {
           "Kind": "VariableDefinition",
-          "Location": null,
+          "Location": {
+            "Start": 649,
+            "End": 681,
+            "StartToken": {
+              "Kind": "Dollar",
+              "Start": 649,
+              "End": 650,
+              "Line": 35,
+              "Column": 36
+            },
+            "EndToken": {
+              "Kind": "RightParenthesis",
+              "Start": 680,
+              "End": 681,
+              "Line": 35,
+              "Column": 67
+            }
+          },
           "Variable": {
             "Kind": "Variable",
-            "Location": null,
+            "Location": {
+              "Start": 649,
+              "End": 656,
+              "StartToken": {
+                "Kind": "Dollar",
+                "Start": 649,
+                "End": 650,
+                "Line": 35,
+                "Column": 36
+              },
+              "EndToken": {
+                "Kind": "Colon",
+                "Start": 655,
+                "End": 656,
+                "Line": 35,
+                "Column": 42
+              }
+            },
             "Name": {
               "Kind": "Name",
-              "Location": null,
+              "Location": {
+                "Start": 650,
+                "End": 656,
+                "StartToken": {
+                  "Kind": "Name",
+                  "Start": 650,
+                  "End": 655,
+                  "Line": 35,
+                  "Column": 37
+                },
+                "EndToken": {
+                  "Kind": "Colon",
+                  "Start": 655,
+                  "End": 656,
+                  "Line": 35,
+                  "Column": 42
+                }
+              },
               "Value": "input"
             },
             "Value": "input"
           },
           "Type": {
             "Kind": "NamedType",
-            "Location": null,
+            "Location": {
+              "Start": 657,
+              "End": 681,
+              "StartToken": {
+                "Kind": "Name",
+                "Start": 657,
+                "End": 680,
+                "Line": 35,
+                "Column": 44
+              },
+              "EndToken": {
+                "Kind": "RightParenthesis",
+                "Start": 680,
+                "End": 681,
+                "Line": 35,
+                "Column": 67
+              }
+            },
             "Name": {
               "Kind": "Name",
-              "Location": null,
+              "Location": {
+                "Start": 657,
+                "End": 681,
+                "StartToken": {
+                  "Kind": "Name",
+                  "Start": 657,
+                  "End": 680,
+                  "Line": 35,
+                  "Column": 44
+                },
+                "EndToken": {
+                  "Kind": "RightParenthesis",
+                  "Start": 680,
+                  "End": 681,
+                  "Line": 35,
+                  "Column": 67
+                }
+              },
               "Value": "StoryLikeSubscribeInput"
             }
           },
@@ -518,7 +2133,24 @@
       "Directives": [],
       "SelectionSet": {
         "Kind": "SelectionSet",
-        "Location": null,
+        "Location": {
+          "Start": 682,
+          "End": 834,
+          "StartToken": {
+            "Kind": "LeftBrace",
+            "Start": 682,
+            "End": 683,
+            "Line": 35,
+            "Column": 69
+          },
+          "EndToken": {
+            "Kind": "Name",
+            "Start": 826,
+            "End": 834,
+            "Line": 48,
+            "Column": 1
+          }
+        },
         "Selections": [
           {
             "Kind": "Field",
@@ -526,18 +2158,86 @@
             "Arguments": [
               {
                 "Kind": "Argument",
-                "Location": null,
+                "Location": {
+                  "Start": 705,
+                  "End": 719,
+                  "StartToken": {
+                    "Kind": "Name",
+                    "Start": 705,
+                    "End": 710,
+                    "Line": 36,
+                    "Column": 22
+                  },
+                  "EndToken": {
+                    "Kind": "RightParenthesis",
+                    "Start": 718,
+                    "End": 719,
+                    "Line": 36,
+                    "Column": 35
+                  }
+                },
                 "Name": {
                   "Kind": "Name",
-                  "Location": null,
+                  "Location": {
+                    "Start": 705,
+                    "End": 711,
+                    "StartToken": {
+                      "Kind": "Name",
+                      "Start": 705,
+                      "End": 710,
+                      "Line": 36,
+                      "Column": 22
+                    },
+                    "EndToken": {
+                      "Kind": "Colon",
+                      "Start": 710,
+                      "End": 711,
+                      "Line": 36,
+                      "Column": 27
+                    }
+                  },
                   "Value": "input"
                 },
                 "Value": {
                   "Kind": "Variable",
-                  "Location": null,
+                  "Location": {
+                    "Start": 712,
+                    "End": 719,
+                    "StartToken": {
+                      "Kind": "Dollar",
+                      "Start": 712,
+                      "End": 713,
+                      "Line": 36,
+                      "Column": 29
+                    },
+                    "EndToken": {
+                      "Kind": "RightParenthesis",
+                      "Start": 718,
+                      "End": 719,
+                      "Line": 36,
+                      "Column": 35
+                    }
+                  },
                   "Name": {
                     "Kind": "Name",
-                    "Location": null,
+                    "Location": {
+                      "Start": 713,
+                      "End": 719,
+                      "StartToken": {
+                        "Kind": "Name",
+                        "Start": 713,
+                        "End": 718,
+                        "Line": 36,
+                        "Column": 30
+                      },
+                      "EndToken": {
+                        "Kind": "RightParenthesis",
+                        "Start": 718,
+                        "End": 719,
+                        "Line": 36,
+                        "Column": 35
+                      }
+                    },
                     "Value": "input"
                   },
                   "Value": "input"
@@ -546,7 +2246,24 @@
             ],
             "SelectionSet": {
               "Kind": "SelectionSet",
-              "Location": null,
+              "Location": {
+                "Start": 720,
+                "End": 824,
+                "StartToken": {
+                  "Kind": "LeftBrace",
+                  "Start": 720,
+                  "End": 721,
+                  "Line": 36,
+                  "Column": 37
+                },
+                "EndToken": {
+                  "Kind": "RightBrace",
+                  "Start": 823,
+                  "End": 824,
+                  "Line": 46,
+                  "Column": 1
+                }
+              },
               "Selections": [
                 {
                   "Kind": "Field",
@@ -554,7 +2271,24 @@
                   "Arguments": [],
                   "SelectionSet": {
                     "Kind": "SelectionSet",
-                    "Location": null,
+                    "Location": {
+                      "Start": 732,
+                      "End": 822,
+                      "StartToken": {
+                        "Kind": "LeftBrace",
+                        "Start": 732,
+                        "End": 733,
+                        "Line": 37,
+                        "Column": 11
+                      },
+                      "EndToken": {
+                        "Kind": "RightBrace",
+                        "Start": 821,
+                        "End": 822,
+                        "Line": 45,
+                        "Column": 3
+                      }
+                    },
                     "Selections": [
                       {
                         "Kind": "Field",
@@ -562,27 +2296,112 @@
                         "Arguments": [],
                         "SelectionSet": {
                           "Kind": "SelectionSet",
-                          "Location": null,
+                          "Location": {
+                            "Start": 747,
+                            "End": 789,
+                            "StartToken": {
+                              "Kind": "LeftBrace",
+                              "Start": 747,
+                              "End": 748,
+                              "Line": 38,
+                              "Column": 14
+                            },
+                            "EndToken": {
+                              "Kind": "Name",
+                              "Start": 777,
+                              "End": 789,
+                              "Line": 41,
+                              "Column": 7
+                            }
+                          },
                           "Selections": [
                             {
                               "Kind": "Field",
                               "Alias": null,
                               "Arguments": [],
                               "SelectionSet": null,
-                              "Location": null,
+                              "Location": {
+                                "Start": 757,
+                                "End": 770,
+                                "StartToken": {
+                                  "Kind": "Name",
+                                  "Start": 757,
+                                  "End": 762,
+                                  "Line": 39,
+                                  "Column": 9
+                                },
+                                "EndToken": {
+                                  "Kind": "RightBrace",
+                                  "Start": 769,
+                                  "End": 770,
+                                  "Line": 40,
+                                  "Column": 7
+                                }
+                              },
                               "Name": {
                                 "Kind": "Name",
-                                "Location": null,
+                                "Location": {
+                                  "Start": 757,
+                                  "End": 770,
+                                  "StartToken": {
+                                    "Kind": "Name",
+                                    "Start": 757,
+                                    "End": 762,
+                                    "Line": 39,
+                                    "Column": 9
+                                  },
+                                  "EndToken": {
+                                    "Kind": "RightBrace",
+                                    "Start": 769,
+                                    "End": 770,
+                                    "Line": 40,
+                                    "Column": 7
+                                  }
+                                },
                                 "Value": "count"
                               },
                               "Directives": []
                             }
                           ]
                         },
-                        "Location": null,
+                        "Location": {
+                          "Start": 740,
+                          "End": 789,
+                          "StartToken": {
+                            "Kind": "Name",
+                            "Start": 740,
+                            "End": 746,
+                            "Line": 38,
+                            "Column": 7
+                          },
+                          "EndToken": {
+                            "Kind": "Name",
+                            "Start": 777,
+                            "End": 789,
+                            "Line": 41,
+                            "Column": 7
+                          }
+                        },
                         "Name": {
                           "Kind": "Name",
-                          "Location": null,
+                          "Location": {
+                            "Start": 740,
+                            "End": 748,
+                            "StartToken": {
+                              "Kind": "Name",
+                              "Start": 740,
+                              "End": 746,
+                              "Line": 38,
+                              "Column": 7
+                            },
+                            "EndToken": {
+                              "Kind": "LeftBrace",
+                              "Start": 747,
+                              "End": 748,
+                              "Line": 38,
+                              "Column": 14
+                            }
+                          },
                           "Value": "likers"
                         },
                         "Directives": []
@@ -593,47 +2412,200 @@
                         "Arguments": [],
                         "SelectionSet": {
                           "Kind": "SelectionSet",
-                          "Location": null,
+                          "Location": {
+                            "Start": 790,
+                            "End": 818,
+                            "StartToken": {
+                              "Kind": "LeftBrace",
+                              "Start": 790,
+                              "End": 791,
+                              "Line": 41,
+                              "Column": 20
+                            },
+                            "EndToken": {
+                              "Kind": "RightBrace",
+                              "Start": 817,
+                              "End": 818,
+                              "Line": 44,
+                              "Column": 5
+                            }
+                          },
                           "Selections": [
                             {
                               "Kind": "Field",
                               "Alias": null,
                               "Arguments": [],
                               "SelectionSet": null,
-                              "Location": null,
+                              "Location": {
+                                "Start": 800,
+                                "End": 812,
+                                "StartToken": {
+                                  "Kind": "Name",
+                                  "Start": 800,
+                                  "End": 804,
+                                  "Line": 42,
+                                  "Column": 9
+                                },
+                                "EndToken": {
+                                  "Kind": "RightBrace",
+                                  "Start": 811,
+                                  "End": 812,
+                                  "Line": 43,
+                                  "Column": 7
+                                }
+                              },
                               "Name": {
                                 "Kind": "Name",
-                                "Location": null,
+                                "Location": {
+                                  "Start": 800,
+                                  "End": 812,
+                                  "StartToken": {
+                                    "Kind": "Name",
+                                    "Start": 800,
+                                    "End": 804,
+                                    "Line": 42,
+                                    "Column": 9
+                                  },
+                                  "EndToken": {
+                                    "Kind": "RightBrace",
+                                    "Start": 811,
+                                    "End": 812,
+                                    "Line": 43,
+                                    "Column": 7
+                                  }
+                                },
                                 "Value": "text"
                               },
                               "Directives": []
                             }
                           ]
                         },
-                        "Location": null,
+                        "Location": {
+                          "Start": 777,
+                          "End": 818,
+                          "StartToken": {
+                            "Kind": "Name",
+                            "Start": 777,
+                            "End": 789,
+                            "Line": 41,
+                            "Column": 7
+                          },
+                          "EndToken": {
+                            "Kind": "RightBrace",
+                            "Start": 817,
+                            "End": 818,
+                            "Line": 44,
+                            "Column": 5
+                          }
+                        },
                         "Name": {
                           "Kind": "Name",
-                          "Location": null,
+                          "Location": {
+                            "Start": 777,
+                            "End": 791,
+                            "StartToken": {
+                              "Kind": "Name",
+                              "Start": 777,
+                              "End": 789,
+                              "Line": 41,
+                              "Column": 7
+                            },
+                            "EndToken": {
+                              "Kind": "LeftBrace",
+                              "Start": 790,
+                              "End": 791,
+                              "Line": 41,
+                              "Column": 20
+                            }
+                          },
                           "Value": "likeSentence"
                         },
                         "Directives": []
                       }
                     ]
                   },
-                  "Location": null,
+                  "Location": {
+                    "Start": 726,
+                    "End": 822,
+                    "StartToken": {
+                      "Kind": "Name",
+                      "Start": 726,
+                      "End": 731,
+                      "Line": 37,
+                      "Column": 5
+                    },
+                    "EndToken": {
+                      "Kind": "RightBrace",
+                      "Start": 821,
+                      "End": 822,
+                      "Line": 45,
+                      "Column": 3
+                    }
+                  },
                   "Name": {
                     "Kind": "Name",
-                    "Location": null,
+                    "Location": {
+                      "Start": 726,
+                      "End": 733,
+                      "StartToken": {
+                        "Kind": "Name",
+                        "Start": 726,
+                        "End": 731,
+                        "Line": 37,
+                        "Column": 5
+                      },
+                      "EndToken": {
+                        "Kind": "LeftBrace",
+                        "Start": 732,
+                        "End": 733,
+                        "Line": 37,
+                        "Column": 11
+                      }
+                    },
                     "Value": "story"
                   },
                   "Directives": []
                 }
               ]
             },
-            "Location": null,
+            "Location": {
+              "Start": 686,
+              "End": 824,
+              "StartToken": {
+                "Kind": "Name",
+                "Start": 686,
+                "End": 704,
+                "Line": 36,
+                "Column": 3
+              },
+              "EndToken": {
+                "Kind": "RightBrace",
+                "Start": 823,
+                "End": 824,
+                "Line": 46,
+                "Column": 1
+              }
+            },
             "Name": {
               "Kind": "Name",
-              "Location": null,
+              "Location": {
+                "Start": 686,
+                "End": 705,
+                "StartToken": {
+                  "Kind": "Name",
+                  "Start": 686,
+                  "End": 704,
+                  "Line": 36,
+                  "Column": 3
+                },
+                "EndToken": {
+                  "Kind": "LeftParenthesis",
+                  "Start": 704,
+                  "End": 705,
+                  "Line": 36,
+                  "Column": 21
+                }
+              },
               "Value": "storyLikeSubscribe"
             },
             "Directives": []
@@ -646,16 +2618,67 @@
       "VariableDefinitions": [],
       "TypeCondition": {
         "Kind": "NamedType",
-        "Location": null,
+        "Location": {
+          "Start": 843,
+          "End": 851,
+          "StartToken": {
+            "Kind": "Name",
+            "Start": 843,
+            "End": 849,
+            "Line": 48,
+            "Column": 18
+          },
+          "EndToken": {
+            "Kind": "LeftBrace",
+            "Start": 850,
+            "End": 851,
+            "Line": 48,
+            "Column": 25
+          }
+        },
         "Name": {
           "Kind": "Name",
-          "Location": null,
+          "Location": {
+            "Start": 843,
+            "End": 851,
+            "StartToken": {
+              "Kind": "Name",
+              "Start": 843,
+              "End": 849,
+              "Line": 48,
+              "Column": 18
+            },
+            "EndToken": {
+              "Kind": "LeftBrace",
+              "Start": 850,
+              "End": 851,
+              "Line": 48,
+              "Column": 25
+            }
+          },
           "Value": "Friend"
         }
       },
       "SelectionSet": {
         "Kind": "SelectionSet",
-        "Location": null,
+        "Location": {
+          "Start": 850,
+          "End": 954,
+          "StartToken": {
+            "Kind": "LeftBrace",
+            "Start": 850,
+            "End": 851,
+            "Line": 48,
+            "Column": 25
+          },
+          "EndToken": {
+            "Kind": "LeftBrace",
+            "Start": 953,
+            "End": 954,
+            "Line": 56,
+            "Column": 1
+          }
+        },
         "Selections": [
           {
             "Kind": "Field",
@@ -663,18 +2686,86 @@
             "Arguments": [
               {
                 "Kind": "Argument",
-                "Location": null,
+                "Location": {
+                  "Start": 858,
+                  "End": 874,
+                  "StartToken": {
+                    "Kind": "Name",
+                    "Start": 858,
+                    "End": 862,
+                    "Line": 49,
+                    "Column": 7
+                  },
+                  "EndToken": {
+                    "Kind": "Name",
+                    "Start": 871,
+                    "End": 874,
+                    "Line": 49,
+                    "Column": 20
+                  }
+                },
                 "Name": {
                   "Kind": "Name",
-                  "Location": null,
+                  "Location": {
+                    "Start": 858,
+                    "End": 863,
+                    "StartToken": {
+                      "Kind": "Name",
+                      "Start": 858,
+                      "End": 862,
+                      "Line": 49,
+                      "Column": 7
+                    },
+                    "EndToken": {
+                      "Kind": "Colon",
+                      "Start": 862,
+                      "End": 863,
+                      "Line": 49,
+                      "Column": 11
+                    }
+                  },
                   "Value": "size"
                 },
                 "Value": {
                   "Kind": "Variable",
-                  "Location": null,
+                  "Location": {
+                    "Start": 864,
+                    "End": 874,
+                    "StartToken": {
+                      "Kind": "Dollar",
+                      "Start": 864,
+                      "End": 865,
+                      "Line": 49,
+                      "Column": 13
+                    },
+                    "EndToken": {
+                      "Kind": "Name",
+                      "Start": 871,
+                      "End": 874,
+                      "Line": 49,
+                      "Column": 20
+                    }
+                  },
                   "Name": {
                     "Kind": "Name",
-                    "Location": null,
+                    "Location": {
+                      "Start": 865,
+                      "End": 874,
+                      "StartToken": {
+                        "Kind": "Name",
+                        "Start": 865,
+                        "End": 869,
+                        "Line": 49,
+                        "Column": 14
+                      },
+                      "EndToken": {
+                        "Kind": "Name",
+                        "Start": 871,
+                        "End": 874,
+                        "Line": 49,
+                        "Column": 20
+                      }
+                    },
                     "Value": "size"
                   },
                   "Value": "size"
@@ -682,18 +2773,86 @@
               },
               {
                 "Kind": "Argument",
-                "Location": null,
+                "Location": {
+                  "Start": 871,
+                  "End": 883,
+                  "StartToken": {
+                    "Kind": "Name",
+                    "Start": 871,
+                    "End": 874,
+                    "Line": 49,
+                    "Column": 20
+                  },
+                  "EndToken": {
+                    "Kind": "Name",
+                    "Start": 880,
+                    "End": 883,
+                    "Line": 49,
+                    "Column": 29
+                  }
+                },
                 "Name": {
                   "Kind": "Name",
-                  "Location": null,
+                  "Location": {
+                    "Start": 871,
+                    "End": 875,
+                    "StartToken": {
+                      "Kind": "Name",
+                      "Start": 871,
+                      "End": 874,
+                      "Line": 49,
+                      "Column": 20
+                    },
+                    "EndToken": {
+                      "Kind": "Colon",
+                      "Start": 874,
+                      "End": 875,
+                      "Line": 49,
+                      "Column": 23
+                    }
+                  },
                   "Value": "bar"
                 },
                 "Value": {
                   "Kind": "Variable",
-                  "Location": null,
+                  "Location": {
+                    "Start": 876,
+                    "End": 883,
+                    "StartToken": {
+                      "Kind": "Dollar",
+                      "Start": 876,
+                      "End": 877,
+                      "Line": 49,
+                      "Column": 25
+                    },
+                    "EndToken": {
+                      "Kind": "Name",
+                      "Start": 880,
+                      "End": 883,
+                      "Line": 49,
+                      "Column": 29
+                    }
+                  },
                   "Name": {
                     "Kind": "Name",
-                    "Location": null,
+                    "Location": {
+                      "Start": 877,
+                      "End": 883,
+                      "StartToken": {
+                        "Kind": "Name",
+                        "Start": 877,
+                        "End": 878,
+                        "Line": 49,
+                        "Column": 26
+                      },
+                      "EndToken": {
+                        "Kind": "Name",
+                        "Start": 880,
+                        "End": 883,
+                        "Line": 49,
+                        "Column": 29
+                      }
+                    },
                     "Value": "b"
                   },
                   "Value": "b"
@@ -701,42 +2860,195 @@
               },
               {
                 "Kind": "Argument",
-                "Location": null,
+                "Location": {
+                  "Start": 880,
+                  "End": 949,
+                  "StartToken": {
+                    "Kind": "Name",
+                    "Start": 880,
+                    "End": 883,
+                    "Line": 49,
+                    "Column": 29
+                  },
+                  "EndToken": {
+                    "Kind": "RightParenthesis",
+                    "Start": 948,
+                    "End": 949,
+                    "Line": 53,
+                    "Column": 5
+                  }
+                },
                 "Name": {
                   "Kind": "Name",
-                  "Location": null,
+                  "Location": {
+                    "Start": 880,
+                    "End": 884,
+                    "StartToken": {
+                      "Kind": "Name",
+                      "Start": 880,
+                      "End": 883,
+                      "Line": 49,
+                      "Column": 29
+                    },
+                    "EndToken": {
+                      "Kind": "Colon",
+                      "Start": 883,
+                      "End": 884,
+                      "Line": 49,
+                      "Column": 32
+                    }
+                  },
                   "Value": "obj"
                 },
                 "Value": {
                   "Kind": "ObjectValue",
-                  "Location": null,
+                  "Location": {
+                    "Start": 885,
+                    "End": 949,
+                    "StartToken": {
+                      "Kind": "LeftBrace",
+                      "Start": 885,
+                      "End": 886,
+                      "Line": 49,
+                      "Column": 34
+                    },
+                    "EndToken": {
+                      "Kind": "RightParenthesis",
+                      "Start": 948,
+                      "End": 949,
+                      "Line": 53,
+                      "Column": 5
+                    }
+                  },
                   "Fields": [
                     {
                       "Kind": "ObjectField",
-                      "Location": null,
+                      "Location": {
+                        "Start": 886,
+                        "End": 905,
+                        "StartToken": {
+                          "Kind": "Name",
+                          "Start": 886,
+                          "End": 889,
+                          "Line": 49,
+                          "Column": 35
+                        },
+                        "EndToken": {
+                          "Kind": "Name",
+                          "Start": 900,
+                          "End": 905,
+                          "Line": 49,
+                          "Column": 49
+                        }
+                      },
                       "Name": {
                         "Kind": "Name",
-                        "Location": null,
+                        "Location": {
+                          "Start": 886,
+                          "End": 890,
+                          "StartToken": {
+                            "Kind": "Name",
+                            "Start": 886,
+                            "End": 889,
+                            "Line": 49,
+                            "Column": 35
+                          },
+                          "EndToken": {
+                            "Kind": "Colon",
+                            "Start": 889,
+                            "End": 890,
+                            "Line": 49,
+                            "Column": 38
+                          }
+                        },
                         "Value": "key"
                       },
                       "Value": {
                         "Kind": "StringValue",
-                        "Location": null,
+                        "Location": {
+                          "Start": 891,
+                          "End": 905,
+                          "StartToken": {
+                            "Kind": "String",
+                            "Start": 891,
+                            "End": 897,
+                            "Line": 49,
+                            "Column": 40
+                          },
+                          "EndToken": {
+                            "Kind": "Name",
+                            "Start": 900,
+                            "End": 905,
+                            "Line": 49,
+                            "Column": 49
+                          }
+                        },
                         "Value": "val",
                         "Block": false
                       }
                     },
                     {
                       "Kind": "ObjectField",
-                      "Location": null,
+                      "Location": {
+                        "Start": 900,
+                        "End": 948,
+                        "StartToken": {
+                          "Kind": "Name",
+                          "Start": 900,
+                          "End": 905,
+                          "Line": 49,
+                          "Column": 49
+                        },
+                        "EndToken": {
+                          "Kind": "RightBrace",
+                          "Start": 947,
+                          "End": 948,
+                          "Line": 53,
+                          "Column": 4
+                        }
+                      },
                       "Name": {
                         "Kind": "Name",
-                        "Location": null,
+                        "Location": {
+                          "Start": 900,
+                          "End": 906,
+                          "StartToken": {
+                            "Kind": "Name",
+                            "Start": 900,
+                            "End": 905,
+                            "Line": 49,
+                            "Column": 49
+                          },
+                          "EndToken": {
+                            "Kind": "Colon",
+                            "Start": 905,
+                            "End": 906,
+                            "Line": 49,
+                            "Column": 54
+                          }
+                        },
                         "Value": "block"
                       },
                       "Value": {
                         "Kind": "StringValue",
-                        "Location": null,
+                        "Location": {
+                          "Start": 907,
+                          "End": 948,
+                          "StartToken": {
+                            "Kind": "BlockString",
+                            "Start": 907,
+                            "End": 946,
+                            "Line": 53,
+                            "Column": 1
+                          },
+                          "EndToken": {
+                            "Kind": "RightBrace",
+                            "Start": 947,
+                            "End": 948,
+                            "Line": 53,
+                            "Column": 4
+                          }
+                        },
                         "Value": "\n\n    block string uses \"\"\"\"\"\n\n  \n",
                         "Block": true
                       }
@@ -746,34 +3058,136 @@
               }
             ],
             "SelectionSet": null,
-            "Location": null,
+            "Location": {
+              "Start": 854,
+              "End": 951,
+              "StartToken": {
+                "Kind": "Name",
+                "Start": 854,
+                "End": 857,
+                "Line": 49,
+                "Column": 3
+              },
+              "EndToken": {
+                "Kind": "RightBrace",
+                "Start": 950,
+                "End": 951,
+                "Line": 54,
+                "Column": 1
+              }
+            },
             "Name": {
               "Kind": "Name",
-              "Location": null,
+              "Location": {
+                "Start": 854,
+                "End": 858,
+                "StartToken": {
+                  "Kind": "Name",
+                  "Start": 854,
+                  "End": 857,
+                  "Line": 49,
+                  "Column": 3
+                },
+                "EndToken": {
+                  "Kind": "LeftParenthesis",
+                  "Start": 857,
+                  "End": 858,
+                  "Line": 49,
+                  "Column": 6
+                }
+              },
               "Value": "foo"
             },
             "Directives": []
           }
         ]
       },
-      "Location": null,
+      "Location": {
+        "Start": 826,
+        "End": 954,
+        "StartToken": {
+          "Kind": "Name",
+          "Start": 826,
+          "End": 834,
+          "Line": 48,
+          "Column": 1
+        },
+        "EndToken": {
+          "Kind": "LeftBrace",
+          "Start": 953,
+          "End": 954,
+          "Line": 56,
+          "Column": 1
+        }
+      },
       "Name": {
         "Kind": "Name",
-        "Location": null,
+        "Location": {
+          "Start": 835,
+          "End": 842,
+          "StartToken": {
+            "Kind": "Name",
+            "Start": 835,
+            "End": 839,
+            "Line": 48,
+            "Column": 10
+          },
+          "EndToken": {
+            "Kind": "Name",
+            "Start": 840,
+            "End": 842,
+            "Line": 48,
+            "Column": 15
+          }
+        },
         "Value": "frag"
       },
       "Directives": []
     },
     {
       "Kind": "OperationDefinition",
-      "Location": null,
+      "Location": {
+        "Start": 953,
+        "End": 1020,
+        "StartToken": {
+          "Kind": "LeftBrace",
+          "Start": 953,
+          "End": 954,
+          "Line": 56,
+          "Column": 1
+        },
+        "EndToken": {
+          "Kind": "EndOfFile",
+          "Start": 1020,
+          "End": 1020,
+          "Line": 60,
+          "Column": 1
+        }
+      },
       "Name": null,
       "Operation": "Query",
       "VariableDefinitions": [],
       "Directives": [],
       "SelectionSet": {
         "Kind": "SelectionSet",
-        "Location": null,
+        "Location": {
+          "Start": 953,
+          "End": 1020,
+          "StartToken": {
+            "Kind": "LeftBrace",
+            "Start": 953,
+            "End": 954,
+            "Line": 56,
+            "Column": 1
+          },
+          "EndToken": {
+            "Kind": "EndOfFile",
+            "Start": 1020,
+            "End": 1020,
+            "Line": 60,
+            "Column": 1
+          }
+        },
         "Selections": [
           {
             "Kind": "Field",
@@ -781,52 +3195,239 @@
             "Arguments": [
               {
                 "Kind": "Argument",
-                "Location": null,
+                "Location": {
+                  "Start": 965,
+                  "End": 985,
+                  "StartToken": {
+                    "Kind": "Name",
+                    "Start": 965,
+                    "End": 971,
+                    "Line": 57,
+                    "Column": 11
+                  },
+                  "EndToken": {
+                    "Kind": "Name",
+                    "Start": 979,
+                    "End": 985,
+                    "Line": 57,
+                    "Column": 25
+                  }
+                },
                 "Name": {
                   "Kind": "Name",
-                  "Location": null,
+                  "Location": {
+                    "Start": 965,
+                    "End": 972,
+                    "StartToken": {
+                      "Kind": "Name",
+                      "Start": 965,
+                      "End": 971,
+                      "Line": 57,
+                      "Column": 11
+                    },
+                    "EndToken": {
+                      "Kind": "Colon",
+                      "Start": 971,
+                      "End": 972,
+                      "Line": 57,
+                      "Column": 17
+                    }
+                  },
                   "Value": "truthy"
                 },
                 "Value": {
                   "Kind": "BooleanValue",
-                  "Location": null,
+                  "Location": {
+                    "Start": 973,
+                    "End": 985,
+                    "StartToken": {
+                      "Kind": "Name",
+                      "Start": 973,
+                      "End": 977,
+                      "Line": 57,
+                      "Column": 19
+                    },
+                    "EndToken": {
+                      "Kind": "Name",
+                      "Start": 979,
+                      "End": 985,
+                      "Line": 57,
+                      "Column": 25
+                    }
+                  },
                   "Value": true
                 }
               },
               {
                 "Kind": "Argument",
-                "Location": null,
+                "Location": {
+                  "Start": 979,
+                  "End": 1001,
+                  "StartToken": {
+                    "Kind": "Name",
+                    "Start": 979,
+                    "End": 985,
+                    "Line": 57,
+                    "Column": 25
+                  },
+                  "EndToken": {
+                    "Kind": "Name",
+                    "Start": 994,
+                    "End": 1001,
+                    "Line": 57,
+                    "Column": 40
+                  }
+                },
                 "Name": {
                   "Kind": "Name",
-                  "Location": null,
+                  "Location": {
+                    "Start": 979,
+                    "End": 986,
+                    "StartToken": {
+                      "Kind": "Name",
+                      "Start": 979,
+                      "End": 985,
+                      "Line": 57,
+                      "Column": 25
+                    },
+                    "EndToken": {
+                      "Kind": "Colon",
+                      "Start": 985,
+                      "End": 986,
+                      "Line": 57,
+                      "Column": 31
+                    }
+                  },
                   "Value": "falsey"
                 },
                 "Value": {
                   "Kind": "BooleanValue",
-                  "Location": null,
+                  "Location": {
+                    "Start": 987,
+                    "End": 1001,
+                    "StartToken": {
+                      "Kind": "Name",
+                      "Start": 987,
+                      "End": 992,
+                      "Line": 57,
+                      "Column": 33
+                    },
+                    "EndToken": {
+                      "Kind": "Name",
+                      "Start": 994,
+                      "End": 1001,
+                      "Line": 57,
+                      "Column": 40
+                    }
+                  },
                   "Value": false
                 }
               },
               {
                 "Kind": "Argument",
-                "Location": null,
+                "Location": {
+                  "Start": 994,
+                  "End": 1008,
+                  "StartToken": {
+                    "Kind": "Name",
+                    "Start": 994,
+                    "End": 1001,
+                    "Line": 57,
+                    "Column": 40
+                  },
+                  "EndToken": {
+                    "Kind": "RightParenthesis",
+                    "Start": 1007,
+                    "End": 1008,
+                    "Line": 57,
+                    "Column": 53
+                  }
+                },
                 "Name": {
                   "Kind": "Name",
-                  "Location": null,
+                  "Location": {
+                    "Start": 994,
+                    "End": 1002,
+                    "StartToken": {
+                      "Kind": "Name",
+                      "Start": 994,
+                      "End": 1001,
+                      "Line": 57,
+                      "Column": 40
+                    },
+                    "EndToken": {
+                      "Kind": "Colon",
+                      "Start": 1001,
+                      "End": 1002,
+                      "Line": 57,
+                      "Column": 47
+                    }
+                  },
                   "Value": "nullish"
                 },
                 "Value": {
                   "Kind": "NullValue",
-                  "Location": null,
+                  "Location": {
+                    "Start": 1003,
+                    "End": 1008,
+                    "StartToken": {
+                      "Kind": "Name",
+                      "Start": 1003,
+                      "End": 1007,
+                      "Line": 57,
+                      "Column": 49
+                    },
+                    "EndToken": {
+                      "Kind": "RightParenthesis",
+                      "Start": 1007,
+                      "End": 1008,
+                      "Line": 57,
+                      "Column": 53
+                    }
+                  },
                   "Value": null
                 }
               }
             ],
             "SelectionSet": null,
-            "Location": null,
+            "Location": {
+              "Start": 957,
+              "End": 1017,
+              "StartToken": {
+                "Kind": "Name",
+                "Start": 957,
+                "End": 964,
+                "Line": 57,
+                "Column": 3
+              },
+              "EndToken": {
+                "Kind": "Name",
+                "Start": 1012,
+                "End": 1017,
+                "Line": 58,
+                "Column": 3
+              }
+            },
             "Name": {
               "Kind": "Name",
-              "Location": null,
+              "Location": {
+                "Start": 957,
+                "End": 965,
+                "StartToken": {
+                  "Kind": "Name",
+                  "Start": 957,
+                  "End": 964,
+                  "Line": 57,
+                  "Column": 3
+                },
+                "EndToken": {
+                  "Kind": "LeftParenthesis",
+                  "Start": 964,
+                  "End": 965,
+                  "Line": 57,
+                  "Column": 10
+                }
+              },
               "Value": "unnamed"
             },
             "Directives": []
@@ -836,10 +3437,44 @@
             "Alias": null,
             "Arguments": [],
             "SelectionSet": null,
-            "Location": null,
+            "Location": {
+              "Start": 1012,
+              "End": 1019,
+              "StartToken": {
+                "Kind": "Name",
+                "Start": 1012,
+                "End": 1017,
+                "Line": 58,
+                "Column": 3
+              },
+              "EndToken": {
+                "Kind": "RightBrace",
+                "Start": 1018,
+                "End": 1019,
+                "Line": 59,
+                "Column": 1
+              }
+            },
             "Name": {
               "Kind": "Name",
-              "Location": null,
+              "Location": {
+                "Start": 1012,
+                "End": 1019,
+                "StartToken": {
+                  "Kind": "Name",
+                  "Start": 1012,
+                  "End": 1017,
+                  "Line": 58,
+                  "Column": 3
+                },
+                "EndToken": {
+                  "Kind": "RightBrace",
+                  "Start": 1018,
+                  "End": 1019,
+                  "Line": 59,
+                  "Column": 1
+                }
+              },
               "Value": "query"
             },
             "Directives": []
