@@ -23,13 +23,13 @@ namespace HotChocolate.Language
             );
         }
 
-        public bool MoveNext()
+        private bool MoveNext()
         {
             while (_reader.Read() && _reader.Kind == TokenKind.Comment) ;
             return !_reader.IsEndOfStream();
         }
 
-        public Location CreateLocation(in TokenInfo start) =>
+        private Location CreateLocation(in TokenInfo start) =>
             _createLocation
                 ? new Location(
                     start.Start,
@@ -97,10 +97,10 @@ namespace HotChocolate.Language
         private void ExpectSpread() =>
             Expect(TokenKind.Spread);
 
-        public void ExpectRightParenthesis() =>
+        private void ExpectRightParenthesis() =>
             Expect(TokenKind.RightParenthesis);
 
-        public void ExpectRightBrace() =>
+        private void ExpectRightBrace() =>
             Expect(TokenKind.RightBrace);
 
         private void Expect(TokenKind kind)

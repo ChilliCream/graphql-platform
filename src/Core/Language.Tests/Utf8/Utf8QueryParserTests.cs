@@ -15,9 +15,9 @@ namespace HotChocolate.Language
             byte[] sourceText = Encoding.UTF8.GetBytes("{ x { y } }");
 
             // act
-            Utf8GraphQLParser parser = new Utf8GraphQLParser();
-            DocumentNode document =
-                parser.Parse(sourceText, ParserOptions.Default);
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
 
             // assert
             Assert.Collection(document.Definitions,
@@ -69,8 +69,9 @@ namespace HotChocolate.Language
                 operation + " a($s : String = \"hello\") { x { y } }");
 
             // act
-            Utf8GraphQLParser parser = new Utf8GraphQLParser();
-            DocumentNode document = parser.Parse(sourceText, ParserOptions.Default);
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
 
             // assert
             Assert.Collection(document.Definitions,
@@ -126,8 +127,9 @@ namespace HotChocolate.Language
                 "query a { x { ... y } } fragment y on Type { z } ");
 
             // act
-            Utf8GraphQLParser parser = new Utf8GraphQLParser();
-            DocumentNode document = parser.Parse(sourceText, ParserOptions.Default);
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
 
             // assert
             Assert.Collection(document.Definitions,
@@ -196,9 +198,9 @@ namespace HotChocolate.Language
             }");
 
             // act
-            Utf8GraphQLParser parser = new Utf8GraphQLParser();
-            DocumentNode document = parser.Parse(sourceText,
-                new ParserOptions(noLocations: true));
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
 
             // assert
             document.MatchSnapshot();
@@ -212,9 +214,9 @@ namespace HotChocolate.Language
                 FileResource.Open("IntrospectionQuery.graphql"));
 
             // act
-            Utf8GraphQLParser parser = new Utf8GraphQLParser();
-            DocumentNode document = parser.Parse(sourceText,
-                new ParserOptions(noLocations: true));
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
 
             // assert
             document.MatchSnapshot();
@@ -228,9 +230,9 @@ namespace HotChocolate.Language
                 FileResource.Open("kitchen-sink.graphql"));
 
             // act
-            Utf8GraphQLParser parser = new Utf8GraphQLParser();
-            DocumentNode document = parser.Parse(sourceText,
-                new ParserOptions());
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
 
             // assert
             document.MatchSnapshot();

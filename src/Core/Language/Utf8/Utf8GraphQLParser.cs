@@ -12,6 +12,12 @@ namespace HotChocolate.Language
         private StringValueNode _description;
 
         public Utf8GraphQLParser(
+            ReadOnlySpan<byte> graphQLData)
+            : this(graphQLData, ParserOptions.Default)
+        {
+        }
+
+        public Utf8GraphQLParser(
             ReadOnlySpan<byte> graphQLData,
             ParserOptions options)
         {
@@ -34,7 +40,7 @@ namespace HotChocolate.Language
             _description = null;
         }
 
-        private DocumentNode Parse()
+        public DocumentNode Parse()
         {
             var definitions = new List<IDefinitionNode>();
 

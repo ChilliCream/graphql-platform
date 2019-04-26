@@ -320,8 +320,7 @@ namespace HotChocolate.Language
         /// </summary>
         /// <param name="context">The parser context.</param>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal ArgumentNode ParseArgument(
-            bool isConstant)
+        private ArgumentNode ParseArgument(bool isConstant)
         {
             TokenInfo start = TokenInfo.FromReader(in _reader);
 

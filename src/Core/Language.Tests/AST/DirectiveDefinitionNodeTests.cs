@@ -13,10 +13,7 @@ namespace HotChocolate.Language
         public void CreateDirectiveDefinitionWithLocation(bool isRepeatable)
         {
             // arrange
-            var source = new Source("foo");
-            var start = new SyntaxTokenInfo(
-                TokenKind.StartOfFile, 0, 0, 1, 1);
-            var location = new Location(start, start);
+            var location = new Location(0, 0, 0, 0);
             var name = new NameNode("foo");
             var description = new StringValueNode("bar");
             var arguments = new List<InputValueDefinitionNode>();

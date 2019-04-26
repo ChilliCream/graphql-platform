@@ -24,9 +24,7 @@ namespace HotChocolate.Language
         public void CreateBooleanValueWithLocation(bool value)
         {
             // arrange
-            var token = new SyntaxTokenInfo(
-                TokenKind.StartOfFile, 0, 0, 0, 0);
-            Location location = new Location(token, token);
+            var location = new Location(0, 0, 0, 0);
 
             // act
             var booleanValueNode = new BooleanValueNode(location, value);

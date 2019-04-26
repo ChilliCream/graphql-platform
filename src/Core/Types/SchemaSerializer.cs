@@ -136,6 +136,7 @@ namespace HotChocolate
             return new SchemaDefinitionNode
             (
                 null,
+                SerializeDescription(schema.Description),
                 Array.Empty<DirectiveNode>(),
                 operations
             );

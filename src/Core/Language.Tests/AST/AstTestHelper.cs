@@ -4,9 +4,7 @@ namespace HotChocolate.Language
     {
         public static Location CreateDummyLocation()
         {
-            var start = new SyntaxTokenInfo(
-                TokenKind.StartOfFile, 0, 0, 1, 1);
-            return new Location(start, start);
+            return new Location(0, 0, 0, 0);
         }
     }
 }

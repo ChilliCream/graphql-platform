@@ -7,6 +7,9 @@ namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLParser
     {
+        private static readonly List<OperationTypeDefinitionNode> _emptyOpDefs =
+            new List<OperationTypeDefinitionNode>();
+
         private ITypeExtensionNode ParseTypeExtension()
         {
             TokenInfo start = TokenInfo.FromReader(in _reader);
@@ -108,7 +111,7 @@ namespace HotChocolate.Language
                 return list;
             }
 
-            return new List<OperationTypeDefinitionNode>();
+            return _emptyOpDefs;
         }
 
         private ScalarTypeExtensionNode ParseScalarTypeExtension(
