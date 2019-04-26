@@ -175,7 +175,7 @@ namespace HotChocolate.Language
             TokenInfo start = TokenInfo.FromReader(in _reader);
 
             NameNode name = ParseName();
-            ParserHelper.ExpectColon(ref _reader);
+            ExpectColon();
             IValueNode value = ParseValueLiteral(isConstant);
 
             Location location = CreateLocation(in start);

@@ -124,7 +124,7 @@ namespace HotChocolate.Language
                 return ParseShortOperationDefinition();
             }
 
-            throw ParserHelper.Unexpected(reader.Kind);
+            throw Unexpected(_reader.Kind);
         }
 
         public static Parser Default { get; } = new Parser();
