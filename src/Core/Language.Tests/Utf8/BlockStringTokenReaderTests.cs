@@ -36,27 +36,23 @@ namespace HotChocolate.Language
         private void ReadToken_WithEscapedTrippleQuote1_EscapeIsReplacedWithActualQuotes()
         {
             // arrange
-            string sourceBody = "\"\"\"\\\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar\"\"\"";
-            var source = new Source(sourceBody);
-            var lexer = new Lexer();
+            byte[] source = Encoding.UTF8.GetBytes(
+                "\"\"\"\\\"\"\"helloWorld_123\r\n\t\tfoo\r\n\tbar\"\"\"");
+            var reader = new Utf8GraphQLReader(source);
 
             // act
-            SyntaxToken token = lexer.Read(source);
+            reader.Read();
 
             // assert
-            Assert.NotNull(token);
-            Assert.NotNull(token.Next);
-            Assert.NotNull(token.Next.Next);
-            Assert.Null(token.Next.Next.Next);
+            Assert.Equal(
+                "\"\"\"helloWorld_123\n\tfoo\nbar",
+                reader.GetString());
 
-            SyntaxToken blockStringToken = token.Next;
-            Assert.Equal(TokenKind.BlockString, blockStringToken.Kind);
-            Assert.Equal("\"\"\"helloWorld_123\n\tfoo\nbar", blockStringToken.Value);
-            Assert.Equal(1, blockStringToken.Line);
-            Assert.Equal(1, blockStringToken.Column);
-            Assert.Equal(0, blockStringToken.Start);
-            Assert.Equal(34, blockStringToken.End);
-            Assert.Equal(TokenKind.StartOfFile, blockStringToken.Previous.Kind);
+            Assert.Equal(TokenKind.BlockString, reader.Kind);
+            Assert.Equal(1, reader.Line);
+            Assert.Equal(1, reader.Column);
+            Assert.Equal(0, reader.Start);
+            Assert.Equal(34, reader.End);
         }
 
         [Fact]
