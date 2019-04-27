@@ -11,6 +11,7 @@ namespace HotChocolate.Language
     {
         private static readonly UTF8Encoding _utf8Encoding = new UTF8Encoding();
         private static readonly byte _space = (byte)' ';
+        private int _nextNewLines;
         private ReadOnlySpan<byte> _value;
 
         public Utf8GraphQLReader(ReadOnlySpan<byte> graphQLData)
@@ -24,6 +25,7 @@ namespace HotChocolate.Language
             Line = 1;
             Column = 1;
             _value = null;
+            _nextNewLines = 0;
         }
 
         public ReadOnlySpan<byte> GraphQLData { get; }
@@ -95,11 +97,13 @@ namespace HotChocolate.Language
                 _value.CopyTo(escapedSpan);
                 escapedSpan = escapedSpan.Slice(0, length);
 
-                UnescapeValue(escapedSpan, unescapedSpan, isBlockString);
+                UnescapeValue(escapedSpan, ref unescapedSpan, isBlockString);
 
                 fixed (byte* bytePtr = unescapedSpan)
                 {
-                    return _utf8Encoding.GetString(bytePtr, _value.Length);
+                    return _utf8Encoding.GetString(
+                        bytePtr,
+                        unescapedSpan.Length);
                 }
             }
             finally
@@ -124,8 +128,8 @@ namespace HotChocolate.Language
         }
 
         private static void UnescapeValue(
-            ReadOnlySpan<byte> escaped,
-            Span<byte> unescapedValue,
+            in ReadOnlySpan<byte> escaped,
+            ref Span<byte> unescapedValue,
             bool isBlockString)
         {
             Utf8Helper.Unescape(
@@ -140,20 +144,12 @@ namespace HotChocolate.Language
             }
         }
 
-        public void UnescapeValue(Span<byte> unescapedValue)
+        public void UnescapeValue(ref Span<byte> unescapedValue)
         {
-            bool isBlockString = Kind == TokenKind.BlockString;
-
-            Utf8Helper.Unescape(
+            UnescapeValue(
                 in _value,
                 ref unescapedValue,
-                isBlockString);
-
-            if (isBlockString)
-            {
-                BlockStringHelper.TrimBlockStringToken(
-                    unescapedValue, ref unescapedValue);
-            }
+                Kind == TokenKind.BlockString);
         }
 
         public bool Read()
@@ -574,7 +570,7 @@ namespace HotChocolate.Language
                     int newLines = BlockStringHelper.CountLines(in _value) - 1;
                     if (newLines > 0)
                     {
-                        NewLine(newLines);
+                        _nextNewLines = newLines;
                     }
 
                     Position = End + 1;
@@ -610,6 +606,12 @@ namespace HotChocolate.Language
             if (IsEndOfStream())
             {
                 return;
+            }
+
+            if (_nextNewLines > 0)
+            {
+                NewLine(_nextNewLines);
+                _nextNewLines = 0;
             }
 
             ref readonly byte code = ref GraphQLData[Position];

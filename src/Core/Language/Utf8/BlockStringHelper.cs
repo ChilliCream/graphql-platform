@@ -77,7 +77,7 @@ namespace HotChocolate.Language
                 }
             }
 
-            trimmedData = trimmedData.Slice(0, writePosition + 1);
+            trimmedData = trimmedData.Slice(0, writePosition);
 
             // Remove leading blank lines.
             position = 0;

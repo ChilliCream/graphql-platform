@@ -29,7 +29,7 @@ namespace HotChocolate.Language
             Assert.Equal(1, reader.Line);
             Assert.Equal(1, reader.Column);
             Assert.Equal(0, reader.Start);
-            Assert.Equal(30, reader.End);
+            Assert.Equal(32, reader.End);
         }
 
         [Fact]
