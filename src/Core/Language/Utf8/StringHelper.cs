@@ -157,7 +157,7 @@ namespace HotChocolate.Language
             {
                 position--;
             }
-            return position++;
+            return position;
         }
 
         private static ReadOnlySpan<byte> GetNextLine(
