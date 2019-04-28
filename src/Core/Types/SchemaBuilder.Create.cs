@@ -87,6 +87,20 @@ namespace HotChocolate
                     visitor.MutationTypeName);
                 RegisterOperationName(OperationType.Subscription,
                     visitor.SubscriptionTypeName);
+
+                if (_schema == null
+                    && (visitor.Directives.Count > 0
+                    || visitor.Description != null))
+                {
+                    SetSchema(new Schema(d =>
+                    {
+                        d.Description(visitor.Description);
+                        foreach (DirectiveNode directive in visitor.Directives)
+                        {
+                            d.Directive(directive);
+                        }
+                    }));
+                }
             }
 
             return types;
