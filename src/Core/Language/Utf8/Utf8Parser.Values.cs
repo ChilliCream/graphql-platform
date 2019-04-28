@@ -250,7 +250,7 @@ namespace HotChocolate.Language
                 return new NullValueNode(location);
             }
 
-            string value = _reader.GetString(_reader.Value);
+            string value = _reader.GetScalarValue();
             MoveNext();
             location = location = CreateLocation(in start);
 

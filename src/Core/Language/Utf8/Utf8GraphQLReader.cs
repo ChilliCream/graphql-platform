@@ -127,7 +127,7 @@ namespace HotChocolate.Language
             }
         }
 
-        public unsafe string GetComment()
+        public string GetComment()
         {
             if (_value.Length > 0)
             {
@@ -136,10 +136,8 @@ namespace HotChocolate.Language
             return GetString(_value);
         }
 
-        public string GetName()
-        {
-            return GetString(_value);
-        }
+        public string GetName() => GetString(_value);
+        public string GetScalarValue() => GetString(_value);
 
         private static void UnescapeValue(
             in ReadOnlySpan<byte> escaped,

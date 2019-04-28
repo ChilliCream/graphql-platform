@@ -22,7 +22,7 @@ namespace HotChocolate.Language
 
             // assert
             Assert.Equal(TokenKind.Name, reader.Kind);
-            Assert.Equal(nameTokenValue, reader.GetString(reader.Value));
+            Assert.Equal(nameTokenValue, reader.GetName());
         }
     }
 }

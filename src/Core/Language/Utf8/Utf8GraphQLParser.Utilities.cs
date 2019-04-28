@@ -54,7 +54,7 @@ namespace HotChocolate.Language
         {
             if (_reader.Kind == TokenKind.Name)
             {
-                string name = _reader.GetString(_reader.Value);
+                string name = _reader.GetName();
                 MoveNext();
                 return name;
             }
@@ -97,7 +97,7 @@ namespace HotChocolate.Language
         {
             if (TokenHelper.IsScalarValue(in _reader))
             {
-                string value = _reader.GetString(_reader.Value);
+                string value = _reader.GetScalarValue();
                 MoveNext();
                 return value;
             }

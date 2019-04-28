@@ -22,7 +22,7 @@ namespace HotChocolate.Language
             reader.Read();
 
             // assert
-            Assert.Equal(sourceBody, reader.GetString(reader.Value));
+            Assert.Equal(sourceBody, reader.GetScalarValue());
             Assert.Equal(
                 isFloat ? TokenKind.Float : TokenKind.Integer,
                 reader.Kind);
