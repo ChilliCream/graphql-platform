@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added code-first type extensions. [#683](https://github.com/ChilliCream/hotchocolate/issues/683)
 - Added code-first support for schema description. [spec](https://github.com/graphql/graphql-spec/pull/466)
 - Added resolver overloads to schema builder.
+- Added new UTF-8 parser
 
 ## [0.8.2] - 2019-04-10
 

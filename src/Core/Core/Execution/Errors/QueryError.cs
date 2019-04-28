@@ -286,8 +286,8 @@ namespace HotChocolate.Execution
             return new[]
             {
                 new Location(
-                    tokenLocation.StartToken.Line,
-                    tokenLocation.StartToken.Column)
+                    tokenLocation.Line,
+                    tokenLocation.Column)
             };
         }
 
@@ -300,8 +300,8 @@ namespace HotChocolate.Execution
             }
 
             return syntaxNodes.Select(t => new Location(
-                t.Location.StartToken.Line,
-                t.Location.StartToken.Column)).ToArray();
+                t.Location.Line,
+                t.Location.Column)).ToArray();
         }
 
         public IError WithMessage(string message)

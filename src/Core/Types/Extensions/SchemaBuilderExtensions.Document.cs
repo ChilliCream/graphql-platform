@@ -23,7 +23,7 @@ namespace HotChocolate
                 throw new ArgumentException("message", nameof(schema));
             }
 
-            DocumentNode document = Parser.Default.Parse(schema);
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
             return builder.AddDocument(sp => document);
         }
 

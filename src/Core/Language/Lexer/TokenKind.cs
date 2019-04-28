@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents the token kinds.
     /// </summary>
-    public enum TokenKind
+    public enum TokenKind : byte
     {
         /// <summary>
         /// The start of file token.
@@ -16,7 +16,7 @@
         EndOfFile,
 
         /// <summary>
-        /// The bang token is used to specify 
+        /// The bang token is used to specify
         /// non null types and is represented by:
         /// '!'.
         /// </summary>

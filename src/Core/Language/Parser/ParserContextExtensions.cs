@@ -164,7 +164,12 @@
             {
                 return null;
             }
-            return new Location(context.Source, start, context.Current);
+
+            return new Location(
+                start.Start,
+                context.Current.End,
+                start.Line,
+                start.Column);
         }
 
         public static SyntaxException Unexpected(

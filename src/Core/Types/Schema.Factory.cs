@@ -20,7 +20,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            return Create(Parser.Default.Parse(schema), configure);
+            return Create(Utf8GraphQLParser.Parse(schema), configure);
         }
 
         public static Schema Create(

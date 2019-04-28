@@ -20,8 +20,8 @@ namespace HotChocolate.Execution
             }
 
             return builder.AddLocation(
-                syntaxNode.Location.StartToken.Line,
-                syntaxNode.Location.StartToken.Column);
+                syntaxNode.Location.Line,
+                syntaxNode.Location.Column);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Text;
+using System;
 
 namespace HotChocolate.Language
 {
@@ -8,6 +9,15 @@ namespace HotChocolate.Language
     public class SyntaxException
         : Exception
     {
+        internal SyntaxException(Utf8GraphQLReader reader, string message)
+            : base(message)
+        {
+            Position = reader.Position;
+            Line = reader.Line;
+            Column = reader.Column;
+            SourceText = Encoding.UTF8.GetString(reader.GraphQLData.ToArray());
+        }
+
         internal SyntaxException(LexerState context, string message)
             : base(message)
         {

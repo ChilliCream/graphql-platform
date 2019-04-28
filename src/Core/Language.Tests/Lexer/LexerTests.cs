@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Text;
+using ChilliCream.Testing;
 using Xunit;
 
 namespace HotChocolate.Language
@@ -31,49 +33,6 @@ namespace HotChocolate.Language
             Assert.Equal(TokenKind.EndOfFile, token.Next.Next.Next.Kind);
             Assert.Equal(token.Next.Next, token.Next.Next.Next.Previous);
             Assert.Null(token.Next.Next.Next.Next);
-        }
-
-        [Fact]
-        public void SourceIsNull_ArgumentNullException()
-        {
-            // arrange
-            var lexer = new Lexer();
-
-            // act
-            Action action = () => lexer.Read(null);
-
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
-
-        [Fact]
-        public void UnexpectedCharacter()
-        {
-            // arrange
-            var source = new Source("~");
-            var lexer = new Lexer();
-
-            // act
-            Action action = () => lexer.Read(source);
-
-            // assert
-            Assert.Equal("Unexpected character.",
-                Assert.Throws<SyntaxException>(action).Message);
-        }
-
-        [Fact]
-        public void UnexpectedTokenSequence()
-        {
-            // arrange
-            var source = new Source("\"foo");
-            var lexer = new Lexer();
-
-            // act
-            Action action = () => lexer.Read(source);
-
-            // assert
-            Assert.Equal("Unexpected token sequence.",
-                Assert.Throws<SyntaxException>(action).Message);
         }
     }
 }

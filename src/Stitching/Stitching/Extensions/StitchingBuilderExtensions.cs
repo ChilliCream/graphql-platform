@@ -56,7 +56,7 @@ namespace HotChocolate.Stitching
 
             name.EnsureNotEmpty(nameof(name));
 
-            builder.AddSchema(name, s => Parser.Default.Parse(schema));
+            builder.AddSchema(name, s => Utf8GraphQLParser.Parse(schema));
             return builder;
         }
 
@@ -80,8 +80,7 @@ namespace HotChocolate.Stitching
             name.EnsureNotEmpty(nameof(name));
 
             builder.AddSchema(name, s =>
-                Parser.Default.Parse(
-                    File.ReadAllText(path)));
+                Utf8GraphQLParser.Parse(File.ReadAllBytes(path)));
             return builder;
         }
 
@@ -124,8 +123,8 @@ namespace HotChocolate.Stitching
             }
 
             builder.AddExtensions(s =>
-                Parser.Default.Parse(
-                    File.ReadAllText(path)));
+                Utf8GraphQLParser.Parse(
+                    File.ReadAllBytes(path)));
             return builder;
         }
 
@@ -145,7 +144,7 @@ namespace HotChocolate.Stitching
                     nameof(extensions));
             }
 
-            builder.AddExtensions(s => Parser.Default.Parse(extensions));
+            builder.AddExtensions(s => Utf8GraphQLParser.Parse(extensions));
             return builder;
         }
 
