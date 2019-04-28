@@ -133,11 +133,15 @@ namespace HotChocolate
                     referenced));
             }
 
+            var directives = schema.Directives
+                .Select(t => t.ToNode())
+                .ToList();
+
             return new SchemaDefinitionNode
             (
                 null,
                 SerializeDescription(schema.Description),
-                Array.Empty<DirectiveNode>(),
+                directives,
                 operations
             );
         }
