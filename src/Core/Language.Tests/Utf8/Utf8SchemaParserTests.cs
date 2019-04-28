@@ -10,7 +10,9 @@ namespace HotChocolate.Language
         public void ParserSimpleObjectType()
         {
             // arrange
-            string sourceText = "type a { b: String c: Int }";
+            string sourceText = "type a @foo(a: \"123\") " +
+                "{ b: String @foo(a: \"123\") " +
+                "c(d: F = ENUMVALUE @foo(a: \"123\")): Int }";
             var parser = new Utf8GraphQLParser(
                 Encoding.UTF8.GetBytes(sourceText));
 
@@ -18,34 +20,47 @@ namespace HotChocolate.Language
             DocumentNode document = parser.Parse();
 
             // assert
-            Assert.Collection(document.Definitions,
-                t =>
-                {
-                    Assert.IsType<ObjectTypeDefinitionNode>(t);
-                    var objectTypeDefinition = (ObjectTypeDefinitionNode)t;
-                    Assert.Equal(NodeKind.ObjectTypeDefinition, objectTypeDefinition.Kind);
-                    Assert.Equal("a", objectTypeDefinition.Name.Value);
-                    Assert.Collection(objectTypeDefinition.Fields,
-                        f =>
-                        {
-                            Assert.Equal("b", f.Name.Value);
-                            Assert.IsType<NamedTypeNode>(f.Type);
-                            Assert.Equal("String", ((NamedTypeNode)f.Type).Name.Value);
-                        },
-                        f =>
-                        {
-                            Assert.Equal("c", f.Name.Value);
-                            Assert.IsType<NamedTypeNode>(f.Type);
-                            Assert.Equal("Int", ((NamedTypeNode)f.Type).Name.Value);
-                        });
-                });
+            SchemaSyntaxSerializer.Serialize(document).MatchSnapshot();
+        }
+
+        [Fact]
+        public void ParserInputObjectType()
+        {
+            // arrange
+            string sourceText = "input a @foo(a: \"123\") " +
+                "{ b: String @foo(a: \"123\") c: Int = 123 }";
+            var parser = new Utf8GraphQLParser(
+                Encoding.UTF8.GetBytes(sourceText));
+
+            // act
+            DocumentNode document = parser.Parse();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(document).MatchSnapshot();
+        }
+
+        [Fact]
+        public void ParserScalarType()
+        {
+            // arrange
+            string sourceText = "scalar FOO @foo(a: \"123\")";
+            var parser = new Utf8GraphQLParser(
+                Encoding.UTF8.GetBytes(sourceText));
+
+            // act
+            DocumentNode document = parser.Parse();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(document).MatchSnapshot();
         }
 
         [Fact]
         public void ParserSimpleInterfaceType()
         {
             // arrange
-            string sourceText = "interface a { b: String c: Int }";
+            string sourceText = "interface a @foo(a: \"123\") " +
+                "{ b: String @foo(a: \"123\") " +
+                "c(d: F = ENUMVALUE @foo(a: \"123\")): Int }";
             var parser = new Utf8GraphQLParser(
                 Encoding.UTF8.GetBytes(sourceText));
 
@@ -53,27 +68,7 @@ namespace HotChocolate.Language
             DocumentNode document = parser.Parse();
 
             // assert
-            Assert.Collection(document.Definitions,
-                t =>
-                {
-                    Assert.IsType<InterfaceTypeDefinitionNode>(t);
-                    var objectTypeDefinition = (InterfaceTypeDefinitionNode)t;
-                    Assert.Equal(NodeKind.InterfaceTypeDefinition, objectTypeDefinition.Kind);
-                    Assert.Equal("a", objectTypeDefinition.Name.Value);
-                    Assert.Collection(objectTypeDefinition.Fields,
-                        f =>
-                        {
-                            Assert.Equal("b", f.Name.Value);
-                            Assert.IsType<NamedTypeNode>(f.Type);
-                            Assert.Equal("String", ((NamedTypeNode)f.Type).Name.Value);
-                        },
-                        f =>
-                        {
-                            Assert.Equal("c", f.Name.Value);
-                            Assert.IsType<NamedTypeNode>(f.Type);
-                            Assert.Equal("Int", ((NamedTypeNode)f.Type).Name.Value);
-                        });
-                });
+            SchemaSyntaxSerializer.Serialize(document).MatchSnapshot();
         }
 
         [Fact]
