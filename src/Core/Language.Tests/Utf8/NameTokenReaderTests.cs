@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using System.Text;
+using Xunit;
 
 namespace HotChocolate.Language
 {
@@ -13,18 +14,15 @@ namespace HotChocolate.Language
         {
             // arrange
             string nameTokenValue = "helloWorld_123";
-            var source = new Source(sourceText);
+            byte[] source = Encoding.UTF8.GetBytes(sourceText);
+            var reader = new Utf8GraphQLReader(source);
 
             // act
-            SyntaxToken token = Lexer.Default.Read(source);
-            token = token.Next;
+            reader.Read();
 
             // assert
-            Assert.NotNull(token);
-            Assert.Equal(TokenKind.Name, token.Kind);
-            Assert.Equal(nameTokenValue, token.Value);
-            Assert.Equal(TokenKind.StartOfFile, token.Previous.Kind);
-            Assert.Equal(TokenKind.EndOfFile, token.Next.Kind);
+            Assert.Equal(TokenKind.Name, reader.Kind);
+            Assert.Equal(nameTokenValue, reader.GetString(reader.Value));
         }
     }
 }
