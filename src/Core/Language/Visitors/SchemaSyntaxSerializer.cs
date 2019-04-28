@@ -61,8 +61,7 @@ namespace HotChocolate.Language
             SchemaDefinitionNode node,
             DocumentWriter writer)
         {
-            // TODO : Add schema description support to parser
-            // WriteDescription(node.Description, writer);
+            WriteDescription(node.Description, writer);
 
             writer.Write(Keywords.Schema);
             WriteDirectives(node.Directives, writer);

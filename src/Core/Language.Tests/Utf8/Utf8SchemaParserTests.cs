@@ -118,5 +118,22 @@ namespace HotChocolate.Language
             // assert
             SchemaSyntaxSerializer.Serialize(document).MatchSnapshot();
         }
+
+        [Fact]
+        public void ParseSchemaDefinition()
+        {
+            // arrange
+            string sourceText = "\"\"\"\nDescription\n\"\"\"" +
+                "schema @foo(a: \"123\") " +
+                "{ query: Foo mutation: Bar subscription: Baz }";
+            var parser = new Utf8GraphQLParser(
+                Encoding.UTF8.GetBytes(sourceText));
+
+            // act
+            DocumentNode document = parser.Parse();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(document).MatchSnapshot();
+        }
     }
 }

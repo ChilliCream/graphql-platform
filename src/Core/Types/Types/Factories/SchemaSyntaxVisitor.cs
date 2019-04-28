@@ -39,6 +39,11 @@ namespace HotChocolate.Types.Factories
 
         public string SubscriptionTypeName { get; private set; }
 
+        public string Description { get; private set; }
+
+        public IReadOnlyCollection<DirectiveNode> Directives
+        { get; private set; }
+
         public IReadOnlyList<ITypeReference> Types => _types;
 
         protected override void VisitObjectTypeDefinition(
@@ -93,6 +98,9 @@ namespace HotChocolate.Types.Factories
             SchemaDefinitionNode node,
             object context)
         {
+            Description = node.Description?.Value;
+            Directives = node.Directives;
+
             foreach (OperationTypeDefinitionNode operationType in
                 node.OperationTypes)
             {
