@@ -52,7 +52,7 @@ namespace HotChocolate.Language
             Assert.Equal(1, reader.Line);
             Assert.Equal(1, reader.Column);
             Assert.Equal(0, reader.Start);
-            Assert.Equal(34, reader.End);
+            Assert.Equal(36, reader.End);
         }
 
         [Fact]
@@ -99,7 +99,7 @@ namespace HotChocolate.Language
             Assert.Equal(1, reader.Line);
             Assert.Equal(1, reader.Column);
             Assert.Equal(0, reader.Start);
-            Assert.Equal(38, reader.End);
+            Assert.Equal(41, reader.End);
         }
 
         [Fact]
@@ -123,7 +123,7 @@ namespace HotChocolate.Language
             Assert.Equal(1, reader.Line);
             Assert.Equal(1, reader.Column);
             Assert.Equal(0, reader.Start);
-            Assert.Equal(38, reader.End);
+            Assert.Equal(44, reader.End);
         }
 
         [Fact]

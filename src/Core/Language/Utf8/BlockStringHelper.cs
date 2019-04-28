@@ -32,11 +32,9 @@ namespace HotChocolate.Language
                 int indent = GetLeadingWhitespace(in data, ref position);
                 int lineLength = indent + GoToNextLine(in data, ref position);
 
-                if (
-                    lineLength > 0 &&
+                if (lineLength > 0 &&
                     indent <= lineLength &&
-                    (commonIndent == null || indent < commonIndent)
-                )
+                    (commonIndent == null || indent < commonIndent))
                 {
                     commonIndent = indent;
                     if (commonIndent == 0)
@@ -53,13 +51,18 @@ namespace HotChocolate.Language
             position = 0;
             line = GetNextLine(in data, ref position);
             line.CopyTo(trimmedData);
-            int writePosition = line.Length;
-            trimmedData[writePosition] = GraphQLConstants.NewLine;
+            int next = line.Length;
+            int writePosition = next - 1;
+            if (trimmedData.Length > next)
+            {
+                trimmedData[next] = GraphQLConstants.NewLine;
+                writePosition = next;
+            }
 
             while (position < data.Length)
             {
                 line = GetNextLine(in data, ref position);
-                if (trim && line.Length > commonIndent.Value)
+                if (trim && line.Length >= commonIndent.Value)
                 {
                     line = line.Slice(commonIndent.Value);
                 }
@@ -69,7 +72,7 @@ namespace HotChocolate.Language
                     trimmedData[++writePosition] = line[i];
                 }
 
-                int next = writePosition + 1;
+                next = writePosition + 1;
                 if (trimmedData.Length > next)
                 {
                     trimmedData[next] = GraphQLConstants.NewLine;
@@ -77,7 +80,7 @@ namespace HotChocolate.Language
                 }
             }
 
-            trimmedData = trimmedData.Slice(0, writePosition);
+            trimmedData = trimmedData.Slice(0, writePosition + 1);
 
             // Remove leading blank lines.
             position = 0;

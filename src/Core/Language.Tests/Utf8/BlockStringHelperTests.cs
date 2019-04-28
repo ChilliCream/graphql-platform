@@ -26,6 +26,23 @@ namespace HotChocolate.Language
         }
 
         [Fact]
+        public void NoTrimNeeded()
+        {
+            // arrange
+            string blockString = "foo";
+            byte[] input = Encoding.UTF8.GetBytes(blockString);
+            var output = new Span<byte>(new byte[input.Length]);
+
+            // act
+            BlockStringHelper.TrimBlockStringToken(input, ref output);
+
+            // assert
+            Assert.Equal(
+                blockString,
+                Encoding.UTF8.GetString(output.ToArray()));
+        }
+
+        [Fact]
         public void TrimTrailingEmptyLines()
         {
             // arrange
