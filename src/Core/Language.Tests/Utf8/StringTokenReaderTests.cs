@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using System.Text;
+using Xunit;
 
 namespace HotChocolate.Language
 {
@@ -12,18 +13,15 @@ namespace HotChocolate.Language
         private void ReadToken(string sourceText)
         {
             // arrange
-            var source = new Source(sourceText);
+            byte[] source = Encoding.UTF8.GetBytes(sourceText);
+            var reader = new Utf8GraphQLReader(source);
 
             // act
-            SyntaxToken token = Lexer.Default.Read(source);
-            token = token.Next;
+            reader.Read();
 
             // assert
-            Assert.NotNull(token);
-            Assert.Equal(TokenKind.String, token.Kind);
-            Assert.Equal("üähelloWorld_123", token.Value);
-            Assert.Equal(TokenKind.StartOfFile, token.Previous.Kind);
-            Assert.Equal(TokenKind.EndOfFile, token.Next.Kind);
+            Assert.Equal("üähelloWorld_123", reader.GetString());
+            Assert.Equal(TokenKind.String, reader.Kind);
         }
 
         // allowed escape characters "	\	/	b	f	n	r	t
@@ -56,18 +54,15 @@ namespace HotChocolate.Language
         private void EscapeCharacters(string sourceText, string expectedResult)
         {
             // arrange
-            var source = new Source(sourceText);
+            byte[] source = Encoding.UTF8.GetBytes(sourceText);
+            var reader = new Utf8GraphQLReader(source);
 
             // act
-            SyntaxToken token = Lexer.Default.Read(source);
-            token = token.Next;
+            reader.Read();
 
             // assert
-            Assert.NotNull(token);
-            Assert.Equal(TokenKind.String, token.Kind);
-            Assert.Equal(expectedResult, token.Value);
-            Assert.Equal(TokenKind.StartOfFile, token.Previous.Kind);
-            Assert.Equal(TokenKind.EndOfFile, token.Next.Kind);
+            Assert.Equal(expectedResult, reader.GetString());
+            Assert.Equal(TokenKind.String, reader.Kind);
         }
     }
 }
