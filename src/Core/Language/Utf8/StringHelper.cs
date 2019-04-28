@@ -2,7 +2,7 @@ using System;
 
 namespace HotChocolate.Language
 {
-    internal static class BlockStringHelper
+    internal static class StringHelper
     {
         public static int CountLines(in ReadOnlySpan<byte> data)
         {
@@ -16,6 +16,23 @@ namespace HotChocolate.Language
             }
 
             return lines;
+        }
+
+        public static void TrimStringToken(
+            ref ReadOnlySpan<byte> data)
+        {
+            int position = 0;
+            int temp = GetLeadingWhitespace(in data, ref position);
+            if (data.Length >= temp)
+            {
+                data = data.Slice(temp);
+            }
+
+            temp = GetTrailingWhitespace(in data);
+            if (temp == data.Length)
+            {
+                data = data.Slice(0, temp);
+            }
         }
 
         public static void TrimBlockStringToken(
@@ -128,6 +145,19 @@ namespace HotChocolate.Language
                 position++;
             }
             return i;
+        }
+
+        private static int GetTrailingWhitespace(
+            in ReadOnlySpan<byte> chunk)
+        {
+            int position = chunk.Length - 1;
+            while (position > 0
+                && (chunk[position] == GraphQLConstants.Space
+                    || chunk[position] == GraphQLConstants.Tab))
+            {
+                position--;
+            }
+            return position++;
         }
 
         private static ReadOnlySpan<byte> GetNextLine(

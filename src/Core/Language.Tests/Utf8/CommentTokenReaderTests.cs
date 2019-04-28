@@ -20,7 +20,7 @@ namespace HotChocolate.Language
             reader.Read();
 
             // assert
-            Assert.Equal("my comment foo bar", reader.GetString());
+            Assert.Equal("my comment foo bar", reader.GetComment());
             Assert.Equal(TokenKind.Comment, reader.Kind);
         }
     }

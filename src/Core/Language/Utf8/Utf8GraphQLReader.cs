@@ -127,6 +127,20 @@ namespace HotChocolate.Language
             }
         }
 
+        public unsafe string GetComment()
+        {
+            if (_value.Length > 0)
+            {
+                StringHelper.TrimStringToken(ref _value);
+            }
+            return GetString(_value);
+        }
+
+        public string GetName()
+        {
+            return GetString(_value);
+        }
+
         private static void UnescapeValue(
             in ReadOnlySpan<byte> escaped,
             ref Span<byte> unescapedValue,
@@ -139,7 +153,7 @@ namespace HotChocolate.Language
 
             if (isBlockString)
             {
-                BlockStringHelper.TrimBlockStringToken(
+                StringHelper.TrimBlockStringToken(
                     unescapedValue, ref unescapedValue);
             }
         }
@@ -462,7 +476,8 @@ namespace HotChocolate.Language
             bool trim = true;
 
             while (++Position < GraphQLData.Length
-                && !GraphQLConstants.IsControlCharacter(in GraphQLData[Position]))
+                && !GraphQLConstants.IsControlCharacter(
+                    in GraphQLData[Position]))
             {
                 if (trim)
                 {
@@ -567,7 +582,7 @@ namespace HotChocolate.Language
                     End = Position + 2;
                     _value = GraphQLData.Slice(start + 3, Position - start - 3);
 
-                    int newLines = BlockStringHelper.CountLines(in _value) - 1;
+                    int newLines = StringHelper.CountLines(in _value) - 1;
                     if (newLines > 0)
                     {
                         _nextNewLines = newLines;

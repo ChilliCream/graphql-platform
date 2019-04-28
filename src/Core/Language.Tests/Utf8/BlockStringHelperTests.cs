@@ -17,7 +17,7 @@ namespace HotChocolate.Language
             var output = new Span<byte>(new byte[input.Length]);
 
             // act
-            BlockStringHelper.TrimBlockStringToken(input, ref output);
+            StringHelper.TrimBlockStringToken(input, ref output);
 
             // assert
             Assert.Equal(
@@ -34,7 +34,7 @@ namespace HotChocolate.Language
             var output = new Span<byte>(new byte[input.Length]);
 
             // act
-            BlockStringHelper.TrimBlockStringToken(input, ref output);
+            StringHelper.TrimBlockStringToken(input, ref output);
 
             // assert
             Assert.Equal(
@@ -51,7 +51,7 @@ namespace HotChocolate.Language
             var output = new Span<byte>(new byte[input.Length]);
 
             // act
-            BlockStringHelper.TrimBlockStringToken(input, ref output);
+            StringHelper.TrimBlockStringToken(input, ref output);
 
             // assert
             Assert.Equal(
@@ -87,7 +87,7 @@ namespace HotChocolate.Language
             var output = new Span<byte>(new byte[input.Length]);
 
             // act
-            BlockStringHelper.TrimBlockStringToken(input, ref output);
+            StringHelper.TrimBlockStringToken(input, ref output);
 
             // assert
             Assert.Equal(
