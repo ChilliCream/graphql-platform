@@ -38,21 +38,21 @@
     "Kind": "BlockString",
     "Start": 8,
     "End": 26,
-    "Line": 2,
-    "Column": 1
+    "Line": 1,
+    "Column": 9
   },
   {
     "Kind": "RightParenthesis",
     "Start": 27,
     "End": 28,
     "Line": 2,
-    "Column": 4
+    "Column": 1
   },
   {
     "Kind": "RightBrace",
     "Start": 29,
     "End": 30,
     "Line": 2,
-    "Column": 6
+    "Column": 3
   }
 ]

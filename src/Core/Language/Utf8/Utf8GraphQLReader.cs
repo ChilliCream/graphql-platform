@@ -540,10 +540,14 @@ namespace HotChocolate.Language
                         $"Invalid character within String: {code}.");
                 }
 
-                if (code == GraphQLConstants.Backslash
-                    && GraphQLData[Position + 1] == GraphQLConstants.Quote)
+                if (code == GraphQLConstants.Backslash)
                 {
-                    Position++;
+                    code = ref GraphQLData[++Position];
+                    if (!GraphQLConstants.IsValidEscapeCharacter(in code))
+                    {
+                        throw new SyntaxException(this,
+                            $"Invalid character escape sequence: \\{code}.");
+                    }
                 }
 
                 code = ref GraphQLData[++Position];

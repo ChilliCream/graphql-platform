@@ -1102,22 +1102,22 @@
     "Kind": "BlockString",
     "Start": 907,
     "End": 946,
-    "Line": 53,
-    "Column": 1
+    "Line": 49,
+    "Column": 57
   },
   {
     "Kind": "RightBrace",
     "Start": 947,
     "End": 948,
     "Line": 53,
-    "Column": 4
+    "Column": 1
   },
   {
     "Kind": "RightParenthesis",
     "Start": 948,
     "End": 949,
     "Line": 53,
-    "Column": 5
+    "Column": 2
   },
   {
     "Kind": "RightBrace",
