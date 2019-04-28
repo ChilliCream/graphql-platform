@@ -1,0 +1,117 @@
+﻿schema {
+  query: QueryType
+  mutation: MutationType
+}
+
+"""
+This is a description
+of the `Foo` type.
+"""
+type Foo implements Bar & Baz {
+  one: Type
+  """
+  This is a description of the `two` field.
+  """
+  two("""
+  This is a description of the `argument` argument.
+  """ argument: InputType!): Type
+  three(argument: InputType other: String): Int
+  four(argument: String = "string"): String
+  five(argument: [String] = [ "string", "string" ]): String
+  six(argument: InputType = { key: "value" }): Type
+  seven(argument: Int): Type
+}
+
+type AnnotatedObject @onObject(arg: "value") {
+  annotatedField(arg: Type = "default" @onArg): Type @onField
+}
+
+type UndefinedType {
+
+}
+
+seven(argument: [String]): Type
+
+
+
+interface Bar {
+  one: Type
+  four(argument: String = "string"): String
+}
+
+interface AnnotatedInterface @onInterface {
+  annotatedField(arg: Type @onArg): Type @onField
+}
+
+interface UndefinedInterface {
+
+}
+
+two(argument: InputType!): Type
+
+
+
+union Feed = Story | Article | Advert
+
+union AnnotatedUnion @onUnion = A | B
+
+union AnnotatedUnionTwo @onUnion = A | B
+
+union UndefinedUnion = 
+
+
+
+
+
+scalar CustomScalar
+
+scalar AnnotatedScalar @onScalar
+
+
+
+enum Site {
+  DESKTOP
+  MOBILE
+}
+
+enum AnnotatedEnum @onEnum {
+  ANNOTATED_VALUE @onEnumValue
+  OTHER_VALUE
+}
+
+enum UndefinedEnum {
+
+}
+
+VR
+
+
+
+input InputType {
+  key: String!
+  answer: Int = 42
+}
+
+input AnnotatedInput @onInputObject {
+  annotatedField: Type @onField
+}
+
+input UndefinedInput {
+
+}
+
+other: Float = 1.23e4
+
+
+
+directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+directive @skip2(if: Boolean!) repeatable on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+directive @include(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+directive @include2(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+
+
+subscription: SubscriptionType
