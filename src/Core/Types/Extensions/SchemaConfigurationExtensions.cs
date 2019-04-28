@@ -11,7 +11,7 @@ namespace HotChocolate
     public static class SchemaConfigurationExtensions
     {
         public static IBindResolverDelegate BindResolver(
-            this ISchemaFirstConfiguration schemaConfiguration,
+            this ISchemaConfiguration schemaConfiguration,
             Func<IResolverContext, object> resolver)
         {
             if (schemaConfiguration == null)
@@ -24,7 +24,7 @@ namespace HotChocolate
         }
 
         public static IBindResolverDelegate BindResolver(
-            this ISchemaFirstConfiguration schemaConfiguration,
+            this ISchemaConfiguration schemaConfiguration,
             Func<object> resolver)
         {
             if (schemaConfiguration == null)
@@ -42,7 +42,7 @@ namespace HotChocolate
         }
 
         public static IBindResolverDelegate BindResolver(
-            this ISchemaFirstConfiguration schemaConfiguration,
+            this ISchemaConfiguration schemaConfiguration,
             Func<Task<object>> resolver)
         {
             if (schemaConfiguration == null)
@@ -59,7 +59,7 @@ namespace HotChocolate
         }
 
         public static IBindResolverDelegate BindResolver(
-            this ISchemaFirstConfiguration schemaConfiguration,
+            this ISchemaConfiguration schemaConfiguration,
             Func<IResolverContext, CancellationToken, Task<object>> resolver)
         {
             if (schemaConfiguration == null)
@@ -77,7 +77,7 @@ namespace HotChocolate
         }
 
         public static IBindType<T> BindType<T>(
-            this ISchemaFirstConfiguration schemaConfiguration)
+            this ISchemaConfiguration schemaConfiguration)
             where T : class
         {
             if (schemaConfiguration == null)
@@ -89,7 +89,7 @@ namespace HotChocolate
         }
 
         public static IBindResolver<TResolver> BindResolver<TResolver>(
-            this ISchemaFirstConfiguration schemaConfiguration)
+            this ISchemaConfiguration schemaConfiguration)
             where TResolver : class
         {
             if (schemaConfiguration == null)
@@ -101,8 +101,8 @@ namespace HotChocolate
                 BindingBehavior.Implicit);
         }
 
-        public static ICodeFirstConfiguration RegisterExtendedScalarTypes(
-            this ICodeFirstConfiguration schemaConfiguration)
+        public static ISchemaConfiguration RegisterExtendedScalarTypes(
+            this ISchemaConfiguration schemaConfiguration)
         {
             if (schemaConfiguration == null)
             {

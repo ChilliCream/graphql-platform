@@ -27,12 +27,13 @@ namespace HotChocolate.Configuration
             return _builder;
         }
 
-        public void RegisterServiceProvider(IServiceProvider serviceProvider)
+        public ISchemaConfiguration RegisterServiceProvider(IServiceProvider serviceProvider)
         {
             _builder.AddServices(serviceProvider);
+            return this;
         }
 
-        public IMiddlewareConfiguration Use(FieldMiddleware middleware)
+        public ISchemaConfiguration Use(FieldMiddleware middleware)
         {
             if (middleware == null)
             {
@@ -40,6 +41,12 @@ namespace HotChocolate.Configuration
             }
 
             _builder.Use(middleware);
+            return this;
+        }
+
+        public ISchemaConfiguration Extend(Action<ISchemaBuilder> build)
+        {
+            build(_builder);
             return this;
         }
     }
