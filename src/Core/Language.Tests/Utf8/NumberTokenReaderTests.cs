@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using System.Text;
+using Xunit;
 
 namespace HotChocolate.Language
 {
@@ -14,23 +15,21 @@ namespace HotChocolate.Language
         private void ReadToken(string sourceBody, bool isFloat)
         {
             // arrange
-            var source = new Source(sourceBody);
+            byte[] source = Encoding.UTF8.GetBytes(sourceBody);
+            var reader = new Utf8GraphQLReader(source);
 
             // act
-            SyntaxToken token = Lexer.Default.Read(source);
-            token = token.Next;
+            reader.Read();
 
             // assert
-            Assert.Equal(TokenKind.StartOfFile, token.Previous.Kind);
-            Assert.Equal(TokenKind.EndOfFile, token.Next.Kind);
-            Assert.NotNull(token);
-            Assert.Equal(isFloat ? TokenKind.Float : TokenKind.Integer, token.Kind);
-            Assert.Equal(sourceBody, token.Value);
-            Assert.Equal(1, token.Line);
-            Assert.Equal(1, token.Column);
-            Assert.Equal(0, token.Start);
-            Assert.Equal(sourceBody.Length, token.End);
-            Assert.Equal(TokenKind.StartOfFile, token.Previous.Kind);
+            Assert.Equal(sourceBody, reader.GetString(reader.Value));
+            Assert.Equal(
+                isFloat ? TokenKind.Float : TokenKind.Integer,
+                reader.Kind);
+            Assert.Equal(1, reader.Line);
+            Assert.Equal(1, reader.Column);
+            Assert.Equal(0, reader.Start);
+            Assert.Equal(sourceBody.Length, reader.End);
         }
     }
 }
