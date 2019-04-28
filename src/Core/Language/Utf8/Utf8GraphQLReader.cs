@@ -9,7 +9,6 @@ namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLReader
     {
-        private static readonly UTF8Encoding _utf8Encoding = new UTF8Encoding();
         private static readonly byte _space = (byte)' ';
         private int _nextNewLines;
         private ReadOnlySpan<byte> _value;
@@ -79,18 +78,18 @@ namespace HotChocolate.Language
 
             int length = checked((int)_value.Length);
             bool useStackalloc =
-                _value.Length <= GraphQLConstants.StackallocThreshold;
+                length <= GraphQLConstants.StackallocThreshold;
 
             byte[] escapedArray = null;
             byte[] unescapedArray = null;
 
             Span<byte> escapedSpan = useStackalloc
-                ? stackalloc byte[_value.Length]
-                : (escapedArray = ArrayPool<byte>.Shared.Rent(_value.Length));
+                ? stackalloc byte[length]
+                : (escapedArray = ArrayPool<byte>.Shared.Rent(length));
 
             Span<byte> unescapedSpan = useStackalloc
-                ? stackalloc byte[_value.Length]
-                : (unescapedArray = ArrayPool<byte>.Shared.Rent(_value.Length));
+                ? stackalloc byte[length]
+                : (unescapedArray = ArrayPool<byte>.Shared.Rent(length));
 
             try
             {
@@ -101,7 +100,7 @@ namespace HotChocolate.Language
 
                 fixed (byte* bytePtr = unescapedSpan)
                 {
-                    return _utf8Encoding.GetString(
+                    return StringHelper.UTF8Encoding.GetString(
                         bytePtr,
                         unescapedSpan.Length);
                 }
@@ -123,7 +122,8 @@ namespace HotChocolate.Language
         {
             fixed (byte* bytePtr = unescapedValue)
             {
-                return _utf8Encoding.GetString(bytePtr, _value.Length);
+                return StringHelper.UTF8Encoding
+                    .GetString(bytePtr, _value.Length);
             }
         }
 
@@ -715,19 +715,6 @@ namespace HotChocolate.Language
         public bool IsEndOfStream()
         {
             return Position >= GraphQLData.Length;
-        }
-
-        public unsafe static int ConvertToBytes(string s, byte[] buffer)
-        {
-            fixed (byte* bytePtr = buffer)
-            {
-                fixed (char* stringPtr = s)
-                {
-                    return _utf8Encoding.GetBytes(
-                        stringPtr, s.Length,
-                        bytePtr, buffer.Length);
-                }
-            }
         }
     }
 }

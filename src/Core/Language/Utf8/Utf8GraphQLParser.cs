@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language
@@ -28,8 +29,9 @@ namespace HotChocolate.Language
 
             if (graphQLData.Length == 0)
             {
+                // TODO : resources
                 throw new ArgumentException(
-                    "The GraphQL data is empty.",
+                    "The graphQLData mustn't be empty.",
                     nameof(graphQLData));
             }
 
@@ -133,6 +135,75 @@ namespace HotChocolate.Language
             throw Unexpected(_reader.Kind);
         }
 
-        public static Parser Default { get; } = new Parser();
+        public static DocumentNode Parse(
+            ReadOnlySpan<byte> graphQLData) =>
+            new Utf8GraphQLParser(graphQLData).Parse();
+
+        public static DocumentNode Parse(
+            ReadOnlySpan<byte> graphQLData,
+            ParserOptions options) =>
+            new Utf8GraphQLParser(graphQLData, options).Parse();
+
+        public static DocumentNode Parse(string sourceText) =>
+            Parse(sourceText, ParserOptions.Default);
+
+        public static unsafe DocumentNode Parse(
+            string sourceText,
+            ParserOptions options)
+        {
+            if (string.IsNullOrEmpty(sourceText))
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "The source text mustn't be null or empty.",
+                    nameof(sourceText));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            int length = checked(sourceText.Length * 4);
+            bool useStackalloc =
+                length <= GraphQLConstants.StackallocThreshold;
+
+            byte[] source = null;
+
+            Span<byte> sourceSpan = useStackalloc
+                ? stackalloc byte[length]
+                : (source = ArrayPool<byte>.Shared.Rent(length));
+
+            try
+            {
+                ConvertToBytes(sourceText, ref sourceSpan);
+                var parser = new Utf8GraphQLParser(sourceSpan, options);
+                return parser.Parse();
+            }
+            finally
+            {
+                if (source != null)
+                {
+                    sourceSpan.Clear();
+                    ArrayPool<byte>.Shared.Return(source);
+                }
+            }
+        }
+
+        private unsafe static void ConvertToBytes(
+            string text,
+            ref Span<byte> buffer)
+        {
+            fixed (byte* bytePtr = buffer)
+            {
+                fixed (char* stringPtr = text)
+                {
+                    int length = StringHelper.UTF8Encoding.GetBytes(
+                        stringPtr, text.Length,
+                        bytePtr, buffer.Length);
+                    buffer = buffer.Slice(0, length);
+                }
+            }
+        }
     }
 }

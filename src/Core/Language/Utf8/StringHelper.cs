@@ -1,9 +1,12 @@
 using System;
+using System.Text;
 
 namespace HotChocolate.Language
 {
     internal static class StringHelper
     {
+        public static readonly UTF8Encoding UTF8Encoding = new UTF8Encoding();
+
         public static int CountLines(in ReadOnlySpan<byte> data)
         {
             int lines = 0;
