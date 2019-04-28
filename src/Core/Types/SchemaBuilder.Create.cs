@@ -88,14 +88,17 @@ namespace HotChocolate
                 RegisterOperationName(OperationType.Subscription,
                     visitor.SubscriptionTypeName);
 
+                IReadOnlyCollection<DirectiveNode> directives =
+                    visitor.Directives ?? Array.Empty<DirectiveNode>();
+
                 if (_schema == null
-                    && (visitor.Directives.Count > 0
+                    && (directives.Count > 0
                     || visitor.Description != null))
                 {
                     SetSchema(new Schema(d =>
                     {
                         d.Description(visitor.Description);
-                        foreach (DirectiveNode directive in visitor.Directives)
+                        foreach (DirectiveNode directive in directives)
                         {
                             d.Directive(directive);
                         }
