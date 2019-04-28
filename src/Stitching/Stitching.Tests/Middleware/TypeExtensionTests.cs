@@ -57,5 +57,46 @@ namespace HotChocolate.Stitching
             // assert
             Snapshot.Match(result);
         }
+
+        [Fact]
+        public async Task UseSchemaBuilder()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .AddSchemaConfiguration(c => c
+                        .RegisterType<PaginationAmountType>()
+                        .Extend().OnBeforeBuild(b => b.AddType(
+                            new ObjectTypeExtension(d => d
+                                .Name("Query")
+                                .Field("foo")
+                                .Type<StringType>()
+                                .Resolver("bar"))))));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                result = await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery("{ foo }")
+                        .SetServices(scope.ServiceProvider)
+                        .Create());
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
     }
 }
