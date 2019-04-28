@@ -43,8 +43,10 @@ namespace HotChocolate.Configuration
 
         ISchemaConfiguration RegisterDirective(Type type);
 
-        ISchemaConfiguration RegisterType<T>(T namedType)
-            where T : class, INamedType;
+        ISchemaConfiguration RegisterType(INamedType namedType);
+
+        ISchemaConfiguration RegisterType(
+            INamedTypeExtension namedTypeExtension);
 
         ISchemaConfiguration RegisterQueryType<T>(T objectType)
             where T : ObjectType;
