@@ -65,6 +65,6 @@ namespace HotChocolate.Configuration
         ISchemaConfiguration RegisterServiceProvider(
             IServiceProvider serviceProvider);
 
-        ISchemaConfiguration Extend(Action<ISchemaBuilder> build);
+        ISchemaConfigurationExtension Extend();
     }
 }
