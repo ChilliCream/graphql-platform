@@ -78,6 +78,24 @@ namespace HotChocolate.Types
             RegisterDirectiveDependencies(context, definition);
         }
 
+        public static void RegisterDependencies(
+            this IInitializationContext context,
+            InputObjectTypeDefinition definition)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (definition == null)
+            {
+                throw new ArgumentNullException(nameof(definition));
+            }
+
+            RegisterDirectiveDependencies(context, definition);
+            RegisterFieldDependencies(context, definition.Fields);
+        }
+
         private static void RegisterDirectiveDependencies<T>(
             this IInitializationContext context,
             TypeDefinitionBase<T> definition)

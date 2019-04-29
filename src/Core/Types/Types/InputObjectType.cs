@@ -108,19 +108,7 @@ namespace HotChocolate.Types
             InputObjectTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
-
-            context.RegisterDependencyRange(
-                definition.Fields.Select(t => t.Type),
-                TypeDependencyKind.Default);
-
-            context.RegisterDependencyRange(
-                definition.Directives.Select(t => t.TypeReference),
-                TypeDependencyKind.Completed);
-
-            context.RegisterDependencyRange(
-                definition.Fields.SelectMany(t => t.Directives)
-                    .Select(t => t.TypeReference),
-                TypeDependencyKind.Completed);
+            context.RegisterDependencies(definition);
         }
 
         protected override void OnCompleteType(
