@@ -144,4 +144,7 @@
   <data name="Utf8Helper_InvalidEscapeChar" xml:space="preserve">
     <value>The escape char `{0}` is invalid.</value>
   </data>
+  <data name="Utf8Helper_InvalidQuoteEscapeCount" xml:space="preserve">
+    <value>The quote escape string has to consist of three quotes `\"""`.</value>
+  </data>
 </root>

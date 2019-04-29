@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration.Bindings
@@ -54,8 +55,9 @@ namespace HotChocolate.Configuration.Bindings
                 return this;
             }
 
-            // TODO : resources
-            throw new ArgumentException("notcompleted", nameof(builder));
+            throw new ArgumentException(
+                TypeResources.ResolverTypeBindingBuilder_FieldNotComplete,
+                nameof(builder));
         }
 
         public IResolverTypeBindingBuilder AddField(
@@ -68,8 +70,9 @@ namespace HotChocolate.Configuration.Bindings
 
             if (!builder.IsComplete())
             {
-                // TODO : resources
-                throw new ArgumentException("notcompleted", nameof(builder));
+                throw new ArgumentException(
+                    TypeResources.ResolverTypeBindingBuilder_FieldNotComplete,
+                    nameof(builder));
             }
 
             if (builder is ResolverFieldBindingBuilder b)
@@ -78,8 +81,8 @@ namespace HotChocolate.Configuration.Bindings
                 return this;
             }
 
-            // TODO : resources
-            throw new NotSupportedException("builder not supported");
+            throw new NotSupportedException(
+                TypeResources.ResolverTypeBindingBuilder_FieldBuilderNotSupported);
         }
 
         public bool IsComplete()

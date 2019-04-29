@@ -141,5 +141,14 @@ namespace HotChocolate.Language.Properties {
                 return ResourceManager.GetString("Utf8Helper_InvalidEscapeChar", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The quote escape string has to consist of three quotes `\&quot;&quot;&quot;`..
+        /// </summary>
+        internal static string Utf8Helper_InvalidQuoteEscapeCount {
+            get {
+                return ResourceManager.GetString("Utf8Helper_InvalidQuoteEscapeCount", resourceCulture);
+            }
+        }
     }
 }

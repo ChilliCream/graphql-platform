@@ -126,6 +126,12 @@
   <data name="ByteType_Description" xml:space="preserve">
     <value>The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255.</value>
   </data>
+  <data name="ComplexTypeBindingBuilder_FieldBuilderNotSupported" xml:space="preserve">
+    <value>The specified IComplexTypeFieldBindingBuilder-implementation is not supported.</value>
+  </data>
+  <data name="ComplexTypeBindingBuilder_FieldNotComplete" xml:space="preserve">
+    <value>The field binding builder is not completed and cannot be added.</value>
+  </data>
   <data name="DataLoaderRegistry_KeyNullOrEmpty" xml:space="preserve">
     <value>The DataLoader key cannot be null or empty.</value>
   </data>
@@ -189,6 +195,12 @@
   <data name="Reflection_MemberMust_BeMethodOrProperty" xml:space="preserve">
     <value>The member expression must specify a property or method that is public and that belongs to the type {0}</value>
   </data>
+  <data name="ResolverTypeBindingBuilder_FieldBuilderNotSupported" xml:space="preserve">
+    <value>The specified IResolverFieldBindingBuilder-implementation is not supported.</value>
+  </data>
+  <data name="ResolverTypeBindingBuilder_FieldNotComplete" xml:space="preserve">
+    <value>The field binding builder is not completed and cannot be added.</value>
+  </data>
   <data name="Scalar_Cannot_Deserialize" xml:space="preserve">
     <value>{0} cannot deserialize the given value.</value>
   </data>
@@ -210,6 +222,9 @@
   <data name="String_Argument_NullOrEmpty" xml:space="preserve">
     <value>The `{0}` cannot be null or empty.</value>
   </data>
+  <data name="TypeDependency_MustBeSchemaType" xml:space="preserve">
+    <value>The specified type is not a schema type.</value>
+  </data>
   <data name="TypeExtensions_InvalidStructure" xml:space="preserve">
     <value>The type structure is invalid.</value>
   </data>
@@ -221,6 +236,15 @@
   </data>
   <data name="TypeExtensions_TypeIsNotOfT" xml:space="preserve">
     <value>The given type is not a {0}.</value>
+  </data>
+  <data name="TypeInitializer_CannotResolveDependency" xml:space="preserve">
+    <value>Unable to resolve dependencies {1} for type `{0}`.</value>
+  </data>
+  <data name="TypeInitializer_CompleteName_Duplicate" xml:space="preserve">
+    <value>The name `{0}` was already registered by another type.</value>
+  </data>
+  <data name="TypeInitializer_Merge_KindDoesNotMatch" xml:space="preserve">
+    <value>The kind of the extension does not match the kind of the type `{0}`.</value>
   </data>
   <data name="TypeResourceHelper_TypeNameEmptyOrNull" xml:space="preserve">
     <value>The typeName mustn't be null or empty.</value>

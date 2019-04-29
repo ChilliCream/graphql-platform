@@ -39,8 +39,8 @@ namespace HotChocolate.Language
                         }
                         else
                         {
-                            // TODO : Syntax Exception
-                            throw new Exception();
+                            throw new Utf8EncodingException(
+                                LangResources.Utf8Helper_InvalidQuoteEscapeCount);
                         }
                     }
                     else if (GraphQLConstants.IsValidEscapeCharacter(code))

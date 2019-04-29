@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -45,8 +46,9 @@ namespace HotChocolate.Configuration
                 return new TypeDependency(reference, kind);
             }
 
-            // TODO : Resources
-            throw new ArgumentException("Not a schema type.");
+            throw new ArgumentException(
+                TypeResources.TypeDependency_MustBeSchemaType,
+                nameof(type));
         }
     }
 }

@@ -88,6 +88,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified IComplexTypeFieldBindingBuilder-implementation is not supported..
+        /// </summary>
+        internal static string ComplexTypeBindingBuilder_FieldBuilderNotSupported {
+            get {
+                return ResourceManager.GetString("ComplexTypeBindingBuilder_FieldBuilderNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field binding builder is not completed and cannot be added..
+        /// </summary>
+        internal static string ComplexTypeBindingBuilder_FieldNotComplete {
+            get {
+                return ResourceManager.GetString("ComplexTypeBindingBuilder_FieldNotComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The DataLoader key cannot be null or empty..
         /// </summary>
         internal static string DataLoaderRegistry_KeyNullOrEmpty {
@@ -277,6 +295,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified IResolverFieldBindingBuilder-implementation is not supported..
+        /// </summary>
+        internal static string ResolverTypeBindingBuilder_FieldBuilderNotSupported {
+            get {
+                return ResourceManager.GetString("ResolverTypeBindingBuilder_FieldBuilderNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field binding builder is not completed and cannot be added..
+        /// </summary>
+        internal static string ResolverTypeBindingBuilder_FieldNotComplete {
+            get {
+                return ResourceManager.GetString("ResolverTypeBindingBuilder_FieldNotComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to {0} cannot deserialize the given value..
         /// </summary>
         internal static string Scalar_Cannot_Deserialize {
@@ -340,6 +376,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified type is not a schema type..
+        /// </summary>
+        internal static string TypeDependency_MustBeSchemaType {
+            get {
+                return ResourceManager.GetString("TypeDependency_MustBeSchemaType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type structure is invalid..
         /// </summary>
         internal static string TypeExtensions_InvalidStructure {
@@ -372,6 +417,33 @@ namespace HotChocolate.Properties {
         internal static string TypeExtensions_TypeIsNotOfT {
             get {
                 return ResourceManager.GetString("TypeExtensions_TypeIsNotOfT", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to resolve dependencies {1} for type `{0}`..
+        /// </summary>
+        internal static string TypeInitializer_CannotResolveDependency {
+            get {
+                return ResourceManager.GetString("TypeInitializer_CannotResolveDependency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name `{0}` was already registered by another type..
+        /// </summary>
+        internal static string TypeInitializer_CompleteName_Duplicate {
+            get {
+                return ResourceManager.GetString("TypeInitializer_CompleteName_Duplicate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The kind of the extension does not match the kind of the type `{0}`..
+        /// </summary>
+        internal static string TypeInitializer_Merge_KindDoesNotMatch {
+            get {
+                return ResourceManager.GetString("TypeInitializer_Merge_KindDoesNotMatch", resourceCulture);
             }
         }
         
