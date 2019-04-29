@@ -117,10 +117,31 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="GraphQLData_Empty" xml:space="preserve">
+    <value>The graphQLData mustn't be empty.</value>
+  </data>
   <data name="ParseMany_InvalidOpenToken" xml:space="preserve">
     <value>Expected a {0} token but found `{1}`.</value>
   </data>
+  <data name="Parser_InvalidScalarToken" xml:space="preserve">
+    <value>Expected a `Int`-, `Float`-, `String`- or `BlockString`-token, but found a `{0}`-token.</value>
+  </data>
+  <data name="Parser_InvalidToken" xml:space="preserve">
+    <value>Expected a `{0}`-token, but found a `{1}`-token.</value>
+  </data>
   <data name="QuerySyntaxRewriter_NotSupported" xml:space="preserve">
     <value>The given syntax node is not supported by this rewriter.</value>
+  </data>
+  <data name="Reader_InvalidToken" xml:space="preserve">
+    <value>Expected a `{0}`-token.</value>
+  </data>
+  <data name="Reader_UnexpectedPunctuatorToken" xml:space="preserve">
+    <value>Unexpected punctuator token `{0}`.</value>
+  </data>
+  <data name="SourceText_Empty" xml:space="preserve">
+    <value>The source text mustn't be null or empty.</value>
+  </data>
+  <data name="Utf8Helper_InvalidEscapeChar" xml:space="preserve">
+    <value>The escape char `{0}` is invalid.</value>
   </data>
 </root>

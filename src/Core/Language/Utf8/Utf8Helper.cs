@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.CompilerServices;
+using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
@@ -8,7 +9,6 @@ namespace HotChocolate.Language
         private const int _utf8TwoByteMask = 0b1100_0000_1000_0000;
         private const int _shiftBytesMask = 0b1111_1111_1100_0000;
 
-        // Escape Triple-Quote (\""")
         public static void Unescape(
             in ReadOnlySpan<byte> escapedString,
             ref Span<byte> unescapedString,
@@ -60,8 +60,8 @@ namespace HotChocolate.Language
                     }
                     else
                     {
-                        // TODO : Syntax Exception
-                        throw new Exception();
+                        throw new Utf8EncodingException(
+                            LangResources.Utf8Helper_InvalidEscapeChar);
                     }
                 }
                 else
@@ -116,4 +116,5 @@ namespace HotChocolate.Language
                   : -1;
         }
     }
+
 }

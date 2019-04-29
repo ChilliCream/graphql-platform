@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Buffers;
 using System.Collections.Generic;
+using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
@@ -29,9 +30,8 @@ namespace HotChocolate.Language
 
             if (graphQLData.Length == 0)
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The graphQLData mustn't be empty.",
+                    LangResources.GraphQLData_Empty,
                     nameof(graphQLData));
             }
 
@@ -153,9 +153,8 @@ namespace HotChocolate.Language
         {
             if (string.IsNullOrEmpty(sourceText))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The source text mustn't be null or empty.",
+                    LangResources.SourceText_Empty,
                     nameof(sourceText));
             }
 

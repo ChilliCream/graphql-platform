@@ -62,6 +62,15 @@ namespace HotChocolate.Language.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The graphQLData mustn&apos;t be empty..
+        /// </summary>
+        internal static string GraphQLData_Empty {
+            get {
+                return ResourceManager.GetString("GraphQLData_Empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected a {0} token but found `{1}`..
         /// </summary>
         internal static string ParseMany_InvalidOpenToken {
@@ -71,11 +80,65 @@ namespace HotChocolate.Language.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected a `Int`-, `Float`-, `String`- or `BlockString`-token, but found a `{0}`-token..
+        /// </summary>
+        internal static string Parser_InvalidScalarToken {
+            get {
+                return ResourceManager.GetString("Parser_InvalidScalarToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected a `{0}`-token, but found a `{1}`-token..
+        /// </summary>
+        internal static string Parser_InvalidToken {
+            get {
+                return ResourceManager.GetString("Parser_InvalidToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The given syntax node is not supported by this rewriter..
         /// </summary>
         internal static string QuerySyntaxRewriter_NotSupported {
             get {
                 return ResourceManager.GetString("QuerySyntaxRewriter_NotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected a `{0}`-token..
+        /// </summary>
+        internal static string Reader_InvalidToken {
+            get {
+                return ResourceManager.GetString("Reader_InvalidToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected punctuator token `{0}`..
+        /// </summary>
+        internal static string Reader_UnexpectedPunctuatorToken {
+            get {
+                return ResourceManager.GetString("Reader_UnexpectedPunctuatorToken", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The source text mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string SourceText_Empty {
+            get {
+                return ResourceManager.GetString("SourceText_Empty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The escape char `{0}` is invalid..
+        /// </summary>
+        internal static string Utf8Helper_InvalidEscapeChar {
+            get {
+                return ResourceManager.GetString("Utf8Helper_InvalidEscapeChar", resourceCulture);
             }
         }
     }

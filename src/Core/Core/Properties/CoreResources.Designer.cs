@@ -97,6 +97,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The execute operation middleware expects the query document to be parsed and the operation to be resolved..
+        /// </summary>
+        internal static string ExecuteOperationMiddleware_InComplete {
+            get {
+                return ResourceManager.GetString("ExecuteOperationMiddleware_InComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified operation `{0}` does not exist..
         /// </summary>
         internal static string GetOperation_InvalidOperationName {
@@ -120,6 +129,15 @@ namespace HotChocolate.Properties {
         internal static string HandleNonNullViolation_Message {
             get {
                 return ResourceManager.GetString("HandleNonNullViolation_Message", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The parse query middleware expects a valid query request..
+        /// </summary>
+        internal static string ParseQueryMiddleware_InComplete {
+            get {
+                return ResourceManager.GetString("ParseQueryMiddleware_InComplete", resourceCulture);
             }
         }
         
@@ -192,6 +210,15 @@ namespace HotChocolate.Properties {
         internal static string SubscriptionExecutionStrategy_NoEventRegistry {
             get {
                 return ResourceManager.GetString("SubscriptionExecutionStrategy_NoEventRegistry", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Subscriptions must have one and only one root field..
+        /// </summary>
+        internal static string Subscriptions_SingleRootField {
+            get {
+                return ResourceManager.GetString("Subscriptions_SingleRootField", resourceCulture);
             }
         }
         
