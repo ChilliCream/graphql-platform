@@ -93,7 +93,19 @@ namespace HotChocolate.Types
             }
 
             RegisterDirectiveDependencies(context, definition);
-            RegisterFieldDependencies(context, definition.Fields);
+
+            foreach (InputFieldDefinition field in definition.Fields)
+            {
+                if (field.Type != null)
+                {
+                    context.RegisterDependency(field.Type,
+                        TypeDependencyKind.Default);
+                }
+
+                context.RegisterDependencyRange(
+                    field.Directives.Select(t => t.TypeReference),
+                    TypeDependencyKind.Completed);
+            }
         }
 
         private static void RegisterDirectiveDependencies<T>(

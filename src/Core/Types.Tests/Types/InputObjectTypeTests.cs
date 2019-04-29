@@ -103,12 +103,12 @@ namespace HotChocolate.Types
         {
             // arrange
             Schema schema = Create();
-            InputObjectType object1Type =
+            InputObjectType inputObjectType =
                 schema.GetType<InputObjectType>("Object1");
             ObjectValueNode literal = CreateObjectLiteral();
 
             // act
-            object obj = object1Type.ParseLiteral(literal);
+            object obj = inputObjectType.ParseLiteral(literal);
 
             // assert
             Assert.IsType<SerializationInputObject1>(obj);
@@ -120,11 +120,11 @@ namespace HotChocolate.Types
         {
             // arrange
             Schema schema = Create();
-            InputObjectType object1Type =
+            InputObjectType inputObjectType =
                 schema.GetType<InputObjectType>("Object1");
 
             // act
-            TypeKind kind = object1Type.Kind;
+            TypeKind kind = inputObjectType.Kind;
 
             // assert
             Assert.Equal(TypeKind.InputObject, kind);
