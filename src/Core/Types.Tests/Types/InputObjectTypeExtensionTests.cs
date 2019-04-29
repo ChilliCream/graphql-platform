@@ -105,7 +105,7 @@ namespace HotChocolate.Types
                 .Create();
 
             // assert
-            InputObjectType type = schema.GetType<InputObjectType>("Foo");
+            InputObjectType type = schema.GetType<InputObjectType>("FooInput");
             Assert.True(type.Fields["name"]
                 .Directives.Contains("dummy"));
         }
@@ -188,7 +188,7 @@ namespace HotChocolate.Types
                     .Field(f => f.Description)
                     .Directive("dummy_rep")))
                 .AddType(new InputObjectTypeExtension(d => d
-                    .Name("Foo")
+                    .Name("FooInput")
                     .Field("description")
                     .Directive("dummy_rep")))
                 .AddDirectiveType<RepeatableDummyDirective>()
@@ -236,11 +236,7 @@ namespace HotChocolate.Types
         public class Foo
         {
             public string Description { get; } = "hello";
-
-            public string GetName(string a)
-            {
-                return null;
-            }
+            public string Name { get; } = "hello";
         }
 
         public class DummyDirective
@@ -251,8 +247,7 @@ namespace HotChocolate.Types
             {
                 descriptor.Name("dummy");
                 descriptor.Location(DirectiveLocation.InputObject);
-                descriptor.Location(DirectiveLocation.FieldDefinition);
-                descriptor.Location(DirectiveLocation.ArgumentDefinition);
+                descriptor.Location(DirectiveLocation.InputFieldDefinition);
             }
         }
 
@@ -265,8 +260,7 @@ namespace HotChocolate.Types
                 descriptor.Name("dummy_arg");
                 descriptor.Argument("a").Type<StringType>();
                 descriptor.Location(DirectiveLocation.InputObject);
-                descriptor.Location(DirectiveLocation.FieldDefinition);
-                descriptor.Location(DirectiveLocation.ArgumentDefinition);
+                descriptor.Location(DirectiveLocation.InputFieldDefinition);
             }
         }
 
@@ -279,8 +273,7 @@ namespace HotChocolate.Types
                 descriptor.Name("dummy_rep");
                 descriptor.Repeatable();
                 descriptor.Location(DirectiveLocation.InputObject);
-                descriptor.Location(DirectiveLocation.FieldDefinition);
-                descriptor.Location(DirectiveLocation.ArgumentDefinition);
+                descriptor.Location(DirectiveLocation.InputFieldDefinition);
             }
         }
     }
