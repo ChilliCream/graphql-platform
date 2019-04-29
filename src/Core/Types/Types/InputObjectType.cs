@@ -17,12 +17,13 @@ namespace HotChocolate.Types
         private InputObjectToObjectValueConverter _objectToValueConverter;
         private ObjectValueToInputObjectConverter _valueToObjectConverter;
 
-        internal InputObjectType()
+        protected InputObjectType()
         {
             _configure = Configure;
         }
 
-        internal InputObjectType(Action<IInputObjectTypeDescriptor> configure)
+        public InputObjectType(
+            Action<IInputObjectTypeDescriptor> configure)
         {
             _configure = configure
                 ?? throw new ArgumentNullException(nameof(configure));
