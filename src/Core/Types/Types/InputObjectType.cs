@@ -17,12 +17,13 @@ namespace HotChocolate.Types
         private InputObjectToObjectValueConverter _objectToValueConverter;
         private ObjectValueToInputObjectConverter _valueToObjectConverter;
 
-        internal InputObjectType()
+        protected InputObjectType()
         {
             _configure = Configure;
         }
 
-        internal InputObjectType(Action<IInputObjectTypeDescriptor> configure)
+        public InputObjectType(
+            Action<IInputObjectTypeDescriptor> configure)
         {
             _configure = configure
                 ?? throw new ArgumentNullException(nameof(configure));
@@ -108,19 +109,7 @@ namespace HotChocolate.Types
             InputObjectTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
-
-            context.RegisterDependencyRange(
-                definition.Fields.Select(t => t.Type),
-                TypeDependencyKind.Default);
-
-            context.RegisterDependencyRange(
-                definition.Directives.Select(t => t.TypeReference),
-                TypeDependencyKind.Completed);
-
-            context.RegisterDependencyRange(
-                definition.Fields.SelectMany(t => t.Directives)
-                    .Select(t => t.TypeReference),
-                TypeDependencyKind.Completed);
+            context.RegisterDependencies(definition);
         }
 
         protected override void OnCompleteType(

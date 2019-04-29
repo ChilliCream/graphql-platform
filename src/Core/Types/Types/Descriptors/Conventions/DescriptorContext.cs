@@ -2,7 +2,7 @@ using System;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal sealed class DescriptorContext
+    public sealed class DescriptorContext
         : IDescriptorContext
     {
         private DescriptorContext(

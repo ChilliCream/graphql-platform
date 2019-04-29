@@ -1,35 +1,35 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-      <TargetFramework>netstandard2.0</TargetFramework>
-      <AssemblyName>HotChocolate.AspNetCore.Voyager</AssemblyName>
-      <RootNamespace>HotChocolate.AspNetCore.Voyager</RootNamespace>
-      <PackageId>HotChocolate.AspNetCore.Voyager</PackageId>
-      <Description>Contains a GraphQL Voyager for ASP.net core that can be used with the Hot Chocolate GraphQL server.</Description>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>HotChocolate.AspNetCore.Voyager</AssemblyName>
+    <RootNamespace>HotChocolate.AspNetCore.Voyager</RootNamespace>
+    <PackageId>HotChocolate.AspNetCore.Voyager</PackageId>
+    <Description>Contains a GraphQL Voyager for ASP.net core that can be used with the Hot Chocolate GraphQL server.</Description>
+  </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-      <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-    </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-      <DebugType>Full</DebugType>
-      <DebugSymbols>true</DebugSymbols>
-    </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-      <DebugType>pdbonly</DebugType>
-      <DebugSymbols>true</DebugSymbols>
-    </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
-      <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="2.1.1" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="2.1.1" />
+  </ItemGroup>
 
-    <ItemGroup>
-      <None Remove="Resources\*.*" />
-      <EmbeddedResource Include="Resources\*.*" />
-    </ItemGroup>
+  <ItemGroup>
+    <None Remove="Resources\*.*" />
+    <EmbeddedResource Include="Resources\*.*" />
+  </ItemGroup>
 
 </Project>
