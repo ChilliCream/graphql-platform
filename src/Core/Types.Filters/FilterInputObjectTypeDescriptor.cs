@@ -66,5 +66,10 @@ namespace HotChocolate.Types.Filters
         {
             throw new NotImplementedException();
         }
+
+        public IStringFilterFieldsDescriptor BindFields(BindingBehavior bindingBehavior)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
