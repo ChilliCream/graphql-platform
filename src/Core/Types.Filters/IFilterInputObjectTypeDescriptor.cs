@@ -13,6 +13,4 @@ namespace HotChocolate.Types.Filters
 
         IStringFilterFieldsDescriptor Filter(Expression<Func<T, string>> propertyOrMethod);
     }
-
-
 }
