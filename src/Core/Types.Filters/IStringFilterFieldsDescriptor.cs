@@ -3,13 +3,13 @@
 
     public interface IStringFilterFieldsDescriptor
     {
-        IStringFilterFieldsDescriptor BindFilters(
+        IFilterFieldDescriptor BindFilters(
             BindingBehavior bindingBehavior);
 
-        IStringFilterFieldsDescriptor AllowContains();
+        IFilterFieldDescriptor AllowContains();
 
-        IStringFilterFieldsDescriptor AllowEquals();
+        IFilterFieldDescriptor AllowEquals();
 
-        IStringFilterFieldsDescriptor AllowIn();
+        IFilterFieldDescriptor AllowIn();
     }
 }
