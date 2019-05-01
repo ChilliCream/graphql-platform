@@ -5,12 +5,13 @@ using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using System.Linq;
 using HotChocolate.Types.Descriptors;
+using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Filters
 {
-    public class FilterInputObjectTypeDescriptor
+    public class FilterInputObjectTypeDescriptor<T>
         : DescriptorBase<InputObjectTypeDefinition>
-        , IFilterInputObjectTypeDescriptor
+        , IFilterInputObjectTypeDescriptor<T>
     {
         public FilterInputObjectTypeDescriptor(
             IDescriptorContext context,
@@ -60,6 +61,10 @@ namespace HotChocolate.Types.Filters
         {
         }
 
-
+        public IStringFilterFieldsDescriptor Filter(
+            Expression<Func<T, string>> propertyOrMethod)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
