@@ -8,9 +8,10 @@ namespace HotChocolate.Types.Filters
         : IDescriptor<InputObjectTypeDefinition>
         , IFluent
     {
-        IStringFilterFieldsDescriptor BindFields(
+        IStringFilterFieldDescriptor BindFields(
             BindingBehavior bindingBehavior);
 
-        IStringFilterFieldsDescriptor Filter(Expression<Func<T, string>> propertyOrMethod);
+        IStringFilterFieldDescriptor Filter(
+            Expression<Func<T, string>> propertyOrMethod);
     }
 }

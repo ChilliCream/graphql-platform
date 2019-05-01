@@ -1,15 +1,58 @@
-﻿namespace HotChocolate.Types.Filters
+﻿using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
+
+namespace HotChocolate.Types.Filters
 {
 
-    public interface IStringFilterFieldsDescriptor
+    public interface IStringFilterFieldDescriptor
     {
-        IFilterFieldDescriptor BindFilters(
+        IStringFilterFieldDescriptor BindFilters(
             BindingBehavior bindingBehavior);
 
-        IFilterFieldDescriptor AllowContains();
+        IStringFilterFieldDetailsDescriptor AllowContains();
 
-        IFilterFieldDescriptor AllowEquals();
+        IStringFilterFieldDetailsDescriptor AllowEquals();
 
-        IFilterFieldDescriptor AllowIn();
+        IStringFilterFieldDetailsDescriptor AllowIn();
+    }
+
+    public interface IStringFilterFieldDetailsDescriptor
+        : IDescriptor<InputFieldDefinition>
+        , IFluent
+    {
+        IStringFilterFieldDescriptor And();
+
+        IStringFilterFieldDetailsDescriptor Name(NameString value);
+
+        IStringFilterFieldDetailsDescriptor Description(string value);
+
+        IStringFilterFieldDetailsDescriptor Directive<T>(T directiveInstance)
+            where T : class;
+
+        IStringFilterFieldDetailsDescriptor Directive<T>()
+            where T : class, new();
+
+        IStringFilterFieldDetailsDescriptor Directive(
+            NameString name,
+            params ArgumentNode[] arguments);
+    }
+
+    public class Dummy
+    {
+
+        public void Foo(IFilterInputObjectTypeDescriptor<Foo> descriptor)
+        {
+            descriptor.Filter(t => t.Bar)
+                .AllowContains()
+                .Name("bar_contains")
+                .And()
+                .AllowIn()
+                .Name("bar_in");
+        }
+    }
+
+    public class Foo
+    {
+        public string Bar { get; }
     }
 }

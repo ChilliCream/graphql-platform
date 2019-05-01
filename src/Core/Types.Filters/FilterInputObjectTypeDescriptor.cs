@@ -61,13 +61,13 @@ namespace HotChocolate.Types.Filters
         {
         }
 
-        public IStringFilterFieldsDescriptor Filter(
+        public IStringFilterFieldDescriptor Filter(
             Expression<Func<T, string>> propertyOrMethod)
         {
             throw new NotImplementedException();
         }
 
-        public IStringFilterFieldsDescriptor BindFields(BindingBehavior bindingBehavior)
+        public IStringFilterFieldDescriptor BindFields(BindingBehavior bindingBehavior)
         {
             throw new NotImplementedException();
         }
