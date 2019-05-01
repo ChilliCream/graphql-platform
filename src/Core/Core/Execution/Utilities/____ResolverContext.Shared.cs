@@ -73,7 +73,7 @@ namespace HotChocolate.Execution
             Path = null;
             Source = source;
             SourceObject = sourceObject;
-            ScopedContextData = null;
+            ScopedContextData = sourceContext.ScopedContextData;
 
             Middleware = null;
             Task = null;
@@ -93,8 +93,6 @@ namespace HotChocolate.Execution
             FieldType = fieldSelection.Field.Type;
             Path = path;
             _result = serializedResult;
-            ScopedContextData = parent.ScopedContextData;
-            Parent = sourceObject;
 
             FieldDelegate = parent._executionContext.FieldHelper
                 .CreateMiddleware(fieldSelection);
