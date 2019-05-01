@@ -2,28 +2,36 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    internal class ____ResolverContext
-        : IResolverContext
+    internal partial class ____ResolverContext
+        : IMiddlewareContext
     {
-        private readonly IExecutionContext _executionContext;
-
+        private IExecutionContext _executionContext;
+        private object _result;
+        private IDictionary<string, object> _serializedResult;
+        private FieldSelection _fieldSelection;
+        private Dictionary<string, ArgumentValue> _arguments;
 
         public QueryExecutionDiagnostics Diagnostics =>
             _executionContext.Diagnostics;
 
+        public ITypeConversion Converter =>
+            _executionContext.Converter;
 
         public ISchema Schema => _executionContext.Schema;
+
         public DocumentNode Document => _executionContext.Operation.Document;
+
         public OperationDefinitionNode Operation =>
             _executionContext.Operation.Definition;
-
 
         public IDictionary<string, object> ContextData =>
             _executionContext.ContextData;
@@ -31,16 +39,20 @@ namespace HotChocolate.Execution
             _executionContext.RequestAborted;
 
 
-        public ObjectType ObjectType => throw new NotImplementedException();
+        public ObjectType ObjectType => _fieldSelection.Field.DeclaringType;
 
-        public ObjectField Field => throw new NotImplementedException();
+        public ObjectField Field => _fieldSelection.Field;
 
-        public FieldNode FieldSelection => throw new NotImplementedException();
+        public FieldNode FieldSelection => _fieldSelection.Selection;
 
+        public string ResponseName => _fieldSelection.ResponseName;
 
-        public IImmutableStack<object> Source { get; }
+        public IImmutableStack<object> Source { get; private set; }
 
-        public Path Path { get; }
+        // TODO : is this the right name?
+        public object SourceObject { get; private set; }
+
+        public Path Path { get; private set; }
 
         public IImmutableDictionary<string, object> ScopedContextData
         {
@@ -48,9 +60,41 @@ namespace HotChocolate.Execution
             set;
         }
 
+        public FieldDelegate Middleware { get; private set; }
 
+        public Task Task { get; set; }
 
+        public object Result
+        {
+            get => _result;
+            set
+            {
+                if (value is IResolverResult r)
+                {
+                    if (r.IsError)
+                    {
+                        _result = ErrorBuilder.New()
+                            .SetMessage(r.ErrorMessage)
+                            .SetPath(Path)
+                            .AddLocation(FieldSelection)
+                            .Build();
+                    }
+                    else
+                    {
+                        _result = r.Value;
+                    }
+                }
+                else
+                {
+                    _result = value;
+                }
+                IsResultModified = true;
+            }
+        }
 
+        public bool IsResultModified { get; private set; }
+
+        public Action PropagateNonNullViolation { get; private set; }
 
         public T Argument<T>(NameString name)
         {
@@ -98,6 +142,11 @@ namespace HotChocolate.Execution
         }
 
         public object Service(Type service)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<T> ResolveAsync<T>()
         {
             throw new NotImplementedException();
         }

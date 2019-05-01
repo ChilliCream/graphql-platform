@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -74,6 +75,12 @@ namespace HotChocolate.Execution
         /// Gets the diagnostics writer for query execution.
         /// </summary>
         QueryExecutionDiagnostics Diagnostics { get; }
+
+        /// <summary>
+        /// Gets the type conversion service.
+        /// </summary>
+        /// <value></value>
+        ITypeConversion Converter { get; }
 
         /// <summary>
         /// Adds an error thread-safe to the result object.
