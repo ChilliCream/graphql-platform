@@ -4,10 +4,12 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {
-    public interface IFilterDescriptor<T>
+    public interface IFilterInputObjectTypeDescriptor<T>
         : IDescriptor<InputObjectTypeDefinition>
         , IFluent
     {
         IStringFilterFieldsDescriptor Filter(Expression<Func<T, string>> propertyOrMethod);
     }
+
+
 }
