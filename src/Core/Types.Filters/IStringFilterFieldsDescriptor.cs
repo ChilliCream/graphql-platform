@@ -42,7 +42,10 @@ namespace HotChocolate.Types.Filters
 
         public void Foo(IFilterInputObjectTypeDescriptor<Foo> descriptor)
         {
-            descriptor.Filter(t => t.Bar)
+            descriptor
+                .BindFields(BindingBehavior.Explicit)
+                .Filter(t => t.Bar)
+                .BindFilters(BindingBehavior.Explicit)
                 .AllowContains()
                 .Name("bar_contains")
                 .And()
