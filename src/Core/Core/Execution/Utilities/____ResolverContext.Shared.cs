@@ -59,52 +59,32 @@ namespace HotChocolate.Execution
 
         private void Initialize(
             FieldSelection fieldSelection,
-            Path path,
             IImmutableStack<object> source,
             object sourceObject,
             ____ResolverContext sourceContext,
             IDictionary<string, object> serializedResult,
+            Path path,
             Action propagateNonNullViolation)
         {
             _executionContext = sourceContext._executionContext;
             _serializedResult = serializedResult;
             _fieldSelection = fieldSelection;
 
-            _arguments = null;
+            _arguments = fieldSelection.CoerceArgumentValues(
+                sourceContext._executionContext.Variables, path);
 
-            Path = null;
+            Path = path;
             Source = source;
             SourceObject = sourceObject;
             ScopedContextData = sourceContext.ScopedContextData;
 
-            Middleware = null;
-            Task = null;
-            Result = null;
-            IsResultModified = false;
-            PropagateNonNullViolation = null;
-
-
-
-
-
-
-            // -----
-
-            ObjectType = fieldSelection.Field.DeclaringType;
-            FieldSelection = fieldSelection;
-            FieldType = fieldSelection.Field.Type;
-            Path = path;
-            _result = serializedResult;
-
-            FieldDelegate = parent._executionContext.FieldHelper
+            Middleware = sourceContext._executionContext.FieldHelper
                 .CreateMiddleware(fieldSelection);
-            _arguments = fieldSelection.CoerceArgumentValues(
-                parent._executionContext.Variables, Path);
 
-            bool isNonNullType = FieldSelection.Field.Type.IsNonNullType();
-            string responseName = FieldSelection.ResponseName;
+            bool isNonNullType = fieldSelection.Field.Type.IsNonNullType();
+            string responseName = fieldSelection.ResponseName;
             Action parentPropagateNonNullViolation =
-                parent.PropagateNonNullViolation;
+                sourceContext.PropagateNonNullViolation;
 
             PropagateNonNullViolation = () =>
             {
@@ -123,7 +103,6 @@ namespace HotChocolate.Execution
             };
         }
 
-
         public static ____ResolverContext Rent(
             IExecutionContext executionContext,
             FieldSelection fieldSelection,
@@ -136,6 +115,27 @@ namespace HotChocolate.Execution
                 fieldSelection,
                 source,
                 serializedResult);
+            return context;
+        }
+
+        private static ____ResolverContext Rent(
+            FieldSelection fieldSelection,
+            IImmutableStack<object> source,
+            object sourceObject,
+            ____ResolverContext sourceContext,
+            IDictionary<string, object> serializedResult,
+            Path path,
+            Action propagateNonNullViolation)
+        {
+            var context = new ____ResolverContext();
+            context.Initialize(
+                fieldSelection,
+                source,
+                sourceObject,
+                sourceContext,
+                serializedResult,
+                path,
+                propagateNonNullViolation);
             return context;
         }
 

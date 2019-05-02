@@ -9,32 +9,25 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    internal sealed class CompleteValueContext
-        : ICompleteValueContext
+    internal sealed class CompleteValueContext2
+        : ICompleteValueContext2
     {
-        private readonly IFieldHelper _fieldHelper;
-        private readonly Action<ResolverTask> _enqueueTask;
-        private ResolverTask _resolverTask;
+        private readonly Action<____ResolverContext> _enqueueNext;
+        private ____ResolverContext _resolverContext;
         private FieldNode _selection;
         private SelectionSetNode _selectionSet;
         private Path _path;
 
-        public CompleteValueContext(
-            ITypeConversion converter,
-            IFieldHelper fieldHelper,
-            Action<ResolverTask> enqueueTask)
+        public CompleteValueContext2(
+            Action<____ResolverContext> enqueueNext)
         {
-            Converter = converter
-                ?? throw new ArgumentNullException(nameof(converter));
-            _fieldHelper = fieldHelper
-                ?? throw new ArgumentNullException(nameof(fieldHelper));
-            _enqueueTask = enqueueTask
-                ?? throw new ArgumentNullException(nameof(enqueueTask));
+            _enqueueNext = enqueueNext
+                ?? throw new ArgumentNullException(nameof(enqueueNext));
         }
 
-        public ResolverTask ResolverTask
+        public ____ResolverContext ResolverContext
         {
-            get => _resolverTask;
+            get => _resolverContext;
             set
             {
                 if (value == null)
@@ -42,17 +35,17 @@ namespace HotChocolate.Execution
                     throw new ArgumentNullException(nameof(value));
                 }
 
-                _resolverTask = value;
-                _selection = _resolverTask.FieldSelection.Selection;
+                _resolverContext = value;
+                _selection = _resolverContext.FieldSelection;
                 _selectionSet = _selection.SelectionSet;
-                _path = _resolverTask.Path;
+                _path = _resolverContext.Path;
                 SetElementNull = null;
                 IsViolatingNonNullType = false;
                 HasErrors = false;
             }
         }
 
-        public ITypeConversion Converter { get; }
+        public ITypeConversion Converter => _resolverContext.Converter;
 
         public Path Path
         {
@@ -96,35 +89,39 @@ namespace HotChocolate.Execution
             }
 
             HasErrors = true;
-            _resolverTask.ReportError(error);
+            _resolverContext.ReportError(error);
         }
 
         public void EnqueueForProcessing(
             ObjectType objectType,
-            OrderedDictionary objectResult,
+            OrderedDictionary serializedResult,
             object resolverResult)
         {
             IReadOnlyCollection<FieldSelection> fields =
-                _fieldHelper.CollectFields(
+                ResolverContext.CollectFields(
                     objectType, _selectionSet);
 
             IImmutableStack<object> source =
-                _resolverTask.Source.Push(resolverResult);
+                _resolverContext.Source.Push(resolverResult);
+
+            Action listNonNullViolationPropagation =
+                CreateListNonNullViolationPropagation(
+                        ResolverContext, SetElementNull);
 
             foreach (FieldSelection field in fields)
             {
-                _enqueueTask(_resolverTask.Branch(
+                _enqueueNext(_resolverContext.Branch(
                     field,
-                    Path.Append(field.ResponseName),
                     source,
-                    objectResult,
-                    CreateListNonNullViolationPropagation(
-                        _resolverTask, SetElementNull)));
+                    resolverResult,
+                    serializedResult,
+                    Path.Append(field.ResponseName),
+                    listNonNullViolationPropagation));
             }
         }
 
         private static Action CreateListNonNullViolationPropagation(
-            ResolverTask resolverTask,
+            ____ResolverContext resolverContext,
             Action setElementNull)
         {
             if (setElementNull == null)
@@ -132,13 +129,18 @@ namespace HotChocolate.Execution
                 return null;
             }
 
+            bool isNonNullType =
+                resolverContext.Field.Type.ElementType().IsNonNullType();
+            Action propagateNonNullViolation =
+                resolverContext.PropagateNonNullViolation;
+
             return () =>
             {
                 setElementNull.Invoke();
 
-                if (resolverTask.FieldType.ElementType().IsNonNullType())
+                if (isNonNullType)
                 {
-                    resolverTask.PropagateNonNullViolation();
+                    propagateNonNullViolation();
                 }
             };
         }
@@ -152,13 +154,13 @@ namespace HotChocolate.Execution
             else if (type is InterfaceType interfaceType)
             {
                 return interfaceType.ResolveType(
-                    _resolverTask.ResolverContext,
+                    ResolverContext,
                     resolverResult);
             }
             else if (type is UnionType unionType)
             {
                 return unionType.ResolveType(
-                    _resolverTask.ResolverContext,
+                    ResolverContext,
                     resolverResult);
             }
 

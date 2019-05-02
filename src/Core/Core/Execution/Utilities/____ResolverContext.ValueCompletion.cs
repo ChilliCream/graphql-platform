@@ -13,21 +13,20 @@ namespace HotChocolate.Execution
 {
     internal partial class ____ResolverContext
     {
-        public ResolverTask Branch(
+        public ____ResolverContext Branch(
             FieldSelection fieldSelection,
-            Path path,
             IImmutableStack<object> source,
-            IDictionary<string, object> result,
+            object sourceObject,
+            IDictionary<string, object> serializedResult,
+            Path path,
             Action propagateNonNullViolation)
         {
-            ResolverTask branch = ObjectPools.ResolverTasks.Rent();
-            branch.Initialize(
-                this,
+            ____ResolverContext branch = Rent(
                 fieldSelection,
+                source, sourceObject,
+                this,
+                serializedResult,
                 path,
-                source,
-                resolverResult,
-                result,
                 propagateNonNullViolation);
             return branch;
         }

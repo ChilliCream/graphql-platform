@@ -88,6 +88,11 @@ namespace HotChocolate.Execution
                 batchOperationHandler,
                 cancellationToken)
                 .ConfigureAwait(false);
+
+            foreach (____ResolverContext resolverContext in next)
+            {
+                ____ResolverContext.Return(resolverContext);
+            }
         }
 
         private async Task ExecuteResolverSeriallyAsync(
@@ -101,11 +106,14 @@ namespace HotChocolate.Execution
                 resolverContext,
                 errorHandler);
 
-            await CompleteBatchOperationsAsync(
-                new[] { resolverContext },
-                batchOperationHandler,
-                cancellationToken)
-                .ConfigureAwait(false);
+            if (batchOperationHandler != null)
+            {
+                await CompleteBatchOperationsAsync(
+                    new[] { resolverContext },
+                    batchOperationHandler,
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
 
             await resolverContext.Task.ConfigureAwait(false);
 

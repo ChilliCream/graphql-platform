@@ -1,3 +1,4 @@
+using System.Text;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -126,17 +127,31 @@ namespace HotChocolate.Execution
                 CoreResources.ResolverContext_CustomPropertyNotExists);
         }
 
-        public void ReportError(string errorMessage) =>
+        public void ReportError(string errorMessage)
+        {
+            if (string.IsNullOrEmpty(errorMessage))
+            {
+                throw new ArgumentException(
+                    "errorMessage mustn't be null or empty.",
+                    nameof(errorMessage));
+            }
+
             ReportError(ErrorBuilder.New()
                 .SetMessage(errorMessage)
                 .SetPath(Path)
                 .AddLocation(FieldSelection)
                 .Build());
+        }
 
         public void ReportError(IError error)
         {
-            // TODO : impl
-            throw new NotImplementedException();
+            if (error == null)
+            {
+                throw new ArgumentNullException(nameof(error));
+            }
+
+            _executionContext.AddError(
+                _executionContext.ErrorHandler.Handle(error));
         }
 
         public T Service<T>()

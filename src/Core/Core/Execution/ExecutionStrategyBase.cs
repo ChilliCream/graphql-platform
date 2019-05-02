@@ -55,9 +55,10 @@ namespace HotChocolate.Execution
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            var currentBatch = new List<____ResolverContext>();
-            var nextBatch = new List<____ResolverContext>();
+            var batch = new List<____ResolverContext>();
+            var next = new List<____ResolverContext>();
             List<____ResolverContext> swap = null;
+            bool returnContextObjects = false;
 
             foreach (____ResolverContext resolverContext in initialBatch)
             {
@@ -65,23 +66,33 @@ namespace HotChocolate.Execution
                 {
                     break;
                 }
-                currentBatch.Add(resolverContext);
+                batch.Add(resolverContext);
             }
 
-            while (currentBatch.Count > 0)
+            while (batch.Count > 0)
             {
                 await ExecuteResolverBatchAsync(
-                    currentBatch,
-                    nextBatch,
+                    batch,
+                    next,
                     batchOperationHandler,
                     executionContext.ErrorHandler,
                     cancellationToken)
                     .ConfigureAwait(false);
 
-                swap = currentBatch;
-                currentBatch = nextBatch;
-                nextBatch = swap;
-                nextBatch.Clear();
+                //? we could move that to end batch
+                if (returnContextObjects)
+                {
+                    foreach (____ResolverContext resolverContext in batch)
+                    {
+                        ____ResolverContext.Return(resolverContext);
+                    }
+                }
+                returnContextObjects = true;
+
+                swap = batch;
+                batch = next;
+                next = swap;
+                next.Clear();
 
                 cancellationToken.ThrowIfCancellationRequested();
             }
@@ -93,6 +104,11 @@ namespace HotChocolate.Execution
         {
             foreach (____ResolverContext resolverContext in initialBatch)
             {
+                if (resolverContext is null)
+                {
+                    break;
+                }
+
                 if (resolverContext.Field.Type.IsNonNullType()
                     && result.Data[resolverContext.ResponseName] == null)
                 {
@@ -166,7 +182,7 @@ namespace HotChocolate.Execution
             try
             {
                 await batchOperationHandler.CompleteAsync(
-                        tasks, cancellationToken);
+                    taskMemory, cancellationToken);
             }
             finally
             {
