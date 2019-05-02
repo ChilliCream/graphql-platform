@@ -5,9 +5,11 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
@@ -96,59 +98,88 @@ namespace HotChocolate.Execution
 
         public Action PropagateNonNullViolation { get; private set; }
 
-        public T Argument<T>(NameString name)
+        public T Parent<T>()
         {
-            throw new NotImplementedException();
-        }
-
-        public IReadOnlyCollection<FieldSelection> CollectFields(ObjectType typeContext)
-        {
-            throw new NotImplementedException();
-        }
-
-        public IReadOnlyCollection<FieldSelection> CollectFields(ObjectType typeContext, SelectionSetNode selectionSet)
-        {
-            throw new NotImplementedException();
+            return (T)SourceObject;
         }
 
         public T CustomProperty<T>(string key)
         {
-            throw new NotImplementedException();
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
+            if (ContextData.TryGetValue(key, out object value))
+            {
+                if (value is null)
+                {
+                    return default;
+                }
+
+                if (value is T v)
+                {
+                    return v;
+                }
+            }
+
+            throw new ArgumentException(
+                CoreResources.ResolverContext_CustomPropertyNotExists);
         }
 
-        public T Parent<T>()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ReportError(string errorMessage)
-        {
-            throw new NotImplementedException();
-        }
+        public void ReportError(string errorMessage) =>
+            ReportError(ErrorBuilder.New()
+                .SetMessage(errorMessage)
+                .SetPath(Path)
+                .AddLocation(FieldSelection)
+                .Build());
 
         public void ReportError(IError error)
         {
-            throw new NotImplementedException();
-        }
-
-        public T Resolver<T>()
-        {
+            // TODO : impl
             throw new NotImplementedException();
         }
 
         public T Service<T>()
         {
-            throw new NotImplementedException();
+            if (typeof(T) == typeof(IServiceProvider))
+            {
+                return (T)_executionContext.Services;
+            }
+            return (T)_executionContext.Services.GetRequiredService(typeof(T));
         }
 
         public object Service(Type service)
         {
-            throw new NotImplementedException();
+            if (service is null)
+            {
+                throw new ArgumentNullException(nameof(service));
+            }
+
+            if (service == typeof(IServiceProvider))
+            {
+                return _executionContext.Services;
+            }
+            return _executionContext.Services.GetRequiredService(service);
         }
+
+        public T Resolver<T>() =>
+            _executionContext.Activator.GetOrCreateResolver<T>();
 
         public Task<T> ResolveAsync<T>()
         {
+            // TODO : Impl
             throw new NotImplementedException();
         }
+
+        public IReadOnlyCollection<FieldSelection> CollectFields(
+            ObjectType typeContext) =>
+            _executionContext.FieldHelper.CollectFields(
+                typeContext, FieldSelection.SelectionSet);
+
+        public IReadOnlyCollection<FieldSelection> CollectFields(
+            ObjectType typeContext, SelectionSetNode selectionSet) =>
+            _executionContext.FieldHelper.CollectFields(
+                typeContext, FieldSelection.SelectionSet);
     }
 }
