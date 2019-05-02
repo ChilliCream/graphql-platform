@@ -8,10 +8,10 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    internal static class ValueCompletion2
+    internal static class ValueCompletion
     {
         public static void CompleteValue(
-            ICompleteValueContext2 context,
+            ICompleteValueContext context,
             IType type,
             object result)
         {
@@ -47,7 +47,7 @@ namespace HotChocolate.Execution
         }
 
         private static void CompleteList(
-            ICompleteValueContext2 context,
+            ICompleteValueContext context,
             IType elementType,
             object result)
         {
@@ -96,7 +96,7 @@ namespace HotChocolate.Execution
         }
 
         private static void CompleteLeafType(
-            ICompleteValueContext2 context,
+            ICompleteValueContext context,
             ILeafType leafType,
             object result)
         {
@@ -133,7 +133,7 @@ namespace HotChocolate.Execution
         }
 
         private static void CompleteCompositeType(
-            ICompleteValueContext2 context,
+            ICompleteValueContext context,
             IType type,
             object result)
         {
@@ -190,7 +190,7 @@ namespace HotChocolate.Execution
         }
 
         private static void HandleNonNullViolation(
-            ICompleteValueContext2 context)
+            ICompleteValueContext context)
         {
             if (context.Value is null)
             {
@@ -205,7 +205,7 @@ namespace HotChocolate.Execution
         }
 
         private static void HandleErrors(
-            ICompleteValueContext2 context,
+            ICompleteValueContext context,
             object result)
         {
             if (result is IError error)

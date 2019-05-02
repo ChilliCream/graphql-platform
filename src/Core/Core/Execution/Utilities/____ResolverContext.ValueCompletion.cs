@@ -11,9 +11,9 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    internal partial class ____ResolverContext
+    internal partial class ResolverContext
     {
-        public ____ResolverContext Branch(
+        public ResolverContext Branch(
             FieldSelection fieldSelection,
             IImmutableStack<object> source,
             object sourceObject,
@@ -21,7 +21,7 @@ namespace HotChocolate.Execution
             Path path,
             Action propagateNonNullViolation)
         {
-            ____ResolverContext branch = Rent(
+            ResolverContext branch = Rent(
                 fieldSelection,
                 source, sourceObject,
                 this,

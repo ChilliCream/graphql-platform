@@ -25,7 +25,7 @@ namespace HotChocolate.Execution
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            ____ResolverContext[] initialBatch =
+            ResolverContext[] initialBatch =
                 CreateInitialBatch(executionContext,
                     executionContext.Result.Data);
             try
@@ -45,22 +45,22 @@ namespace HotChocolate.Execution
             }
             finally
             {
-                ArrayPool<____ResolverContext>.Shared.Return(initialBatch);
+                ArrayPool<ResolverContext>.Shared.Return(initialBatch);
             }
         }
 
         protected static async Task ExecuteResolversAsync(
             IExecutionContext executionContext,
-            IEnumerable<____ResolverContext> initialBatch,
+            IEnumerable<ResolverContext> initialBatch,
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
-            var batch = new List<____ResolverContext>();
-            var next = new List<____ResolverContext>();
-            List<____ResolverContext> swap = null;
+            var batch = new List<ResolverContext>();
+            var next = new List<ResolverContext>();
+            List<ResolverContext> swap = null;
             bool returnContextObjects = false;
 
-            foreach (____ResolverContext resolverContext in initialBatch)
+            foreach (ResolverContext resolverContext in initialBatch)
             {
                 if (resolverContext == null)
                 {
@@ -82,9 +82,9 @@ namespace HotChocolate.Execution
                 //? we could move that to end batch
                 if (returnContextObjects)
                 {
-                    foreach (____ResolverContext resolverContext in batch)
+                    foreach (ResolverContext resolverContext in batch)
                     {
-                        ____ResolverContext.Return(resolverContext);
+                        ResolverContext.Return(resolverContext);
                     }
                 }
                 returnContextObjects = true;
@@ -100,9 +100,9 @@ namespace HotChocolate.Execution
 
         protected static void EnsureRootValueNonNullStateAndComplete(
             IQueryResult result,
-            IEnumerable<____ResolverContext> initialBatch)
+            IEnumerable<ResolverContext> initialBatch)
         {
-            foreach (____ResolverContext resolverContext in initialBatch)
+            foreach (ResolverContext resolverContext in initialBatch)
             {
                 if (resolverContext is null)
                 {
@@ -115,13 +115,13 @@ namespace HotChocolate.Execution
                     result.Data.Clear();
                     break;
                 }
-                ____ResolverContext.Return(resolverContext);
+                ResolverContext.Return(resolverContext);
             }
         }
 
         private static async Task ExecuteResolverBatchAsync(
-            IReadOnlyList<____ResolverContext> batch,
-            ICollection<____ResolverContext> next,
+            IReadOnlyList<ResolverContext> batch,
+            ICollection<ResolverContext> next,
             BatchOperationHandler batchOperationHandler,
             IErrorHandler errorHandler,
             CancellationToken cancellationToken)
@@ -151,11 +151,11 @@ namespace HotChocolate.Execution
         }
 
         private static void BeginExecuteResolverBatch(
-            IReadOnlyCollection<____ResolverContext> batch,
+            IReadOnlyCollection<ResolverContext> batch,
             IErrorHandler errorHandler,
             CancellationToken cancellationToken)
         {
-            foreach (____ResolverContext context in batch)
+            foreach (ResolverContext context in batch)
             {
                 context.Task = ExecuteResolverAsync(context, errorHandler);
                 cancellationToken.ThrowIfCancellationRequested();
@@ -163,7 +163,7 @@ namespace HotChocolate.Execution
         }
 
         protected static async Task CompleteBatchOperationsAsync(
-            IReadOnlyList<____ResolverContext> batch,
+            IReadOnlyList<ResolverContext> batch,
             BatchOperationHandler batchOperationHandler,
             CancellationToken cancellationToken)
         {
@@ -193,13 +193,13 @@ namespace HotChocolate.Execution
         }
 
         private static async Task EndExecuteResolverBatchAsync(
-            IEnumerable<____ResolverContext> batch,
-            Action<____ResolverContext> enqueueNext,
+            IEnumerable<ResolverContext> batch,
+            Action<ResolverContext> enqueueNext,
             CancellationToken cancellationToken)
         {
-            var completionContext = new CompleteValueContext2(enqueueNext);
+            var completionContext = new CompleteValueContext(enqueueNext);
 
-            foreach (____ResolverContext resolverContext in batch)
+            foreach (ResolverContext resolverContext in batch)
             {
                 await resolverContext.Task.ConfigureAwait(false);
                 completionContext.CompleteValue(resolverContext);
@@ -207,7 +207,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        protected static ____ResolverContext[] CreateInitialBatch(
+        protected static ResolverContext[] CreateInitialBatch(
             IExecutionContext executionContext,
             IDictionary<string, object> result)
         {
@@ -220,13 +220,13 @@ namespace HotChocolate.Execution
                     executionContext.Operation.Definition.SelectionSet);
 
             int i = 0;
-            ____ResolverContext[] batch =
-                ArrayPool<____ResolverContext>.Shared.Rent(
+            ResolverContext[] batch =
+                ArrayPool<ResolverContext>.Shared.Rent(
                     fieldSelections.Count);
 
             foreach (FieldSelection fieldSelection in fieldSelections)
             {
-                batch[i++] = ____ResolverContext.Rent(
+                batch[i++] = ResolverContext.Rent(
                     executionContext,
                     fieldSelection,
                     source,

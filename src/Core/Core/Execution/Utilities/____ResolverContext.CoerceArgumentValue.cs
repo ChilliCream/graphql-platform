@@ -13,7 +13,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    internal partial class ____ResolverContext
+    internal partial class ResolverContext
         : IMiddlewareContext
     {
         public T Argument<T>(NameString name)

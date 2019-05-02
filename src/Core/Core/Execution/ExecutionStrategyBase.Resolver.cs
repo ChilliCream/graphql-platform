@@ -11,7 +11,7 @@ namespace HotChocolate.Execution
     internal abstract partial class ExecutionStrategyBase
     {
         protected static async Task ExecuteResolverAsync(
-           ____ResolverContext resolverContext,
+           ResolverContext resolverContext,
            IErrorHandler errorHandler)
         {
             Activity activity = resolverContext.BeginResolveField();
@@ -38,7 +38,7 @@ namespace HotChocolate.Execution
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static async Task ExecuteMiddlewareAsync(
-            ____ResolverContext resolverContext,
+            ResolverContext resolverContext,
             IErrorHandler errorHandler)
         {
             try

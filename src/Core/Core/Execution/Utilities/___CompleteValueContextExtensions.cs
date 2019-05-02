@@ -5,8 +5,8 @@ namespace HotChocolate.Execution
     internal static class CompleteValueContextExtensions
     {
         public static void CompleteValue(
-            this CompleteValueContext2 completionContext,
-            ____ResolverContext resolverContext)
+            this CompleteValueContext completionContext,
+            ResolverContext resolverContext)
         {
             if (completionContext == null)
             {
@@ -15,7 +15,7 @@ namespace HotChocolate.Execution
 
             completionContext.ResolverContext = resolverContext;
 
-            ValueCompletion2.CompleteValue(
+            ValueCompletion.CompleteValue(
                 completionContext,
                 resolverContext.Field.Type,
                 resolverContext.Result);

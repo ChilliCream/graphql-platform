@@ -9,23 +9,23 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    internal sealed class CompleteValueContext2
-        : ICompleteValueContext2
+    internal sealed class CompleteValueContext
+        : ICompleteValueContext
     {
-        private readonly Action<____ResolverContext> _enqueueNext;
-        private ____ResolverContext _resolverContext;
+        private readonly Action<ResolverContext> _enqueueNext;
+        private ResolverContext _resolverContext;
         private FieldNode _selection;
         private SelectionSetNode _selectionSet;
         private Path _path;
 
-        public CompleteValueContext2(
-            Action<____ResolverContext> enqueueNext)
+        public CompleteValueContext(
+            Action<ResolverContext> enqueueNext)
         {
             _enqueueNext = enqueueNext
                 ?? throw new ArgumentNullException(nameof(enqueueNext));
         }
 
-        public ____ResolverContext ResolverContext
+        public ResolverContext ResolverContext
         {
             get => _resolverContext;
             set
@@ -121,7 +121,7 @@ namespace HotChocolate.Execution
         }
 
         private static Action CreateListNonNullViolationPropagation(
-            ____ResolverContext resolverContext,
+            ResolverContext resolverContext,
             Action setElementNull)
         {
             if (setElementNull == null)

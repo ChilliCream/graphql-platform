@@ -14,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
-    internal partial class ____ResolverContext
+    internal partial class ResolverContext
     {
         public QueryExecutionDiagnostics Diagnostics =>
             _executionContext.Diagnostics;

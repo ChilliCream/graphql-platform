@@ -11,7 +11,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    internal partial class ____ResolverContext
+    internal partial class ResolverContext
         : IShared
     {
         public void Clean()
@@ -55,13 +55,19 @@ namespace HotChocolate.Execution
 
             _arguments = fieldSelection.CoerceArgumentValues(
                 executionContext.Variables, Path);
+
+            string responseName = fieldSelection.ResponseName;
+            PropagateNonNullViolation = () =>
+            {
+                serializedResult[responseName] = null;
+            };
         }
 
         private void Initialize(
             FieldSelection fieldSelection,
             IImmutableStack<object> source,
             object sourceObject,
-            ____ResolverContext sourceContext,
+            ResolverContext sourceContext,
             IDictionary<string, object> serializedResult,
             Path path,
             Action propagateNonNullViolation)
@@ -90,7 +96,7 @@ namespace HotChocolate.Execution
             {
                 if (isNonNullType)
                 {
-                    if (PropagateNonNullViolation != null)
+                    if (propagateNonNullViolation != null)
                     {
                         propagateNonNullViolation.Invoke();
                     }
@@ -103,13 +109,13 @@ namespace HotChocolate.Execution
             };
         }
 
-        public static ____ResolverContext Rent(
+        public static ResolverContext Rent(
             IExecutionContext executionContext,
             FieldSelection fieldSelection,
             IImmutableStack<object> source,
             IDictionary<string, object> serializedResult)
         {
-            var context = new ____ResolverContext();
+            var context = new ResolverContext();
             context.Initialize(
                 executionContext,
                 fieldSelection,
@@ -118,16 +124,16 @@ namespace HotChocolate.Execution
             return context;
         }
 
-        private static ____ResolverContext Rent(
+        private static ResolverContext Rent(
             FieldSelection fieldSelection,
             IImmutableStack<object> source,
             object sourceObject,
-            ____ResolverContext sourceContext,
+            ResolverContext sourceContext,
             IDictionary<string, object> serializedResult,
             Path path,
             Action propagateNonNullViolation)
         {
-            var context = new ____ResolverContext();
+            var context = new ResolverContext();
             context.Initialize(
                 fieldSelection,
                 source,
@@ -139,7 +145,7 @@ namespace HotChocolate.Execution
             return context;
         }
 
-        public static void Return(____ResolverContext rentedContext)
+        public static void Return(ResolverContext rentedContext)
         {
 
         }
