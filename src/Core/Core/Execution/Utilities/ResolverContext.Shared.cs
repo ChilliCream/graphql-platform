@@ -117,7 +117,7 @@ namespace HotChocolate.Execution
             IImmutableStack<object> source,
             IDictionary<string, object> serializedResult)
         {
-            var context = new ResolverContext();
+            var context = ObjectPools.ResolverContexts.Rent();
             context.Initialize(
                 executionContext,
                 fieldSelection,
@@ -135,7 +135,7 @@ namespace HotChocolate.Execution
             Path path,
             Action propagateNonNullViolation)
         {
-            var context = new ResolverContext();
+            var context = ObjectPools.ResolverContexts.Rent();
             context.Initialize(
                 fieldSelection,
                 source,
@@ -149,7 +149,7 @@ namespace HotChocolate.Execution
 
         public static void Return(ResolverContext rentedContext)
         {
-            rentedContext.Clean();
+            ObjectPools.ResolverContexts.Return(rentedContext);
         }
 
         public static void Return(IEnumerable<ResolverContext> rentedContexts)
