@@ -35,9 +35,9 @@ namespace HotChocolate.Execution
                     initialBatch,
                     batchOperationHandler,
                     cancellationToken)
-                        .ConfigureAwait(false);
+                    .ConfigureAwait(false);
 
-                EnsureRootValueNonNullStateAndComplete(
+                EnsureRootValueNonNullState(
                     executionContext.Result,
                     initialBatch);
 
@@ -45,6 +45,7 @@ namespace HotChocolate.Execution
             }
             finally
             {
+                ResolverContext.Return(initialBatch);
                 ArrayPool<ResolverContext>.Shared.Return(initialBatch);
             }
         }
@@ -58,7 +59,6 @@ namespace HotChocolate.Execution
             var batch = new List<ResolverContext>();
             var next = new List<ResolverContext>();
             List<ResolverContext> swap = null;
-            bool returnContextObjects = false;
 
             foreach (ResolverContext resolverContext in initialBatch)
             {
@@ -80,15 +80,6 @@ namespace HotChocolate.Execution
                     .ConfigureAwait(false);
 
                 //? we could move that to end batch
-                if (returnContextObjects)
-                {
-                    foreach (ResolverContext resolverContext in batch)
-                    {
-                        ResolverContext.Return(resolverContext);
-                    }
-                }
-                returnContextObjects = true;
-
                 swap = batch;
                 batch = next;
                 next = swap;
@@ -98,7 +89,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        protected static void EnsureRootValueNonNullStateAndComplete(
+        protected static void EnsureRootValueNonNullState(
             IQueryResult result,
             IEnumerable<ResolverContext> initialBatch)
         {
@@ -115,7 +106,6 @@ namespace HotChocolate.Execution
                     result.Data.Clear();
                     break;
                 }
-                ResolverContext.Return(resolverContext);
             }
         }
 
@@ -203,6 +193,12 @@ namespace HotChocolate.Execution
             {
                 await resolverContext.Task.ConfigureAwait(false);
                 completionContext.CompleteValue(resolverContext);
+
+                if (!resolverContext.IsRoot)
+                {
+                    ResolverContext.Return(resolverContext);
+                }
+
                 cancellationToken.ThrowIfCancellationRequested();
             }
         }

@@ -40,9 +40,9 @@ namespace HotChocolate.Execution
                     initialBatch,
                     batchOperationHandler,
                     cancellationToken)
-                        .ConfigureAwait(false);
+                    .ConfigureAwait(false);
 
-                EnsureRootValueNonNullStateAndComplete(
+                EnsureRootValueNonNullState(
                     executionContext.Result,
                     initialBatch);
 
@@ -51,6 +51,7 @@ namespace HotChocolate.Execution
             finally
             {
                 batchOperationHandler?.Dispose();
+                ResolverContext.Return(initialBatch);
                 ArrayPool<ResolverContext>.Shared.Return(initialBatch);
             }
         }
@@ -76,7 +77,7 @@ namespace HotChocolate.Execution
                     batchOperationHandler,
                     executionContext.ErrorHandler,
                     cancellationToken)
-                        .ConfigureAwait(false);
+                    .ConfigureAwait(false);
 
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -88,11 +89,7 @@ namespace HotChocolate.Execution
                     cancellationToken)
                     .ConfigureAwait(false);
 
-                foreach (ResolverContext rented in next)
-                {
-                    ResolverContext.Return(rented);
-                }
-
+                ResolverContext.Return(next);
                 next.Clear();
             }
         }

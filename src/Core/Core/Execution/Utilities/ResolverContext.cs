@@ -37,9 +37,11 @@ namespace HotChocolate.Execution
 
         public IDictionary<string, object> ContextData =>
             _executionContext.ContextData;
+
         public CancellationToken RequestAborted =>
             _executionContext.RequestAborted;
 
+        public bool IsRoot { get; private set; }
 
         public ObjectType ObjectType => _fieldSelection.Field.DeclaringType;
 

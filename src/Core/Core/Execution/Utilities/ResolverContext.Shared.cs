@@ -23,6 +23,7 @@ namespace HotChocolate.Execution
             _cachedResolverResult = null;
             _hasCachedResolverResult = false;
 
+            IsRoot = false;
             Path = null;
             Source = null;
             SourceObject = null;
@@ -45,6 +46,7 @@ namespace HotChocolate.Execution
             _serializedResult = serializedResult;
             _fieldSelection = fieldSelection;
 
+            IsRoot = true;
             Path = Path.New(fieldSelection.ResponseName); ;
             Source = source;
             SourceObject = executionContext.Operation.RootValue;
@@ -147,7 +149,19 @@ namespace HotChocolate.Execution
 
         public static void Return(ResolverContext rentedContext)
         {
+            rentedContext.Clean();
+        }
 
+        public static void Return(IEnumerable<ResolverContext> rentedContexts)
+        {
+            foreach (ResolverContext rentedContext in rentedContexts)
+            {
+                if (rentedContext is null)
+                {
+                    break;
+                }
+                ResolverContext.Return(rentedContext);
+            }
         }
     }
 }

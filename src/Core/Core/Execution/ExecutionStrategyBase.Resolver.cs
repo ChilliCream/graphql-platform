@@ -16,24 +16,19 @@ namespace HotChocolate.Execution
         {
             Activity activity = resolverContext.BeginResolveField();
 
-            try
-            {
-                await ExecuteMiddlewareAsync(resolverContext, errorHandler)
-                    .ConfigureAwait(false);
+            await ExecuteMiddlewareAsync(resolverContext, errorHandler)
+                .ConfigureAwait(false);
 
-                if (resolverContext.Result is IError singleError)
-                {
-                    resolverContext.ResolverError(singleError);
-                }
-                else if (resolverContext.Result is IEnumerable<IError> errors)
-                {
-                    resolverContext.ResolverError(errors);
-                }
-            }
-            finally
+            if (resolverContext.Result is IError singleError)
             {
-                resolverContext.EndResolveField(activity);
+                resolverContext.ResolverError(singleError);
             }
+            else if (resolverContext.Result is IEnumerable<IError> errors)
+            {
+                resolverContext.ResolverError(errors);
+            }
+
+            resolverContext.EndResolveField(activity);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
