@@ -163,5 +163,18 @@ namespace HotChocolate.Execution
                 ResolverContext.Return(rentedContext);
             }
         }
+
+        public static void Return(ResolverContext[] rentedContexts)
+        {
+            for (int i = 0; i < rentedContexts.Length; i++)
+            {
+                if (rentedContexts[i] is null)
+                {
+                    break;
+                }
+                ResolverContext.Return(rentedContexts[i]);
+                rentedContexts[i] = null;
+            }
+        }
     }
 }
