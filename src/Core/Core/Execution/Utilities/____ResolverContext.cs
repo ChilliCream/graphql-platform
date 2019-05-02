@@ -18,12 +18,11 @@ namespace HotChocolate.Execution
     {
         private IExecutionContext _executionContext;
         private object _result;
+        private object _cachedResolverResult;
+        private bool _hasCachedResolverResult;
         private IDictionary<string, object> _serializedResult;
         private FieldSelection _fieldSelection;
         private Dictionary<string, ArgumentValue> _arguments;
-
-        public QueryExecutionDiagnostics Diagnostics =>
-            _executionContext.Diagnostics;
 
         public ITypeConversion Converter =>
             _executionContext.Converter;
@@ -166,10 +165,23 @@ namespace HotChocolate.Execution
         public T Resolver<T>() =>
             _executionContext.Activator.GetOrCreateResolver<T>();
 
-        public Task<T> ResolveAsync<T>()
+        public async Task<T> ResolveAsync<T>()
         {
-            // TODO : Impl
-            throw new NotImplementedException();
+            if (!_hasCachedResolverResult)
+            {
+                if (Field.Resolver == null)
+                {
+                    _cachedResolverResult = default(T);
+                }
+                else
+                {
+                    _cachedResolverResult =
+                        await Field.Resolver.Invoke(this).ConfigureAwait(false);
+                }
+                _hasCachedResolverResult = true;
+            }
+
+            return (T)_cachedResolverResult;
         }
 
         public IReadOnlyCollection<FieldSelection> CollectFields(

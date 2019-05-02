@@ -20,6 +20,8 @@ namespace HotChocolate.Execution
             _serializedResult = null;
             _fieldSelection = null;
             _arguments = null;
+            _cachedResolverResult = null;
+            _hasCachedResolverResult = false;
 
             Path = null;
             Source = null;
