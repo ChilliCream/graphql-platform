@@ -12,17 +12,17 @@ namespace HotChocolate.Execution
     internal sealed class CompleteValueContext2
         : ICompleteValueContext2
     {
-        private readonly Action<ResolverTask> _enqueueTask;
+        private readonly Action<____ResolverContext> _enqueueNext;
         private ____ResolverContext _resolverContext;
         private FieldNode _selection;
         private SelectionSetNode _selectionSet;
         private Path _path;
 
         public CompleteValueContext2(
-            Action<ResolverTask> enqueueTask)
+            Action<____ResolverContext> enqueueNext)
         {
-            _enqueueTask = enqueueTask
-                ?? throw new ArgumentNullException(nameof(enqueueTask));
+            _enqueueNext = enqueueNext
+                ?? throw new ArgumentNullException(nameof(enqueueNext));
         }
 
         public ____ResolverContext ResolverContext
@@ -110,7 +110,7 @@ namespace HotChocolate.Execution
 
             foreach (FieldSelection field in fields)
             {
-                _enqueueTask(_resolverContext.Branch(
+                _enqueueNext(_resolverContext.Branch(
                     field,
                     Path.Append(field.ResponseName),
                     source,

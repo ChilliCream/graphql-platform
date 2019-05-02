@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,89 +26,92 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
+            ____ResolverContext[] initialBatch =
+                    CreateInitialBatch(executionContext,
+                        executionContext.Result.Data);
+
             BatchOperationHandler batchOperationHandler =
                 CreateBatchOperationHandler(executionContext);
 
             try
             {
-                IReadOnlyList<ResolverTask> rootResolverTasks =
-                    CreateRootResolverTasks(
-                        executionContext,
-                        executionContext.Result.Data);
-
                 await ExecuteResolverBatchSeriallyAsync(
                     executionContext,
-                    rootResolverTasks,
+                    initialBatch,
                     batchOperationHandler,
                     cancellationToken)
                         .ConfigureAwait(false);
 
-                EnsureRootValueNonNullState(
+                EnsureRootValueNonNullStateAndComplete(
                     executionContext.Result,
-                    rootResolverTasks);
+                    initialBatch);
 
                 return executionContext.Result;
             }
             finally
             {
                 batchOperationHandler?.Dispose();
+                ArrayPool<____ResolverContext>.Shared.Return(initialBatch);
             }
         }
 
         private async Task ExecuteResolverBatchSeriallyAsync(
            IExecutionContext executionContext,
-           IEnumerable<ResolverTask> currentBatch,
+           IEnumerable<____ResolverContext> batch,
            BatchOperationHandler batchOperationHandler,
            CancellationToken cancellationToken)
         {
-            var nextBatch = new List<ResolverTask>();
+            var next = new List<____ResolverContext>();
 
-            foreach (ResolverTask resolverTask in currentBatch)
+            foreach (____ResolverContext resolverContext in batch)
             {
+                if (resolverContext is null)
+                {
+                    break;
+                }
+
                 await ExecuteResolverSeriallyAsync(
-                    executionContext,
-                    resolverTask,
-                    nextBatch.Add,
+                    resolverContext,
+                    next.Add,
                     batchOperationHandler,
+                    executionContext.ErrorHandler,
                     cancellationToken)
                         .ConfigureAwait(false);
-                // execute child fields with the default parallel flow logic
-                await ExecuteResolversAsync(
-                    executionContext,
-                    nextBatch,
-                    batchOperationHandler,
-                    cancellationToken)
-                        .ConfigureAwait(false);
-                nextBatch.Clear();
+
                 cancellationToken.ThrowIfCancellationRequested();
             }
+
+            // execute child fields with the default parallel flow logic
+            await ExecuteResolversAsync(
+                executionContext,
+                next,
+                batchOperationHandler,
+                cancellationToken)
+                .ConfigureAwait(false);
         }
 
         private async Task ExecuteResolverSeriallyAsync(
-            IExecutionContext executionContext,
-            ResolverTask resolverTask,
-            Action<ResolverTask> enqueueTask,
+            ____ResolverContext resolverContext,
+            Action<____ResolverContext> enqueueNext,
             BatchOperationHandler batchOperationHandler,
+            IErrorHandler errorHandler,
             CancellationToken cancellationToken)
         {
-            resolverTask.Task = ExecuteResolverAsync(
-                resolverTask,
-                executionContext.ErrorHandler,
-                cancellationToken);
+            resolverContext.Task = ExecuteResolverAsync(
+                resolverContext,
+                errorHandler);
+
             await CompleteBatchOperationsAsync(
-                new[] { resolverTask.Task },
+                new[] { resolverContext },
                 batchOperationHandler,
                 cancellationToken)
-                    .ConfigureAwait(false);
-            resolverTask.ResolverResult = await resolverTask.Task
                 .ConfigureAwait(false);
 
-            // serialize and integrate result into final query result
-            var completionContext = new CompleteValueContext(
-                executionContext.Services.GetTypeConversion(),
-                executionContext.FieldHelper, enqueueTask);
+            await resolverContext.Task.ConfigureAwait(false);
 
-            completionContext.CompleteValue(resolverTask);
+            // serialize and integrate result into final query result
+            var completionContext = new CompleteValueContext2(enqueueNext);
+            completionContext.CompleteValue(resolverContext);
         }
     }
 }

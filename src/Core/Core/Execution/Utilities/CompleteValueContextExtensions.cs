@@ -5,28 +5,28 @@ namespace HotChocolate.Execution
     internal static class CompleteValueContextExtensions
     {
         public static void CompleteValue(
-            this CompleteValueContext context,
-            ResolverTask resolverTask)
+            this CompleteValueContext2 completionContext,
+            ____ResolverContext resolverContext)
         {
-            if (context == null)
+            if (completionContext == null)
             {
-                throw new ArgumentNullException(nameof(context));
+                throw new ArgumentNullException(nameof(completionContext));
             }
 
-            context.ResolverTask = resolverTask;
+            completionContext.ResolverContext = resolverContext;
 
-            ValueCompletion.CompleteValue(
-                context,
-                resolverTask.FieldType,
-                resolverTask.ResolverResult);
+            ValueCompletion2.CompleteValue(
+                completionContext,
+                resolverContext.Field.Type,
+                resolverContext.Result);
 
-            if (context.IsViolatingNonNullType)
+            if (completionContext.IsViolatingNonNullType)
             {
-                resolverTask.PropagateNonNullViolation();
+                resolverContext.PropagateNonNullViolation.Invoke();
             }
             else
             {
-                resolverTask.SetResult(context.Value);
+                resolverContext.SetCompletedValue(completionContext.Value);
             }
         }
     }
