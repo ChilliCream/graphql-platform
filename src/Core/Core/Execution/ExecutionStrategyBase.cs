@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Execution
 {
@@ -71,15 +72,29 @@ namespace HotChocolate.Execution
 
             while (batch.Count > 0)
             {
-                await ExecuteResolverBatchAsync(
+                // start field resolvers
+                BeginExecuteResolverBatch(
                     batch,
-                    next,
-                    batchOperationHandler,
                     executionContext.ErrorHandler,
+                    cancellationToken);
+
+                // execute batch data loaders
+                if (batchOperationHandler != null)
+                {
+                    await CompleteBatchOperationsAsync(
+                        batch,
+                        batchOperationHandler,
+                        cancellationToken)
+                        .ConfigureAwait(false);
+                }
+
+                // await field resolver results
+                await EndExecuteResolverBatchAsync(
+                    batch,
+                    next.Add,
                     cancellationToken)
                     .ConfigureAwait(false);
 
-                //? we could move that to end batch
                 swap = batch;
                 batch = next;
                 next = swap;
@@ -89,6 +104,7 @@ namespace HotChocolate.Execution
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected static void EnsureRootValueNonNullState(
             IQueryResult result,
             IEnumerable<ResolverContext> initialBatch)
@@ -109,37 +125,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private static async Task ExecuteResolverBatchAsync(
-            IReadOnlyList<ResolverContext> batch,
-            ICollection<ResolverContext> next,
-            BatchOperationHandler batchOperationHandler,
-            IErrorHandler errorHandler,
-            CancellationToken cancellationToken)
-        {
-            // start field resolvers
-            BeginExecuteResolverBatch(
-                batch,
-                errorHandler,
-                cancellationToken);
-
-            // execute batch data loaders
-            if (batchOperationHandler != null)
-            {
-                await CompleteBatchOperationsAsync(
-                    batch,
-                    batchOperationHandler,
-                    cancellationToken)
-                    .ConfigureAwait(false);
-            }
-
-            // await field resolver results
-            await EndExecuteResolverBatchAsync(
-                batch,
-                next.Add,
-                cancellationToken)
-                .ConfigureAwait(false);
-        }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void BeginExecuteResolverBatch(
             IReadOnlyCollection<ResolverContext> batch,
             IErrorHandler errorHandler,
@@ -148,10 +134,10 @@ namespace HotChocolate.Execution
             foreach (ResolverContext context in batch)
             {
                 context.Task = ExecuteResolverAsync(context, errorHandler);
-                cancellationToken.ThrowIfCancellationRequested();
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected static async Task CompleteBatchOperationsAsync(
             IReadOnlyList<ResolverContext> batch,
             BatchOperationHandler batchOperationHandler,
@@ -178,10 +164,9 @@ namespace HotChocolate.Execution
             {
                 ArrayPool<Task>.Shared.Return(tasks);
             }
-
-            cancellationToken.ThrowIfCancellationRequested();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static async Task EndExecuteResolverBatchAsync(
             IEnumerable<ResolverContext> batch,
             Action<ResolverContext> enqueueNext,
@@ -191,18 +176,21 @@ namespace HotChocolate.Execution
 
             foreach (ResolverContext resolverContext in batch)
             {
-                await resolverContext.Task.ConfigureAwait(false);
+                if (resolverContext.Task.Status != TaskStatus.RanToCompletion)
+                {
+                    await resolverContext.Task.ConfigureAwait(false);
+                }
+
                 completionContext.CompleteValue(resolverContext);
 
                 if (!resolverContext.IsRoot)
                 {
                     ResolverContext.Return(resolverContext);
                 }
-
-                cancellationToken.ThrowIfCancellationRequested();
             }
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected static ResolverContext[] CreateInitialBatch(
             IExecutionContext executionContext,
             IDictionary<string, object> result)
@@ -232,6 +220,7 @@ namespace HotChocolate.Execution
             return batch;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         protected static BatchOperationHandler CreateBatchOperationHandler(
             IExecutionContext executionContext)
         {
