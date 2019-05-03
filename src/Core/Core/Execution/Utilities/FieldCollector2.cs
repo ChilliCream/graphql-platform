@@ -6,19 +6,19 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal sealed class FieldCollector
+    internal sealed partial class FieldCollector2
     {
-        private readonly IVariableCollection _variables;
         private readonly FragmentCollection _fragments;
+        private readonly Func<ObjectField, FieldNode, FieldDelegate> _createMiddleware;
 
-        public FieldCollector(
-            IVariableCollection variables,
-            FragmentCollection fragments)
+        public FieldCollector2(
+            FragmentCollection fragments,
+            Func<FieldSelection, FieldDelegate> createMiddleware)
         {
-            _variables = variables
-                ?? throw new ArgumentNullException(nameof(variables));
             _fragments = fragments
                 ?? throw new ArgumentNullException(nameof(fragments));
+            _createMiddleware = createMiddleware
+                ?? throw new ArgumentNullException(nameof(createMiddleware));
         }
 
         public IReadOnlyCollection<FieldSelection> CollectFields(
@@ -41,7 +41,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(reportError));
             }
 
-            var fields = new Dictionary<string, FieldSelection>();
+            var fields = new OrderedDictionary<string, FieldSelection>();
             CollectFields(type, selectionSet, reportError, fields);
             return fields.Values;
         }
@@ -49,8 +49,8 @@ namespace HotChocolate.Execution
         private void CollectFields(
             ObjectType type,
             SelectionSetNode selectionSet,
-            Action<QueryError> reportError,
-            Dictionary<string, FieldSelection> fields)
+            Action<IError> reportError,
+            IDictionary<string, FieldInfo> fields)
         {
             foreach (ISelectionNode selection in selectionSet.Selections)
             {
@@ -65,7 +65,7 @@ namespace HotChocolate.Execution
             ObjectType type,
             ISelectionNode selection,
             Action<QueryError> reportError,
-            Dictionary<string, FieldSelection> fields)
+            IDictionary<string, FieldInfo> fields)
         {
             if (selection is FieldNode fs)
             {
@@ -81,11 +81,12 @@ namespace HotChocolate.Execution
             }
         }
 
-        private static void ResolveFieldSelection(
+        private void ResolveFieldSelection(
             ObjectType type,
             FieldNode fieldSelection,
-            Action<QueryError> reportError,
-            Dictionary<string, FieldSelection> fields)
+            FieldVisibility fieldVisibility,
+            Action<IError> reportError,
+            IDictionary<string, FieldInfo> fields)
         {
             NameString fieldName = fieldSelection.Name.Value;
             if (type.Fields.TryGetField(fieldName, out ObjectField field))
@@ -94,29 +95,58 @@ namespace HotChocolate.Execution
                     ? fieldSelection.Name.Value
                     : fieldSelection.Alias.Value;
 
-                if (fields.TryGetValue(name, out FieldSelection selection))
+                if (fields.TryGetValue(name, out FieldInfo fieldInfo))
                 {
-                    fields[name] = selection.Merge(fieldSelection);
+                    if (fieldInfo.Nodes == null)
+                    {
+                        fieldInfo.Nodes = new List<FieldNode>();
+                    }
+
+                    fieldInfo.Nodes.Add(fieldSelection);
+
+                    if (fieldVisibility != null)
+                    {
+                        if (fieldInfo.Visibilities == null)
+                        {
+                            fieldInfo.Visibilities =
+                                new List<FieldVisibility>();
+                        }
+                        fieldInfo.Visibilities.Add(fieldVisibility);
+                    }
                 }
                 else
                 {
-                    fields.Add(name, FieldSelection.Create(
-                        fieldSelection, field, name));
+                    fieldInfo = new FieldInfo
+                    {
+                        Field = field,
+                        ResponseName = fieldName,
+                        Selection = fieldSelection,
+                        Middleware = _createMiddleware(field, fieldSelection)
+                    };
+
+                    if (fieldVisibility != null)
+                    {
+                        fieldInfo.Visibilities = new List<FieldVisibility>();
+                        fieldInfo.Visibilities.Add(fieldVisibility);
+                    }
+
+                    fields.Add(name, fieldInfo);
                 }
             }
             else
             {
-                reportError(QueryError.CreateFieldError(
-                    "Could not resolve the specified field.",
-                    fieldSelection));
+                reportError(ErrorBuilder.New()
+                    .SetMessage("Could not resolve the specified field.")
+                    .AddLocation(fieldSelection)
+                    .Build());
             }
         }
 
         private void ResolveFragmentSpread(
             ObjectType type,
             FragmentSpreadNode fragmentSpread,
-            Action<QueryError> reportError,
-            Dictionary<string, FieldSelection> fields)
+            Action<IError> reportError,
+            IDictionary<string, FieldSelection> fields)
         {
             Fragment fragment = _fragments.GetFragment(
                 fragmentSpread.Name.Value);
@@ -130,8 +160,8 @@ namespace HotChocolate.Execution
         private void ResolveInlineFragment(
             ObjectType type,
             InlineFragmentNode inlineFragment,
-            Action<QueryError> reportError,
-            Dictionary<string, FieldSelection> fields)
+            Action<IError> reportError,
+            IDictionary<string, FieldSelection> fields)
         {
             Fragment fragment = _fragments.GetFragment(type, inlineFragment);
             if (DoesTypeApply(fragment.TypeCondition, type))

@@ -11,8 +11,6 @@ namespace HotChocolate.Execution
 {
     internal class DirectiveMiddlewareCompiler
     {
-        private readonly ConcurrentDictionary<FieldSelection, FieldDelegate>
-            _cache = new ConcurrentDictionary<FieldSelection, FieldDelegate>();
         private readonly ISchema _schema;
 
         public DirectiveMiddlewareCompiler(ISchema schema)
@@ -30,11 +28,11 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(fieldSelection));
             }
 
-            if (!_cache.TryGetValue(fieldSelection,
-                out FieldDelegate directivePipeline))
-            {
-                directivePipeline = fieldPipeline.Invoke();
+            FieldDelegate directivePipeline = fieldPipeline.Invoke();
 
+            if (fieldSelection.Field.ExecutableDirectives.Count > 0
+                || fieldSelection.Field.Directives.Count > 0)
+            {
                 IReadOnlyList<IDirective> directives =
                     CollectDirectives(fieldSelection);
 
@@ -44,8 +42,6 @@ namespace HotChocolate.Execution
                         directivePipeline,
                         directives);
                 }
-
-                _cache.TryAdd(fieldSelection, directivePipeline);
             }
 
             return directivePipeline;
