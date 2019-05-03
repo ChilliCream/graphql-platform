@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Types;
+﻿using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution
 {
@@ -9,12 +6,5 @@ namespace HotChocolate.Execution
         : IFieldCollector
     {
         FieldDelegate CreateMiddleware(FieldSelection fieldSelection);
-    }
-
-    public interface IFieldCollector
-    {
-        IReadOnlyCollection<FieldSelection> CollectFields(
-            ObjectType objectType,
-            SelectionSetNode selectionSet);
     }
 }
