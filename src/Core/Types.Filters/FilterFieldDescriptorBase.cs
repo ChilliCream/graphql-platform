@@ -1,4 +1,6 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -7,8 +9,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types.Filters
 {
     public class FilterFieldDescriptorBase
-        : ArgumentDescriptorBase<InputFieldDefinition>
-    {
+        : ArgumentDescriptorBase<FilterFieldDefintion>
+    {  
+
         protected FilterFieldDescriptorBase(
             IDescriptorContext context,
             PropertyInfo property)
@@ -21,6 +24,12 @@ namespace HotChocolate.Types.Filters
             Definition.Description = context.Naming.GetMemberDescription(
                 property, MemberKind.InputObjectField);
             Definition.Type = context.Inspector.GetInputReturnType(property);
+        }
+
+
+        public IEnumerable<InputFieldDefinition> CreateDefinitions()
+        {
+           return  Definition.Filters.Select(x => x.CreateDefinition());
         }
     }
 }

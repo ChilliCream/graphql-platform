@@ -1,4 +1,4 @@
-﻿using HotChocolate.Language;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters

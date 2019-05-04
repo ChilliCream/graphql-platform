@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Language;
@@ -6,6 +6,8 @@ using HotChocolate.Types.Descriptors.Definitions;
 using System.Linq;
 using HotChocolate.Types.Descriptors;
 using System.Linq.Expressions;
+using HotChocolate.Utilities;
+using HotChocolate.Types.Filters.String;
 
 namespace HotChocolate.Types.Filters
 {
@@ -41,14 +43,13 @@ namespace HotChocolate.Types.Filters
         {
             var fields = new Dictionary<NameString, InputFieldDefinition>();
             var handledProperties = new HashSet<PropertyInfo>();
-
-            /*
+            
             FieldDescriptorUtilities.AddExplicitFields(
-                Fields.Select(t => t.CreateDefinition()),
+                Fields.SelectMany(x => x.CreateDefinitions()),
                 f => f.Property,
                 fields,
                 handledProperties);
-            */
+            
 
             OnCompleteFields(fields, handledProperties);
 
@@ -59,17 +60,46 @@ namespace HotChocolate.Types.Filters
             IDictionary<NameString, InputFieldDefinition> fields,
             ISet<PropertyInfo> handledProperties)
         {
+           /*
+            *  TODO: CLEANUP
+            *  Do we even need this?
+            * if (Definition.Fields.IsImplicitBinding())
+            {
+                FieldDescriptorUtilities.AddImplicitFields(
+                    this,
+                    p => InputFieldDescriptor
+                        .New(Context, p)
+                        .CreateDefinition(),
+                    fields,
+                    handledProperties);
+            }
+            */
         }
 
         public IStringFilterFieldDescriptor Filter(
             Expression<Func<T, string>> propertyOrMethod)
         {
-            throw new NotImplementedException();
+            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+            {
+                var field = new StringFilterFieldsDescriptor(Context, p);
+                Fields.Add(field);
+                return field;
+            }
+
+            throw new ArgumentException(
+                "Only properties are allowed for input types.",
+                nameof(propertyOrMethod));
         }
 
         public IFilterInputObjectTypeDescriptor<T> BindFields(BindingBehavior bindingBehavior)
         {
-            throw new NotImplementedException();
+            Definition.Fields.BindingBehavior = bindingBehavior;
+            return this;
         }
+
+
+        public static FilterInputObjectTypeDescriptor<T> New(
+            IDescriptorContext context, Type clrType) =>
+            new FilterInputObjectTypeDescriptor<T>(context, clrType);
     }
 }

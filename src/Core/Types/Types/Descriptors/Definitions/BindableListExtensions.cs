@@ -2,7 +2,7 @@ using System;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
-    internal static class BindableListExtensions
+    public static class BindableListExtensions
     {
         public static bool IsImplicitBinding<T>(this IBindableList<T> list)
         {
