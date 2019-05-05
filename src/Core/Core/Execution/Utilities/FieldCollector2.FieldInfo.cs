@@ -30,14 +30,6 @@ namespace HotChocolate.Execution
         {
             public FieldVisibility(
                 IValueNode skip,
-                IValueNode include)
-            {
-                Skip = skip;
-                Include = include;
-            }
-
-            public FieldVisibility(
-                IValueNode skip,
                 IValueNode include,
                 FieldVisibility parent)
             {

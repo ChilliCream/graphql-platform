@@ -24,7 +24,7 @@ namespace HotChocolate.Execution
         public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType type,
             SelectionSetNode selectionSet,
-            Action<QueryError> reportError)
+            Action<IError> reportError)
         {
             if (type == null)
             {
@@ -41,43 +41,62 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(reportError));
             }
 
-            var fields = new OrderedDictionary<string, FieldSelection>();
-            CollectFields(type, selectionSet, reportError, fields);
+            var fields = new OrderedDictionary<string, FieldInfo>();
+            CollectFields(type, selectionSet, null, reportError, fields);
             return fields.Values;
         }
 
         private void CollectFields(
             ObjectType type,
             SelectionSetNode selectionSet,
+            FieldVisibility fieldVisibility,
             Action<IError> reportError,
             IDictionary<string, FieldInfo> fields)
         {
             foreach (ISelectionNode selection in selectionSet.Selections)
             {
-                if (ShouldBeIncluded(selection))
-                {
-                    ResolveFields(type, selection, reportError, fields);
-                }
+                ResolveFields(
+                    type,
+                    selection,
+                    ExtractVisibility(selection, fieldVisibility),
+                    reportError,
+                    fields);
             }
         }
 
         private void ResolveFields(
             ObjectType type,
             ISelectionNode selection,
-            Action<QueryError> reportError,
+            FieldVisibility fieldVisibility,
+            Action<IError> reportError,
             IDictionary<string, FieldInfo> fields)
         {
             if (selection is FieldNode fs)
             {
-                ResolveFieldSelection(type, fs, reportError, fields);
+                ResolveFieldSelection(
+                    type,
+                    fs,
+                    fieldVisibility,
+                    reportError,
+                    fields);
             }
             else if (selection is FragmentSpreadNode fragSpread)
             {
-                ResolveFragmentSpread(type, fragSpread, reportError, fields);
+                ResolveFragmentSpread(
+                    type,
+                    fragSpread,
+                    fieldVisibility,
+                    reportError,
+                    fields);
             }
             else if (selection is InlineFragmentNode inlineFrag)
             {
-                ResolveInlineFragment(type, inlineFrag, reportError, fields);
+                ResolveInlineFragment(
+                    type,
+                    inlineFrag,
+                    fieldVisibility,
+                    reportError,
+                    fields);
             }
         }
 
@@ -145,38 +164,56 @@ namespace HotChocolate.Execution
         private void ResolveFragmentSpread(
             ObjectType type,
             FragmentSpreadNode fragmentSpread,
+            FieldVisibility fieldVisibility,
             Action<IError> reportError,
-            IDictionary<string, FieldSelection> fields)
+            IDictionary<string, FieldInfo> fields)
         {
             Fragment fragment = _fragments.GetFragment(
                 fragmentSpread.Name.Value);
 
             if (fragment != null && DoesTypeApply(fragment.TypeCondition, type))
             {
-                CollectFields(type, fragment.SelectionSet, reportError, fields);
+                CollectFields(
+                    type,
+                    fragment.SelectionSet,
+                    fieldVisibility,
+                    reportError,
+                    fields);
             }
         }
 
         private void ResolveInlineFragment(
             ObjectType type,
             InlineFragmentNode inlineFragment,
+            FieldVisibility fieldVisibility,
             Action<IError> reportError,
-            IDictionary<string, FieldSelection> fields)
+            IDictionary<string, FieldInfo> fields)
         {
             Fragment fragment = _fragments.GetFragment(type, inlineFragment);
             if (DoesTypeApply(fragment.TypeCondition, type))
             {
-                CollectFields(type, fragment.SelectionSet, reportError, fields);
+                CollectFields(
+                    type,
+                    fragment.SelectionSet,
+                    fieldVisibility,
+                    reportError,
+                    fields);
             }
         }
 
-        private bool ShouldBeIncluded(Language.IHasDirectives selection)
+        private FieldVisibility ExtractVisibility(
+            Language.IHasDirectives selection,
+            FieldVisibility fieldVisibility)
         {
-            if (selection.Directives.Skip(_variables))
+            IValueNode skip = selection.Directives.SkipValue();
+            IValueNode include = selection.Directives.IncludeValue();
+
+            if (skip == null && include == null)
             {
-                return false;
+                return fieldVisibility;
             }
-            return selection.Directives.Include(_variables);
+
+            return new FieldVisibility(skip, include, fieldVisibility);
         }
 
         private static bool DoesTypeApply(
