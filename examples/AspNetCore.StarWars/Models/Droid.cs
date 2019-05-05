@@ -2,11 +2,16 @@
 
 namespace StarWars.Models
 {
+    /// <summary>
+    /// A droid in the Star Wars universe.
+    /// </summary>
     public class Droid
        : ICharacter
     {
+        /// <inheritdoc />
         public string Id { get; set; }
 
+        /// <inheritdoc />
         public string Name { get; set; }
 
         public IReadOnlyList<string> Friends { get; set; }

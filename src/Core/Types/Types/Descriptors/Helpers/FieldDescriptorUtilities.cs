@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Types.Descriptors.Definitions;
+using NJsonSchema.Infrastructure;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -28,6 +29,11 @@ namespace HotChocolate.Types.Descriptors
                 if (member != null)
                 {
                     handledMembers.Add(member);
+
+                    if (string.IsNullOrWhiteSpace(fieldDefinition.Description))
+                    {
+                        fieldDefinition.Description = member.GetXmlSummaryAsync().GetAwaiter().GetResult();
+                    }
                 }
             }
         }
@@ -52,8 +58,10 @@ namespace HotChocolate.Types.Descriptors
                     if (!handledMembers.Contains(member)
                         && !fields.ContainsKey(fieldDefinition.Name))
                     {
+                        fieldDefinition.Description = member.GetXmlSummaryAsync().GetAwaiter().GetResult();
                         handledMembers.Add(member);
                         fields[fieldDefinition.Name] = fieldDefinition;
+                        
                     }
                 }
             }

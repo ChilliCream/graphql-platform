@@ -2,6 +2,7 @@ using System;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using NJsonSchema.Infrastructure;
 
 namespace HotChocolate.Types
 {
@@ -26,7 +27,12 @@ namespace HotChocolate.Types
         {
             var descriptor = ObjectTypeDescriptor.New<T>(
                 DescriptorContext.Create(context.Services));
+            
+            // Set the description before configure so that the user can override.
+            descriptor.Description(typeof(T).GetXmlSummaryAsync().GetAwaiter().GetResult());
+            
             _configure(descriptor);
+            
             return descriptor.CreateDefinition();
         }
 
