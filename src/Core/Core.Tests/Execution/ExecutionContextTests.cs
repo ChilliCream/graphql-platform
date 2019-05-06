@@ -94,7 +94,7 @@ namespace HotChocolate.Execution
 
             var requestContext = new RequestContext(
                 serviceScope,
-                fs => null,
+                (f, s) => null,
                 contextData,
                 diagnostics);
 

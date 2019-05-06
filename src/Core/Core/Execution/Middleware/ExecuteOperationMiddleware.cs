@@ -74,8 +74,9 @@ namespace HotChocolate.Execution
             var requestContext = new RequestContext
             (
                 context.ServiceScope,
-                fs => directives.GetOrCreateMiddleware(fs,
-                    () => context.MiddlewareResolver.Invoke(fs)),
+                (field, selection) =>
+                    directives.GetOrCreateMiddleware(field, selection,
+                    () => context.MiddlewareResolver.Invoke(field, selection)),
                 context.ContextData,
                 _diagnosticEvents
             );

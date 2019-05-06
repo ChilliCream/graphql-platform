@@ -2,6 +2,7 @@
 using System.Threading;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using HotChocolate.Validation;
 
 namespace HotChocolate.Execution
@@ -64,6 +65,7 @@ namespace HotChocolate.Execution
         /// <summary>
         /// Gets or sets the execution bound field middleware resolver.
         /// </summary>
-        Func<FieldSelection, FieldDelegate> MiddlewareResolver { get; set; }
+        Func<ObjectField, FieldNode, FieldDelegate> MiddlewareResolver
+        { get; set; }
     }
 }

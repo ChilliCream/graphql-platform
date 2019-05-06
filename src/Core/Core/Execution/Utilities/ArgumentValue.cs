@@ -3,11 +3,11 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal readonly struct ArgumentValue
+    public readonly struct ArgumentValue
     {
         public ArgumentValue(IInputType type, object value)
         {
-            Type = type;
+            Type = type ?? throw new ArgumentNullException(nameof(type));
             Value = value;
         }
 
