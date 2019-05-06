@@ -46,6 +46,7 @@ namespace HotChocolate.Execution
             var fieldSelections = new FieldSelection[fields.Count];
             foreach (FieldInfo field in fields.Values)
             {
+                field.Middleware = _factory(field.Field, field.Selection);
                 fieldSelections[i++] = new FieldSelection(field);
             }
             return fieldSelections;
@@ -115,11 +116,11 @@ namespace HotChocolate.Execution
             NameString fieldName = fieldSelection.Name.Value;
             if (type.Fields.TryGetField(fieldName, out ObjectField field))
             {
-                string name = fieldSelection.Alias == null
+                NameString responseName = fieldSelection.Alias == null
                     ? fieldSelection.Name.Value
                     : fieldSelection.Alias.Value;
 
-                if (fields.TryGetValue(name, out FieldInfo fieldInfo))
+                if (fields.TryGetValue(responseName, out FieldInfo fieldInfo))
                 {
                     if (fieldInfo.Nodes == null)
                     {
@@ -143,9 +144,8 @@ namespace HotChocolate.Execution
                     fieldInfo = new FieldInfo
                     {
                         Field = field,
-                        ResponseName = fieldName,
+                        ResponseName = responseName,
                         Selection = fieldSelection,
-                        Middleware = _factory(field, fieldSelection),
                         Path = path
                     };
 
@@ -157,7 +157,7 @@ namespace HotChocolate.Execution
 
                     CoerceArgumentValues(fieldInfo);
 
-                    fields.Add(name, fieldInfo);
+                    fields.Add(responseName, fieldInfo);
                 }
             }
             else

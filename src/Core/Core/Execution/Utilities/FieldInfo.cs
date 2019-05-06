@@ -7,7 +7,7 @@ namespace HotChocolate.Execution
 {
     internal class FieldInfo
     {
-        public string ResponseName { get; set; }
+        public NameString ResponseName { get; set; }
 
         public ObjectField Field { get; set; }
 

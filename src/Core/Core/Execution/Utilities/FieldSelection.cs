@@ -122,12 +122,20 @@ namespace HotChocolate.Execution
 
         private static SelectionSetNode MergeSelections(FieldInfo fieldInfo)
         {
+            if (fieldInfo.Selection.SelectionSet == null)
+            {
+                return null;
+            }
+
             var selections = new List<ISelectionNode>();
             selections.AddRange(fieldInfo.Selection.SelectionSet.Selections);
 
             foreach (FieldNode selection in fieldInfo.Nodes)
             {
-                selections.AddRange(selection.SelectionSet.Selections);
+                if (selection.SelectionSet != null)
+                {
+                    selections.AddRange(selection.SelectionSet.Selections);
+                }
             }
 
             return new SelectionSetNode

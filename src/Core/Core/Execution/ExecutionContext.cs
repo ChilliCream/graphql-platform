@@ -32,6 +32,8 @@ namespace HotChocolate.Execution
 
             RequestAborted = requestAborted;
 
+            _cachedQuery = new CachedQuery("foo", operation.Document);
+
             ErrorHandler = requestContext.ServiceScope.ServiceProvider
                 .GetRequiredService<IErrorHandler>();
 

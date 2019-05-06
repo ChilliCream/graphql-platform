@@ -42,7 +42,7 @@ namespace HotChocolate.Execution
             FieldDelegate directivePipeline = fieldPipeline.Invoke();
 
             if (field.ExecutableDirectives.Count > 0
-                || field.Directives.Count > 0)
+                || selection.Directives.Count > 0)
             {
                 IReadOnlyList<IDirective> directives =
                     CollectDirectives(field, selection);
