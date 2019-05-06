@@ -117,7 +117,7 @@ namespace HotChocolate.Stitching.Introspection
         internal static DocumentNode CreateIntrospectionQuery(
             SchemaFeatures features)
         {
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 GetIntrospectionQuery(_phase2));
 
             OperationDefinitionNode operation =

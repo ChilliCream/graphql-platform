@@ -27,6 +27,19 @@
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "label": "build benchmarks",
+      "command": "dotnet build benchmarks /property:GenerateFullPaths=true",
+      "type": "shell",
+      "presentation": {
+        "reveal": "silent"
+      },
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     }
   ]
 }

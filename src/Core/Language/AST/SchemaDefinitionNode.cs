@@ -8,32 +8,43 @@ namespace HotChocolate.Language
     {
         public SchemaDefinitionNode(
             Location location,
+            StringValueNode description,
             IReadOnlyList<DirectiveNode> directives,
             IReadOnlyList<OperationTypeDefinitionNode> operationTypes)
             : base(location, directives, operationTypes)
         {
+            Description = description;
         }
 
         public override NodeKind Kind { get; } = NodeKind.SchemaDefinition;
 
+        public StringValueNode Description { get; }
+
         public SchemaDefinitionNode WithLocation(Location location)
         {
             return new SchemaDefinitionNode(
-                Location, Directives, OperationTypes);
+                Location, Description, Directives, OperationTypes);
         }
 
         public SchemaDefinitionNode WithDirectives(
             IReadOnlyList<DirectiveNode> directives)
         {
             return new SchemaDefinitionNode(
-                Location, directives, OperationTypes);
+                Location, Description, directives, OperationTypes);
         }
 
         public SchemaDefinitionNode WithOperationTypes(
             IReadOnlyList<OperationTypeDefinitionNode> operationTypes)
         {
             return new SchemaDefinitionNode(
-                Location, Directives, operationTypes);
+                Location, Description, Directives, operationTypes);
+        }
+
+        public SchemaDefinitionNode WithDescription(
+            StringValueNode description)
+        {
+            return new SchemaDefinitionNode(
+                Location, description, Directives, OperationTypes);
         }
     }
 }

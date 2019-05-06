@@ -4,19 +4,12 @@ namespace HotChocolate.Language
 {
     public sealed class Location
     {
-        public Location(
-            ISource source,
-            SyntaxToken start,
-            SyntaxToken end)
+        public Location(int start, int end, int line, int column)
         {
-            StartToken = start 
-                ?? throw new ArgumentNullException(nameof(start));
-            EndToken = end 
-                ?? throw new ArgumentNullException(nameof(end));
-            Source = source 
-                ?? throw new ArgumentNullException(nameof(source));
-            Start = start.Start;
-            End = end.End;
+            Start = start;
+            End = end;
+            Line = line;
+            Column = column;
         }
 
         /// <summary>
@@ -32,21 +25,15 @@ namespace HotChocolate.Language
         public int End { get; }
 
         /// <summary>
-        /// Gets the <see cref="SyntaxToken" /> at which this
-        /// <see cref="ISyntaxNode" /> begins.
+        /// Gets the 1-indexed line number on which this
+        /// <see cref="SyntaxToken" /> appears.
         /// </summary>
-        public SyntaxToken StartToken { get; }
+        public int Line { get; }
 
         /// <summary>
-        /// Gets the <see cref="SyntaxToken" /> at which this
-        /// <see cref="ISyntaxNode" /> ends.
+        /// Gets the 1-indexed column number at which this
+        /// <see cref="SyntaxToken" /> begins.
         /// </summary>
-        public SyntaxToken EndToken { get; }
-
-        /// <summary>
-        /// Gets the <see cref="Source" /> document the AST represents.
-        /// </summary>
-        /// <returns></returns>
-        public ISource Source { get; }
+        public int Column { get; }
     }
 }

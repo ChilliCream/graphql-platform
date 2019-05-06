@@ -6,9 +6,9 @@ namespace HotChocolate.Configuration
 {
     internal partial class SchemaConfiguration
         : ISchemaConfiguration
+        , ISchemaConfigurationExtension
     {
         private readonly SchemaBuilder _builder = SchemaBuilder.New();
-
 
         public ISchemaOptions Options { get; set; } = new SchemaOptions();
 
@@ -27,12 +27,13 @@ namespace HotChocolate.Configuration
             return _builder;
         }
 
-        public void RegisterServiceProvider(IServiceProvider serviceProvider)
+        public ISchemaConfiguration RegisterServiceProvider(IServiceProvider serviceProvider)
         {
             _builder.AddServices(serviceProvider);
+            return this;
         }
 
-        public IMiddlewareConfiguration Use(FieldMiddleware middleware)
+        public ISchemaConfiguration Use(FieldMiddleware middleware)
         {
             if (middleware == null)
             {
@@ -40,6 +41,23 @@ namespace HotChocolate.Configuration
             }
 
             _builder.Use(middleware);
+            return this;
+        }
+
+        public ISchemaConfigurationExtension Extend()
+        {
+            return this;
+        }
+
+        ISchemaConfiguration ISchemaConfigurationExtension.OnBeforeBuild(
+            Action<ISchemaBuilder> build)
+        {
+            if (build == null)
+            {
+                throw new ArgumentNullException(nameof(build));
+            }
+
+            build(_builder);
             return this;
         }
     }

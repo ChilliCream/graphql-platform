@@ -6,16 +6,16 @@ namespace HotChocolate
 {
     public static class MiddlewareConfigurationExtensions
     {
-        public static IMiddlewareConfiguration Use<TMiddleware>(
-            this IMiddlewareConfiguration configuration)
+        public static ISchemaConfiguration Use<TMiddleware>(
+            this ISchemaConfiguration configuration)
             where TMiddleware : class
         {
             return configuration.Use(
                 FieldClassMiddlewareFactory.Create<TMiddleware>());
         }
 
-        public static IMiddlewareConfiguration Use<TMiddleware>(
-            this IMiddlewareConfiguration configuration,
+        public static ISchemaConfiguration Use<TMiddleware>(
+            this ISchemaConfiguration configuration,
             Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
             where TMiddleware : class
         {
@@ -23,8 +23,8 @@ namespace HotChocolate
                 FieldClassMiddlewareFactory.Create(factory));
         }
 
-        public static IMiddlewareConfiguration Map(
-            this IMiddlewareConfiguration configuration,
+        public static ISchemaConfiguration Map(
+            this ISchemaConfiguration configuration,
             FieldReference fieldReference,
             FieldMiddleware middleware)
         {
@@ -35,8 +35,8 @@ namespace HotChocolate
         }
 
 
-        public static IMiddlewareConfiguration Map<TMiddleware>(
-            this IMiddlewareConfiguration configuration,
+        public static ISchemaConfiguration Map<TMiddleware>(
+            this ISchemaConfiguration configuration,
             FieldReference fieldReference)
             where TMiddleware : class
         {
@@ -51,8 +51,8 @@ namespace HotChocolate
                     }));
         }
 
-        public static IMiddlewareConfiguration Map<TMiddleware>(
-            this IMiddlewareConfiguration configuration,
+        public static ISchemaConfiguration Map<TMiddleware>(
+            this ISchemaConfiguration configuration,
             FieldReference fieldReference,
             Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
             where TMiddleware : class

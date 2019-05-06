@@ -61,6 +61,7 @@ namespace HotChocolate.Stitching.Introspection
             return new SchemaDefinitionNode
             (
                 null,
+                null,
                 Array.Empty<DirectiveNode>(),
                 operations
             );

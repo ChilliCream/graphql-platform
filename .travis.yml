@@ -1,6 +1,6 @@
 language: csharp
 mono: latest
-dotnet: 2.1.503
+dotnet: 2.2.105
 matrix:
   include:
     - os: osx

@@ -4,6 +4,7 @@
   "Definitions": [
     {
       "Kind": "SchemaDefinition",
+      "Description": null,
       "Location": null,
       "Directives": [],
       "OperationTypes": [

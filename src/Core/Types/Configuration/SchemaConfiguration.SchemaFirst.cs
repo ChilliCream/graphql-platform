@@ -50,9 +50,10 @@ namespace HotChocolate.Configuration
             return new BindType<T>(builder);
         }
 
-        public void RegisterIsOfType(IsOfTypeFallback isOfType)
+        public ISchemaConfiguration RegisterIsOfType(IsOfTypeFallback isOfType)
         {
             _builder.SetTypeResolver(isOfType);
+            return this;
         }
     }
 }

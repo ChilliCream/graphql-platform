@@ -24,9 +24,7 @@ namespace HotChocolate.Language
         public void CreateFloatValueWithLocation(string value)
         {
             // arrange
-            var token = new SyntaxToken(
-                TokenKind.StartOfFile, 0, 0, 0, 0, null);
-            var location = new Location(new Source("{}"), token, token);
+            var location = new Location(0, 0, 0, 0);
 
             // act
             var floatValueNode = new FloatValueNode(location, value);

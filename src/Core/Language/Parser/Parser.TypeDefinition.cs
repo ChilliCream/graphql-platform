@@ -86,7 +86,7 @@ namespace HotChocolate.Language
             ParserContext context)
         {
             SyntaxToken start = context.Current;
-            context.SkipDescription();
+            StringValueNode description = ParseDescription(context);
             context.ExpectSchemaKeyword();
 
             List<DirectiveNode> directives =
@@ -103,6 +103,7 @@ namespace HotChocolate.Language
             return new SchemaDefinitionNode
             (
                 location,
+                description,
                 directives,
                 operationTypeDefinitions
             );
@@ -324,7 +325,7 @@ namespace HotChocolate.Language
         /// <summary>
         /// Parses an interface type definition.
         /// <see cref="InterfaceTypeDefinition" />:
-        /// Description? interface Name Directives[isConstant=true]? 
+        /// Description? interface Name Directives[isConstant=true]?
         /// FieldsDefinition?
         /// </summary>
         /// <param name="context">The parser context.</param>
@@ -354,7 +355,7 @@ namespace HotChocolate.Language
         /// <summary>
         /// Parses an union type definition.
         /// <see cref="UnionTypeDefinitionNode" />:
-        /// Description? union Name Directives[isConstant=true]? 
+        /// Description? union Name Directives[isConstant=true]?
         /// UnionMemberTypes?
         /// </summary>
         /// <param name="context">The parser context.</param>

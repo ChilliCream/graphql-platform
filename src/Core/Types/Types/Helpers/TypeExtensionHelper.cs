@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
@@ -39,6 +40,15 @@ namespace HotChocolate.Types
             IList<InterfaceFieldDefinition> typeFields)
         {
             MergeOutputFields(context, extensionFields, typeFields,
+                (fields, extensionField, typeField) => { });
+        }
+
+        public static void MergeInputObjectFields(
+            ICompletionContext context,
+            IList<InputFieldDefinition> extensionFields,
+            IList<InputFieldDefinition> typeFields)
+        {
+            MergeFields(context, extensionFields, typeFields,
                 (fields, extensionField, typeField) => { });
         }
 
@@ -168,6 +178,21 @@ namespace HotChocolate.Types
                     extension.ContextData)
                 {
                     type.ContextData[entry.Key] = entry.Value;
+                }
+            }
+        }
+
+        public static void MergeTypes(
+            ICollection<ITypeReference> extensionTypes,
+            ICollection<ITypeReference> typeTypes)
+        {
+            var set = new HashSet<ITypeReference>(typeTypes);
+
+            foreach (ITypeReference reference in extensionTypes)
+            {
+                if (set.Add(reference))
+                {
+                    typeTypes.Add(reference);
                 }
             }
         }

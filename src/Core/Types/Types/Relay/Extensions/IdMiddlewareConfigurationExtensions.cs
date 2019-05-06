@@ -6,8 +6,8 @@ namespace HotChocolate
 {
     public static class IdMiddlewareConfigurationExtensions
     {
-        public static IMiddlewareConfiguration UseGlobalObjectIdentifier(
-            this IMiddlewareConfiguration configuration)
+        public static ISchemaConfiguration UseGlobalObjectIdentifier(
+            this ISchemaConfiguration configuration)
         {
             if (configuration == null)
             {

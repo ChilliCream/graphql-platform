@@ -1,4 +1,6 @@
-﻿namespace HotChocolate.Utilities
+﻿using System.Runtime.CompilerServices;
+
+namespace HotChocolate.Utilities
 {
     /// <summary>
     /// This class provides internal char utilities
@@ -22,7 +24,7 @@
 
         public static bool IsLetterOrDigitOrUnderscore(in this char c)
         {
-            return c.IsLetterOrUnderscore() || c.IsDigit();
+            return IsLetterOrUnderscore(in c) || IsDigit(in c);
         }
 
         public static bool IsLetter(in this char c)
@@ -31,9 +33,9 @@
             return (normalized >= 'a' && normalized <= 'z');
         }
 
-        public static ref readonly bool IsLetterOrUnderscore(in this char c)
+        public static bool IsLetterOrUnderscore(in this char c)
         {
-            return ref _isLetterOrUnderscore[c];
+            return _isLetterOrUnderscore[c];
         }
 
         public static bool IsDigit(in this char c)
@@ -41,9 +43,9 @@
             return c >= 48 && c <= 57;
         }
 
-        public static ref bool IsDigitOrMinus(in this char c)
+        public static bool IsDigitOrMinus(in this char c)
         {
-            return ref _isDigitOrMinus[c];
+            return _isDigitOrMinus[c];
         }
 
         public static bool IsDot(in this char c)
@@ -63,7 +65,7 @@
 
         public static bool IsMinus(in this char c)
         {
-            return c.IsHyphen();
+            return IsHyphen(in c);
         }
 
         public static bool IsPlus(in this char c)
@@ -86,14 +88,14 @@
             return c == '#';
         }
 
-        public static ref readonly bool IsPunctuator(in this char c)
+        public static bool IsPunctuator(in this char c)
         {
-            return ref _isPunctuator[c];
+            return _isPunctuator[c];
         }
 
-        public static ref readonly bool IsWhitespace(in this char c)
+        public static bool IsWhitespace(in this char c)
         {
-            return ref _isWhitespace[c];
+            return _isWhitespace[c];
         }
 
         public static bool IsNewLine(in this char c)
@@ -108,9 +110,9 @@
             return c == '\r';
         }
 
-        public static ref readonly bool IsValidEscapeCharacter(in this char c)
+        public static bool IsValidEscapeCharacter(in this char c)
         {
-            return ref _isEscapeCharacter[c];
+            return _isEscapeCharacter[c];
         }
 
         public static char EscapeCharacter(in this char c)
@@ -132,9 +134,9 @@
             }
         }
 
-        public static ref readonly bool IsControlCharacter(in this char c)
+        public static bool IsControlCharacter(in this char c)
         {
-            return ref _isControlCharacter[c];
+            return _isControlCharacter[c];
         }
     }
 }

@@ -24,8 +24,9 @@ namespace HotChocolate.Types
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-            IExecutionResult result = await executor.ExecuteAsync("{ node(id: \"RW50aXR5LXhmb28=\")  { ... on Entity { id name } } }");
-
+            IExecutionResult result = await executor.ExecuteAsync(
+                "{ node(id: \"RW50aXR5LXhmb28=\")  " +
+                "{ ... on Entity { id name } } }");
 
             // assert
             result.MatchSnapshot();
@@ -49,7 +50,7 @@ namespace HotChocolate.Types
             }
         }
 
-        // ? descriptor.AsNode().IdField(t => t).NodeResolver()
+        // ? descriptor.AsNode().IdField(t => t.Id).NodeResolver()
 
 
         public class Entity
