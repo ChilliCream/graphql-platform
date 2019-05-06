@@ -30,8 +30,7 @@ namespace HotChocolate.Types.Filters
             IInitializationContext context)
         {
             var descriptor =
-                FilterInputObjectTypeDescriptor<T>.New(
-                    DescriptorContext.Create(context.Services), GetType());
+                FilterInputObjectTypeDescriptor<T>.New(context,  GetType());
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }

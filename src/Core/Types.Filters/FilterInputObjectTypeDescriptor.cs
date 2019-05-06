@@ -9,6 +9,7 @@ using System.Linq.Expressions;
 using HotChocolate.Utilities;
 using HotChocolate.Types.Filters.String;
 using HotChocolate.Types.Filters.Comparable;
+using HotChocolate.Configuration;
 
 namespace HotChocolate.Types.Filters
 {
@@ -16,7 +17,9 @@ namespace HotChocolate.Types.Filters
         : DescriptorBase<InputObjectTypeDefinition>
         , IFilterInputObjectTypeDescriptor<T>
     {
-        public FilterInputObjectTypeDescriptor(
+        private readonly IInitializationContext initializationContext;
+
+        public FilterInputObjectTypeDescriptor(IInitializationContext initializationContext,
             IDescriptorContext context,
             Type clrType)
             : base(context)
@@ -31,6 +34,7 @@ namespace HotChocolate.Types.Filters
                 clrType, TypeKind.InputObject);
             Definition.Description = context.Naming.GetTypeDescription(
                 clrType, TypeKind.InputObject);
+            this.initializationContext = initializationContext;
         }
 
         protected override InputObjectTypeDefinition Definition { get; } =
@@ -114,8 +118,9 @@ namespace HotChocolate.Types.Filters
 
 
         public static FilterInputObjectTypeDescriptor<T> New(
-            IDescriptorContext context, Type clrType) =>
-            new FilterInputObjectTypeDescriptor<T>(context, clrType);
+              IInitializationContext context, Type clrType) =>
+            new FilterInputObjectTypeDescriptor<T>(context,
+                    DescriptorContext.Create(context.Services), clrType);
 
     }
 }
