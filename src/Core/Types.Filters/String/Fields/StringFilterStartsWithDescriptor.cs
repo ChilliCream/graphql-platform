@@ -5,17 +5,17 @@ using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Types.Filters.String.Contains
+namespace HotChocolate.Types.Filters.String.Fields
 {
-    public class StringFilterContainsDescriptor : InputFieldDescriptor, IStringFilterFieldDetailsDescriptor
+    public class StringFilterStartsWithDescriptor : FilterFieldDescriptor, IStringFilterFieldDetailsDescriptor
     {
         private readonly IStringFilterFieldDescriptor parent;
 
-        public StringFilterContainsDescriptor(IStringFilterFieldDescriptor parent, IDescriptorContext context, PropertyInfo property) : base(context, property)
+        public StringFilterStartsWithDescriptor(IStringFilterFieldDescriptor parent, IDescriptorContext context, PropertyInfo property) : base(context, property)
         {
             this.parent = parent;
             Type<ListType<StringType>>();
-            Definition.Name += "_contains";
+            Definition.Type = GetTypeReference();
             Definition.Property = null;
         }
 

@@ -8,6 +8,7 @@ using HotChocolate.Types.Descriptors;
 using System.Linq.Expressions;
 using HotChocolate.Utilities;
 using HotChocolate.Types.Filters.String;
+using HotChocolate.Types.Filters.Comparable;
 
 namespace HotChocolate.Types.Filters
 {
@@ -91,6 +92,20 @@ namespace HotChocolate.Types.Filters
                 nameof(propertyOrMethod));
         }
 
+        public IComparableFilterFieldDescriptor Filter<TComparable>(Expression<Func<T, TComparable>> propertyOrMethod) where TComparable : IComparable
+        {
+            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+            {
+                var field = new ComparableFilterFieldsDescriptor(Context, p);
+                Fields.Add(field);
+                return field;
+            }
+
+            throw new ArgumentException(
+                "Only properties are allowed for input types.",
+                nameof(propertyOrMethod));
+        }
+
         public IFilterInputObjectTypeDescriptor<T> BindFields(BindingBehavior bindingBehavior)
         {
             Definition.Fields.BindingBehavior = bindingBehavior;
@@ -101,5 +116,6 @@ namespace HotChocolate.Types.Filters
         public static FilterInputObjectTypeDescriptor<T> New(
             IDescriptorContext context, Type clrType) =>
             new FilterInputObjectTypeDescriptor<T>(context, clrType);
+
     }
 }

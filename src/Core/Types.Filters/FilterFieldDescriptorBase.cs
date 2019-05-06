@@ -31,5 +31,11 @@ namespace HotChocolate.Types.Filters
         {
            return  Definition.Filters.Select(x => x.CreateDefinition());
         }
+
+        protected FilterFieldDescriptorBase BindFilters(BindingBehavior bindingBehavior)
+        {
+            Definition.Filters.BindingBehavior = bindingBehavior;
+            return this;
+        }
     }
 }

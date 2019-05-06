@@ -14,6 +14,9 @@ namespace HotChocolate.Types.Filters
         IStringFilterFieldDetailsDescriptor AllowEquals();
 
         IStringFilterFieldDetailsDescriptor AllowIn();
+        IStringFilterFieldDetailsDescriptor AllowStartsWith();
+
+        IStringFilterFieldDetailsDescriptor AllowEndsWith();
     }
 
     public interface IStringFilterFieldDetailsDescriptor

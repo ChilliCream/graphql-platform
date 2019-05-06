@@ -11,9 +11,11 @@ namespace Filters
 		protected override void Configure(IFilterInputObjectTypeDescriptor<TestModel> descriptor)
 		{
 			Name = "TestModelFilter";
-            descriptor.Filter(x => x.Test).AllowContains();
+            descriptor.Filter(x => x.Test).AllowContains().And().AllowEndsWith().And().AllowStartsWith().And().AllowIn().And().AllowEquals();
+            descriptor.Filter(x => x.TestInt).AllowIn().And().AllowEquals().And().AllowGreaterThan().And().AllowGreaterThanOrEquals().And().AllowLowerThan().And().AllowLowerThanOrEquals();
 
 
-		}
+
+        }
 	}
 }

@@ -4,7 +4,8 @@ using System.Reflection;
 using System.Text;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Filters.String.Contains;
+using HotChocolate.Types.Filters.Comparable.Fields;
+using HotChocolate.Types.Filters.String.Fields;
 
 namespace HotChocolate.Types.Filters.String
 {
@@ -15,33 +16,50 @@ namespace HotChocolate.Types.Filters.String
         public StringFilterFieldsDescriptor(IDescriptorContext context, PropertyInfo property) : base(context, property)
         {
             propertyInfo = property;
-            
         }
 
 
         public IStringFilterFieldDetailsDescriptor AllowContains()
         {
            
-               var field = new StringFilterContainsDescriptor(this, Context, propertyInfo);
+            var field = new StringFilterContainsDescriptor(this, Context, propertyInfo);
             Definition.Filters.Add(field);
-                return field;
+            return field;
             
         }
 
         public IStringFilterFieldDetailsDescriptor AllowEquals()
         {
-            throw new NotImplementedException();
+            var field = new StringFilterEqualsDescriptor(this, Context, propertyInfo);
+            Definition.Filters.Add(field);
+            return field;
         }
 
         public IStringFilterFieldDetailsDescriptor AllowIn()
         {
-            throw new NotImplementedException();
+            var field = new StringFilterInDescriptor(this, Context, propertyInfo);
+            Definition.Filters.Add(field);
+            return field;
+        }
+        public IStringFilterFieldDetailsDescriptor AllowStartsWith()
+        {
+            var field = new StringFilterStartsWithDescriptor(this, Context, propertyInfo);
+            Definition.Filters.Add(field);
+            return field;
         }
 
-        public IStringFilterFieldDescriptor BindFilters(BindingBehavior bindingBehavior)
+        public IStringFilterFieldDetailsDescriptor AllowEndsWith()
         {
-            this.Definition.Filters.BindingBehavior = bindingBehavior;
+            var field = new StringFilterEndsWithDescriptor(this, Context, propertyInfo);
+            Definition.Filters.Add(field);
+            return field;
+        }
+
+        public new IStringFilterFieldDescriptor BindFilters(BindingBehavior bindingBehavior)
+        {
+            base.BindFilters(bindingBehavior);
             return this;
         }
+
     }
 }
