@@ -11,6 +11,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
+    // TODO : FIX the object renting
     internal partial class ResolverContext
         : IShared
     {
@@ -110,7 +111,7 @@ namespace HotChocolate.Execution
             IImmutableStack<object> source,
             IDictionary<string, object> serializedResult)
         {
-            var context = ObjectPools.ResolverContexts.Rent();
+            var context = new ResolverContext();
             context.Initialize(
                 executionContext,
                 fieldSelection,
@@ -128,7 +129,8 @@ namespace HotChocolate.Execution
             Path path,
             Action propagateNonNullViolation)
         {
-            var context = ObjectPools.ResolverContexts.Rent();
+            // var context = ObjectPools.ResolverContexts.Rent();
+            var context = new ResolverContext();
             context.Initialize(
                 fieldSelection,
                 source,
@@ -142,7 +144,7 @@ namespace HotChocolate.Execution
 
         public static void Return(ResolverContext rentedContext)
         {
-            ObjectPools.ResolverContexts.Return(rentedContext);
+            //ObjectPools.ResolverContexts.Return(rentedContext);
         }
 
         public static void Return(IEnumerable<ResolverContext> rentedContexts)
@@ -153,7 +155,7 @@ namespace HotChocolate.Execution
                 {
                     break;
                 }
-                ResolverContext.Return(rentedContext);
+                //ResolverContext.Return(rentedContext);
             }
         }
 
@@ -165,7 +167,7 @@ namespace HotChocolate.Execution
                 {
                     break;
                 }
-                ResolverContext.Return(rentedContexts[i]);
+                //ResolverContext.Return(rentedContexts[i]);
                 rentedContexts[i] = null;
             }
         }

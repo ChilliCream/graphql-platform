@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,7 +42,7 @@ namespace HotChocolate.Execution
                     null);
 
             // assert
-            Assert.Collection(fields,
+            Assert.Collection(fields.Where(t => t.IsVisible(variables)),
                 f =>
                 {
                     Assert.Equal("a", f.ResponseName);
@@ -61,7 +62,6 @@ namespace HotChocolate.Execution
         public void InvalidFieldError()
         {
             // arrange
-            var errorRaised = false;
             Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
@@ -81,25 +81,12 @@ namespace HotChocolate.Execution
 
             // act
             var fieldResolver = new FieldCollector(fragments, (f, s) => null);
-            IReadOnlyCollection<FieldSelection> fields = fieldResolver
-                .CollectFields(schema.GetType<ObjectType>("Foo"),
-                    operation.SelectionSet, null);
+            Action action = () => fieldResolver
+               .CollectFields(schema.GetType<ObjectType>("Foo"),
+                   operation.SelectionSet, null);
 
             // assert
-            Assert.Collection(fields,
-                f =>
-                {
-                    Assert.Equal("a", f.ResponseName);
-                    Assert.Equal("a", f.Field.Name);
-                    Assert.Equal("String", f.Field.Type.TypeName());
-                },
-                f =>
-                {
-                    Assert.Equal("x", f.ResponseName);
-                    Assert.Equal("c", f.Field.Name);
-                    Assert.Equal("String", f.Field.Type.TypeName());
-                });
-            Assert.True(errorRaised);
+            Assert.Throws<QueryException>(action);
         }
 
         [Fact]
@@ -129,7 +116,7 @@ namespace HotChocolate.Execution
                     operation.SelectionSet, null);
 
             // assert
-            Assert.Collection(fields,
+            Assert.Collection(fields.Where(t => t.IsVisible(variables)),
                 f =>
                 {
                     Assert.Equal("a", f.ResponseName);
@@ -165,7 +152,7 @@ namespace HotChocolate.Execution
                     operation.SelectionSet, null);
 
             // assert
-            Assert.Collection(fields,
+            Assert.Collection(fields.Where(t => t.IsVisible(variables)),
                 f =>
                 {
                     Assert.Equal("a", f.ResponseName);
@@ -201,7 +188,7 @@ namespace HotChocolate.Execution
                     operation.SelectionSet, null);
 
             // assert
-            Assert.Collection(fields,
+            Assert.Collection(fields.Where(t => t.IsVisible(variables)),
                 f =>
                 {
                     Assert.Equal("a", f.ResponseName);
@@ -242,7 +229,7 @@ namespace HotChocolate.Execution
                     operation.SelectionSet, null);
 
             // assert
-            Assert.Collection(fields,
+            Assert.Collection(fields.Where(t => t.IsVisible(variables)),
                 f =>
                 {
                     Assert.Equal("a", f.ResponseName);
@@ -292,7 +279,7 @@ namespace HotChocolate.Execution
                     operation.SelectionSet, null);
 
             // assert
-            Assert.Collection(fields,
+            Assert.Collection(fields.Where(t => t.IsVisible(variables)),
                 f =>
                 {
                     Assert.Equal("a", f.ResponseName);
@@ -456,7 +443,7 @@ namespace HotChocolate.Execution
                     operation.SelectionSet, null);
 
             // assert
-            Assert.Collection(fields,
+            Assert.Collection(fields.Where(t => t.IsVisible(variables)),
                 f =>
                 {
                     Assert.Equal("x", f.ResponseName);
@@ -499,7 +486,7 @@ namespace HotChocolate.Execution
                     operation.SelectionSet, null);
 
             // assert
-            Assert.Collection(fields,
+            Assert.Collection(fields.Where(t => t.IsVisible(variables)),
                 f =>
                 {
                     Assert.Equal("x", f.ResponseName);
