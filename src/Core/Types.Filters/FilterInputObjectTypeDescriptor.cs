@@ -10,6 +10,7 @@ using HotChocolate.Utilities;
 using HotChocolate.Types.Filters.String;
 using HotChocolate.Types.Filters.Comparable;
 using HotChocolate.Configuration;
+using HotChocolate.Types.Filters.Object;
 
 namespace HotChocolate.Types.Filters
 {
@@ -122,5 +123,18 @@ namespace HotChocolate.Types.Filters
             new FilterInputObjectTypeDescriptor<T>(context,
                     DescriptorContext.Create(context.Services), clrType);
 
+        public IObjectFilterFieldDescriptor Filter<TFilter>(Expression<Func<T, object>> propertyOrMethod) where TFilter : IFilterInputType
+        {
+            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+            {
+                var field = new ObjectFilterFieldsDescriptor(typeof(TFilter), Context, p);
+                Fields.Add(field);
+                return field;
+            }
+
+            throw new ArgumentException(
+                "Only properties are allowed for input types.",
+                nameof(propertyOrMethod));
+        }
     }
 }
