@@ -74,7 +74,7 @@ namespace HotChocolate.Execution
                 schema,
                 services.CreateRequestServiceScope(),
                 request,
-                fs => fs.Field.Middleware
+                (f,s) => f.Middleware
             )
             {
                 Document = query,
