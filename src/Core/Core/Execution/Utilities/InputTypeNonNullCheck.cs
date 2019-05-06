@@ -10,6 +10,25 @@ namespace HotChocolate.Execution
 {
     internal static class InputTypeNonNullCheck
     {
+
+        public static void CheckForNullValueViolation(
+            NameString argumentName,
+            IType type,
+            object value,
+            Func<string, IError> createError)
+        {
+            if (type is NonNullType && value == null)
+            {
+                throw new QueryException(createError(string.Format(
+                    CultureInfo.InvariantCulture,
+                    TypeResources.ArgumentValueBuilder_NonNull,
+                    argumentName,
+                    TypeVisualizer.Visualize(type))));
+            }
+
+            CheckForNullValueViolation(type, value, createError);
+        }
+
         public static void CheckForNullValueViolation(
             IType type,
             object value,

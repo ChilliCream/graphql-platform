@@ -7,11 +7,6 @@ namespace HotChocolate.Execution
     {
         public ArgumentValue(IInputType type, object value)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
             Type = type;
             Value = value;
         }

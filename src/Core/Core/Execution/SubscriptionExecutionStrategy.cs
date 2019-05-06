@@ -63,7 +63,7 @@ namespace HotChocolate.Execution
             IExecutionContext executionContext)
         {
             IReadOnlyCollection<FieldSelection> selections = executionContext
-                .FieldHelper.CollectFields(
+                .FieldCollector.CollectFields(
                     executionContext.Operation.RootType,
                     executionContext.Operation.Definition.SelectionSet);
 

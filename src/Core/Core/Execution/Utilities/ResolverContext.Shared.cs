@@ -29,7 +29,6 @@ namespace HotChocolate.Execution
             SourceObject = null;
             ScopedContextData = null;
 
-            Middleware = null;
             Task = null;
             Result = null;
             IsResultModified = false;
@@ -52,11 +51,8 @@ namespace HotChocolate.Execution
             SourceObject = executionContext.Operation.RootValue;
             ScopedContextData = ImmutableDictionary<string, object>.Empty;
 
-            Middleware = executionContext.FieldHelper
-                .CreateMiddleware(fieldSelection);
-
-            _arguments = fieldSelection.CoerceArgumentValues(
-                executionContext.Variables, Path);
+            _arguments = fieldSelection.CoerceArguments(
+                executionContext.Variables);
 
             string responseName = fieldSelection.ResponseName;
             PropagateNonNullViolation = () =>
@@ -78,16 +74,13 @@ namespace HotChocolate.Execution
             _serializedResult = serializedResult;
             _fieldSelection = fieldSelection;
 
-            _arguments = fieldSelection.CoerceArgumentValues(
-                sourceContext._executionContext.Variables, path);
+            _arguments = fieldSelection.CoerceArguments(
+                sourceContext._executionContext.Variables);
 
             Path = path;
             Source = source;
             SourceObject = sourceObject;
             ScopedContextData = sourceContext.ScopedContextData;
-
-            Middleware = sourceContext._executionContext.FieldHelper
-                .CreateMiddleware(fieldSelection);
 
             bool isNonNullType = fieldSelection.Field.Type.IsNonNullType();
             string responseName = fieldSelection.ResponseName;

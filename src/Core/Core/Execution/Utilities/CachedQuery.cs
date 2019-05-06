@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution
@@ -35,8 +34,8 @@ namespace HotChocolate.Execution
         public DocumentNode Document { get; }
 
         public IReadOnlyList<FieldSelection> GetOrCollectFields(
-            SelectionSetNode selectionSet,
             ObjectType type,
+            SelectionSetNode selectionSet,
             Func<IReadOnlyList<FieldSelection>> collectFields)
         {
             var key = new Key(selectionSet, type);

@@ -23,7 +23,7 @@ namespace HotChocolate.Execution
         private bool _hasCachedResolverResult;
         private IDictionary<string, object> _serializedResult;
         private FieldSelection _fieldSelection;
-        private Dictionary<string, ArgumentValue> _arguments;
+        private IReadOnlyDictionary<NameString, ArgumentValue> _arguments;
 
         public ITypeConversion Converter =>
             _executionContext.Converter;
@@ -64,7 +64,7 @@ namespace HotChocolate.Execution
             set;
         }
 
-        public FieldDelegate Middleware { get; private set; }
+        public FieldDelegate Middleware => _fieldSelection.Middleware;
 
         public Task Task { get; set; }
 
@@ -201,14 +201,14 @@ namespace HotChocolate.Execution
             return (T)_cachedResolverResult;
         }
 
-        public IReadOnlyCollection<FieldSelection> CollectFields(
+        public IReadOnlyCollection<IFieldSelection> CollectFields(
             ObjectType typeContext) =>
-            _executionContext.FieldHelper.CollectFields(
-                typeContext, FieldSelection.SelectionSet);
+            _executionContext.CollectFields(
+                typeContext, FieldSelection.SelectionSet, Path);
 
-        public IReadOnlyCollection<FieldSelection> CollectFields(
+        public IReadOnlyCollection<IFieldSelection> CollectFields(
             ObjectType typeContext, SelectionSetNode selectionSet) =>
-            _executionContext.FieldHelper.CollectFields(
-                typeContext, FieldSelection.SelectionSet);
+            _executionContext.CollectFields(
+                typeContext, FieldSelection.SelectionSet, Path);
     }
 }

@@ -199,9 +199,10 @@ namespace HotChocolate.Execution
                 .Push(executionContext.Operation.RootValue);
 
             IReadOnlyCollection<FieldSelection> fieldSelections =
-                executionContext.FieldHelper.CollectFields(
+                executionContext.CollectFields(
                     executionContext.Operation.RootType,
-                    executionContext.Operation.Definition.SelectionSet);
+                    executionContext.Operation.Definition.SelectionSet,
+                    null);
 
             int i = 0;
             ResolverContext[] batch =
