@@ -36,6 +36,11 @@ namespace HotChocolate.Execution
         DocumentNode Document { get; set; }
 
         /// <summary>
+        /// Gets or sets the cached query.
+        /// </summary>
+        ICachedQuery CachedQuery { get; set; }
+
+        /// <summary>
         /// Gets or sets the operation that shall be executed.
         /// </summary>
         IOperation Operation { get; set; }

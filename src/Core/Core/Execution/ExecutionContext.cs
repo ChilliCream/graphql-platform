@@ -15,7 +15,7 @@ namespace HotChocolate.Execution
         private readonly object _syncRoot = new object();
         private readonly IRequestContext _requestContext;
         private readonly FieldCollector _fieldCollector;
-        private readonly CachedQuery _cachedQuery;
+        private readonly ICachedQuery _cachedQuery;
 
         public ExecutionContext(
             ISchema schema,
@@ -32,7 +32,7 @@ namespace HotChocolate.Execution
 
             RequestAborted = requestAborted;
 
-            _cachedQuery = new CachedQuery("foo", operation.Document);
+            _cachedQuery = _requestContext.CachedQuery;
 
             ErrorHandler = requestContext.ServiceScope.ServiceProvider
                 .GetRequiredService<IErrorHandler>();

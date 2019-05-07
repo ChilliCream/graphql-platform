@@ -16,6 +16,7 @@ namespace HotChocolate.Execution
         public RequestContext(
             IRequestServiceScope serviceScope,
             Func<ObjectField, FieldNode, FieldDelegate> middlewareFactory,
+            ICachedQuery cachedQuery,
             IDictionary<string, object> contextData,
             QueryExecutionDiagnostics diagnostics)
         {
@@ -23,6 +24,8 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(serviceScope));
             _factory = middlewareFactory
                 ?? throw new ArgumentNullException(nameof(middlewareFactory));
+            CachedQuery = cachedQuery
+                ?? throw new ArgumentNullException(nameof(cachedQuery));
             ContextData = contextData
                 ?? throw new ArgumentNullException(nameof(contextData));
             Diagnostics = diagnostics
@@ -31,9 +34,11 @@ namespace HotChocolate.Execution
 
         public IRequestServiceScope ServiceScope { get; }
 
-        public IDictionary<string, object> ContextData { get; private set; }
+        public IDictionary<string, object> ContextData { get; }
 
         public QueryExecutionDiagnostics Diagnostics { get; }
+
+        public ICachedQuery CachedQuery { get; }
 
         public FieldDelegate ResolveMiddleware(
             ObjectField field,
@@ -47,6 +52,7 @@ namespace HotChocolate.Execution
             return new RequestContext(
                 ServiceScope,
                 _factory,
+                CachedQuery,
                 new ConcurrentDictionary<string, object>(ContextData),
                 Diagnostics);
         }

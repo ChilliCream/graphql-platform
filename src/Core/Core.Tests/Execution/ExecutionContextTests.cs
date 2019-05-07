@@ -95,6 +95,7 @@ namespace HotChocolate.Execution
             var requestContext = new RequestContext(
                 serviceScope,
                 (f, s) => null,
+                new CachedQuery("{ foo }", Utf8GraphQLParser.Parse("{ foo }")),
                 contextData,
                 diagnostics);
 

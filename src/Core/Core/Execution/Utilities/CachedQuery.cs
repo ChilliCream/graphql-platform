@@ -6,7 +6,9 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
+
     internal sealed partial class CachedQuery
+        : ICachedQuery
     {
         private ConcurrentDictionary<Key, IReadOnlyList<FieldSelection>> _flds =
             new ConcurrentDictionary<Key, IReadOnlyList<FieldSelection>>();

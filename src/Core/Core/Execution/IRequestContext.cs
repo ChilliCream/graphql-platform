@@ -12,6 +12,8 @@ namespace HotChocolate.Execution
 
         FieldDelegate ResolveMiddleware(ObjectField field, FieldNode selection);
 
+        ICachedQuery CachedQuery { get; }
+
         IDictionary<string, object> ContextData { get; }
 
         QueryExecutionDiagnostics Diagnostics { get; }

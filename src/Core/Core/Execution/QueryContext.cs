@@ -60,6 +60,8 @@ namespace HotChocolate.Execution
 
         public DocumentNode Document { get; set; }
 
+        public ICachedQuery CachedQuery { get; set; }
+
         public IOperation Operation { get; set; }
 
         public QueryValidationResult ValidationResult { get; set; }
@@ -84,5 +86,6 @@ namespace HotChocolate.Execution
                 _middlewareResolver = value;
             }
         }
+
     }
 }

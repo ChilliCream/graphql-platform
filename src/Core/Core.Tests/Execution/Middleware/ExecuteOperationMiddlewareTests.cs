@@ -77,6 +77,7 @@ namespace HotChocolate.Execution
                 (f,s) => f.Middleware
             )
             {
+                CachedQuery = new CachedQuery("{ a }", query),
                 Document = query,
                 Operation = operation
             };

@@ -34,7 +34,7 @@ namespace HotChocolate.Execution
             var middleware = new ParseQueryMiddleware(
                 c => Task.CompletedTask,
                 new DefaultQueryParser(),
-                new Cache<DocumentNode>(10),
+                new Cache<ICachedQuery>(10),
                 diagnostics);
 
             // act
@@ -68,7 +68,7 @@ namespace HotChocolate.Execution
             var middleware = new ParseQueryMiddleware(
                 c => Task.CompletedTask,
                 new DefaultQueryParser(),
-                new Cache<DocumentNode>(10),
+                new Cache<ICachedQuery>(10),
                 diagnostics);
 
             // act

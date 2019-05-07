@@ -77,6 +77,7 @@ namespace HotChocolate.Execution
                 (field, selection) =>
                     directives.GetOrCreateMiddleware(field, selection,
                     () => context.MiddlewareResolver.Invoke(field, selection)),
+                context.CachedQuery,
                 context.ContextData,
                 _diagnosticEvents
             );
