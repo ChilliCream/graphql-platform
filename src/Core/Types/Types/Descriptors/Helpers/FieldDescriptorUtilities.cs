@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Types.Descriptors.Definitions;
-using NJsonSchema.Infrastructure;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -32,7 +31,7 @@ namespace HotChocolate.Types.Descriptors
 
                     if (string.IsNullOrWhiteSpace(fieldDefinition.Description))
                     {
-                        fieldDefinition.Description = member.GetXmlSummaryAsync().GetAwaiter().GetResult();
+                        fieldDefinition.Description = member.GetXmlSummary();
                     }
                 }
             }
@@ -58,10 +57,9 @@ namespace HotChocolate.Types.Descriptors
                     if (!handledMembers.Contains(member)
                         && !fields.ContainsKey(fieldDefinition.Name))
                     {
-                        fieldDefinition.Description = member.GetXmlSummaryAsync().GetAwaiter().GetResult();
+                        fieldDefinition.Description = member.GetXmlSummary();
                         handledMembers.Add(member);
                         fields[fieldDefinition.Name] = fieldDefinition;
-                        
                     }
                 }
             }
@@ -91,22 +89,20 @@ namespace HotChocolate.Types.Descriptors
                                 .New(context, parameter)
                                 .CreateDefinition();
 
-                        var description = parameter.GetXmlDocumentationAsync()
-                            .GetAwaiter()
-                            .GetResult();
+                        var defaultDescription = parameter.GetXmlSummary();
                         
                         if (processed.Add(argumentDefinition.Name))
                         {
-                            argumentDefinition.Description = description;
+                            argumentDefinition.Description = defaultDescription;
                             arguments.Add(argumentDefinition);
                         }
                         else
                         {
-                            var existingParam = arguments.Single(p => p.Name.Equals(argumentDefinition.Name));
+                            var existingArgument = arguments.Single(a => a.Name.Equals(argumentDefinition.Name));
 
-                            if (string.IsNullOrWhiteSpace(existingParam.Description))
+                            if (string.IsNullOrWhiteSpace(existingArgument.Description))
                             {
-                                existingParam.Description = description;
+                                existingArgument.Description = defaultDescription;
                             }
                         }
                     }

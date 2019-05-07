@@ -91,7 +91,7 @@ namespace HotChocolate.Types.Descriptors
 
                 if (param != null)
                 {
-                    defaultDescription = param.GetXmlDocumentationAsync().GetAwaiter().GetResult();
+                    defaultDescription = param.GetXmlSummary();
                 }
             }
 

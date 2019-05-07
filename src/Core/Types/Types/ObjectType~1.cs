@@ -28,8 +28,8 @@ namespace HotChocolate.Types
             var descriptor = ObjectTypeDescriptor.New<T>(
                 DescriptorContext.Create(context.Services));
             
-            // Set the description before configure so that the user can override.
-            descriptor.Description(typeof(T).GetXmlSummaryAsync().GetAwaiter().GetResult());
+            // Set the description before _configure so that the user can override.
+            descriptor.Description(typeof(T).GetXmlSummary());
             
             _configure(descriptor);
             

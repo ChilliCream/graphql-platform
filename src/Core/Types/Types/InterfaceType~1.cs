@@ -29,7 +29,8 @@ namespace HotChocolate.Types
                 InterfaceTypeDescriptor.New<T>(
                     DescriptorContext.Create(context.Services));
             
-            descriptor.Description(typeof(T).GetXmlSummaryAsync().GetAwaiter().GetResult());
+            // Set the description before _configure so the user can override.
+            descriptor.Description(typeof(T).GetXmlSummary());
             
             _configure(descriptor);
             
