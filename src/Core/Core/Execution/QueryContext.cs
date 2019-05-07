@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using HotChocolate.Validation;
 
 namespace HotChocolate.Execution
@@ -11,14 +12,14 @@ namespace HotChocolate.Execution
     public class QueryContext
         : IQueryContext
     {
-        private Func<FieldSelection, FieldDelegate> _middlewareResolver;
+        private Func<ObjectField, FieldNode, FieldDelegate> _middlewareResolver;
         private IReadOnlyQueryRequest _request;
 
         public QueryContext(
             ISchema schema,
             IRequestServiceScope serviceScope,
             IReadOnlyQueryRequest request,
-            Func<FieldSelection, FieldDelegate> middlewareResolver)
+            Func<ObjectField, FieldNode, FieldDelegate> middlewareResolver)
         {
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
@@ -59,6 +60,8 @@ namespace HotChocolate.Execution
 
         public DocumentNode Document { get; set; }
 
+        public ICachedQuery CachedQuery { get; set; }
+
         public IOperation Operation { get; set; }
 
         public QueryValidationResult ValidationResult { get; set; }
@@ -69,7 +72,7 @@ namespace HotChocolate.Execution
 
         public Exception Exception { get; set; }
 
-        public Func<FieldSelection, FieldDelegate> MiddlewareResolver
+        public Func<ObjectField, FieldNode, FieldDelegate> MiddlewareResolver
         {
             get => _middlewareResolver;
             set
@@ -83,5 +86,6 @@ namespace HotChocolate.Execution
                 _middlewareResolver = value;
             }
         }
+
     }
 }

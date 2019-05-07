@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Language;
+using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -58,12 +61,10 @@ namespace HotChocolate.Execution
         /// </summary>
         CancellationToken RequestAborted { get; }
 
-        /// <summary>
-        /// Gets the field helper for collection fields
-        /// and creating a field middleware.
-        /// </summary>
-        /// <value></value>
-        IFieldHelper FieldHelper { get; }
+        IReadOnlyCollection<FieldSelection> CollectFields(
+            ObjectType objectType,
+            SelectionSetNode selectionSet,
+            Path path);
 
         /// <summary>
         /// Gets the activator helper class.
@@ -74,6 +75,12 @@ namespace HotChocolate.Execution
         /// Gets the diagnostics writer for query execution.
         /// </summary>
         QueryExecutionDiagnostics Diagnostics { get; }
+
+        /// <summary>
+        /// Gets the type conversion service.
+        /// </summary>
+        /// <value></value>
+        ITypeConversion Converter { get; }
 
         /// <summary>
         /// Adds an error thread-safe to the result object.

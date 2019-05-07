@@ -2,25 +2,30 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Language;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
     internal class RequestContext
         : IRequestContext
     {
-        private readonly Func<FieldSelection, FieldDelegate> _resolveMiddleware;
+        private readonly Func<ObjectField, FieldNode, FieldDelegate> _factory;
 
         public RequestContext(
             IRequestServiceScope serviceScope,
-            Func<FieldSelection, FieldDelegate> middlewareResolver,
+            Func<ObjectField, FieldNode, FieldDelegate> middlewareFactory,
+            ICachedQuery cachedQuery,
             IDictionary<string, object> contextData,
             QueryExecutionDiagnostics diagnostics)
         {
             ServiceScope = serviceScope
                 ?? throw new ArgumentNullException(nameof(serviceScope));
-            _resolveMiddleware = middlewareResolver
-                ?? throw new ArgumentNullException(nameof(middlewareResolver));
+            _factory = middlewareFactory
+                ?? throw new ArgumentNullException(nameof(middlewareFactory));
+            CachedQuery = cachedQuery
+                ?? throw new ArgumentNullException(nameof(cachedQuery));
             ContextData = contextData
                 ?? throw new ArgumentNullException(nameof(contextData));
             Diagnostics = diagnostics
@@ -29,20 +34,25 @@ namespace HotChocolate.Execution
 
         public IRequestServiceScope ServiceScope { get; }
 
-        public IDictionary<string, object> ContextData { get; private set; }
+        public IDictionary<string, object> ContextData { get; }
 
         public QueryExecutionDiagnostics Diagnostics { get; }
 
-        public FieldDelegate ResolveMiddleware(FieldSelection fieldSelection)
+        public ICachedQuery CachedQuery { get; }
+
+        public FieldDelegate ResolveMiddleware(
+            ObjectField field,
+            FieldNode selection)
         {
-            return _resolveMiddleware(fieldSelection);
+            return _factory(field, selection);
         }
 
         public IRequestContext Clone()
         {
             return new RequestContext(
                 ServiceScope,
-                _resolveMiddleware,
+                _factory,
+                CachedQuery,
                 new ConcurrentDictionary<string, object>(ContextData),
                 Diagnostics);
         }
