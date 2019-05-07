@@ -4,6 +4,7 @@ namespace HotChocolate.Types.Descriptors.Definitions
 {
     public class InterfaceFieldDefinition
         : OutputFieldDefinitionBase
+        , IHasMemberInfo
     {
         public MemberInfo Member { get; set; }
     }
