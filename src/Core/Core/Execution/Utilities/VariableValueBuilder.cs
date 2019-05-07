@@ -11,6 +11,8 @@ namespace HotChocolate.Execution
     // http://facebook.github.io/graphql/draft/#sec-Coercing-Variable-Values
     internal sealed class VariableValueBuilder
     {
+        private readonly static Dictionary<string, object> _empty =
+            new Dictionary<string, object>();
         private readonly ISchema _schema;
         private readonly OperationDefinitionNode _operation;
         private readonly ITypeConversion _converter;
@@ -45,18 +47,19 @@ namespace HotChocolate.Execution
         public VariableCollection CreateValues(
             IReadOnlyDictionary<string, object> variableValues)
         {
-            IReadOnlyDictionary<string, object> values =
-                variableValues ?? new Dictionary<string, object>();
-
+            var values = variableValues ?? _empty;
             var coercedValues = new Dictionary<string, object>();
 
-            foreach (VariableDefinitionNode variableDefinition in
-                _operation.VariableDefinitions)
+            if (_operation.VariableDefinitions.Count > 0)
             {
-                Variable variable = CreateVariable(variableDefinition);
-                variable = CoerceVariableValue(
-                    variableDefinition, values, variable);
-                coercedValues[variable.Name] = variable.Value;
+                foreach (VariableDefinitionNode variableDefinition in
+                    _operation.VariableDefinitions)
+                {
+                    Variable variable = CreateVariable(variableDefinition);
+                    variable = CoerceVariableValue(
+                        variableDefinition, values, variable);
+                    coercedValues[variable.Name] = variable.Value;
+                }
             }
 
             return new VariableCollection(_converter, coercedValues);
@@ -149,16 +152,22 @@ namespace HotChocolate.Execution
 
         private object DeserializeValue(IInputType type, object value)
         {
-            if (value is IDictionary<string, object>
-                || value is IList<object>)
-            {
-                return _inputTypeConverter.Convert(value, type);
-            }
-            else if (type.IsLeafType()
+            if (type.IsLeafType()
                 && type.NamedType() is ISerializableType serializable
                 && serializable.TryDeserialize(value, out object deserialized))
             {
                 return deserialized;
+            }
+
+            if (type.IsListType() && value is IList<object>)
+            {
+                return _inputTypeConverter.Convert(value, type);
+            }
+
+            if (type.IsInputObjectType()
+                && value is IDictionary<string, object>)
+            {
+                return _inputTypeConverter.Convert(value, type);
             }
 
             return value;
@@ -232,7 +241,7 @@ namespace HotChocolate.Execution
                 TypeResources.VariableValueBuilder_NodeKind);
         }
 
-        private class Variable
+        private ref struct Variable
         {
             public Variable(
                 string name,

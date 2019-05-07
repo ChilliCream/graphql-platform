@@ -1,0 +1,20 @@
+﻿[
+  {
+    "Message": "Argument `a` of non-null type `String!` must not be null.",
+    "Code": null,
+    "Path": [
+      "bar",
+      "bar"
+    ],
+    "Locations": [
+      {
+        "line": 1,
+        "column": 3
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "argument": "a"
+    }
+  }
+]
