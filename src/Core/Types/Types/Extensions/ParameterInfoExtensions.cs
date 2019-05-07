@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Threading.Tasks;
 using NJsonSchema.Infrastructure;
 
 namespace HotChocolate.Types
@@ -10,7 +11,7 @@ namespace HotChocolate.Types
         /// <returns>The contents of the "returns" or "param" tag.</returns>
         public static string GetXmlSummary(this ParameterInfo parameter)
         {
-            var summary = parameter.GetXmlDocumentationAsync()
+            var summary = Task.Run(parameter.GetXmlDocumentationAsync)
                 .GetAwaiter()
                 .GetResult();
             return string.IsNullOrWhiteSpace(summary) ? null : summary;

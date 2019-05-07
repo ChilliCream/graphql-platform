@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using NJsonSchema.Infrastructure;
@@ -434,13 +435,13 @@ namespace HotChocolate.Types
             throw new NotSupportedException(
                 TypeResources.TypeExtensions_KindIsNotSupported);
         }
-        
+
         /// <summary>Returns the contents of the "summary" XML documentation tag for the specified member.</summary>
         /// <param name="type">The type.</param>
         /// <returns>The contents of the "summary" tag for the member.</returns>
         public static string GetXmlSummary(this Type type)
         {
-            var summary = type.GetXmlSummaryAsync()
+            var summary = Task.Run(type.GetXmlSummaryAsync)
                 .GetAwaiter()
                 .GetResult();
             return string.IsNullOrWhiteSpace(summary) ? null : summary;

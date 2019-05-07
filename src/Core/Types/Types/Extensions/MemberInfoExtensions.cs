@@ -1,4 +1,5 @@
 using System.Reflection;
+using System.Threading.Tasks;
 using NJsonSchema.Infrastructure;
 
 namespace HotChocolate.Types
@@ -10,7 +11,7 @@ namespace HotChocolate.Types
         /// <returns>The contents of the "summary" tag for the member.</returns>
         public static string GetXmlSummary(this MemberInfo member)
         {
-            var summary = member.GetXmlSummaryAsync()
+            var summary = Task.Run(member.GetXmlSummaryAsync)
                 .GetAwaiter()
                 .GetResult();
             return string.IsNullOrWhiteSpace(summary) ? null : summary;
