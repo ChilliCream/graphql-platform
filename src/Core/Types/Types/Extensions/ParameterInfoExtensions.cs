@@ -1,7 +1,7 @@
 using System.Reflection;
 using NJsonSchema.Infrastructure;
 
-namespace HotChocolate
+namespace HotChocolate.Types
 {
     public static class ParameterInfoExtensions
     {
@@ -10,9 +10,10 @@ namespace HotChocolate
         /// <returns>The contents of the "returns" or "param" tag.</returns>
         public static string GetXmlSummary(this ParameterInfo parameter)
         {
-            return parameter.GetXmlDocumentationAsync()
+            var summary = parameter.GetXmlDocumentationAsync()
                 .GetAwaiter()
                 .GetResult();
+            return string.IsNullOrWhiteSpace(summary) ? null : summary;
         }
     }
 }

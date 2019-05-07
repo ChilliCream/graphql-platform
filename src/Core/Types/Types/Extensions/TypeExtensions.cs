@@ -440,9 +440,10 @@ namespace HotChocolate.Types
         /// <returns>The contents of the "summary" tag for the member.</returns>
         public static string GetXmlSummary(this Type type)
         {
-            return type.GetXmlSummaryAsync()
+            var summary = type.GetXmlSummaryAsync()
                 .GetAwaiter()
                 .GetResult();
+            return string.IsNullOrWhiteSpace(summary) ? null : summary;
         }
     }
 }

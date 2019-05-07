@@ -1,7 +1,7 @@
 using System.Reflection;
 using NJsonSchema.Infrastructure;
 
-namespace HotChocolate
+namespace HotChocolate.Types
 {
     public static class MemberInfoExtensions
     {
@@ -10,9 +10,10 @@ namespace HotChocolate
         /// <returns>The contents of the "summary" tag for the member.</returns>
         public static string GetXmlSummary(this MemberInfo member)
         {
-            return member.GetXmlSummaryAsync()
+            var summary = member.GetXmlSummaryAsync()
                 .GetAwaiter()
                 .GetResult();
+            return string.IsNullOrWhiteSpace(summary) ? null : summary;
         }
     }
 }
