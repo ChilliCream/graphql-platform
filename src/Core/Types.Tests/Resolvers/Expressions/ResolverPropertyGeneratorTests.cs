@@ -144,6 +144,72 @@ namespace HotChocolate.Resolvers.Expressions
             Assert.Equal("abc", result);
         }
 
+        [Fact]
+        public async Task Compile_ObjTaskProperty_Resolver()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetProperty("ObjectTaskStringProp");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+
+            // act
+            var compiler = new ResolverCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            string result = (string)await resolver.Resolver(context.Object);
+            Assert.Equal("ObjectTaskStringProp", result);
+        }
+
+        [Fact]
+        public async Task Compile_StringTaskProperty_Resolver()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetProperty("StringTaskResolverProp");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+
+            // act
+            var compiler = new ResolverCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            string result = (string)await resolver.Resolver(context.Object);
+            Assert.Equal("StringTaskResolverProp", result);
+        }
+
+        [Fact]
+        public async Task Compile_StringProperty_Resolver()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetProperty("StringProp");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+
+            // act
+            var compiler = new ResolverCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            string result = (string)await resolver.Resolver(context.Object);
+            Assert.Equal("StringProp", result);
+        }
+
         public class Resolvers
         {
             public Task<object> ObjectTaskResolver() =>
@@ -160,6 +226,14 @@ namespace HotChocolate.Resolvers.Expressions
             public string StringResolver() => "StringTaskResolver";
 
             public string StringResolverWithArg(string a) => a;
+
+            public Task<object> ObjectTaskStringProp { get; } =
+               Task.FromResult<object>("ObjectTaskStringProp");
+
+            public Task<string> StringTaskResolverProp { get; } =
+                Task.FromResult("StringTaskResolverProp");
+
+            public string StringProp { get; } = "StringProp";
         }
     }
 }
