@@ -76,12 +76,12 @@ namespace HotChocolate.Types.Descriptors
 
             if (memberInfo != null && (memberInfo.MemberType & MemberTypes.Method) != 0)
             {
-                MethodInfo m = memberInfo.DeclaringType?.GetMethod(memberInfo.Name);
-                ParameterInfo param = m?.GetParameters().SingleOrDefault(p => p.Name == name);
+                var methodInfo = memberInfo.DeclaringType?.GetMethod(memberInfo.Name);
+                var paramInfo = methodInfo?.GetParameters().SingleOrDefault(p => p.Name == name);
 
-                if (param != null)
+                if (paramInfo != null)
                 {
-                    defaultDescription = param.GetXmlSummary();
+                    defaultDescription = paramInfo.GetXmlSummary();
                 }
             }
 
