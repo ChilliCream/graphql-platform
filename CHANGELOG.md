@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Includes directive definitions in serialized schema [#717](https://github.com/ChilliCream/hotchocolate/issues/717)
+- Field types are now validated. [#713](https://github.com/ChilliCream/hotchocolate/issues/713)
 
 
 ## [0.8.2] - 2019-04-10
