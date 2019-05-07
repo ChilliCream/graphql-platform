@@ -72,6 +72,7 @@ namespace HotChocolate
             }
 
             IEnumerable<DirectiveDefinitionNode> directiveTypeDefinitions = schema.DirectiveTypes
+                .Where(t => referenced.Contains(t.Name))
                 .Select(t => SerializeDirectiveTypeDefinition(t, referenced));
 
             typeDefinitions.AddRange(directiveTypeDefinitions);
@@ -160,7 +161,7 @@ namespace HotChocolate
             }
 
             var directives = schema.Directives
-                .Select(t => t.ToNode())
+                .Select(t => SerializeDirective(t, referenced))
                 .ToList();
 
             return new SchemaDefinitionNode
@@ -204,7 +205,7 @@ namespace HotChocolate
                     return SerializeUnionType(type, referenced);
 
                 case EnumType type:
-                    return SerializeEnumType(type);
+                    return SerializeEnumType(type, referenced);
 
                 default:
                     throw new NotSupportedException();
@@ -216,7 +217,7 @@ namespace HotChocolate
             ISet<string> referenced)
         {
             var directives = objectType.Directives
-                .Select(t => t.ToNode())
+                .Select(t => SerializeDirective(t, referenced))
                 .ToList();
 
             var interfaces = objectType.Interfaces.Values
@@ -244,7 +245,7 @@ namespace HotChocolate
             ISet<string> referenced)
         {
             var directives = interfaceType.Directives
-                .Select(t => t.ToNode())
+                .Select(t => SerializeDirective(t, referenced))
                 .ToList();
 
             var fields = interfaceType.Fields
@@ -266,7 +267,7 @@ namespace HotChocolate
             ISet<string> referenced)
         {
             var directives = inputObjectType.Directives
-                .Select(t => t.ToNode())
+                .Select(t => SerializeDirective(t, referenced))
                 .ToList();
 
             var fields = inputObjectType.Fields
@@ -288,7 +289,7 @@ namespace HotChocolate
             ISet<string> referenced)
         {
             var directives = unionType.Directives
-                .Select(t => t.ToNode())
+                .Select(t => SerializeDirective(t, referenced))
                 .ToList();
 
             var types = unionType.Types.Values
@@ -306,10 +307,11 @@ namespace HotChocolate
         }
 
         private static EnumTypeDefinitionNode SerializeEnumType(
-            EnumType enumType)
+            EnumType enumType,
+            ISet<string> referenced)
         {
             var directives = enumType.Directives
-                .Select(t => t.ToNode())
+                .Select(t => SerializeDirective(t, referenced))
                 .ToList();
 
             var values = enumType.Values
@@ -360,7 +362,7 @@ namespace HotChocolate
                 .ToList();
 
             var directives = field.Directives
-                .Select(t => t.ToNode())
+                .Select(t => SerializeDirective(t, referenced))
                 .ToList();
 
             return new FieldDefinitionNode
@@ -385,7 +387,7 @@ namespace HotChocolate
                 SerializeDescription(inputValue.Description),
                 SerializeType(inputValue.Type, referenced),
                 inputValue.DefaultValue,
-                inputValue.Directives.Select(t => t.ToNode()).ToList()
+                inputValue.Directives.Select(t => SerializeDirective(t, referenced)).ToList()
             );
         }
 
@@ -420,6 +422,14 @@ namespace HotChocolate
         {
             referenced.Add(namedType.Name);
             return new NamedTypeNode(null, new NameNode(namedType.Name));
+        }
+
+        private static DirectiveNode SerializeDirective(
+            IDirective directiveType,
+            ISet<string> referenced)
+        {
+            referenced.Add(directiveType.Name);
+            return directiveType.ToNode();
         }
 
         private static StringValueNode SerializeDescription(string description)
