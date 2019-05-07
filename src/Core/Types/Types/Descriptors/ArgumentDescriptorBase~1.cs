@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -30,6 +31,15 @@ namespace HotChocolate.Types.Descriptors
         public void Type<TInputType>()
             where TInputType : IInputType
         {
+            Type type = Context.Inspector.ExtractType(typeof(TInputType));
+            if (Context.Inspector.IsSchemaType(type)
+                && !typeof(IInputType).IsAssignableFrom(type))
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "Input fields can only have an input type as type.");
+            }
+
             Definition.SetMoreSpecificType(
                 typeof(TInputType),
                 TypeContext.Input);
@@ -42,6 +52,14 @@ namespace HotChocolate.Types.Descriptors
             {
                 throw new ArgumentNullException(nameof(inputType));
             }
+
+            if (!inputType.IsInputType())
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "Input fields can only have an input type as type.");
+            }
+
             Definition.Type = new SchemaTypeReference(inputType);
         }
 

@@ -1150,6 +1150,40 @@ namespace HotChocolate.Types
             Assert.Throws<ArgumentNullException>(a);
         }
 
+        [Fact]
+        public void DoNotAllow_InputTypes_OnFields()
+        {
+            // arrange
+            // act
+            Action a = () => SchemaBuilder.New()
+                .AddType(new ObjectType(t => t
+                    .Name("Foo")
+                    .Field("bar")
+                    .Type<NonNullType<InputObjectType<Foo>>>()))
+                .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(a)
+                .Errors.First().Message.MatchSnapshot();
+        }
+
+         [Fact]
+        public void DoNotAllow_DynamicInputTypes_OnFields()
+        {
+            // arrange
+            // act
+            Action a = () => SchemaBuilder.New()
+                .AddType(new ObjectType(t => t
+                    .Name("Foo")
+                    .Field("bar")
+                    .Type(new NonNullType(new InputObjectType<Foo>()))))
+                .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(a)
+                .Errors.First().Message.MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
