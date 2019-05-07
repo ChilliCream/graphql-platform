@@ -11,7 +11,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    // TODO : FIX the object renting
+    // TODO : FIX the object
     internal partial class ResolverContext
         : IShared
     {
