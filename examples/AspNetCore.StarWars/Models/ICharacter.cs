@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace StarWars.Models
 {
@@ -17,10 +17,19 @@ namespace StarWars.Models
         /// </summary>
         string Name { get; }
 
+        /// <summary>
+        /// The names of the character's friends.
+        /// </summary>
         IReadOnlyList<string> Friends { get; }
 
+        /// <summary>
+        /// The episodes the character appears in.
+        /// </summary>
         IReadOnlyList<Episode> AppearsIn { get; }
 
+        /// <summary>
+        /// The height of the character.
+        /// </summary>
         double Height { get; }
     }
 }

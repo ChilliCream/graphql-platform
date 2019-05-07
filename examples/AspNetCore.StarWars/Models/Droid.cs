@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace StarWars.Models
 {
@@ -14,12 +14,18 @@ namespace StarWars.Models
         /// <inheritdoc />
         public string Name { get; set; }
 
+        /// <inheritdoc />
         public IReadOnlyList<string> Friends { get; set; }
 
+        /// <inheritdoc />
         public IReadOnlyList<Episode> AppearsIn { get; set; }
 
+        /// <summary>
+        /// The droid's primary function.
+        /// </summary>
         public string PrimaryFunction { get; set; }
 
+        /// <inheritdoc />
         public double Height { get; } = 1.72d;
     }
 }

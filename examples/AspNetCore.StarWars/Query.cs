@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using StarWars.Data;
@@ -16,16 +16,31 @@ namespace StarWars
                 ?? throw new ArgumentNullException(nameof(repository));
         }
 
+        /// <summary>
+        /// Retrieve a hero by a particular Star Wars episode.
+        /// </summary>
+        /// <param name="episode">The episode to look up by.</param>
+        /// <returns>The character.</returns>
         public ICharacter GetHero(Episode episode)
         {
             return _repository.GetHero(episode);
         }
 
+        /// <summary>
+        /// Gets a human by Id.
+        /// </summary>
+        /// <param name="id">The Id of the human to retrieve.</param>
+        /// <returns>The human.</returns>
         public Human GetHuman(string id)
         {
             return _repository.GetHuman(id);
         }
 
+        /// <summary>
+        /// Get a particular droid by Id.
+        /// </summary>
+        /// <param name="id">The Id of the droid.</param>
+        /// <returns>The droid.</returns>
         public Droid GetDroid(string id)
         {
             return _repository.GetDroid(id);
