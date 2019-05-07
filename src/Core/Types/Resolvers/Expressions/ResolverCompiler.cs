@@ -152,7 +152,7 @@ namespace HotChocolate.Resolvers.Expressions
             {
                 return WrapResult(
                     resolverExpression,
-                    resultType.GetGenericArguments().First());
+                    resultType);
             }
         }
 
