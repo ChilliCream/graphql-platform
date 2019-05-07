@@ -100,11 +100,11 @@ namespace HotChocolate.Execution
         public Task<T> ResolveAsync<T>() =>
             _middlewareContext.ResolveAsync<T>();
 
-        public IReadOnlyCollection<FieldSelection> CollectFields(
+        public IReadOnlyCollection<IFieldSelection> CollectFields(
             ObjectType typeContext) =>
             _middlewareContext.CollectFields(typeContext);
 
-        public IReadOnlyCollection<FieldSelection> CollectFields(
+        public IReadOnlyCollection<IFieldSelection> CollectFields(
             ObjectType typeContext, SelectionSetNode selectionSet) =>
             _middlewareContext.CollectFields(
                 typeContext, FieldSelection.SelectionSet);

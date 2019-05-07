@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added new UTF-8 parser
 - Added support for schema directives. [spec](https://graphql.github.io/graphql-spec/June2018/#sec-Schema)
 
+### Removed
+
+- Removed obsolete QueryDocument from IResolverContext.
+- Removed obsolete CancellationToken from IResolverContext
+
 ## [0.8.2] - 2019-04-10
 
 ### Fixed
