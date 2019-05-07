@@ -1,6 +1,9 @@
-﻿using System;
+using System;
+using System.Linq;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using NJsonSchema.Infrastructure;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -68,6 +71,31 @@ namespace HotChocolate.Types.Descriptors
             var descriptor = new ArgumentDescriptor(
                 Context,
                 name.EnsureNotEmpty(nameof(name)));
+            var defaultDescription = string.Empty;
+            MemberInfo memberDetails = null;
+
+            switch (Definition)
+            {
+                case ObjectFieldDefinition objectFieldDefinition:
+                    memberDetails = objectFieldDefinition.Member;
+                    break;
+                case InterfaceFieldDefinition interfaceDefinition:
+                    memberDetails = interfaceDefinition.Member;
+                    break;
+            }
+
+            if (memberDetails != null && (memberDetails.MemberType & MemberTypes.Method) != 0)
+            {
+                MethodInfo m = memberDetails.DeclaringType.GetMethod(memberDetails.Name);
+                ParameterInfo param = m.GetParameters().SingleOrDefault(p => p.Name == name);
+
+                if (param != null)
+                {
+                    defaultDescription = param.GetXmlDocumentationAsync().GetAwaiter().GetResult();
+                }
+            }
+
+            descriptor.Description(defaultDescription);
             argument(descriptor);
             Definition.Arguments.Add(descriptor.CreateDefinition());
         }
