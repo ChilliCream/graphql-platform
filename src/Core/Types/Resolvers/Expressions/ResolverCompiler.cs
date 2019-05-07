@@ -24,7 +24,10 @@ namespace HotChocolate.Resolvers.Expressions
         private readonly ParameterExpression _context;
         private readonly MethodInfo _taskResult;
 
-
+        public ResolverCompiler()
+            : this(ParameterCompilerFactory.CreateForResolverContext())
+        {
+        }
 
         public ResolverCompiler(
             IEnumerable<IResolverParameterCompiler> compilers)

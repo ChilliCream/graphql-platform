@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Resolvers.Expressions.Parameters;
+using Moq;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -17,22 +18,21 @@ namespace HotChocolate.Resolvers.Expressions
         public async Task ResolverPropertyGenerator_Generate()
         {
             // arrange
-            Type sourceType = typeof(Resolvers);
-
-            var compiler = new ResolverCompiler(
-                Array.Empty<IResolverParameterCompiler>());
-
-            Expression instance = Expression.Constant(new Resolvers());
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember = type.GetMethod("ObjectTaskResolver");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
 
             // act
-            Func<IResolverContext, Task<object>> resolver =
-                compiler.CreateResolver(
-                    instance,
-                    sourceType.GetMember("ObjectTaskResolver").First(),
-                    typeof(Resolvers));
+            var compiler = new ResolverCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
 
             // assert
-            Assert.Equal("ObjectResolverResult", (string)await resolver(null));
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            string result = (string)await resolver.Resolver(context.Object);
+            Assert.Equal("ObjectResolverResult", result);
         }
 
         public class Resolvers

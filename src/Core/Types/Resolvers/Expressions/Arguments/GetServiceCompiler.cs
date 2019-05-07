@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
@@ -9,8 +10,9 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
     {
         public GetServiceCompiler()
         {
-            GenericMethod = ContextTypeInfo.GetDeclaredMethod(
-                nameof(IResolverContext.Service));
+            GenericMethod = ContextTypeInfo.GetDeclaredMethods(
+                nameof(IResolverContext.Service))
+                .First(t => t.IsGenericMethod);
         }
 
         public override bool CanHandle(
