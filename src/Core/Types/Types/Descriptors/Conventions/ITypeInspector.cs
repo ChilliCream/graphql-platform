@@ -10,5 +10,7 @@ namespace HotChocolate.Types.Descriptors
         IEnumerable<MemberInfo> GetMembers(Type type);
         ITypeReference GetReturnType(MemberInfo member, TypeContext context);
         IEnumerable<object> GetEnumValues(Type enumType);
+        Type ExtractType(Type type);
+        bool IsSchemaType(Type type);
     }
 }

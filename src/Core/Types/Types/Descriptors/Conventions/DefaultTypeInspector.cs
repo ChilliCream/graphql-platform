@@ -3,12 +3,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
     public class DefaultTypeInspector
         : ITypeInspector
     {
+        private readonly TypeInspector _typeInspector =
+            new TypeInspector();
+
         public virtual IEnumerable<MemberInfo> GetMembers(Type type)
         {
             if (type == null)
@@ -123,5 +127,17 @@ namespace HotChocolate.Types.Descriptors
         {
             return member.IsDefined(typeof(GraphQLIgnoreAttribute));
         }
+
+        public Type ExtractType(Type type)
+        {
+            if (_typeInspector.TryCreate(type, out Utilities.TypeInfo typeInfo))
+            {
+                return typeInfo.ClrType;
+            }
+            return type;
+        }
+
+        public bool IsSchemaType(Type type) =>
+            BaseTypes.IsSchemaType(type);
     }
 }

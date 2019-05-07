@@ -9,9 +9,6 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<TDefinition>
         where TDefinition : OutputFieldDefinitionBase
     {
-        private static readonly TypeInspector _typeInspector =
-            new TypeInspector();
-
         protected OutputFieldDescriptorBase(IDescriptorContext context)
             : base(context)
         {
@@ -36,22 +33,18 @@ namespace HotChocolate.Types.Descriptors
         protected void Type<TOutputType>()
             where TOutputType : IOutputType
         {
-            if (_typeInspector.TryCreate(
-                typeof(TOutputType),
-                out TypeInfo typeInfo))
+            Type type = Context.Inspector.ExtractType(typeof(TOutputType));
+            if (Context.Inspector.IsSchemaType(type)
+                && !typeof(IOutputType).IsAssignableFrom(type))
             {
-                if (BaseTypes.IsSchemaType(typeInfo.ClrType)
-                    && !typeof(IOutputType).IsAssignableFrom(typeInfo.ClrType))
-                {
-                    // TODO : resources
-                    throw new ArgumentException(
-                        "Output fields can only have an output type as type.");
-                }
-
-                Definition.SetMoreSpecificType(
-                    typeof(TOutputType),
-                    TypeContext.Output);
+                // TODO : resources
+                throw new ArgumentException(
+                    "Output fields can only have an output type as type.");
             }
+
+            Definition.SetMoreSpecificType(
+                typeof(TOutputType),
+                TypeContext.Output);
         }
 
         protected void Type<TOutputType>(TOutputType outputType)
