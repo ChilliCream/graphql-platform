@@ -71,6 +71,11 @@ namespace HotChocolate
                     SerializeSchemaTypeDefinition(schema, referenced));
             }
 
+            IEnumerable<DirectiveDefinitionNode> directiveTypeDefinitions = schema.DirectiveTypes
+                .Select(t => SerializeDirectiveTypeDefinition(t, referenced));
+
+            typeDefinitions.AddRange(directiveTypeDefinitions);
+
             IEnumerable<ScalarTypeDefinitionNode> scalarTypeDefinitions = schema.Types
                 .OfType<ScalarType>()
                 .Where(t => referenced.Contains(t.Name))
@@ -101,6 +106,27 @@ namespace HotChocolate
             }
 
             return true;
+        }
+
+        private static DirectiveDefinitionNode SerializeDirectiveTypeDefinition(DirectiveType directiveType, ISet<string> referenced)
+        {
+            var arguments = directiveType.Arguments
+               .Select(t => SerializeInputField(t, referenced))
+               .ToList();
+
+            var locations = directiveType.Locations
+                .Select(l => new NameNode(l.ToString()))
+                .ToList();
+
+            return new DirectiveDefinitionNode
+            (
+                null,
+                new NameNode(directiveType.Name),
+                SerializeDescription(directiveType.Description),
+                directiveType.IsRepeatable,
+                arguments,
+                locations
+            );
         }
 
         private static SchemaDefinitionNode SerializeSchemaTypeDefinition(
