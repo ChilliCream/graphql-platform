@@ -597,6 +597,122 @@ namespace HotChocolate.Resolvers.Expressions
             Assert.True(result);
         }
 
+        [Fact]
+        public async Task Compile_Arguments_ObjectField()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("ResolverWithObjectField");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+
+            // act
+            var compiler = new ResolverCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { a: String }")
+                .AddResolver("Query", "a", "foo")
+                .Create(); ;
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>())
+                .Returns(new Resolvers());
+            context.SetupGet(t => t.Field)
+                .Returns(queryType.Fields.First());
+            bool result = (bool)await resolver.Resolver(context.Object);
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task Compile_Arguments_IOutputField()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("ResolverWithOutputField");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+
+            // act
+            var compiler = new ResolverCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { a: String }")
+                .AddResolver("Query", "a", "foo")
+                .Create(); ;
+            ObjectType queryType = schema.GetType<ObjectType>("Query");
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>())
+                .Returns(new Resolvers());
+            context.SetupGet(t => t.Field)
+                .Returns(queryType.Fields.First());
+            bool result = (bool)await resolver.Resolver(context.Object);
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task Compile_Arguments_Document()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("ResolverWithDocument");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+
+            // act
+            var compiler = new ResolverCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>())
+                .Returns(new Resolvers());
+            context.SetupGet(t => t.Document)
+                .Returns(new DocumentNode(
+                    null,
+                    Array.Empty<IDefinitionNode>()));
+            bool result = (bool)await resolver.Resolver(context.Object);
+            Assert.True(result);
+        }
+
+        [Fact]
+        public async Task Compile_Arguments_Schema()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("ResolverWithSchema");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+
+            // act
+            var compiler = new ResolverCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString("type Query { a: String }")
+                .AddResolver("Query", "a", "foo")
+                .Create(); ;
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>())
+                .Returns(new Resolvers());
+            context.SetupGet(t => t.Schema)
+                .Returns(schema);
+            bool result = (bool)await resolver.Resolver(context.Object);
+            Assert.True(result);
+        }
+
         public class Resolvers
         {
             public Task<object> ObjectTaskResolver() =>
@@ -645,6 +761,22 @@ namespace HotChocolate.Resolvers.Expressions
             public bool ResolverWithOperationDefinition(
                 OperationDefinitionNode operationDefinition) =>
                 operationDefinition != null;
+
+            public bool ResolverWithObjectField(
+                ObjectField objectField) =>
+                objectField != null;
+
+            public bool ResolverWithOutputField(
+                IOutputField outputField) =>
+                outputField != null;
+
+            public bool ResolverWithDocument(
+                DocumentNode document) =>
+                document != null;
+
+            public bool ResolverWithSchema(
+                ISchema schema) =>
+                schema != null;
         }
 
         public class Entity { }
