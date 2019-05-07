@@ -29,7 +29,11 @@ namespace HotChocolate.Types
             var descriptor =
                 InputObjectTypeDescriptor.New<T>(
                     DescriptorContext.Create(context.Services));
+
+            descriptor.Description(typeof(T).GetXmlSummary());
+
             _configure(descriptor);
+
             return descriptor.CreateDefinition();
         }
 
