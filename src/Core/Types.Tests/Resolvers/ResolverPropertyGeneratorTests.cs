@@ -713,6 +713,31 @@ namespace HotChocolate.Resolvers.Expressions
             Assert.True(result);
         }
 
+        [Fact]
+        public async Task Compile_Arguments_Service()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("ResolverWithService");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+
+            // act
+            var compiler = new ResolverCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>())
+                .Returns(new Resolvers());
+            context.Setup(t => t.Service<MyService>())
+                .Returns(new MyService());
+            bool result = (bool)await resolver.Resolver(context.Object);
+            Assert.True(result);
+        }
+
         public class Resolvers
         {
             public Task<object> ObjectTaskResolver() =>
@@ -777,8 +802,14 @@ namespace HotChocolate.Resolvers.Expressions
             public bool ResolverWithSchema(
                 ISchema schema) =>
                 schema != null;
+
+            public bool ResolverWithService(
+                [Service]MyService service) =>
+                service != null;
         }
 
         public class Entity { }
+
+        public class MyService { }
     }
 }
