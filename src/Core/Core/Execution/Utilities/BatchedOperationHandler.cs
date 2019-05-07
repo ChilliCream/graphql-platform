@@ -35,24 +35,19 @@ namespace HotChocolate.Execution
         }
 
         public async Task CompleteAsync(
-            IReadOnlyCollection<Task> tasks,
+            Memory<Task> tasks,
             CancellationToken cancellationToken)
         {
-            if (tasks == null)
-            {
-                throw new ArgumentNullException(nameof(tasks));
-            }
-
-            if (tasks.Count == 0 || tasks.All(IsFinished))
+            if (tasks.Length == 0 || All(tasks.Span, IsFinished))
             {
                 return;
             }
 
-            SubscribeToTasks(tasks);
+            SubscribeToTasks(tasks.Span);
             await InvokeBatchOperationsAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            if (tasks.Any(IsInProgress))
+            if (All(tasks.Span, IsInProgress))
             {
                 _completed = new TaskCompletionSource<bool>(
                     TaskCreationOptions.RunContinuationsAsynchronously);
@@ -62,19 +57,19 @@ namespace HotChocolate.Execution
         }
 
         private void StartCompleteTask(
-            IReadOnlyCollection<Task> tasks,
+            Memory<Task> tasks,
             CancellationToken cancellationToken)
         {
             Task.Run(() => CompleteTasksAsync(tasks, cancellationToken));
         }
 
         private async Task CompleteTasksAsync(
-            IReadOnlyCollection<Task> tasks,
+            Memory<Task> tasks,
             CancellationToken cancellationToken)
         {
             try
             {
-                while (tasks.Any(IsInProgress))
+                while (Any(tasks.Span, IsInProgress))
                 {
                     await _processSync.WaitAsync(cancellationToken)
                         .ConfigureAwait(false);
@@ -123,7 +118,7 @@ namespace HotChocolate.Execution
         }
 
         private void SubscribeToTasks(
-            IReadOnlyCollection<Task> tasks)
+            in ReadOnlySpan<Task> tasks)
         {
             foreach (Task task in tasks)
             {
@@ -168,6 +163,34 @@ namespace HotChocolate.Execution
 
                 ReleaseProcessSyncIfNeeded();
             }
+        }
+
+        private static bool All(
+            ReadOnlySpan<Task> tasks,
+            Func<Task, bool> predicate)
+        {
+            for (int i = 0; i < tasks.Length; i++)
+            {
+                if (!predicate(tasks[i]))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private static bool Any(
+            ReadOnlySpan<Task> tasks,
+            Func<Task, bool> predicate)
+        {
+            for (int i = 0; i < tasks.Length; i++)
+            {
+                if (predicate(tasks[i]))
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private static bool IsInProgress(Task task) => !IsFinished(task);

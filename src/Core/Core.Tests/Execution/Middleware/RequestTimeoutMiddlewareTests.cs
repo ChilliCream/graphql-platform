@@ -33,7 +33,7 @@ namespace HotChocolate.Execution
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
                 request,
-                fs => fs.Field.Middleware
+                (f,s) => f.Middleware
             );
 
             var middleware = new RequestTimeoutMiddleware(

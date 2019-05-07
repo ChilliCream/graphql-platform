@@ -33,17 +33,25 @@ namespace HotChocolate.Execution
             }
             catch (SyntaxException ex)
             {
+                IError error = _errorHandler.CreateUnexpectedError(ex)
+                    .SetMessage(ex.Message)
+                    .AddLocation(ex.Line, ex.Column)
+                    .Build();
+
+                error = _errorHandler.Handle(error);
+
                 context.Exception = ex;
-                context.Result = QueryResult.CreateError(
-                    _errorHandler.Handle(ex, builder => builder
-                        .SetMessage(ex.Message)
-                        .AddLocation(ex.Line, ex.Column)));
+                context.Result = QueryResult.CreateError(error);
             }
             catch (Exception ex)
             {
+                IError error = _errorHandler.CreateUnexpectedError(ex)
+                    .Build();
+
+                error = _errorHandler.Handle(error);
+
                 context.Exception = ex;
-                context.Result = QueryResult.CreateError(
-                    _errorHandler.Handle(ex));
+                context.Result = QueryResult.CreateError(error);
             }
         }
     }
