@@ -176,6 +176,10 @@ namespace HotChocolate.Resolvers.Expressions
     {
         public static async Task<object> AwaitHelper<T>(Task<T> task)
         {
+            if (task == null)
+            {
+                return null;
+            }
             return await task;
         }
 
