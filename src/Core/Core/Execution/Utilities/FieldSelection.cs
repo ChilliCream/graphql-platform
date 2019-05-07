@@ -11,6 +11,8 @@ namespace HotChocolate.Execution
     public sealed class FieldSelection
         : IFieldSelection
     {
+        private static IReadOnlyDictionary<NameString, ArgumentValue> _empty =
+            ImmutableDictionary<NameString, ArgumentValue>.Empty;
         private readonly IReadOnlyDictionary<NameString, ArgumentValue> _args;
         private readonly IReadOnlyDictionary<NameString, VariableValue> _varArgs;
         private readonly IReadOnlyList<FieldVisibility> _visibility;
@@ -19,7 +21,7 @@ namespace HotChocolate.Execution
 
         internal FieldSelection(FieldInfo fieldInfo)
         {
-            _args = fieldInfo.Arguments;
+            _args = fieldInfo.Arguments ?? _empty;
             _varArgs = fieldInfo.VarArguments;
             _visibility = fieldInfo.Visibilities;
             _path = fieldInfo.Path;
@@ -66,9 +68,7 @@ namespace HotChocolate.Execution
                 return _args;
             }
 
-            var args = _args == null
-                ? new Dictionary<NameString, ArgumentValue>()
-                : _args.ToDictionary(t => t.Key, t => t.Value);
+            var args = _args.ToDictionary(t => t.Key, t => t.Value);
 
             foreach (KeyValuePair<NameString, VariableValue> var in _varArgs)
             {
