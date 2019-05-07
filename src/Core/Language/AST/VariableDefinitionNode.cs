@@ -43,7 +43,6 @@ namespace HotChocolate.Language
                 DefaultValue);
         }
 
-
         public VariableDefinitionNode WithType(ITypeNode type)
         {
             return new VariableDefinitionNode(

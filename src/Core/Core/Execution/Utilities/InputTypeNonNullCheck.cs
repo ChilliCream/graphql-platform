@@ -10,8 +10,7 @@ namespace HotChocolate.Execution
 {
     internal static class InputTypeNonNullCheck
     {
-
-        public static void CheckForNullValueViolation(
+        public static IError CheckForNullValueViolation(
             NameString argumentName,
             IType type,
             object value,
@@ -19,14 +18,15 @@ namespace HotChocolate.Execution
         {
             if (type is NonNullType && value == null)
             {
-                throw new QueryException(createError(string.Format(
+                return createError(string.Format(
                     CultureInfo.InvariantCulture,
                     TypeResources.ArgumentValueBuilder_NonNull,
                     argumentName,
-                    TypeVisualizer.Visualize(type))));
+                    TypeVisualizer.Visualize(type)));
             }
 
-            CheckForNullValueViolation(type, value, createError);
+            return CheckForNullValueViolation(
+                type, value, new HashSet<object>(), createError);
         }
 
         public static void CheckForNullValueViolation(
@@ -34,11 +34,16 @@ namespace HotChocolate.Execution
             object value,
             Func<string, IError> createError)
         {
-            CheckForNullValueViolation(
+            IError error = CheckForNullValueViolation(
                 type, value, new HashSet<object>(), createError);
+
+            if (error != null)
+            {
+                throw new QueryException(error);
+            }
         }
 
-        private static void CheckForNullValueViolation(
+        private static IError CheckForNullValueViolation(
             IType type,
             object value,
             ISet<object> processed,
@@ -48,14 +53,14 @@ namespace HotChocolate.Execution
             {
                 if (type.IsNonNullType())
                 {
-                    throw CreateError(createError, type);
+                    return CreateError(createError, type);
                 }
-                return;
+                return null;
             }
 
             if (type.IsListType())
             {
-                CheckForNullListViolation(
+                return CheckForNullListViolation(
                     type.ListType(),
                     value,
                     processed,
@@ -65,15 +70,17 @@ namespace HotChocolate.Execution
             if (type.IsInputObjectType()
                 && type.NamedType() is InputObjectType t)
             {
-                CheckForNullFieldViolation(
+                return CheckForNullFieldViolation(
                     t,
                     value,
                     processed,
                     createError);
             }
+
+            return null;
         }
 
-        private static void CheckForNullFieldViolation(
+        private static IError CheckForNullFieldViolation(
             InputObjectType type,
             object value,
             ISet<object> processed,
@@ -81,18 +88,24 @@ namespace HotChocolate.Execution
         {
             if (!processed.Add(value))
             {
-                return;
+                return null;
             }
 
             foreach (InputField field in type.Fields)
             {
                 object fieldValue = field.GetValue(value);
-                CheckForNullValueViolation(
+                IError error = CheckForNullValueViolation(
                     field.Type, fieldValue, processed, createError);
+                if (error != null)
+                {
+                    return error;
+                }
             }
+
+            return null;
         }
 
-        private static void CheckForNullListViolation(
+        private static IError CheckForNullListViolation(
             ListType type,
             object value,
             ISet<object> processed,
@@ -102,20 +115,25 @@ namespace HotChocolate.Execution
 
             foreach (object item in (IEnumerable)value)
             {
-                CheckForNullValueViolation(
+                IError error = CheckForNullValueViolation(
                     elementType, item, processed, createError);
+                if (error != null)
+                {
+                    return error;
+                }
             }
+
+            return null;
         }
 
-        private static QueryException CreateError(
+        private static IError CreateError(
             Func<string, IError> createError,
             IType type)
         {
-            return new QueryException(
-                createError(string.Format(
-                    CultureInfo.InvariantCulture,
-                    TypeResources.InputTypeNonNullCheck_ValueIsNull,
-                    TypeVisualizer.Visualize(type))));
+            return createError(string.Format(
+                CultureInfo.InvariantCulture,
+                TypeResources.InputTypeNonNullCheck_ValueIsNull,
+                TypeVisualizer.Visualize(type)));
         }
     }
 }
