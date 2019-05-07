@@ -56,7 +56,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(schema));
             }
 
-            var referenced = new HashSet<string>();
+            var referenced = new ReferencedTypes();
 
             var typeDefinitions = GetNonScalarTypes(schema)
                 .Select(t => SerializeNonScalarTypeDefinition(t, referenced))
@@ -72,14 +72,14 @@ namespace HotChocolate
             }
 
             IEnumerable<DirectiveDefinitionNode> directiveTypeDefinitions = schema.DirectiveTypes
-                .Where(t => referenced.Contains(t.Name))
+                .Where(t => referenced.DirectiveNames.Contains(t.Name))
                 .Select(t => SerializeDirectiveTypeDefinition(t, referenced));
 
             typeDefinitions.AddRange(directiveTypeDefinitions);
 
             IEnumerable<ScalarTypeDefinitionNode> scalarTypeDefinitions = schema.Types
                 .OfType<ScalarType>()
-                .Where(t => referenced.Contains(t.Name))
+                .Where(t => referenced.TypeNames.Contains(t.Name))
                 .Select(t => SerializeScalarType(t));
 
             typeDefinitions.AddRange(scalarTypeDefinitions);
@@ -109,7 +109,7 @@ namespace HotChocolate
             return true;
         }
 
-        private static DirectiveDefinitionNode SerializeDirectiveTypeDefinition(DirectiveType directiveType, ISet<string> referenced)
+        private static DirectiveDefinitionNode SerializeDirectiveTypeDefinition(DirectiveType directiveType, ReferencedTypes referenced)
         {
             var arguments = directiveType.Arguments
                .Select(t => SerializeInputField(t, referenced))
@@ -132,7 +132,7 @@ namespace HotChocolate
 
         private static SchemaDefinitionNode SerializeSchemaTypeDefinition(
             ISchema schema,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             var operations = new List<OperationTypeDefinitionNode>();
 
@@ -176,7 +176,7 @@ namespace HotChocolate
         private static OperationTypeDefinitionNode SerializeOperationType(
            ObjectType type,
            OperationType operation,
-           ISet<string> referenced)
+           ReferencedTypes referenced)
         {
             return new OperationTypeDefinitionNode
             (
@@ -188,7 +188,7 @@ namespace HotChocolate
 
         private static ITypeDefinitionNode SerializeNonScalarTypeDefinition(
             INamedType namedType,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             switch (namedType)
             {
@@ -214,7 +214,7 @@ namespace HotChocolate
 
         private static ObjectTypeDefinitionNode SerializeObjectType(
             ObjectType objectType,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             var directives = objectType.Directives
                 .Select(t => SerializeDirective(t, referenced))
@@ -242,7 +242,7 @@ namespace HotChocolate
 
         private static InterfaceTypeDefinitionNode SerializeInterfaceType(
             InterfaceType interfaceType,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             var directives = interfaceType.Directives
                 .Select(t => SerializeDirective(t, referenced))
@@ -264,7 +264,7 @@ namespace HotChocolate
 
         private static InputObjectTypeDefinitionNode SerializeInputObjectType(
             InputObjectType inputObjectType,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             var directives = inputObjectType.Directives
                 .Select(t => SerializeDirective(t, referenced))
@@ -286,7 +286,7 @@ namespace HotChocolate
 
         private static UnionTypeDefinitionNode SerializeUnionType(
             UnionType unionType,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             var directives = unionType.Directives
                 .Select(t => SerializeDirective(t, referenced))
@@ -308,7 +308,7 @@ namespace HotChocolate
 
         private static EnumTypeDefinitionNode SerializeEnumType(
             EnumType enumType,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             var directives = enumType.Directives
                 .Select(t => SerializeDirective(t, referenced))
@@ -355,7 +355,7 @@ namespace HotChocolate
 
         private static FieldDefinitionNode SerializeObjectField(
             IOutputField field,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             var arguments = field.Arguments
                 .Select(t => SerializeInputField(t, referenced))
@@ -378,7 +378,7 @@ namespace HotChocolate
 
         private static InputValueDefinitionNode SerializeInputField(
             IInputField inputValue,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             return new InputValueDefinitionNode
             (
@@ -393,7 +393,7 @@ namespace HotChocolate
 
         private static ITypeNode SerializeType(
             IType type,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             if (type is NonNullType nt)
             {
@@ -418,17 +418,17 @@ namespace HotChocolate
 
         private static NamedTypeNode SerializeNamedType(
             INamedType namedType,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
-            referenced.Add(namedType.Name);
+            referenced.TypeNames.Add(namedType.Name);
             return new NamedTypeNode(null, new NameNode(namedType.Name));
         }
 
         private static DirectiveNode SerializeDirective(
             IDirective directiveType,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
-            referenced.Add(directiveType.Name);
+            referenced.DirectiveNames.Add(directiveType.Name);
             return directiveType.ToNode();
         }
 
@@ -437,6 +437,12 @@ namespace HotChocolate
             return string.IsNullOrEmpty(description)
                 ? null
                 : new StringValueNode(description);
+        }
+
+        private class ReferencedTypes
+        {
+            public ISet<string> TypeNames { get; } = new HashSet<string>();
+            public ISet<string> DirectiveNames { get; } = new HashSet<string>();
         }
     }
 }
