@@ -58,41 +58,19 @@ namespace HotChocolate.Execution
             return current;
         }
 
-        public IError Handle(
-            Exception exception,
-            Action<IErrorBuilder> configure)
+        public IErrorBuilder CreateUnexpectedError(Exception exception)
         {
             if (exception == null)
             {
                 throw new ArgumentNullException(nameof(exception));
             }
 
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            IErrorBuilder builder = CreateErrorFromException(exception);
-            configure(builder);
-
-            IError current = builder.Build();
-
-            foreach (IErrorFilter filter in _filters)
-            {
-                current = filter.OnError(current);
-
-                if (current == null)
-                {
-                    throw new InvalidOperationException(
-                        "IErrorFilter.OnError mustn't return null.");
-                }
-            }
-
-            return current;
+            return CreateErrorFromException(exception);
         }
 
         private IErrorBuilder CreateErrorFromException(Exception exception)
         {
+            // TODO : resources
             IErrorBuilder builder = ErrorBuilder.New()
                 .SetMessage("Unexpected Execution Error")
                 .SetException(exception);

@@ -28,7 +28,7 @@ namespace HotChocolate.Execution
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
                 request,
-                fs => fs.Field.Middleware
+                (f, s) => f.Middleware
             );
 
             context.Document = Parser.Default.Parse(request.Query);
@@ -60,7 +60,7 @@ namespace HotChocolate.Execution
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
                 request,
-                fs => fs.Field.Middleware
+                (f, s) => f.Middleware
             );
 
             context.Document = Parser.Default.Parse(request.Query);
@@ -98,7 +98,7 @@ namespace HotChocolate.Execution
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
                 request,
-                fs => fs.Field.Middleware
+                (f, s) => f.Middleware
             );
 
             context.Document = Parser.Default.Parse(request.Query);
@@ -133,7 +133,7 @@ namespace HotChocolate.Execution
                 schema,
                 MiddlewareTools.CreateRequestServiceScope(services),
                 request,
-                fs => fs.Field.Middleware
+                (f, s) => f.Middleware
             );
 
             context.Document = Parser.Default.Parse(request.Query);
@@ -174,7 +174,7 @@ namespace HotChocolate.Execution
                 schema,
                 MiddlewareTools.CreateRequestServiceScope(services),
                 request,
-                fs => fs.Field.Middleware
+                (f, s) => f.Middleware
             );
 
             context.Document = Parser.Default.Parse(request.Query);
@@ -209,7 +209,7 @@ namespace HotChocolate.Execution
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
                 request,
-                fs => fs.Field.Middleware
+                (f, s) => f.Middleware
             );
 
             context.Document = Parser.Default.Parse(request.Query);
@@ -243,7 +243,7 @@ namespace HotChocolate.Execution
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
                 request,
-                fs => fs.Field.Middleware
+                (f, s) => f.Middleware
             );
 
             context.Document = Parser.Default.Parse(request.Query);
@@ -283,7 +283,7 @@ namespace HotChocolate.Execution
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
                 request,
-                fs => fs.Field.Middleware
+                (f, s) => f.Middleware
             );
 
             context.Document = Parser.Default.Parse(request.Query);
@@ -328,7 +328,7 @@ namespace HotChocolate.Execution
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
                 request,
-                fs => fs.Field.Middleware
+                (f, s) => f.Middleware
             );
 
             context.Document = Parser.Default.Parse(request.Query);
@@ -368,7 +368,7 @@ namespace HotChocolate.Execution
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
                 request,
-                fs => fs.Field.Middleware
+                (f, s) => f.Middleware
             );
 
             context.Document = Parser.Default.Parse(request.Query);

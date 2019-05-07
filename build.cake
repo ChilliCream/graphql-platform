@@ -226,11 +226,8 @@ Task("SonarBegin")
         Exclusions = "**/*.js,**/*.html,**/*.css,**/examples/**/*.*,**/benchmarks/**/*.*,**/src/Templates/**/*.*",
         Verbose = false,
         Version = packageVersion,
-        ArgumentCustomization = args => {
-            var a = args;
-            // TODO : ENABLE THIS BEFORE COMPLETING THE PR
-            // if(!string.IsNullOrEmpty(sonarPrKey))
-            if(true == false)
+        ArgumentCustomization = a => {
+            if(!string.IsNullOrEmpty(sonarPrKey))
             {
                 a = a.Append($"/d:sonar.pullrequest.key=\"{sonarPrKey}\"");
                 a = a.Append($"/d:sonar.pullrequest.branch=\"{sonarBranch}\"");
@@ -239,7 +236,6 @@ Task("SonarBegin")
                 a = a.Append($"/d:sonar.pullrequest.github.repository=\"ChilliCream/hotchocolate\"");
                 // a = a.Append($"/d:sonar.pullrequest.github.endpoint=\"https://api.github.com/\"");
             }
-
             return a;
         }
     });
