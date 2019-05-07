@@ -11,8 +11,6 @@ namespace HotChocolate.Execution
 {
     internal class DirectiveMiddlewareCompiler
     {
-        private readonly ConcurrentDictionary<FieldSelection, FieldDelegate>
-            _cache = new ConcurrentDictionary<FieldSelection, FieldDelegate>();
         private readonly ISchema _schema;
 
         public DirectiveMiddlewareCompiler(ISchema schema)
@@ -22,21 +20,32 @@ namespace HotChocolate.Execution
         }
 
         public FieldDelegate GetOrCreateMiddleware(
-            FieldSelection fieldSelection,
+            ObjectField field,
+            FieldNode selection,
             Func<FieldDelegate> fieldPipeline)
         {
-            if (fieldSelection == null)
+            if (field == null)
             {
-                throw new ArgumentNullException(nameof(fieldSelection));
+                throw new ArgumentNullException(nameof(field));
             }
 
-            if (!_cache.TryGetValue(fieldSelection,
-                out FieldDelegate directivePipeline))
+            if (selection == null)
             {
-                directivePipeline = fieldPipeline.Invoke();
+                throw new ArgumentNullException(nameof(selection));
+            }
 
+            if (fieldPipeline == null)
+            {
+                throw new ArgumentNullException(nameof(fieldPipeline));
+            }
+
+            FieldDelegate directivePipeline = fieldPipeline.Invoke();
+
+            if (field.ExecutableDirectives.Count > 0
+                || selection.Directives.Count > 0)
+            {
                 IReadOnlyList<IDirective> directives =
-                    CollectDirectives(fieldSelection);
+                    CollectDirectives(field, selection);
 
                 if (directives.Any())
                 {
@@ -44,26 +53,28 @@ namespace HotChocolate.Execution
                         directivePipeline,
                         directives);
                 }
-
-                _cache.TryAdd(fieldSelection, directivePipeline);
             }
 
             return directivePipeline;
         }
 
         private IReadOnlyList<IDirective> CollectDirectives(
-            FieldSelection fieldSelection)
+            ObjectField field,
+            FieldNode selection)
         {
             var processed = new HashSet<string>();
             var directives = new List<IDirective>();
 
             CollectTypeSystemDirectives(
-                processed, directives,
-                fieldSelection.Field);
+                processed,
+                directives,
+                field);
 
             CollectQueryDirectives(
-                processed, directives,
-                fieldSelection);
+                processed,
+                directives,
+                field,
+                selection);
 
             return directives.AsReadOnly();
         }
@@ -71,10 +82,11 @@ namespace HotChocolate.Execution
         private void CollectQueryDirectives(
             HashSet<string> processed,
             List<IDirective> directives,
-            FieldSelection fieldSelection)
+            ObjectField field,
+            FieldNode selection)
         {
             foreach (IDirective directive in
-                GetFieldSelectionDirectives(fieldSelection))
+                GetFieldSelectionDirectives(field, selection))
             {
                 if (!directive.Type.IsRepeatable
                     && !processed.Add(directive.Name))
@@ -87,17 +99,16 @@ namespace HotChocolate.Execution
         }
 
         private IEnumerable<IDirective> GetFieldSelectionDirectives(
-            FieldSelection fieldSelection)
+            ObjectField field,
+            FieldNode selection)
         {
-            foreach (DirectiveNode directive in fieldSelection.Nodes
-                .SelectMany(t => t.Directives))
+            foreach (DirectiveNode directive in selection.Directives)
             {
                 if (_schema.TryGetDirectiveType(directive.Name.Value,
                     out DirectiveType directiveType)
                     && directiveType.IsExecutable)
                 {
-                    yield return new Directive(
-                        directiveType, directive, fieldSelection);
+                    yield return new Directive(directiveType, directive, field);
                 }
             }
         }

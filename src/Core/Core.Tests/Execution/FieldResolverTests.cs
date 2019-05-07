@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -33,13 +34,15 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
-                .CollectFields(schema.GetType<ObjectType>("Foo"),
-                    operation.SelectionSet, e => { errorRaised = true; });
+                .CollectFields(
+                    schema.GetType<ObjectType>("Foo"),
+                    operation.SelectionSet,
+                    null);
 
             // assert
-            Assert.Collection(fields,
+            Assert.Collection(fields.Where(t => t.IsVisible(variables)),
                 f =>
                 {
                     Assert.Equal("a", f.ResponseName);
@@ -59,7 +62,6 @@ namespace HotChocolate.Execution
         public void InvalidFieldError()
         {
             // arrange
-            var errorRaised = false;
             Schema schema = CreateSchema();
             DocumentNode query = Parser.Default.Parse(@"
                 {
@@ -78,26 +80,13 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(variables, fragments);
-            IReadOnlyCollection<FieldSelection> fields = fieldResolver
-                .CollectFields(schema.GetType<ObjectType>("Foo"),
-                    operation.SelectionSet, e => { errorRaised = true; });
+            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
+            Action action = () => fieldResolver
+               .CollectFields(schema.GetType<ObjectType>("Foo"),
+                   operation.SelectionSet, null);
 
             // assert
-            Assert.Collection(fields,
-                f =>
-                {
-                    Assert.Equal("a", f.ResponseName);
-                    Assert.Equal("a", f.Field.Name);
-                    Assert.Equal("String", f.Field.Type.TypeName());
-                },
-                f =>
-                {
-                    Assert.Equal("x", f.ResponseName);
-                    Assert.Equal("c", f.Field.Name);
-                    Assert.Equal("String", f.Field.Type.TypeName());
-                });
-            Assert.True(errorRaised);
+            Assert.Throws<QueryException>(action);
         }
 
         [Fact]
@@ -121,13 +110,13 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
-                    operation.SelectionSet, e => { });
+                    operation.SelectionSet, null);
 
             // assert
-            Assert.Collection(fields,
+            Assert.Collection(fields.Where(t => t.IsVisible(variables)),
                 f =>
                 {
                     Assert.Equal("a", f.ResponseName);
@@ -157,13 +146,13 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
-                    operation.SelectionSet, e => { });
+                    operation.SelectionSet, null);
 
             // assert
-            Assert.Collection(fields,
+            Assert.Collection(fields.Where(t => t.IsVisible(variables)),
                 f =>
                 {
                     Assert.Equal("a", f.ResponseName);
@@ -193,13 +182,13 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
-                    operation.SelectionSet, e => { });
+                    operation.SelectionSet, null);
 
             // assert
-            Assert.Collection(fields,
+            Assert.Collection(fields.Where(t => t.IsVisible(variables)),
                 f =>
                 {
                     Assert.Equal("a", f.ResponseName);
@@ -234,13 +223,13 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
-                    operation.SelectionSet, e => { });
+                    operation.SelectionSet, null);
 
             // assert
-            Assert.Collection(fields,
+            Assert.Collection(fields.Where(t => t.IsVisible(variables)),
                 f =>
                 {
                     Assert.Equal("a", f.ResponseName);
@@ -284,13 +273,13 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
-                    operation.SelectionSet, e => { });
+                    operation.SelectionSet, null);
 
             // assert
-            Assert.Collection(fields,
+            Assert.Collection(fields.Where(t => t.IsVisible(variables)),
                 f =>
                 {
                     Assert.Equal("a", f.ResponseName);
@@ -331,13 +320,13 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
             IReadOnlyCollection<FieldSelection> fields_a = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
-                    operation.SelectionSet, e => { });
+                    operation.SelectionSet, null);
             IReadOnlyCollection<FieldSelection> fields_b = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Fum"),
-                    operation.SelectionSet, e => { });
+                    operation.SelectionSet, null);
 
             // assert
             Assert.Collection(fields_a,
@@ -388,13 +377,13 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
             IReadOnlyCollection<FieldSelection> fields_a = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
-                    operation.SelectionSet, e => { });
+                    operation.SelectionSet, null);
             IReadOnlyCollection<FieldSelection> fields_b = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Fum"),
-                    operation.SelectionSet, e => { });
+                    operation.SelectionSet, null);
 
             // assert
             Assert.Collection(fields_a,
@@ -448,13 +437,13 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
-                    operation.SelectionSet, e => { });
+                    operation.SelectionSet, null);
 
             // assert
-            Assert.Collection(fields,
+            Assert.Collection(fields.Where(t => t.IsVisible(variables)),
                 f =>
                 {
                     Assert.Equal("x", f.ResponseName);
@@ -491,13 +480,13 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(variables, fragments);
+            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
-                    operation.SelectionSet, e => { });
+                    operation.SelectionSet, null);
 
             // assert
-            Assert.Collection(fields,
+            Assert.Collection(fields.Where(t => t.IsVisible(variables)),
                 f =>
                 {
                     Assert.Equal("x", f.ResponseName);
