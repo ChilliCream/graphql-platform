@@ -91,9 +91,23 @@ namespace HotChocolate.Types.Descriptors
                                 .New(context, parameter)
                                 .CreateDefinition();
 
+                        var description = parameter.GetXmlDocumentationAsync()
+                            .GetAwaiter()
+                            .GetResult();
+                        
                         if (processed.Add(argumentDefinition.Name))
                         {
+                            argumentDefinition.Description = description;
                             arguments.Add(argumentDefinition);
+                        }
+                        else
+                        {
+                            var existingParam = arguments.Single(p => p.Name.Equals(argumentDefinition.Name));
+
+                            if (string.IsNullOrWhiteSpace(existingParam.Description))
+                            {
+                                existingParam.Description = description;
+                            }
                         }
                     }
                 }
