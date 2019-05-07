@@ -23,15 +23,16 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             typeof(IOutputField).IsAssignableFrom(parameter.ParameterType);
 
         public override Expression Compile(
+            Expression context,
             ParameterInfo parameter,
             Type sourceType)
         {
             if (typeof(ObjectField) == parameter.ParameterType)
             {
-                return Expression.Property(Context, _outputField);
+                return Expression.Property(context, _outputField);
             }
             return Expression.Convert(
-                Expression.Property(Context, _outputField),
+                Expression.Property(context, _outputField),
                 parameter.ParameterType);
         }
     }

@@ -128,7 +128,8 @@ namespace HotChocolate.Resolvers.Expressions
                         "compiler available.");
                 }
 
-                yield return parameterCompiler.Compile(parameter, sourceType);
+                yield return parameterCompiler.Compile(
+                    _context, parameter, sourceType);
             }
         }
 
@@ -140,7 +141,7 @@ namespace HotChocolate.Resolvers.Expressions
             {
                 return resolverExpression;
             }
-            else if (resultType.IsAssignableFrom(typeof(Task))
+            else if (typeof(Task).IsAssignableFrom(resultType)
                 && resultType.IsGenericType)
             {
                 return AwaitMethodCall(

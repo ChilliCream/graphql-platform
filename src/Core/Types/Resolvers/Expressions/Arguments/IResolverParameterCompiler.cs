@@ -6,8 +6,13 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 {
     internal interface IResolverParameterCompiler
     {
-        bool CanHandle(ParameterInfo parameter, Type sourceType);
+        bool CanHandle(
+            ParameterInfo parameter,
+            Type sourceType);
 
-        Expression Compile(ParameterInfo parameter, Type sourceType);
+        Expression Compile(
+            Expression context,
+            ParameterInfo parameter,
+            Type sourceType);
     }
 }

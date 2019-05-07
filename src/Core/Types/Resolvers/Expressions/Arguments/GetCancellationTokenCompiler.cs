@@ -24,10 +24,11 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             typeof(CancellationToken) == parameter.ParameterType;
 
         public override Expression Compile(
+            Expression context,
             ParameterInfo parameter,
             Type sourceType)
         {
-            return Expression.Property(Context, _requestAborted);
+            return Expression.Property(context, _requestAborted);
         }
     }
 }

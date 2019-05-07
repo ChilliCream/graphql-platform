@@ -28,13 +28,14 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             parameter.IsDefined(typeof(DirectiveArgumentAttribute));
 
         public override Expression Compile(
+            Expression context,
             ParameterInfo parameter,
             Type sourceType)
         {
             var attribute =
                parameter.GetCustomAttribute<DirectiveArgumentAttribute>();
 
-            Expression getDirective = Expression.Property(Context, _directive);
+            Expression getDirective = Expression.Property(context, _directive);
             MethodInfo argument = _argument.MakeGenericMethod(
                 parameter.ParameterType);
 

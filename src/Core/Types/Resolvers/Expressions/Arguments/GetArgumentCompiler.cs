@@ -21,6 +21,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             Type sourceType) => true;
 
         public override Expression Compile(
+            Expression context,
             ParameterInfo parameter,
             Type sourceType)
         {
@@ -31,7 +32,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             MethodInfo argumentMethod = _argument.MakeGenericMethod(
                 parameter.ParameterType);
 
-            return Expression.Call(Context, argumentMethod,
+            return Expression.Call(context, argumentMethod,
                 Expression.Constant(new NameString(name)));
         }
     }

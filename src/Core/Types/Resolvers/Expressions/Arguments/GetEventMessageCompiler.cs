@@ -23,13 +23,14 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             typeof(IEventMessage).IsAssignableFrom(parameter.ParameterType);
 
         public override Expression Compile(
+            Expression context,
             ParameterInfo parameter,
             Type sourceType)
         {
             MethodInfo argumentMethod = _argument.MakeGenericMethod(
                 parameter.ParameterType);
 
-            return Expression.Call(Context, argumentMethod,
+            return Expression.Call(context, argumentMethod,
                 Expression.Constant(typeof(IEventMessage).FullName));
         }
     }

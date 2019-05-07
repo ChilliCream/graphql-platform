@@ -30,6 +30,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             parameter.IsDefined(typeof(DataLoaderAttribute));
 
         public override Expression Compile(
+            Expression context,
             ParameterInfo parameter,
             Type sourceType)
         {
@@ -37,8 +38,8 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
                 parameter.GetCustomAttribute<DataLoaderAttribute>();
 
             return string.IsNullOrEmpty(attribute.Key)
-                ? Expression.Call(_dataLoader, Context)
-                : Expression.Call(_dataLoaderWithKey, Context,
+                ? Expression.Call(_dataLoader, context)
+                : Expression.Call(_dataLoaderWithKey, context,
                     Expression.Constant(attribute.Key));
         }
     }

@@ -15,15 +15,16 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             typeof(TContext) == parameter.ParameterType;
 
         public override Expression Compile(
+            Expression context,
             ParameterInfo parameter,
             Type sourceType)
         {
             if (typeof(TContext) == ContextType)
             {
-                return Context;
+                return context;
             }
 
-            return Expression.Convert(Context, typeof(TContext));
+            return Expression.Convert(context, typeof(TContext));
         }
     }
 }

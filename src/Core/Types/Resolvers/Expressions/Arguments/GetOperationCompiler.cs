@@ -23,10 +23,11 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             typeof(OperationDefinitionNode) == parameter.ParameterType;
 
         public override Expression Compile(
+            Expression context,
             ParameterInfo parameter,
             Type sourceType)
         {
-            return Expression.Property(Context, _operation);
+            return Expression.Property(context, _operation);
         }
     }
 }

@@ -21,10 +21,11 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             Type sourceType) => typeof(ISchema) == parameter.ParameterType;
 
         public override Expression Compile(
+            Expression context,
             ParameterInfo parameter,
             Type sourceType)
         {
-            return Expression.Property(Context, _schema);
+            return Expression.Property(context, _schema);
         }
     }
 }

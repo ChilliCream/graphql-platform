@@ -11,13 +11,14 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         protected MethodInfo GenericMethod { get; set; }
 
         public override Expression Compile(
+            Expression context,
             ParameterInfo parameter,
             Type sourceType)
         {
             MethodInfo argumentMethod = GenericMethod.MakeGenericMethod(
                 parameter.ParameterType);
 
-            return Expression.Call(Context, argumentMethod);
+            return Expression.Call(context, argumentMethod);
         }
     }
 }
