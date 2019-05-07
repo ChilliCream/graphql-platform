@@ -130,6 +130,17 @@ namespace HotChocolate.Types.Descriptors
 
         public Type ExtractType(Type type)
         {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (type.IsGenericType
+                && type.GetGenericTypeDefinition() == typeof(NativeType<>))
+            {
+                return type;
+            }
+
             if (_typeInspector.TryCreate(type, out Utilities.TypeInfo typeInfo))
             {
                 return typeInfo.ClrType;
