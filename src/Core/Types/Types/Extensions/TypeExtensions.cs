@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using NJsonSchema.Infrastructure;
 
 namespace HotChocolate.Types
 {
@@ -432,6 +433,16 @@ namespace HotChocolate.Types
 
             throw new NotSupportedException(
                 TypeResources.TypeExtensions_KindIsNotSupported);
+        }
+        
+        /// <summary>Returns the contents of the "summary" XML documentation tag for the specified member.</summary>
+        /// <param name="type">The type.</param>
+        /// <returns>The contents of the "summary" tag for the member.</returns>
+        public static string GetXmlSummary(this Type type)
+        {
+            return type.GetXmlSummaryAsync()
+                .GetAwaiter()
+                .GetResult();
         }
     }
 }
