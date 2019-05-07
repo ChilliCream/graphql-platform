@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Resolvers;
-using HotChocolate.Resolvers.CodeGeneration;
+using HotChocolate.Resolvers.Expressions;
+using ExpressionCompiler = HotChocolate.Resolvers.Expressions.ResolverCompiler;
 
 namespace HotChocolate.Configuration
 {
@@ -15,39 +17,24 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(resolvers));
             }
 
-            var resolverBuilder = new ResolverBuilder();
+            var compiler = new ExpressionCompiler();
 
-            foreach (RegisteredResolver resolver in resolvers.Values)
+            foreach (var item in resolvers.ToArray())
             {
-                if (resolver.Field is FieldMember member)
+                RegisteredResolver registered = item.Value;
+                if (registered.Field is FieldMember member)
                 {
-                    if (resolver.IsSourceResolver)
-                    {
-                        resolverBuilder.AddDescriptor(
-                            new SourceResolverDescriptor(
-                                resolver.SourceType, member));
-                    }
-                    else
-                    {
-                        resolverBuilder.AddDescriptor(
-                            new ResolverDescriptor(
-                                resolver.ResolverType,
-                                resolver.SourceType,
-                                member));
-                    }
-                }
-            }
-
-
-            ResolverBuilderResult result = resolverBuilder.Build();
-
-            foreach (FieldResolver resolver in result.Resolvers)
-            {
-                var reference = resolver.ToFieldReference();
-                if (resolvers.TryGetValue(reference,
-                    out RegisteredResolver registered))
-                {
-                    resolvers[reference] = registered.WithField(resolver);
+                    ResolverDescriptor descriptor =
+                        registered.IsSourceResolver
+                            ? new ResolverDescriptor(
+                                registered.SourceType,
+                                member)
+                            : new ResolverDescriptor(
+                                registered.ResolverType,
+                                registered.SourceType,
+                                member);
+                    FieldResolver resolver = compiler.Compile(descriptor);
+                    resolvers[item.Key] = registered.WithField(resolver);
                 }
             }
         }
