@@ -22,6 +22,44 @@ namespace HotChocolate.Execution
                 .EvaluateDirective(variables) ?? false;
         }
 
+        public static IValueNode SkipValue(
+            this IEnumerable<DirectiveNode> directives)
+        {
+            DirectiveNode directive = directives.GetSkipDirective();
+            if (directive == null)
+            {
+                return null;
+            }
+
+            ArgumentNode argumentNode = directive.Arguments.SingleOrDefault();
+            if (argumentNode == null)
+            {
+                throw new QueryException(new QueryError(
+                    $"The {directive.Name.Value} attribute is not valid."));
+            }
+
+            return argumentNode.Value;
+        }
+
+        public static IValueNode IncludeValue(
+            this IEnumerable<DirectiveNode> directives)
+        {
+            DirectiveNode directive = directives.GetIncludeDirective();
+            if (directive == null)
+            {
+                return null;
+            }
+
+            ArgumentNode argumentNode = directive.Arguments.SingleOrDefault();
+            if (argumentNode == null)
+            {
+                throw new QueryException(new QueryError(
+                    $"The {directive.Name.Value} attribute is not valid."));
+            }
+
+            return argumentNode.Value;
+        }
+
         private static bool? EvaluateDirective(
             this DirectiveNode directive,
             IVariableCollection variables)
