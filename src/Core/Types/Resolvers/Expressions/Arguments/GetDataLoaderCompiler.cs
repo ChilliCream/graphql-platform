@@ -38,8 +38,14 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
                 parameter.GetCustomAttribute<DataLoaderAttribute>();
 
             return string.IsNullOrEmpty(attribute.Key)
-                ? Expression.Call(_dataLoader, context)
-                : Expression.Call(_dataLoaderWithKey, context,
+                ? Expression.Call(
+                    _dataLoader.MakeGenericMethod(
+                        parameter.ParameterType),
+                    context)
+                : Expression.Call(
+                    _dataLoaderWithKey.MakeGenericMethod(
+                        parameter.ParameterType),
+                    context,
                     Expression.Constant(attribute.Key));
         }
     }
