@@ -9,19 +9,6 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             return CreateFor<IResolverContext>();
         }
 
-        public static IEnumerable<IResolverParameterCompiler> CreateForDirectiveContext()
-        {
-            yield return new GetDirectiveCompiler();
-            yield return new GetDirectiveArgumentCompiler();
-            yield return new GetContextCompiler<IDirectiveContext, IDirectiveContext>();
-
-            foreach (IResolverParameterCompiler compiler in
-                CreateFor<IDirectiveContext>())
-            {
-                yield return compiler;
-            }
-        }
-
         private static IEnumerable<IResolverParameterCompiler> CreateFor<T>()
             where T : IResolverContext
         {

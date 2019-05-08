@@ -37,6 +37,29 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
+        public void StringVariableIsObject()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            OperationDefinitionNode operation = CreateQuery(
+                "query test($test: String) { a }");
+            var variableValues = new Dictionary<string, object>
+            {
+                {
+                    "test",
+                    new Dictionary<string, object>()
+                }
+            };
+
+            // act
+            var resolver = new VariableValueBuilder(schema, operation);
+            Action action = () => resolver.CreateValues(variableValues);
+
+            // assert
+            Assert.Throws<QueryException>(action).Errors.MatchSnapshot();
+        }
+
+        [Fact]
         public void QueryWithNonNullVariableAndDefaultWhereValueWasNotProvided()
         {
             // arrange
