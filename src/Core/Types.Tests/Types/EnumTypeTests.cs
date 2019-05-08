@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -225,6 +226,28 @@ namespace HotChocolate.Types
             Assert.Collection(type.Values,
                 v => Assert.Collection(v.Directives,
                     t => Assert.Equal("bar", t.Type.Name)));
+        }
+
+        [Fact]
+        public void Serialize_EnumValue_WithDirectives()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterDirective(new DirectiveType(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.EnumValue)));
+
+                c.RegisterType(new EnumType(d => d
+                    .Name("Foo")
+                    .Item("baz")
+                    .Directive(new DirectiveNode("bar"))));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            schema.ToString().MatchSnapshot();
         }
 
         public enum Foo
