@@ -132,7 +132,8 @@ namespace HotChocolate.Language
                 location,
                 variable,
                 type,
-                defaultValue
+                defaultValue,
+                directives
             );
         }
 
