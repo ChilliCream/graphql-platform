@@ -44,6 +44,7 @@ This document shall give and outlook of what we have planned for the next releas
   - [x] EnumValue
   - [x] InputObject
   - [x] InputFieldDefinition
+  - [x] VariableDefinition
 
 ### Validation
 
@@ -108,7 +109,7 @@ We are currently working on the following features that are proposed for the nex
 ## Additional Directives
 
 - [x] Schema Stitching
-- [ ] HTTP Directives (in development - 9.0.0)
+- [ ] HTTP Directives (in development - 10.0.0)
 - [x] Custom Schema Directives
 - [x] Custom Query Directives
 
@@ -121,7 +122,7 @@ We are currently working on the following features that are proposed for the nex
 
 - [x] Schema-First approach
 - [x] Code-First approach
-- [ ] Schema Builder (in development - 9.0.0)
+- [x] Schema Builder
 
 ## Supported Frameworks
 
