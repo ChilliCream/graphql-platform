@@ -34,7 +34,7 @@ namespace HotChocolate.Execution
             return Include == null || IsTrue(variables, Include);
         }
 
-        private bool IsTrue(
+        private static bool IsTrue(
             IVariableCollection variables,
             IValueNode value)
         {

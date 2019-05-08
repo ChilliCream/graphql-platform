@@ -14,7 +14,7 @@ namespace HotChocolate.Execution
         private static IReadOnlyDictionary<NameString, ArgumentValue> _empty =
             ImmutableDictionary<NameString, ArgumentValue>.Empty;
         private readonly IReadOnlyDictionary<NameString, ArgumentValue> _args;
-        private readonly IReadOnlyDictionary<NameString, VariableValue> _varArgs;
+        private readonly IReadOnlyDictionary<NameString, VariableValue> _vars;
         private readonly IReadOnlyList<FieldVisibility> _visibility;
         private readonly Path _path;
         private readonly bool _hasArgumentErrors;
@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
         internal FieldSelection(FieldInfo fieldInfo)
         {
             _args = fieldInfo.Arguments ?? _empty;
-            _varArgs = fieldInfo.VarArguments;
+            _vars = fieldInfo.VarArguments;
             _visibility = fieldInfo.Visibilities;
             _path = fieldInfo.Path;
             _hasArgumentErrors =
@@ -61,14 +61,14 @@ namespace HotChocolate.Execution
                 throw new QueryException(_args.Values.Select(t => t.Error));
             }
 
-            if (_varArgs == null)
+            if (_vars == null)
             {
                 return _args;
             }
 
             var args = _args.ToDictionary(t => t.Key, t => t.Value);
 
-            foreach (KeyValuePair<NameString, VariableValue> var in _varArgs)
+            foreach (KeyValuePair<NameString, VariableValue> var in _vars)
             {
                 if (!variables.TryGetVariable(
                     var.Value.VariableName,
