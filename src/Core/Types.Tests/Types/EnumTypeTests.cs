@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
@@ -201,6 +202,40 @@ namespace HotChocolate.Types
             // assert
             EnumType type = schema.GetType<EnumType>("Foo");
             Assert.Equal(TypeKind.Enum, type.Kind);
+        }
+
+        [Fact]
+        public void EnumValue_ValueIsNull_SchemaException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddQueryType<Bar>()
+                .AddType(new EnumType(d => d
+                    .Name("Foo")
+                    .Item<string>(null)))
+                    .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(action)
+                .Errors.Single().Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void EnumValueT_ValueIsNull_SchemaException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddQueryType<Bar>()
+                .AddType(new EnumType<Foo?>(d => d
+                    .Name("Foo")
+                    .Item(null)))
+                    .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(action)
+                .Errors.Single().Message.MatchSnapshot();
         }
 
         [Fact]
