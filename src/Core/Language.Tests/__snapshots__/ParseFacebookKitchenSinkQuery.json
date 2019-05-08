@@ -34,7 +34,8 @@
               "Value": "ComplexType"
             }
           },
-          "DefaultValue": null
+          "DefaultValue": null,
+          "Directives": []
         },
         {
           "Kind": "VariableDefinition",
@@ -62,7 +63,8 @@
             "Kind": "EnumValue",
             "Location": null,
             "Value": "MOBILE"
-          }
+          },
+          "Directives": []
         }
       ],
       "Directives": [],
@@ -512,7 +514,8 @@
               "Value": "StoryLikeSubscribeInput"
             }
           },
-          "DefaultValue": null
+          "DefaultValue": null,
+          "Directives": []
         }
       ],
       "Directives": [],
