@@ -391,7 +391,7 @@ namespace HotChocolate.Types
             {
                 c.RegisterType(new EnumType(d => d
                     .Name("Foo")
-                    .Item("bar")
+                    .Value("bar")
                     .Extend()
                     .OnBeforeCreate(def => def.ContextData["baz"] = "qux")));
 

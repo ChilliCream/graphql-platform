@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -10,11 +11,10 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<EnumTypeDefinition>
         , IEnumTypeDescriptor
     {
-        public EnumTypeDescriptor(IDescriptorContext context, NameString name)
+        public EnumTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
             Definition.ClrType = typeof(object);
-            Definition.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         public EnumTypeDescriptor(IDescriptorContext context, Type clrType)
@@ -99,8 +99,9 @@ namespace HotChocolate.Types.Descriptors
 
         public IEnumValueDescriptor Item<T>(T value)
         {
-            if (Definition.ClrType == null
-                || Definition.ClrType == typeof(object))
+            Debug.Assert(Definition.ClrType != null);
+
+            if (Definition.ClrType == typeof(object))
             {
                 Definition.ClrType = typeof(T);
             }
@@ -134,9 +135,8 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public static EnumTypeDescriptor New(
-            IDescriptorContext context,
-            NameString name) =>
-            new EnumTypeDescriptor(context, name);
+            IDescriptorContext context) =>
+            new EnumTypeDescriptor(context);
 
         public static EnumTypeDescriptor New(
             IDescriptorContext context,
