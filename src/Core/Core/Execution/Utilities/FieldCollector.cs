@@ -263,13 +263,14 @@ namespace HotChocolate.Execution
                 }
                 catch (ScalarSerializationException ex)
                 {
-                    throw new QueryException(
-                        ErrorBuilder.New()
-                            .SetMessage(ex.Message)
-                            .SetPath(fieldInfo.Path)
-                            .AddLocation(fieldInfo.Selection)
-                            .SetExtension("argument", argument.Name)
-                            .Build());
+                    fieldInfo.Arguments[argument.Name] =
+                        new ArgumentValue(
+                            argument.Type,
+                            ErrorBuilder.New()
+                                .SetMessage(ex.Message)
+                                .AddLocation(fieldInfo.Selection)
+                                .SetExtension("argument", argument.Name)
+                                .Build());
                 }
             }
         }
@@ -330,16 +331,23 @@ namespace HotChocolate.Execution
                 argument.Type,
                 value);
 
-            InputTypeNonNullCheck.CheckForNullValueViolation(
+            IError error = InputTypeNonNullCheck.CheckForNullValueViolation(
                 argument.Name,
                 argument.Type,
                 value,
                 message => ErrorBuilder.New()
                     .SetMessage(message)
-                    .SetPath(fieldInfo.Path)
                     .AddLocation(fieldInfo.Selection)
                     .SetExtension("argument", argument.Name)
                     .Build());
+
+            if (error != null)
+            {
+                fieldInfo.Arguments[argument.Name] =
+                    new ArgumentValue(
+                        argument.Type,
+                        error);
+            }
         }
 
         private static object ParseLiteral(
