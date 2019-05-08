@@ -202,6 +202,31 @@ namespace HotChocolate.Types
             Assert.Equal(TypeKind.Enum, type.Kind);
         }
 
+        [Fact]
+        public void EnumValue_WithDirectives()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterDirective(new DirectiveType(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.EnumValue)));
+
+                c.RegisterType(new EnumType(d => d
+                    .Name("Foo")
+                    .Item("baz")
+                    .Directive(new DirectiveNode("bar"))));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("Foo");
+            Assert.Collection(type.Values,
+                v => Assert.Collection(v.Directives,
+                    t => Assert.Equal("bar", t.Type.Name)));
+        }
+
         public enum Foo
         {
             Bar1,

@@ -217,6 +217,7 @@ namespace HotChocolate.Types
             {
                 _nameToValues[enumValue.Name] = enumValue;
                 _valueToValues[enumValue.Value] = enumValue;
+                enumValue.CompleteValue(context);
             }
 
             if (!Values.Any())
