@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -358,6 +359,28 @@ namespace HotChocolate.Types
             Assert.Collection(type.Values,
                 v => Assert.Collection(v.Directives,
                     t => Assert.Equal("bar", t.Type.Name)));
+        }
+
+        [Fact]
+        public void EnumValue_DefinitionIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => new EnumValue(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void EnumValue_DefinitionValueIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => new EnumValue(new EnumValueDefinition());
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
         }
 
         public enum Foo
