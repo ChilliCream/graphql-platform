@@ -63,6 +63,8 @@ namespace HotChocolate.Types
         IInterfaceFieldDescriptor Field(
             Expression<Func<T, object>> propertyOrMethod);
 
+        IInterfaceFieldDescriptor Field(NameString name);
+
         IInterfaceTypeDescriptor<T> Directive<TDirective>(
             TDirective directiveInstance)
             where TDirective : class;
