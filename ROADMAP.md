@@ -37,7 +37,7 @@ This document shall give and outlook of what we have planned for the next releas
   - [ ] Scalar (in development - 9.0.0)
   - [x] Object
   - [x] FieldDefinition
-  - [ ] ArgumentDefinition
+  - [x] ArgumentDefinition
   - [x] Interface
   - [x] Union
   - [x] Enum
