@@ -58,9 +58,7 @@ namespace HotChocolate.Execution
         {
             if (_hasArgumentErrors)
             {
-                Path path = CreatePath();
-                throw new QueryException(
-                    _args.Values.Select(t => t.Error.WithPath(path)));
+                throw new QueryException(_args.Values.Select(t => t.Error));
             }
 
             if (_varArgs == null)
@@ -85,7 +83,7 @@ namespace HotChocolate.Execution
                     value,
                     message => ErrorBuilder.New()
                         .SetMessage(message)
-                        .SetPath(CreatePath())
+                        .SetPath(_path.AppendOrCreate(ResponseName))
                         .AddLocation(Selection)
                         .SetExtension("argument", var.Key)
                         .Build());
@@ -120,11 +118,6 @@ namespace HotChocolate.Execution
 
             return true;
         }
-
-        private Path CreatePath() =>
-            _path == null
-                ? Path.New(ResponseName)
-                : _path.Append(ResponseName);
 
         private static FieldNode MergeField(FieldInfo fieldInfo)
         {

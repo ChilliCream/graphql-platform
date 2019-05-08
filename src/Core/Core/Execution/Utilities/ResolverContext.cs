@@ -201,14 +201,21 @@ namespace HotChocolate.Execution
             return (T)_cachedResolverResult;
         }
 
-        public IReadOnlyCollection<IFieldSelection> CollectFields(
+        public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType typeContext) =>
             _executionContext.CollectFields(
                 typeContext, FieldSelection.SelectionSet, Path);
 
-        public IReadOnlyCollection<IFieldSelection> CollectFields(
+        public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType typeContext, SelectionSetNode selectionSet) =>
             _executionContext.CollectFields(
                 typeContext, FieldSelection.SelectionSet, Path);
+
+        IReadOnlyCollection<IFieldSelection> IResolverContext.CollectFields(
+            ObjectType typeContext) => CollectFields(typeContext);
+
+        IReadOnlyCollection<IFieldSelection> IResolverContext.CollectFields(
+            ObjectType typeContext, SelectionSetNode selectionSet) =>
+            CollectFields(typeContext, selectionSet);
     }
 }

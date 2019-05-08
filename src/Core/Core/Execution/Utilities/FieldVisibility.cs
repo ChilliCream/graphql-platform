@@ -2,7 +2,7 @@
 
 namespace HotChocolate.Execution
 {
-    internal class FieldVisibility
+    internal sealed class FieldVisibility
     {
         public FieldVisibility(
             IValueNode skip,
