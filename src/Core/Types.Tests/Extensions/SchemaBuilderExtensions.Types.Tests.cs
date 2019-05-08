@@ -594,19 +594,6 @@ namespace HotChocolate
         }
 
         [Fact]
-        public void AddDirectiveType_BuilderIsNull_ArgumentNullException()
-        {
-            // arrange
-            // act
-            Action action = () =>
-                SchemaBuilderExtensions.AddDirectiveType(
-                    null, typeof(MyDirective));
-
-            // assert
-            Assert.Throws<ArgumentNullException>(action);
-        }
-
-        [Fact]
         public void AddDirectiveType_TypeIsNull_ArgumentNullException()
         {
             // arrange
