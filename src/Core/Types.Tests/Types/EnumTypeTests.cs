@@ -250,10 +250,62 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void EnumValue_WithDirectivesT()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterDirective(new DirectiveType<Bar>(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.EnumValue)));
+
+                c.RegisterType(new EnumType(d => d
+                    .Name("Foo")
+                    .Item("baz")
+                    .Directive<Bar>()));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("Foo");
+            Assert.Collection(type.Values,
+                v => Assert.Collection(v.Directives,
+                    t => Assert.Equal("bar", t.Type.Name)));
+        }
+
+         [Fact]
+        public void EnumValue_WithDirectivesTInstance()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterDirective(new DirectiveType<Bar>(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.EnumValue)));
+
+                c.RegisterType(new EnumType(d => d
+                    .Name("Foo")
+                    .Item("baz")
+                    .Directive(new Bar())));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("Foo");
+            Assert.Collection(type.Values,
+                v => Assert.Collection(v.Directives,
+                    t => Assert.Equal("bar", t.Type.Name)));
+        }
+
         public enum Foo
         {
             Bar1,
             Bar2
         }
+
+        public class Bar { }
     }
 }

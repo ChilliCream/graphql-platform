@@ -48,10 +48,10 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IEnumValueDescriptor Directive<T>(T instance)
+        public IEnumValueDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
-            Definition.AddDirective(instance);
+            Definition.AddDirective(directiveInstance);
             return this;
         }
 
