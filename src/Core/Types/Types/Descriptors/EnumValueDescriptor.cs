@@ -1,4 +1,6 @@
 using System;
+using System.Linq;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -18,7 +20,8 @@ namespace HotChocolate.Types.Descriptors
 
             Definition.Name = context.Naming.GetEnumValueName(value);
             Definition.Value = value;
-            // TODO: Get value description.
+            Definition.Description = context.Naming
+                .GetEnumValueDescription(value);
         }
 
         protected override EnumValueDefinition Definition { get; } =

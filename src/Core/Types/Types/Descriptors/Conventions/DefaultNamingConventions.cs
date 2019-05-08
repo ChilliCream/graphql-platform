@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Reflection;
 
 namespace HotChocolate.Types.Descriptors
@@ -39,6 +40,25 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return value.ToString().ToUpperInvariant();
+        }
+
+        public virtual string GetEnumValueDescription(object value)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            Type enumType = value.GetType();
+            MemberInfo enumValueMemberInfo = enumType
+                .GetMember(value.ToString())
+                .SingleOrDefault();
+            if (enumValueMemberInfo == null)
+            {
+                return null;
+            }
+
+            return GetMemberDescription(enumValueMemberInfo, MemberKind.Field);
         }
 
         public virtual NameString GetMemberName(
