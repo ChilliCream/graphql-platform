@@ -1167,7 +1167,7 @@ namespace HotChocolate.Types
                 .Errors.First().Message.MatchSnapshot();
         }
 
-         [Fact]
+        [Fact]
         public void DoNotAllow_DynamicInputTypes_OnFields()
         {
             // arrange
@@ -1183,6 +1183,20 @@ namespace HotChocolate.Types
             Assert.Throws<SchemaException>(a)
                 .Errors.First().Message.MatchSnapshot();
         }
+
+        [Fact]
+        public void Support_Argument_Attributes()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Baz>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
 
         public class GenericFoo<T>
         {
@@ -1216,6 +1230,15 @@ namespace HotChocolate.Types
         {
             [GraphQLNonNullType]
             public string Baz { get; set; }
+        }
+
+        public class Baz
+        {
+            public string Quox(
+                [GraphQLName("arg2")]
+                [GraphQLDescription("argdesc")]
+                [GraphQLNonNullType]
+                string arg) => arg;
         }
 
         public class FooType
