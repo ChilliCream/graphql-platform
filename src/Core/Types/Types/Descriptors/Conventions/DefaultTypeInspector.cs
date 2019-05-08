@@ -109,6 +109,38 @@ namespace HotChocolate.Types.Descriptors
             }
         }
 
+        public ITypeReference GetArgumentType(ParameterInfo parameter)
+        {
+            if (parameter == null)
+            {
+                throw new ArgumentNullException(nameof(parameter));
+            }
+
+            Type argumentType = parameter.ParameterType;
+
+            if (parameter.IsDefined(typeof(GraphQLTypeAttribute)))
+            {
+                GraphQLTypeAttribute attribute =
+                    parameter.GetCustomAttribute<GraphQLTypeAttribute>();
+                argumentType = attribute.Type;
+            }
+
+            if (parameter.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
+            {
+                GraphQLNonNullTypeAttribute attribute =
+                    parameter.GetCustomAttribute<GraphQLNonNullTypeAttribute>();
+
+                return new ClrTypeReference(
+                    argumentType,
+                    TypeContext.Input,
+                    attribute.IsNullable,
+                    attribute.IsElementNullable)
+                    .Compile();
+            }
+
+            return new ClrTypeReference(argumentType, TypeContext.Input);
+        }
+
         public virtual IEnumerable<object> GetEnumValues(Type enumType)
         {
             if (enumType == null)
