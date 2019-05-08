@@ -12,7 +12,6 @@ namespace HotChocolate.Types
     public class ObjectField
         : OutputFieldBase<ObjectFieldDefinition>
         , IObjectField
-        , IHasMemberInfo
     {
         private readonly List<IDirective> _executableDirectives =
             new List<IDirective>();

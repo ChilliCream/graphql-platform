@@ -70,22 +70,6 @@ namespace HotChocolate.Types.Descriptors
             var descriptor = new ArgumentDescriptor(
                 Context,
                 name.EnsureNotEmpty(nameof(name)));
-            
-            string defaultDescription = null;
-            var memberInfo = Definition.GetMemberInfoIfPresent();
-
-            if (memberInfo != null && (memberInfo.MemberType & MemberTypes.Method) != 0)
-            {
-                var methodInfo = memberInfo.DeclaringType?.GetMethod(memberInfo.Name);
-                var paramInfo = methodInfo?.GetParameters().SingleOrDefault(p => p.Name == name);
-
-                if (paramInfo != null)
-                {
-                    defaultDescription = paramInfo.GetXmlSummary();
-                }
-            }
-
-            descriptor.Description(defaultDescription);
             argument(descriptor);
             Definition.Arguments.Add(descriptor.CreateDefinition());
         }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Resolvers;
@@ -7,7 +7,6 @@ namespace HotChocolate.Types.Descriptors.Definitions
 {
     public class ObjectFieldDefinition
         : OutputFieldDefinitionBase
-        , IHasMemberInfo
     {
         public Type ResolverType { get; set; }
 
