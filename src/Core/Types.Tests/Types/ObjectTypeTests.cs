@@ -1234,10 +1234,14 @@ namespace HotChocolate.Types
 
         public class Baz
         {
-            public string Quox(
+            public string Qux(
                 [GraphQLName("arg2")]
                 [GraphQLDescription("argdesc")]
                 [GraphQLNonNullType]
+                string arg) => arg;
+
+            public string Quux(
+                [GraphQLType(typeof(ListType<StringType>))]
                 string arg) => arg;
         }
 
