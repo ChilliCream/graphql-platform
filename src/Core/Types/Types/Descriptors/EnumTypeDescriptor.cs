@@ -99,13 +99,6 @@ namespace HotChocolate.Types.Descriptors
 
         public IEnumValueDescriptor Item<T>(T value)
         {
-            Debug.Assert(Definition.ClrType != null);
-
-            if (Definition.ClrType == typeof(object))
-            {
-                Definition.ClrType = typeof(T);
-            }
-
             var descriptor = new EnumValueDescriptor(Context, value);
             Values.Add(descriptor);
             return descriptor;
