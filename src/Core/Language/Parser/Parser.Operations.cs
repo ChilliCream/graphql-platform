@@ -123,6 +123,8 @@ namespace HotChocolate.Language
             IValueNode defaultValue = context.Skip(TokenKind.Equal)
                 ? ParseValueLiteral(context, true)
                 : null;
+            List<DirectiveNode> directives =
+                ParseDirectives(context, true);
             Location location = context.CreateLocation(start);
 
             return new VariableDefinitionNode
