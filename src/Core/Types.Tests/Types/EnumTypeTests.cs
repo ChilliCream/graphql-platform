@@ -384,6 +384,32 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void EnumValue_SetContextData()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new EnumType(d => d
+                    .Name("Foo")
+                    .Item("bar")
+                    .Extend()
+                    .OnBeforeCreate(def => def.ContextData["baz"] = "qux")));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("Foo");
+            Assert.Collection(type.Values,
+                v => Assert.Collection(v.ContextData,
+                    c =>
+                    {
+                        Assert.Equal("baz", c.Key);
+                        Assert.Equal("qux", c.Value);
+                    }));
+        }
+
+        [Fact]
         public void EnumValue_DefinitionIsNull_ArgumentNullException()
         {
             // arrange
