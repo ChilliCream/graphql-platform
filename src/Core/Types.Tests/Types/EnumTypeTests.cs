@@ -229,6 +229,31 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void EnumValue_WithDirectivesNameArgs()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterDirective(new DirectiveType(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.EnumValue)));
+
+                c.RegisterType(new EnumType(d => d
+                    .Name("Foo")
+                    .Item("baz")
+                    .Directive("bar", Array.Empty<ArgumentNode>())));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("Foo");
+            Assert.Collection(type.Values,
+                v => Assert.Collection(v.Directives,
+                    t => Assert.Equal("bar", t.Type.Name)));
+        }
+
+        [Fact]
         public void Serialize_EnumValue_WithDirectives()
         {
             // act
@@ -275,7 +300,7 @@ namespace HotChocolate.Types
                     t => Assert.Equal("bar", t.Type.Name)));
         }
 
-         [Fact]
+        [Fact]
         public void EnumValue_WithDirectivesTInstance()
         {
             // act
