@@ -150,6 +150,8 @@ namespace HotChocolate.Language
             IValueNode defaultValue = SkipEqual()
                 ? ParseValueLiteral(true)
                 : null;
+            List<DirectiveNode> directives =
+                ParseDirectives(true);
 
             Location location = CreateLocation(in start);
 
