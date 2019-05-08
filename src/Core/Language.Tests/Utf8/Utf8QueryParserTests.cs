@@ -391,7 +391,25 @@ namespace HotChocolate.Language
                 .SelectionSet.Selections.OfType<FieldNode>().First()
                 .Arguments.First().Value);
         }
+
+        [Fact]
+        public void ParseDirectiveOnVariableDefinition()
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                "query queryName($foo: ComplexType @foo) { bar }");
+
+            // act
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
+
+            // assert
+            Assert.Collection(
+                document.Definitions.OfType<OperationDefinitionNode>().First()
+                    .VariableDefinitions.First()
+                    .Directives,
+                d => Assert.Equal("foo", d.Name.Value));
+        }
     }
 }
-
-
