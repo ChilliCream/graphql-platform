@@ -99,7 +99,8 @@ namespace HotChocolate.Types.Descriptors
 
         public IEnumValueDescriptor Item<T>(T value)
         {
-            if (Definition.ClrType == null)
+            if (Definition.ClrType == null
+                || Definition.ClrType == typeof(object))
             {
                 Definition.ClrType = typeof(T);
             }
