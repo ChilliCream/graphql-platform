@@ -529,6 +529,71 @@ namespace HotChocolate
         }
 
         [Fact]
+        public void AddObjectType_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddObjectType(
+                    null, c => { });
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddObjectType_ConfigureIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddObjectType(
+                    SchemaBuilder.New(), null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddObjectTypeT_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddObjectType<Foo>(
+                    null, c => { });
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddObjectTypeT_ConfigureIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddObjectType<Foo>(
+                    SchemaBuilder.New(), null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddDirectiveType_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddDirectiveType(
+                    null, typeof(MyDirective));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
         public void AddDirectiveType_BuilderIsNull_ArgumentNullException()
         {
             // arrange
