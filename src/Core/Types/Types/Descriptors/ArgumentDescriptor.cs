@@ -44,8 +44,7 @@ namespace HotChocolate.Types.Descriptors
                 context.Naming.GetArgumentName(parameter);
             Definition.Description =
                 context.Naming.GetArgumentDescription(parameter);
-            Definition.Type = new ClrTypeReference(
-                parameter.ParameterType, TypeContext.Input);
+            Definition.Type = context.Inspector.GetArgumentType(parameter);
             Definition.DefaultValue = NullValueNode.Default;
         }
 
