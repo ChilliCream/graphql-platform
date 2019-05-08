@@ -1,5 +1,5 @@
-using System.Reflection;
 using System;
+using System.Reflection;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -21,7 +21,14 @@ namespace HotChocolate.Types.Descriptors
             {
                 throw new ArgumentNullException(nameof(parameter));
             }
-            return parameter.GetGraphQLDescription();
+
+            var description = parameter.GetGraphQLDescription();
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                description = parameter.GetXmlSummary();
+            }
+
+            return description;
         }
 
         public virtual NameString GetEnumValueName(object value)
@@ -55,7 +62,13 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(member));
             }
 
-            return member.GetGraphQLDescription();
+            var description = member.GetGraphQLDescription();
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                description = member.GetXmlSummary();
+            }
+
+            return description;
         }
 
         public virtual NameString GetTypeName(Type type)
@@ -95,7 +108,13 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return type.GetGraphQLDescription();
+            var description = type.GetGraphQLDescription();
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                description = type.GetXmlSummary();
+            }
+
+            return description;
         }
     }
 }
