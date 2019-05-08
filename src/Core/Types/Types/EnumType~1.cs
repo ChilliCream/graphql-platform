@@ -26,11 +26,7 @@ namespace HotChocolate.Types
         {
             var descriptor = EnumTypeDescriptor.New<T>(
                 DescriptorContext.Create(context.Services));
-
-            descriptor.Description(typeof(T).GetXmlSummary());
-
             _configure(descriptor);
-
             return descriptor.CreateDefinition();
         }
 

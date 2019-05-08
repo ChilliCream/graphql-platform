@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -65,12 +65,6 @@ namespace HotChocolate.Types.Descriptors
 
                     if (!values.ContainsKey(valueDefinition.Value))
                     {
-                        // Get MemberInfo object for the enum value itself.
-                        var valueMemberInfo = typeDefinition.ClrType.GetMember(value.ToString())
-                            .Single();
-
-                        valueDefinition.Description = valueMemberInfo.GetXmlSummary();
-
                         values.Add(valueDefinition.Value, valueDefinition);
                     }
                 }

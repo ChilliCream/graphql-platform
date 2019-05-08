@@ -28,11 +28,6 @@ namespace HotChocolate.Types.Descriptors
                 if (member != null)
                 {
                     handledMembers.Add(member);
-
-                    if (string.IsNullOrWhiteSpace(fieldDefinition.Description))
-                    {
-                        fieldDefinition.Description = member.GetXmlSummary();
-                    }
                 }
             }
         }
@@ -57,7 +52,6 @@ namespace HotChocolate.Types.Descriptors
                     if (!handledMembers.Contains(member)
                         && !fields.ContainsKey(fieldDefinition.Name))
                     {
-                        fieldDefinition.Description = member.GetXmlSummary();
                         handledMembers.Add(member);
                         fields[fieldDefinition.Name] = fieldDefinition;
                     }
@@ -90,7 +84,7 @@ namespace HotChocolate.Types.Descriptors
                                 .CreateDefinition();
 
                         var defaultDescription = parameter.GetXmlSummary();
-                        
+
                         if (processed.Add(argumentDefinition.Name))
                         {
                             argumentDefinition.Description = defaultDescription;

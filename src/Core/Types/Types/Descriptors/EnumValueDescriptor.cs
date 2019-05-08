@@ -18,6 +18,7 @@ namespace HotChocolate.Types.Descriptors
 
             Definition.Name = context.Naming.GetEnumValueName(value);
             Definition.Value = value;
+            // TODO: Get value description.
         }
 
         protected override EnumValueDefinition Definition { get; } =
