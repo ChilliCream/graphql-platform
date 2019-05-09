@@ -1,6 +1,6 @@
 using System.Reflection;
 using System.Threading.Tasks;
-using NJsonSchema.Infrastructure;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {

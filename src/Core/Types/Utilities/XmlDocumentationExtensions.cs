@@ -11,8 +11,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.XPath;
+using SysPath = System.IO.Path;
 
-namespace NJsonSchema.Infrastructure
+namespace HotChocolate.Utilities
 {
     /// <summary>Provides extension methods for reading XML comments from reflected members.</summary>
     /// <remarks>This class currently works only on the desktop .NET framework.</remarks>
@@ -29,23 +30,6 @@ namespace NJsonSchema.Infrastructure
             return GetXmlDocumentationTagAsync(type.GetTypeInfo(), "summary");
         }
 
-        /// <summary>Returns the contents of the "remarks" XML documentation tag for the specified member.</summary>
-        /// <param name="type">The type.</param>
-        /// <returns>The contents of the "summary" tag for the member.</returns>
-        internal static Task<string> GetXmlRemarksAsync(this Type type)
-        {
-            return GetXmlDocumentationTagAsync(type.GetTypeInfo(), "remarks");
-        }
-
-        /// <summary>Returns the contents of an XML documentation tag for the specified member.</summary>
-        /// <param name="type">The type.</param>
-        /// <param name="tagName">Name of the tag.</param>
-        /// <returns>The contents of the "summary" tag for the member.</returns>
-        internal static Task<string> GetXmlDocumentationTagAsync(this Type type, string tagName)
-        {
-            return GetXmlDocumentationTagAsync((MemberInfo)type.GetTypeInfo(), tagName);
-        }
-
         /// <summary>Returns the contents of the "summary" XML documentation tag for the specified member.</summary>
         /// <param name="member">The reflected member.</param>
         /// <returns>The contents of the "summary" tag for the member.</returns>
@@ -53,19 +37,48 @@ namespace NJsonSchema.Infrastructure
         {
             return await GetXmlDocumentationTagAsync(member, "summary").ConfigureAwait(false);
         }
-
-        /// <summary>Returns the contents of the "remarks" XML documentation tag for the specified member.</summary>
-        /// <param name="member">The reflected member.</param>
-        /// <returns>The contents of the "summary" tag for the member.</returns>
-        internal static async Task<string> GetXmlRemarksAsync(this MemberInfo member)
+        
+        /// <summary>Returns the contents of the "returns" or "param" XML documentation tag for the specified parameter.</summary>
+        /// <param name="parameter">The reflected parameter or return info.</param>
+        /// <returns>The contents of the "returns" or "param" tag.</returns>
+        internal static async Task<string> GetXmlDocumentationAsync(this ParameterInfo parameter)
         {
-            return await GetXmlDocumentationTagAsync(member, "remarks").ConfigureAwait(false);
+            var assemblyName = parameter.Member.Module.Assembly.GetName();
+            using (Lock.Lock())
+            {
+                if (IgnoreAssembly(assemblyName))
+                    return string.Empty;
+
+                var documentationPath = GetXmlDocumentationPath(parameter.Member.Module.Assembly);
+                var element = await GetXmlDocumentationWithoutLockAsync(parameter, documentationPath).ConfigureAwait(false);
+                return RemoveLineBreakWhiteSpaces(GetXmlDocumentationText(element));
+            }
+        }
+        
+        /// <summary>Clears the cache.</summary>
+        /// <returns>The task.</returns>
+        internal static Task ClearCacheAsync()
+        {
+            using (Lock.Lock())
+            {
+                Cache.Clear();
+                return Task.CompletedTask;
+            }
+        }
+
+        /// <summary>Returns the contents of an XML documentation tag for the specified member.</summary>
+        /// <param name="type">The type.</param>
+        /// <param name="tagName">Name of the tag.</param>
+        /// <returns>The contents of the "summary" tag for the member.</returns>
+        private static Task<string> GetXmlDocumentationTagAsync(this Type type, string tagName)
+        {
+            return GetXmlDocumentationTagAsync((MemberInfo)type.GetTypeInfo(), tagName);
         }
 
         /// <summary>Converts the given XML documentation <see cref="XElement"/> to text.</summary>
         /// <param name="element">The XML element.</param>
         /// <returns>The text</returns>
-        internal static string GetXmlDocumentationText(this XElement element)
+        private static string GetXmlDocumentationText(this XElement element)
         {
             if (element == null)
             {
@@ -122,22 +135,11 @@ namespace NJsonSchema.Infrastructure
             return value.ToString();
         }
 
-        /// <summary>Clears the cache.</summary>
-        /// <returns>The task.</returns>
-        internal static Task ClearCacheAsync()
-        {
-            using (Lock.Lock())
-            {
-                Cache.Clear();
-                return Task.CompletedTask;
-            }
-        }
-
         /// <summary>Returns the contents of an XML documentation tag for the specified member.</summary>
         /// <param name="member">The reflected member.</param>
         /// <param name="tagName">Name of the tag.</param>
         /// <returns>The contents of the "summary" tag for the member.</returns>
-        internal static async Task<string> GetXmlDocumentationTagAsync(this MemberInfo member, string tagName)
+        private static async Task<string> GetXmlDocumentationTagAsync(this MemberInfo member, string tagName)
         {
             var assemblyName = member.Module.Assembly.GetName();
             using (Lock.Lock())
@@ -147,57 +149,16 @@ namespace NJsonSchema.Infrastructure
                     return string.Empty;
                 }
 
-                var documentationPath = await GetXmlDocumentationPathAsync(member.Module.Assembly).ConfigureAwait(false);
+                var documentationPath = GetXmlDocumentationPath(member.Module.Assembly);
                 var element = await GetXmlDocumentationWithoutLockAsync(member, documentationPath).ConfigureAwait(false);
                 return RemoveLineBreakWhiteSpaces(GetXmlDocumentationText(element?.Element(tagName)));
-            }
-        }
-
-        /// <summary>Returns the contents of the "returns" or "param" XML documentation tag for the specified parameter.</summary>
-        /// <param name="parameter">The reflected parameter or return info.</param>
-        /// <returns>The contents of the "returns" or "param" tag.</returns>
-        internal static async Task<string> GetXmlDocumentationAsync(this ParameterInfo parameter)
-        {
-            var assemblyName = parameter.Member.Module.Assembly.GetName();
-            using (Lock.Lock())
-            {
-                if (IgnoreAssembly(assemblyName))
-                    return string.Empty;
-
-                var documentationPath = await GetXmlDocumentationPathAsync(parameter.Member.Module.Assembly).ConfigureAwait(false);
-                var element = await GetXmlDocumentationWithoutLockAsync(parameter, documentationPath).ConfigureAwait(false);
-                return RemoveLineBreakWhiteSpaces(GetXmlDocumentationText(element));
-            }
-        }
-
-        /// <summary>Returns the contents of the "summary" XML documentation tag for the specified member.</summary>
-        /// <param name="type">The type.</param>
-        /// <param name="pathToXmlFile">The path to the XML documentation file.</param>
-        /// <returns>The contents of the "summary" tag for the member.</returns>
-        internal static async Task<XElement> GetXmlDocumentationAsync(this Type type, string pathToXmlFile)
-        {
-            using (Lock.Lock())
-            {
-                return await ((MemberInfo)type.GetTypeInfo()).GetXmlDocumentationWithoutLockAsync(pathToXmlFile).ConfigureAwait(false);
-            }
-        }
-
-        /// <summary>Returns the contents of the "returns" or "param" XML documentation tag for the specified parameter.</summary>
-        /// <param name="parameter">The reflected parameter or return info.</param>
-        /// <param name="pathToXmlFile">The path to the XML documentation file.</param>
-        /// <returns>The contents of the "returns" or "param" tag.</returns>
-        internal static async Task<XElement> GetXmlDocumentationAsync(this ParameterInfo parameter, string pathToXmlFile)
-        {
-            using (Lock.Lock())
-            {
-                return await GetXmlDocumentationWithoutLockAsync(parameter, pathToXmlFile).ConfigureAwait(false);
             }
         }
 
         /// <summary>Returns the contents of an XML documentation tag for the specified member.</summary>
         /// <param name="member">The reflected member.</param>
         /// <returns>The contents of the "summary" tag for the member.</returns>
-        internal static async Task<XElement> GetXmlDocumentationAsync(this MemberInfo member)
+        private static async Task<XElement> GetXmlDocumentationAsync(this MemberInfo member)
         {
             using (Lock.Lock())
             {
@@ -209,7 +170,7 @@ namespace NJsonSchema.Infrastructure
         /// <param name="member">The reflected member.</param>
         /// <param name="pathToXmlFile">The path to the XML documentation file.</param>
         /// <returns>The contents of the "summary" tag for the member.</returns>
-        internal static async Task<XElement> GetXmlDocumentationAsync(this MemberInfo member, string pathToXmlFile)
+        private static async Task<XElement> GetXmlDocumentationAsync(this MemberInfo member, string pathToXmlFile)
         {
             using (Lock.Lock())
             {
@@ -244,7 +205,7 @@ namespace NJsonSchema.Infrastructure
                 return null;
             }
 
-            var documentationPath = await GetXmlDocumentationPathAsync(member.Module.Assembly).ConfigureAwait(false);
+            var documentationPath = GetXmlDocumentationPath(member.Module.Assembly);
             return await GetXmlDocumentationWithoutLockAsync(member, documentationPath).ConfigureAwait(false);
         }
 
@@ -308,26 +269,33 @@ namespace NJsonSchema.Infrastructure
             var result = xml.XPathSelectElements($"/doc/members/member[@name='{name}']");
 
             var element = result.FirstOrDefault();
-            if (element != null)
+            if (element == null)
             {
-                await ReplaceInheritdocElementsAsync(parameter.Member, element).ConfigureAwait(false);
+                return null;
+            }
+            
+            await ReplaceInheritdocElementsAsync(parameter.Member, element).ConfigureAwait(false);
 
-                if (parameter.IsRetval || string.IsNullOrEmpty(parameter.Name))
-                    result = (IEnumerable)DynamicApis.XPathEvaluate(xml, $"/doc/members/member[@name='{name}']/returns");
-                else
-                    result = (IEnumerable)DynamicApis.XPathEvaluate(xml, $"/doc/members/member[@name='{name}']/param[@name='{parameter.Name}']");
-
-                return result.OfType<XElement>().FirstOrDefault();
+            if (parameter.IsRetval || string.IsNullOrEmpty(parameter.Name))
+            {
+                result = xml.XPathSelectElements($"/doc/members/member[@name='{name}']/returns");
+            }
+            else
+            {
+                result = xml.XPathSelectElements(
+                    $"/doc/members/member[@name='{name}']/param[@name='{parameter.Name}']"
+                );
             }
 
-            return null;
+            return result.FirstOrDefault();
         }
 
         private static async Task ReplaceInheritdocElementsAsync(this MemberInfo member, XElement element)
         {
-#if !LEGACY
             if (element == null)
+            {
                 return;
+            }
 
             var children = element.Nodes().ToList();
             foreach (var child in children.OfType<XElement>())
@@ -355,10 +323,8 @@ namespace NJsonSchema.Infrastructure
                     }
                 }
             }
-#endif
         }
 
-#if !LEGACY
         private static async Task ProcessInheritdocInterfaceElementsAsync(this MemberInfo member, XElement child)
         {
             foreach (var baseInterface in member.DeclaringType.GetTypeInfo().ImplementedInterfaces)
@@ -375,12 +341,13 @@ namespace NJsonSchema.Infrastructure
                 }
             }
         }
-#endif
 
         private static string RemoveLineBreakWhiteSpaces(string documentation)
         {
             if (string.IsNullOrEmpty(documentation))
+            {
                 return string.Empty;
+            }
 
             documentation = "\n" + documentation.Replace("\r", string.Empty).Trim('\n');
 
@@ -391,7 +358,7 @@ namespace NJsonSchema.Infrastructure
         }
 
         /// <exception cref="ArgumentException">Unknown member type.</exception>
-        private static string GetMemberElementName(dynamic member)
+        private static string GetMemberElementName(MemberInfo member)
         {
             char prefixCode;
 
@@ -399,7 +366,7 @@ namespace NJsonSchema.Infrastructure
                 memberType.FullName :
                 member.DeclaringType.FullName + "." + member.Name;
 
-            switch ((string)member.MemberType.ToString())
+            switch (member.MemberType.ToString())
             {
                 case "Constructor":
                     memberName = memberName.Replace(".ctor", "#ctor");
@@ -416,7 +383,9 @@ namespace NJsonSchema.Infrastructure
                         .ToArray());
 
                     if (!string.IsNullOrEmpty(paramTypesList))
+                    {
                         memberName += "(" + paramTypesList + ")";
+                    }
                     break;
 
                 case "Event":
@@ -442,69 +411,80 @@ namespace NJsonSchema.Infrastructure
                 default:
                     throw new ArgumentException("Unknown member type.", "member");
             }
-            return string.Format("{0}:{1}", prefixCode, memberName.Replace("+", "."));
+            return $"{prefixCode}:{memberName.Replace("+", ".")}";
         }
 
-        private static async Task<string> GetXmlDocumentationPathAsync(dynamic assembly)
+        private static string GetXmlDocumentationPath(Assembly assembly)
         {
-            string path;
             try
             {
                 if (assembly == null)
+                {
                     return null;
+                }
 
                 var assemblyName = assembly.GetName();
                 if (string.IsNullOrEmpty(assemblyName.Name))
+                {
                     return null;
+                }
 
                 if (Cache.ContainsKey(assemblyName.FullName))
+                {
                     return null;
+                }
+                
+                var expectedDocFile = $"{assemblyName.Name}.xml";
 
+                string path;
                 if (!string.IsNullOrEmpty(assembly.Location))
                 {
-                    var assemblyDirectory = DynamicApis.PathGetDirectoryName((string)assembly.Location);
-                    path = DynamicApis.PathCombine(assemblyDirectory, (string)assemblyName.Name + ".xml");
-                    if (await DynamicApis.FileExistsAsync(path).ConfigureAwait(false))
+                    var assemblyDirectory = SysPath.GetDirectoryName(assembly.Location);
+                    path = SysPath.Combine(assemblyDirectory, expectedDocFile);
+                    if (File.Exists(path))
+                    {
                         return path;
-                }
-
-                if (ReflectionExtensions.HasProperty(assembly, "CodeBase"))
-                {
-                    var codeBase = (string)assembly.CodeBase;
-                    if (!string.IsNullOrEmpty(codeBase))
-                    {
-                        path = DynamicApis.PathCombine(DynamicApis.PathGetDirectoryName(codeBase
-                            .Replace("file:///", string.Empty)), assemblyName.Name + ".xml")
-                            .Replace("file:\\", string.Empty);
-
-                        if (await DynamicApis.FileExistsAsync(path).ConfigureAwait(false))
-                            return path;
                     }
                 }
 
-                var currentDomain = Type.GetType("System.AppDomain")?.GetRuntimeProperty("CurrentDomain").GetValue(null);
-                if (currentDomain?.HasProperty("BaseDirectory") == true)
+                var codeBase = assembly.CodeBase;
+                if (!string.IsNullOrEmpty(codeBase))
                 {
-                    var baseDirectory = currentDomain.TryGetPropertyValue("BaseDirectory", "");
-                    if (!string.IsNullOrEmpty(baseDirectory))
-                    {
-                        path = DynamicApis.PathCombine(baseDirectory, assemblyName.Name + ".xml");
-                        if (await DynamicApis.FileExistsAsync(path).ConfigureAwait(false))
-                            return path;
+                    path = SysPath.Combine(
+                            SysPath.GetDirectoryName(
+                                codeBase.Replace("file:///", string.Empty)
+                            ),
+                            expectedDocFile
+                        )
+                        .Replace("file:\\", string.Empty);
 
-                        return DynamicApis.PathCombine(baseDirectory, "bin\\" + assemblyName.Name + ".xml");
+                    if (File.Exists(path))
+                    {
+                        return path;
                     }
                 }
 
-                var currentDirectory = await DynamicApis.DirectoryGetCurrentDirectoryAsync();
-                path = DynamicApis.PathCombine(currentDirectory, assembly.GetName().Name + ".xml");
-                if (await DynamicApis.FileExistsAsync(path).ConfigureAwait(false))
+                var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                if (!string.IsNullOrEmpty(baseDirectory))
+                {
+                    path = SysPath.Combine(baseDirectory, expectedDocFile);
+                    if (File.Exists(path))
+                    {
+                        return path;
+                    }
+
+                    return SysPath.Combine(baseDirectory, $"bin\\{expectedDocFile}");
+                }
+
+                var currentDirectory = Directory.GetCurrentDirectory();
+                path = SysPath.Combine(currentDirectory, expectedDocFile);
+                if (File.Exists(path))
                 {
                     return path;
                 }
 
-                path = DynamicApis.PathCombine(currentDirectory, "bin\\" + assembly.GetName().Name + ".xml");
-                if (await DynamicApis.FileExistsAsync(path).ConfigureAwait(false))
+                path = SysPath.Combine(currentDirectory, $"bin\\{expectedDocFile}");
+                if (File.Exists(path))
                 {
                     return path;
                 }

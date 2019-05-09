@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using NJsonSchema.Infrastructure;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
