@@ -109,7 +109,9 @@ namespace HotChocolate
             return true;
         }
 
-        private static DirectiveDefinitionNode SerializeDirectiveTypeDefinition(DirectiveType directiveType, ReferencedTypes referenced)
+        private static DirectiveDefinitionNode SerializeDirectiveTypeDefinition(
+            DirectiveType directiveType,
+            ReferencedTypes referenced)
         {
             var arguments = directiveType.Arguments
                .Select(t => SerializeInputField(t, referenced))
@@ -315,7 +317,7 @@ namespace HotChocolate
                 .ToList();
 
             var values = enumType.Values
-                .Select(t => SerializeEnumValue(t))
+                .Select(t => SerializeEnumValue(t, referenced))
                 .ToList();
 
             return new EnumTypeDefinitionNode
@@ -330,14 +332,19 @@ namespace HotChocolate
 
 
         private static EnumValueDefinitionNode SerializeEnumValue(
-            EnumValue enumValue)
+            EnumValue enumValue,
+            ReferencedTypes referenced)
         {
+            var directives = enumValue.Directives
+                .Select(t => SerializeDirective(t, referenced))
+                .ToList();
+
             return new EnumValueDefinitionNode
             (
                 null,
                 new NameNode(enumValue.Name),
                 SerializeDescription(enumValue.Description),
-                Array.Empty<DirectiveNode>()
+                directives
             );
         }
 
@@ -387,7 +394,8 @@ namespace HotChocolate
                 SerializeDescription(inputValue.Description),
                 SerializeType(inputValue.Type, referenced),
                 inputValue.DefaultValue,
-                inputValue.Directives.Select(t => SerializeDirective(t, referenced)).ToList()
+                inputValue.Directives.Select(t =>
+                    SerializeDirective(t, referenced)).ToList()
             );
         }
 

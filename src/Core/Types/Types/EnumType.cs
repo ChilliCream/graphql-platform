@@ -188,8 +188,7 @@ namespace HotChocolate.Types
             IInitializationContext context)
         {
             var descriptor = EnumTypeDescriptor.New(
-                DescriptorContext.Create(context.Services),
-                GetType());
+                DescriptorContext.Create(context.Services));
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
@@ -217,6 +216,7 @@ namespace HotChocolate.Types
             {
                 _nameToValues[enumValue.Name] = enumValue;
                 _valueToValues[enumValue.Value] = enumValue;
+                enumValue.CompleteValue(context);
             }
 
             if (!Values.Any())

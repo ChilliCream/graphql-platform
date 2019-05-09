@@ -1150,6 +1150,54 @@ namespace HotChocolate.Types
             Assert.Throws<ArgumentNullException>(a);
         }
 
+        [Fact]
+        public void DoNotAllow_InputTypes_OnFields()
+        {
+            // arrange
+            // act
+            Action a = () => SchemaBuilder.New()
+                .AddType(new ObjectType(t => t
+                    .Name("Foo")
+                    .Field("bar")
+                    .Type<NonNullType<InputObjectType<Foo>>>()))
+                .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(a)
+                .Errors.First().Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void DoNotAllow_DynamicInputTypes_OnFields()
+        {
+            // arrange
+            // act
+            Action a = () => SchemaBuilder.New()
+                .AddType(new ObjectType(t => t
+                    .Name("Foo")
+                    .Field("bar")
+                    .Type(new NonNullType(new InputObjectType<Foo>()))))
+                .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(a)
+                .Errors.First().Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Support_Argument_Attributes()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Baz>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1182,6 +1230,19 @@ namespace HotChocolate.Types
         {
             [GraphQLNonNullType]
             public string Baz { get; set; }
+        }
+
+        public class Baz
+        {
+            public string Qux(
+                [GraphQLName("arg2")]
+                [GraphQLDescription("argdesc")]
+                [GraphQLNonNullType]
+                string arg) => arg;
+
+            public string Quux(
+                [GraphQLType(typeof(ListType<StringType>))]
+                string arg) => arg;
         }
 
         public class FooType

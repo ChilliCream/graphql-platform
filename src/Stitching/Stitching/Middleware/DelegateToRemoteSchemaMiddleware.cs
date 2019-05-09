@@ -429,7 +429,8 @@ namespace HotChocolate.Stitching
                     null,
                     new VariableNode(new NameNode(variableValue.Name)),
                     variableValue.Type,
-                    variableValue.DefaultValue
+                    variableValue.DefaultValue,
+                    Array.Empty<DirectiveNode>()
                 ));
             }
 

@@ -20,7 +20,7 @@ namespace HotChocolate.Types.Descriptors
                 ?? throw new ArgumentNullException(nameof(context));
         }
 
-        protected IDescriptorContext Context { get; }
+        protected internal IDescriptorContext Context { get; }
 
         IDescriptorContext IHasDescriptorContext.Context => Context;
 

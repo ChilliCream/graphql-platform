@@ -294,11 +294,9 @@ namespace HotChocolate.Language
             NameNode name = ParseName();
             ExpectColon();
             ITypeNode type = ParseTypeReference();
-            IValueNode defaultValue = null;
-            if (SkipEqual())
-            {
-                defaultValue = ParseValueLiteral(true);
-            }
+            IValueNode defaultValue = SkipEqual()
+                ? ParseValueLiteral(true)
+                : null;
             List<DirectiveNode> directives =
                 ParseDirectives(true);
 
