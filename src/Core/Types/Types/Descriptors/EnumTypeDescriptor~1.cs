@@ -41,6 +41,8 @@ namespace HotChocolate.Types.Descriptors
             return base.Item(value);
         }
 
+        public IEnumValueDescriptor Value(T value) => Item(value);
+
         public new IEnumTypeDescriptor<T> Directive<TDirective>(
             TDirective directiveInstance)
             where TDirective : class

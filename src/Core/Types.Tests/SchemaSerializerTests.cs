@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text;
 using ChilliCream.Testing;
@@ -9,6 +10,65 @@ namespace HotChocolate
 {
     public class SchemaSerializerTests
     {
+        [Fact]
+        public void Serialize_SchemaIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaSerializer.Serialize(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void SerializeSchemaWriter_SchemaIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaSerializer.Serialize(
+                null, new StringWriter());
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void SerializeSchemaWriter_WriterIsNull_ArgumentNullException()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    "type Query { foo: String }")
+                .AddResolver("Query", "foo", "bar")
+                .Create();
+
+            // act
+            Action action = () => SchemaSerializer.Serialize(schema, null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void SerializeSchemaWriter_Serialize()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    "type Query { foo: String }")
+                .AddResolver("Query", "foo", "bar")
+                .Create();
+            var stringBuiler = new StringBuilder();
+
+            // act
+            SchemaSerializer.Serialize(
+                schema, new StringWriter(stringBuiler));
+
+            // assert
+            stringBuiler.ToString().MatchSnapshot();
+        }
+
         [Fact]
         public void SerializeSchemaWithDirective()
         {

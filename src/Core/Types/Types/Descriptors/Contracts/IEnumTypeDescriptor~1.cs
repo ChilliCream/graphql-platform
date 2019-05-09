@@ -35,6 +35,8 @@ namespace HotChocolate.Types
 
         IEnumValueDescriptor Item(T value);
 
+        IEnumValueDescriptor Value(T value);
+
         IEnumTypeDescriptor<T> BindItems(BindingBehavior behavior);
 
         IEnumTypeDescriptor<T> Directive<TDirective>(
