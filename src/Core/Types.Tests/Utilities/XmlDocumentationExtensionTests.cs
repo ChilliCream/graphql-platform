@@ -85,10 +85,10 @@ namespace HotChocolate.Utilities
         
         public abstract class BaseBaseClass
         {
-            /// <summary>Foo.</summary>
+            /// <summary>Summary of foo.</summary>
             public abstract string Foo { get; }
 
-            /// <summary>Bar.</summary>
+            /// <summary>Method doc.</summary>
             /// <param name="baz">Parameter details.</param>
             public abstract void Bar(string baz);
         }
@@ -123,6 +123,189 @@ namespace HotChocolate.Utilities
                 .GetXmlDocumentationAsync();
 
             Assert.Equal("Parameter details.", parameterXml);
+        }
+        
+        [Fact]
+        public async Task When_method_has_inheritdoc_then_it_is_resolved()
+        {
+            await XmlDocumentationExtensions.ClearCacheAsync();
+
+            var methodSummary = await typeof(ClassWithInheritdoc)
+                .GetMethod(nameof(ClassWithInheritdoc.Bar))
+                .GetXmlSummaryAsync();
+
+            Assert.Equal("Method doc.", methodSummary);
+        }
+
+        [Fact]
+        public async Task When_property_has_inheritdoc_then_it_is_resolved()
+        {
+            await XmlDocumentationExtensions.ClearCacheAsync();
+
+            var summary = await typeof(ClassWithInheritdoc)
+                .GetProperty(nameof(ClassWithInheritdoc.Foo))
+                .GetXmlSummaryAsync();
+            
+            Assert.Equal("Summary of foo.", summary);
+        }
+        
+        // TODO: inheritance with class
+        
+        /// <summary>
+        /// I am an interface.
+        /// </summary>
+        public interface IBaseBaseInterface
+        {
+            /// <summary>Property summary.</summary>
+            string Foo { get; }
+
+            /// <summary>Method summary.</summary>
+            /// <param name="baz">Parameter summary.</param>
+            void Bar(string baz);
+        }
+
+        public interface IBaseInterface : IBaseBaseInterface
+        {
+        }
+
+        /// <inheritdoc />
+        public class ClassWithInheritdocOnInterface : IBaseInterface
+        {
+            /// <inheritdoc />
+            public string Foo { get; }
+
+            /// <inheritdoc />
+            public void Bar(string baz) { }
+        }
+
+        /// <summary>
+        /// I am my own class.
+        /// </summary>
+        public class ClassWithSummaryOnInterface : IBaseInterface
+        {
+            /// <summary>I am my own property.</summary>
+            public string Foo { get; }
+
+            /// <summary>
+            /// I am my own method.
+            /// </summary>
+            /// <param name="baz">I am my own parameter.</param>
+            public void Bar(string baz) { }
+        }
+
+        [Fact]
+        public async Task When_parameter_has_inheritdoc_on_interface_then_it_is_resolved()
+        {
+            await XmlDocumentationExtensions.ClearCacheAsync();
+
+            var summary = await typeof(ClassWithInheritdocOnInterface)
+                .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))
+                .GetParameters()
+                .Single(p => p.Name == "baz")
+                .GetXmlDocumentationAsync();
+
+            Assert.Equal("Parameter summary.", summary);
+        }
+
+        [Fact]
+        public async Task When_property_has_inheritdoc_on_interface_then_it_is_resolved()
+        {
+            await XmlDocumentationExtensions.ClearCacheAsync();
+
+            var summary = await typeof(ClassWithInheritdocOnInterface)
+                .GetProperty(nameof(ClassWithInheritdocOnInterface.Foo))
+                .GetXmlSummaryAsync();
+
+            Assert.Equal("Property summary.", summary);
+        }
+
+        [Fact]
+        public async Task When_method_has_inheritdoc_then_on_interface_it_is_resolved()
+        {
+            await XmlDocumentationExtensions.ClearCacheAsync();
+
+            var methodSummary = await typeof(ClassWithInheritdocOnInterface)
+                .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))
+                .GetXmlSummaryAsync();
+
+            Assert.Equal("Method summary.", methodSummary);
+        }
+
+        [Fact]
+        public async Task When_class_has_inheritdoc_and_implements_interface_then_it_is_resolved()
+        {
+            await XmlDocumentationExtensions.ClearCacheAsync();
+
+            var summary = await typeof(ClassWithInheritdocOnInterface)
+                .GetXmlSummaryAsync();
+            
+            Assert.Equal("I am an interface.", summary);
+        }
+
+        [Fact]
+        public async Task When_class_has_summary_and_implements_interface_then_class_summary_is_used()
+        {
+            await XmlDocumentationExtensions.ClearCacheAsync();
+
+            var summary = await typeof(ClassWithSummaryOnInterface)
+                .GetXmlSummaryAsync();
+
+            Assert.Equal("I am my own class.", summary);
+        }
+        
+        [Fact]
+        public async Task When_class_implements_interface_and_property_has_summary_then_property_summary_is_used()
+        {
+            await XmlDocumentationExtensions.ClearCacheAsync();
+
+            var summary = await typeof(ClassWithSummaryOnInterface)
+                .GetProperty(nameof(ClassWithSummaryOnInterface.Foo))
+                .GetXmlSummaryAsync();
+
+            Assert.Equal("I am my own property.", summary);
+        }
+        
+        [Fact]
+        public async Task When_class_implements_interface_and_method_has_summary_then_method_summary_is_used()
+        {
+            await XmlDocumentationExtensions.ClearCacheAsync();
+
+            var summary = await typeof(ClassWithSummaryOnInterface)
+                .GetMethod(nameof(ClassWithSummaryOnInterface.Bar))
+                .GetXmlSummaryAsync();
+
+            Assert.Equal("I am my own method.", summary);
+        }
+        
+        [Fact]
+        public async Task When_class_implements_interface_and_method_has_summary_then_method_parameter_summary_is_used()
+        {
+            await XmlDocumentationExtensions.ClearCacheAsync();
+
+            var summary = await typeof(ClassWithSummaryOnInterface)
+                .GetMethod(nameof(ClassWithSummaryOnInterface.Bar))
+                .GetParameters()
+                .Single(p => p.Name == "baz")
+                .GetXmlDocumentationAsync();
+
+            Assert.Equal("I am my own parameter.", summary);
+        }
+
+        /// <summary>
+        /// I am a test class.
+        /// </summary>
+        public class ClassWithSummary
+        {
+        }
+
+        public async Task When_class_has_summary_then_it_is_converted()
+        {
+            await XmlDocumentationExtensions.ClearCacheAsync();
+
+            var summary = await typeof(ClassWithSummary)
+                .GetXmlSummaryAsync();
+            
+            Assert.Equal("I am a test class.", summary);
         }
     }
 }
