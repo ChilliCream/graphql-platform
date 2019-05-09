@@ -1028,6 +1028,53 @@ namespace HotChocolate.Stitching
         }
 
         [Fact]
+        public async Task Query_WithEnumArgument_EnumIsCorrectlyPassed()
+        {
+            // arrange
+            IHttpClientFactory clientFactory = CreateRemoteSchemas();
+
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(clientFactory);
+            serviceCollection.AddStitchedSchema(builder =>
+                builder.AddSchemaFromHttp("contract")
+                    .AddSchemaFromHttp("customer")
+                    .AddSchemaConfiguration(c =>
+                        c.RegisterType<PaginationAmountType>()));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+            IExecutionResult result = null;
+
+            // act
+            using (IServiceScope scope = services.CreateScope())
+            {
+                var request = new QueryRequest(@"
+                    {
+                        standard: customerByKind(kind: STANDARD)
+                        {
+                            id
+                            kind
+                        }
+
+                        premium: customerByKind(kind: PREMIUM)
+                        {
+                            id
+                            kind
+                        }
+                    }");
+                request.Services = scope.ServiceProvider;
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            Snapshot.Match(result);
+        }
+
+        [Fact]
         public async Task AddErrorFilter()
         {
             // arrange
