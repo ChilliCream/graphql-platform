@@ -91,6 +91,16 @@ namespace HotChocolate.Types
         /// <summary>
         /// Specifies an object type field.
         /// </summary>
+        /// <param name="propertyOrMethod">
+        /// An expression selecting a property or method of
+        /// <typeparamref name="T"/>.
+        /// </param>
+        IObjectFieldDescriptor Field<TValue>(
+            Expression<Func<T, TValue>> propertyOrMethod);
+
+        /// <summary>
+        /// Specifies an object type field.
+        /// </summary>
         /// <param name="name">
         /// The name that the field shall have.
         /// </param>

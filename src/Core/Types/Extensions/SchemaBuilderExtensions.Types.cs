@@ -250,6 +250,40 @@ namespace HotChocolate
                 OperationType.Subscription);
         }
 
+        public static ISchemaBuilder AddObjectType(
+            this ISchemaBuilder builder,
+            Action<IObjectTypeDescriptor> configure)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            return builder.AddType(new ObjectType(configure));
+        }
+
+        public static ISchemaBuilder AddObjectType<T>(
+            this ISchemaBuilder builder,
+            Action<IObjectTypeDescriptor<T>> configure)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            return builder.AddType(new ObjectType<T>(configure));
+        }
+
         public static ISchemaBuilder AddType<T>(
             this ISchemaBuilder builder)
         {

@@ -10,26 +10,6 @@ namespace HotChocolate.Types
         : DescriptorTestBase
     {
         [Fact]
-        public void InitialName()
-        {
-            // act
-            var descriptor = new EnumTypeDescriptor(Context, "Foo");
-
-            // assert
-            Assert.Equal("Foo", descriptor.CreateDefinition().Name);
-        }
-
-        [Fact]
-        public void NoNameProvided()
-        {
-            // act
-            Action a = () => new EnumTypeDescriptor(Context, (string)null);
-
-            // assert
-            Assert.Throws<ArgumentException>(a);
-        }
-
-        [Fact]
         public void InferNameFromType()
         {
             // act
@@ -120,7 +100,7 @@ namespace HotChocolate.Types
         public void AddDirective()
         {
             // arrange
-            var descriptor = new EnumTypeDescriptor(Context, "Foo");
+            var descriptor = new EnumTypeDescriptor(Context);
 
             // act
             IEnumTypeDescriptor desc = descriptor;
@@ -136,7 +116,7 @@ namespace HotChocolate.Types
         public void AddDirectiveWithDirectiveNode()
         {
             // arrange
-            var descriptor = new EnumTypeDescriptor(Context, "Foo");
+            var descriptor = new EnumTypeDescriptor(Context);
 
             // act
             IEnumTypeDescriptor desc = descriptor;
@@ -152,7 +132,7 @@ namespace HotChocolate.Types
         public void AddDirectiveWithArgument()
         {
             // arrange
-            var descriptor = new EnumTypeDescriptor(Context, "Foo");
+            var descriptor = new EnumTypeDescriptor(Context);
 
             // act
             IEnumTypeDescriptor desc = descriptor;
