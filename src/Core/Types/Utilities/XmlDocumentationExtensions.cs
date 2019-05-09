@@ -473,7 +473,7 @@ namespace HotChocolate.Utilities
                         return path;
                     }
 
-                    return SysPath.Combine(baseDirectory, $"bin\\{expectedDocFile}");
+                    return SysPath.Combine(baseDirectory, "bin", $"{expectedDocFile}");
                 }
 
                 var currentDirectory = Directory.GetCurrentDirectory();
@@ -483,7 +483,7 @@ namespace HotChocolate.Utilities
                     return path;
                 }
 
-                path = SysPath.Combine(currentDirectory, $"bin\\{expectedDocFile}");
+                path = SysPath.Combine(currentDirectory, "bin", $"{expectedDocFile}");
                 if (File.Exists(path))
                 {
                     return path;
