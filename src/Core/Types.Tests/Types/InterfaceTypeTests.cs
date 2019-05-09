@@ -1,5 +1,7 @@
+using System;
 using System.Linq;
 using HotChocolate.Language;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -344,6 +346,40 @@ namespace HotChocolate.Types
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
+        }
+
+        [Fact]
+        public void DoNotAllow_InputTypes_OnFields()
+        {
+            // arrange
+            // act
+            Action a = () => SchemaBuilder.New()
+                .AddType(new InterfaceType(t => t
+                    .Name("Foo")
+                    .Field("bar")
+                    .Type<NonNullType<InputObjectType<object>>>()))
+                .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(a)
+                .Errors.First().Message.MatchSnapshot();
+        }
+
+         [Fact]
+        public void DoNotAllow_DynamicInputTypes_OnFields()
+        {
+            // arrange
+            // act
+            Action a = () => SchemaBuilder.New()
+                .AddType(new InterfaceType(t => t
+                    .Name("Foo")
+                    .Field("bar")
+                    .Type(new NonNullType(new InputObjectType<object>()))))
+                .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(a)
+                .Errors.First().Message.MatchSnapshot();
         }
 
         public interface IFoo

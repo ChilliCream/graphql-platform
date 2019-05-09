@@ -2,8 +2,10 @@
 
 namespace HotChocolate
 {
-    [AttributeUsage(AttributeTargets.Property
-        | AttributeTargets.Method)]
+    [AttributeUsage(
+        AttributeTargets.Property
+        | AttributeTargets.Method
+        | AttributeTargets.Parameter)]
     public sealed class GraphQLNonNullTypeAttribute
         : Attribute
     {

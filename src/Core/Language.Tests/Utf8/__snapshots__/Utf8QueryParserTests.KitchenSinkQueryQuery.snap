@@ -74,7 +74,8 @@
               "Value": "ComplexType"
             }
           },
-          "DefaultValue": null
+          "DefaultValue": null,
+          "Directives": []
         },
         {
           "Kind": "VariableDefinition",
@@ -132,7 +133,8 @@
               "Column": 51
             },
             "Value": "MOBILE"
-          }
+          },
+          "Directives": []
         }
       ],
       "Directives": [],
@@ -987,7 +989,8 @@
               "Value": "StoryLikeSubscribeInput"
             }
           },
-          "DefaultValue": null
+          "DefaultValue": null,
+          "Directives": []
         }
       ],
       "Directives": [],

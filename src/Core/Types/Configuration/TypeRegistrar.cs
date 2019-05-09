@@ -261,20 +261,32 @@ namespace HotChocolate.Configuration
             ITypeReference internalReference,
             TypeSystemObjectBase typeSystemObject)
         {
-            var initializationContext = new InitializationContext(
-                typeSystemObject,
-                _serviceFactory.Services,
-                _contextData);
-            typeSystemObject.Initialize(initializationContext);
-            _initContexts.Add(initializationContext);
+            try
+            {
+                var initializationContext = new InitializationContext(
+                    typeSystemObject,
+                    _serviceFactory.Services,
+                    _contextData);
+                typeSystemObject.Initialize(initializationContext);
+                _initContexts.Add(initializationContext);
 
-            var registeredType = new RegisteredType(
-                internalReference,
-                typeSystemObject,
-                initializationContext.TypeDependencies);
-            Registerd.Add(internalReference, registeredType);
+                var registeredType = new RegisteredType(
+                    internalReference,
+                    typeSystemObject,
+                    initializationContext.TypeDependencies);
+                Registerd.Add(internalReference, registeredType);
 
-            return registeredType;
+                return registeredType;
+            }
+            catch (Exception ex)
+            {
+                throw new SchemaException(
+                    SchemaErrorBuilder.New()
+                        .SetMessage(ex.Message)
+                        .SetException(ex)
+                        .SetTypeSystemObject(typeSystemObject)
+                        .Build());
+            }
         }
 
         private bool IsTypeResolved(IClrTypeReference typeReference)
