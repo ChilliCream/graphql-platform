@@ -201,6 +201,17 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public IObjectTypeDescriptor Implements<T>()
+            where T : InterfaceType =>
+            Interface<T>();
+
+        public IObjectTypeDescriptor Implements<T>(T type)
+            where T : InterfaceType =>
+            Interface(type);
+
+        public IObjectTypeDescriptor Implements(NamedTypeNode type) =>
+            Interface(type);
+
         public IObjectTypeDescriptor Include<TResolver>()
         {
             if (typeof(IType).IsAssignableFrom(typeof(TResolver)))
@@ -229,7 +240,11 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IObjectFieldDescriptor Field<TResolver>(
-            Expression<Func<TResolver, object>> propertyOrMethod)
+            Expression<Func<TResolver, object>> propertyOrMethod) =>
+            Field<TResolver, object>(propertyOrMethod);
+
+        public IObjectFieldDescriptor Field<TResolver, TPropertyType>(
+            Expression<Func<TResolver, TPropertyType>> propertyOrMethod)
         {
             if (propertyOrMethod == null)
             {

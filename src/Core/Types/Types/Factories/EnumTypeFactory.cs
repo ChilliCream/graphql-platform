@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Factories
             foreach (EnumValueDefinitionNode value in values)
             {
                 IEnumValueDescriptor valueDescriptor =
-                    typeDescriptor.Item(value.Name.Value)
+                    typeDescriptor.Value(value.Name.Value)
                         .Description(value.Description?.Value);
 
                 string deprecactionReason = value.DeprecationReason();

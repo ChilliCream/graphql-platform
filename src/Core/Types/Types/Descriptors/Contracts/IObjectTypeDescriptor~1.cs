@@ -63,6 +63,40 @@ namespace HotChocolate.Types
             where TInterface : InterfaceType;
 
         /// <summary>
+        /// Specifies an interface that is implemented by the
+        /// <see cref="ObjectType"/>.
+        /// </summary>
+        /// <param name="type">
+        /// A syntax node representing an interface type.
+        /// </param>
+        IObjectTypeDescriptor<T> Interface(NamedTypeNode type);
+
+        /// <summary>
+        /// Specifies an interface that is implemented by the
+        /// <see cref="ObjectType"/>.
+        /// </summary>
+        /// <typeparam name="T">The interface type.</typeparam>
+        IObjectTypeDescriptor<T> Implements<TInterface>()
+            where TInterface : InterfaceType;
+
+        /// <summary>
+        /// Specifies an interface that is implemented by the
+        /// <see cref="ObjectType"/>.
+        /// </summary>
+        /// <typeparam name="T">The interface type.</typeparam>
+        IObjectTypeDescriptor<T> Implements<TInterface>(TInterface type)
+            where TInterface : InterfaceType;
+
+        /// <summary>
+        /// Specifies an interface that is implemented by the
+        /// <see cref="ObjectType"/>.
+        /// </summary>
+        /// <param name="type">
+        /// A syntax node representing an interface type.
+        /// </param>
+        IObjectTypeDescriptor<T> Implements(NamedTypeNode type);
+
+        /// <summary>
         /// Includes a resolver type and imports all the methods and
         /// fields from it.
         /// </summary>
@@ -87,6 +121,16 @@ namespace HotChocolate.Types
         /// </param>
         IObjectFieldDescriptor Field(
             Expression<Func<T, object>> propertyOrMethod);
+
+        /// <summary>
+        /// Specifies an object type field.
+        /// </summary>
+        /// <param name="propertyOrMethod">
+        /// An expression selecting a property or method of
+        /// <typeparamref name="T"/>.
+        /// </param>
+        IObjectFieldDescriptor Field<TValue>(
+            Expression<Func<T, TValue>> propertyOrMethod);
 
         /// <summary>
         /// Specifies an object type field.
