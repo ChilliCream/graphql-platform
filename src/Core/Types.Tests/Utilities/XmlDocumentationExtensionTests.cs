@@ -150,7 +150,6 @@ namespace HotChocolate.Utilities
         }
         
         // TODO: inheritance with class
-        
         /// <summary>
         /// I am an interface.
         /// </summary>
@@ -229,17 +228,6 @@ namespace HotChocolate.Utilities
                 .GetXmlSummaryAsync();
 
             Assert.Equal("Method summary.", methodSummary);
-        }
-
-        [Fact]
-        public async Task When_class_has_inheritdoc_and_implements_interface_then_it_is_resolved()
-        {
-            await XmlDocumentationExtensions.ClearCacheAsync();
-
-            var summary = await typeof(ClassWithInheritdocOnInterface)
-                .GetXmlSummaryAsync();
-            
-            Assert.Equal("I am an interface.", summary);
         }
 
         [Fact]
