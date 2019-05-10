@@ -14,8 +14,8 @@ namespace HotChocolate.Types.Filters.String.Fields
         public StringFilterStartsWithDescriptor(IStringFilterFieldDescriptor parent, IDescriptorContext context, PropertyInfo property) : base(context, property)
         {
             this.parent = parent;
-            Type<ListType<StringType>>();
             Definition.Type = GetTypeReference();
+            Definition.Name += "_startsWith";
             Definition.Property = null;
         }
 

@@ -11,6 +11,7 @@ using HotChocolate.Types.Filters.String;
 using HotChocolate.Types.Filters.Comparable;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Filters.Object;
+using HotChocolate.Types.Filters.IEnumerable;
 
 namespace HotChocolate.Types.Filters
 {
@@ -130,6 +131,72 @@ namespace HotChocolate.Types.Filters
                 var field = new ObjectFilterFieldsDescriptor(typeof(TFilter), Context, p);
                 Fields.Add(field);
                 return field;
+            }
+
+            throw new ArgumentException(
+                "Only properties are allowed for input types.",
+                nameof(propertyOrMethod));
+        }
+
+        public IEnumerableFilterFieldDescriptor Filter(Expression<Func<T, IEnumerable<string>>> propertyOrMethod, Action<IStringFilterFieldDescriptor> descriptor)
+        {
+            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+            {
+                var innerField = new StringFilterFieldsDescriptor(Context, p);
+                descriptor.Invoke(innerField); 
+                var enumerableFilterType = new FilterInputType<T>(
+                    x => x.Extend().OnBeforeCreate(
+                        y =>
+                        {
+                            y.Name = p.Name + "TestFilter";
+                            y.Fields.AddRange(innerField.CreateDefinitions());
+                        }
+                    )
+                );
+                var field = new EnumerableFilterFieldsDescriptor(enumerableFilterType, Context, p);
+                Fields.Add(field);
+                return field;
+            }
+
+            throw new ArgumentException(
+                "Only properties are allowed for input types.",
+                nameof(propertyOrMethod));
+        }
+
+        public IEnumerableFilterFieldDescriptor Filter<TComparable>(Expression<Func<T, IEnumerable<TComparable>>> propertyOrMethod, Action<IComparableFilterFieldDescriptor> descriptor) where TComparable : IComparable
+        {
+            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+            {
+                var innerField = new ComparableFilterFieldsDescriptor(Context, p);
+                descriptor.Invoke(innerField);
+                var enumerableFilterType = new FilterInputType<T>(
+                    x => x.Extend().OnBeforeCreate(
+                        y =>
+                        {
+                            y.Name = p.Name + "TestComparableFilter";
+                            y.Fields.AddRange(innerField.CreateDefinitions());
+                        }
+                    )
+                ); 
+                var field = new EnumerableFilterFieldsDescriptor(enumerableFilterType, Context, p);
+                Fields.Add(field);
+                return field;
+            }
+
+            throw new ArgumentException(
+                "Only properties are allowed for input types.",
+                nameof(propertyOrMethod));
+        }
+
+
+        public IEnumerableFilterFieldDescriptor Filter<TFilter>(Expression<Func<T, IEnumerable<object>>> propertyOrMethod) where TFilter : IFilterInputType
+        {
+            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+            { 
+                Type listType = typeof(ListType<>).MakeGenericType(typeof(TFilter)); 
+                var field = new EnumerableFilterFieldsDescriptor(new ClrTypeReference(listType, TypeContext.Input, true, true), Context, p);
+                Fields.Add(field);
+                return field; 
             }
 
             throw new ArgumentException(

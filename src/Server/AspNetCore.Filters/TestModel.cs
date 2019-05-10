@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using System.Threading.Tasks; 
 
 namespace Filters
 {
@@ -10,7 +10,9 @@ namespace Filters
 		public string Test { get; set; }
 		public int TestInt { get; set; }
 		public TestModel TestModal { get; set; }
-		public IEnumerable<string> TestEnumerable { get; set; }
-		public IEnumerable<TestModel> TestModelEnumerable { get; set; }
+        public TestEnum TestEnum { get; set; }
+        public IEnumerable<string> TestEnumerable { get; set; }
+        public IEnumerable<int> TestEnumerableInt { get; set; }
+        public IEnumerable<TestModel> TestModelEnumerable { get; set; }
 	}
 }
