@@ -1,5 +1,6 @@
 using System.Drawing;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -16,12 +17,12 @@ namespace HotChocolate.Utilities
 
             Assert.Empty(summary);
         }
-        
+
         public class WithMultilineXmlDoc
         {
             /// <summary>
             /// Query and manages users.
-            /// 
+            ///
             /// Please note:
             /// * Users ...
             /// * Users ...
@@ -42,11 +43,11 @@ namespace HotChocolate.Utilities
                 .GetProperty(nameof(WithMultilineXmlDoc.Foo))
                 .GetXmlSummaryAsync();
 
-            Assert.Contains("\n\n", summary);
+            Assert.Matches(new Regex(@"\n[ \t]*\n"), summary);
             Assert.Contains("    * Users", summary);
             Assert.Equal(summary.Trim(), summary);
         }
-        
+
         public class WithSeeTagInXmlDoc
         {
             /// <summary><see langword="null"/> for the default <see cref="Record"/>. See <see cref="Record">this</see> and <see href="https://github.com/rsuter/njsonschema">this</see> at <see href="https://github.com/rsuter/njsonschema"/>.</summary>
@@ -64,7 +65,7 @@ namespace HotChocolate.Utilities
 
             Assert.Equal("null for the default Record. See this and this at https://github.com/rsuter/njsonschema.", summary);
         }
-        
+
         public class WithGenericTagsInXmlDoc
         {
             /// <summary>These <c>are</c> <strong>some</strong> tags.</summary>
@@ -82,7 +83,7 @@ namespace HotChocolate.Utilities
 
             Assert.Equal("These are some tags.", summary);
         }
-        
+
         /// <summary>
         /// I am the most base class.
         /// </summary>
@@ -96,9 +97,6 @@ namespace HotChocolate.Utilities
             public abstract void Bar(string baz);
         }
 
-        /// <summary>
-        /// I am a base class summary.
-        /// </summary>
         public abstract class BaseClass : BaseBaseClass
         {
             /// <inheritdoc />
@@ -108,7 +106,6 @@ namespace HotChocolate.Utilities
             public override void Bar(string baz) { }
         }
 
-        /// <inheritdoc />
         public class ClassWithInheritdoc : BaseClass
         {
             /// <inheritdoc />
@@ -125,8 +122,8 @@ namespace HotChocolate.Utilities
 
             var summary = await typeof(BaseBaseClass)
                 .GetXmlSummaryAsync();
-            
-            Assert.Equal("I am the most base of classes.", summary);
+
+            Assert.Equal("I am the most base class.", summary);
         }
 
         [Fact]
@@ -142,7 +139,7 @@ namespace HotChocolate.Utilities
 
             Assert.Equal("Parameter details.", parameterXml);
         }
-        
+
         [Fact]
         public async Task When_method_has_inheritdoc_then_it_is_resolved()
         {
@@ -163,10 +160,10 @@ namespace HotChocolate.Utilities
             var summary = await typeof(ClassWithInheritdoc)
                 .GetProperty(nameof(ClassWithInheritdoc.Foo))
                 .GetXmlSummaryAsync();
-            
+
             Assert.Equal("Summary of foo.", summary);
         }
-        
+
         /// <summary>
         /// I am an interface.
         /// </summary>
@@ -184,7 +181,6 @@ namespace HotChocolate.Utilities
         {
         }
 
-        /// <inheritdoc />
         public class ClassWithInheritdocOnInterface : IBaseInterface
         {
             /// <inheritdoc />
@@ -194,13 +190,28 @@ namespace HotChocolate.Utilities
             public void Bar(string baz) { }
         }
 
-        public async Task When_parameter_is_an_interface_type_then_it_is_resolved()
+        public class ClassWithInterfaceAndCustomSummaries : IBaseInterface
+        {
+            /// <summary>
+            /// I am my own property.
+            /// </summary>
+            public string Foo { get; }
+
+            /// <summary>
+            /// I am my own method.
+            /// </summary>
+            /// <param name="baz">I am my own parameter.</param>
+            public void Bar(string baz) { }
+        }
+
+        [Fact]
+        public async Task When_type_is_an_interface_then_summary_is_resolved()
         {
             await XmlDocumentationExtensions.ClearCacheAsync();
 
             var summary = await typeof(IBaseBaseInterface)
                 .GetXmlSummaryAsync();
-            
+
             Assert.Equal("I am an interface.", summary);
         }
 
@@ -243,47 +254,36 @@ namespace HotChocolate.Utilities
         }
 
         [Fact]
-        public async Task When_class_has_summary_and_implements_interface_then_class_summary_is_used()
-        {
-            await XmlDocumentationExtensions.ClearCacheAsync();
-
-            var summary = await typeof(ClassWithSummaryOnInterface)
-                .GetXmlSummaryAsync();
-
-            Assert.Equal("I am my own class.", summary);
-        }
-        
-        [Fact]
         public async Task When_class_implements_interface_and_property_has_summary_then_property_summary_is_used()
         {
             await XmlDocumentationExtensions.ClearCacheAsync();
 
-            var summary = await typeof(ClassWithSummaryOnInterface)
-                .GetProperty(nameof(ClassWithSummaryOnInterface.Foo))
+            var summary = await typeof(ClassWithInterfaceAndCustomSummaries)
+                .GetProperty(nameof(ClassWithInterfaceAndCustomSummaries.Foo))
                 .GetXmlSummaryAsync();
 
             Assert.Equal("I am my own property.", summary);
         }
-        
+
         [Fact]
         public async Task When_class_implements_interface_and_method_has_summary_then_method_summary_is_used()
         {
             await XmlDocumentationExtensions.ClearCacheAsync();
 
-            var summary = await typeof(ClassWithSummaryOnInterface)
-                .GetMethod(nameof(ClassWithSummaryOnInterface.Bar))
+            var summary = await typeof(ClassWithInterfaceAndCustomSummaries)
+                .GetMethod(nameof(ClassWithInterfaceAndCustomSummaries.Bar))
                 .GetXmlSummaryAsync();
 
             Assert.Equal("I am my own method.", summary);
         }
-        
+
         [Fact]
         public async Task When_class_implements_interface_and_method_has_summary_then_method_parameter_summary_is_used()
         {
             await XmlDocumentationExtensions.ClearCacheAsync();
 
-            var summary = await typeof(ClassWithSummaryOnInterface)
-                .GetMethod(nameof(ClassWithSummaryOnInterface.Bar))
+            var summary = await typeof(ClassWithInterfaceAndCustomSummaries)
+                .GetMethod(nameof(ClassWithInterfaceAndCustomSummaries.Bar))
                 .GetParameters()
                 .Single(p => p.Name == "baz")
                 .GetXmlDocumentationAsync();
@@ -298,13 +298,14 @@ namespace HotChocolate.Utilities
         {
         }
 
+        [Fact]
         public async Task When_class_has_summary_then_it_is_converted()
         {
             await XmlDocumentationExtensions.ClearCacheAsync();
 
             var summary = await typeof(ClassWithSummary)
                 .GetXmlSummaryAsync();
-            
+
             Assert.Equal("I am a test class.", summary);
         }
     }
