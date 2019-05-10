@@ -60,7 +60,9 @@ public class Program
 {
     public static void Main(string[] args)
     {
-        var schema = Schema.Create(c => c.RegisterQueryType<Query>());
+        var schema = SchemaBuilder.New()
+          .AddQueryType<Query>()
+          .Create();
     }
 }
 
@@ -143,7 +145,10 @@ Open the Startup.cs and add the following code.
 ```csharp
 protected override void ConfigureServices(IServiceCollection services)
 {
-    services.AddGraphQL(c => c.RegisterQueryType<ObjectType<Query>>());
+    services.AddGraphQL(sp => SchemaBuilder.New()
+      .AddQueryType<Query>()
+      .AddServices(sp)
+      .Create());
 }
 ```
 
