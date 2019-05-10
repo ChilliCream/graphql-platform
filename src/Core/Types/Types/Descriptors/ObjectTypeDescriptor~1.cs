@@ -77,15 +77,18 @@ namespace HotChocolate.Types.Descriptors
             where TInterface : InterfaceType =>
             Interface<TInterface>();
 
-        public new IObjectTypeDescriptor<T> Implements<TInterface>(TInterface type)
-            where TInterface : InterfaceType =>
-            Interface(type);
-
-        public new IObjectTypeDescriptor<T> Implements(NamedTypeNode type)
+        public new IObjectTypeDescriptor<T> Interface(NamedTypeNode type)
         {
             base.Interface(type);
             return this;
         }
+
+        public new IObjectTypeDescriptor<T> Implements<TInterface>(TInterface type)
+            where TInterface : InterfaceType =>
+            Interface(type);
+
+        public new IObjectTypeDescriptor<T> Implements(NamedTypeNode type) =>
+            Interface(type);
 
         public new IObjectTypeDescriptor<T> Include<TResolver>()
         {
