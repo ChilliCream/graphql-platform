@@ -83,6 +83,9 @@ namespace HotChocolate.Utilities
             Assert.Equal("These are some tags.", summary);
         }
         
+        /// <summary>
+        /// I am the most base class.
+        /// </summary>
         public abstract class BaseBaseClass
         {
             /// <summary>Summary of foo.</summary>
@@ -93,6 +96,9 @@ namespace HotChocolate.Utilities
             public abstract void Bar(string baz);
         }
 
+        /// <summary>
+        /// I am a base class summary.
+        /// </summary>
         public abstract class BaseClass : BaseBaseClass
         {
             /// <inheritdoc />
@@ -102,6 +108,7 @@ namespace HotChocolate.Utilities
             public override void Bar(string baz) { }
         }
 
+        /// <inheritdoc />
         public class ClassWithInheritdoc : BaseClass
         {
             /// <inheritdoc />
@@ -109,6 +116,17 @@ namespace HotChocolate.Utilities
 
             /// <inheritdoc />
             public override void Bar(string baz) { }
+        }
+
+        [Fact]
+        public async Task When_type_has_summary_then_it_it_resolved()
+        {
+            await XmlDocumentationExtensions.ClearCacheAsync();
+
+            var summary = await typeof(BaseBaseClass)
+                .GetXmlSummaryAsync();
+            
+            Assert.Equal("I am the most base of classes.", summary);
         }
 
         [Fact]
@@ -149,7 +167,6 @@ namespace HotChocolate.Utilities
             Assert.Equal("Summary of foo.", summary);
         }
         
-        // TODO: inheritance with class
         /// <summary>
         /// I am an interface.
         /// </summary>
@@ -177,19 +194,14 @@ namespace HotChocolate.Utilities
             public void Bar(string baz) { }
         }
 
-        /// <summary>
-        /// I am my own class.
-        /// </summary>
-        public class ClassWithSummaryOnInterface : IBaseInterface
+        public async Task When_parameter_is_an_interface_type_then_it_is_resolved()
         {
-            /// <summary>I am my own property.</summary>
-            public string Foo { get; }
+            await XmlDocumentationExtensions.ClearCacheAsync();
 
-            /// <summary>
-            /// I am my own method.
-            /// </summary>
-            /// <param name="baz">I am my own parameter.</param>
-            public void Bar(string baz) { }
+            var summary = await typeof(IBaseBaseInterface)
+                .GetXmlSummaryAsync();
+            
+            Assert.Equal("I am an interface.", summary);
         }
 
         [Fact]
