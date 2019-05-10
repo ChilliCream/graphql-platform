@@ -79,7 +79,8 @@ namespace HotChocolate.Stitching.Delegation
                 null,
                 new VariableNode(new NameNode(name)),
                 type,
-                defaultValue
+                defaultValue,
+                Array.Empty<DirectiveNode>()
             ));
 
             return this;

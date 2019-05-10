@@ -9,6 +9,7 @@ using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
 using HotChocolate.Utilities;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -73,9 +74,10 @@ namespace HotChocolate.Execution
                 schema,
                 services.CreateRequestServiceScope(),
                 request,
-                fs => fs.Field.Middleware
+                (f,s) => f.Middleware
             )
             {
+                CachedQuery = new CachedQuery("{ a }", query),
                 Document = query,
                 Operation = operation
             };
@@ -97,8 +99,7 @@ namespace HotChocolate.Execution
             await middleware.InvokeAsync(context);
 
             // assert
-            Assert.NotNull(context.Result);
-            context.Result.Snapshot();
+            context.Result.MatchSnapshot();
         }
     }
 }

@@ -1,5 +1,8 @@
 using System;
+using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors.Definitions;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -92,6 +95,28 @@ namespace HotChocolate.Types
 
                 c.RegisterType(new EnumType<Foo>(d => d
                     .Directive(new DirectiveNode("bar"))));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("Foo");
+            Assert.Collection(type.Directives,
+                t => Assert.Equal("bar", t.Type.Name));
+        }
+
+        [Fact]
+        public void EnumType_WithDirectivesT()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterDirective(new DirectiveType<Bar>(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.Enum)));
+
+                c.RegisterType(new EnumType<Foo>(d => d
+                    .Directive<Bar>()));
 
                 c.Options.StrictValidation = false;
             });
@@ -202,10 +227,216 @@ namespace HotChocolate.Types
             Assert.Equal(TypeKind.Enum, type.Kind);
         }
 
+        [Fact]
+        public void EnumValue_ValueIsNull_SchemaException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddQueryType<Bar>()
+                .AddType(new EnumType(d => d
+                    .Name("Foo")
+                    .Item<string>(null)))
+                    .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(action)
+                .Errors.Single().Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void EnumValueT_ValueIsNull_SchemaException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddQueryType<Bar>()
+                .AddType(new EnumType<Foo?>(d => d
+                    .Name("Foo")
+                    .Item(null)))
+                    .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(action)
+                .Errors.Single().Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void EnumValue_WithDirectives()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterDirective(new DirectiveType(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.EnumValue)));
+
+                c.RegisterType(new EnumType(d => d
+                    .Name("Foo")
+                    .Item("baz")
+                    .Directive(new DirectiveNode("bar"))));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("Foo");
+            Assert.Collection(type.Values,
+                v => Assert.Collection(v.Directives,
+                    t => Assert.Equal("bar", t.Type.Name)));
+        }
+
+        [Fact]
+        public void EnumValue_WithDirectivesNameArgs()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterDirective(new DirectiveType(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.EnumValue)));
+
+                c.RegisterType(new EnumType(d => d
+                    .Name("Foo")
+                    .Item("baz")
+                    .Directive("bar", Array.Empty<ArgumentNode>())));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("Foo");
+            Assert.Collection(type.Values,
+                v => Assert.Collection(v.Directives,
+                    t => Assert.Equal("bar", t.Type.Name)));
+        }
+
+        [Fact]
+        public void Serialize_EnumValue_WithDirectives()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterDirective(new DirectiveType(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.EnumValue)));
+
+                c.RegisterType(new EnumType(d => d
+                    .Name("Foo")
+                    .Item("baz")
+                    .Directive(new DirectiveNode("bar"))));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void EnumValue_WithDirectivesT()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterDirective(new DirectiveType<Bar>(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.EnumValue)));
+
+                c.RegisterType(new EnumType(d => d
+                    .Name("Foo")
+                    .Item("baz")
+                    .Directive<Bar>()));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("Foo");
+            Assert.Collection(type.Values,
+                v => Assert.Collection(v.Directives,
+                    t => Assert.Equal("bar", t.Type.Name)));
+        }
+
+        [Fact]
+        public void EnumValue_WithDirectivesTInstance()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterDirective(new DirectiveType<Bar>(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.EnumValue)));
+
+                c.RegisterType(new EnumType(d => d
+                    .Name("Foo")
+                    .Item("baz")
+                    .Directive(new Bar())));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("Foo");
+            Assert.Collection(type.Values,
+                v => Assert.Collection(v.Directives,
+                    t => Assert.Equal("bar", t.Type.Name)));
+        }
+
+        [Fact]
+        public void EnumValue_SetContextData()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new EnumType(d => d
+                    .Name("Foo")
+                    .Value("bar")
+                    .Extend()
+                    .OnBeforeCreate(def => def.ContextData["baz"] = "qux")));
+
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("Foo");
+            Assert.Collection(type.Values,
+                v => Assert.Collection(v.ContextData,
+                    c =>
+                    {
+                        Assert.Equal("baz", c.Key);
+                        Assert.Equal("qux", c.Value);
+                    }));
+        }
+
+        [Fact]
+        public void EnumValue_DefinitionIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => new EnumValue(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void EnumValue_DefinitionValueIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => new EnumValue(new EnumValueDefinition());
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
         public enum Foo
         {
             Bar1,
             Bar2
         }
+
+        public class Bar { }
     }
 }

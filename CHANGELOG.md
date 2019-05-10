@@ -15,6 +15,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added resolver overloads to schema builder.
 - Added new UTF-8 parser
 - Added support for schema directives. [spec](https://graphql.github.io/graphql-spec/June2018/#sec-Schema)
+- Added two phase argument coercion.
+- Added two phase field collection.
+- Added GraphQL attributes support on parameters. [726](https://github.com/ChilliCream/hotchocolate/issues/726)
+- Added support for directives on variable definitions [spec](https://github.com/graphql/graphql-spec/pull/510)
+- Added support for directives on enum values [spec](https://graphql.github.io/graphql-spec/June2018/#EnumValueDefinition)
+- Added support for directives on arguments [spec](https://graphql.github.io/graphql-spec/June2018/#ArgumentsDefinition)
+
+### Changed
+
+- Replaced roslyn compiler with the expression compiler. This will reduce the memory footprint of the server.
+- Changed how the server caches queries.
+
+### Removed
+
+- Removed obsolete QueryDocument from IResolverContext.
+- Removed obsolete CancellationToken from IResolverContext
+
+### Fixed
+
+- Includes directive definitions in serialized schema [#717](https://github.com/ChilliCream/hotchocolate/issues/717)
+- Field types are now validated. [#713](https://github.com/ChilliCream/hotchocolate/issues/713)
+
 
 ## [0.8.2] - 2019-04-10
 

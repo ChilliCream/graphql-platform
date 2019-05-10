@@ -561,11 +561,11 @@ namespace HotChocolate.Execution
 
             builder
                 .RemoveService<Cache<DirectiveMiddlewareCompiler>>()
-                .RemoveService<Cache<DocumentNode>>()
+                .RemoveService<Cache<ICachedQuery>>()
                 .RemoveService<Cache<OperationDefinitionNode>>();
             builder.Services
                 .AddSingleton(new Cache<DirectiveMiddlewareCompiler>(cacheSize))
-                .AddSingleton(new Cache<DocumentNode>(cacheSize))
+                .AddSingleton(new Cache<ICachedQuery>(cacheSize))
                 .AddSingleton(new Cache<OperationDefinitionNode>(cacheSize));
 
             return builder;

@@ -30,14 +30,6 @@ namespace HotChocolate.Resolvers
         ObjectField Field { get; }
 
         /// <summary>
-        /// Gets the query that is being executed.
-        /// </summary>
-        [Obsolete(
-            "Use Document. " +
-            "This property will be removed with version 1.0.0.")]
-        DocumentNode QueryDocument { get; }
-
-        /// <summary>
         /// Gets the parsed query document that is being executed.
         /// </summary>
         DocumentNode Document { get; }
@@ -175,7 +167,7 @@ namespace HotChocolate.Resolvers
         /// Returns the fields that would be selected if this resolver
         /// returns an object of the specified typeContext.
         /// </returns>
-        IReadOnlyCollection<FieldSelection> CollectFields(
+        IReadOnlyCollection<IFieldSelection> CollectFields(
             ObjectType typeContext);
 
         /// <summary>
@@ -190,13 +182,8 @@ namespace HotChocolate.Resolvers
         /// Returns the fields that would be selected if this resolver
         /// returns an object of the specified typeContext.
         /// </returns>
-        IReadOnlyCollection<FieldSelection> CollectFields(
+        IReadOnlyCollection<IFieldSelection> CollectFields(
             ObjectType typeContext,
             SelectionSetNode selectionSet);
-
-        [Obsolete(
-            "Use RequestAborted. " +
-            "This property will be removed with version 1.0.0.")]
-        CancellationToken CancellationToken { get; }
     }
 }

@@ -48,6 +48,27 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public IEnumValueDescriptor Directive<T>(T directiveInstance)
+            where T : class
+        {
+            Definition.AddDirective(directiveInstance);
+            return this;
+        }
+
+        public IEnumValueDescriptor Directive<T>()
+            where T : class, new()
+        {
+            Definition.AddDirective(new T());
+            return this;
+        }
+
+        public IEnumValueDescriptor Directive(
+            NameString name, params ArgumentNode[] arguments)
+        {
+            Definition.AddDirective(name, arguments);
+            return this;
+        }
+
         public static EnumValueDescriptor New(
             IDescriptorContext context,
             object value) =>

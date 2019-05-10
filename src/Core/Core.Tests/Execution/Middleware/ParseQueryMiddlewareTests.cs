@@ -24,7 +24,7 @@ namespace HotChocolate.Execution
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
                 request,
-                fs => fs.Field.Middleware
+                (f, s) => f.Middleware
             );
 
             var diagnostics = new QueryExecutionDiagnostics(
@@ -34,7 +34,7 @@ namespace HotChocolate.Execution
             var middleware = new ParseQueryMiddleware(
                 c => Task.CompletedTask,
                 new DefaultQueryParser(),
-                new Cache<DocumentNode>(10),
+                new Cache<ICachedQuery>(10),
                 diagnostics);
 
             // act
@@ -58,7 +58,7 @@ namespace HotChocolate.Execution
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
                 request,
-                fs => fs.Field.Middleware
+                (f, s) => f.Middleware
             );
 
             var diagnostics = new QueryExecutionDiagnostics(
@@ -68,7 +68,7 @@ namespace HotChocolate.Execution
             var middleware = new ParseQueryMiddleware(
                 c => Task.CompletedTask,
                 new DefaultQueryParser(),
-                new Cache<DocumentNode>(10),
+                new Cache<ICachedQuery>(10),
                 diagnostics);
 
             // act
