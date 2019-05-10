@@ -37,7 +37,7 @@ namespace HotChocolate.Utilities
         {
             return await GetXmlDocumentationTagAsync(member, "summary").ConfigureAwait(false);
         }
-        
+
         /// <summary>Returns the contents of the "returns" or "param" XML documentation tag for the specified parameter.</summary>
         /// <param name="parameter">The reflected parameter or return info.</param>
         /// <returns>The contents of the "returns" or "param" tag.</returns>
@@ -54,7 +54,7 @@ namespace HotChocolate.Utilities
                 return RemoveLineBreakWhiteSpaces(GetXmlDocumentationText(element));
             }
         }
-        
+
         /// <summary>Clears the cache.</summary>
         /// <returns>The task.</returns>
         internal static Task ClearCacheAsync()
@@ -88,47 +88,45 @@ namespace HotChocolate.Utilities
             var value = new StringBuilder();
             foreach (var node in element.Nodes())
             {
-                if (node is XElement e)
+                var currentElement = node as XElement;
+                if (currentElement == null)
                 {
-                    if (e.Name == "see")
+                    value.Append(node);
+                    continue;
+                }
+
+                if (currentElement.Name != "see")
+                {
+                    value.Append(currentElement.Value);
+                    continue;
+                }
+
+                var attribute = currentElement.Attribute("langword");
+                if (attribute != null)
+                {
+                    value.Append(attribute.Value);
+                    continue;
+                }
+
+                if (!string.IsNullOrEmpty(currentElement.Value))
+                {
+                    value.Append(currentElement.Value);
+                }
+                else
+                {
+                    attribute = currentElement.Attribute("cref");
+                    if (attribute != null)
                     {
-                        var attribute = e.Attribute("langword");
+                        value.Append(attribute.Value.Trim('!', ':').Trim().Split('.').Last());
+                    }
+                    else
+                    {
+                        attribute = currentElement.Attribute("href");
                         if (attribute != null)
                         {
                             value.Append(attribute.Value);
                         }
-                        else
-                        {
-                            if (!string.IsNullOrEmpty(e.Value))
-                            {
-                                value.Append(e.Value);
-                            }
-                            else
-                            {
-                                attribute = e.Attribute("cref");
-                                if (attribute != null)
-                                {
-                                    value.Append(attribute.Value.Trim('!', ':').Trim().Split('.').Last());
-                                }
-                                else
-                                {
-                                    attribute = e.Attribute("href");
-                                    if (attribute != null)
-                                    {
-                                        value.Append(attribute.Value);
-                                    }
-                                }
-                            }
-                        }
                     }
-                    else
-                    {
-                        value.Append(e.Value);
-                    }
-                }
-                else
-                {
-                    value.Append(node);
                 }
             }
 
@@ -273,7 +271,7 @@ namespace HotChocolate.Utilities
             {
                 return null;
             }
-            
+
             await ReplaceInheritdocElementsAsync(parameter.Member, element).ConfigureAwait(false);
 
             if (parameter.IsRetval || string.IsNullOrEmpty(parameter.Name))
@@ -433,7 +431,7 @@ namespace HotChocolate.Utilities
                 {
                     return null;
                 }
-                
+
                 var expectedDocFile = $"{assemblyName.Name}.xml";
 
                 string path;
