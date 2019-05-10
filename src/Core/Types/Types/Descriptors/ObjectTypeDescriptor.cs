@@ -201,6 +201,17 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public IObjectTypeDescriptor Implements<T>()
+            where T : InterfaceType =>
+            Interface<T>();
+
+        public IObjectTypeDescriptor Implements<T>(T type)
+            where T : InterfaceType =>
+            Interface(type);
+
+        public IObjectTypeDescriptor Implements(NamedTypeNode type) =>
+            Interface(type);
+
         public IObjectTypeDescriptor Include<TResolver>()
         {
             if (typeof(IType).IsAssignableFrom(typeof(TResolver)))
