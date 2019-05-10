@@ -138,10 +138,18 @@ namespace HotChocolate.Types.Filters
                 nameof(propertyOrMethod));
         }
 
+        /// <summary>
+        /// TODO: 
+        /// The idea of the IEnumerable types is to use the existing filter types.
+        /// </summary>
+        /// <param name="propertyOrMethod"></param>
+        /// <param name="descriptor"></param>
+        /// <returns></returns>
         public IEnumerableFilterFieldDescriptor Filter(Expression<Func<T, IEnumerable<string>>> propertyOrMethod, Action<IStringFilterFieldDescriptor> descriptor)
         {
             if (propertyOrMethod.ExtractMember() is PropertyInfo p)
             {
+                // TODO: This just feels really really really bad
                 var innerField = new StringFilterFieldsDescriptor(Context, p);
                 descriptor.Invoke(innerField); 
                 var enumerableFilterType = new FilterInputType<T>(
@@ -167,6 +175,7 @@ namespace HotChocolate.Types.Filters
         {
             if (propertyOrMethod.ExtractMember() is PropertyInfo p)
             {
+                 
                 var innerField = new ComparableFilterFieldsDescriptor(Context, p);
                 descriptor.Invoke(innerField);
                 var enumerableFilterType = new FilterInputType<T>(
