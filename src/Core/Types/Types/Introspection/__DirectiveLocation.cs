@@ -3,7 +3,9 @@ using HotChocolate.Properties;
 namespace HotChocolate.Types.Introspection
 {
     [Introspection]
+#pragma warning disable IDE1006 // Naming Styles
     internal sealed class __DirectiveLocation
+#pragma warning restore IDE1006 // Naming Styles
         : EnumType<DirectiveLocation>
     {
         protected override void Configure(IEnumTypeDescriptor<DirectiveLocation> descriptor)

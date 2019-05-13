@@ -260,6 +260,9 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="EnumType_NoValues" xml:space="preserve">
     <value>The enum type `{0}` has no values.</value>
   </data>
+  <data name="EnumValue_Description" xml:space="preserve">
+    <value>One possible value for a given Enum. Enum values are unique values, not a placeholder for a string or numeric value. However an Enum value is  returned in a JSON response as a string.</value>
+  </data>
   <data name="EnumValue_ValueIsNull" xml:space="preserve">
     <value>The inner value of enum value cannot be null or empty.</value>
   </data>
@@ -268,6 +271,9 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   </data>
   <data name="FieldInitHelper_NoFields" xml:space="preserve">
     <value>{0} `{1}` has no fields declared.</value>
+  </data>
+  <data name="Field_Description" xml:space="preserve">
+    <value>Object and Interface types are described by a list of Fields, each of which has a name, potentially a list of arguments, and a return type.</value>
   </data>
   <data name="FloatType_Description" xml:space="preserve">
     <value>The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).</value>
@@ -292,6 +298,12 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   </data>
   <data name="InputTypeNonNullCheck_ValueIsNull" xml:space="preserve">
     <value>The input value of type `{0}` must not be null.</value>
+  </data>
+  <data name="InputValue_DefaultValue" xml:space="preserve">
+    <value>A GraphQL-formatted string representing the default value for this input value.</value>
+  </data>
+  <data name="InputValue_Description" xml:space="preserve">
+    <value>Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value.</value>
   </data>
   <data name="InterfaceImplRule_ArgumentsDontMatch" xml:space="preserve">
     <value>The arguments of the interface field {0} from interface {1} and {2} do not match and are implemented by object type {3}.</value>
@@ -398,8 +410,29 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="SchemaErrorBuilder_MessageIsNull" xml:space="preserve">
     <value>The error message mustn't be null or empty.</value>
   </data>
+  <data name="SchemaField_Description" xml:space="preserve">
+    <value>Access the current type schema of this server.</value>
+  </data>
   <data name="SchemaSyntaxVisitor_UnknownOperationType" xml:space="preserve">
     <value>Unknown operation type.</value>
+  </data>
+  <data name="Schema_Description" xml:space="preserve">
+    <value />
+  </data>
+  <data name="Schema_Directives" xml:space="preserve">
+    <value>A list of all directives supported by this server.</value>
+  </data>
+  <data name="Schema_MutationType" xml:space="preserve">
+    <value>If this server supports mutation, the type that mutation operations will be rooted at.</value>
+  </data>
+  <data name="Schema_QueryType" xml:space="preserve">
+    <value>The type that query operations will be rooted at.</value>
+  </data>
+  <data name="Schema_SubscriptionType" xml:space="preserve">
+    <value>If this server support subscription, the type that subscription operations will be rooted at.</value>
+  </data>
+  <data name="Schema_Types" xml:space="preserve">
+    <value>A list of all types supported by this server.</value>
   </data>
   <data name="ShortType_Description" xml:space="preserve">
     <value>The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1.</value>
@@ -431,6 +464,9 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="TypeExtensions_TypeIsNotOfT" xml:space="preserve">
     <value>The given type is not a {0}.</value>
   </data>
+  <data name="TypeField_Description" xml:space="preserve">
+    <value>Request the type information of a single type.</value>
+  </data>
   <data name="TypeInitializer_CannotResolveDependency" xml:space="preserve">
     <value>Unable to resolve dependencies {1} for type `{0}`.</value>
   </data>
@@ -448,6 +484,11 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   </data>
   <data name="TypeResourceHelper_TypeNameEmptyOrNull" xml:space="preserve">
     <value>The typeName mustn't be null or empty.</value>
+  </data>
+  <data name="Type_Description" xml:space="preserve">
+    <value>The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
+
+Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.</value>
   </data>
   <data name="VariableValueBuilder_InputType" xml:space="preserve">
     <value>Variable `{0}` of type `{1}` must be an input type.</value>

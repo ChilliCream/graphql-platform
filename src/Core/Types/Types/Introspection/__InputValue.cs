@@ -1,10 +1,12 @@
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Introspection
 {
-    // TODO : resources
     [Introspection]
+#pragma warning disable IDE1006 // Naming Styles
     internal sealed class __InputValue
+#pragma warning restore IDE1006 // Naming Styles
         : ObjectType<IInputField>
     {
         protected override void Configure(
@@ -13,9 +15,7 @@ namespace HotChocolate.Types.Introspection
             descriptor.Name("__InputValue");
 
             descriptor.Description(
-                "Arguments provided to Fields or Directives and the input " +
-                "fields of an InputObject are represented as Input Values " +
-                "which describe their type and optionally a default value.");
+                TypeResources.Field_Description);
 
             descriptor.BindFields(BindingBehavior.Explicit);
 
@@ -28,9 +28,7 @@ namespace HotChocolate.Types.Introspection
                 .Type<NonNullType<__Type>>();
 
             descriptor.Field(t => t.DefaultValue)
-                .Description(
-                    "A GraphQL-formatted string representing the default " +
-                    "value for this input value.")
+                .Description(TypeResources.InputValue_DefaultValue)
                 .Type<StringType>()
                 .Resolver(c =>
                 {
