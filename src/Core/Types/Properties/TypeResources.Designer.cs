@@ -486,7 +486,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to One possible value for a given Enum. Enum values are unique values, not a placeholder for a string or numeric value. However an Enum value is  returned in a JSON response as a string..
+        ///   Looks up a localized string similar to One possible value for a given Enum. Enum values are unique values, not a placeholder for a string or numeric value. However an Enum value is returned in a JSON response as a string..
         /// </summary>
         internal static string EnumValue_Description {
             get {
@@ -828,7 +828,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to .
+        ///   Looks up a localized string similar to A GraphQL Schema defines the capabilities of a GraphQL server. It exposes all available types and directives on the server, as well as the entry points for query, mutation, and subscription operations..
         /// </summary>
         internal static string Schema_Description {
             get {

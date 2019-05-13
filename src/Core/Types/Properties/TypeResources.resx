@@ -261,7 +261,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     <value>The enum type `{0}` has no values.</value>
   </data>
   <data name="EnumValue_Description" xml:space="preserve">
-    <value>One possible value for a given Enum. Enum values are unique values, not a placeholder for a string or numeric value. However an Enum value is  returned in a JSON response as a string.</value>
+    <value>One possible value for a given Enum. Enum values are unique values, not a placeholder for a string or numeric value. However an Enum value is returned in a JSON response as a string.</value>
   </data>
   <data name="EnumValue_ValueIsNull" xml:space="preserve">
     <value>The inner value of enum value cannot be null or empty.</value>
@@ -417,7 +417,7 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
     <value>Unknown operation type.</value>
   </data>
   <data name="Schema_Description" xml:space="preserve">
-    <value />
+    <value>A GraphQL Schema defines the capabilities of a GraphQL server. It exposes all available types and directives on the server, as well as the entry points for query, mutation, and subscription operations.</value>
   </data>
   <data name="Schema_Directives" xml:space="preserve">
     <value>A list of all directives supported by this server.</value>
