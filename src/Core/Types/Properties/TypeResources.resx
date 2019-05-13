@@ -203,6 +203,15 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="EnumType_NoValues" xml:space="preserve">
     <value>The enum type `{0}` has no values.</value>
   </data>
+  <data name="EnumValue_ValueIsNull" xml:space="preserve">
+    <value>The inner value of enum value cannot be null or empty.</value>
+  </data>
+  <data name="FieldInitHelper_InvalidDefaultValue" xml:space="preserve">
+    <value>Could not parse the native value of input field `{0}.{1}`.</value>
+  </data>
+  <data name="FieldInitHelper_NoFields" xml:space="preserve">
+    <value>{0} `{1}` has no fields declared.</value>
+  </data>
   <data name="FloatType_Description" xml:space="preserve">
     <value>The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).</value>
   </data>
@@ -319,6 +328,9 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   </data>
   <data name="SchemaErrorBuilder_MessageIsNull" xml:space="preserve">
     <value>The error message mustn't be null or empty.</value>
+  </data>
+  <data name="SchemaSyntaxVisitor_UnknownOperationType" xml:space="preserve">
+    <value>Unknown operation type.</value>
   </data>
   <data name="ShortType_Description" xml:space="preserve">
     <value>The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1.</value>

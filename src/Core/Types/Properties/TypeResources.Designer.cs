@@ -315,6 +315,33 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The inner value of enum value cannot be null or empty..
+        /// </summary>
+        internal static string EnumValue_ValueIsNull {
+            get {
+                return ResourceManager.GetString("EnumValue_ValueIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not parse the native value of input field `{0}.{1}`..
+        /// </summary>
+        internal static string FieldInitHelper_InvalidDefaultValue {
+            get {
+                return ResourceManager.GetString("FieldInitHelper_InvalidDefaultValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} `{1}` has no fields declared..
+        /// </summary>
+        internal static string FieldInitHelper_NoFields {
+            get {
+                return ResourceManager.GetString("FieldInitHelper_NoFields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point)..
         /// </summary>
         internal static string FloatType_Description {
@@ -662,6 +689,15 @@ namespace HotChocolate.Properties {
         internal static string SchemaErrorBuilder_MessageIsNull {
             get {
                 return ResourceManager.GetString("SchemaErrorBuilder_MessageIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown operation type..
+        /// </summary>
+        internal static string SchemaSyntaxVisitor_UnknownOperationType {
+            get {
+                return ResourceManager.GetString("SchemaSyntaxVisitor_UnknownOperationType", resourceCulture);
             }
         }
         
