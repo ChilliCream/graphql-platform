@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.Utilities
@@ -402,10 +403,61 @@ namespace HotChocolate.Utilities
                 t => Assert.Equal(FooOrBar.Bar, t));
         }
 
+        [Fact]
+        public void Convert_WithDependencyInjection()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            services.AddSingleton<ITypeConversion, TypeConversion>();
+            services.AddSingleton<ITypeConverter, DummyConverter>();
+            services.AddSingleton<DummyDependency>();
+
+            IServiceProvider serviceProvider = services.BuildServiceProvider();
+
+            // act
+            ITypeConversion conversion =
+                serviceProvider.GetService<ITypeConversion>();
+            string converted = conversion.Convert<bool, string>(true);
+
+            // assert
+            string foo = serviceProvider.GetService<DummyDependency>().Foo;
+            Assert.Equal(foo, converted);
+        }
+
         public enum FooOrBar
         {
             Foo,
             Bar
+        }
+
+        public class DummyConverter
+            : ITypeConverter
+        {
+            private readonly DummyDependency _dependency;
+
+            public DummyConverter(DummyDependency dependency)
+            {
+                if (dependency == null)
+                {
+                    throw new ArgumentNullException(nameof(dependency));
+                }
+
+                _dependency = dependency;
+            }
+
+            public Type From => typeof(bool);
+
+            public Type To => typeof(string);
+
+            public object Convert(object source)
+            {
+                return _dependency.Foo;
+            }
+        }
+
+        public class DummyDependency
+        {
+            public string Foo { get; } = "Bar";
         }
     }
 }
