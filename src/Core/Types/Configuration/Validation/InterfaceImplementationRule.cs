@@ -108,12 +108,12 @@ namespace HotChocolate.Configuration.Validation
             {
                 if (!field.Type.IsEqualTo(first.Type))
                 {
-                    // TODO : RESOURCES
                     errors.Add(SchemaErrorBuilder.New()
-                        .SetMessage(
-                            "The return type of the interface field " +
-                            $"{first.Name} does not match the field declared " +
-                            $"by object type {objectType.Name}.")
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            TypeResources.InterfaceImplRule_ReturnTypeInvalid,
+                            first.Name,
+                            objectType.Name))
                         .SetTypeSystemObject(objectType)
                         .AddSyntaxNode(objectType.SyntaxNode)
                         .AddSyntaxNode(first.SyntaxNode)
@@ -122,12 +122,13 @@ namespace HotChocolate.Configuration.Validation
 
                 if (!ArgumentsAreEqual(field.Arguments, first.Arguments))
                 {
-                    // TODO : RESOURCES
                     errors.Add(SchemaErrorBuilder.New()
-                        .SetMessage(
-                            $"Object type {objectType.Name} does not implement " +
-                            $"all arguments of field {first.Name} " +
-                            $"from interface {first.DeclaringType.Name}.")
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            TypeResources.InterfaceImplRule_ArgumentsNotImpl,
+                            objectType.Name,
+                            first.Name,
+                            first.DeclaringType.Name))
                         .SetTypeSystemObject(objectType)
                         .AddSyntaxNode(objectType.SyntaxNode)
                         .AddSyntaxNode(first.SyntaxNode)
@@ -136,12 +137,13 @@ namespace HotChocolate.Configuration.Validation
             }
             else
             {
-                // TODO : RESOURCES
                 errors.Add(SchemaErrorBuilder.New()
-                    .SetMessage(
-                        $"Object type {objectType.Name} does not implement the " +
-                        $"field {first.Name} " +
-                        $"from interface {first.DeclaringType.Name}.")
+                    .SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        TypeResources.InterfaceImplRule_FieldNotImpl,
+                        objectType.Name,
+                        first.Name,
+                        first.DeclaringType.Name))
                     .SetCode(TypeErrorCodes.MissingType)
                     .SetTypeSystemObject(objectType)
                     .AddSyntaxNode(objectType.SyntaxNode)

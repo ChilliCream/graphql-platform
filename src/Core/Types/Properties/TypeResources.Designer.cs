@@ -250,11 +250,38 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Object type {0} does not implement all arguments of field {1} from interface {2}..
+        /// </summary>
+        internal static string InterfaceImplRule_ArgumentsNotImpl {
+            get {
+                return ResourceManager.GetString("InterfaceImplRule_ArgumentsNotImpl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Object type {0} does not implement the field {1} from interface {2}..
+        /// </summary>
+        internal static string InterfaceImplRule_FieldNotImpl {
+            get {
+                return ResourceManager.GetString("InterfaceImplRule_FieldNotImpl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The return type of the interface field {0} from interface {1} and {2} do not match and are implemented by object type {3}..
         /// </summary>
         internal static string InterfaceImplRule_FieldTypeInvalid {
             get {
                 return ResourceManager.GetString("InterfaceImplRule_FieldTypeInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The return type of the interface field {0} does not match the field declared by object type {1}..
+        /// </summary>
+        internal static string InterfaceImplRule_ReturnTypeInvalid {
+            get {
+                return ResourceManager.GetString("InterfaceImplRule_ReturnTypeInvalid", resourceCulture);
             }
         }
         
