@@ -166,7 +166,7 @@
     <value>The specified directive `@{0}` is unique and cannot be added twice.</value>
   </data>
   <data name="DirectiveCollection_LocationNotAllowed" xml:space="preserve">
-    <value>The specified directive `@{0}` is not allowed on the current location `{0}`.</value>
+    <value>The specified directive `@{0}` is not allowed on the current location `{1}`.</value>
   </data>
   <data name="DirectiveTypeDescriptor_OnlyProperties" xml:space="preserve">
     <value>Only property expressions are allowed to describe a directive type argument.</value>
