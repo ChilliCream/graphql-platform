@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace HotChocolate.Utilities
@@ -14,6 +15,19 @@ namespace HotChocolate.Utilities
         private ImmutableList<ChangeTypeFactory> _converterFactories =
             ImmutableList<ChangeTypeFactory>.Empty;
         private bool _hasFactories;
+
+        public TypeConversion(IEnumerable<ITypeConverter> converters)
+        {
+            RegisterConverters(this);
+
+            if (converters != null)
+            {
+                foreach (ITypeConverter converter in converters)
+                {
+                    Register(converter.From, converter.To, converter.Convert);
+                }
+            }
+        }
 
         public TypeConversion()
         {

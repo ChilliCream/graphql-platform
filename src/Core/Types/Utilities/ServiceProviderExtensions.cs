@@ -3,7 +3,7 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Utilities
 {
-    public static class ServiceProviderExtensions
+    public static class TypeConversionServiceProviderExtensions
     {
         public static ITypeConversion GetTypeConversion(
             this IServiceProvider services)
