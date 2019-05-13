@@ -177,4 +177,13 @@
   <data name="Subscriptions_SingleRootField" xml:space="preserve">
     <value>Subscriptions must have one and only one root field.</value>
   </data>
+  <data name="ErrorHandler_ErrorIsNull" xml:space="preserve">
+    <value>Unexpected Execution Error</value>
+  </data>
+  <data name="ErrorHandler_UnexpectedError" xml:space="preserve">
+    <value>Unexpected Execution Error</value>
+  </data>
+  <data name="FieldCollector_FieldNotFound" xml:space="preserve">
+    <value>Could not resolve the specified field.</value>
+  </data>
 </root>

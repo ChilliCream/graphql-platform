@@ -340,6 +340,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A directive type mustn&apos;t be one of the base classes `DirectiveType` or `DirectiveType&lt;T&gt;` but must be a type inheriting from `DirectiveType` or `DirectiveType&lt;T&gt;`..
+        /// </summary>
+        internal static string ResolverCompiler_UnknownParameterType {
+            get {
+                return ResourceManager.GetString("ResolverCompiler_UnknownParameterType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified IResolverFieldBindingBuilder-implementation is not supported..
         /// </summary>
         internal static string ResolverTypeBindingBuilder_FieldBuilderNotSupported {
@@ -390,6 +399,105 @@ namespace HotChocolate.Properties {
         internal static string Scalar_Cannot_Serialize {
             get {
                 return ResourceManager.GetString("Scalar_Cannot_Serialize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There is no handler registered that can handle the specified schema binding..
+        /// </summary>
+        internal static string SchemaBuilder_Binding_CannotBeHandled {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_Binding_CannotBeHandled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The schema binding is not valid..
+        /// </summary>
+        internal static string SchemaBuilder_Binding_Invalid {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_Binding_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The given schema has to inherit from TypeSystemObjectBase in order to be initializable..
+        /// </summary>
+        internal static string SchemaBuilder_ISchemaNotTso {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_ISchemaNotTso", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The schema builder was unable to identify the query type of the schema. Either specify which type is the query type or set the schema builder to non-strict validation mode..
+        /// </summary>
+        internal static string SchemaBuilder_NoQueryType {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_NoQueryType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A root type must be a class..
+        /// </summary>
+        internal static string SchemaBuilder_RootType_MustBeClass {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_RootType_MustBeClass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A root type must be an object type..
+        /// </summary>
+        internal static string SchemaBuilder_RootType_MustBeObjectType {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_RootType_MustBeObjectType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Non-generic schema types are not allowed..
+        /// </summary>
+        internal static string SchemaBuilder_RootType_NonGenericType {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_RootType_NonGenericType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The given schema has to inherit from `Schema` in order to be initializable..
+        /// </summary>
+        internal static string SchemaBuilder_SchemaTypeInvalid {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_SchemaTypeInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A directive type mustn&apos;t be one of the base classes `DirectiveType` or `DirectiveType&lt;T&gt;` but must be a type inheriting from `DirectiveType` or `DirectiveType&lt;T&gt;`..
+        /// </summary>
+        internal static string SchemaBuilderExtensions_DirectiveTypeIsBaseType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_DirectiveTypeIsBaseType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A directive type must inherit from `DirectiveType` or `DirectiveType&lt;T&gt;`..
+        /// </summary>
+        internal static string SchemaBuilderExtensions_MustBeDirectiveType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_MustBeDirectiveType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The schema string cannot be null or empty..
+        /// </summary>
+        internal static string SchemaBuilderExtensions_SchemaIsEmpty {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_SchemaIsEmpty", resourceCulture);
             }
         }
         

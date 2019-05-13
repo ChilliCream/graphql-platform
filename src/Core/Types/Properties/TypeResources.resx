@@ -177,8 +177,20 @@
   <data name="InputTypeNonNullCheck_ValueIsNull" xml:space="preserve">
     <value>The input value of type `{0}` must not be null.</value>
   </data>
+  <data name="InterfaceImplRule_ArgumentsDontMatch" xml:space="preserve">
+    <value>The arguments of the interface field {0} from interface {1} and {2} do not match and are implemented by object type {3}.</value>
+  </data>
+  <data name="InterfaceImplRule_ArgumentsNotImpl" xml:space="preserve">
+    <value>Object type {0} does not implement all arguments of field {1} from interface {2}.</value>
+  </data>
+  <data name="InterfaceImplRule_FieldNotImpl" xml:space="preserve">
+    <value>Object type {0} does not implement the field {1} from interface {2}.</value>
+  </data>
   <data name="InterfaceImplRule_FieldTypeInvalid" xml:space="preserve">
     <value>The return type of the interface field {0} from interface {1} and {2} do not match and are implemented by object type {3}.</value>
+  </data>
+  <data name="InterfaceImplRule_ReturnTypeInvalid" xml:space="preserve">
+    <value>The return type of the interface field {0} does not match the field declared by object type {1}.</value>
   </data>
   <data name="IntType_Description" xml:space="preserve">
     <value>The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.</value>
@@ -198,6 +210,9 @@
   <data name="Reflection_MemberMust_BeMethodOrProperty" xml:space="preserve">
     <value>The member expression must specify a property or method that is public and that belongs to the type {0}</value>
   </data>
+  <data name="ResolverCompiler_UnknownParameterType" xml:space="preserve">
+    <value>A directive type mustn't be one of the base classes `DirectiveType` or `DirectiveType&lt;T&gt;` but must be a type inheriting from `DirectiveType` or `DirectiveType&lt;T&gt;`.</value>
+  </data>
   <data name="ResolverTypeBindingBuilder_FieldBuilderNotSupported" xml:space="preserve">
     <value>The specified IResolverFieldBindingBuilder-implementation is not supported.</value>
   </data>
@@ -215,6 +230,39 @@
   </data>
   <data name="Scalar_Cannot_Serialize" xml:space="preserve">
     <value>{0} cannot serialize the given value.</value>
+  </data>
+  <data name="SchemaBuilderExtensions_DirectiveTypeIsBaseType" xml:space="preserve">
+    <value>A directive type mustn't be one of the base classes `DirectiveType` or `DirectiveType&lt;T&gt;` but must be a type inheriting from `DirectiveType` or `DirectiveType&lt;T&gt;`.</value>
+  </data>
+  <data name="SchemaBuilderExtensions_MustBeDirectiveType" xml:space="preserve">
+    <value>A directive type must inherit from `DirectiveType` or `DirectiveType&lt;T&gt;`.</value>
+  </data>
+  <data name="SchemaBuilderExtensions_SchemaIsEmpty" xml:space="preserve">
+    <value>The schema string cannot be null or empty.</value>
+  </data>
+  <data name="SchemaBuilder_Binding_CannotBeHandled" xml:space="preserve">
+    <value>There is no handler registered that can handle the specified schema binding.</value>
+  </data>
+  <data name="SchemaBuilder_Binding_Invalid" xml:space="preserve">
+    <value>The schema binding is not valid.</value>
+  </data>
+  <data name="SchemaBuilder_ISchemaNotTso" xml:space="preserve">
+    <value>The given schema has to inherit from TypeSystemObjectBase in order to be initializable.</value>
+  </data>
+  <data name="SchemaBuilder_NoQueryType" xml:space="preserve">
+    <value>The schema builder was unable to identify the query type of the schema. Either specify which type is the query type or set the schema builder to non-strict validation mode.</value>
+  </data>
+  <data name="SchemaBuilder_RootType_MustBeClass" xml:space="preserve">
+    <value>A root type must be a class.</value>
+  </data>
+  <data name="SchemaBuilder_RootType_MustBeObjectType" xml:space="preserve">
+    <value>A root type must be an object type.</value>
+  </data>
+  <data name="SchemaBuilder_RootType_NonGenericType" xml:space="preserve">
+    <value>Non-generic schema types are not allowed.</value>
+  </data>
+  <data name="SchemaBuilder_SchemaTypeInvalid" xml:space="preserve">
+    <value>The given schema has to inherit from `Schema` in order to be initializable.</value>
   </data>
   <data name="ShortType_Description" xml:space="preserve">
     <value>The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1.</value>
