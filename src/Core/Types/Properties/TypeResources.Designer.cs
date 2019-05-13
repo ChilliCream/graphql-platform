@@ -1145,6 +1145,96 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An enum describing what kind of type a given `__Type` is..
+        /// </summary>
+        internal static string TypeKind_Description {
+            get {
+                return ResourceManager.GetString("TypeKind_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates this type is an enum. `enumValues` is a valid field..
+        /// </summary>
+        internal static string TypeKind_Enum {
+            get {
+                return ResourceManager.GetString("TypeKind_Enum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates this type is an input object. `inputFields` is a valid field..
+        /// </summary>
+        internal static string TypeKind_InputObject {
+            get {
+                return ResourceManager.GetString("TypeKind_InputObject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates this type is an interface. `fields` and `possibleTypes` are valid fields..
+        /// </summary>
+        internal static string TypeKind_Interface {
+            get {
+                return ResourceManager.GetString("TypeKind_Interface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates this type is a list. `ofType` is a valid field..
+        /// </summary>
+        internal static string TypeKind_List {
+            get {
+                return ResourceManager.GetString("TypeKind_List", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates this type is a non-null. `ofType` is a valid field..
+        /// </summary>
+        internal static string TypeKind_NonNull {
+            get {
+                return ResourceManager.GetString("TypeKind_NonNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates this type is an object. `fields` and `interfaces` are valid fields..
+        /// </summary>
+        internal static string TypeKind_Object {
+            get {
+                return ResourceManager.GetString("TypeKind_Object", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates this type is a scalar..
+        /// </summary>
+        internal static string TypeKind_Scalar {
+            get {
+                return ResourceManager.GetString("TypeKind_Scalar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates this type is a union. `possibleTypes` is a valid field..
+        /// </summary>
+        internal static string TypeKind_Union {
+            get {
+                return ResourceManager.GetString("TypeKind_Union", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the current Object type at runtime..
+        /// </summary>
+        internal static string TypeNameField_Description {
+            get {
+                return ResourceManager.GetString("TypeNameField_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid type structure..
         /// </summary>
         internal static string TypeNameHelper_InvalidTypeStructure {

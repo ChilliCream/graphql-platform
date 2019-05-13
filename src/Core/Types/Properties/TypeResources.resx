@@ -476,6 +476,36 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="TypeInitializer_Merge_KindDoesNotMatch" xml:space="preserve">
     <value>The kind of the extension does not match the kind of the type `{0}`.</value>
   </data>
+  <data name="TypeKind_Description" xml:space="preserve">
+    <value>An enum describing what kind of type a given `__Type` is.</value>
+  </data>
+  <data name="TypeKind_Enum" xml:space="preserve">
+    <value>Indicates this type is an enum. `enumValues` is a valid field.</value>
+  </data>
+  <data name="TypeKind_InputObject" xml:space="preserve">
+    <value>Indicates this type is an input object. `inputFields` is a valid field.</value>
+  </data>
+  <data name="TypeKind_Interface" xml:space="preserve">
+    <value>Indicates this type is an interface. `fields` and `possibleTypes` are valid fields.</value>
+  </data>
+  <data name="TypeKind_List" xml:space="preserve">
+    <value>Indicates this type is a list. `ofType` is a valid field.</value>
+  </data>
+  <data name="TypeKind_NonNull" xml:space="preserve">
+    <value>Indicates this type is a non-null. `ofType` is a valid field.</value>
+  </data>
+  <data name="TypeKind_Object" xml:space="preserve">
+    <value>Indicates this type is an object. `fields` and `interfaces` are valid fields.</value>
+  </data>
+  <data name="TypeKind_Scalar" xml:space="preserve">
+    <value>Indicates this type is a scalar.</value>
+  </data>
+  <data name="TypeKind_Union" xml:space="preserve">
+    <value>Indicates this type is a union. `possibleTypes` is a valid field.</value>
+  </data>
+  <data name="TypeNameField_Description" xml:space="preserve">
+    <value>The name of the current Object type at runtime.</value>
+  </data>
   <data name="TypeNameHelper_InvalidTypeStructure" xml:space="preserve">
     <value>Invalid type structure.</value>
   </data>
