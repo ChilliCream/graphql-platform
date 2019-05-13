@@ -168,6 +168,63 @@
   <data name="DirectiveCollection_LocationNotAllowed" xml:space="preserve">
     <value>The specified directive `@{0}` is not allowed on the current location `{1}`.</value>
   </data>
+  <data name="DirectiveLocation_ArgumentDefinition" xml:space="preserve">
+    <value>Location adjacent to an argument definition</value>
+  </data>
+  <data name="DirectiveLocation_Description" xml:space="preserve">
+    <value>A Directive can be adjacent to many parts of the GraphQL language, a __DirectiveLocation describes one such possible adjacencies.</value>
+  </data>
+  <data name="DirectiveLocation_Enum" xml:space="preserve">
+    <value>Location adjacent to an enum definition.</value>
+  </data>
+  <data name="DirectiveLocation_EnumValue" xml:space="preserve">
+    <value>Location adjacent to an enum value definition.</value>
+  </data>
+  <data name="DirectiveLocation_Field" xml:space="preserve">
+    <value>Location adjacent to a field.</value>
+  </data>
+  <data name="DirectiveLocation_FieldDefinition" xml:space="preserve">
+    <value>Location adjacent to a field definition.</value>
+  </data>
+  <data name="DirectiveLocation_FragmentDefinition" xml:space="preserve">
+    <value>Location adjacent to a fragment definition.</value>
+  </data>
+  <data name="DirectiveLocation_FragmentSpread" xml:space="preserve">
+    <value>Location adjacent to a fragment spread.</value>
+  </data>
+  <data name="DirectiveLocation_InlineFragment" xml:space="preserve">
+    <value>Location adjacent to an inline fragment.</value>
+  </data>
+  <data name="DirectiveLocation_InputFieldDefinition" xml:space="preserve">
+    <value>Location adjacent to an input object field definition.</value>
+  </data>
+  <data name="DirectiveLocation_InputObject" xml:space="preserve">
+    <value>Location adjacent to an input object type definition.</value>
+  </data>
+  <data name="DirectiveLocation_Interface" xml:space="preserve">
+    <value>Location adjacent to an interface definition.</value>
+  </data>
+  <data name="DirectiveLocation_Mutation" xml:space="preserve">
+    <value>Location adjacent to a mutation operation.</value>
+  </data>
+  <data name="DirectiveLocation_Object" xml:space="preserve">
+    <value>Location adjacent to an object type definition.</value>
+  </data>
+  <data name="DirectiveLocation_Query" xml:space="preserve">
+    <value>Location adjacent to a query operation.</value>
+  </data>
+  <data name="DirectiveLocation_Scalar" xml:space="preserve">
+    <value>Location adjacent to a scalar definition.</value>
+  </data>
+  <data name="DirectiveLocation_Schema" xml:space="preserve">
+    <value>Location adjacent to a schema definition.</value>
+  </data>
+  <data name="DirectiveLocation_Subscription" xml:space="preserve">
+    <value>Location adjacent to a subscription operation.</value>
+  </data>
+  <data name="DirectiveLocation_Union" xml:space="preserve">
+    <value>Location adjacent to a union definition.</value>
+  </data>
   <data name="DirectiveTypeDescriptor_OnlyProperties" xml:space="preserve">
     <value>Only property expressions are allowed to describe a directive type argument.</value>
   </data>
@@ -218,6 +275,15 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   <data name="IdType_Description" xml:space="preserve">
     <value>The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `"4"`) or integer (such as `4`) input value will be accepted as an ID.</value>
   </data>
+  <data name="InputField_CannotGetValue" xml:space="preserve">
+    <value>Unable to get the input field value.</value>
+  </data>
+  <data name="InputField_CannotSetValue" xml:space="preserve">
+    <value>Unable to set the input field value.</value>
+  </data>
+  <data name="InputObjectTypeExtension_CannotMerge" xml:space="preserve">
+    <value>The input object type extension can only be merged with an input object type.</value>
+  </data>
   <data name="InputObjectType_CannotParseLiteral" xml:space="preserve">
     <value>The input object type can only parse object value literals.</value>
   </data>
@@ -241,6 +307,9 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
   </data>
   <data name="InterfaceImplRule_ReturnTypeInvalid" xml:space="preserve">
     <value>The return type of the interface field {0} does not match the field declared by object type {1}.</value>
+  </data>
+  <data name="InterfaceTypeExtension_CannotMerge" xml:space="preserve">
+    <value>The interface type extension can only be merged with an interface type.</value>
   </data>
   <data name="IntType_Description" xml:space="preserve">
     <value>The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.</value>

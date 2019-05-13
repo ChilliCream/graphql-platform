@@ -234,6 +234,177 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to an argument definition.
+        /// </summary>
+        internal static string DirectiveLocation_ArgumentDefinition {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_ArgumentDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A Directive can be adjacent to many parts of the GraphQL language, a __DirectiveLocation describes one such possible adjacencies..
+        /// </summary>
+        internal static string DirectiveLocation_Description {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to an enum definition..
+        /// </summary>
+        internal static string DirectiveLocation_Enum {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Enum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to an enum value definition..
+        /// </summary>
+        internal static string DirectiveLocation_EnumValue {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_EnumValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a field..
+        /// </summary>
+        internal static string DirectiveLocation_Field {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Field", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a field definition..
+        /// </summary>
+        internal static string DirectiveLocation_FieldDefinition {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_FieldDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a fragment definition..
+        /// </summary>
+        internal static string DirectiveLocation_FragmentDefinition {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_FragmentDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a fragment spread..
+        /// </summary>
+        internal static string DirectiveLocation_FragmentSpread {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_FragmentSpread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to an inline fragment..
+        /// </summary>
+        internal static string DirectiveLocation_InlineFragment {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_InlineFragment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to an input object field definition..
+        /// </summary>
+        internal static string DirectiveLocation_InputFieldDefinition {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_InputFieldDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to an input object type definition..
+        /// </summary>
+        internal static string DirectiveLocation_InputObject {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_InputObject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to an interface definition..
+        /// </summary>
+        internal static string DirectiveLocation_Interface {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Interface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a mutation operation..
+        /// </summary>
+        internal static string DirectiveLocation_Mutation {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Mutation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to an object type definition..
+        /// </summary>
+        internal static string DirectiveLocation_Object {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Object", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a query operation..
+        /// </summary>
+        internal static string DirectiveLocation_Query {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Query", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a scalar definition..
+        /// </summary>
+        internal static string DirectiveLocation_Scalar {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Scalar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a schema definition..
+        /// </summary>
+        internal static string DirectiveLocation_Schema {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Schema", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a subscription operation..
+        /// </summary>
+        internal static string DirectiveLocation_Subscription {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Subscription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a union definition..
+        /// </summary>
+        internal static string DirectiveLocation_Union {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Union", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The `{0}` directive does not declare any location on which it is valid..
         /// </summary>
         internal static string DirectiveType_NoLocations {
@@ -360,6 +531,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to get the input field value..
+        /// </summary>
+        internal static string InputField_CannotGetValue {
+            get {
+                return ResourceManager.GetString("InputField_CannotGetValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to set the input field value..
+        /// </summary>
+        internal static string InputField_CannotSetValue {
+            get {
+                return ResourceManager.GetString("InputField_CannotSetValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The input object type can only parse object value literals..
         /// </summary>
         internal static string InputObjectType_CannotParseLiteral {
@@ -374,6 +563,15 @@ namespace HotChocolate.Properties {
         internal static string InputObjectType_NoFields {
             get {
                 return ResourceManager.GetString("InputObjectType_NoFields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The input object type extension can only be merged with an input object type..
+        /// </summary>
+        internal static string InputObjectTypeExtension_CannotMerge {
+            get {
+                return ResourceManager.GetString("InputObjectTypeExtension_CannotMerge", resourceCulture);
             }
         }
         
@@ -428,6 +626,15 @@ namespace HotChocolate.Properties {
         internal static string InterfaceImplRule_ReturnTypeInvalid {
             get {
                 return ResourceManager.GetString("InterfaceImplRule_ReturnTypeInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The interface type extension can only be merged with an interface type..
+        /// </summary>
+        internal static string InterfaceTypeExtension_CannotMerge {
+            get {
+                return ResourceManager.GetString("InterfaceTypeExtension_CannotMerge", resourceCulture);
             }
         }
         
