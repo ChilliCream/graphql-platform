@@ -225,7 +225,7 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The specified directive `@{0}` is not allowed on the current location `{0}`..
+        ///   Looks up a localized string similar to The specified directive `@{0}` is not allowed on the current location `{1}`..
         /// </summary>
         internal static string DirectiveCollection_LocationNotAllowed {
             get {
