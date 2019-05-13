@@ -241,6 +241,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The arguments of the interface field {0} from interface {1} and {2} do not match and are implemented by object type {3}..
+        /// </summary>
+        internal static string InterfaceImplRule_ArgumentsDontMatch {
+            get {
+                return ResourceManager.GetString("InterfaceImplRule_ArgumentsDontMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The return type of the interface field {0} from interface {1} and {2} do not match and are implemented by object type {3}..
+        /// </summary>
+        internal static string InterfaceImplRule_FieldTypeInvalid {
+            get {
+                return ResourceManager.GetString("InterfaceImplRule_FieldTypeInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1..
         /// </summary>
         internal static string IntType_Description {

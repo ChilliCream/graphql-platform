@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration.Validation
@@ -61,14 +63,14 @@ namespace HotChocolate.Configuration.Validation
             {
                 if (!field.Type.IsEqualTo(first.Type))
                 {
-                    // TODO : RESOURCES
                     errors.Add(SchemaErrorBuilder.New()
-                        .SetMessage(
-                           "The return type of the interface field " +
-                            $"{first.Name} from interface " +
-                            $"{first.DeclaringType.Name} and " +
-                            $"{field.DeclaringType.Name} do not match " +
-                            $"and are implemented by object type {objectType.Name}.")
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            TypeResources.InterfaceImplRule_FieldTypeInvalid,
+                            first.Name,
+                            first.DeclaringType.Name,
+                            field.DeclaringType.Name,
+                            objectType.Name))
                         .SetTypeSystemObject(objectType)
                         .AddSyntaxNode(objectType.SyntaxNode)
                         .AddSyntaxNode(first.SyntaxNode)
@@ -78,13 +80,14 @@ namespace HotChocolate.Configuration.Validation
 
                 if (!ArgumentsAreEqual(field.Arguments, first.Arguments))
                 {
-                    // TODO : RESOURCES
                     errors.Add(SchemaErrorBuilder.New()
-                        .SetMessage(
-                            $"The arguments of the interface field {first.Name} " +
-                            $"from interface {first.DeclaringType.Name} and " +
-                            $"{field.DeclaringType.Name} do not match " +
-                            $"and are implemented by object type {objectType.Name}.")
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            TypeResources.InterfaceImplRule_ArgumentsDontMatch,
+                            first.Name,
+                            first.DeclaringType.Name,
+                            field.DeclaringType.Name,
+                            objectType.Name))
                         .SetTypeSystemObject(objectType)
                         .AddSyntaxNode(objectType.SyntaxNode)
                         .AddSyntaxNode(first.SyntaxNode)

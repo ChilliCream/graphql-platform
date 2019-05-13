@@ -471,7 +471,6 @@ namespace HotChocolate.Configuration
                         ? type.Type.Name.Value
                         : type.Reference.ToString();
 
-                    // TODO : resources
                     _errors.Add(SchemaErrorBuilder.New()
                         .SetMessage(string.Format(
                             TypeResources.TypeInitializer_CannotResolveDependency,

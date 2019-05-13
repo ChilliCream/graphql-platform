@@ -97,11 +97,38 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unexpected Execution Error.
+        /// </summary>
+        internal static string ErrorHandler_ErrorIsNull {
+            get {
+                return ResourceManager.GetString("ErrorHandler_ErrorIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected Execution Error.
+        /// </summary>
+        internal static string ErrorHandler_UnexpectedError {
+            get {
+                return ResourceManager.GetString("ErrorHandler_UnexpectedError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The execute operation middleware expects the query document to be parsed and the operation to be resolved..
         /// </summary>
         internal static string ExecuteOperationMiddleware_InComplete {
             get {
                 return ResourceManager.GetString("ExecuteOperationMiddleware_InComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not resolve the specified field..
+        /// </summary>
+        internal static string FieldCollector_FieldNotFound {
+            get {
+                return ResourceManager.GetString("FieldCollector_FieldNotFound", resourceCulture);
             }
         }
         
