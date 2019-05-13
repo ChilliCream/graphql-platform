@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Introspection
             descriptor.Name("__InputValue");
 
             descriptor.Description(
-                TypeResources.Field_Description);
+                TypeResources.InputValue_Description);
 
             descriptor.BindFields(BindingBehavior.Explicit);
 
