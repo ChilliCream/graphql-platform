@@ -163,7 +163,6 @@ namespace HotChocolate.Execution
             }
             else
             {
-                // TODO : resources
                 throw new QueryException(ErrorBuilder.New()
                     .SetMessage(CoreResources.FieldCollector_FieldNotFound)
                     .SetPath(path)

@@ -57,7 +57,8 @@ namespace HotChocolate.Types
 
             // assert
             FooType type = schema.GetType<FooType>("Foo");
-            Assert.Equal(1, type.Directives["dummy"].Count());
+            Assert.Collection(type.Directives["dummy"],
+                t => { });
         }
 
         [Fact]

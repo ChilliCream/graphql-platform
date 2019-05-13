@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ArgumentDescriptor_InputTypeViolation" xml:space="preserve">
+    <value>The argument type has to be an input-type.</value>
+  </data>
   <data name="ArgumentValueBuilder_NonNull" xml:space="preserve">
     <value>Argument `{0}` of non-null type `{1}` must not be null.</value>
   </data>
@@ -125,6 +128,9 @@
   </data>
   <data name="ByteType_Description" xml:space="preserve">
     <value>The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255.</value>
+  </data>
+  <data name="ClrTypeReference_OnlyTsosAreAllowed" xml:space="preserve">
+    <value>Only type system objects are allowed.</value>
   </data>
   <data name="ComplexTypeBindingBuilder_FieldBuilderNotSupported" xml:space="preserve">
     <value>The specified IComplexTypeFieldBindingBuilder-implementation is not supported.</value>
@@ -150,14 +156,49 @@
   <data name="DecimalType_Description" xml:space="preserve">
     <value>The built-in `Decimal` scalar type.</value>
   </data>
+  <data name="DefaultTypeInspector_MemberInvalid" xml:space="preserve">
+    <value>The specified member has to be a method or a property.</value>
+  </data>
+  <data name="DependencyDescriptorBase_OnlyTsoIsAllowed" xml:space="preserve">
+    <value>Only type system objects are allowed as schema type.</value>
+  </data>
+  <data name="DirectiveCollection_DirectiveIsUnique" xml:space="preserve">
+    <value>The specified directive `@{0}` is unique and cannot be added twice.</value>
+  </data>
+  <data name="DirectiveCollection_LocationNotAllowed" xml:space="preserve">
+    <value>The specified directive `@{0}` is not allowed on the current location `{0}`.</value>
+  </data>
+  <data name="DirectiveTypeDescriptor_OnlyProperties" xml:space="preserve">
+    <value>Only property expressions are allowed to describe a directive type argument.</value>
+  </data>
   <data name="DirectiveTypeFactory_LocationNotSupported" xml:space="preserve">
     <value>The specified location `{0}` is not supported.</value>
+  </data>
+  <data name="DirectiveType_NoLocations" xml:space="preserve">
+    <value>The `{0}` directive does not declare any location on which it is valid.</value>
+  </data>
+  <data name="DirectiveType_ReplaceWithUse" xml:space="preserve">
+    <value>Replace Middleware with `Use`.</value>
   </data>
   <data name="DirectiveType_UnableToConvert" xml:space="preserve">
     <value>Unable to convert the argument value to the specified type.</value>
   </data>
+  <data name="Directive_Description" xml:space="preserve">
+    <value>A Directive provides a way to describe alternate runtime execution and type validation behavior in a GraphQL document.
+
+In some cases, you need to provide options to alter GraphQL's execution behavior in ways field arguments will not suffice, such as conditionally including or skipping a field. Directives provide this by describing additional information to the executor.</value>
+  </data>
+  <data name="Directive_UseLocation" xml:space="preserve">
+    <value>Use `locations`.</value>
+  </data>
   <data name="Edge_CursorIsNull" xml:space="preserve">
     <value>The cursor cannot be null or empty.</value>
+  </data>
+  <data name="EnumTypeExtension_CannotMerge" xml:space="preserve">
+    <value>The enum type extension can only be merged with an enum type.</value>
+  </data>
+  <data name="EnumTypeExtension_ValueTypeInvalid" xml:space="preserve">
+    <value>The enum value `{0}` of the enum type extension is not assignabe with the target enum type.</value>
   </data>
   <data name="EnumType_NoValues" xml:space="preserve">
     <value>The enum type `{0}` has no values.</value>
@@ -206,6 +247,18 @@
   </data>
   <data name="Name_Cannot_BeEmpty" xml:space="preserve">
     <value>The multiplier path scalar represents a valid GraphQL multiplier path string.</value>
+  </data>
+  <data name="ObjectFieldDescriptorBase_FieldType" xml:space="preserve">
+    <value>The field-type must be an output-type.</value>
+  </data>
+  <data name="ObjectTypeDescriptor_InterfaceBaseClass" xml:space="preserve">
+    <value>The interface base class cannot be used as interface implementation declaration.</value>
+  </data>
+  <data name="ObjectTypeDescriptor_MustBePropertyOrMethod" xml:space="preserve">
+    <value>A field-expression must be a property-expression or a method-call-expression.</value>
+  </data>
+  <data name="ObjectTypeDescriptor_Resolver_SchemaType" xml:space="preserve">
+    <value>Schema types cannot be used as resolver types.</value>
   </data>
   <data name="Reflection_MemberMust_BeMethodOrProperty" xml:space="preserve">
     <value>The member expression must specify a property or method that is public and that belongs to the type {0}</value>
@@ -264,6 +317,9 @@
   <data name="SchemaBuilder_SchemaTypeInvalid" xml:space="preserve">
     <value>The given schema has to inherit from `Schema` in order to be initializable.</value>
   </data>
+  <data name="SchemaErrorBuilder_MessageIsNull" xml:space="preserve">
+    <value>The error message mustn't be null or empty.</value>
+  </data>
   <data name="ShortType_Description" xml:space="preserve">
     <value>The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1.</value>
   </data>
@@ -272,6 +328,12 @@
   </data>
   <data name="String_Argument_NullOrEmpty" xml:space="preserve">
     <value>The `{0}` cannot be null or empty.</value>
+  </data>
+  <data name="TypeConfiguration_ConfigureIsNull" xml:space="preserve">
+    <value>The configuration delegate mustn't be null.</value>
+  </data>
+  <data name="TypeConfiguration_DefinitionIsNull" xml:space="preserve">
+    <value>Definition mustn't be null.</value>
   </data>
   <data name="TypeDependency_MustBeSchemaType" xml:space="preserve">
     <value>The specified type is not a schema type.</value>
@@ -296,6 +358,12 @@
   </data>
   <data name="TypeInitializer_Merge_KindDoesNotMatch" xml:space="preserve">
     <value>The kind of the extension does not match the kind of the type `{0}`.</value>
+  </data>
+  <data name="TypeNameHelper_InvalidTypeStructure" xml:space="preserve">
+    <value>Invalid type structure.</value>
+  </data>
+  <data name="TypeNameHelper_OnlyTsosAreAllowed" xml:space="preserve">
+    <value>Only type system objects are allowed as dependency.</value>
   </data>
   <data name="TypeResourceHelper_TypeNameEmptyOrNull" xml:space="preserve">
     <value>The typeName mustn't be null or empty.</value>

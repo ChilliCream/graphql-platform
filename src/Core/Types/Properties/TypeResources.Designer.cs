@@ -61,6 +61,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The argument type has to be an input-type..
+        /// </summary>
+        internal static string ArgumentDescriptor_InputTypeViolation {
+            get {
+                return ResourceManager.GetString("ArgumentDescriptor_InputTypeViolation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument `{0}` of non-null type `{1}` must not be null..
         /// </summary>
         internal static string ArgumentValueBuilder_NonNull {
@@ -84,6 +93,15 @@ namespace HotChocolate.Properties {
         internal static string ByteType_Description {
             get {
                 return ResourceManager.GetString("ByteType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only type system objects are allowed..
+        /// </summary>
+        internal static string ClrTypeReference_OnlyTsosAreAllowed {
+            get {
+                return ResourceManager.GetString("ClrTypeReference_OnlyTsosAreAllowed", resourceCulture);
             }
         }
         
@@ -160,11 +178,94 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified member has to be a method or a property..
+        /// </summary>
+        internal static string DefaultTypeInspector_MemberInvalid {
+            get {
+                return ResourceManager.GetString("DefaultTypeInspector_MemberInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only type system objects are allowed as schema type..
+        /// </summary>
+        internal static string DependencyDescriptorBase_OnlyTsoIsAllowed {
+            get {
+                return ResourceManager.GetString("DependencyDescriptorBase_OnlyTsoIsAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A Directive provides a way to describe alternate runtime execution and type validation behavior in a GraphQL document.
+        ///
+        ///In some cases, you need to provide options to alter GraphQL&apos;s execution behavior in ways field arguments will not suffice, such as conditionally including or skipping a field. Directives provide this by describing additional information to the executor..
+        /// </summary>
+        internal static string Directive_Description {
+            get {
+                return ResourceManager.GetString("Directive_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use `locations`..
+        /// </summary>
+        internal static string Directive_UseLocation {
+            get {
+                return ResourceManager.GetString("Directive_UseLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified directive `@{0}` is unique and cannot be added twice..
+        /// </summary>
+        internal static string DirectiveCollection_DirectiveIsUnique {
+            get {
+                return ResourceManager.GetString("DirectiveCollection_DirectiveIsUnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified directive `@{0}` is not allowed on the current location `{0}`..
+        /// </summary>
+        internal static string DirectiveCollection_LocationNotAllowed {
+            get {
+                return ResourceManager.GetString("DirectiveCollection_LocationNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The `{0}` directive does not declare any location on which it is valid..
+        /// </summary>
+        internal static string DirectiveType_NoLocations {
+            get {
+                return ResourceManager.GetString("DirectiveType_NoLocations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace Middleware with `Use`..
+        /// </summary>
+        internal static string DirectiveType_ReplaceWithUse {
+            get {
+                return ResourceManager.GetString("DirectiveType_ReplaceWithUse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to convert the argument value to the specified type..
         /// </summary>
         internal static string DirectiveType_UnableToConvert {
             get {
                 return ResourceManager.GetString("DirectiveType_UnableToConvert", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only property expressions are allowed to describe a directive type argument..
+        /// </summary>
+        internal static string DirectiveTypeDescriptor_OnlyProperties {
+            get {
+                return ResourceManager.GetString("DirectiveTypeDescriptor_OnlyProperties", resourceCulture);
             }
         }
         
@@ -192,6 +293,24 @@ namespace HotChocolate.Properties {
         internal static string EnumType_NoValues {
             get {
                 return ResourceManager.GetString("EnumType_NoValues", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The enum type extension can only be merged with an enum type..
+        /// </summary>
+        internal static string EnumTypeExtension_CannotMerge {
+            get {
+                return ResourceManager.GetString("EnumTypeExtension_CannotMerge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The enum value `{0}` of the enum type extension is not assignabe with the target enum type..
+        /// </summary>
+        internal static string EnumTypeExtension_ValueTypeInvalid {
+            get {
+                return ResourceManager.GetString("EnumTypeExtension_ValueTypeInvalid", resourceCulture);
             }
         }
         
@@ -327,6 +446,42 @@ namespace HotChocolate.Properties {
         internal static string NameType_Description {
             get {
                 return ResourceManager.GetString("NameType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field-type must be an output-type..
+        /// </summary>
+        internal static string ObjectFieldDescriptorBase_FieldType {
+            get {
+                return ResourceManager.GetString("ObjectFieldDescriptorBase_FieldType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The interface base class cannot be used as interface implementation declaration..
+        /// </summary>
+        internal static string ObjectTypeDescriptor_InterfaceBaseClass {
+            get {
+                return ResourceManager.GetString("ObjectTypeDescriptor_InterfaceBaseClass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A field-expression must be a property-expression or a method-call-expression..
+        /// </summary>
+        internal static string ObjectTypeDescriptor_MustBePropertyOrMethod {
+            get {
+                return ResourceManager.GetString("ObjectTypeDescriptor_MustBePropertyOrMethod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Schema types cannot be used as resolver types..
+        /// </summary>
+        internal static string ObjectTypeDescriptor_Resolver_SchemaType {
+            get {
+                return ResourceManager.GetString("ObjectTypeDescriptor_Resolver_SchemaType", resourceCulture);
             }
         }
         
@@ -502,6 +657,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The error message mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string SchemaErrorBuilder_MessageIsNull {
+            get {
+                return ResourceManager.GetString("SchemaErrorBuilder_MessageIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1..
         /// </summary>
         internal static string ShortType_Description {
@@ -525,6 +689,24 @@ namespace HotChocolate.Properties {
         internal static string StringType_Description {
             get {
                 return ResourceManager.GetString("StringType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The configuration delegate mustn&apos;t be null..
+        /// </summary>
+        internal static string TypeConfiguration_ConfigureIsNull {
+            get {
+                return ResourceManager.GetString("TypeConfiguration_ConfigureIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Definition mustn&apos;t be null..
+        /// </summary>
+        internal static string TypeConfiguration_DefinitionIsNull {
+            get {
+                return ResourceManager.GetString("TypeConfiguration_DefinitionIsNull", resourceCulture);
             }
         }
         
@@ -597,6 +779,24 @@ namespace HotChocolate.Properties {
         internal static string TypeInitializer_Merge_KindDoesNotMatch {
             get {
                 return ResourceManager.GetString("TypeInitializer_Merge_KindDoesNotMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid type structure..
+        /// </summary>
+        internal static string TypeNameHelper_InvalidTypeStructure {
+            get {
+                return ResourceManager.GetString("TypeNameHelper_InvalidTypeStructure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only type system objects are allowed as dependency..
+        /// </summary>
+        internal static string TypeNameHelper_OnlyTsosAreAllowed {
+            get {
+                return ResourceManager.GetString("TypeNameHelper_OnlyTsosAreAllowed", resourceCulture);
             }
         }
         

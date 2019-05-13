@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -37,9 +37,8 @@ namespace HotChocolate.Types.Descriptors
             if (Context.Inspector.IsSchemaType(type)
                 && !typeof(IOutputType).IsAssignableFrom(type))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "Output fields can only have an output type as type.");
+                    TypeResources.ObjectFieldDescriptorBase_FieldType);
             }
 
             Definition.SetMoreSpecificType(
@@ -57,9 +56,8 @@ namespace HotChocolate.Types.Descriptors
 
             if (!outputType.IsOutputType())
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "Output fields can only have an output type as type.");
+                    TypeResources.ObjectFieldDescriptorBase_FieldType);
             }
 
             Definition.Type = new SchemaTypeReference(outputType);
