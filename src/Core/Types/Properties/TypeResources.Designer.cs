@@ -1262,6 +1262,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The union type extension can only be merged with an union type..
+        /// </summary>
+        internal static string UnionTypeExtension_CannotMerge {
+            get {
+                return ResourceManager.GetString("UnionTypeExtension_CannotMerge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Variable `{0}` of type `{1}` must be an input type..
         /// </summary>
         internal static string VariableValueBuilder_InputType {

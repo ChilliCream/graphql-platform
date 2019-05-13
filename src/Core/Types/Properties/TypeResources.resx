@@ -520,6 +520,9 @@ In some cases, you need to provide options to alter GraphQL's execution behavior
 
 Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.</value>
   </data>
+  <data name="UnionTypeExtension_CannotMerge" xml:space="preserve">
+    <value>The union type extension can only be merged with an union type.</value>
+  </data>
   <data name="VariableValueBuilder_InputType" xml:space="preserve">
     <value>Variable `{0}` of type `{1}` must be an input type.</value>
   </data>
