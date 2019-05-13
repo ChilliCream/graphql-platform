@@ -404,6 +404,57 @@ namespace HotChocolate.Utilities
         }
 
         [Fact]
+        public void GenericTryConvert_ArrayOfString_NullableListOfFooOrBar()
+        {
+            // arrange
+            var list = new[] { "Foo", "Bar" };
+
+            // act
+            bool success =
+                TypeConversionExtensions.TryConvert<string[], List<FooOrBar?>>(
+                    TypeConversion.Default,
+                    list, out var output);
+
+            // assert
+            Assert.True(success);
+            Assert.IsType<List<FooOrBar?>>(output);
+            Assert.Collection((List<FooOrBar?>)output,
+                t => Assert.Equal(FooOrBar.Foo, t),
+                t => Assert.Equal(FooOrBar.Bar, t));
+        }
+
+        [Fact]
+        public void GenericTryConvert_TypeConversionIsNull_ArgumentNullExc()
+        {
+            // arrange
+            var list = new[] { "Foo", "Bar" };
+
+            // act
+            Action action = () =>
+                TypeConversionExtensions.TryConvert<string[], List<FooOrBar?>>(
+                    null,
+                    list, out var output);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void GenericConvert_TypeConversionIsNull_ArgumentNullExc()
+        {
+            // arrange
+            var list = new[] { "Foo", "Bar" };
+
+            // act
+            Action action = () =>
+                TypeConversionExtensions.Convert<string[], List<FooOrBar?>>(
+                    null, list);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
         public void Convert_WithDependencyInjection()
         {
             // arrange
