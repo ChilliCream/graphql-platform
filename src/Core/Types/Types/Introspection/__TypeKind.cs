@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Introspection
                 .Description(TypeResources.TypeKind_Scalar);
 
             descriptor.Item(TypeKind.Object)
-                .Description(TypeResources.TypeKind_Union);
+                .Description(TypeResources.TypeKind_Object);
 
             descriptor.Item(TypeKind.Interface)
                 .Description(TypeResources.TypeKind_Interface);
