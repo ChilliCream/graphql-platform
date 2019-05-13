@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Types
+namespace HotChocolate.Types
 {
     public sealed class ResolveDirective
         : DirectiveType<Resolve>
@@ -6,7 +6,7 @@
         protected override void Configure(IDirectiveTypeDescriptor<Resolve> descriptor)
         {
             descriptor.Name("resolve");
-            descriptor.Middleware(next => async context =>
+            descriptor.Use(next => async context =>
             {
                 context.Result = await context.ResolveAsync<object>()
                     .ConfigureAwait(false);

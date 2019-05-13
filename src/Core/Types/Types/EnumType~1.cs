@@ -36,7 +36,6 @@ namespace HotChocolate.Types
 
         protected sealed override void Configure(IEnumTypeDescriptor descriptor)
         {
-            // TODO : resources
             throw new NotSupportedException();
         }
     }

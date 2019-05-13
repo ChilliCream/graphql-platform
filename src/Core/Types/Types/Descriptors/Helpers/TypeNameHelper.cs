@@ -1,5 +1,5 @@
 using System;
-using HotChocolate.Types.Descriptors;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
@@ -30,17 +30,18 @@ namespace HotChocolate.Types.Descriptors
 
             if (!typeof(ITypeSystem).IsAssignableFrom(dependency))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "Only type system objects are allowed.");
+                    TypeResources.TypeNameHelper_OnlyTsosAreAllowed,
+                    nameof(dependency));
             }
 
             if (!NamedTypeInfoFactory.Default.TryCreate(
                 dependency,
                 out TypeInfo typeInfo))
             {
-                // TODO : Resources
-                throw new ArgumentException("Invalid type structure.");
+                throw new ArgumentException(
+                    TypeResources.TypeNameHelper_InvalidTypeStructure,
+                    nameof(dependency));
             }
 
             descriptor

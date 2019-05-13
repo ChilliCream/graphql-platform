@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -105,11 +106,11 @@ namespace HotChocolate.Types
 
             if (!Locations.Any())
             {
-                // TODO : resources
                 context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage(
-                        $"The `{Name}` directive does not declare any " +
-                        "location on which it is valid.")
+                    .SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        TypeResources.DirectiveType_NoLocations,
+                        Name))
                     .SetCode(TypeErrorCodes.MissingType)
                     .SetTypeSystemObject(context.Type)
                     .AddSyntaxNode(definition.SyntaxNode)
@@ -136,14 +137,14 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(valueNode));
             }
 
-            object obj = argument.Type.ParseLiteral(valueNode);
+            var obj = argument.Type.ParseLiteral(valueNode);
             if (targetType.IsInstanceOfType(obj))
             {
                 return obj;
             }
 
             if (_converter.TryConvert(typeof(object), targetType,
-                obj, out object o))
+                obj, out var o))
             {
                 return o;
             }

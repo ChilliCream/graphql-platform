@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -131,17 +132,17 @@ namespace HotChocolate.Types.Descriptors
         [Obsolete("Replace Middleware with `Use`.", true)]
         public IDirectiveTypeDescriptor Middleware<T>(
             Expression<Func<T, object>> method)
-        {
-            // TODO : resources
-            throw new NotSupportedException("Replace Middleware with `Use`.");
+        {         
+            throw new NotSupportedException(
+                TypeResources.DirectiveType_ReplaceWithUse);
         }
 
         [Obsolete("Replace Middleware with `Use`.", true)]
         public IDirectiveTypeDescriptor Middleware<T>(
             Expression<Action<T>> method)
         {
-            // TODO : resources
-            throw new NotSupportedException("Replace Middleware with `Use`.");
+            throw new NotSupportedException(
+                TypeResources.DirectiveType_ReplaceWithUse);
         }
 
         public IDirectiveTypeDescriptor Repeatable()

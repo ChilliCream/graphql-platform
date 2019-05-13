@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Utilities;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -104,8 +105,9 @@ namespace HotChocolate.Types.Descriptors
             }
             else
             {
-                // TODO : resources
-                throw new ArgumentException("TODO", nameof(member));
+                throw new ArgumentException(
+                    TypeResources.DefaultTypeInspector_MemberInvalid,
+                    nameof(member));
             }
         }
 

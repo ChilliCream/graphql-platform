@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
@@ -54,8 +55,8 @@ namespace HotChocolate.Types
 
             if (!success)
             {
-                // TODO : Resources
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(
+                    TypeResources.InputField_CannotSetValue);
             }
         }
 
@@ -99,8 +100,8 @@ namespace HotChocolate.Types
 
             if (!success)
             {
-                // TODO : Resources
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(
+                    TypeResources.InputField_CannotGetValue);
             }
 
             return value;

@@ -4,6 +4,8 @@ using System.Buffers;
 using System;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Globalization;
+using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
@@ -344,17 +346,20 @@ namespace HotChocolate.Language
                     }
                     else
                     {
-                        // TODO : exception
                         Position--;
-                        throw new SyntaxException((LexerState)null,
-                            "Expected a spread token.");
+                        throw new SyntaxException(this,
+                            string.Format(CultureInfo.InvariantCulture,
+                                LangResources.Reader_InvalidToken,
+                                TokenKind.Spread));
                     }
                     break;
 
                 default:
                     Position--;
-                    throw new SyntaxException((LexerState)null,
-                        "Unexpected punctuator character.");
+                    throw new SyntaxException(this,
+                        string.Format(CultureInfo.InvariantCulture,
+                            LangResources.Reader_UnexpectedPunctuatorToken,
+                            code));
             }
         }
 
