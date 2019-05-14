@@ -99,9 +99,8 @@ namespace HotChocolate.Types.Descriptors
             ArgumentDefinition definition = descriptor.CreateDefinition();
             if (definition.Type == null)
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    $"The descriptor was unable to infer the type from argument `{name}`. Specify the type with `.Argument(\"{name}\", a.Type<MyType>())` to fix this issue.");
+                    TypeResources.OutputFieldDescriptor_ArgumentTypeUnknown);
             }
 
             Definition.Arguments.Add(definition);

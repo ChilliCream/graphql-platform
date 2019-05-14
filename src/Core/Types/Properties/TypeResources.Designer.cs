@@ -792,6 +792,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The descriptor was unable to infer the type from argument `{0}`. Specify the type with `.Argument(&quot;{0}&quot;, a.Type&lt;MyType&gt;())` to fix this issue..
+        /// </summary>
+        internal static string OutputFieldDescriptor_ArgumentTypeUnknown {
+            get {
+                return ResourceManager.GetString("OutputFieldDescriptor_ArgumentTypeUnknown", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The member expression must specify a property or method that is public and that belongs to the type {0}.
         /// </summary>
         internal static string Reflection_MemberMust_BeMethodOrProperty {
