@@ -61,6 +61,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The argument `{0}` has no type. Specify the type with `.Argument(&quot;{0}&quot;, a.Type&lt;MyType&gt;())` to fix this issue..
+        /// </summary>
+        internal static string Argument_TypeIsNull {
+            get {
+                return ResourceManager.GetString("Argument_TypeIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The argument type has to be an input-type..
         /// </summary>
         internal static string ArgumentDescriptor_InputTypeViolation {
@@ -788,15 +797,6 @@ namespace HotChocolate.Properties {
         internal static string ObjectTypeExtension_CannotMerge {
             get {
                 return ResourceManager.GetString("ObjectTypeExtension_CannotMerge", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The descriptor was unable to infer the type from argument `{0}`. Specify the type with `.Argument(&quot;{0}&quot;, a.Type&lt;MyType&gt;())` to fix this issue..
-        /// </summary>
-        internal static string OutputFieldDescriptor_ArgumentTypeUnknown {
-            get {
-                return ResourceManager.GetString("OutputFieldDescriptor_ArgumentTypeUnknown", resourceCulture);
             }
         }
         

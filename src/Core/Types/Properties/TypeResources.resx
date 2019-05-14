@@ -538,6 +538,9 @@ Depending on the kind of a type, certain fields describe information about that 
   <data name="VariableValueBuilder_VarNameEmpty" xml:space="preserve">
     <value>Variable name mustn't be null or empty.</value>
   </data>
+  <data name="Argument_TypeIsNull" xml:space="preserve">
+    <value>The argument `{0}` has no type. Specify the type with `.Argument("{0}", a.Type&lt;MyType&gt;())` to fix this issue.</value>
+  </data>
   <data name="NonNullType_NotAnInputType" xml:space="preserve">
     <value>The specified type is not an input type.</value>
   </data>
