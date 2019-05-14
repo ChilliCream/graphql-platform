@@ -7,6 +7,8 @@ using Newtonsoft.Json;
 
 namespace HotChocolate.Execution
 {
+    // TODO : RESOURCES
+    [Obsolete("Use ErrorBuilder instead.")]
     public class QueryError
        : IError
     {

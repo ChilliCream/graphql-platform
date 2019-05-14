@@ -363,7 +363,9 @@ namespace HotChocolate.Execution
             public Task<object> Error3()
             {
                 return Task.FromResult<object>(
-                    new QueryError("query error 3"));
+                    ErrorBuilder.New()
+                        .SetMessage("query error 3")
+                        .Build());
             }
 
             public async Task<string> Error4()
@@ -382,7 +384,9 @@ namespace HotChocolate.Execution
             {
                 await Task.Delay(1);
                 return await Task.FromResult<object>(
-                    new QueryError("query error 6"));
+                    ErrorBuilder.New()
+                        .SetMessage("query error 6")
+                        .Build());
             }
 
             public string Error7()
@@ -397,14 +401,18 @@ namespace HotChocolate.Execution
 
             public object Error9()
             {
-                return new QueryError("query error 9");
+                return ErrorBuilder.New()
+                    .SetMessage("query error 9")
+                    .Build();
             }
 
             public string Error10 => throw new QueryException("query error 10");
 
             public string Error11 => throw new Exception("query error 11");
 
-            public object Error12 => new QueryError("query error 12");
+            public object Error12 => ErrorBuilder.New()
+                    .SetMessage("query error 12")
+                    .Build();
 
             public Foo Error13 => new Foo();
 

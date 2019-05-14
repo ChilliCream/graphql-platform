@@ -8,12 +8,12 @@ namespace HotChocolate.Execution
     internal class ExecutionStrategyResolver
         : IExecutionStrategyResolver
     {
-        private readonly Dictionary<OperationType, IExecutionStrategy> _strategies;
+        private readonly Dictionary<OperationType, IExecutionStrategy> _strats;
 
         public ExecutionStrategyResolver(
             IRequestTimeoutOptionsAccessor options)
         {
-            _strategies = new Dictionary<OperationType, IExecutionStrategy>()
+            _strats = new Dictionary<OperationType, IExecutionStrategy>()
             {
                 {
                     OperationType.Query,
@@ -32,12 +32,13 @@ namespace HotChocolate.Execution
 
         public IExecutionStrategy Resolve(OperationType operationType)
         {
-            if (_strategies.TryGetValue(operationType,
+            if (_strats.TryGetValue(operationType,
                 out IExecutionStrategy strategy))
             {
                 return strategy;
             }
 
+            // TODO : resources
             throw new NotSupportedException("Operation not supported!");
         }
     }
