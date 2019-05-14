@@ -202,7 +202,7 @@ namespace HotChocolate.Execution
 
         #region IDisposable Support
 
-        private bool _disposed = false;
+        private bool _disposed;
 
         protected virtual void Dispose(bool disposing)
         {
@@ -226,6 +226,7 @@ namespace HotChocolate.Execution
         public void Dispose()
         {
             Dispose(true);
+            GC.SuppressFinalize(this);
         }
 
         #endregion
