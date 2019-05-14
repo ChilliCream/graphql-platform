@@ -36,13 +36,11 @@ namespace HotChocolate.Types
         protected virtual void Configure(
             IDirectiveTypeDescriptor<TDirective> descriptor)
         {
-
         }
 
         protected sealed override void Configure(
             IDirectiveTypeDescriptor descriptor)
         {
-            // TODO : resources
             throw new NotSupportedException();
         }
     }

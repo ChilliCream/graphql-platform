@@ -41,7 +41,6 @@ namespace HotChocolate.Types
         protected sealed override void Configure(
             IInputObjectTypeDescriptor descriptor)
         {
-            // TODO : resources
             throw new NotSupportedException();
         }
 

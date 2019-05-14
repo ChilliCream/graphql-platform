@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ArgumentDescriptor_InputTypeViolation" xml:space="preserve">
+    <value>The argument type has to be an input-type.</value>
+  </data>
   <data name="ArgumentValueBuilder_NonNull" xml:space="preserve">
     <value>Argument `{0}` of non-null type `{1}` must not be null.</value>
   </data>
@@ -125,6 +128,15 @@
   </data>
   <data name="ByteType_Description" xml:space="preserve">
     <value>The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255.</value>
+  </data>
+  <data name="ClrTypeReference_OnlyTsosAreAllowed" xml:space="preserve">
+    <value>Only type system objects are allowed.</value>
+  </data>
+  <data name="ComplexTypeBindingBuilder_FieldBuilderNotSupported" xml:space="preserve">
+    <value>The specified IComplexTypeFieldBindingBuilder-implementation is not supported.</value>
+  </data>
+  <data name="ComplexTypeBindingBuilder_FieldNotComplete" xml:space="preserve">
+    <value>The field binding builder is not completed and cannot be added.</value>
   </data>
   <data name="DataLoaderRegistry_KeyNullOrEmpty" xml:space="preserve">
     <value>The DataLoader key cannot be null or empty.</value>
@@ -144,23 +156,139 @@
   <data name="DecimalType_Description" xml:space="preserve">
     <value>The built-in `Decimal` scalar type.</value>
   </data>
+  <data name="DefaultTypeInspector_MemberInvalid" xml:space="preserve">
+    <value>The specified member has to be a method or a property.</value>
+  </data>
+  <data name="DependencyDescriptorBase_OnlyTsoIsAllowed" xml:space="preserve">
+    <value>Only type system objects are allowed as schema type.</value>
+  </data>
+  <data name="DirectiveCollection_DirectiveIsUnique" xml:space="preserve">
+    <value>The specified directive `@{0}` is unique and cannot be added twice.</value>
+  </data>
+  <data name="DirectiveCollection_LocationNotAllowed" xml:space="preserve">
+    <value>The specified directive `@{0}` is not allowed on the current location `{1}`.</value>
+  </data>
+  <data name="DirectiveLocation_ArgumentDefinition" xml:space="preserve">
+    <value>Location adjacent to an argument definition</value>
+  </data>
+  <data name="DirectiveLocation_Description" xml:space="preserve">
+    <value>A Directive can be adjacent to many parts of the GraphQL language, a __DirectiveLocation describes one such possible adjacencies.</value>
+  </data>
+  <data name="DirectiveLocation_Enum" xml:space="preserve">
+    <value>Location adjacent to an enum definition.</value>
+  </data>
+  <data name="DirectiveLocation_EnumValue" xml:space="preserve">
+    <value>Location adjacent to an enum value definition.</value>
+  </data>
+  <data name="DirectiveLocation_Field" xml:space="preserve">
+    <value>Location adjacent to a field.</value>
+  </data>
+  <data name="DirectiveLocation_FieldDefinition" xml:space="preserve">
+    <value>Location adjacent to a field definition.</value>
+  </data>
+  <data name="DirectiveLocation_FragmentDefinition" xml:space="preserve">
+    <value>Location adjacent to a fragment definition.</value>
+  </data>
+  <data name="DirectiveLocation_FragmentSpread" xml:space="preserve">
+    <value>Location adjacent to a fragment spread.</value>
+  </data>
+  <data name="DirectiveLocation_InlineFragment" xml:space="preserve">
+    <value>Location adjacent to an inline fragment.</value>
+  </data>
+  <data name="DirectiveLocation_InputFieldDefinition" xml:space="preserve">
+    <value>Location adjacent to an input object field definition.</value>
+  </data>
+  <data name="DirectiveLocation_InputObject" xml:space="preserve">
+    <value>Location adjacent to an input object type definition.</value>
+  </data>
+  <data name="DirectiveLocation_Interface" xml:space="preserve">
+    <value>Location adjacent to an interface definition.</value>
+  </data>
+  <data name="DirectiveLocation_Mutation" xml:space="preserve">
+    <value>Location adjacent to a mutation operation.</value>
+  </data>
+  <data name="DirectiveLocation_Object" xml:space="preserve">
+    <value>Location adjacent to an object type definition.</value>
+  </data>
+  <data name="DirectiveLocation_Query" xml:space="preserve">
+    <value>Location adjacent to a query operation.</value>
+  </data>
+  <data name="DirectiveLocation_Scalar" xml:space="preserve">
+    <value>Location adjacent to a scalar definition.</value>
+  </data>
+  <data name="DirectiveLocation_Schema" xml:space="preserve">
+    <value>Location adjacent to a schema definition.</value>
+  </data>
+  <data name="DirectiveLocation_Subscription" xml:space="preserve">
+    <value>Location adjacent to a subscription operation.</value>
+  </data>
+  <data name="DirectiveLocation_Union" xml:space="preserve">
+    <value>Location adjacent to a union definition.</value>
+  </data>
+  <data name="DirectiveTypeDescriptor_OnlyProperties" xml:space="preserve">
+    <value>Only property expressions are allowed to describe a directive type argument.</value>
+  </data>
   <data name="DirectiveTypeFactory_LocationNotSupported" xml:space="preserve">
     <value>The specified location `{0}` is not supported.</value>
+  </data>
+  <data name="DirectiveType_NoLocations" xml:space="preserve">
+    <value>The `{0}` directive does not declare any location on which it is valid.</value>
+  </data>
+  <data name="DirectiveType_ReplaceWithUse" xml:space="preserve">
+    <value>Replace Middleware with `Use`.</value>
   </data>
   <data name="DirectiveType_UnableToConvert" xml:space="preserve">
     <value>Unable to convert the argument value to the specified type.</value>
   </data>
+  <data name="Directive_Description" xml:space="preserve">
+    <value>A Directive provides a way to describe alternate runtime execution and type validation behavior in a GraphQL document.
+
+In some cases, you need to provide options to alter GraphQL's execution behavior in ways field arguments will not suffice, such as conditionally including or skipping a field. Directives provide this by describing additional information to the executor.</value>
+  </data>
+  <data name="Directive_UseLocation" xml:space="preserve">
+    <value>Use `locations`.</value>
+  </data>
   <data name="Edge_CursorIsNull" xml:space="preserve">
     <value>The cursor cannot be null or empty.</value>
   </data>
+  <data name="EnumTypeExtension_CannotMerge" xml:space="preserve">
+    <value>The enum type extension can only be merged with an enum type.</value>
+  </data>
+  <data name="EnumTypeExtension_ValueTypeInvalid" xml:space="preserve">
+    <value>The enum value `{0}` of the enum type extension is not assignabe with the target enum type.</value>
+  </data>
   <data name="EnumType_NoValues" xml:space="preserve">
     <value>The enum type `{0}` has no values.</value>
+  </data>
+  <data name="EnumValue_Description" xml:space="preserve">
+    <value>One possible value for a given Enum. Enum values are unique values, not a placeholder for a string or numeric value. However an Enum value is returned in a JSON response as a string.</value>
+  </data>
+  <data name="EnumValue_ValueIsNull" xml:space="preserve">
+    <value>The inner value of enum value cannot be null or empty.</value>
+  </data>
+  <data name="FieldInitHelper_InvalidDefaultValue" xml:space="preserve">
+    <value>Could not parse the native value of input field `{0}.{1}`.</value>
+  </data>
+  <data name="FieldInitHelper_NoFields" xml:space="preserve">
+    <value>{0} `{1}` has no fields declared.</value>
+  </data>
+  <data name="Field_Description" xml:space="preserve">
+    <value>Object and Interface types are described by a list of Fields, each of which has a name, potentially a list of arguments, and a return type.</value>
   </data>
   <data name="FloatType_Description" xml:space="preserve">
     <value>The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point).</value>
   </data>
   <data name="IdType_Description" xml:space="preserve">
     <value>The `ID` scalar type represents a unique identifier, often used to refetch an object or as key for a cache. The ID type appears in a JSON response as a String; however, it is not intended to be human-readable. When expected as an input type, any string (such as `"4"`) or integer (such as `4`) input value will be accepted as an ID.</value>
+  </data>
+  <data name="InputField_CannotGetValue" xml:space="preserve">
+    <value>Unable to get the input field value.</value>
+  </data>
+  <data name="InputField_CannotSetValue" xml:space="preserve">
+    <value>Unable to set the input field value.</value>
+  </data>
+  <data name="InputObjectTypeExtension_CannotMerge" xml:space="preserve">
+    <value>The input object type extension can only be merged with an input object type.</value>
   </data>
   <data name="InputObjectType_CannotParseLiteral" xml:space="preserve">
     <value>The input object type can only parse object value literals.</value>
@@ -170,6 +298,30 @@
   </data>
   <data name="InputTypeNonNullCheck_ValueIsNull" xml:space="preserve">
     <value>The input value of type `{0}` must not be null.</value>
+  </data>
+  <data name="InputValue_DefaultValue" xml:space="preserve">
+    <value>A GraphQL-formatted string representing the default value for this input value.</value>
+  </data>
+  <data name="InputValue_Description" xml:space="preserve">
+    <value>Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value.</value>
+  </data>
+  <data name="InterfaceImplRule_ArgumentsDontMatch" xml:space="preserve">
+    <value>The arguments of the interface field {0} from interface {1} and {2} do not match and are implemented by object type {3}.</value>
+  </data>
+  <data name="InterfaceImplRule_ArgumentsNotImpl" xml:space="preserve">
+    <value>Object type {0} does not implement all arguments of field {1} from interface {2}.</value>
+  </data>
+  <data name="InterfaceImplRule_FieldNotImpl" xml:space="preserve">
+    <value>Object type {0} does not implement the field {1} from interface {2}.</value>
+  </data>
+  <data name="InterfaceImplRule_FieldTypeInvalid" xml:space="preserve">
+    <value>The return type of the interface field {0} from interface {1} and {2} do not match and are implemented by object type {3}.</value>
+  </data>
+  <data name="InterfaceImplRule_ReturnTypeInvalid" xml:space="preserve">
+    <value>The return type of the interface field {0} does not match the field declared by object type {1}.</value>
+  </data>
+  <data name="InterfaceTypeExtension_CannotMerge" xml:space="preserve">
+    <value>The interface type extension can only be merged with an interface type.</value>
   </data>
   <data name="IntType_Description" xml:space="preserve">
     <value>The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1.</value>
@@ -186,8 +338,29 @@
   <data name="Name_Cannot_BeEmpty" xml:space="preserve">
     <value>The multiplier path scalar represents a valid GraphQL multiplier path string.</value>
   </data>
+  <data name="ObjectFieldDescriptorBase_FieldType" xml:space="preserve">
+    <value>The field-type must be an output-type.</value>
+  </data>
+  <data name="ObjectTypeDescriptor_InterfaceBaseClass" xml:space="preserve">
+    <value>The interface base class cannot be used as interface implementation declaration.</value>
+  </data>
+  <data name="ObjectTypeDescriptor_MustBePropertyOrMethod" xml:space="preserve">
+    <value>A field-expression must be a property-expression or a method-call-expression.</value>
+  </data>
+  <data name="ObjectTypeDescriptor_Resolver_SchemaType" xml:space="preserve">
+    <value>Schema types cannot be used as resolver types.</value>
+  </data>
   <data name="Reflection_MemberMust_BeMethodOrProperty" xml:space="preserve">
     <value>The member expression must specify a property or method that is public and that belongs to the type {0}</value>
+  </data>
+  <data name="ResolverCompiler_UnknownParameterType" xml:space="preserve">
+    <value>A directive type mustn't be one of the base classes `DirectiveType` or `DirectiveType&lt;T&gt;` but must be a type inheriting from `DirectiveType` or `DirectiveType&lt;T&gt;`.</value>
+  </data>
+  <data name="ResolverTypeBindingBuilder_FieldBuilderNotSupported" xml:space="preserve">
+    <value>The specified IResolverFieldBindingBuilder-implementation is not supported.</value>
+  </data>
+  <data name="ResolverTypeBindingBuilder_FieldNotComplete" xml:space="preserve">
+    <value>The field binding builder is not completed and cannot be added.</value>
   </data>
   <data name="Scalar_Cannot_Deserialize" xml:space="preserve">
     <value>{0} cannot deserialize the given value.</value>
@@ -201,6 +374,66 @@
   <data name="Scalar_Cannot_Serialize" xml:space="preserve">
     <value>{0} cannot serialize the given value.</value>
   </data>
+  <data name="SchemaBuilderExtensions_DirectiveTypeIsBaseType" xml:space="preserve">
+    <value>A directive type mustn't be one of the base classes `DirectiveType` or `DirectiveType&lt;T&gt;` but must be a type inheriting from `DirectiveType` or `DirectiveType&lt;T&gt;`.</value>
+  </data>
+  <data name="SchemaBuilderExtensions_MustBeDirectiveType" xml:space="preserve">
+    <value>A directive type must inherit from `DirectiveType` or `DirectiveType&lt;T&gt;`.</value>
+  </data>
+  <data name="SchemaBuilderExtensions_SchemaIsEmpty" xml:space="preserve">
+    <value>The schema string cannot be null or empty.</value>
+  </data>
+  <data name="SchemaBuilder_Binding_CannotBeHandled" xml:space="preserve">
+    <value>There is no handler registered that can handle the specified schema binding.</value>
+  </data>
+  <data name="SchemaBuilder_Binding_Invalid" xml:space="preserve">
+    <value>The schema binding is not valid.</value>
+  </data>
+  <data name="SchemaBuilder_ISchemaNotTso" xml:space="preserve">
+    <value>The given schema has to inherit from TypeSystemObjectBase in order to be initializable.</value>
+  </data>
+  <data name="SchemaBuilder_NoQueryType" xml:space="preserve">
+    <value>The schema builder was unable to identify the query type of the schema. Either specify which type is the query type or set the schema builder to non-strict validation mode.</value>
+  </data>
+  <data name="SchemaBuilder_RootType_MustBeClass" xml:space="preserve">
+    <value>A root type must be a class.</value>
+  </data>
+  <data name="SchemaBuilder_RootType_MustBeObjectType" xml:space="preserve">
+    <value>A root type must be an object type.</value>
+  </data>
+  <data name="SchemaBuilder_RootType_NonGenericType" xml:space="preserve">
+    <value>Non-generic schema types are not allowed.</value>
+  </data>
+  <data name="SchemaBuilder_SchemaTypeInvalid" xml:space="preserve">
+    <value>The given schema has to inherit from `Schema` in order to be initializable.</value>
+  </data>
+  <data name="SchemaErrorBuilder_MessageIsNull" xml:space="preserve">
+    <value>The error message mustn't be null or empty.</value>
+  </data>
+  <data name="SchemaField_Description" xml:space="preserve">
+    <value>Access the current type schema of this server.</value>
+  </data>
+  <data name="SchemaSyntaxVisitor_UnknownOperationType" xml:space="preserve">
+    <value>Unknown operation type.</value>
+  </data>
+  <data name="Schema_Description" xml:space="preserve">
+    <value>A GraphQL Schema defines the capabilities of a GraphQL server. It exposes all available types and directives on the server, as well as the entry points for query, mutation, and subscription operations.</value>
+  </data>
+  <data name="Schema_Directives" xml:space="preserve">
+    <value>A list of all directives supported by this server.</value>
+  </data>
+  <data name="Schema_MutationType" xml:space="preserve">
+    <value>If this server supports mutation, the type that mutation operations will be rooted at.</value>
+  </data>
+  <data name="Schema_QueryType" xml:space="preserve">
+    <value>The type that query operations will be rooted at.</value>
+  </data>
+  <data name="Schema_SubscriptionType" xml:space="preserve">
+    <value>If this server support subscription, the type that subscription operations will be rooted at.</value>
+  </data>
+  <data name="Schema_Types" xml:space="preserve">
+    <value>A list of all types supported by this server.</value>
+  </data>
   <data name="ShortType_Description" xml:space="preserve">
     <value>The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1.</value>
   </data>
@@ -209,6 +442,15 @@
   </data>
   <data name="String_Argument_NullOrEmpty" xml:space="preserve">
     <value>The `{0}` cannot be null or empty.</value>
+  </data>
+  <data name="TypeConfiguration_ConfigureIsNull" xml:space="preserve">
+    <value>The configuration delegate mustn't be null.</value>
+  </data>
+  <data name="TypeConfiguration_DefinitionIsNull" xml:space="preserve">
+    <value>Definition mustn't be null.</value>
+  </data>
+  <data name="TypeDependency_MustBeSchemaType" xml:space="preserve">
+    <value>The specified type is not a schema type.</value>
   </data>
   <data name="TypeExtensions_InvalidStructure" xml:space="preserve">
     <value>The type structure is invalid.</value>
@@ -222,8 +464,64 @@
   <data name="TypeExtensions_TypeIsNotOfT" xml:space="preserve">
     <value>The given type is not a {0}.</value>
   </data>
+  <data name="TypeField_Description" xml:space="preserve">
+    <value>Request the type information of a single type.</value>
+  </data>
+  <data name="TypeInitializer_CannotResolveDependency" xml:space="preserve">
+    <value>Unable to resolve dependencies {1} for type `{0}`.</value>
+  </data>
+  <data name="TypeInitializer_CompleteName_Duplicate" xml:space="preserve">
+    <value>The name `{0}` was already registered by another type.</value>
+  </data>
+  <data name="TypeInitializer_Merge_KindDoesNotMatch" xml:space="preserve">
+    <value>The kind of the extension does not match the kind of the type `{0}`.</value>
+  </data>
+  <data name="TypeKind_Description" xml:space="preserve">
+    <value>An enum describing what kind of type a given `__Type` is.</value>
+  </data>
+  <data name="TypeKind_Enum" xml:space="preserve">
+    <value>Indicates this type is an enum. `enumValues` is a valid field.</value>
+  </data>
+  <data name="TypeKind_InputObject" xml:space="preserve">
+    <value>Indicates this type is an input object. `inputFields` is a valid field.</value>
+  </data>
+  <data name="TypeKind_Interface" xml:space="preserve">
+    <value>Indicates this type is an interface. `fields` and `possibleTypes` are valid fields.</value>
+  </data>
+  <data name="TypeKind_List" xml:space="preserve">
+    <value>Indicates this type is a list. `ofType` is a valid field.</value>
+  </data>
+  <data name="TypeKind_NonNull" xml:space="preserve">
+    <value>Indicates this type is a non-null. `ofType` is a valid field.</value>
+  </data>
+  <data name="TypeKind_Object" xml:space="preserve">
+    <value>Indicates this type is an object. `fields` and `interfaces` are valid fields.</value>
+  </data>
+  <data name="TypeKind_Scalar" xml:space="preserve">
+    <value>Indicates this type is a scalar.</value>
+  </data>
+  <data name="TypeKind_Union" xml:space="preserve">
+    <value>Indicates this type is a union. `possibleTypes` is a valid field.</value>
+  </data>
+  <data name="TypeNameField_Description" xml:space="preserve">
+    <value>The name of the current Object type at runtime.</value>
+  </data>
+  <data name="TypeNameHelper_InvalidTypeStructure" xml:space="preserve">
+    <value>Invalid type structure.</value>
+  </data>
+  <data name="TypeNameHelper_OnlyTsosAreAllowed" xml:space="preserve">
+    <value>Only type system objects are allowed as dependency.</value>
+  </data>
   <data name="TypeResourceHelper_TypeNameEmptyOrNull" xml:space="preserve">
     <value>The typeName mustn't be null or empty.</value>
+  </data>
+  <data name="Type_Description" xml:space="preserve">
+    <value>The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
+
+Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose other types.</value>
+  </data>
+  <data name="UnionTypeExtension_CannotMerge" xml:space="preserve">
+    <value>The union type extension can only be merged with an union type.</value>
   </data>
   <data name="VariableValueBuilder_InputType" xml:space="preserve">
     <value>Variable `{0}` of type `{1}` must be an input type.</value>

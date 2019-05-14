@@ -59,9 +59,11 @@ namespace HotChocolate.Language
                 return name;
             }
 
-            // TODO : resources
             throw new SyntaxException(_reader,
-                $"Expected a name token: {TokenVisualizer.Visualize(in _reader)}.");
+                string.Format(CultureInfo.InvariantCulture,
+                    LangResources.Parser_InvalidToken,
+                    TokenKind.Name,
+                    _reader.Kind));
         }
 
         private void ExpectColon() =>
@@ -86,10 +88,11 @@ namespace HotChocolate.Language
                 return value;
             }
 
-            // TODO : resources
             throw new SyntaxException(_reader,
-                "Expected a string token: " +
-                $"{TokenVisualizer.Visualize(in _reader)}.");
+                string.Format(CultureInfo.InvariantCulture,
+                    LangResources.Parser_InvalidToken,
+                    TokenKind.String,
+                    _reader.Kind));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -102,10 +105,10 @@ namespace HotChocolate.Language
                 return value;
             }
 
-            // TODO : resources
             throw new SyntaxException(_reader,
-                "Expected a scalar value token: " +
-                $"{TokenVisualizer.Visualize(in _reader)}.");
+                string.Format(CultureInfo.InvariantCulture,
+                    LangResources.Parser_InvalidScalarToken,
+                    _reader.Kind));
         }
 
         private void ExpectSpread() =>
@@ -122,14 +125,13 @@ namespace HotChocolate.Language
         {
             if (!Skip(kind))
             {
-                // TODO : resources
                 throw new SyntaxException(_reader,
-                    $"Expected a name token: {kind}.");
+                    string.Format(CultureInfo.InvariantCulture,
+                        LangResources.Parser_InvalidToken,
+                        kind,
+                        _reader.Kind));
             }
         }
-
-        private void ExpectSchemaKeyword() =>
-            ExpectKeyword(GraphQLKeywords.Schema);
 
         private void ExpectDirectiveKeyword() =>
             ExpectKeyword(GraphQLKeywords.Directive);
@@ -145,10 +147,15 @@ namespace HotChocolate.Language
         {
             if (!SkipKeyword(keyword))
             {
-                // TODO : resources
+                string found = _reader.Kind == TokenKind.Name
+                    ? _reader.GetName()
+                    : _reader.Kind.ToString();
+
                 throw new SyntaxException(_reader,
-                    $"Expected \"{Encoding.UTF8.GetString(keyword.ToArray())}\", found " +
-                    $"{TokenVisualizer.Visualize(in _reader)}");
+                    string.Format(CultureInfo.InvariantCulture,
+                        LangResources.Parser_InvalidToken,
+                        _reader.GetString(keyword),
+                        found));
             }
         }
 

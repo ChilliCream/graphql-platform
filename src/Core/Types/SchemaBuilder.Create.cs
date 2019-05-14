@@ -10,6 +10,7 @@ using HotChocolate.Utilities;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Bindings;
 using HotChocolate.Types.Factories;
+using HotChocolate.Properties;
 
 namespace HotChocolate
 {
@@ -48,10 +49,9 @@ namespace HotChocolate
 
             if (definition.QueryType == null && _options.StrictValidation)
             {
-                // TODO : Resources
                 throw new SchemaException(
                     SchemaErrorBuilder.New()
-                        .SetMessage("No QUERY TYPE")
+                        .SetMessage(TypeResources.SchemaBuilder_NoQueryType)
                         .Build());
             }
 

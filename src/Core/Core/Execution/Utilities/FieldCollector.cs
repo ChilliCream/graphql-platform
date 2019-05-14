@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -11,6 +10,8 @@ namespace HotChocolate.Execution
 {
     internal sealed class FieldCollector
     {
+        private const string _argumentProperty = "argument";
+
         private readonly FragmentCollection _fragments;
         private readonly Func<ObjectField, FieldNode, FieldDelegate> _factory;
 
@@ -162,9 +163,8 @@ namespace HotChocolate.Execution
             }
             else
             {
-                // TODO : resources
                 throw new QueryException(ErrorBuilder.New()
-                    .SetMessage("Could not resolve the specified field.")
+                    .SetMessage(CoreResources.FieldCollector_FieldNotFound)
                     .SetPath(path)
                     .AddLocation(fieldSelection)
                     .Build());
@@ -269,7 +269,7 @@ namespace HotChocolate.Execution
                             ErrorBuilder.New()
                                 .SetMessage(ex.Message)
                                 .AddLocation(fieldInfo.Selection)
-                                .SetExtension("argument", argument.Name)
+                                .SetExtension(_argumentProperty, argument.Name)
                                 .Build());
                 }
             }
@@ -338,7 +338,7 @@ namespace HotChocolate.Execution
                 message => ErrorBuilder.New()
                     .SetMessage(message)
                     .AddLocation(fieldInfo.Selection)
-                    .SetExtension("argument", argument.Name)
+                    .SetExtension(_argumentProperty, argument.Name)
                     .Build());
 
             if (error != null)

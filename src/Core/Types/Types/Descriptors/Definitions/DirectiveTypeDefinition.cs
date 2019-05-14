@@ -64,26 +64,5 @@ namespace HotChocolate.Types.Descriptors.Definitions
 
             return configs;
         }
-
-        protected override void OnValidate(ICollection<IError> errors)
-        {
-            base.OnValidate(errors);
-
-            if (Locations.Count == 0)
-            {
-                // TODO : resources
-                errors.Add(ErrorBuilder.New()
-                    .SetMessage(
-                        "A directive must at least specify one location " +
-                        "on which it is valid.")
-                    .Build());
-            }
-
-            foreach (IError argumentError in Arguments
-                .SelectMany(a => a.Validate().Errors))
-            {
-                errors.Add(argumentError);
-            }
-        }
     }
 }

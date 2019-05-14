@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
@@ -15,8 +15,7 @@ namespace HotChocolate.Types.Descriptors
 
         public ConfigurationKind Kind { get; set; }
 
-        public Action<ICompletionContext, T> Configure
-        { get; set; }
+        public Action<ICompletionContext, T> Configure { get; set; }
 
         public T Definition { get; set; }
 
@@ -34,16 +33,14 @@ namespace HotChocolate.Types.Descriptors
 
             if (Definition == null)
             {
-                // TODO : resources
                 throw new InvalidOperationException(
-                    "The Definition mustn't be null");
+                    TypeResources.TypeConfiguration_DefinitionIsNull);
             }
 
             if (Configure == null)
             {
-                // TODO : resources
                 throw new InvalidOperationException(
-                    "The Configure mustn't be null");
+                    TypeResources.TypeConfiguration_ConfigureIsNull);
             }
 
             Configure(context, Definition);

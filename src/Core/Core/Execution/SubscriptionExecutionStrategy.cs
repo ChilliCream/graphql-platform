@@ -90,8 +90,8 @@ namespace HotChocolate.Execution
             }
             else
             {
-                // TODO : Error message
-                throw new QueryException();
+                throw new QueryException(
+                    CoreResources.Subscriptions_SingleRootField);
             }
         }
 
