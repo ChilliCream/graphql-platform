@@ -34,13 +34,13 @@ namespace StarWars
             // Add GraphQL Services
             services.AddGraphQL(sp => SchemaBuilder.New()
                 .AddServices(sp)
-                .AddDirectiveType<AuthorizeDirectiveType>()
                 .AddQueryType<QueryType>()
                 .AddMutationType<MutationType>()
                 .AddSubscriptionType<SubscriptionType>()
                 .AddType<HumanType>()
                 .AddType<DroidType>()
                 .AddType<EpisodeType>()
+                .AddDirectiveType<AuthorizeDirectiveType>()
                 .Create());
 
             // Add Authorization Policies
