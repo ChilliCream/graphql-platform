@@ -40,7 +40,8 @@ namespace HotChocolate.Execution
                     ErrorBuilder.New()
                         .SetMessage(string.Format(
                             CultureInfo.InvariantCulture,
-                            CoreResources.DirectiveCollectionExtensions_NotValid,
+                            CoreResources
+                                .DirectiveCollectionExtensions_NotValid,
                             directive.Name.Value))
                         .Build());
             }
@@ -64,7 +65,8 @@ namespace HotChocolate.Execution
                     ErrorBuilder.New()
                         .SetMessage(string.Format(
                             CultureInfo.InvariantCulture,
-                            CoreResources.DirectiveCollectionExtensions_NotValid,
+                            CoreResources
+                                .DirectiveCollectionExtensions_NotValid,
                             directive.Name.Value))
                         .Build());
             }
@@ -88,7 +90,8 @@ namespace HotChocolate.Execution
                     ErrorBuilder.New()
                         .SetMessage(string.Format(
                             CultureInfo.InvariantCulture,
-                            CoreResources.DirectiveCollectionExtensions_NotValid,
+                            CoreResources
+                                .DirectiveCollectionExtensions_NotValid,
                             directive.Name.Value))
                         .Build());
             }
@@ -104,12 +107,13 @@ namespace HotChocolate.Execution
             }
 
             throw new QueryException(
-                    ErrorBuilder.New()
-                        .SetMessage(string.Format(
-                            CultureInfo.InvariantCulture,
-                            CoreResources.DirectiveCollectionExtensions_IfNotBoolean,
-                            directive.Name.Value))
-                        .Build());
+                ErrorBuilder.New()
+                    .SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        CoreResources
+                            .DirectiveCollectionExtensions_IfNotBoolean,
+                        directive.Name.Value))
+                    .Build());
         }
 
         public static DirectiveNode GetIncludeDirective(
