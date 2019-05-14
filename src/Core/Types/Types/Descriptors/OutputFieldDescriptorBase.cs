@@ -98,14 +98,6 @@ namespace HotChocolate.Types.Descriptors
             argument(descriptor);
 
             ArgumentDefinition definition = descriptor.CreateDefinition();
-            if (definition.Type == null)
-            {
-                throw new ArgumentException(string.Format(
-                    CultureInfo.InvariantCulture,
-                    TypeResources.OutputFieldDescriptor_ArgumentTypeUnknown,
-                    name));
-            }
-
             Definition.Arguments.Add(definition);
         }
 

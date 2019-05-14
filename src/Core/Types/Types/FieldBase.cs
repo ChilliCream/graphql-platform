@@ -44,17 +44,6 @@ namespace HotChocolate.Types
 
         internal void CompleteField(ICompletionContext context)
         {
-            DeclaringType = context.Type;
-            Type = context.GetType<TType>(_definition.Type);
-            ClrType = Type.NamedType() is IHasClrType hasClrType
-                ? hasClrType.ClrType
-                : typeof(object);
-
-            var directives = new DirectiveCollection(
-                this, _definition.Directives);
-            directives.CompleteCollection(context);
-            Directives = directives;
-
             OnCompleteField(context, _definition);
 
             _contextData = new Dictionary<string, object>(
@@ -66,6 +55,16 @@ namespace HotChocolate.Types
             ICompletionContext context,
             TDefinition definition)
         {
+            DeclaringType = context.Type;
+            Type = context.GetType<TType>(_definition.Type);
+            ClrType = Type.NamedType() is IHasClrType hasClrType
+                ? hasClrType.ClrType
+                : typeof(object);
+
+            var directives = new DirectiveCollection(
+                this, _definition.Directives);
+            directives.CompleteCollection(context);
+            Directives = directives;
         }
     }
 }
