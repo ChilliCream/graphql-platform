@@ -3,8 +3,12 @@
   "Extensions": {},
   "Errors": [
     {
+      "Message": "Execution timeout has been exceeded.",
+      "Code": null,
+      "Path": null,
+      "Locations": [],
       "Exception": null,
-      "message": "Execution timeout has been exceeded."
+      "Extensions": {}
     }
   ]
 }
