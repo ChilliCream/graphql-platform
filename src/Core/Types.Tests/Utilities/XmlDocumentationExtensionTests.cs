@@ -9,12 +9,15 @@ namespace HotChocolate.Utilities
     public class XmlDocumentationExtensionTests
     {
         [Fact]
-        public async Task When_xml_doc_is_missing_then_summary_is_empty()
+        public void When_xml_doc_is_missing_then_summary_is_empty()
         {
-            await XmlDocumentationExtensions.ClearCacheAsync();
+            // arrange
+            XmlDocumentationExtensions.ClearCache();
 
-            var summary = await typeof(Point).GetXmlSummary();
+            // act
+            var summary = typeof(Point).GetXmlSummary();
 
+            // assert
             Assert.Empty(summary);
         }
 
@@ -29,20 +32,24 @@ namespace HotChocolate.Utilities
             ///     * Users ...
             ///     * Users ...
             ///
-            /// You need one of the following role: Owner, Editor, use XYZ to manage permissions.
+            /// You need one of the following role: Owner,
+            /// Editor, use XYZ to manage permissions.
             /// </summary>
             public string Foo { get; set; }
         }
 
         [Fact]
-        public async Task When_xml_doc_with_multiple_breaks_is_read_then_they_are_not_stripped_away()
+        public void When_xml_doc_with_multiple_breaks_is_read_then_they_are_not_stripped_away()
         {
-            await XmlDocumentationExtensions.ClearCacheAsync();
+            // arrange
+            XmlDocumentationExtensions.ClearCache();
 
-            var summary = await typeof(WithMultilineXmlDoc)
+            // act
+            var summary = typeof(WithMultilineXmlDoc)
                 .GetProperty(nameof(WithMultilineXmlDoc.Foo))
-                .GetXmlSummaryAsync();
+                .GetXmlSummary();
 
+            // assert
             Assert.Matches(new Regex(@"\n[ \t]*\n"), summary);
             Assert.Contains("    * Users", summary);
             Assert.Equal(summary.Trim(), summary);
@@ -50,20 +57,31 @@ namespace HotChocolate.Utilities
 
         public class WithSeeTagInXmlDoc
         {
-            /// <summary><see langword="null"/> for the default <see cref="Record"/>. See <see cref="Record">this</see> and <see href="https://github.com/rsuter/njsonschema">this</see> at <see href="https://github.com/rsuter/njsonschema"/>.</summary>
+            /// <summary>
+            /// <see langword="null"/> for the default <see cref="Record"/>.
+            /// See <see cref="Record">this</see> and
+            /// <see href="https://github.com/rsuter/njsonschema">this</see> at
+            /// <see href="https://github.com/rsuter/njsonschema"/>.
+            /// </summary>
             public string Foo { get; set; }
         }
 
         [Fact]
-        public async Task When_summary_has_see_tag_then_it_is_converted()
+        public void When_summary_has_see_tag_then_it_is_converted()
         {
-            await XmlDocumentationExtensions.ClearCacheAsync();
+            // arrange
+            XmlDocumentationExtensions.ClearCache();
 
-            var summary = await typeof(WithSeeTagInXmlDoc)
+            // act
+            var summary = typeof(WithSeeTagInXmlDoc)
                 .GetProperty(nameof(WithSeeTagInXmlDoc.Foo))
-                .GetXmlSummaryAsync();
+                .GetXmlSummary();
 
-            Assert.Equal("null for the default Record. See this and this at https://github.com/rsuter/njsonschema.", summary);
+            // asssert
+            Assert.Equal(
+                "null for the default Record. See this and this" +
+                " at https://github.com/rsuter/njsonschema.",
+                summary);
         }
 
         public class WithGenericTagsInXmlDoc
@@ -73,13 +91,13 @@ namespace HotChocolate.Utilities
         }
 
         [Fact]
-        public async Task When_summary_has_generic_tags_then_it_is_converted()
+        public void When_summary_has_generic_tags_then_it_is_converted()
         {
-            await XmlDocumentationExtensions.ClearCacheAsync();
+            XmlDocumentationExtensions.ClearCache();
 
-            var summary = await typeof(WithGenericTagsInXmlDoc)
+            var summary = typeof(WithGenericTagsInXmlDoc)
                 .GetProperty(nameof(WithGenericTagsInXmlDoc.Foo))
-                .GetXmlSummaryAsync();
+                .GetXmlSummary();
 
             Assert.Equal("These are some tags.", summary);
         }
@@ -118,10 +136,9 @@ namespace HotChocolate.Utilities
         [Fact]
         public async Task When_type_has_summary_then_it_it_resolved()
         {
-            await XmlDocumentationExtensions.ClearCacheAsync();
+            XmlDocumentationExtensions.ClearCache();
 
-            var summary = await typeof(BaseBaseClass)
-                .GetXmlSummary();
+            var summary = typeof(BaseBaseClass).GetXmlSummary();
 
             Assert.Equal("I am the most base class.", summary);
         }
@@ -129,7 +146,7 @@ namespace HotChocolate.Utilities
         [Fact]
         public async Task When_parameter_has_inheritdoc_then_it_is_resolved()
         {
-            await XmlDocumentationExtensions.ClearCacheAsync();
+            XmlDocumentationExtensions.ClearCache();
 
             var parameterXml = await typeof(ClassWithInheritdoc)
                 .GetMethod(nameof(ClassWithInheritdoc.Bar))
@@ -143,7 +160,7 @@ namespace HotChocolate.Utilities
         [Fact]
         public async Task When_method_has_inheritdoc_then_it_is_resolved()
         {
-            await XmlDocumentationExtensions.ClearCacheAsync();
+            await XmlDocumentationExtensions.ClearCache();
 
             var methodSummary = await typeof(ClassWithInheritdoc)
                 .GetMethod(nameof(ClassWithInheritdoc.Bar))
@@ -155,7 +172,7 @@ namespace HotChocolate.Utilities
         [Fact]
         public async Task When_property_has_inheritdoc_then_it_is_resolved()
         {
-            await XmlDocumentationExtensions.ClearCacheAsync();
+            await XmlDocumentationExtensions.ClearCache();
 
             var summary = await typeof(ClassWithInheritdoc)
                 .GetProperty(nameof(ClassWithInheritdoc.Foo))
@@ -207,7 +224,7 @@ namespace HotChocolate.Utilities
         [Fact]
         public async Task When_type_is_an_interface_then_summary_is_resolved()
         {
-            await XmlDocumentationExtensions.ClearCacheAsync();
+            await XmlDocumentationExtensions.ClearCache();
 
             var summary = await typeof(IBaseBaseInterface)
                 .GetXmlSummary();
@@ -218,7 +235,7 @@ namespace HotChocolate.Utilities
         [Fact]
         public async Task When_parameter_has_inheritdoc_on_interface_then_it_is_resolved()
         {
-            await XmlDocumentationExtensions.ClearCacheAsync();
+            await XmlDocumentationExtensions.ClearCache();
 
             var summary = await typeof(ClassWithInheritdocOnInterface)
                 .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))
@@ -232,7 +249,7 @@ namespace HotChocolate.Utilities
         [Fact]
         public async Task When_property_has_inheritdoc_on_interface_then_it_is_resolved()
         {
-            await XmlDocumentationExtensions.ClearCacheAsync();
+            await XmlDocumentationExtensions.ClearCache();
 
             var summary = await typeof(ClassWithInheritdocOnInterface)
                 .GetProperty(nameof(ClassWithInheritdocOnInterface.Foo))
@@ -244,7 +261,7 @@ namespace HotChocolate.Utilities
         [Fact]
         public async Task When_method_has_inheritdoc_then_on_interface_it_is_resolved()
         {
-            await XmlDocumentationExtensions.ClearCacheAsync();
+            await XmlDocumentationExtensions.ClearCache();
 
             var methodSummary = await typeof(ClassWithInheritdocOnInterface)
                 .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))
@@ -256,7 +273,7 @@ namespace HotChocolate.Utilities
         [Fact]
         public async Task When_class_implements_interface_and_property_has_summary_then_property_summary_is_used()
         {
-            await XmlDocumentationExtensions.ClearCacheAsync();
+            await XmlDocumentationExtensions.ClearCache();
 
             var summary = await typeof(ClassWithInterfaceAndCustomSummaries)
                 .GetProperty(nameof(ClassWithInterfaceAndCustomSummaries.Foo))
@@ -268,7 +285,7 @@ namespace HotChocolate.Utilities
         [Fact]
         public async Task When_class_implements_interface_and_method_has_summary_then_method_summary_is_used()
         {
-            await XmlDocumentationExtensions.ClearCacheAsync();
+            await XmlDocumentationExtensions.ClearCache();
 
             var summary = await typeof(ClassWithInterfaceAndCustomSummaries)
                 .GetMethod(nameof(ClassWithInterfaceAndCustomSummaries.Bar))
@@ -280,7 +297,7 @@ namespace HotChocolate.Utilities
         [Fact]
         public async Task When_class_implements_interface_and_method_has_summary_then_method_parameter_summary_is_used()
         {
-            await XmlDocumentationExtensions.ClearCacheAsync();
+            await XmlDocumentationExtensions.ClearCache();
 
             var summary = await typeof(ClassWithInterfaceAndCustomSummaries)
                 .GetMethod(nameof(ClassWithInterfaceAndCustomSummaries.Bar))
@@ -301,7 +318,7 @@ namespace HotChocolate.Utilities
         [Fact]
         public async Task When_class_has_summary_then_it_is_converted()
         {
-            await XmlDocumentationExtensions.ClearCacheAsync();
+            await XmlDocumentationExtensions.ClearCache();
 
             var summary = await typeof(ClassWithSummary)
                 .GetXmlSummary();

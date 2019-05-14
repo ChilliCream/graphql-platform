@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Xml.Xsl.Runtime;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -25,6 +24,7 @@ namespace HotChocolate.Utilities
     /// </remarks>
     internal static class XmlDocumentationExtensions
     {
+        private const string _summaryElementName = "summary";
         private const string _bin = "bin";
         private const string _inheritdoc = "inheritdoc";
 
@@ -43,19 +43,29 @@ namespace HotChocolate.Utilities
         /// </returns>
         internal static string GetXmlSummary(this Type type)
         {
-            return GetXmlDocumentationTagAsync(type.GetTypeInfo(), "summary");
+            return GetXmlDocumentationTag(
+                type.GetTypeInfo(),
+                _summaryElementName);
         }
 
-        /// <summary>Returns the contents of the "summary" XML documentation tag for the specified member.</summary>
+        /// <summary>
+        /// Returns the contents of the "summary" XML documentation
+        /// tag for the specified member.
+        /// </summary>
         /// <param name="member">The reflected member.</param>
         /// <returns>The contents of the "summary" tag for the member.</returns>
-        internal static async Task<string> GetXmlSummaryAsync(this MemberInfo member)
+        internal static string GetXmlSummary(this MemberInfo member)
         {
-            return await GetXmlDocumentationTagAsync(member, "summary").ConfigureAwait(false);
+            return GetXmlDocumentationTag(member, _summaryElementName);
         }
 
-        /// <summary>Returns the contents of the "returns" or "param" XML documentation tag for the specified parameter.</summary>
-        /// <param name="parameter">The reflected parameter or return info.</param>
+        /// <summary>
+        /// Returns the contents of the "returns" or "param" XML
+        /// documentation tag for the specified parameter.
+        /// </summary>
+        /// <param name="parameter">
+        /// The reflected parameter or return info.
+        /// </param>
         /// <returns>The contents of the "returns" or "param" tag.</returns>
         internal static string GetXmlDocumentation(this ParameterInfo parameter)
         {
@@ -65,32 +75,43 @@ namespace HotChocolate.Utilities
                 return string.Empty;
             }
 
-            var documentationPath = GetXmlDocumentationPath(parameter.Member.Module.Assembly);
-            var element = GetXmlDocumentation(parameter, documentationPath);
-            return RemoveLineBreakWhiteSpaces(GetXmlDocumentationText(element));
+            var documentationPath = GetXmlDocumentationPath(
+                parameter.Member.Module.Assembly);
+
+            var element = GetXmlDocumentation(
+                parameter,
+                documentationPath);
+
+            return RemoveLineBreakWhiteSpaces(
+                GetXmlDocumentationText(element));
         }
 
         /// <summary>Clears the cache.</summary>
         /// <returns>The task.</returns>
-        internal static Task ClearCacheAsync()
+        internal static void ClearCache()
         {
-            using (Lock.Lock())
-            {
-                _cache.Clear();
-                return Task.CompletedTask;
-            }
+            _cache.Clear();
         }
 
-        /// <summary>Returns the contents of an XML documentation tag for the specified member.</summary>
+        /// <summary>
+        /// Returns the contents of an XML documentation tag
+        /// for the specified member.
+        /// </summary>
         /// <param name="type">The type.</param>
         /// <param name="tagName">Name of the tag.</param>
-        /// <returns>The contents of the "summary" tag for the member.</returns>
-        private static Task<string> GetXmlDocumentationTagAsync(this Type type, string tagName)
+        /// <returns>
+        /// The contents of the "summary" tag for the member.
+        /// </returns>
+        private static string GetXmlDocumentationTag(
+            this Type type,
+            string tagName)
         {
-            return GetXmlDocumentationTagAsync((MemberInfo)type.GetTypeInfo(), tagName);
+            return GetXmlDocumentationTag(type, tagName);
         }
 
-        /// <summary>Converts the given XML documentation <see cref="XElement"/> to text.</summary>
+        /// <summary>
+        /// Converts the given XML documentation <see cref="XElement"/> to text.
+        /// </summary>
         /// <param name="element">The XML element.</param>
         /// <returns>The text</returns>
         private static string GetXmlDocumentationText(this XElement element)
@@ -132,7 +153,9 @@ namespace HotChocolate.Utilities
                     attribute = currentElement.Attribute("cref");
                     if (attribute != null)
                     {
-                        value.Append(attribute.Value.Trim('!', ':').Trim().Split('.').Last());
+                        value.Append(attribute.Value
+                            .Trim('!', ':').Trim()
+                            .Split('.').Last());
                     }
                     else
                     {
@@ -148,42 +171,30 @@ namespace HotChocolate.Utilities
             return value.ToString();
         }
 
-        /// <summary>Returns the contents of an XML documentation tag for the specified member.</summary>
+        /// <summary>
+        /// Returns the contents of an XML documentation tag for the
+        /// specified member.
+        /// </summary>
         /// <param name="member">The reflected member.</param>
         /// <param name="tagName">Name of the tag.</param>
         /// <returns>The contents of the "summary" tag for the member.</returns>
-        private static async Task<string> GetXmlDocumentationTagAsync(this MemberInfo member, string tagName)
+        private static string GetXmlDocumentationTag(
+            this MemberInfo member,
+            string tagName)
         {
             var assemblyName = member.Module.Assembly.GetName();
-            using (Lock.Lock())
+            if (IgnoreAssembly(assemblyName))
             {
-                if (IgnoreAssembly(assemblyName))
-                {
-                    return string.Empty;
-                }
-
-                var documentationPath = GetXmlDocumentationPath(member.Module.Assembly);
-                var element = await GetXmlDocumentation(member, documentationPath).ConfigureAwait(false);
-                return RemoveLineBreakWhiteSpaces(GetXmlDocumentationText(element?.Element(tagName)));
+                return string.Empty;
             }
-        }
 
-        /// <summary>Returns the contents of an XML documentation tag for the specified member.</summary>
-        /// <param name="member">The reflected member.</param>
-        /// <returns>The contents of the "summary" tag for the member.</returns>
-        private static XElement GetXmlDocumentationAsync(this MemberInfo member)
-        {
-            return GetXmlDocumentation(member);
-        }
+            var documentationPath = GetXmlDocumentationPath(
+                member.Module.Assembly);
 
-        /// <summary>Returns the contents of the "summary" XML documentation tag for the specified member.</summary>
-        /// <param name="member">The reflected member.</param>
-        /// <param name="pathToXmlFile">The path to the XML documentation file.</param>
-        /// <returns>The contents of the "summary" tag for the member.</returns>
-        private static async Task<XElement> GetXmlDocumentation(this MemberInfo member, string pathToXmlFile)
-        {
+            var element = GetXmlDocumentation(member, documentationPath);
 
-            return await GetXmlDocumentation(member, pathToXmlFile).ConfigureAwait(false);
+            return RemoveLineBreakWhiteSpaces(
+                GetXmlDocumentationText(element?.Element(tagName)));
         }
 
         private static XElement GetXmlDocumentation(
@@ -199,7 +210,7 @@ namespace HotChocolate.Utilities
                     return null;
                 }
 
-                return GetXmlDocumentationAsync(parameter, document);
+                return GetParameterDocumentation(parameter, document);
             }
             catch
             {
@@ -207,6 +218,9 @@ namespace HotChocolate.Utilities
             }
         }
 
+        /// <summary>Returns the contents of an XML documentation tag for the specified member.</summary>
+        /// <param name="member">The reflected member.</param>
+        /// <returns>The contents of the "summary" tag for the member.</returns>
         private static XElement GetXmlDocumentation(this MemberInfo member)
         {
             var assemblyName = member.Module.Assembly.GetName();
@@ -215,7 +229,9 @@ namespace HotChocolate.Utilities
                 return null;
             }
 
-            var documentationPath = GetXmlDocumentationPath(member.Module.Assembly);
+            var documentationPath = GetXmlDocumentationPath(
+                member.Module.Assembly);
+
             return GetXmlDocumentation(member, documentationPath);
         }
 
@@ -266,9 +282,9 @@ namespace HotChocolate.Utilities
 
         private static bool IgnoreAssembly(AssemblyName assemblyName)
         {
-            if (_cache.ContainsKey(assemblyName.FullName) && _cache[assemblyName.FullName] == null)
+            if (_cache.TryGetValue(assemblyName.FullName, out XDocument value))
             {
-                return true;
+                return value == null;
             }
 
             return false;
@@ -382,7 +398,8 @@ namespace HotChocolate.Utilities
                 return string.Empty;
             }
 
-            documentation = "\n" + documentation.Replace("\r", string.Empty).Trim('\n');
+            documentation = "\n" + documentation
+                .Replace("\r", string.Empty).Trim('\n');
 
             var whitespace = Regex.Match(documentation, "(\\n[ \\t]*)").Value;
             documentation = documentation.Replace(whitespace, "\n");
@@ -395,22 +412,26 @@ namespace HotChocolate.Utilities
         {
             char prefixCode;
 
-            var memberName = member is Type memberType && !string.IsNullOrEmpty(memberType.FullName) ?
-                memberType.FullName :
-                member.DeclaringType.FullName + "." + member.Name;
+            var memberName = member is Type memberType
+                && !string.IsNullOrEmpty(memberType.FullName)
+                ? memberType.FullName
+                : member.DeclaringType.FullName + "." + member.Name;
 
-            switch (member.MemberType.ToString())
+            switch (member.MemberType)
             {
-                case "Constructor":
+                case MemberTypes.Constructor:
                     memberName = memberName.Replace(".ctor", "#ctor");
-                    goto case "Method";
+                    goto case MemberTypes.Method;
 
-                case "Method":
+                case MemberTypes.Method:
                     prefixCode = 'M';
 
-                    var paramTypesList = string.Join(",", ((MethodBase)member).GetParameters()
+                    var paramTypesList = string.Join(",",
+                        ((MethodBase)member).GetParameters()
                         .Select(x => Regex
-                            .Replace(x.ParameterType.FullName, "(`[0-9]+)|(, .*?PublicKeyToken=[0-9a-z]*)", string.Empty)
+                            .Replace(x.ParameterType.FullName,
+                                "(`[0-9]+)|(, .*?PublicKeyToken=[0-9a-z]*)",
+                                string.Empty)
                             .Replace("[[", "{")
                             .Replace("]]", "}"))
                         .ToArray());
@@ -421,30 +442,34 @@ namespace HotChocolate.Utilities
                     }
                     break;
 
-                case "Event":
+                case MemberTypes.Event:
                     prefixCode = 'E';
                     break;
 
-                case "Field":
+                case MemberTypes.Field:
                     prefixCode = 'F';
                     break;
 
-                case "NestedType":
+                case MemberTypes.NestedType:
                     memberName = memberName.Replace('+', '.');
-                    goto case "TypeInfo";
+                    goto case MemberTypes.TypeInfo;
 
-                case "TypeInfo":
+                case MemberTypes.TypeInfo:
                     prefixCode = 'T';
                     break;
 
-                case "Property":
+                case MemberTypes.Property:
                     prefixCode = 'P';
                     break;
 
                 default:
-                    throw new ArgumentException("Unknown member type.", "member");
+                    throw new ArgumentException(
+                        "Unknown member type.",
+                        "member");
             }
-            return $"{prefixCode}:{memberName.Replace("+", ".")}";
+
+            return new MemberName(
+                $"{prefixCode}:{memberName.Replace("+", ".")}");
         }
 
         private static string GetXmlDocumentationPath(Assembly assembly)
