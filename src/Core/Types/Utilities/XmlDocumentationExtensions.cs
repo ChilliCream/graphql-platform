@@ -18,7 +18,8 @@ namespace HotChocolate.Utilities
     internal static class XmlDocumentationExtensions
     {
         private static readonly AsyncLock Lock = new AsyncLock();
-        private static readonly Dictionary<string, XDocument> Cache = new Dictionary<string, XDocument>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<string, XDocument> Cache =
+            new Dictionary<string, XDocument>(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>Returns the contents of the "summary" XML documentation tag for the specified member.</summary>
         /// <param name="type">The type.</param>
