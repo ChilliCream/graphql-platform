@@ -4,6 +4,7 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using System.Reflection;
+using System.Globalization;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -99,8 +100,10 @@ namespace HotChocolate.Types.Descriptors
             ArgumentDefinition definition = descriptor.CreateDefinition();
             if (definition.Type == null)
             {
-                throw new ArgumentException(
-                    TypeResources.OutputFieldDescriptor_ArgumentTypeUnknown);
+                throw new ArgumentException(string.Format(
+                    CultureInfo.InvariantCulture,
+                    TypeResources.OutputFieldDescriptor_ArgumentTypeUnknown,
+                    name));
             }
 
             Definition.Arguments.Add(definition);
