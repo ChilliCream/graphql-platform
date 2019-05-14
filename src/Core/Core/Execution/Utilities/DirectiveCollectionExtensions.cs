@@ -34,8 +34,11 @@ namespace HotChocolate.Execution
             ArgumentNode argumentNode = directive.Arguments.SingleOrDefault();
             if (argumentNode == null)
             {
-                throw new QueryException(new QueryError(
-                    $"The {directive.Name.Value} attribute is not valid."));
+                // TODO : resources
+                throw new QueryException(
+                    ErrorBuilder.New()
+                        .SetMessage($"The {directive.Name.Value} attribute is not valid.")
+                        .Build());
             }
 
             return argumentNode.Value;
@@ -53,8 +56,10 @@ namespace HotChocolate.Execution
             ArgumentNode argumentNode = directive.Arguments.SingleOrDefault();
             if (argumentNode == null)
             {
-                throw new QueryException(new QueryError(
-                    $"The {directive.Name.Value} attribute is not valid."));
+                // TODO : resources
+                throw new QueryException(ErrorBuilder.New()
+                    .SetMessage($"The {directive.Name.Value} attribute is not valid.")
+                    .Build());
             }
 
             return argumentNode.Value;
@@ -72,8 +77,10 @@ namespace HotChocolate.Execution
             ArgumentNode argumentNode = directive.Arguments.SingleOrDefault();
             if (argumentNode == null)
             {
-                throw new QueryException(new QueryError(
-                    $"The {directive.Name.Value} attribute is not valid."));
+                // TODO : resources
+                throw new QueryException(ErrorBuilder.New()
+                    .SetMessage($"The {directive.Name.Value} attribute is not valid.")
+                    .Build());
             }
 
             if (argumentNode.Value is BooleanValueNode b)
@@ -86,8 +93,10 @@ namespace HotChocolate.Execution
                 return variables.GetVariable<bool>(v.Name.Value);
             }
 
-            throw new QueryException(new QueryError(
-                $"The {directive.Name.Value} if-argument value has to be a 'Boolean'."));
+            // TODO : resources
+            throw new QueryException(ErrorBuilder.New()
+                .SetMessage($"The {directive.Name.Value} if-argument value has to be a 'Boolean'.")
+                .Build());
         }
 
         public static DirectiveNode GetIncludeDirective(
