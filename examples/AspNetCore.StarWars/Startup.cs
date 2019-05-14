@@ -2,7 +2,6 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Authorization;
 using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Subscriptions;
@@ -39,7 +38,7 @@ namespace StarWars
 
                 // Adds the authorize directive and
                 // enable the authorization middleware.
-                .AddDirectiveType<AuthorizeDirectiveType>()
+                .AddAuthorizeDirectiveType()
 
                 .AddQueryType<QueryType>()
                 .AddMutationType<MutationType>()
