@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -32,6 +33,12 @@ namespace HotChocolate.Types.Descriptors
             Definition.Description = context.Naming.GetMemberDescription(
                 member, MemberKind.InputObjectField);
             Definition.Type = context.Inspector.GetOutputReturnType(member);
+
+            if (member is MethodInfo m)
+            {
+                Parameters = m.GetParameters().ToDictionary(
+                    t => new NameString(t.Name));
+            }
         }
 
         protected override InterfaceFieldDefinition Definition { get; } =

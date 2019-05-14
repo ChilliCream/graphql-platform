@@ -1,0 +1,1 @@
+﻿The descriptor was unable to infer the type from argument `bar`. Specify the type with `.Argument("bar", a.Type<MyType>())` to fix this issue.

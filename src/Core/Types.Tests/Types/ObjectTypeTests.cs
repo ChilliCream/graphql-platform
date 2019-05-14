@@ -1197,6 +1197,36 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Argument_Type_IsInfered_From_Parameter()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithIntArg>(t => t
+                    .Field(f => f.GetBar(1))
+                    .Argument("foo", a => a.DefaultValue(default)))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Argument_Type_Cannot_Be_Inferred()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddQueryType<QueryWithIntArg>(t => t
+                    .Field(f => f.GetBar(1))
+                    .Argument("bar", a => a.DefaultValue(default)))
+                .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(action)
+                .Errors.First().Message.MatchSnapshot();
+        }
 
         public class GenericFoo<T>
         {
