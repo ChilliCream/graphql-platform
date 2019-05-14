@@ -1,13 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using Newtonsoft.Json;
 
 namespace HotChocolate.Execution
 {
-    // TODO : RESOURCES
     [Obsolete("Use ErrorBuilder instead.")]
     public class QueryError
        : IError
@@ -49,7 +49,7 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(message))
             {
                 throw new ArgumentException(
-                    "The error message mustn't be null or empty.",
+                    CoreResources.QueryError_MessageIsNull,
                     nameof(message));
             }
 
@@ -164,7 +164,7 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(message))
             {
                 throw new ArgumentException(
-                    "The error message mustn't be null or empty.",
+                    CoreResources.QueryError_MessageIsNull,
                     nameof(message));
             }
 
@@ -195,7 +195,7 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(message))
             {
                 throw new ArgumentException(
-                    "The error message mustn't be null or empty.",
+                    CoreResources.QueryError_MessageIsNull,
                     nameof(message));
             }
 
@@ -207,7 +207,7 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(argumentName))
             {
                 throw new ArgumentException(
-                    "The argument name mustn't be null or empty.",
+                    CoreResources.QueryError_ArgumentIsNull,
                     nameof(argumentName));
             }
 
@@ -226,7 +226,7 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(message))
             {
                 throw new ArgumentException(
-                    "The error message mustn't be null or empty.",
+                    CoreResources.QueryError_MessageIsNull,
                     nameof(message));
             }
 
@@ -255,14 +255,14 @@ namespace HotChocolate.Execution
             if (string.IsNullOrEmpty(message))
             {
                 throw new ArgumentException(
-                    "The error message mustn't be null or empty.",
+                    CoreResources.QueryError_MessageIsNull,
                     nameof(message));
             }
 
             if (string.IsNullOrEmpty(variableName))
             {
                 throw new ArgumentException(
-                    "The variable name mustn't be null or empty.",
+                    CoreResources.QueryError_VariableIsNull,
                     nameof(variableName));
             }
 

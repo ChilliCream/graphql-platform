@@ -37,7 +37,6 @@ namespace HotChocolate.Types
         protected sealed override void Configure(
             IObjectTypeDescriptor descriptor)
         {
-            // TODO : resources
             throw new NotSupportedException();
         }
     }

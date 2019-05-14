@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
@@ -28,9 +29,8 @@ namespace HotChocolate.Types
 
             if (_definition == null)
             {
-                // TODO : exception type
-                // TODO : resources
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(
+                    TypeResources.TypeSystemObjectBase_DefinitionIsNull);
             }
 
             RegisterConfigurationDependencies(context);
@@ -60,10 +60,8 @@ namespace HotChocolate.Types
         {
             if (definition.Name.IsEmpty)
             {
-                // TODO : exception type
-                // TODO : resources
                 throw new InvalidOperationException(
-                    "The type is initialize bla bla ...");
+                    TypeResources.TypeSystemObjectBase_NameIsNull);
             }
 
             Name = definition.Name;

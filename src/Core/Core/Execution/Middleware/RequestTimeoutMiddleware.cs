@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
@@ -48,11 +49,11 @@ namespace HotChocolate.Execution
                     throw;
                 }
 
-                // TODO : resources
                 context.Exception = ex;
                 context.Result = QueryResult.CreateError(
                     ErrorBuilder.New()
-                        .SetMessage("Execution timeout has been exceeded.")
+                        .SetMessage(CoreResources
+                            .RequestTimeoutMiddleware_Timeout)
                         .Build());
             }
             finally

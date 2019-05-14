@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
@@ -38,8 +39,8 @@ namespace HotChocolate.Execution
                 return strategy;
             }
 
-            // TODO : resources
-            throw new NotSupportedException("Operation not supported!");
+            throw new NotSupportedException(
+                CoreResources.ExecutionStrategyResolver_NotSupported);
         }
     }
 }

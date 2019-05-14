@@ -538,4 +538,34 @@ Depending on the kind of a type, certain fields describe information about that 
   <data name="VariableValueBuilder_VarNameEmpty" xml:space="preserve">
     <value>Variable name mustn't be null or empty.</value>
   </data>
+  <data name="NonNullType_NotAnInputType" xml:space="preserve">
+    <value>The specified type is not an input type.</value>
+  </data>
+  <data name="NonNullType_TypeIsNunNullType" xml:space="preserve">
+    <value>The inner type of non-null type must be a nullable type.</value>
+  </data>
+  <data name="NonNullType_ValueIsNull" xml:space="preserve">
+    <value>A non null type cannot parse null value literals.</value>
+  </data>
+  <data name="ObjectTypeExtension_CannotMerge" xml:space="preserve">
+    <value>The object type extension can only be merged with an object type.</value>
+  </data>
+  <data name="TypeSystemObjectBase_DefinitionIsNull" xml:space="preserve">
+    <value>The type definition is null which means that the type was initialized incorrectly.</value>
+  </data>
+  <data name="TypeSystemObjectBase_NameIsNull" xml:space="preserve">
+    <value>The type name was not completed correctly and is still empty. Type names are not allowed to remain empty after name completion was executed.</value>
+  </data>
+  <data name="TypeSystemObject_DescriptionImmutable" xml:space="preserve">
+    <value>The description becomes immutable once it was assigned.</value>
+  </data>
+  <data name="TypeSystemObject_NameImmutable" xml:space="preserve">
+    <value>The name becomes immutable once it was assigned.</value>
+  </data>
+  <data name="UnionType_MustHaveTypes" xml:space="preserve">
+    <value>A Union type must define one or more unique member types.</value>
+  </data>
+  <data name="UnionType_UnableToResolveType" xml:space="preserve">
+    <value>Unable to resolve the specified type reference.</value>
+  </data>
 </root>
