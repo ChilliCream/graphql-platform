@@ -1,5 +1,8 @@
+using System;
+using System.Globalization;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
@@ -24,9 +27,22 @@ namespace HotChocolate.Types
             ICompletionContext context,
             ArgumentDefinition definition)
         {
-            base.OnCompleteField(context, definition);
-            DefaultValue = FieldInitHelper.CreateDefaultValue(
-                context, definition, Type);
+            if (definition.Type == null)
+            {
+                context.ReportError(SchemaErrorBuilder.New()
+                    .SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        TypeResources.Argument_TypeIsNull,
+                        definition.Name))
+                    .SetTypeSystemObject(context.Type)
+                    .Build());
+            }
+            else
+            {
+                base.OnCompleteField(context, definition);
+                DefaultValue = FieldInitHelper.CreateDefaultValue(
+                    context, definition, Type);
+            }
         }
     }
 }

@@ -1,12 +1,16 @@
-{
+﻿{
   "Data": {
     "error10": null
   },
   "Extensions": {},
   "Errors": [
     {
+      "Message": "query error 10",
+      "Code": null,
+      "Path": null,
+      "Locations": [],
       "Exception": null,
-      "message": "query error 10"
+      "Extensions": {}
     }
   ]
 }

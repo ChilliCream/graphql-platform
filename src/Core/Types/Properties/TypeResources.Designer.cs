@@ -61,6 +61,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The argument `{0}` has no type. Specify the type with `.Argument(&quot;{0}&quot;, a.Type&lt;MyType&gt;())` to fix this issue..
+        /// </summary>
+        internal static string Argument_TypeIsNull {
+            get {
+                return ResourceManager.GetString("Argument_TypeIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The argument type has to be an input-type..
         /// </summary>
         internal static string ArgumentDescriptor_InputTypeViolation {
@@ -720,6 +729,33 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified type is not an input type..
+        /// </summary>
+        internal static string NonNullType_NotAnInputType {
+            get {
+                return ResourceManager.GetString("NonNullType_NotAnInputType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The inner type of non-null type must be a nullable type..
+        /// </summary>
+        internal static string NonNullType_TypeIsNunNullType {
+            get {
+                return ResourceManager.GetString("NonNullType_TypeIsNunNullType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A non null type cannot parse null value literals..
+        /// </summary>
+        internal static string NonNullType_ValueIsNull {
+            get {
+                return ResourceManager.GetString("NonNullType_ValueIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The field-type must be an output-type..
         /// </summary>
         internal static string ObjectFieldDescriptorBase_FieldType {
@@ -752,6 +788,15 @@ namespace HotChocolate.Properties {
         internal static string ObjectTypeDescriptor_Resolver_SchemaType {
             get {
                 return ResourceManager.GetString("ObjectTypeDescriptor_Resolver_SchemaType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The object type extension can only be merged with an object type..
+        /// </summary>
+        internal static string ObjectTypeExtension_CannotMerge {
+            get {
+                return ResourceManager.GetString("ObjectTypeExtension_CannotMerge", resourceCulture);
             }
         }
         
@@ -1258,6 +1303,60 @@ namespace HotChocolate.Properties {
         internal static string TypeResourceHelper_TypeNameEmptyOrNull {
             get {
                 return ResourceManager.GetString("TypeResourceHelper_TypeNameEmptyOrNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The description becomes immutable once it was assigned..
+        /// </summary>
+        internal static string TypeSystemObject_DescriptionImmutable {
+            get {
+                return ResourceManager.GetString("TypeSystemObject_DescriptionImmutable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name becomes immutable once it was assigned..
+        /// </summary>
+        internal static string TypeSystemObject_NameImmutable {
+            get {
+                return ResourceManager.GetString("TypeSystemObject_NameImmutable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type definition is null which means that the type was initialized incorrectly..
+        /// </summary>
+        internal static string TypeSystemObjectBase_DefinitionIsNull {
+            get {
+                return ResourceManager.GetString("TypeSystemObjectBase_DefinitionIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type name was not completed correctly and is still empty. Type names are not allowed to remain empty after name completion was executed..
+        /// </summary>
+        internal static string TypeSystemObjectBase_NameIsNull {
+            get {
+                return ResourceManager.GetString("TypeSystemObjectBase_NameIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A Union type must define one or more unique member types..
+        /// </summary>
+        internal static string UnionType_MustHaveTypes {
+            get {
+                return ResourceManager.GetString("UnionType_MustHaveTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to resolve the specified type reference..
+        /// </summary>
+        internal static string UnionType_UnableToResolveType {
+            get {
+                return ResourceManager.GetString("UnionType_UnableToResolveType", resourceCulture);
             }
         }
         

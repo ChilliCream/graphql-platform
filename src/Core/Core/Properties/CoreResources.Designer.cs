@@ -97,6 +97,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The {0} if-argument value has to be a &apos;Boolean&apos;..
+        /// </summary>
+        internal static string DirectiveCollectionExtensions_IfNotBoolean {
+            get {
+                return ResourceManager.GetString("DirectiveCollectionExtensions_IfNotBoolean", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {0}-directive is missing the if-argument..
+        /// </summary>
+        internal static string DirectiveCollectionExtensions_NotValid {
+            get {
+                return ResourceManager.GetString("DirectiveCollectionExtensions_NotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unexpected Execution Error.
         /// </summary>
         internal static string ErrorHandler_ErrorIsNull {
@@ -120,6 +138,15 @@ namespace HotChocolate.Properties {
         internal static string ExecuteOperationMiddleware_InComplete {
             get {
                 return ResourceManager.GetString("ExecuteOperationMiddleware_InComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation not supported..
+        /// </summary>
+        internal static string ExecutionStrategyResolver_NotSupported {
+            get {
+                return ResourceManager.GetString("ExecutionStrategyResolver_NotSupported", resourceCulture);
             }
         }
         
@@ -160,11 +187,57 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The operation that shall be executed has a complexity of {0}.
+        ///The maximum allowed query complexity is {1}..
+        /// </summary>
+        internal static string MaxComplexityMiddleware_NotAllowed {
+            get {
+                return ResourceManager.GetString("MaxComplexityMiddleware_NotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The max complexity middleware expects the query document to be parsed and the operation to be resolved..
+        /// </summary>
+        internal static string MaxComplexityMiddleware_Prerequisite {
+            get {
+                return ResourceManager.GetString("MaxComplexityMiddleware_Prerequisite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The parse query middleware expects a valid query request..
         /// </summary>
         internal static string ParseQueryMiddleware_InComplete {
             get {
                 return ResourceManager.GetString("ParseQueryMiddleware_InComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument name mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string QueryError_ArgumentIsNull {
+            get {
+                return ResourceManager.GetString("QueryError_ArgumentIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The error message mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string QueryError_MessageIsNull {
+            get {
+                return ResourceManager.GetString("QueryError_MessageIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The variable name mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string QueryError_VariableIsNull {
+            get {
+                return ResourceManager.GetString("QueryError_VariableIsNull", resourceCulture);
             }
         }
         
@@ -183,6 +256,15 @@ namespace HotChocolate.Properties {
         internal static string QueryExecutorExtensions_QueryIsNullOrEmpty {
             get {
                 return ResourceManager.GetString("QueryExecutorExtensions_QueryIsNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Execution timeout has been exceeded..
+        /// </summary>
+        internal static string RequestTimeoutMiddleware_Timeout {
+            get {
+                return ResourceManager.GetString("RequestTimeoutMiddleware_Timeout", resourceCulture);
             }
         }
         

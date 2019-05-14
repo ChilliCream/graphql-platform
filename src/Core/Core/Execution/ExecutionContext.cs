@@ -115,8 +115,8 @@ namespace HotChocolate.Execution
                     () => _fieldCollector.CollectFields(
                         objectType, selectionSet, path));
 
-            // TODO: should we rent?
             var visibleFields = new List<FieldSelection>();
+
             for (int i = 0; i < fields.Count; i++)
             {
                 if (fields[i].IsVisible(Variables))
@@ -125,6 +125,7 @@ namespace HotChocolate.Execution
                 }
             }
             return visibleFields;
+
         }
 
         public IExecutionContext Clone()

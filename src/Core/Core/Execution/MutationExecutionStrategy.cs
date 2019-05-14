@@ -94,7 +94,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private async Task ExecuteResolverSeriallyAsync(
+        private static async Task ExecuteResolverSeriallyAsync(
             ResolverContext resolverContext,
             Action<ResolverContext> enqueueNext,
             BatchOperationHandler batchOperationHandler,
