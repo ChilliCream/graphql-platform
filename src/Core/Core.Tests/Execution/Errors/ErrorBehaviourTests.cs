@@ -339,7 +339,8 @@ namespace HotChocolate.Execution
         public class QueryType
             : ObjectType<Query>
         {
-            protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+            protected override void Configure(
+                IObjectTypeDescriptor<Query> descriptor)
             {
                 descriptor.Field(t => t.Error3()).Type<StringType>();
                 descriptor.Field(t => t.Error6()).Type<StringType>();
@@ -411,8 +412,8 @@ namespace HotChocolate.Execution
             public string Error11 => throw new Exception("query error 11");
 
             public object Error12 => ErrorBuilder.New()
-                    .SetMessage("query error 12")
-                    .Build();
+                .SetMessage("query error 12")
+                .Build();
 
             public Foo Error13 => new Foo();
 

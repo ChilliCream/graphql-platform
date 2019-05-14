@@ -33,10 +33,14 @@ namespace HotChocolate.Execution
             {
                 if (IsContextIncomplete(context))
                 {
-                    context.Result = QueryResult.CreateError(new QueryError(
-                        "The max complexity middleware expects the " +
-                        "query document to be parsed and the operation " +
-                        "to be resolved."));
+                    // TODO : resources
+                    context.Result = QueryResult.CreateError(
+                        ErrorBuilder.New()
+                            .SetMessage(
+                                "The max complexity middleware expects the " +
+                                "query document to be parsed and the operation " +
+                                "to be resolved.")
+                            .Build());
                     return Task.CompletedTask;
                 }
                 else
@@ -57,18 +61,17 @@ namespace HotChocolate.Execution
                     }
                     else
                     {
-                        Location[] locations =
-                            context.Operation.Definition.Location == null
-                            ? null
-                            : QueryError.ConvertLocation(
-                                context.Operation.Definition.Location);
+                        // TODO : resources
+                        IError error = ErrorBuilder.New()
+                            .SetMessage(
+                                "The operation that shall be executed has a " +
+                                $"complexity of {complexity}. \n" +
+                                "The maximum allowed query complexity is " +
+                                $"{_options.MaxOperationComplexity}.")
+                            .AddLocation(context.Operation.Definition)
+                            .Build();
 
-                        context.Result = QueryResult.CreateError(new QueryError(
-                            "The operation that shall be executed has a " +
-                            $"complexity of {complexity}. \n" +
-                            "The maximum allowed query complexity is " +
-                            $"{_options.MaxOperationComplexity}.",
-                            locations));
+                        context.Result = QueryResult.CreateError(error);
                         return Task.CompletedTask;
                     }
                 }
