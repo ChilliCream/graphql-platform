@@ -12,26 +12,32 @@ namespace HotChocolate.Integration.ArgumentValidation
             this IArgumentDescriptor argumentDescriptor,
             Func<T, bool> func)
         {
-            Action<IDirectiveContext, FieldNode, string, object> validator = (d, n, a, o) =>
-            {
-                bool isValid = false;
-                if (o is T t)
+            Action<IDirectiveContext, FieldNode, string, object> validator =
+                (d, n, a, o) =>
                 {
-                    isValid = func(t);
-                }
+                    bool isValid = false;
+                    if (o is T t)
+                    {
+                        isValid = func(t);
+                    }
 
-                if (!isValid)
-                {
-                    throw new QueryException(QueryError.CreateArgumentError(
-                        "Argument is not valid.",
-                        d.Path,
-                        n,
-                        a));
-                }
-            };
+                    if (!isValid)
+                    {
+                        throw new QueryException(
+                            ErrorBuilder.New()
+                                .SetMessage("Argument is not valid.")
+                                .SetPath(d.Path)
+                                .AddLocation(n)
+                                .SetExtension("argument", a)
+                                .Build());
+                    }
+                };
 
             return argumentDescriptor.Directive(
-                new ArgumentValidationDirective { Validator = validator });
+                new ArgumentValidationDirective
+                {
+                    Validator = validator
+                });
         }
     }
 }

@@ -24,7 +24,8 @@ namespace HotChocolate.Server
             services.AddGraphQL(sp => SchemaBuilder.New()
                 // enable for authorization support
                 // .AddDirectiveType<AuthorizeDirectiveType>()
-                .AddQueryType<Query>());
+                .AddQueryType<Query>()
+                .Create());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

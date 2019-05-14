@@ -158,7 +158,8 @@ namespace HotChocolate.Execution
             try
             {
                 await batchOperationHandler.CompleteAsync(
-                    taskMemory, cancellationToken);
+                    taskMemory, cancellationToken)
+                    .ConfigureAwait(false);
             }
             finally
             {

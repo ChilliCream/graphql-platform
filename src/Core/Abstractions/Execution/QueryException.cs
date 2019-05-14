@@ -9,13 +9,12 @@ namespace HotChocolate.Execution
         : Exception
     {
         public QueryException(string message)
-            : base(message)
+            : this(ErrorBuilder.New().SetMessage(message).Build())
         {
-            var errors = new List<IError> { new QueryError(message) };
-            Errors = errors.AsReadOnly();
         }
 
         public QueryException(IError error)
+            : base(error.Message)
         {
             if (error == null)
             {
@@ -23,16 +22,13 @@ namespace HotChocolate.Execution
             }
             else
             {
-                var errors = new List<IError> { error };
-                Errors = errors.AsReadOnly();
+                Errors = new[] { error };
             }
         }
 
         public QueryException(params IError[] errors)
         {
-            Errors = new List<IError>(
-                errors ?? Array.Empty<IError>())
-                    .AsReadOnly();
+            Errors = errors ?? Array.Empty<IError>();
         }
 
         public QueryException(IEnumerable<IError> errors)

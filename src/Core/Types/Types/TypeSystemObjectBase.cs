@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
@@ -23,13 +24,9 @@ namespace HotChocolate.Types
             {
                 if (IsNamed)
                 {
-                    // TODO : exception type
-                    // TODO : resources
                     throw new InvalidOperationException(
-                        "The name cannot be changed after the " +
-                        "name was completed.");
+                        TypeResources.TypeSystemObject_NameImmutable);
                 }
-
                 _name = value.EnsureNotEmpty(nameof(value));
             }
         }
@@ -44,10 +41,8 @@ namespace HotChocolate.Types
             {
                 if (IsCompleted)
                 {
-                    // TODO : exception type
-                    // TODO : resources
                     throw new InvalidOperationException(
-                        "The type is completed and cannot changed.");
+                        TypeResources.TypeSystemObject_DescriptionImmutable);
                 }
                 _description = value;
             }

@@ -38,8 +38,9 @@ namespace HotChocolate.Execution
 
                 if (observers != null)
                 {
-                    QueryExecutionDiagnostics diagnosticEvents = _applicationServices
-                        .GetService<QueryExecutionDiagnostics>();
+                    QueryExecutionDiagnostics diagnosticEvents =
+                        _applicationServices
+                            .GetService<QueryExecutionDiagnostics>();
                     diagnosticEvents.Subscribe(observers);
                 }
             }

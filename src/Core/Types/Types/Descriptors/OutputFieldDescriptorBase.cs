@@ -1,7 +1,10 @@
+using System.Collections.Generic;
 using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using System.Reflection;
+using System.Globalization;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -13,6 +16,9 @@ namespace HotChocolate.Types.Descriptors
             : base(context)
         {
         }
+
+        protected IReadOnlyDictionary<NameString, ParameterInfo> Parameters
+        { get; set; }
 
         protected void SyntaxNode(
             FieldDefinitionNode syntaxNode)
@@ -81,11 +87,18 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(argument));
             }
 
-            var descriptor = new ArgumentDescriptor(
-                Context,
-                name.EnsureNotEmpty(nameof(name)));
+            name.EnsureNotEmpty(nameof(name));
+
+            ArgumentDescriptor descriptor =
+                Parameters != null
+                && Parameters.TryGetValue(name, out ParameterInfo p)
+                    ? ArgumentDescriptor.New(Context, p)
+                    : ArgumentDescriptor.New(Context, name);
+
             argument(descriptor);
-            Definition.Arguments.Add(descriptor.CreateDefinition());
+
+            ArgumentDefinition definition = descriptor.CreateDefinition();
+            Definition.Arguments.Add(definition);
         }
 
         protected void DeprecationReason(string reason)

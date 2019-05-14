@@ -38,7 +38,6 @@ namespace HotChocolate.Utilities
         {
             if (!TryConvert(from, to, source, out object converted))
             {
-                // TODO : Resources and exception
                 throw new NotSupportedException();
             }
             return converted;

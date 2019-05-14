@@ -5,7 +5,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal class FieldInfo
+    internal sealed class FieldInfo
     {
         public NameString ResponseName { get; set; }
 
