@@ -1,10 +1,14 @@
-{
+﻿{
   "Data": {},
   "Extensions": {},
   "Errors": [
     {
+      "Message": "Only queries that contain one operation can be executed without specifying the opartion name.",
+      "Code": null,
+      "Path": null,
+      "Locations": [],
       "Exception": null,
-      "message": "Only queries that contain one operation can be executed without specifying the opartion name."
+      "Extensions": {}
     }
   ]
 }
