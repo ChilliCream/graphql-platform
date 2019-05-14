@@ -97,7 +97,7 @@ namespace HotChocolate.Execution
             OrderedDictionary serializedResult,
             object resolverResult)
         {
-            IReadOnlyCollection<IFieldSelection> fields =
+            IReadOnlyCollection<FieldSelection> fields =
                 ResolverContext.CollectFields(
                     objectType, _selectionSet);
 
