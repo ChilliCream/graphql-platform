@@ -1,4 +1,7 @@
+using System.Globalization;
+using System.Xml.Xsl.Runtime;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,22 +12,36 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.XPath;
-using SysPath = System.IO.Path;
+using IOPath = System.IO.Path;
 
 namespace HotChocolate.Utilities
 {
-    /// <summary>Provides extension methods for reading XML comments from reflected members.</summary>
-    /// <remarks>This class currently works only on the desktop .NET framework.</remarks>
+    /// <summary>
+    /// Provides extension methods for reading XML comments
+    /// from reflected members.
+    /// </summary>
+    /// <remarks>
+    /// This class currently works only on the desktop .NET framework.
+    /// </remarks>
     internal static class XmlDocumentationExtensions
     {
-        private static readonly AsyncLock Lock = new AsyncLock();
-        private static readonly Dictionary<string, XDocument> Cache =
-            new Dictionary<string, XDocument>(StringComparer.OrdinalIgnoreCase);
+        private const string _bin = "bin";
+        private const string _inheritdoc = "inheritdoc";
 
-        /// <summary>Returns the contents of the "summary" XML documentation tag for the specified member.</summary>
+
+        private static readonly ConcurrentDictionary<string, XDocument> _cache =
+            new ConcurrentDictionary<string, XDocument>(
+                StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// Returns the contents of the "summary" XML documentation
+        /// tag for the specified member.
+        /// </summary>
         /// <param name="type">The type.</param>
-        /// <returns>The contents of the "summary" tag for the member.</returns>
-        internal static Task<string> GetXmlSummaryAsync(this Type type)
+        /// <returns>
+        /// The contents of the "summary" tag for the member.
+        /// </returns>
+        internal static string GetXmlSummary(this Type type)
         {
             return GetXmlDocumentationTagAsync(type.GetTypeInfo(), "summary");
         }
@@ -40,18 +57,17 @@ namespace HotChocolate.Utilities
         /// <summary>Returns the contents of the "returns" or "param" XML documentation tag for the specified parameter.</summary>
         /// <param name="parameter">The reflected parameter or return info.</param>
         /// <returns>The contents of the "returns" or "param" tag.</returns>
-        internal static async Task<string> GetXmlDocumentationAsync(this ParameterInfo parameter)
+        internal static string GetXmlDocumentation(this ParameterInfo parameter)
         {
             var assemblyName = parameter.Member.Module.Assembly.GetName();
-            using (Lock.Lock())
+            if (IgnoreAssembly(assemblyName))
             {
-                if (IgnoreAssembly(assemblyName))
-                    return string.Empty;
-
-                var documentationPath = GetXmlDocumentationPath(parameter.Member.Module.Assembly);
-                var element = await GetXmlDocumentationWithoutLockAsync(parameter, documentationPath).ConfigureAwait(false);
-                return RemoveLineBreakWhiteSpaces(GetXmlDocumentationText(element));
+                return string.Empty;
             }
+
+            var documentationPath = GetXmlDocumentationPath(parameter.Member.Module.Assembly);
+            var element = GetXmlDocumentation(parameter, documentationPath);
+            return RemoveLineBreakWhiteSpaces(GetXmlDocumentationText(element));
         }
 
         /// <summary>Clears the cache.</summary>
@@ -60,7 +76,7 @@ namespace HotChocolate.Utilities
         {
             using (Lock.Lock())
             {
-                Cache.Clear();
+                _cache.Clear();
                 return Task.CompletedTask;
             }
         }
@@ -147,7 +163,7 @@ namespace HotChocolate.Utilities
                 }
 
                 var documentationPath = GetXmlDocumentationPath(member.Module.Assembly);
-                var element = await GetXmlDocumentationWithoutLockAsync(member, documentationPath).ConfigureAwait(false);
+                var element = await GetXmlDocumentation(member, documentationPath).ConfigureAwait(false);
                 return RemoveLineBreakWhiteSpaces(GetXmlDocumentationText(element?.Element(tagName)));
             }
         }
@@ -155,38 +171,35 @@ namespace HotChocolate.Utilities
         /// <summary>Returns the contents of an XML documentation tag for the specified member.</summary>
         /// <param name="member">The reflected member.</param>
         /// <returns>The contents of the "summary" tag for the member.</returns>
-        private static async Task<XElement> GetXmlDocumentationAsync(this MemberInfo member)
+        private static XElement GetXmlDocumentationAsync(this MemberInfo member)
         {
-            using (Lock.Lock())
-            {
-                return await GetXmlDocumentationWithoutLockAsync(member).ConfigureAwait(false);
-            }
+            return GetXmlDocumentation(member);
         }
 
         /// <summary>Returns the contents of the "summary" XML documentation tag for the specified member.</summary>
         /// <param name="member">The reflected member.</param>
         /// <param name="pathToXmlFile">The path to the XML documentation file.</param>
         /// <returns>The contents of the "summary" tag for the member.</returns>
-        private static async Task<XElement> GetXmlDocumentationAsync(this MemberInfo member, string pathToXmlFile)
+        private static async Task<XElement> GetXmlDocumentation(this MemberInfo member, string pathToXmlFile)
         {
-            using (Lock.Lock())
-            {
-                return await GetXmlDocumentationWithoutLockAsync(member, pathToXmlFile).ConfigureAwait(false);
-            }
+
+            return await GetXmlDocumentation(member, pathToXmlFile).ConfigureAwait(false);
         }
 
-        private static async Task<XElement> GetXmlDocumentationWithoutLockAsync(this ParameterInfo parameter, string pathToXmlFile)
+        private static XElement GetXmlDocumentation(
+            this ParameterInfo parameter,
+            string pathToXmlFile)
         {
             try
             {
                 var assemblyName = parameter.Member.Module.Assembly.GetName();
-                var document = await TryGetXmlDocumentAsync(assemblyName, pathToXmlFile).ConfigureAwait(false);
+                var document = TryGetXmlDocument(assemblyName, pathToXmlFile);
                 if (document == null)
                 {
                     return null;
                 }
 
-                return await GetXmlDocumentationAsync(parameter, document).ConfigureAwait(false);
+                return GetXmlDocumentationAsync(parameter, document);
             }
             catch
             {
@@ -194,7 +207,7 @@ namespace HotChocolate.Utilities
             }
         }
 
-        private static async Task<XElement> GetXmlDocumentationWithoutLockAsync(this MemberInfo member)
+        private static XElement GetXmlDocumentation(this MemberInfo member)
         {
             var assemblyName = member.Module.Assembly.GetName();
             if (IgnoreAssembly(assemblyName))
@@ -203,22 +216,24 @@ namespace HotChocolate.Utilities
             }
 
             var documentationPath = GetXmlDocumentationPath(member.Module.Assembly);
-            return await GetXmlDocumentationWithoutLockAsync(member, documentationPath).ConfigureAwait(false);
+            return GetXmlDocumentation(member, documentationPath);
         }
 
-        private static async Task<XElement> GetXmlDocumentationWithoutLockAsync(this MemberInfo member, string pathToXmlFile)
+        private static XElement GetXmlDocumentation(
+            this MemberInfo member,
+            string pathToXmlFile)
         {
             try
             {
                 var assemblyName = member.Module.Assembly.GetName();
-                var document = await TryGetXmlDocumentAsync(assemblyName, pathToXmlFile).ConfigureAwait(false);
+                var document = TryGetXmlDocument(assemblyName, pathToXmlFile);
                 if (document == null)
                 {
                     return null;
                 }
 
-                var element = GetXmlDocumentation(member, document);
-                await ReplaceInheritdocElementsAsync(member, element).ConfigureAwait(false);
+                var element = GetMemberDocumentation(member, document);
+                ReplaceInheritdocElements(member, element);
                 return element;
             }
             catch
@@ -227,25 +242,31 @@ namespace HotChocolate.Utilities
             }
         }
 
-        private static async Task<XDocument> TryGetXmlDocumentAsync(AssemblyName assemblyName, string pathToXmlFile)
+        private static XDocument TryGetXmlDocument(
+            AssemblyName assemblyName,
+            string pathToXmlFile)
         {
-            if (!Cache.ContainsKey(assemblyName.FullName))
+            if (!_cache.TryGetValue(assemblyName.FullName, out XDocument doc))
             {
                 if (!File.Exists(pathToXmlFile))
                 {
-                    Cache[assemblyName.FullName] = null;
-                    return null;
+                    _cache[assemblyName.FullName] = null;
                 }
-
-                Cache[assemblyName.FullName] = await Task.Factory.StartNew(() => XDocument.Load(pathToXmlFile, LoadOptions.PreserveWhitespace)).ConfigureAwait(false);
+                else
+                {
+                    doc = XDocument.Load(
+                        pathToXmlFile,
+                        LoadOptions.PreserveWhitespace);
+                    _cache[assemblyName.FullName] = doc;
+                }
             }
 
-            return Cache[assemblyName.FullName];
+            return doc;
         }
 
         private static bool IgnoreAssembly(AssemblyName assemblyName)
         {
-            if (Cache.ContainsKey(assemblyName.FullName) && Cache[assemblyName.FullName] == null)
+            if (_cache.ContainsKey(assemblyName.FullName) && _cache[assemblyName.FullName] == null)
             {
                 return true;
             }
@@ -253,17 +274,21 @@ namespace HotChocolate.Utilities
             return false;
         }
 
-        private static XElement GetXmlDocumentation(this MemberInfo member, XDocument xml)
+        private static XElement GetMemberDocumentation(
+            this MemberInfo member,
+            XDocument xml)
         {
-            var name = GetMemberElementName(member);
-            return xml.XPathSelectElements($"/doc/members/member[@name='{name}']")
+            MemberName name = GetMemberElementName(member);
+            return xml.XPathSelectElements(name.Path)
                 .FirstOrDefault();
         }
 
-        private static async Task<XElement> GetXmlDocumentationAsync(this ParameterInfo parameter, XDocument xml)
+        private static XElement GetParameterDocumentation(
+            this ParameterInfo parameter,
+            XDocument xml)
         {
-            var name = GetMemberElementName(parameter.Member);
-            var result = xml.XPathSelectElements($"/doc/members/member[@name='{name}']");
+            MemberName name = GetMemberElementName(parameter.Member);
+            var result = xml.XPathSelectElements(name.Path);
 
             var element = result.FirstOrDefault();
             if (element == null)
@@ -271,65 +296,75 @@ namespace HotChocolate.Utilities
                 return null;
             }
 
-            await ReplaceInheritdocElementsAsync(parameter.Member, element).ConfigureAwait(false);
+            ReplaceInheritdocElements(parameter.Member, element);
 
             if (parameter.IsRetval || string.IsNullOrEmpty(parameter.Name))
             {
-                result = xml.XPathSelectElements($"/doc/members/member[@name='{name}']/returns");
+                result = xml.XPathSelectElements(name.ReturnsPath);
             }
             else
             {
                 result = xml.XPathSelectElements(
-                    $"/doc/members/member[@name='{name}']/param[@name='{parameter.Name}']"
-                );
+                    name.GetParameterPath(parameter.Name));
             }
 
             return result.FirstOrDefault();
         }
 
-        private static async Task ReplaceInheritdocElementsAsync(this MemberInfo member, XElement element)
+        private static void ReplaceInheritdocElements(
+            this MemberInfo member,
+            XElement element)
         {
             if (element == null)
             {
                 return;
             }
 
-            var children = element.Nodes().ToList();
+            List<XNode> children = element.Nodes().ToList();
             foreach (var child in children.OfType<XElement>())
             {
-                if (child.Name.LocalName.ToLowerInvariant() == "inheritdoc")
+                if (string.Equals(child.Name.LocalName, _inheritdoc,
+                    StringComparison.OrdinalIgnoreCase))
                 {
-                    var baseType = member.DeclaringType.GetTypeInfo().BaseType;
-                    var baseMember = baseType?.GetTypeInfo().DeclaredMembers.SingleOrDefault(m => m.Name == member.Name);
+                    Type baseType = member.DeclaringType.GetTypeInfo().BaseType;
+                    MemberInfo baseMember =
+                        baseType?.GetTypeInfo().DeclaredMembers
+                            .SingleOrDefault(m => m.Name == member.Name);
                     if (baseMember != null)
                     {
-                        var baseDoc = await baseMember.GetXmlDocumentationWithoutLockAsync().ConfigureAwait(false);
+                        var baseDoc = baseMember.GetXmlDocumentation();
                         if (baseDoc != null)
                         {
-                            var nodes = baseDoc.Nodes().OfType<object>().ToArray();
+                            var nodes = baseDoc.Nodes()
+                                .OfType<object>().ToArray();
                             child.ReplaceWith(nodes);
                         }
                         else
                         {
-                            await ProcessInheritdocInterfaceElementsAsync(member, child).ConfigureAwait(false);
+                            ProcessInheritdocInterfaceElements(member, child);
                         }
                     }
                     else
                     {
-                        await ProcessInheritdocInterfaceElementsAsync(member, child).ConfigureAwait(false);
+                        ProcessInheritdocInterfaceElements(member, child);
                     }
                 }
             }
         }
 
-        private static async Task ProcessInheritdocInterfaceElementsAsync(this MemberInfo member, XElement child)
+        private static void ProcessInheritdocInterfaceElements(
+            this MemberInfo member,
+            XElement child)
         {
-            foreach (var baseInterface in member.DeclaringType.GetTypeInfo().ImplementedInterfaces)
+            foreach (Type baseInterface in member.DeclaringType
+                .GetTypeInfo().ImplementedInterfaces)
             {
-                var baseMember = baseInterface?.GetTypeInfo().DeclaredMembers.SingleOrDefault(m => m.Name == member.Name);
+                MemberInfo baseMember = baseInterface?.GetTypeInfo()
+                    .DeclaredMembers.SingleOrDefault(m =>
+                        m.Name.EqualsOrdinal(member.Name));
                 if (baseMember != null)
                 {
-                    var baseDoc = await baseMember.GetXmlDocumentationWithoutLockAsync().ConfigureAwait(false);
+                    XElement baseDoc = baseMember.GetXmlDocumentation();
                     if (baseDoc != null)
                     {
                         var nodes = baseDoc.Nodes().OfType<object>().ToArray();
@@ -339,6 +374,7 @@ namespace HotChocolate.Utilities
             }
         }
 
+        // TODO : MST we have a much more efficient functionallity in our parser ... we should user ours instead
         private static string RemoveLineBreakWhiteSpaces(string documentation)
         {
             if (string.IsNullOrEmpty(documentation))
@@ -355,7 +391,7 @@ namespace HotChocolate.Utilities
         }
 
         /// <exception cref="ArgumentException">Unknown member type.</exception>
-        private static string GetMemberElementName(MemberInfo member)
+        private static MemberName GetMemberElementName(MemberInfo member)
         {
             char prefixCode;
 
@@ -420,13 +456,13 @@ namespace HotChocolate.Utilities
                     return null;
                 }
 
-                var assemblyName = assembly.GetName();
+                AssemblyName assemblyName = assembly.GetName();
                 if (string.IsNullOrEmpty(assemblyName.Name))
                 {
                     return null;
                 }
 
-                if (Cache.ContainsKey(assemblyName.FullName))
+                if (_cache.ContainsKey(assemblyName.FullName))
                 {
                     return null;
                 }
@@ -436,8 +472,9 @@ namespace HotChocolate.Utilities
                 string path;
                 if (!string.IsNullOrEmpty(assembly.Location))
                 {
-                    var assemblyDirectory = SysPath.GetDirectoryName(assembly.Location);
-                    path = SysPath.Combine(assemblyDirectory, expectedDocFile);
+                    string assemblyDirectory =
+                        IOPath.GetDirectoryName(assembly.Location);
+                    path = IOPath.Combine(assemblyDirectory, expectedDocFile);
                     if (File.Exists(path))
                     {
                         return path;
@@ -447,12 +484,10 @@ namespace HotChocolate.Utilities
                 var codeBase = assembly.CodeBase;
                 if (!string.IsNullOrEmpty(codeBase))
                 {
-                    path = SysPath.Combine(
-                            SysPath.GetDirectoryName(
-                                codeBase.Replace("file:///", string.Empty)
-                            ),
-                            expectedDocFile
-                        )
+                    path = IOPath.Combine(
+                        IOPath.GetDirectoryName(
+                            codeBase.Replace("file:///", string.Empty)),
+                        expectedDocFile)
                         .Replace("file:\\", string.Empty);
 
                     if (File.Exists(path))
@@ -461,26 +496,33 @@ namespace HotChocolate.Utilities
                     }
                 }
 
-                var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
                 if (!string.IsNullOrEmpty(baseDirectory))
                 {
-                    path = SysPath.Combine(baseDirectory, expectedDocFile);
+                    path = IOPath.Combine(baseDirectory, expectedDocFile);
                     if (File.Exists(path))
                     {
                         return path;
                     }
 
-                    return SysPath.Combine(baseDirectory, "bin", $"{expectedDocFile}");
+                    return IOPath.Combine(
+                        baseDirectory,
+                        _bin,
+                        expectedDocFile);
                 }
 
-                var currentDirectory = Directory.GetCurrentDirectory();
-                path = SysPath.Combine(currentDirectory, expectedDocFile);
+                string currentDirectory = Directory.GetCurrentDirectory();
+                path = IOPath.Combine(currentDirectory, expectedDocFile);
                 if (File.Exists(path))
                 {
                     return path;
                 }
 
-                path = SysPath.Combine(currentDirectory, "bin", $"{expectedDocFile}");
+                path = IOPath.Combine(
+                    currentDirectory,
+                    _bin,
+                    expectedDocFile);
+
                 if (File.Exists(path))
                 {
                     return path;
@@ -494,20 +536,41 @@ namespace HotChocolate.Utilities
             }
         }
 
-        private class AsyncLock : IDisposable
+        private ref struct MemberName
         {
-            private SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
+            private const string _getMemberDocPath =
+                "/doc/members/member[@name='{0}']";
+            private const string _returnsPath = "{0}/returns";
+            private const string _paramsPath = "{0}/param[@name='{1}']";
 
-            public AsyncLock Lock()
+            public MemberName(string name)
             {
-                _semaphoreSlim.Wait();
-                return this;
+                Value = name;
+                Path = string.Format(
+                    CultureInfo.InvariantCulture,
+                    _getMemberDocPath,
+                    name);
+                ReturnsPath = string.Format(
+                    CultureInfo.InvariantCulture,
+                    _returnsPath,
+                    Path);
             }
 
-            public void Dispose()
+            public string Value { get; }
+
+            public string Path { get; }
+
+            public string ReturnsPath { get; }
+
+            public string GetParameterPath(string name)
             {
-                _semaphoreSlim.Release();
+                return string.Format(
+                    CultureInfo.InvariantCulture,
+                    _paramsPath,
+                    Path,
+                    name);
             }
+
         }
     }
 }

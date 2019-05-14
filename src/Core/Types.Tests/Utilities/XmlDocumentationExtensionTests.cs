@@ -13,7 +13,7 @@ namespace HotChocolate.Utilities
         {
             await XmlDocumentationExtensions.ClearCacheAsync();
 
-            var summary = await typeof(Point).GetXmlSummaryAsync();
+            var summary = await typeof(Point).GetXmlSummary();
 
             Assert.Empty(summary);
         }
@@ -121,7 +121,7 @@ namespace HotChocolate.Utilities
             await XmlDocumentationExtensions.ClearCacheAsync();
 
             var summary = await typeof(BaseBaseClass)
-                .GetXmlSummaryAsync();
+                .GetXmlSummary();
 
             Assert.Equal("I am the most base class.", summary);
         }
@@ -135,7 +135,7 @@ namespace HotChocolate.Utilities
                 .GetMethod(nameof(ClassWithInheritdoc.Bar))
                 .GetParameters()
                 .Single(p => p.Name == "baz")
-                .GetXmlDocumentationAsync();
+                .GetXmlDocumentation();
 
             Assert.Equal("Parameter details.", parameterXml);
         }
@@ -210,7 +210,7 @@ namespace HotChocolate.Utilities
             await XmlDocumentationExtensions.ClearCacheAsync();
 
             var summary = await typeof(IBaseBaseInterface)
-                .GetXmlSummaryAsync();
+                .GetXmlSummary();
 
             Assert.Equal("I am an interface.", summary);
         }
@@ -224,7 +224,7 @@ namespace HotChocolate.Utilities
                 .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))
                 .GetParameters()
                 .Single(p => p.Name == "baz")
-                .GetXmlDocumentationAsync();
+                .GetXmlDocumentation();
 
             Assert.Equal("Parameter summary.", summary);
         }
@@ -286,7 +286,7 @@ namespace HotChocolate.Utilities
                 .GetMethod(nameof(ClassWithInterfaceAndCustomSummaries.Bar))
                 .GetParameters()
                 .Single(p => p.Name == "baz")
-                .GetXmlDocumentationAsync();
+                .GetXmlDocumentation();
 
             Assert.Equal("I am my own parameter.", summary);
         }
@@ -304,7 +304,7 @@ namespace HotChocolate.Utilities
             await XmlDocumentationExtensions.ClearCacheAsync();
 
             var summary = await typeof(ClassWithSummary)
-                .GetXmlSummaryAsync();
+                .GetXmlSummary();
 
             Assert.Equal("I am a test class.", summary);
         }

@@ -11,7 +11,7 @@ namespace HotChocolate.Types
         /// <returns>The contents of the "returns" or "param" tag.</returns>
         public static string GetXmlSummary(this ParameterInfo parameter)
         {
-            var summary = Task.Run(parameter.GetXmlDocumentationAsync)
+            var summary = Task.Run(parameter.GetXmlDocumentation)
                 .GetAwaiter()
                 .GetResult();
             return string.IsNullOrWhiteSpace(summary) ? null : summary;
