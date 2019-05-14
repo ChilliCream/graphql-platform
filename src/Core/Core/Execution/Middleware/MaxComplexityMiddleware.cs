@@ -1,6 +1,8 @@
-﻿using System;
+using System;
+using System.Globalization;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Properties;
 using HotChocolate.Validation;
 
 namespace HotChocolate.Execution
@@ -33,13 +35,10 @@ namespace HotChocolate.Execution
             {
                 if (IsContextIncomplete(context))
                 {
-                    // TODO : resources
                     context.Result = QueryResult.CreateError(
                         ErrorBuilder.New()
-                            .SetMessage(
-                                "The max complexity middleware expects the " +
-                                "query document to be parsed and the operation " +
-                                "to be resolved.")
+                            .SetMessage(CoreResources
+                                .MaxComplexityMiddleware_Prerequisite)
                             .Build());
                     return Task.CompletedTask;
                 }
@@ -61,13 +60,12 @@ namespace HotChocolate.Execution
                     }
                     else
                     {
-                        // TODO : resources
                         IError error = ErrorBuilder.New()
-                            .SetMessage(
-                                "The operation that shall be executed has a " +
-                                $"complexity of {complexity}. \n" +
-                                "The maximum allowed query complexity is " +
-                                $"{_options.MaxOperationComplexity}.")
+                            .SetMessage(string.Format(
+                                CultureInfo.InvariantCulture,
+                                CoreResources.MaxComplexityMiddleware_NotAllowed,
+                                complexity,
+                                _options.MaxOperationComplexity))
                             .AddLocation(context.Operation.Definition)
                             .Build();
 

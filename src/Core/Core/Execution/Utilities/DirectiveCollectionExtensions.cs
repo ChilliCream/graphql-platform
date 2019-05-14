@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
@@ -34,10 +36,12 @@ namespace HotChocolate.Execution
             ArgumentNode argumentNode = directive.Arguments.SingleOrDefault();
             if (argumentNode == null)
             {
-                // TODO : resources
                 throw new QueryException(
                     ErrorBuilder.New()
-                        .SetMessage($"The {directive.Name.Value} attribute is not valid.")
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            CoreResources.DirectiveCollectionExtensions_NotValid,
+                            directive.Name.Value))
                         .Build());
             }
 
@@ -56,10 +60,13 @@ namespace HotChocolate.Execution
             ArgumentNode argumentNode = directive.Arguments.SingleOrDefault();
             if (argumentNode == null)
             {
-                // TODO : resources
-                throw new QueryException(ErrorBuilder.New()
-                    .SetMessage($"The {directive.Name.Value} attribute is not valid.")
-                    .Build());
+                throw new QueryException(
+                    ErrorBuilder.New()
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            CoreResources.DirectiveCollectionExtensions_NotValid,
+                            directive.Name.Value))
+                        .Build());
             }
 
             return argumentNode.Value;
@@ -77,10 +84,13 @@ namespace HotChocolate.Execution
             ArgumentNode argumentNode = directive.Arguments.SingleOrDefault();
             if (argumentNode == null)
             {
-                // TODO : resources
-                throw new QueryException(ErrorBuilder.New()
-                    .SetMessage($"The {directive.Name.Value} attribute is not valid.")
-                    .Build());
+                throw new QueryException(
+                    ErrorBuilder.New()
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            CoreResources.DirectiveCollectionExtensions_NotValid,
+                            directive.Name.Value))
+                        .Build());
             }
 
             if (argumentNode.Value is BooleanValueNode b)
@@ -93,10 +103,13 @@ namespace HotChocolate.Execution
                 return variables.GetVariable<bool>(v.Name.Value);
             }
 
-            // TODO : resources
-            throw new QueryException(ErrorBuilder.New()
-                .SetMessage($"The {directive.Name.Value} if-argument value has to be a 'Boolean'.")
-                .Build());
+            throw new QueryException(
+                    ErrorBuilder.New()
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            CoreResources.DirectiveCollectionExtensions_IfNotBoolean,
+                            directive.Name.Value))
+                        .Build());
         }
 
         public static DirectiveNode GetIncludeDirective(
