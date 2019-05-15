@@ -81,30 +81,30 @@ namespace HotChocolate.Validation
         {
             foreach (ArgumentNode argumentNode in arguments)
             {
-                if (argumentNode.Value is VariableNode v)
-                {
-                    _usedVariables.Add(v.Value);
-                }
-
-                if (argumentNode.Value is ObjectValueNode o)
-                {
-                    VisitObjectValue(o);
-                }
+                VisitValue(argumentNode.Value);
             }
         }
 
-        private void VisitObjectValue(ObjectValueNode objectNode)
+        private void VisitValue(IValueNode value)
         {
-            foreach (ObjectFieldNode field in objectNode.Fields)
+            if (value is VariableNode v)
             {
-                if (field.Value is VariableNode v)
-                {
-                    _usedVariables.Add(v.Value);
-                }
+                _usedVariables.Add(v.Value);
+            }
 
-                if (field.Value is ObjectValueNode o)
+            if (value is ObjectValueNode o)
+            {
+                foreach(ObjectFieldNode field in o.Fields)
                 {
-                    VisitObjectValue(o);
+                    VisitValue(field.Value);
+                }
+            }
+
+            if (value is ListValueNode l)
+            {
+                foreach (IValueNode item in l.Items)
+                {
+                    VisitValue(item);
                 }
             }
         }
