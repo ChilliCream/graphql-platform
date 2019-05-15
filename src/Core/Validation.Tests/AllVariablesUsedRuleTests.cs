@@ -228,6 +228,24 @@ namespace HotChocolate.Validation
             Assert.False(result.HasErrors);
         }
 
+        [Fact]
+        public void VariableUsedInListInput()
+        {
+            // arrange
+            Schema schema = ValidationUtils.CreateSchema();
+            DocumentNode query = Parser.Default.Parse(@"
+                query queryWithListInput($value: Bool)
+                {
+                    booleanList(booleanListArg: [ $value ])
+                }");
+
+            // act
+            QueryValidationResult result = Rule.Validate(schema, query);
+
+            // assert
+            Assert.False(result.HasErrors);
+        }
+
 
         [Fact]
         public void VariableUsedAndNotDeclared()
