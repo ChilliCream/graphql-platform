@@ -3,12 +3,17 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using HotChocolate.Utilities;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Descriptors
 {
     public class DefaultTypeInspector
         : ITypeInspector
     {
+        private readonly TypeInspector _typeInspector =
+            new TypeInspector();
+
         public virtual IEnumerable<MemberInfo> GetMembers(Type type)
         {
             if (type == null)
@@ -100,9 +105,42 @@ namespace HotChocolate.Types.Descriptors
             }
             else
             {
-                // TODO : resources
-                throw new ArgumentException("TODO", nameof(member));
+                throw new ArgumentException(
+                    TypeResources.DefaultTypeInspector_MemberInvalid,
+                    nameof(member));
             }
+        }
+
+        public ITypeReference GetArgumentType(ParameterInfo parameter)
+        {
+            if (parameter == null)
+            {
+                throw new ArgumentNullException(nameof(parameter));
+            }
+
+            Type argumentType = parameter.ParameterType;
+
+            if (parameter.IsDefined(typeof(GraphQLTypeAttribute)))
+            {
+                GraphQLTypeAttribute attribute =
+                    parameter.GetCustomAttribute<GraphQLTypeAttribute>();
+                argumentType = attribute.Type;
+            }
+
+            if (parameter.IsDefined(typeof(GraphQLNonNullTypeAttribute)))
+            {
+                GraphQLNonNullTypeAttribute attribute =
+                    parameter.GetCustomAttribute<GraphQLNonNullTypeAttribute>();
+
+                return new ClrTypeReference(
+                    argumentType,
+                    TypeContext.Input,
+                    attribute.IsNullable,
+                    attribute.IsElementNullable)
+                    .Compile();
+            }
+
+            return new ClrTypeReference(argumentType, TypeContext.Input);
         }
 
         public virtual IEnumerable<object> GetEnumValues(Type enumType)
@@ -123,5 +161,28 @@ namespace HotChocolate.Types.Descriptors
         {
             return member.IsDefined(typeof(GraphQLIgnoreAttribute));
         }
+
+        public Type ExtractType(Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (type.IsGenericType
+                && type.GetGenericTypeDefinition() == typeof(NativeType<>))
+            {
+                return type;
+            }
+
+            if (_typeInspector.TryCreate(type, out Utilities.TypeInfo typeInfo))
+            {
+                return typeInfo.ClrType;
+            }
+            return type;
+        }
+
+        public bool IsSchemaType(Type type) =>
+            BaseTypes.IsSchemaType(type);
     }
 }

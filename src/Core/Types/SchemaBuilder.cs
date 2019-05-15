@@ -10,6 +10,7 @@ using HotChocolate.Utilities;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Bindings;
 using HotChocolate.Types.Factories;
+using HotChocolate.Properties;
 
 namespace HotChocolate
 {
@@ -49,10 +50,9 @@ namespace HotChocolate
             }
             else
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The given schema has to inherit from " +
-                    "TypeSystemObjectBase in order to be initializable.");
+                    TypeResources.SchemaBuilder_SchemaTypeInvalid,
+                    nameof(type));
             }
             return this;
         }
@@ -70,10 +70,9 @@ namespace HotChocolate
             }
             else
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The given schema has to inherit from " +
-                    "TypeSystemObjectBase in order to be initializable.");
+                    TypeResources.SchemaBuilder_ISchemaNotTso,
+                    nameof(schema));
             }
             return this;
         }
@@ -207,27 +206,24 @@ namespace HotChocolate
 
             if (!type.IsClass)
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "Root type must be a class",
-                     nameof(type));
+                    TypeResources.SchemaBuilder_RootType_MustBeClass,
+                    nameof(type));
             }
 
             if (BaseTypes.IsNonGenericBaseType(type))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "Non-generic schema types are not allowed.",
-                     nameof(type));
+                    TypeResources.SchemaBuilder_RootType_NonGenericType,
+                    nameof(type));
             }
 
             if (BaseTypes.IsSchemaType(type)
                 && !typeof(ObjectType).IsAssignableFrom(type))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "must be object type",
-                     nameof(type));
+                    TypeResources.SchemaBuilder_RootType_MustBeObjectType,
+                    nameof(type));
             }
 
             var reference = new ClrTypeReference(type, TypeContext.Output);
@@ -271,17 +267,15 @@ namespace HotChocolate
 
             if (!binding.IsValid())
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "binding is not valid",
+                    TypeResources.SchemaBuilder_Binding_Invalid,
                     nameof(binding));
             }
 
             if (!_bindingCompiler.CanHandle(binding))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "cannot handle binding",
+                    TypeResources.SchemaBuilder_Binding_CannotBeHandled,
                     nameof(binding));
             }
 

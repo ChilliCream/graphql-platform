@@ -1,9 +1,8 @@
-using System.Collections.Generic;
 using System;
 using HotChocolate.Configuration;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
-using System.Linq;
 
 namespace HotChocolate.Types
 {
@@ -68,8 +67,9 @@ namespace HotChocolate.Types
             }
             else
             {
-                // TODO : resources
-                throw new ArgumentException("CANNOT MERGE");
+                throw new ArgumentException(
+                    TypeResources.InterfaceTypeExtension_CannotMerge,
+                    nameof(type));
             }
         }
     }

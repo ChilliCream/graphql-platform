@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
@@ -163,9 +164,8 @@ namespace HotChocolate.Types.Descriptors
                     SchemaTypeReference.InferTypeContext(schemaType));
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only type system objects are allowed.");
+                TypeResources.ClrTypeReference_OnlyTsosAreAllowed);
         }
     }
 }

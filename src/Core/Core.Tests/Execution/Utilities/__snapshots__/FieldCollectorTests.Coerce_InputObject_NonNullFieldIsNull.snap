@@ -1,0 +1,19 @@
+﻿[
+  {
+    "Message": "The input value of type `Int!` must not be null.",
+    "Code": null,
+    "Path": [
+      "foo"
+    ],
+    "Locations": [
+      {
+        "line": 1,
+        "column": 3
+      }
+    ],
+    "Exception": null,
+    "Extensions": {
+      "argument": "a"
+    }
+  }
+]

@@ -26,7 +26,7 @@ namespace HotChocolate.Execution
             // act
             result.Data["a"] = "a";
             result.Extensions["b"] = "b";
-            result.Errors.Add(new QueryError("c"));
+            result.Errors.Add(ErrorBuilder.New().SetMessage("c").Build());
 
             // assert
             Assert.Collection(result.Data,

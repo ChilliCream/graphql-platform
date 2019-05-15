@@ -10,8 +10,9 @@ namespace HotChocolate.Execution
         {
             return next =>
             {
-                MiddlewareFactory<TMiddleware, QueryDelegate> factory = MiddlewareActivator
-                    .CompileFactory<TMiddleware, QueryDelegate>();
+                MiddlewareFactory<TMiddleware, QueryDelegate> factory =
+                    MiddlewareActivator
+                        .CompileFactory<TMiddleware, QueryDelegate>();
 
                 return CreateDelegate(
                     (s, n) => factory(s, n),
@@ -34,8 +35,9 @@ namespace HotChocolate.Execution
             object sync = new object();
             TMiddleware middleware = null;
 
-            ClassQueryDelegate<TMiddleware, IQueryContext> compiled = MiddlewareActivator
-                .CompileMiddleware<TMiddleware, IQueryContext>();
+            ClassQueryDelegate<TMiddleware, IQueryContext> compiled =
+                MiddlewareActivator
+                    .CompileMiddleware<TMiddleware, IQueryContext>();
 
             return context =>
             {

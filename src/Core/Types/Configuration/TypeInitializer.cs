@@ -8,6 +8,8 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Configuration.Validation;
 using System.Reflection;
+using System.Globalization;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Configuration
 {
@@ -213,9 +215,11 @@ namespace HotChocolate.Configuration
         {
             if (extension.Kind != type.Kind)
             {
-                // TODO : resources
                 throw new SchemaException(SchemaErrorBuilder.New()
-                    .SetMessage("Cannot merge type!")
+                    .SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        TypeResources.TypeInitializer_Merge_KindDoesNotMatch,
+                        type.Name))
                     .SetTypeSystemObject((ITypeSystemObject)type)
                     .Build());
             }
@@ -383,11 +387,13 @@ namespace HotChocolate.Configuration
                     {
                         if (_named.ContainsKey(registeredType.Type.Name))
                         {
-                            // TODO : resources
                             _errors.Add(SchemaErrorBuilder.New()
-                                    .SetMessage("Duplicate name!")
-                                    .SetTypeSystemObject(registeredType.Type)
-                                    .Build());
+                                .SetMessage(string.Format(
+                                    CultureInfo.InvariantCulture,
+                                    TypeResources.TypeInitializer_CompleteName_Duplicate,
+                                    registeredType.Type.Name))
+                                .SetTypeSystemObject(registeredType.Type)
+                                .Build());
                             return false;
                         }
                         _named[registeredType.Type.Name] =
@@ -465,14 +471,13 @@ namespace HotChocolate.Configuration
                         ? type.Type.Name.Value
                         : type.Reference.ToString();
 
-                    // TODO : resources
                     _errors.Add(SchemaErrorBuilder.New()
-                        .SetMessage(
-                            "Unable to resolve `{0}` dependencies {1}.",
+                        .SetMessage(string.Format(
+                            TypeResources.TypeInitializer_CannotResolveDependency,
                             name,
                             string.Join(", ", type.Dependencies
                                 .Where(t => t.Kind == kind)
-                                .Select(t => t.TypeReference)))
+                                .Select(t => t.TypeReference))))
                         .SetTypeSystemObject(type.Type)
                         .Build());
                 }

@@ -168,4 +168,50 @@
   <data name="SubscriptionExecutionStrategy_NoEventRegistry" xml:space="preserve">
     <value>Register a event registry as service in order to use subsciptions.</value>
   </data>
+  <data name="ExecuteOperationMiddleware_InComplete" xml:space="preserve">
+    <value>The execute operation middleware expects the query document to be parsed and the operation to be resolved.</value>
+  </data>
+  <data name="ParseQueryMiddleware_InComplete" xml:space="preserve">
+    <value>The parse query middleware expects a valid query request.</value>
+  </data>
+  <data name="Subscriptions_SingleRootField" xml:space="preserve">
+    <value>Subscriptions must have one and only one root field.</value>
+  </data>
+  <data name="ErrorHandler_ErrorIsNull" xml:space="preserve">
+    <value>Unexpected Execution Error</value>
+  </data>
+  <data name="ErrorHandler_UnexpectedError" xml:space="preserve">
+    <value>Unexpected Execution Error</value>
+  </data>
+  <data name="FieldCollector_FieldNotFound" xml:space="preserve">
+    <value>Could not resolve the specified field.</value>
+  </data>
+  <data name="DirectiveCollectionExtensions_IfNotBoolean" xml:space="preserve">
+    <value>The {0} if-argument value has to be a 'Boolean'.</value>
+  </data>
+  <data name="DirectiveCollectionExtensions_NotValid" xml:space="preserve">
+    <value>The {0}-directive is missing the if-argument.</value>
+  </data>
+  <data name="ExecutionStrategyResolver_NotSupported" xml:space="preserve">
+    <value>Operation not supported.</value>
+  </data>
+  <data name="MaxComplexityMiddleware_NotAllowed" xml:space="preserve">
+    <value>The operation that shall be executed has a complexity of {0}.
+The maximum allowed query complexity is {1}.</value>
+  </data>
+  <data name="MaxComplexityMiddleware_Prerequisite" xml:space="preserve">
+    <value>The max complexity middleware expects the query document to be parsed and the operation to be resolved.</value>
+  </data>
+  <data name="QueryError_ArgumentIsNull" xml:space="preserve">
+    <value>The argument name mustn't be null or empty.</value>
+  </data>
+  <data name="QueryError_MessageIsNull" xml:space="preserve">
+    <value>The error message mustn't be null or empty.</value>
+  </data>
+  <data name="QueryError_VariableIsNull" xml:space="preserve">
+    <value>The variable name mustn't be null or empty.</value>
+  </data>
+  <data name="RequestTimeoutMiddleware_Timeout" xml:space="preserve">
+    <value>Execution timeout has been exceeded.</value>
+  </data>
 </root>

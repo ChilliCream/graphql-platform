@@ -4,23 +4,30 @@ using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using System;
+using System.Collections.Immutable;
 
 namespace HotChocolate.Execution
 {
     public sealed class FieldSelection
         : IFieldSelection
     {
+        private static IReadOnlyDictionary<NameString, ArgumentValue> _empty =
+            ImmutableDictionary<NameString, ArgumentValue>.Empty;
         private readonly IReadOnlyDictionary<NameString, ArgumentValue> _args;
-        private readonly IReadOnlyDictionary<NameString, VariableValue> _varArgs;
+        private readonly IReadOnlyDictionary<NameString, VariableValue> _vars;
         private readonly IReadOnlyList<FieldVisibility> _visibility;
         private readonly Path _path;
+        private readonly bool _hasArgumentErrors;
 
         internal FieldSelection(FieldInfo fieldInfo)
         {
-            _args = fieldInfo.Arguments;
-            _varArgs = fieldInfo.VarArguments;
+            _args = fieldInfo.Arguments ?? _empty;
+            _vars = fieldInfo.VarArguments;
             _visibility = fieldInfo.Visibilities;
             _path = fieldInfo.Path;
+            _hasArgumentErrors =
+                fieldInfo.Arguments != null
+                && fieldInfo.Arguments.Any(t => t.Value.Error != null);
 
             ResponseName = fieldInfo.ResponseName;
             Field = fieldInfo.Field;
@@ -49,16 +56,19 @@ namespace HotChocolate.Execution
         public IReadOnlyDictionary<NameString, ArgumentValue> CoerceArguments(
             IVariableCollection variables)
         {
-            if (_varArgs == null)
+            if (_hasArgumentErrors)
+            {
+                throw new QueryException(_args.Values.Select(t => t.Error));
+            }
+
+            if (_vars == null)
             {
                 return _args;
             }
 
-            var args = _args == null
-                ? new Dictionary<NameString, ArgumentValue>()
-                : _args.ToDictionary(t => t.Key, t => t.Value);
+            var args = _args.ToDictionary(t => t.Key, t => t.Value);
 
-            foreach (KeyValuePair<NameString, VariableValue> var in _varArgs)
+            foreach (KeyValuePair<NameString, VariableValue> var in _vars)
             {
                 if (!variables.TryGetVariable(
                     var.Value.VariableName,
@@ -67,18 +77,25 @@ namespace HotChocolate.Execution
                     value = var.Value.DefaultValue;
                 }
 
-                InputTypeNonNullCheck.CheckForNullValueViolation(
+                IError error = InputTypeNonNullCheck.CheckForNullValueViolation(
                     var.Key,
                     var.Value.Type,
                     value,
                     message => ErrorBuilder.New()
                         .SetMessage(message)
-                        .SetPath(_path)
+                        .SetPath(_path.AppendOrCreate(ResponseName))
                         .AddLocation(Selection)
                         .SetExtension("argument", var.Key)
                         .Build());
 
-                args[var.Key] = new ArgumentValue(var.Value.Type, value);
+                if (error is null)
+                {
+                    args[var.Key] = new ArgumentValue(var.Value.Type, value);
+                }
+                else
+                {
+                    throw new QueryException(error);
+                }
             }
 
             return args;

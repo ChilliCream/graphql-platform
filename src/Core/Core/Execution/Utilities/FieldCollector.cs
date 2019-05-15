@@ -1,6 +1,5 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -11,6 +10,8 @@ namespace HotChocolate.Execution
 {
     internal sealed class FieldCollector
     {
+        private const string _argumentProperty = "argument";
+
         private readonly FragmentCollection _fragments;
         private readonly Func<ObjectField, FieldNode, FieldDelegate> _factory;
 
@@ -114,30 +115,16 @@ namespace HotChocolate.Execution
             IDictionary<string, FieldInfo> fields)
         {
             NameString fieldName = fieldSelection.Name.Value;
-            if (type.Fields.TryGetField(fieldName, out ObjectField field))
-            {
-                NameString responseName = fieldSelection.Alias == null
+            NameString responseName = fieldSelection.Alias == null
                     ? fieldSelection.Name.Value
                     : fieldSelection.Alias.Value;
 
+            if (type.Fields.TryGetField(fieldName, out ObjectField field))
+            {
                 if (fields.TryGetValue(responseName, out FieldInfo fieldInfo))
                 {
-                    if (fieldInfo.Nodes == null)
-                    {
-                        fieldInfo.Nodes = new List<FieldNode>();
-                    }
-
-                    fieldInfo.Nodes.Add(fieldSelection);
-
-                    if (fieldVisibility != null)
-                    {
-                        if (fieldInfo.Visibilities == null)
-                        {
-                            fieldInfo.Visibilities =
-                                new List<FieldVisibility>();
-                        }
-                        fieldInfo.Visibilities.Add(fieldVisibility);
-                    }
+                    AddSelection(fieldInfo, fieldSelection);
+                    TryAddFieldVisibility(fieldInfo, fieldVisibility);
                 }
                 else
                 {
@@ -149,12 +136,7 @@ namespace HotChocolate.Execution
                         Path = path
                     };
 
-                    if (fieldVisibility != null)
-                    {
-                        fieldInfo.Visibilities = new List<FieldVisibility>();
-                        fieldInfo.Visibilities.Add(fieldVisibility);
-                    }
-
+                    TryAddFieldVisibility(fieldInfo, fieldVisibility);
                     CoerceArgumentValues(fieldInfo);
 
                     fields.Add(responseName, fieldInfo);
@@ -162,9 +144,8 @@ namespace HotChocolate.Execution
             }
             else
             {
-                // TODO : resources
                 throw new QueryException(ErrorBuilder.New()
-                    .SetMessage("Could not resolve the specified field.")
+                    .SetMessage(CoreResources.FieldCollector_FieldNotFound)
                     .SetPath(path)
                     .AddLocation(fieldSelection)
                     .Build());
@@ -211,7 +192,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private FieldVisibility ExtractVisibility(
+        private static FieldVisibility ExtractVisibility(
             Language.IHasDirectives selection,
             FieldVisibility fieldVisibility)
         {
@@ -242,7 +223,6 @@ namespace HotChocolate.Execution
             {
                 return ut.Types.ContainsKey(current.Name);
             }
-
             return false;
         }
 
@@ -263,13 +243,16 @@ namespace HotChocolate.Execution
                 }
                 catch (ScalarSerializationException ex)
                 {
-                    throw new QueryException(
-                        ErrorBuilder.New()
-                            .SetMessage(ex.Message)
-                            .SetPath(fieldInfo.Path)
-                            .AddLocation(fieldInfo.Selection)
-                            .SetExtension("argument", argument.Name)
-                            .Build());
+                    fieldInfo.Arguments[argument.Name] =
+                        new ArgumentValue(
+                            argument.Type,
+                            ErrorBuilder.New()
+                                .SetMessage(ex.Message)
+                                .AddLocation(fieldInfo.Selection)
+                                .SetExtension(_argumentProperty, argument.Name)
+                                .SetPath(fieldInfo.Path.AppendOrCreate(
+                                    fieldInfo.ResponseName))
+                                .Build());
                 }
             }
         }
@@ -330,16 +313,51 @@ namespace HotChocolate.Execution
                 argument.Type,
                 value);
 
-            InputTypeNonNullCheck.CheckForNullValueViolation(
+            IError error = InputTypeNonNullCheck.CheckForNullValueViolation(
                 argument.Name,
                 argument.Type,
                 value,
                 message => ErrorBuilder.New()
                     .SetMessage(message)
-                    .SetPath(fieldInfo.Path)
                     .AddLocation(fieldInfo.Selection)
-                    .SetExtension("argument", argument.Name)
+                    .SetExtension(_argumentProperty, argument.Name)
+                    .SetPath(fieldInfo.Path.AppendOrCreate(
+                        fieldInfo.ResponseName))
                     .Build());
+
+            if (error != null)
+            {
+                fieldInfo.Arguments[argument.Name] =
+                    new ArgumentValue(
+                        argument.Type,
+                        error);
+            }
+        }
+
+        private static void AddSelection(
+            FieldInfo fieldInfo,
+            FieldNode fieldSelection)
+        {
+            if (fieldInfo.Nodes == null)
+            {
+                fieldInfo.Nodes = new List<FieldNode>();
+            }
+            fieldInfo.Nodes.Add(fieldSelection);
+        }
+
+        private static void TryAddFieldVisibility(
+            FieldInfo fieldInfo,
+            FieldVisibility fieldVisibility)
+        {
+            if (fieldVisibility != null)
+            {
+                if (fieldInfo.Visibilities == null)
+                {
+                    fieldInfo.Visibilities =
+                        new List<FieldVisibility>();
+                }
+                fieldInfo.Visibilities.Add(fieldVisibility);
+            }
         }
 
         private static object ParseLiteral(

@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
@@ -19,9 +20,8 @@ namespace HotChocolate.Types
 
             if (!(type is INullableType))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The inner type of non-null type must be a nullable type",
+                    TypeResources.NonNullType_TypeIsNunNullType,
                     nameof(type));
             }
 
@@ -50,9 +50,8 @@ namespace HotChocolate.Types
                 return _inputType.IsInstanceOfType(literal);
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNullType_NotAnInputType);
         }
 
         public object ParseLiteral(IValueNode literal)
@@ -66,17 +65,16 @@ namespace HotChocolate.Types
             {
                 if (literal is NullValueNode)
                 {
-                    // TODO : resources
                     throw new ArgumentException(
-                        "A non null type cannot parse null value literals.");
+                        TypeResources.NonNullType_ValueIsNull,
+                        nameof(literal));
                 }
 
                 return _inputType.ParseLiteral(literal);
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNullType_NotAnInputType);
         }
 
         public bool IsInstanceOfType(object value)
@@ -91,9 +89,8 @@ namespace HotChocolate.Types
                 return it.IsInstanceOfType(value);
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNullType_NotAnInputType);
         }
 
         public IValueNode ParseValue(object value)
@@ -102,17 +99,16 @@ namespace HotChocolate.Types
             {
                 if (value == null)
                 {
-                    // TODO : resources
                     throw new ArgumentException(
-                        "A non null type cannot parse null values.");
+                        TypeResources.NonNullType_ValueIsNull,
+                        nameof(value));
                 }
 
                 return _inputType.ParseValue(value);
             }
 
-            // TODO : resources
             throw new InvalidOperationException(
-                "The specified type is not an input type.");
+                TypeResources.NonNullType_NotAnInputType);
         }
     }
 }

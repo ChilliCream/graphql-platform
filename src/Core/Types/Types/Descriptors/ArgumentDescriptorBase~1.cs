@@ -1,5 +1,7 @@
 using System;
+using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
@@ -30,6 +32,14 @@ namespace HotChocolate.Types.Descriptors
         public void Type<TInputType>()
             where TInputType : IInputType
         {
+            Type type = Context.Inspector.ExtractType(typeof(TInputType));
+            if (Context.Inspector.IsSchemaType(type)
+                && !typeof(IInputType).IsAssignableFrom(type))
+            {
+                throw new ArgumentException(
+                    TypeResources.ArgumentDescriptor_InputTypeViolation);
+            }
+
             Definition.SetMoreSpecificType(
                 typeof(TInputType),
                 TypeContext.Input);
@@ -42,6 +52,14 @@ namespace HotChocolate.Types.Descriptors
             {
                 throw new ArgumentNullException(nameof(inputType));
             }
+
+            if (!inputType.IsInputType())
+            {
+                throw new ArgumentException(
+                    TypeResources.ArgumentDescriptor_InputTypeViolation,
+                    nameof(inputType));
+            }
+
             Definition.Type = new SchemaTypeReference(inputType);
         }
 
@@ -51,6 +69,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 throw new ArgumentNullException(nameof(typeNode));
             }
+
             Definition.SetMoreSpecificType(typeNode, TypeContext.Input);
         }
 
