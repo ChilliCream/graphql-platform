@@ -7,7 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal class ObjectTypeDescriptor<T>
+    public class ObjectTypeDescriptor<T>
         : ObjectTypeDescriptor
         , IObjectTypeDescriptor<T>
         , IHasClrType
