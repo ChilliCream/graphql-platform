@@ -560,6 +560,19 @@ namespace HotChocolate.AspNetCore.Authorization
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public void AddAuthorizeDirectiveType_SchemaBuilderIsNull_ArgNullExec()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                AuthorizeSchemaBuilderExtensions
+                    .AddAuthorizeDirectiveType(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
         private TestServer CreateTestServer(
             Action<IServiceCollection> configureServices,
             Action<HttpContext> configureUser)

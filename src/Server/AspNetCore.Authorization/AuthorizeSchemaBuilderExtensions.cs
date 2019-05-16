@@ -8,7 +8,7 @@ using HotChocolate.Configuration;
 
 namespace HotChocolate
 {
-    public static class SchemaBuilderExtensions
+    public static class AuthorizeSchemaBuilderExtensions
     {
         public static ISchemaBuilder AddAuthorizeDirectiveType(
             this ISchemaBuilder builder)
