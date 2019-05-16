@@ -50,7 +50,8 @@ namespace HotChocolate.Language
 
             // Experimental support for defining variables within fragments
             // changesthe grammar of FragmentDefinition:
-            // fragment FragmentName VariableDefinitions? on TypeCondition Directives? SelectionSet
+            // fragment FragmentName VariableDefinitions? on
+            //    TypeCondition Directives? SelectionSet
             if (_allowFragmentVars)
             {
                 NameNode name = ParseFragmentName();

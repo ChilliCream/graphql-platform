@@ -21,7 +21,8 @@ namespace HotChocolate.Validation
             DirectiveNode directive,
             ImmutableStack<ISyntaxNode> path)
         {
-            if (_directives.TryGetValue(directive.Name.Value, out DirectiveType d)
+            if (_directives.TryGetValue(directive.Name.Value,
+                out DirectiveType d)
                 && TryLookupLocation(path.Peek(),
                     out Types.DirectiveLocation location)
                 && !d.Locations.Contains(location))
@@ -32,7 +33,7 @@ namespace HotChocolate.Validation
             }
         }
 
-        private bool TryLookupLocation(
+        private static bool TryLookupLocation(
             ISyntaxNode syntaxNode,
             out Types.DirectiveLocation location)
         {

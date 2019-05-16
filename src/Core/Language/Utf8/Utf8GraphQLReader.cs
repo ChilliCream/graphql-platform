@@ -520,7 +520,6 @@ namespace HotChocolate.Language
         private void ReadStringValueToken()
         {
             var start = Position;
-            var value = new StringBuilder();
 
             ref readonly byte code = ref GraphQLData[++Position];
 
