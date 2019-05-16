@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Stitching.Utilities;
 
 namespace HotChocolate.Stitching
 {
@@ -12,7 +13,6 @@ namespace HotChocolate.Stitching
     public interface IRemoteQueryClient
     {
         event RequestBufferedEventHandler BufferedRequest;
-
 
         int BufferSize { get; }
 

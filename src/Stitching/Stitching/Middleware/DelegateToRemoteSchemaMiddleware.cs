@@ -1,3 +1,4 @@
+using System.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -48,13 +49,37 @@ namespace HotChocolate.Stitching
                     context, request, delegateDirective.Schema)
                     .ConfigureAwait(false);
 
-                context.ScopedContextData = context.ScopedContextData.SetItem(
-                    WellKnownProperties.SchemaName, delegateDirective.Schema);
+                UpdateContextData(context, result, delegateDirective);
+
                 context.Result = ExtractData(result.Data, path.Count());
                 ReportErrors(context, result.Errors);
             }
 
             await _next.Invoke(context).ConfigureAwait(false);
+        }
+
+        private void UpdateContextData(
+            IResolverContext context,
+            IReadOnlyQueryResult result,
+            DelegateDirective delegateDirective)
+        {
+            if (result.ContextData.Count > 0)
+            {
+                ImmutableDictionary<string, object>.Builder builder =
+                    ImmutableDictionary.CreateBuilder<string, object>();
+                builder.AddRange(context.ScopedContextData);
+                builder[WellKnownProperties.SchemaName] =
+                    delegateDirective.Schema;
+                builder.AddRange(result.ContextData);
+                context.ScopedContextData = builder.ToImmutableDictionary();
+            }
+            else
+            {
+                context.ScopedContextData =
+                    context.ScopedContextData.SetItem(
+                        WellKnownProperties.SchemaName,
+                        delegateDirective.Schema);
+            }
         }
 
         private static IRemoteQueryRequest CreateQuery(

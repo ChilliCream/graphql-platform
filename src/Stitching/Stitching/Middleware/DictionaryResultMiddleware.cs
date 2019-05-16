@@ -18,6 +18,7 @@ namespace HotChocolate.Stitching
         public Task InvokeAsync(IMiddlewareContext context)
         {
             if (context.Result is null
+                && !context.Field.Directives.Contains(DirectiveNames.Computed)
                 && context.Parent<object>() is IDictionary<string, object> dict)
             {
                 string responseName = context.FieldSelection.Alias == null
