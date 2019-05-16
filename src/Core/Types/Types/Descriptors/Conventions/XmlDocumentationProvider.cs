@@ -12,7 +12,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal class XmlDocumentationProvider
+    public class XmlDocumentationProvider
         : IDocumentationProvider
     {
         private const string _summaryElementName = "summary";
@@ -349,5 +349,15 @@ namespace HotChocolate.Types.Descriptors
             }
 
         }
+    }
+
+    internal class NoopDocumentationProvider
+        : IDocumentationProvider
+    {
+        public string GetSummary(Type type) => null;
+
+        public string GetSummary(MemberInfo member) => null;
+
+        public string GetSummary(ParameterInfo parameter) => null;
     }
 }

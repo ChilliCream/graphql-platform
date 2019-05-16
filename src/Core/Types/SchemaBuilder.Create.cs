@@ -20,7 +20,7 @@ namespace HotChocolate
         {
             IServiceProvider services = _services ?? new EmptyServiceProvider();
             DescriptorContext descriptorContext =
-                DescriptorContext.Create(services);
+                DescriptorContext.Create(_options, services);
 
             IBindingLookup bindingLookup =
                  _bindingCompiler.Compile(descriptorContext);
