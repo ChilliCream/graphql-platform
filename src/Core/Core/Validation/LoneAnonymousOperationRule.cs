@@ -39,12 +39,13 @@ namespace HotChocolate.Validation
             return QueryValidationResult.OK;
         }
 
-        private bool HasAnonymousOperation(OperationDefinitionNode[] operations)
+        private static bool HasAnonymousOperation(
+            OperationDefinitionNode[] operations)
         {
             return operations.Any(t => string.IsNullOrEmpty(t.Name?.Value));
         }
 
-        private OperationDefinitionNode[] GetAllOperations(
+        private static OperationDefinitionNode[] GetAllOperations(
             DocumentNode queryDocument)
         {
             return queryDocument.Definitions

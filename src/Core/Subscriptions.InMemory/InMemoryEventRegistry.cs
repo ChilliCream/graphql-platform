@@ -19,7 +19,8 @@ namespace HotChocolate.Subscriptions
 
             try
             {
-                if (_streams.TryGetValue(message.Event, out List<InMemoryEventStream> subscribers))
+                if (_streams.TryGetValue(message.Event,
+                    out List<InMemoryEventStream> subscribers))
                 {
                     foreach (InMemoryEventStream stream in subscribers)
                     {
@@ -78,7 +79,8 @@ namespace HotChocolate.Subscriptions
 
             try
             {
-                if (_streams.TryGetValue(message.Event, out List<InMemoryEventStream> subscribers))
+                if (_streams.TryGetValue(message.Event,
+                    out List<InMemoryEventStream> subscribers))
                 {
                     subscribers.Remove(stream);
                 }
