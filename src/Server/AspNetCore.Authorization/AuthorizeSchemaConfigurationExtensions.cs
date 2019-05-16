@@ -7,7 +7,7 @@ using HotChocolate.Configuration;
 
 namespace HotChocolate
 {
-    public static class SchemaConfigurationExtensions
+    public static class AuthorizeSchemaConfigurationExtensions
     {
         public static void RegisterAuthorizeDirectiveType(
             this ISchemaConfiguration configuration)
