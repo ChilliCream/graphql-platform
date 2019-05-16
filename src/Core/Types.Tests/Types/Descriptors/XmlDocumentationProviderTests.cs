@@ -19,7 +19,7 @@ namespace HotChocolate.Types.Descriptors
             var summary = documentationProvider.GetSummary(typeof(Point));
 
             // assert
-            Assert.Empty(summary);
+            Assert.Null(summary);
         }
 
         [Fact]

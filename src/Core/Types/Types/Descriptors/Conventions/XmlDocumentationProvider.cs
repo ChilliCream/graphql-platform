@@ -17,6 +17,10 @@ namespace HotChocolate.Types.Descriptors
     {
         private const string _summaryElementName = "summary";
         private const string _inheritdoc = "inheritdoc";
+        private const string _see = "see";
+        private const string _langword = "langword";
+        private const string _cref = "cref";
+        private const string _href = "href";
 
         private readonly IXmlDocumentationFileResolver _fileResolver;
 
@@ -66,13 +70,13 @@ namespace HotChocolate.Types.Descriptors
                     continue;
                 }
 
-                if (currentElement.Name != "see")
+                if (currentElement.Name != _see)
                 {
                     value.Append(currentElement.Value);
                     continue;
                 }
 
-                var attribute = currentElement.Attribute("langword");
+                var attribute = currentElement.Attribute(_langword);
                 if (attribute != null)
                 {
                     value.Append(attribute.Value);
@@ -85,7 +89,7 @@ namespace HotChocolate.Types.Descriptors
                 }
                 else
                 {
-                    attribute = currentElement.Attribute("cref");
+                    attribute = currentElement.Attribute(_cref);
                     if (attribute != null)
                     {
                         value.Append(attribute.Value
@@ -94,7 +98,7 @@ namespace HotChocolate.Types.Descriptors
                     }
                     else
                     {
-                        attribute = currentElement.Attribute("href");
+                        attribute = currentElement.Attribute(_href);
                         if (attribute != null)
                         {
                             value.Append(attribute.Value);
@@ -237,7 +241,7 @@ namespace HotChocolate.Types.Descriptors
         {
             if (string.IsNullOrEmpty(documentation))
             {
-                return string.Empty;
+                return null;
             }
 
             documentation = "\n" + documentation
