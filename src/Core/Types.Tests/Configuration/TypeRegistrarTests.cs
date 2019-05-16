@@ -25,6 +25,7 @@ namespace HotChocolate
 
             var typeRegistrar = new TypeRegistrar(
                 serviceProvider,
+                DescriptorContext.Create(),
                 initialTypes,
                 new Dictionary<string, object>());
 
@@ -59,6 +60,7 @@ namespace HotChocolate
 
             var typeRegistrar = new TypeRegistrar(
                 serviceProvider,
+                DescriptorContext.Create(),
                 initialTypes,
                 new Dictionary<string, object>());
 

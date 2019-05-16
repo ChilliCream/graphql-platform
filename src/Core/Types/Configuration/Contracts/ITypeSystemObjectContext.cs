@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Configuration
 {
@@ -17,6 +18,8 @@ namespace HotChocolate.Configuration
         IServiceProvider Services { get; }
 
         IDictionary<string, object> ContextData { get; }
+
+        IDescriptorContext DescriptorContext { get; }
 
         void ReportError(ISchemaError error);
     }

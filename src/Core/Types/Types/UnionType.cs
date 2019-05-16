@@ -44,10 +44,11 @@ namespace HotChocolate.Types
 
         #region Initialization
 
-        protected override UnionTypeDefinition CreateDefinition(IInitializationContext context)
+        protected override UnionTypeDefinition CreateDefinition(
+            IInitializationContext context)
         {
             var descriptor = UnionTypeDescriptor.New(
-                DescriptorContext.Create(context.Services),
+                context.DescriptorContext,
                 GetType());
             _configure(descriptor);
             return descriptor.CreateDefinition();

@@ -39,6 +39,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Diagnostics.ApolloTrac
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Diagnostics.CustomObserver.Tests", "Core.Diagnostics.CustomObserver.Tests\Core.Diagnostics.CustomObserver.Tests.csproj", "{024C0D0A-4FDB-4E97-B2B8-92585C028C9C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Tests.Documentation", "Types.Tests.Documentation\Types.Tests.Documentation.csproj", "{B4F3E6BA-639C-4402-A51C-0DAE20872819}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -265,6 +267,18 @@ Global
 		{024C0D0A-4FDB-4E97-B2B8-92585C028C9C}.Release|x64.Build.0 = Release|Any CPU
 		{024C0D0A-4FDB-4E97-B2B8-92585C028C9C}.Release|x86.ActiveCfg = Release|Any CPU
 		{024C0D0A-4FDB-4E97-B2B8-92585C028C9C}.Release|x86.Build.0 = Release|Any CPU
+		{B4F3E6BA-639C-4402-A51C-0DAE20872819}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B4F3E6BA-639C-4402-A51C-0DAE20872819}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B4F3E6BA-639C-4402-A51C-0DAE20872819}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B4F3E6BA-639C-4402-A51C-0DAE20872819}.Debug|x64.Build.0 = Debug|Any CPU
+		{B4F3E6BA-639C-4402-A51C-0DAE20872819}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{B4F3E6BA-639C-4402-A51C-0DAE20872819}.Debug|x86.Build.0 = Debug|Any CPU
+		{B4F3E6BA-639C-4402-A51C-0DAE20872819}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B4F3E6BA-639C-4402-A51C-0DAE20872819}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B4F3E6BA-639C-4402-A51C-0DAE20872819}.Release|x64.ActiveCfg = Release|Any CPU
+		{B4F3E6BA-639C-4402-A51C-0DAE20872819}.Release|x64.Build.0 = Release|Any CPU
+		{B4F3E6BA-639C-4402-A51C-0DAE20872819}.Release|x86.ActiveCfg = Release|Any CPU
+		{B4F3E6BA-639C-4402-A51C-0DAE20872819}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
