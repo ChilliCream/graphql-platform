@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -1226,6 +1227,19 @@ namespace HotChocolate.Types
             // assert
             Assert.Throws<SchemaException>(action)
                 .Errors.First().Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void CreateObjectTypeWithXmlDocumentation()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithDocumentation>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
         }
 
         public class GenericFoo<T>
