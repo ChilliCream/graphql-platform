@@ -52,5 +52,12 @@ namespace HotChocolate.Types.Descriptors
 
             return new DescriptorContext(naming, inspector);
         }
+
+        public static DescriptorContext Create()
+        {
+            return new DescriptorContext(
+                new DefaultNamingConventions(),
+                new DefaultTypeInspector());
+        }
     }
 }
