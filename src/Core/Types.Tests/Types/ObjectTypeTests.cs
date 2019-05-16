@@ -1242,6 +1242,20 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void CreateObjectTypeWithXmlDocumentation_IgnoreXmlDocs()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithDocumentation>()
+                .ModifyOptions(options => options.UseXmlDocumentation = false)
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
