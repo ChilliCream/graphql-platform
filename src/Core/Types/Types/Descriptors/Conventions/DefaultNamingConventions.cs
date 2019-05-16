@@ -128,12 +128,10 @@ namespace HotChocolate.Types.Descriptors
 
             string name = type.GetGraphQLName();
 
-            if (kind == TypeKind.InputObject)
+            if (kind == TypeKind.InputObject
+                && !name.EndsWith("Input", StringComparison.Ordinal))
             {
-                if (!name.EndsWith("Input", StringComparison.Ordinal))
-                {
-                    name = name + "Input";
-                }
+                name = name + "Input";
             }
 
             return name;

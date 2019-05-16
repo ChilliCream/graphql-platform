@@ -21,6 +21,11 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(type));
             }
 
+            return GetMembersInternal(type);
+        }
+
+        private IEnumerable<MemberInfo> GetMembersInternal(Type type)
+        {
             foreach (MethodInfo method in type.GetMethods(
                 BindingFlags.Instance | BindingFlags.Public)
                     .Where(m => !IsIgnored(m)
@@ -49,6 +54,11 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(sourceType));
             }
 
+            return GetResolverTypesInternal(sourceType);
+        }
+
+        private IEnumerable<Type> GetResolverTypesInternal(Type sourceType)
+        {
             if (sourceType.IsDefined(typeof(GraphQLResolverAttribute)))
             {
                 return sourceType
@@ -154,6 +164,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 return Enum.GetValues(enumType).Cast<object>();
             }
+
             return Enumerable.Empty<object>();
         }
 
@@ -179,6 +190,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 return typeInfo.ClrType;
             }
+
             return type;
         }
 
