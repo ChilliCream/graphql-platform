@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {},
   "Extensions": {},
   "Errors": [
@@ -30,5 +30,6 @@
       "Exception": null,
       "message": "quux"
     }
-  ]
+  ],
+  "ContextData": {}
 }

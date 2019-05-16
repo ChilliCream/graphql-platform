@@ -1,9 +1,10 @@
-{
+﻿{
   "Data": {
     "customer": {
       "int": 1
     }
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

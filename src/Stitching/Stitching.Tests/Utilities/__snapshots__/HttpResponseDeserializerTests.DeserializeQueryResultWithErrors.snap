@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "foo": [
       {
@@ -46,5 +46,6 @@
       "Exception": null,
       "message": "quux"
     }
-  ]
+  ],
+  "ContextData": {}
 }
