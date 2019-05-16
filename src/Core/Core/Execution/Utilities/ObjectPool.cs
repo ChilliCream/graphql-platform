@@ -8,12 +8,15 @@ namespace HotChocolate.Execution
     {
         private readonly T[] _objects;
 
-        private SpinLock _lock; // do not make this readonly; it's a mutable struct
+        // do not make this readonly; it's a mutable struct
+        private SpinLock _lock;
         private int _index;
 
         internal ObjectPool(int numberOfBuffers)
         {
-            _lock = new SpinLock(Debugger.IsAttached); // only enable thread tracking if debugger is attached; it adds non-trivial overheads to Enter/Exit
+            // only enable thread tracking if debugger is attached;
+            // it adds non-trivial overheads to Enter/Exit
+            _lock = new SpinLock(Debugger.IsAttached);
             _objects = new T[numberOfBuffers];
         }
 
@@ -22,11 +25,14 @@ namespace HotChocolate.Execution
             T[] objects = _objects;
             T obj = null;
 
-            // While holding the lock, grab whatever is at the next available index and
-            // update the index.  We do as little work as possible while holding the spin
-            // lock to minimize contention with other threads.  The try/finally is
-            // necessary to properly handle thread aborts on platforms which have them.
-            bool lockTaken = false, allocateBuffer = false;
+            // While holding the lock, grab whatever is at the next available
+            // index and update the index.  We do as little work as possible
+            // while holding the spin lock to minimize contention with
+            // other threads. The try/finally is necessary to properly handle
+            // thread aborts on platforms which have them.
+            bool lockTaken = false;
+            bool allocateBuffer = false;
+
             try
             {
                 _lock.Enter(ref lockTaken);
@@ -43,8 +49,9 @@ namespace HotChocolate.Execution
                 if (lockTaken) { _lock.Exit(false); }
             }
 
-            // While we were holding the lock, we grabbed whatever was at the next available index, if
-            // there was one.  If we tried and if we got back null, that means we hadn't yet allocated
+            // While we were holding the lock, we grabbed whatever was at
+            // the next available index, if there was one. If we tried and
+            // if we got back null, that means we hadn't yet allocated
             // for that slot, in which case we should do so now.
             if (allocateBuffer)
             {
@@ -56,10 +63,10 @@ namespace HotChocolate.Execution
 
         internal void Return(T rendetObject)
         {
-            // While holding the spin lock, if there's room available in the bucket,
-            // put the buffer into the next available slot.  Otherwise, we just drop it.
-            // The try/finally is necessary to properly handle thread aborts on platforms
-            // which have them.
+            // While holding the spin lock, if there's room available
+            // in the bucket, put the buffer into the next available slot.
+            // Otherwise, we just drop it. The try/finally is necessary to
+            // properly handle thread aborts on platforms which have them.
             bool lockTaken = false;
             try
             {

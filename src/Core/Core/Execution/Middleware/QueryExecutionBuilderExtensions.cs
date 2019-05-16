@@ -494,7 +494,7 @@ namespace HotChocolate.Execution
                 .AddSingleton<IValidateQueryOptionsAccessor>(options);
         }
 
-        public static IQueryExecutionBuilder AddParser<T>(
+        public static IQueryExecutionBuilder AddParser(
             this IQueryExecutionBuilder builder,
             Func<IServiceProvider, IQueryParser> factory)
         {

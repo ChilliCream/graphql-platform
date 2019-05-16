@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers.Expressions.Parameters;
 
 namespace HotChocolate.Resolvers.Expressions
@@ -122,10 +123,8 @@ namespace HotChocolate.Resolvers.Expressions
 
                 if (parameterCompiler == null)
                 {
-                    // TODO : Resources
                     throw new InvalidOperationException(
-                        "There is no default resolver parameter " +
-                        "compiler available.");
+                        TypeResources.ResolverCompiler_UnknownParameterType);
                 }
 
                 yield return parameterCompiler.Compile(

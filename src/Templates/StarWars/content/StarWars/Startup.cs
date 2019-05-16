@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using HotChocolate;
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Authorization;
 using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Subscriptions;
 using Microsoft.AspNetCore.Builder;
@@ -31,22 +32,16 @@ namespace StarWars
             services.AddSingleton<IEventSender>(eventRegistry);
 
             // Add GraphQL Services
-            services.AddGraphQL(sp => Schema.Create(c =>
-            {
-                c.RegisterServiceProvider(sp);
-
-                // Adds the authorize directive and
-                // enables the authorization middleware.
-                c.RegisterAuthorizeDirectiveType();
-
-                c.RegisterQueryType<QueryType>();
-                c.RegisterMutationType<MutationType>();
-                c.RegisterSubscriptionType<SubscriptionType>();
-
-                c.RegisterType<HumanType>();
-                c.RegisterType<DroidType>();
-                c.RegisterType<EpisodeType>();
-            }));
+            services.AddGraphQL(sp => SchemaBuilder.New()
+                .AddServices(sp)
+                .AddQueryType<QueryType>()
+                .AddMutationType<MutationType>()
+                .AddSubscriptionType<SubscriptionType>()
+                .AddType<HumanType>()
+                .AddType<DroidType>()
+                .AddType<EpisodeType>()
+                .AddDirectiveType<AuthorizeDirectiveType>()
+                .Create());
 
             // Add Authorization Policies
             services.AddAuthorization(options =>

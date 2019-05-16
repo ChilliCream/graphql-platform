@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
@@ -229,7 +229,7 @@ namespace HotChocolate.Execution
             {
                 descriptor.Name("upper");
                 descriptor.Location(DirectiveLocation.Field);
-                descriptor.Middleware(next => async context =>
+                descriptor.Use(next => async context =>
                 {
                     await next.Invoke(context);
 

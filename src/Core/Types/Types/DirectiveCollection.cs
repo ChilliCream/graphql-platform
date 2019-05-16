@@ -1,8 +1,10 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
@@ -68,11 +70,11 @@ namespace HotChocolate.Types
                 if (!processed.Add(directiveType.Name)
                     && !directiveType.IsRepeatable)
                 {
-                    // TODO : resources
                     context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(
-                            $"The specified directive `@{directiveType.Name}` " +
-                            "is unique and cannot be added twice.")
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            TypeResources.DirectiveCollection_DirectiveIsUnique,
+                            directiveType.Name))
                         .SetCode(TypeErrorCodes.MissingType)
                         .SetTypeSystemObject(context.Type)
                         .AddSyntaxNode(definition.ParsedDirective)
@@ -85,12 +87,12 @@ namespace HotChocolate.Types
                 }
                 else
                 {
-                    // TODO : resources
                     context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(
-                            $"The specified directive `@{directiveType.Name}` " +
-                            "is not allowed on the current location " +
-                            $"`{_location}`.")
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            TypeResources.DirectiveCollection_LocationNotAllowed,
+                            directiveType.Name,
+                            _location))
                         .SetCode(TypeErrorCodes.MissingType)
                         .SetTypeSystemObject(context.Type)
                         .AddSyntaxNode(definition.ParsedDirective)

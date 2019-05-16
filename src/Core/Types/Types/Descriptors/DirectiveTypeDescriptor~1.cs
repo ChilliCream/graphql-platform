@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -6,6 +6,7 @@ using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -84,9 +85,8 @@ namespace HotChocolate.Types.Descriptors
                 return descriptor;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed in this expression.",
+                TypeResources.DirectiveTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
 

@@ -19,9 +19,13 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(syntaxNode));
             }
 
-            return builder.AddLocation(
-                syntaxNode.Location.Line,
-                syntaxNode.Location.Column);
+            if (syntaxNode.Location != null)
+            {
+                return builder.AddLocation(
+                    syntaxNode.Location.Line,
+                    syntaxNode.Location.Column);
+            }
+            return builder;
         }
     }
 }

@@ -7,7 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal class ObjectTypeDescriptor<T>
+    public class ObjectTypeDescriptor<T>
         : ObjectTypeDescriptor
         , IObjectTypeDescriptor<T>
         , IHasClrType
@@ -72,6 +72,23 @@ namespace HotChocolate.Types.Descriptors
             base.Interface(type);
             return this;
         }
+
+        public new IObjectTypeDescriptor<T> Implements<TInterface>()
+            where TInterface : InterfaceType =>
+            Interface<TInterface>();
+
+        public new IObjectTypeDescriptor<T> Interface(NamedTypeNode type)
+        {
+            base.Interface(type);
+            return this;
+        }
+
+        public new IObjectTypeDescriptor<T> Implements<TInterface>(TInterface type)
+            where TInterface : InterfaceType =>
+            Interface(type);
+
+        public new IObjectTypeDescriptor<T> Implements(NamedTypeNode type) =>
+            Interface(type);
 
         public new IObjectTypeDescriptor<T> Include<TResolver>()
         {

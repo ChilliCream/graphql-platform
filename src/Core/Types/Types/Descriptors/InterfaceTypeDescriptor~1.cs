@@ -8,7 +8,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal class InterfaceTypeDescriptor<T>
+    public class InterfaceTypeDescriptor<T>
         : InterfaceTypeDescriptor
         , IInterfaceTypeDescriptor<T>
         , IHasClrType

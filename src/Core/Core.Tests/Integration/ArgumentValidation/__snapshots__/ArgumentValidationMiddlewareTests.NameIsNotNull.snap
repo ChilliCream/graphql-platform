@@ -1,23 +1,24 @@
-{
+﻿{
   "Data": {
     "sayHello": null
   },
   "Extensions": {},
   "Errors": [
     {
-      "Exception": null,
-      "message": "Argument is not valid.",
-      "path": [
+      "Message": "Argument is not valid.",
+      "Code": null,
+      "Path": [
         "sayHello"
       ],
-      "locations": [
+      "Locations": [
         {
           "line": 1,
           "column": 3
         }
       ],
-      "extensions": {
-        "argumentName": "name"
+      "Exception": null,
+      "Extensions": {
+        "argument": "name"
       }
     }
   ]

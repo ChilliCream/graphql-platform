@@ -19,7 +19,6 @@ namespace HotChocolate.Language
             );
         }
 
-        // TODO : move into separate parser utilities class
         internal static List<T> ParseMany<T>(
             ParserContext context,
             TokenKind openKind,

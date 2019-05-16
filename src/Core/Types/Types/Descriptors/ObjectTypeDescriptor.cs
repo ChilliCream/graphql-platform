@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -6,10 +6,11 @@ using System.Reflection;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal class ObjectTypeDescriptor
+    public class ObjectTypeDescriptor
         : DescriptorBase<ObjectTypeDefinition>
         , IObjectTypeDescriptor
     {
@@ -165,9 +166,8 @@ namespace HotChocolate.Types.Descriptors
         {
             if (typeof(TInterface) == typeof(InterfaceType))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The interface type has to be inherited.");
+                    TypeResources.ObjectTypeDescriptor_InterfaceBaseClass);
             }
 
             Definition.Interfaces.Add(typeof(TInterface).GetOutputType());
@@ -184,7 +184,7 @@ namespace HotChocolate.Types.Descriptors
             }
 
             Definition.Interfaces.Add(new SchemaTypeReference(
-                (ITypeSystemObject)interfaceType));
+                interfaceType));
             return this;
         }
 
@@ -201,13 +201,23 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public IObjectTypeDescriptor Implements<T>()
+            where T : InterfaceType =>
+            Interface<T>();
+
+        public IObjectTypeDescriptor Implements<T>(T type)
+            where T : InterfaceType =>
+            Interface(type);
+
+        public IObjectTypeDescriptor Implements(NamedTypeNode type) =>
+            Interface(type);
+
         public IObjectTypeDescriptor Include<TResolver>()
         {
             if (typeof(IType).IsAssignableFrom(typeof(TResolver)))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "Schema types cannot be used as resolver types.");
+                    TypeResources.ObjectTypeDescriptor_Resolver_SchemaType);
             }
 
             ResolverTypes.Add(typeof(TResolver));
@@ -249,9 +259,8 @@ namespace HotChocolate.Types.Descriptors
                 return fieldDescriptor;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "A field of an entity can only be a property or a method.",
+                TypeResources.ObjectTypeDescriptor_MustBePropertyOrMethod,
                 nameof(member));
         }
 

@@ -61,6 +61,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The argument `{0}` has no type. Specify the type with `.Argument(&quot;{0}&quot;, a.Type&lt;MyType&gt;())` to fix this issue..
+        /// </summary>
+        internal static string Argument_TypeIsNull {
+            get {
+                return ResourceManager.GetString("Argument_TypeIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument type has to be an input-type..
+        /// </summary>
+        internal static string ArgumentDescriptor_InputTypeViolation {
+            get {
+                return ResourceManager.GetString("ArgumentDescriptor_InputTypeViolation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument `{0}` of non-null type `{1}` must not be null..
         /// </summary>
         internal static string ArgumentValueBuilder_NonNull {
@@ -84,6 +102,33 @@ namespace HotChocolate.Properties {
         internal static string ByteType_Description {
             get {
                 return ResourceManager.GetString("ByteType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only type system objects are allowed..
+        /// </summary>
+        internal static string ClrTypeReference_OnlyTsosAreAllowed {
+            get {
+                return ResourceManager.GetString("ClrTypeReference_OnlyTsosAreAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified IComplexTypeFieldBindingBuilder-implementation is not supported..
+        /// </summary>
+        internal static string ComplexTypeBindingBuilder_FieldBuilderNotSupported {
+            get {
+                return ResourceManager.GetString("ComplexTypeBindingBuilder_FieldBuilderNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field binding builder is not completed and cannot be added..
+        /// </summary>
+        internal static string ComplexTypeBindingBuilder_FieldNotComplete {
+            get {
+                return ResourceManager.GetString("ComplexTypeBindingBuilder_FieldNotComplete", resourceCulture);
             }
         }
         
@@ -142,11 +187,265 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified member has to be a method or a property..
+        /// </summary>
+        internal static string DefaultTypeInspector_MemberInvalid {
+            get {
+                return ResourceManager.GetString("DefaultTypeInspector_MemberInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only type system objects are allowed as schema type..
+        /// </summary>
+        internal static string DependencyDescriptorBase_OnlyTsoIsAllowed {
+            get {
+                return ResourceManager.GetString("DependencyDescriptorBase_OnlyTsoIsAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A Directive provides a way to describe alternate runtime execution and type validation behavior in a GraphQL document.
+        ///
+        ///In some cases, you need to provide options to alter GraphQL&apos;s execution behavior in ways field arguments will not suffice, such as conditionally including or skipping a field. Directives provide this by describing additional information to the executor..
+        /// </summary>
+        internal static string Directive_Description {
+            get {
+                return ResourceManager.GetString("Directive_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Use `locations`..
+        /// </summary>
+        internal static string Directive_UseLocation {
+            get {
+                return ResourceManager.GetString("Directive_UseLocation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified directive `@{0}` is unique and cannot be added twice..
+        /// </summary>
+        internal static string DirectiveCollection_DirectiveIsUnique {
+            get {
+                return ResourceManager.GetString("DirectiveCollection_DirectiveIsUnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified directive `@{0}` is not allowed on the current location `{1}`..
+        /// </summary>
+        internal static string DirectiveCollection_LocationNotAllowed {
+            get {
+                return ResourceManager.GetString("DirectiveCollection_LocationNotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to an argument definition.
+        /// </summary>
+        internal static string DirectiveLocation_ArgumentDefinition {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_ArgumentDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A Directive can be adjacent to many parts of the GraphQL language, a __DirectiveLocation describes one such possible adjacencies..
+        /// </summary>
+        internal static string DirectiveLocation_Description {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to an enum definition..
+        /// </summary>
+        internal static string DirectiveLocation_Enum {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Enum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to an enum value definition..
+        /// </summary>
+        internal static string DirectiveLocation_EnumValue {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_EnumValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a field..
+        /// </summary>
+        internal static string DirectiveLocation_Field {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Field", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a field definition..
+        /// </summary>
+        internal static string DirectiveLocation_FieldDefinition {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_FieldDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a fragment definition..
+        /// </summary>
+        internal static string DirectiveLocation_FragmentDefinition {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_FragmentDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a fragment spread..
+        /// </summary>
+        internal static string DirectiveLocation_FragmentSpread {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_FragmentSpread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to an inline fragment..
+        /// </summary>
+        internal static string DirectiveLocation_InlineFragment {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_InlineFragment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to an input object field definition..
+        /// </summary>
+        internal static string DirectiveLocation_InputFieldDefinition {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_InputFieldDefinition", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to an input object type definition..
+        /// </summary>
+        internal static string DirectiveLocation_InputObject {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_InputObject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to an interface definition..
+        /// </summary>
+        internal static string DirectiveLocation_Interface {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Interface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a mutation operation..
+        /// </summary>
+        internal static string DirectiveLocation_Mutation {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Mutation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to an object type definition..
+        /// </summary>
+        internal static string DirectiveLocation_Object {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Object", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a query operation..
+        /// </summary>
+        internal static string DirectiveLocation_Query {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Query", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a scalar definition..
+        /// </summary>
+        internal static string DirectiveLocation_Scalar {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Scalar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a schema definition..
+        /// </summary>
+        internal static string DirectiveLocation_Schema {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Schema", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a subscription operation..
+        /// </summary>
+        internal static string DirectiveLocation_Subscription {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Subscription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Location adjacent to a union definition..
+        /// </summary>
+        internal static string DirectiveLocation_Union {
+            get {
+                return ResourceManager.GetString("DirectiveLocation_Union", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The `{0}` directive does not declare any location on which it is valid..
+        /// </summary>
+        internal static string DirectiveType_NoLocations {
+            get {
+                return ResourceManager.GetString("DirectiveType_NoLocations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace Middleware with `Use`..
+        /// </summary>
+        internal static string DirectiveType_ReplaceWithUse {
+            get {
+                return ResourceManager.GetString("DirectiveType_ReplaceWithUse", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unable to convert the argument value to the specified type..
         /// </summary>
         internal static string DirectiveType_UnableToConvert {
             get {
                 return ResourceManager.GetString("DirectiveType_UnableToConvert", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only property expressions are allowed to describe a directive type argument..
+        /// </summary>
+        internal static string DirectiveTypeDescriptor_OnlyProperties {
+            get {
+                return ResourceManager.GetString("DirectiveTypeDescriptor_OnlyProperties", resourceCulture);
             }
         }
         
@@ -178,6 +477,69 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The enum type extension can only be merged with an enum type..
+        /// </summary>
+        internal static string EnumTypeExtension_CannotMerge {
+            get {
+                return ResourceManager.GetString("EnumTypeExtension_CannotMerge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The enum value `{0}` of the enum type extension is not assignabe with the target enum type..
+        /// </summary>
+        internal static string EnumTypeExtension_ValueTypeInvalid {
+            get {
+                return ResourceManager.GetString("EnumTypeExtension_ValueTypeInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to One possible value for a given Enum. Enum values are unique values, not a placeholder for a string or numeric value. However an Enum value is returned in a JSON response as a string..
+        /// </summary>
+        internal static string EnumValue_Description {
+            get {
+                return ResourceManager.GetString("EnumValue_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The inner value of enum value cannot be null or empty..
+        /// </summary>
+        internal static string EnumValue_ValueIsNull {
+            get {
+                return ResourceManager.GetString("EnumValue_ValueIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Object and Interface types are described by a list of Fields, each of which has a name, potentially a list of arguments, and a return type..
+        /// </summary>
+        internal static string Field_Description {
+            get {
+                return ResourceManager.GetString("Field_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not parse the native value of input field `{0}.{1}`..
+        /// </summary>
+        internal static string FieldInitHelper_InvalidDefaultValue {
+            get {
+                return ResourceManager.GetString("FieldInitHelper_InvalidDefaultValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} `{1}` has no fields declared..
+        /// </summary>
+        internal static string FieldInitHelper_NoFields {
+            get {
+                return ResourceManager.GetString("FieldInitHelper_NoFields", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http://en.wikipedia.org/wiki/IEEE_floating_point)..
         /// </summary>
         internal static string FloatType_Description {
@@ -192,6 +554,24 @@ namespace HotChocolate.Properties {
         internal static string IdType_Description {
             get {
                 return ResourceManager.GetString("IdType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to get the input field value..
+        /// </summary>
+        internal static string InputField_CannotGetValue {
+            get {
+                return ResourceManager.GetString("InputField_CannotGetValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to set the input field value..
+        /// </summary>
+        internal static string InputField_CannotSetValue {
+            get {
+                return ResourceManager.GetString("InputField_CannotSetValue", resourceCulture);
             }
         }
         
@@ -214,11 +594,92 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The input object type extension can only be merged with an input object type..
+        /// </summary>
+        internal static string InputObjectTypeExtension_CannotMerge {
+            get {
+                return ResourceManager.GetString("InputObjectTypeExtension_CannotMerge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The input value of type `{0}` must not be null..
         /// </summary>
         internal static string InputTypeNonNullCheck_ValueIsNull {
             get {
                 return ResourceManager.GetString("InputTypeNonNullCheck_ValueIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A GraphQL-formatted string representing the default value for this input value..
+        /// </summary>
+        internal static string InputValue_DefaultValue {
+            get {
+                return ResourceManager.GetString("InputValue_DefaultValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Arguments provided to Fields or Directives and the input fields of an InputObject are represented as Input Values which describe their type and optionally a default value..
+        /// </summary>
+        internal static string InputValue_Description {
+            get {
+                return ResourceManager.GetString("InputValue_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The arguments of the interface field {0} from interface {1} and {2} do not match and are implemented by object type {3}..
+        /// </summary>
+        internal static string InterfaceImplRule_ArgumentsDontMatch {
+            get {
+                return ResourceManager.GetString("InterfaceImplRule_ArgumentsDontMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Object type {0} does not implement all arguments of field {1} from interface {2}..
+        /// </summary>
+        internal static string InterfaceImplRule_ArgumentsNotImpl {
+            get {
+                return ResourceManager.GetString("InterfaceImplRule_ArgumentsNotImpl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Object type {0} does not implement the field {1} from interface {2}..
+        /// </summary>
+        internal static string InterfaceImplRule_FieldNotImpl {
+            get {
+                return ResourceManager.GetString("InterfaceImplRule_FieldNotImpl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The return type of the interface field {0} from interface {1} and {2} do not match and are implemented by object type {3}..
+        /// </summary>
+        internal static string InterfaceImplRule_FieldTypeInvalid {
+            get {
+                return ResourceManager.GetString("InterfaceImplRule_FieldTypeInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The return type of the interface field {0} does not match the field declared by object type {1}..
+        /// </summary>
+        internal static string InterfaceImplRule_ReturnTypeInvalid {
+            get {
+                return ResourceManager.GetString("InterfaceImplRule_ReturnTypeInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The interface type extension can only be merged with an interface type..
+        /// </summary>
+        internal static string InterfaceTypeExtension_CannotMerge {
+            get {
+                return ResourceManager.GetString("InterfaceTypeExtension_CannotMerge", resourceCulture);
             }
         }
         
@@ -268,11 +729,110 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified type is not an input type..
+        /// </summary>
+        internal static string NonNullType_NotAnInputType {
+            get {
+                return ResourceManager.GetString("NonNullType_NotAnInputType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The inner type of non-null type must be a nullable type..
+        /// </summary>
+        internal static string NonNullType_TypeIsNunNullType {
+            get {
+                return ResourceManager.GetString("NonNullType_TypeIsNunNullType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A non null type cannot parse null value literals..
+        /// </summary>
+        internal static string NonNullType_ValueIsNull {
+            get {
+                return ResourceManager.GetString("NonNullType_ValueIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field-type must be an output-type..
+        /// </summary>
+        internal static string ObjectFieldDescriptorBase_FieldType {
+            get {
+                return ResourceManager.GetString("ObjectFieldDescriptorBase_FieldType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The interface base class cannot be used as interface implementation declaration..
+        /// </summary>
+        internal static string ObjectTypeDescriptor_InterfaceBaseClass {
+            get {
+                return ResourceManager.GetString("ObjectTypeDescriptor_InterfaceBaseClass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A field-expression must be a property-expression or a method-call-expression..
+        /// </summary>
+        internal static string ObjectTypeDescriptor_MustBePropertyOrMethod {
+            get {
+                return ResourceManager.GetString("ObjectTypeDescriptor_MustBePropertyOrMethod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Schema types cannot be used as resolver types..
+        /// </summary>
+        internal static string ObjectTypeDescriptor_Resolver_SchemaType {
+            get {
+                return ResourceManager.GetString("ObjectTypeDescriptor_Resolver_SchemaType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The object type extension can only be merged with an object type..
+        /// </summary>
+        internal static string ObjectTypeExtension_CannotMerge {
+            get {
+                return ResourceManager.GetString("ObjectTypeExtension_CannotMerge", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The member expression must specify a property or method that is public and that belongs to the type {0}.
         /// </summary>
         internal static string Reflection_MemberMust_BeMethodOrProperty {
             get {
                 return ResourceManager.GetString("Reflection_MemberMust_BeMethodOrProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A directive type mustn&apos;t be one of the base classes `DirectiveType` or `DirectiveType&lt;T&gt;` but must be a type inheriting from `DirectiveType` or `DirectiveType&lt;T&gt;`..
+        /// </summary>
+        internal static string ResolverCompiler_UnknownParameterType {
+            get {
+                return ResourceManager.GetString("ResolverCompiler_UnknownParameterType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified IResolverFieldBindingBuilder-implementation is not supported..
+        /// </summary>
+        internal static string ResolverTypeBindingBuilder_FieldBuilderNotSupported {
+            get {
+                return ResourceManager.GetString("ResolverTypeBindingBuilder_FieldBuilderNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The field binding builder is not completed and cannot be added..
+        /// </summary>
+        internal static string ResolverTypeBindingBuilder_FieldNotComplete {
+            get {
+                return ResourceManager.GetString("ResolverTypeBindingBuilder_FieldNotComplete", resourceCulture);
             }
         }
         
@@ -313,6 +873,186 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A GraphQL Schema defines the capabilities of a GraphQL server. It exposes all available types and directives on the server, as well as the entry points for query, mutation, and subscription operations..
+        /// </summary>
+        internal static string Schema_Description {
+            get {
+                return ResourceManager.GetString("Schema_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A list of all directives supported by this server..
+        /// </summary>
+        internal static string Schema_Directives {
+            get {
+                return ResourceManager.GetString("Schema_Directives", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to If this server supports mutation, the type that mutation operations will be rooted at..
+        /// </summary>
+        internal static string Schema_MutationType {
+            get {
+                return ResourceManager.GetString("Schema_MutationType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type that query operations will be rooted at..
+        /// </summary>
+        internal static string Schema_QueryType {
+            get {
+                return ResourceManager.GetString("Schema_QueryType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to If this server support subscription, the type that subscription operations will be rooted at..
+        /// </summary>
+        internal static string Schema_SubscriptionType {
+            get {
+                return ResourceManager.GetString("Schema_SubscriptionType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A list of all types supported by this server..
+        /// </summary>
+        internal static string Schema_Types {
+            get {
+                return ResourceManager.GetString("Schema_Types", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to There is no handler registered that can handle the specified schema binding..
+        /// </summary>
+        internal static string SchemaBuilder_Binding_CannotBeHandled {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_Binding_CannotBeHandled", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The schema binding is not valid..
+        /// </summary>
+        internal static string SchemaBuilder_Binding_Invalid {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_Binding_Invalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The given schema has to inherit from TypeSystemObjectBase in order to be initializable..
+        /// </summary>
+        internal static string SchemaBuilder_ISchemaNotTso {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_ISchemaNotTso", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The schema builder was unable to identify the query type of the schema. Either specify which type is the query type or set the schema builder to non-strict validation mode..
+        /// </summary>
+        internal static string SchemaBuilder_NoQueryType {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_NoQueryType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A root type must be a class..
+        /// </summary>
+        internal static string SchemaBuilder_RootType_MustBeClass {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_RootType_MustBeClass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A root type must be an object type..
+        /// </summary>
+        internal static string SchemaBuilder_RootType_MustBeObjectType {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_RootType_MustBeObjectType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Non-generic schema types are not allowed..
+        /// </summary>
+        internal static string SchemaBuilder_RootType_NonGenericType {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_RootType_NonGenericType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The given schema has to inherit from `Schema` in order to be initializable..
+        /// </summary>
+        internal static string SchemaBuilder_SchemaTypeInvalid {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_SchemaTypeInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A directive type mustn&apos;t be one of the base classes `DirectiveType` or `DirectiveType&lt;T&gt;` but must be a type inheriting from `DirectiveType` or `DirectiveType&lt;T&gt;`..
+        /// </summary>
+        internal static string SchemaBuilderExtensions_DirectiveTypeIsBaseType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_DirectiveTypeIsBaseType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A directive type must inherit from `DirectiveType` or `DirectiveType&lt;T&gt;`..
+        /// </summary>
+        internal static string SchemaBuilderExtensions_MustBeDirectiveType {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_MustBeDirectiveType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The schema string cannot be null or empty..
+        /// </summary>
+        internal static string SchemaBuilderExtensions_SchemaIsEmpty {
+            get {
+                return ResourceManager.GetString("SchemaBuilderExtensions_SchemaIsEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The error message mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string SchemaErrorBuilder_MessageIsNull {
+            get {
+                return ResourceManager.GetString("SchemaErrorBuilder_MessageIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Access the current type schema of this server..
+        /// </summary>
+        internal static string SchemaField_Description {
+            get {
+                return ResourceManager.GetString("SchemaField_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown operation type..
+        /// </summary>
+        internal static string SchemaSyntaxVisitor_UnknownOperationType {
+            get {
+                return ResourceManager.GetString("SchemaSyntaxVisitor_UnknownOperationType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1..
         /// </summary>
         internal static string ShortType_Description {
@@ -336,6 +1076,44 @@ namespace HotChocolate.Properties {
         internal static string StringType_Description {
             get {
                 return ResourceManager.GetString("StringType_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The fundamental unit of any GraphQL Schema is the type. There are many kinds of types in GraphQL as represented by the `__TypeKind` enum.
+        ///
+        ///Depending on the kind of a type, certain fields describe information about that type. Scalar types provide no information beyond a name and description, while Enum types provide their values. Object and Interface types provide the fields they describe. Abstract types, Union and Interface, provide the Object types possible at runtime. List and NonNull types compose othe [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string Type_Description {
+            get {
+                return ResourceManager.GetString("Type_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The configuration delegate mustn&apos;t be null..
+        /// </summary>
+        internal static string TypeConfiguration_ConfigureIsNull {
+            get {
+                return ResourceManager.GetString("TypeConfiguration_ConfigureIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Definition mustn&apos;t be null..
+        /// </summary>
+        internal static string TypeConfiguration_DefinitionIsNull {
+            get {
+                return ResourceManager.GetString("TypeConfiguration_DefinitionIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified type is not a schema type..
+        /// </summary>
+        internal static string TypeDependency_MustBeSchemaType {
+            get {
+                return ResourceManager.GetString("TypeDependency_MustBeSchemaType", resourceCulture);
             }
         }
         
@@ -376,11 +1154,218 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Request the type information of a single type..
+        /// </summary>
+        internal static string TypeField_Description {
+            get {
+                return ResourceManager.GetString("TypeField_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to resolve dependencies {1} for type `{0}`..
+        /// </summary>
+        internal static string TypeInitializer_CannotResolveDependency {
+            get {
+                return ResourceManager.GetString("TypeInitializer_CannotResolveDependency", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name `{0}` was already registered by another type..
+        /// </summary>
+        internal static string TypeInitializer_CompleteName_Duplicate {
+            get {
+                return ResourceManager.GetString("TypeInitializer_CompleteName_Duplicate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The kind of the extension does not match the kind of the type `{0}`..
+        /// </summary>
+        internal static string TypeInitializer_Merge_KindDoesNotMatch {
+            get {
+                return ResourceManager.GetString("TypeInitializer_Merge_KindDoesNotMatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An enum describing what kind of type a given `__Type` is..
+        /// </summary>
+        internal static string TypeKind_Description {
+            get {
+                return ResourceManager.GetString("TypeKind_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates this type is an enum. `enumValues` is a valid field..
+        /// </summary>
+        internal static string TypeKind_Enum {
+            get {
+                return ResourceManager.GetString("TypeKind_Enum", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates this type is an input object. `inputFields` is a valid field..
+        /// </summary>
+        internal static string TypeKind_InputObject {
+            get {
+                return ResourceManager.GetString("TypeKind_InputObject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates this type is an interface. `fields` and `possibleTypes` are valid fields..
+        /// </summary>
+        internal static string TypeKind_Interface {
+            get {
+                return ResourceManager.GetString("TypeKind_Interface", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates this type is a list. `ofType` is a valid field..
+        /// </summary>
+        internal static string TypeKind_List {
+            get {
+                return ResourceManager.GetString("TypeKind_List", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates this type is a non-null. `ofType` is a valid field..
+        /// </summary>
+        internal static string TypeKind_NonNull {
+            get {
+                return ResourceManager.GetString("TypeKind_NonNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates this type is an object. `fields` and `interfaces` are valid fields..
+        /// </summary>
+        internal static string TypeKind_Object {
+            get {
+                return ResourceManager.GetString("TypeKind_Object", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates this type is a scalar..
+        /// </summary>
+        internal static string TypeKind_Scalar {
+            get {
+                return ResourceManager.GetString("TypeKind_Scalar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Indicates this type is a union. `possibleTypes` is a valid field..
+        /// </summary>
+        internal static string TypeKind_Union {
+            get {
+                return ResourceManager.GetString("TypeKind_Union", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name of the current Object type at runtime..
+        /// </summary>
+        internal static string TypeNameField_Description {
+            get {
+                return ResourceManager.GetString("TypeNameField_Description", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid type structure..
+        /// </summary>
+        internal static string TypeNameHelper_InvalidTypeStructure {
+            get {
+                return ResourceManager.GetString("TypeNameHelper_InvalidTypeStructure", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only type system objects are allowed as dependency..
+        /// </summary>
+        internal static string TypeNameHelper_OnlyTsosAreAllowed {
+            get {
+                return ResourceManager.GetString("TypeNameHelper_OnlyTsosAreAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The typeName mustn&apos;t be null or empty..
         /// </summary>
         internal static string TypeResourceHelper_TypeNameEmptyOrNull {
             get {
                 return ResourceManager.GetString("TypeResourceHelper_TypeNameEmptyOrNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The description becomes immutable once it was assigned..
+        /// </summary>
+        internal static string TypeSystemObject_DescriptionImmutable {
+            get {
+                return ResourceManager.GetString("TypeSystemObject_DescriptionImmutable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The name becomes immutable once it was assigned..
+        /// </summary>
+        internal static string TypeSystemObject_NameImmutable {
+            get {
+                return ResourceManager.GetString("TypeSystemObject_NameImmutable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type definition is null which means that the type was initialized incorrectly..
+        /// </summary>
+        internal static string TypeSystemObjectBase_DefinitionIsNull {
+            get {
+                return ResourceManager.GetString("TypeSystemObjectBase_DefinitionIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type name was not completed correctly and is still empty. Type names are not allowed to remain empty after name completion was executed..
+        /// </summary>
+        internal static string TypeSystemObjectBase_NameIsNull {
+            get {
+                return ResourceManager.GetString("TypeSystemObjectBase_NameIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A Union type must define one or more unique member types..
+        /// </summary>
+        internal static string UnionType_MustHaveTypes {
+            get {
+                return ResourceManager.GetString("UnionType_MustHaveTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to resolve the specified type reference..
+        /// </summary>
+        internal static string UnionType_UnableToResolveType {
+            get {
+                return ResourceManager.GetString("UnionType_UnableToResolveType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The union type extension can only be merged with an union type..
+        /// </summary>
+        internal static string UnionTypeExtension_CannotMerge {
+            get {
+                return ResourceManager.GetString("UnionTypeExtension_CannotMerge", resourceCulture);
             }
         }
         
