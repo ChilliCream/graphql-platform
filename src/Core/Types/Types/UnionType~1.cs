@@ -25,7 +25,7 @@ namespace HotChocolate.Types
         protected override UnionTypeDefinition CreateDefinition(IInitializationContext context)
         {
             var descriptor = UnionTypeDescriptor.New(
-                DescriptorContext.Create(context.Services),
+                context.DescriptorContext,
                 typeof(T));
             _configure(descriptor);
             return descriptor.CreateDefinition();

@@ -19,6 +19,7 @@ namespace HotChocolate.Configuration
             SubscriptionTypeName = options.SubscriptionTypeName
                 ?? "Subscription";
             StrictValidation = options.StrictValidation;
+            UseXmlDocumentation = options.UseXmlDocumentation;
         }
 
         public string QueryTypeName { get; }
@@ -28,5 +29,7 @@ namespace HotChocolate.Configuration
         public string SubscriptionTypeName { get; }
 
         public bool StrictValidation { get; }
+
+        public bool UseXmlDocumentation { get; }
     }
 }

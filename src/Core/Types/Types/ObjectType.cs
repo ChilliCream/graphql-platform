@@ -54,7 +54,7 @@ namespace HotChocolate.Types
             IInitializationContext context)
         {
             var descriptor = ObjectTypeDescriptor.New(
-                DescriptorContext.Create(context.Services),
+                context.DescriptorContext,
                 GetType());
             _configure(descriptor);
             return descriptor.CreateDefinition();
@@ -95,16 +95,13 @@ namespace HotChocolate.Types
             ICompletionContext context,
             ICollection<ObjectField> fields)
         {
-            IDescriptorContext descriptorContext =
-                DescriptorContext.Create(context.Services);
-
             if (context.IsQueryType.HasValue && context.IsQueryType.Value)
             {
-                fields.Add(new __SchemaField(descriptorContext));
-                fields.Add(new __TypeField(descriptorContext));
+                fields.Add(new __SchemaField(context.DescriptorContext));
+                fields.Add(new __TypeField(context.DescriptorContext));
             }
 
-            fields.Add(new __TypeNameField(descriptorContext));
+            fields.Add(new __TypeNameField(context.DescriptorContext));
         }
 
         private void AddRelayNodeField(
@@ -116,8 +113,7 @@ namespace HotChocolate.Types
                 && context.ContextData.ContainsKey(
                     RelayConstants.IsRelaySupportEnabled))
             {
-                fields.Add(new NodeField(
-                    DescriptorContext.Create(context.Services)));
+                fields.Add(new NodeField(context.DescriptorContext));
             }
         }
 

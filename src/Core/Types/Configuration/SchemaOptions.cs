@@ -11,6 +11,8 @@ namespace HotChocolate.Configuration
 
         public bool StrictValidation { get; set; } = true;
 
+        public bool UseXmlDocumentation { get; set; } = true;
+
         public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
         {
             return new SchemaOptions

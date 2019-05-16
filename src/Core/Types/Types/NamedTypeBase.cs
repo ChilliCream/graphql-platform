@@ -6,12 +6,14 @@ using HotChocolate.Configuration;
 namespace HotChocolate.Types
 {
     public abstract class NamedTypeBase<TDefinition>
-        : TypeBase<TDefinition>
+        : TypeSystemObjectBase<TDefinition>
         , INamedType
         , IHasDirectives
         , IHasClrType
         where TDefinition : DefinitionBase, IHasDirectiveDefinition
     {
+        public abstract TypeKind Kind { get; }
+
         public IDirectiveCollection Directives { get; private set; }
 
         public Type ClrType { get; private set; }

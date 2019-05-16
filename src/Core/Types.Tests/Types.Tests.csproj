@@ -5,7 +5,6 @@
     <AssemblyName>HotChocolate.Types.Tests</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
     <IsPackable>false</IsPackable>
-
   </PropertyGroup>
 
   <PropertyGroup>
@@ -28,6 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\Types\Types.csproj" />
+    <ProjectReference Include="..\Types.Tests.Documentation\Types.Tests.Documentation.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,12 +40,6 @@
     <None Update="xunit.runner.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Configuration\__snapshots__\__mismatch__\" />
-    <Folder Include="Types\__snapshots__\__mismatch__\" />
-    <Folder Include="__snapshots__\__mismatch__\" />
   </ItemGroup>
 
 </Project>

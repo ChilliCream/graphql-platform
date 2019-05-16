@@ -14,7 +14,8 @@ namespace HotChocolate.Types
         /// </summary>
         /// <param name="value">The object type name.</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="value"/> is <c>null</c> or <see cref="string.Empty"/>.
+        /// <paramref name="value"/> is <c>null</c> or
+        /// <see cref="string.Empty"/>.
         /// </exception>
         IObjectTypeDescriptor<T> Name(NameString value);
 

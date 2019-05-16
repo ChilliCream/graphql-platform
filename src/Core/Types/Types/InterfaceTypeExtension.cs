@@ -28,7 +28,7 @@ namespace HotChocolate.Types
             IInitializationContext context)
         {
             var descriptor = InterfaceTypeDescriptor.New(
-                DescriptorContext.Create(context.Services),
+                context.DescriptorContext,
                 GetType());
             _configure(descriptor);
             return descriptor.CreateDefinition();
