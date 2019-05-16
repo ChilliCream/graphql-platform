@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Descriptors
         protected override InterfaceTypeDefinition Definition { get; } =
             new InterfaceTypeDefinition();
 
-        protected List<InterfaceFieldDescriptor> Fields { get; } =
+        protected ICollection<InterfaceFieldDescriptor> Fields { get; } =
             new List<InterfaceFieldDescriptor>();
 
         protected override void OnCreateDefinition(
