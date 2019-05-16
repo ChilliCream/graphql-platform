@@ -19,8 +19,11 @@ namespace HotChocolate
         public Schema Create()
         {
             IServiceProvider services = _services ?? new EmptyServiceProvider();
+            DescriptorContext descriptorContext =
+                DescriptorContext.Create(services);
+
             IBindingLookup bindingLookup =
-                _bindingCompiler.Compile(DescriptorContext.Create(services));
+                 _bindingCompiler.Compile(descriptorContext);
 
             var types = new List<ITypeReference>(_types);
 
@@ -41,7 +44,11 @@ namespace HotChocolate
             var lazy = new LazySchema();
 
             TypeInitializer initializer =
-                InitializeTypes(services, bindingLookup, types,
+                InitializeTypes(
+                    services,
+                    descriptorContext,
+                    bindingLookup,
+                    types,
                     () => lazy.Schema);
 
             SchemaTypesDefinition definition =
@@ -125,13 +132,11 @@ namespace HotChocolate
 
         private TypeInitializer InitializeTypes(
             IServiceProvider services,
+            IDescriptorContext descriptorContext,
             IBindingLookup bindingLookup,
             IEnumerable<ITypeReference> types,
             Func<ISchema> schemaResolver)
         {
-            DescriptorContext descriptorContext =
-                DescriptorContext.Create(services);
-
             var initializer = new TypeInitializer(
                 services, descriptorContext, types, _resolverTypes,
                 _contextData, _isOfType, IsQueryType);

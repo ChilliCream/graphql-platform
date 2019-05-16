@@ -251,9 +251,6 @@ namespace HotChocolate.Configuration
                 return;
             }
 
-            IDescriptorContext descriptorContext =
-                DescriptorContext.Create(_services);
-
             Dictionary<NameString, ObjectType> types =
                 _types.Select(t => t.Value.Type)
                     .OfType<ObjectType>()
@@ -271,7 +268,7 @@ namespace HotChocolate.Configuration
                         if (types.TryGetValue(typeName,
                             out ObjectType objectType))
                         {
-                            AddResolvers(descriptorContext, objectType, type);
+                            AddResolvers(_descriptorContext, objectType, type);
                         }
                     }
                 }
@@ -285,7 +282,7 @@ namespace HotChocolate.Configuration
                             .FirstOrDefault(t => t.GetType() == sourceType);
                         if (objectType != null)
                         {
-                            AddResolvers(descriptorContext, objectType, type);
+                            AddResolvers(_descriptorContext, objectType, type);
                         }
                     }
                 }
