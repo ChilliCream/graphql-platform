@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "a": {
       "bar": "Freddy Freeman",
@@ -30,5 +30,6 @@
     }
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "customer": {
       "name": "Freddy Freeman",
@@ -25,5 +25,6 @@
     }
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

@@ -11,5 +11,6 @@ namespace HotChocolate.Stitching.Schemas.Customers
         public string ConsultantId { get; set; }
         public int SomeInt { get; set; }
         public Guid SomeGuid { get; set; }
+        public CustomerKind Kind { get; set; }
     }
 }

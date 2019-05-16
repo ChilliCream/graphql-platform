@@ -73,12 +73,14 @@ namespace HotChocolate.Stitching.Introspection
                 Query = GetIntrospectionQuery(_phase1)
             };
 
-            string json = await queryClient.FetchStringAsync(
-                request, httpClient)
+            (string json, HttpResponseMessage _) response =
+                await queryClient.FetchStringAsync(
+                    request, httpClient)
                 .ConfigureAwait(false);
 
             IntrospectionResult result =
-                JsonConvert.DeserializeObject<IntrospectionResult>(json);
+                JsonConvert.DeserializeObject<IntrospectionResult>(
+                    response.json);
 
             FullType directive = result.Data.Schema.Types.First(t =>
                  t.Name.Equals(_directiveName, StringComparison.Ordinal));
@@ -107,11 +109,12 @@ namespace HotChocolate.Stitching.Introspection
                 Query = QuerySyntaxSerializer.Serialize(query)
             };
 
-            string json = await queryClient.FetchStringAsync(
-                request, httpClient)
+            (string json, HttpResponseMessage _) response =
+                await queryClient.FetchStringAsync(
+                    request, httpClient)
                 .ConfigureAwait(false);
 
-            return IntrospectionDeserializer.Deserialize(json);
+            return IntrospectionDeserializer.Deserialize(response.json);
         }
 
         internal static DocumentNode CreateIntrospectionQuery(

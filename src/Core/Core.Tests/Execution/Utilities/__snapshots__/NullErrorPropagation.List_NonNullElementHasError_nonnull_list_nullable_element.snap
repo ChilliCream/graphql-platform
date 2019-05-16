@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "foo": {
       "nonnull_list_nullable_element": [
@@ -16,5 +16,6 @@
       "Exception": null,
       "Extensions": {}
     }
-  ]
+  ],
+  "ContextData": {}
 }

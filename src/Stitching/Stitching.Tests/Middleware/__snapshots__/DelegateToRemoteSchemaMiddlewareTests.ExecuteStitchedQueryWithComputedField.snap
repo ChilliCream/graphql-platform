@@ -1,9 +1,10 @@
-{
+﻿{
   "Data": {
     "customer": {
       "foo": "Freddy Freeman_Q3VzdG9tZXIteDE="
     }
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "customer": {
       "contracts": [
@@ -80,5 +80,6 @@
         "STITCH": "SOMETHING"
       }
     }
-  ]
+  ],
+  "ContextData": {}
 }

@@ -1,6 +1,7 @@
 ﻿type Query {
   consultant(id: ID!): Consultant @delegate(schema: "customer")
   customer(id: ID!): Customer @delegate(schema: "customer")
+  customerByKind(kind: CustomerKind!): Customer @delegate(schema: "customer")
   customerOrConsultant(id: ID!): CustomerOrConsultant @delegate(schema: "customer")
   contract(contractId: ID!): Contract @delegate(schema: "contract")
   contracts(customerId: ID!): [Contract!] @delegate(schema: "contract")
@@ -17,6 +18,7 @@ type Mutation {
 type Customer @source(name: "Customer", schema: "customer") {
   consultant(customer: CustomerInput): Consultant
   id: ID!
+  kind: CustomerKind!
   name: String!
   say(input: SayInput!): String
   someGuid: Uuid!
@@ -65,6 +67,11 @@ type CustomerEdge @source(name: "CustomerEdge", schema: "customer") {
   node: Customer
 }
 
+enum CustomerKind @source(name: "CustomerKind", schema: "customer") {
+  STANDARD
+  PREMIUM
+}
+
 type CreateCustomerPayload @source(name: "CreateCustomerPayload", schema: "customer") {
   customer: Customer
 }
@@ -78,6 +85,7 @@ input CreateCustomerInput @source(name: "CreateCustomerInput", schema: "customer
 input CustomerInput @source(name: "CustomerInput", schema: "customer") {
   consultantId: String
   id: String
+  kind: CustomerKind!
   name: String
   someGuid: Uuid!
   someInt: Int!

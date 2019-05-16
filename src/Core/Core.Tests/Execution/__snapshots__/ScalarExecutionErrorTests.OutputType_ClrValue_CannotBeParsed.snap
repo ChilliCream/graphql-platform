@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "stringToFoo": null
   },
@@ -22,7 +22,7 @@
         "Data": null,
         "InnerException": null,
         "HelpURL": null,
-        "StackTraceString": "   at HotChocolate.Execution.ScalarExecutionErrorTests.FooType.Serialize(Object value) in /Users/michael/Local/hotchocolate/src/Core/Core.Tests/Execution/ScalarExecutionErrorTests.cs:line 216\n   at HotChocolate.Execution.ValueCompletion.CompleteLeafType(ICompleteValueContext context, ILeafType leafType, Object result) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Utilities/ValueCompletion.cs:line 107",
+        "StackTraceString": "   at HotChocolate.Execution.ScalarExecutionErrorTests.FooType.Serialize(Object value) in /Users/michael/Local/hotchocolate/src/Core/Core.Tests/Execution/ScalarExecutionErrorTests.cs:line 215\n   at HotChocolate.Execution.ValueCompletion.CompleteLeafType(ICompleteValueContext context, ILeafType leafType, Object result) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Utilities/ValueCompletion.cs:line 109",
         "RemoteStackTraceString": null,
         "RemoteStackIndex": 0,
         "ExceptionMethod": null,
@@ -32,5 +32,6 @@
       },
       "Extensions": {}
     }
-  ]
+  ],
+  "ContextData": {}
 }
