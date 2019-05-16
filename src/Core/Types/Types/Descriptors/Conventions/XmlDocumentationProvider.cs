@@ -1,3 +1,4 @@
+using System.Net.Http;
 using System.Globalization;
 using System;
 using System.Collections.Generic;
@@ -29,9 +30,10 @@ namespace HotChocolate.Types.Descriptors
             _fileResolver = fileResolver;
         }
 
-        public string GetTypeSummary(Type type) => GetMemberSummary(type);
+        public string GetSummary(Type type) =>
+            GetSummary((MemberInfo)type);
 
-        public string GetMemberSummary(MemberInfo member)
+        public string GetSummary(MemberInfo member)
         {
             var assemblyName = member.Module.Assembly.GetName();
             var element = GetMemberElement(member);
@@ -39,7 +41,7 @@ namespace HotChocolate.Types.Descriptors
                 GetText(element?.Element(_summaryElementName)));
         }
 
-        public string GetParameterSummary(ParameterInfo parameter)
+        public string GetSummary(ParameterInfo parameter)
         {
             var assemblyName = parameter.Member.Module.Assembly.GetName();
             var element = GetParameterElement(parameter);

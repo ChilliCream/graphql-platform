@@ -5,8 +5,8 @@ namespace HotChocolate.Types.Descriptors
 {
     public interface IDocumentationProvider
     {
-        string GetTypeSummary(Type type);
-        string GetMemberSummary(MemberInfo member);
-        string GetParameterSummary(ParameterInfo parameter);
+        string GetSummary(Type type);
+        string GetSummary(MemberInfo member);
+        string GetSummary(ParameterInfo parameter);
     }
 }

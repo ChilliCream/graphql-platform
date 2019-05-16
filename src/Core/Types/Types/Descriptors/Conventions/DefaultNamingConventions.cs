@@ -44,7 +44,7 @@ namespace HotChocolate.Types.Descriptors
             var description = parameter.GetGraphQLDescription();
             if (string.IsNullOrWhiteSpace(description))
             {
-                description = _documentation.GetParameterSummary(parameter);
+                description = _documentation.GetSummary(parameter);
             }
 
             return description;
@@ -103,7 +103,7 @@ namespace HotChocolate.Types.Descriptors
             var description = member.GetGraphQLDescription();
             if (string.IsNullOrWhiteSpace(description))
             {
-                description = _documentation.GetMemberSummary(member);
+                description = _documentation.GetSummary(member);
             }
 
             return description;
@@ -149,7 +149,7 @@ namespace HotChocolate.Types.Descriptors
             var description = type.GetGraphQLDescription();
             if (string.IsNullOrWhiteSpace(description))
             {
-                description = _documentation.GetTypeSummary(type);
+                description = _documentation.GetSummary(type);
             }
 
             return description;

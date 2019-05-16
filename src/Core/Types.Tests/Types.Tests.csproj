@@ -5,7 +5,6 @@
     <AssemblyName>HotChocolate.Types.Tests</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
     <IsPackable>false</IsPackable>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -28,6 +27,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
     <ProjectReference Include="..\Types\Types.csproj" />
+    <ProjectReference Include="..\Types.Tests.Documentation\Types.Tests.Documentation.csproj" />
   </ItemGroup>
 
   <ItemGroup>
