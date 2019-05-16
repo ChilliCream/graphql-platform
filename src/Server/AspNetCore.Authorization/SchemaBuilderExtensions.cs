@@ -1,3 +1,4 @@
+using System;
 #if ASPNETCLASSIC
 using HotChocolate.AspNetClassic.Authorization;
 #else
@@ -12,6 +13,11 @@ namespace HotChocolate
         public static ISchemaBuilder AddAuthorizeDirectiveType(
             this ISchemaBuilder builder)
         {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
             return builder.AddDirectiveType<AuthorizeDirectiveType>();
         }
     }

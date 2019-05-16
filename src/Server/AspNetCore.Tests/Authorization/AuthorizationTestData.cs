@@ -5,19 +5,20 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.AspNetCore.Authorization
 {
-    public class AuthorizationTestData : IEnumerable<object[]>
+    public class AuthorizationTestData
+        : IEnumerable<object[]>
     {
         private readonly string SchemaCode = @"
-                    type Query {
-                        default: String @authorize
-                        age: String @authorize(policy: ""HasAgeDefined"")
-                        roles: String @authorize(roles: [""a""])
-                        roles_ab: String @authorize(roles: [""a"" ""b""])
-                        piped: String
-                            @authorize(policy: ""a"")
-                            @authorize(policy: ""b"")
-                    }
-                ";
+            type Query {
+                default: String @authorize
+                age: String @authorize(policy: ""HasAgeDefined"")
+                roles: String @authorize(roles: [""a""])
+                roles_ab: String @authorize(roles: [""a"" ""b""])
+                piped: String
+                    @authorize(policy: ""a"")
+                    @authorize(policy: ""b"")
+            }
+        ";
 
         private FieldMiddleware SchemaMiddleware = next => context =>
         {

@@ -77,7 +77,8 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
-        public async Task NoAuthServices_Autheticated_True(IQueryExecutor executor)
+        public async Task NoAuthServices_Autheticated_True(
+            IQueryExecutor executor)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -110,7 +111,8 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
-        public async Task NoAuthServices_Autheticated_False(IQueryExecutor executor)
+        public async Task NoAuthServices_Autheticated_False(
+            IQueryExecutor executor)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -269,7 +271,8 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
-        public async Task Roles_UserHasNoRoles_NotAuthorized(IQueryExecutor executor)
+        public async Task Roles_UserHasNoRoles_NotAuthorized(
+            IQueryExecutor executor)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -302,7 +305,8 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
-        public async Task Roles_UserHasDifferentRoles_NotAuthorized(IQueryExecutor executor)
+        public async Task Roles_UserHasDifferentRoles_NotAuthorized(
+            IQueryExecutor executor)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -338,7 +342,8 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
-        public async Task Roles_UserHasOneOfTheRoles_NotAuthorized(IQueryExecutor executor)
+        public async Task Roles_UserHasOneOfTheRoles_NotAuthorized(
+            IQueryExecutor executor)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -377,7 +382,8 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
-        public async Task Roles_UserHasAllOfTheRoles_Authorized(IQueryExecutor executor)
+        public async Task Roles_UserHasAllOfTheRoles_Authorized(
+            IQueryExecutor executor)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -452,7 +458,8 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
-        public async Task PipedAuthorizeDirectives_Authorized(IQueryExecutor executor)
+        public async Task PipedAuthorizeDirectives_Authorized(
+            IQueryExecutor executor)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -504,7 +511,8 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
-        public async Task PipedAuthorizeDirectives_SecondFails_NotAuthorized(IQueryExecutor executor)
+        public async Task PipedAuthorizeDirectives_SecondFails_NotAuthorized(
+            IQueryExecutor executor)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -568,7 +576,9 @@ namespace HotChocolate.AspNetCore.Authorization
                                 OnCreateRequest = (ctx, r, ct) =>
                                 {
                                     configureUser(ctx);
-                                    r.SetProperty(nameof(ClaimsPrincipal), ctx.User);
+                                    r.SetProperty(
+                                        nameof(ClaimsPrincipal),
+                                        ctx.User);
                                     return Task.CompletedTask;
                                 }
                             });
