@@ -246,7 +246,7 @@ namespace HotChocolate.Types.Descriptors
             var whitespace = Regex.Match(documentation, "(\\n[ \\t]*)").Value;
             documentation = documentation.Replace(whitespace, "\n");
 
-            return documentation.Trim('\n');
+            return documentation.Trim('\n').Trim();
         }
 
         private static MemberName GetMemberElementName(MemberInfo member)

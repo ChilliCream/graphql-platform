@@ -6,7 +6,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Descriptors
 {
-    public class XmlDocumentationExtensionTests
+    public class XmlDocumentationProviderTests
     {
         [Fact]
         public void When_xml_doc_is_missing_then_summary_is_empty()
@@ -54,8 +54,8 @@ namespace HotChocolate.Types.Descriptors
 
             // asssert
             Assert.Equal(
-                "null for the default Record. See this and this" +
-                " at https://github.com/rsuter/njsonschema.",
+                "null for the default Record.\nSee this and\nthis" +
+                " at\nhttps://foo.com/bar/baz.",
                 summary);
         }
 
@@ -98,181 +98,173 @@ namespace HotChocolate.Types.Descriptors
                 new XmlDocumentationFileResolver());
 
             // act
-            var parameterXml = documentationProvider.GetMemberSummary(
+            var parameterXml = documentationProvider.GetSummary(
                     typeof(ClassWithInheritdoc)
                 .GetMethod(nameof(ClassWithInheritdoc.Bar))
                 .GetParameters()
-                .Single(p => p.Name == "baz")
-                .GetXmlDocumentation();
+                .Single(p => p.Name == "baz"));
 
             // assert
             Assert.Equal("Parameter details.", parameterXml);
         }
 
         [Fact]
-        public async Task When_method_has_inheritdoc_then_it_is_resolved()
+        public void When_method_has_inheritdoc_then_it_is_resolved()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var methodSummary = await typeof(ClassWithInheritdoc)
-                .GetMethod(nameof(ClassWithInheritdoc.Bar))
-                .GetXmlSummaryAsync();
+            var methodSummary = documentationProvider.GetSummary(
+                typeof(ClassWithInheritdoc)
+                    .GetMethod(nameof(ClassWithInheritdoc.Bar)));
 
             // assert
             Assert.Equal("Method doc.", methodSummary);
         }
 
         [Fact]
-        public async Task When_property_has_inheritdoc_then_it_is_resolved()
+        public void When_property_has_inheritdoc_then_it_is_resolved()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = await typeof(ClassWithInheritdoc)
-                .GetProperty(nameof(ClassWithInheritdoc.Foo))
-                .GetXmlSummaryAsync();
+            var summary = documentationProvider.GetSummary(
+                typeof(ClassWithInheritdoc)
+                    .GetProperty(nameof(ClassWithInheritdoc.Foo)));
 
             // assert
             Assert.Equal("Summary of foo.", summary);
         }
 
-
-
-
-
         [Fact]
-        public async Task When_type_is_an_interface_then_summary_is_resolved()
+        public void When_type_is_an_interface_then_summary_is_resolved()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = await typeof(IBaseBaseInterface)
-                .GetXmlSummary();
+            var summary = documentationProvider.GetSummary(
+                typeof(IBaseBaseInterface));
 
             // assert
             Assert.Equal("I am an interface.", summary);
         }
 
         [Fact]
-        public async Task When_parameter_has_inheritdoc_on_interface_then_it_is_resolved()
+        public void When_parameter_has_inheritdoc_on_interface_then_it_is_resolved()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = await typeof(ClassWithInheritdocOnInterface)
-                .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))
-                .GetParameters()
-                .Single(p => p.Name == "baz")
-                .GetXmlDocumentation();
+            var summary = documentationProvider.GetSummary(
+                typeof(ClassWithInheritdocOnInterface)
+                    .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))
+                    .GetParameters()
+                    .Single(p => p.Name == "baz"));
 
             // assert
             Assert.Equal("Parameter summary.", summary);
         }
 
         [Fact]
-        public async Task When_property_has_inheritdoc_on_interface_then_it_is_resolved()
+        public void When_property_has_inheritdoc_on_interface_then_it_is_resolved()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = await typeof(ClassWithInheritdocOnInterface)
-                .GetProperty(nameof(ClassWithInheritdocOnInterface.Foo))
-                .GetXmlSummaryAsync();
+            var summary = documentationProvider.GetSummary(
+                typeof(ClassWithInheritdocOnInterface)
+                .GetProperty(nameof(ClassWithInheritdocOnInterface.Foo)));
 
             // assert
             Assert.Equal("Property summary.", summary);
         }
 
         [Fact]
-        public async Task When_method_has_inheritdoc_then_on_interface_it_is_resolved()
+        public void When_method_has_inheritdoc_then_on_interface_it_is_resolved()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var methodSummary = await typeof(ClassWithInheritdocOnInterface)
-                .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar))
-                .GetXmlSummaryAsync();
-
+            var methodSummary = documentationProvider.GetSummary(
+                typeof(ClassWithInheritdocOnInterface)
+                .GetMethod(nameof(ClassWithInheritdocOnInterface.Bar)));
 
             // assert
             Assert.Equal("Method summary.", methodSummary);
         }
 
         [Fact]
-        public async Task When_class_implements_interface_and_property_has_summary_then_property_summary_is_used()
+        public void When_class_implements_interface_and_property_has_summary_then_property_summary_is_used()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = await typeof(ClassWithInterfaceAndCustomSummaries)
-                .GetProperty(nameof(ClassWithInterfaceAndCustomSummaries.Foo))
-                .GetXmlSummaryAsync();
+            var summary = documentationProvider.GetSummary(
+                typeof(ClassWithInterfaceAndCustomSummaries)
+                .GetProperty(nameof(ClassWithInterfaceAndCustomSummaries.Foo)));
 
             // assert
             Assert.Equal("I am my own property.", summary);
         }
 
         [Fact]
-        public async Task When_class_implements_interface_and_method_has_summary_then_method_summary_is_used()
+        public void When_class_implements_interface_and_method_has_summary_then_method_summary_is_used()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = await typeof(ClassWithInterfaceAndCustomSummaries)
-                .GetMethod(nameof(ClassWithInterfaceAndCustomSummaries.Bar))
-                .GetXmlSummaryAsync();
+            var summary = documentationProvider.GetSummary(
+                typeof(ClassWithInterfaceAndCustomSummaries)
+                .GetMethod(nameof(ClassWithInterfaceAndCustomSummaries.Bar)));
 
             // assert
             Assert.Equal("I am my own method.", summary);
         }
 
         [Fact]
-        public async Task When_class_implements_interface_and_method_has_summary_then_method_parameter_summary_is_used()
+        public void When_class_implements_interface_and_method_has_summary_then_method_parameter_summary_is_used()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = await typeof(ClassWithInterfaceAndCustomSummaries)
+            var summary = documentationProvider.GetSummary(
+                typeof(ClassWithInterfaceAndCustomSummaries)
                 .GetMethod(nameof(ClassWithInterfaceAndCustomSummaries.Bar))
                 .GetParameters()
-                .Single(p => p.Name == "baz")
-                .GetXmlDocumentation();
+                .Single(p => p.Name == "baz"));
 
             // assert
             Assert.Equal("I am my own parameter.", summary);
         }
 
-
-
         [Fact]
-        public async Task When_class_has_summary_then_it_is_converted()
+        public void When_class_has_summary_then_it_is_converted()
         {
             // arrange
             var documentationProvider = new XmlDocumentationProvider(
                 new XmlDocumentationFileResolver());
 
             // act
-            var summary = await typeof(ClassWithSummary)
-                .GetXmlSummary();
+            var summary = documentationProvider.GetSummary(
+                typeof(ClassWithSummary));
 
             // assert
             Assert.Equal("I am a test class.", summary);
