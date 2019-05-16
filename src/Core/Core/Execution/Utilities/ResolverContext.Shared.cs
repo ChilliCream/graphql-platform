@@ -47,7 +47,7 @@ namespace HotChocolate.Execution
             _fieldSelection = fieldSelection;
 
             IsRoot = true;
-            Path = Path.New(fieldSelection.ResponseName); ;
+            Path = Path.New(fieldSelection.ResponseName);
             Source = source;
             SourceObject = executionContext.Operation.RootValue;
             ScopedContextData = ImmutableDictionary<string, object>.Empty;

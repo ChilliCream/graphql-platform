@@ -11,8 +11,9 @@ namespace HotChocolate.Validation
     internal sealed class FieldSelectionMergingVisitor
         : QueryVisitorErrorBase
     {
-        private readonly Dictionary<SelectionSetNode, List<FieldInfo>> _fieldSelectionSets =
-            new Dictionary<SelectionSetNode, List<FieldInfo>>();
+        private readonly Dictionary<SelectionSetNode, List<FieldInfo>>
+            _fieldSelectionSets =
+                new Dictionary<SelectionSetNode, List<FieldInfo>>();
         private readonly HashSet<string> _visitedFragments =
             new HashSet<string>();
 
@@ -100,7 +101,7 @@ namespace HotChocolate.Validation
             return root != null;
         }
 
-        private bool IsRelevantSelectionSet(ISyntaxNode syntaxNode)
+        private static bool IsRelevantSelectionSet(ISyntaxNode syntaxNode)
         {
             return syntaxNode is FieldNode
                 || syntaxNode is OperationDefinitionNode;
@@ -165,7 +166,9 @@ namespace HotChocolate.Validation
             }
         }
 
-        private bool AreFieldArgumentsEqual(FieldInfo fieldA, FieldInfo fieldB)
+        private static bool AreFieldArgumentsEqual(
+            FieldInfo fieldA,
+            FieldInfo fieldB)
         {
             if (fieldA.Field.Arguments.Count == fieldB.Field.Arguments.Count)
             {
@@ -193,7 +196,7 @@ namespace HotChocolate.Validation
             return false;
         }
 
-        private bool AreFieldArgumentsEqual(
+        private static bool AreFieldArgumentsEqual(
             ArgumentNode argumentA,
             ArgumentNode argumentB)
         {
@@ -201,7 +204,7 @@ namespace HotChocolate.Validation
                 && argumentA.Value.Equals(argumentB.Value);
         }
 
-        private Dictionary<string, ArgumentNode> CreateArgumentLookup(
+        private static Dictionary<string, ArgumentNode> CreateArgumentLookup(
             FieldNode field)
         {
             var arguments = new Dictionary<string, ArgumentNode>();
@@ -212,7 +215,9 @@ namespace HotChocolate.Validation
             return arguments;
         }
 
-        private bool SameResponseShape(FieldInfo fieldA, FieldInfo fieldB)
+        private static bool SameResponseShape(
+            FieldInfo fieldA,
+            FieldInfo fieldB)
         {
             IType typeA = GetType(fieldA);
             IType typeB = GetType(fieldB);
@@ -245,7 +250,7 @@ namespace HotChocolate.Validation
             return false;
         }
 
-        private bool RemoveNonNullType(ref IType typeA, ref IType typeB)
+        private static bool RemoveNonNullType(ref IType typeA, ref IType typeB)
         {
             if (typeA.IsNonNullType() || typeB.IsNonNullType())
             {
@@ -261,7 +266,7 @@ namespace HotChocolate.Validation
             return true;
         }
 
-        private bool RemoveListType(ref IType typeA, ref IType typeB)
+        private static bool RemoveListType(ref IType typeA, ref IType typeB)
         {
             if (typeA.IsListType() || typeB.IsListType())
             {
@@ -277,7 +282,7 @@ namespace HotChocolate.Validation
             return true;
         }
 
-        private IType GetType(FieldInfo fieldInfo)
+        private static IType GetType(FieldInfo fieldInfo)
         {
             if (fieldInfo.DeclaringType is IComplexOutputType c
                 && c.Fields.TryGetField(fieldInfo.Field.Name.Value,

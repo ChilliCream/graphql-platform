@@ -105,7 +105,7 @@ namespace HotChocolate.Runtime
             return null;
         }
 
-        private bool TryResolveParameters(
+        private static bool TryResolveParameters(
             IServiceProvider services,
             FactoryInfo factoryInfo)
         {

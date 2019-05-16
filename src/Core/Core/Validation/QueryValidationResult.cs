@@ -38,6 +38,7 @@ namespace HotChocolate.Validation
 
         public IReadOnlyCollection<IError> Errors { get; }
 
-        public static QueryValidationResult OK { get; } = new QueryValidationResult();
+        public static QueryValidationResult OK { get; } =
+            new QueryValidationResult();
     }
 }
