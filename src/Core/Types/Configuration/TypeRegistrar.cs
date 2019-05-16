@@ -14,6 +14,7 @@ namespace HotChocolate.Configuration
     {
         private readonly TypeInspector _typeInspector = new TypeInspector();
         private readonly ServiceFactory _serviceFactory = new ServiceFactory();
+        private readonly IDescriptorContext _descriptorContext;
         private readonly List<InitializationContext> _initContexts =
             new List<InitializationContext>();
         private readonly HashSet<InitializationContext> _handledContexts =
@@ -25,6 +26,7 @@ namespace HotChocolate.Configuration
 
         public TypeRegistrar(
             IServiceProvider services,
+            IDescriptorContext descriptorContext,
             IEnumerable<ITypeReference> initialTypes,
             IDictionary<string, object> contextData)
         {
@@ -42,6 +44,9 @@ namespace HotChocolate.Configuration
             {
                 throw new ArgumentNullException(nameof(services));
             }
+
+            _descriptorContext = descriptorContext
+                ?? throw new ArgumentNullException(nameof(descriptorContext));
 
             _unregistered.AddRange(IntrospectionTypes.All);
             _unregistered.AddRange(Directives.All);
@@ -266,6 +271,7 @@ namespace HotChocolate.Configuration
                 var initializationContext = new InitializationContext(
                     typeSystemObject,
                     _serviceFactory.Services,
+                    _descriptorContext,
                     _contextData);
                 typeSystemObject.Initialize(initializationContext);
                 _initContexts.Add(initializationContext);

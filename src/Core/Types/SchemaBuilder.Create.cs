@@ -129,8 +129,11 @@ namespace HotChocolate
             IEnumerable<ITypeReference> types,
             Func<ISchema> schemaResolver)
         {
+            DescriptorContext descriptorContext =
+                DescriptorContext.Create(services);
+
             var initializer = new TypeInitializer(
-                services, types, _resolverTypes,
+                services, descriptorContext, types, _resolverTypes,
                 _contextData, _isOfType, IsQueryType);
 
             foreach (FieldMiddleware component in _globalComponents)

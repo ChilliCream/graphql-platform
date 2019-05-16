@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Reflection;
@@ -7,38 +7,35 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using IOPath = System.IO.Path;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Types.Descriptors
 {
-    public interface IXmlDocumentationFileResolver
-    {
-        bool TryGetXmlDocument(
-            AssemblyName assemblyName,
-            out XDocument document);
-    }
-
     public class XmlDocumentationFileResolver
         : IXmlDocumentationFileResolver
     {
+        private const string _bin = "bin";
+
         private readonly ConcurrentDictionary<string, XDocument> _cache =
             new ConcurrentDictionary<string, XDocument>(
                 StringComparer.OrdinalIgnoreCase);
 
-        public bool TryGetXmlDocument(
-            AssemblyName assemblyName,
-            out XDocument document)
+        public bool TryGetXmlDocument(Assembly assembly, out XDocument document)
         {
-            if (!_cache.TryGetValue(assemblyName.FullName, out XDocument doc))
+            string fullName = assembly.GetName().FullName;
+
+            if (!_cache.TryGetValue(fullName, out XDocument doc))
             {
+                string pathToXmlFile = GetXmlDocumentationPath(assembly);
+
                 if (!File.Exists(pathToXmlFile))
                 {
-                    doc = _cache[assemblyName.FullName] = null;
+                    doc = _cache[fullName] = null;
                 }
                 else
                 {
                     doc = XDocument.Load(
                         pathToXmlFile,
                         LoadOptions.PreserveWhitespace);
-                    _cache[assemblyName.FullName] = doc;
+                    _cache[fullName] = doc;
                 }
             }
 
@@ -46,7 +43,7 @@ namespace HotChocolate.Utilities
             return document != null;
         }
 
-        private static string GetXmlDocumentationPath(Assembly assembly)
+        private string GetXmlDocumentationPath(Assembly assembly)
         {
             try
             {

@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Types.Descriptors
 {
     public interface IDocumentationProvider
     {

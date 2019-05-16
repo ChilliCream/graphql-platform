@@ -1,12 +1,30 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
     public class DefaultNamingConventions
         : INamingConventions
     {
+        private IDocumentationProvider _documentation;
+
+        public DefaultNamingConventions(IDocumentationProvider documentation)
+        {
+            _documentation = documentation
+                ?? throw new ArgumentNullException(nameof(documentation));
+        }
+
+        public DefaultNamingConventions()
+        {
+            _documentation = new XmlDocumentationProvider(
+                new XmlDocumentationFileResolver());
+        }
+
+        protected IDocumentationProvider DocumentationProvider =>
+            _documentation;
+
         public virtual NameString GetArgumentName(ParameterInfo parameter)
         {
             if (parameter == null)
@@ -26,7 +44,7 @@ namespace HotChocolate.Types.Descriptors
             var description = parameter.GetGraphQLDescription();
             if (string.IsNullOrWhiteSpace(description))
             {
-                description = parameter.GetXmlSummary();
+                description = _documentation.GetParameterSummary(parameter);
             }
 
             return description;
@@ -85,7 +103,7 @@ namespace HotChocolate.Types.Descriptors
             var description = member.GetGraphQLDescription();
             if (string.IsNullOrWhiteSpace(description))
             {
-                description = member.GetXmlSummary();
+                description = _documentation.GetMemberSummary(member);
             }
 
             return description;
@@ -131,7 +149,7 @@ namespace HotChocolate.Types.Descriptors
             var description = type.GetGraphQLDescription();
             if (string.IsNullOrWhiteSpace(description))
             {
-                description = type.GetXmlSummary();
+                description = _documentation.GetTypeSummary(type);
             }
 
             return description;

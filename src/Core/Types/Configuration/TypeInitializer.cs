@@ -37,6 +37,7 @@ namespace HotChocolate.Configuration
             new List<ISchemaError>();
 
         private readonly IServiceProvider _services;
+        private readonly IDescriptorContext _descriptorContext;
         private readonly List<ITypeReference> _initialTypes;
         private readonly List<Type> _externalResolverTypes;
         private readonly IDictionary<string, object> _contextData;
@@ -45,6 +46,7 @@ namespace HotChocolate.Configuration
 
         public TypeInitializer(
             IServiceProvider services,
+            IDescriptorContext descriptorContext,
             IEnumerable<ITypeReference> initialTypes,
             IEnumerable<Type> externalResolverTypes,
             IDictionary<string, object> contextData,
@@ -63,6 +65,8 @@ namespace HotChocolate.Configuration
 
             _services = services
                 ?? throw new ArgumentNullException(nameof(services));
+            _descriptorContext = descriptorContext
+                ?? throw new ArgumentNullException(nameof(descriptorContext));
             _contextData = contextData
                 ?? throw new ArgumentNullException(nameof(contextData));
             _isOfType = isOfType;
@@ -137,7 +141,10 @@ namespace HotChocolate.Configuration
         private bool RegisterTypes()
         {
             var typeRegistrar = new TypeRegistrar(
-                _services, _initialTypes, _contextData);
+                _services,
+                _descriptorContext,
+                _initialTypes,
+                _contextData);
 
             if (typeRegistrar.Complete())
             {

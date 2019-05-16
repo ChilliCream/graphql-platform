@@ -7,14 +7,14 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using System.Xml.XPath;
+using HotChocolate.Utilities;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Types.Descriptors
 {
     internal class XmlDocumentationProvider
         : IDocumentationProvider
     {
         private const string _summaryElementName = "summary";
-        private const string _bin = "bin";
         private const string _inheritdoc = "inheritdoc";
 
         private readonly IXmlDocumentationFileResolver _fileResolver;
@@ -108,9 +108,8 @@ namespace HotChocolate.Utilities
         {
             try
             {
-                var assemblyName = member.Module.Assembly.GetName();
                 if (_fileResolver.TryGetXmlDocument(
-                    assemblyName,
+                    member.Module.Assembly,
                     out XDocument document))
                 {
                     MemberName name = GetMemberElementName(member);
@@ -133,9 +132,8 @@ namespace HotChocolate.Utilities
         {
             try
             {
-                var assemblyName = parameter.Member.Module.Assembly.GetName();
                 if (_fileResolver.TryGetXmlDocument(
-                    assemblyName,
+                    parameter.Member.Module.Assembly,
                     out XDocument document))
                 {
                     MemberName name = GetMemberElementName(parameter.Member);
