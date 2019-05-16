@@ -14,16 +14,11 @@ namespace HotChocolate.Execution
         }
 
         public QueryException(IError error)
-            : base(error.Message)
+            : base(error?.Message)
         {
-            if (error == null)
-            {
-                Errors = Array.Empty<IError>();
-            }
-            else
-            {
-                Errors = new[] { error };
-            }
+            Errors = error == null
+                ? Array.Empty<IError>()
+                : new[] { error };
         }
 
         public QueryException(params IError[] errors)

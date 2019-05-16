@@ -252,7 +252,7 @@ namespace HotChocolate.Language
 
             string value = _reader.GetScalarValue();
             MoveNext();
-            location = location = CreateLocation(in start);
+            location = CreateLocation(in start);
 
             return new EnumValueNode
             (

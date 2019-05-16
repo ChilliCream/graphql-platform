@@ -50,8 +50,10 @@ namespace HotChocolate.Language
         /// SelectionSet
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static OperationDefinitionNode ParseOperationDefinitionShortHandForm(
-            ParserContext context, SyntaxToken start)
+        private static OperationDefinitionNode
+            ParseOperationDefinitionShortHandForm(
+                ParserContext context,
+                SyntaxToken start)
         {
             SelectionSetNode selectionSet = ParseSelectionSet(context);
             Location location = context.CreateLocation(start);

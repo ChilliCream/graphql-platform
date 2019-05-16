@@ -48,11 +48,12 @@ namespace HotChocolate.Execution
 
         private Fragment CreateFragment(string fragmentName)
         {
-            FragmentDefinitionNode fragmentDefinition = _queryDocument.Definitions
-                .OfType<FragmentDefinitionNode>()
-                .FirstOrDefault(t => string.Equals(
-                    t.Name.Value, fragmentName,
-                    StringComparison.Ordinal));
+            FragmentDefinitionNode fragmentDefinition =
+                _queryDocument.Definitions
+                    .OfType<FragmentDefinitionNode>()
+                    .FirstOrDefault(t => string.Equals(
+                        t.Name.Value, fragmentName,
+                        StringComparison.Ordinal));
 
             if (fragmentDefinition != null)
             {
@@ -111,7 +112,7 @@ namespace HotChocolate.Execution
             return new Fragment(type, inlineFragment.SelectionSet);
         }
 
-        private string CreateInlineFragmentName(
+        private static string CreateInlineFragmentName(
             InlineFragmentNode inlineFragment)
         {
             return $"^__{inlineFragment.Location.Start}_" +

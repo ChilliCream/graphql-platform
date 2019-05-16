@@ -68,8 +68,9 @@ namespace HotChocolate.Language
             );
         }
 
-        private static List<OperationTypeDefinitionNode> ParseOperationTypeDefinitions(
-            ParserContext context)
+        private static List<OperationTypeDefinitionNode>
+            ParseOperationTypeDefinitions(
+                ParserContext context)
         {
             if (context.Current.IsLeftBrace())
             {
@@ -218,8 +219,9 @@ namespace HotChocolate.Language
             );
         }
 
-        private static InputObjectTypeExtensionNode ParseInputObjectTypeExtension(
-            ParserContext context)
+        private static InputObjectTypeExtensionNode
+            ParseInputObjectTypeExtension(
+                ParserContext context)
         {
             SyntaxToken start = context.Current;
             context.ExpectExtendKeyword();

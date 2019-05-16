@@ -64,7 +64,8 @@ namespace HotChocolate.Subscriptions
 
                 foreach (ArgumentNode argument in Arguments)
                 {
-                    if (!arguments.TryGetValue(argument.Name.Value, out IValueNode v)
+                    if (!arguments.TryGetValue(argument.Name.Value,
+                        out IValueNode v)
                         || !v.Equals(argument.Value))
                     {
                         return false;

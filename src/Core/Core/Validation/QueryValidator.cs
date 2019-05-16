@@ -8,7 +8,7 @@ namespace HotChocolate.Validation
     public class QueryValidator
         : IQueryValidator
     {
-        private static IQueryValidationRule[] _rules;
+        private IQueryValidationRule[] _rules;
 
         public QueryValidator(IEnumerable<IQueryValidationRule> rules)
         {

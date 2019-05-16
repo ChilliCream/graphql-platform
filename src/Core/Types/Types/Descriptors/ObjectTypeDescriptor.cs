@@ -10,7 +10,7 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal class ObjectTypeDescriptor
+    public class ObjectTypeDescriptor
         : DescriptorBase<ObjectTypeDefinition>
         , IObjectTypeDescriptor
     {
