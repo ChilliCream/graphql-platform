@@ -14,7 +14,7 @@ namespace HotChocolate.Execution
         }
 
         public QueryException(IError error)
-            : base(error.Message)
+            : base(error?.Message)
         {
             Errors = error == null
                 ? Array.Empty<IError>()

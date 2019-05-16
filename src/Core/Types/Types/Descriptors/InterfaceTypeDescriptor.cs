@@ -7,7 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal class InterfaceTypeDescriptor
+    public class InterfaceTypeDescriptor
         : DescriptorBase<InterfaceTypeDefinition>
         , IInterfaceTypeDescriptor
     {
@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Descriptors
         protected override InterfaceTypeDefinition Definition { get; } =
             new InterfaceTypeDefinition();
 
-        protected List<InterfaceFieldDescriptor> Fields { get; } =
+        protected ICollection<InterfaceFieldDescriptor> Fields { get; } =
             new List<InterfaceFieldDescriptor>();
 
         protected override void OnCreateDefinition(
