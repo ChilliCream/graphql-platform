@@ -1,272 +1,37 @@
-using System.Globalization;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using System.Xml.XPath;
 using IOPath = System.IO.Path;
 
 namespace HotChocolate.Utilities
 {
-    /// <summary>
-    /// Provides extension methods for reading XML comments
-    /// from reflected members.
-    /// </summary>
-    /// <remarks>
-    /// This class currently works only on the desktop .NET framework.
-    /// </remarks>
-    internal static class XmlDocumentationExtensions
+    public interface IXmlDocumentationFileResolver
     {
-        private const string _summaryElementName = "summary";
-        private const string _bin = "bin";
-        private const string _inheritdoc = "inheritdoc";
+        bool TryGetXmlDocument(
+            AssemblyName assemblyName,
+            out XDocument document);
+    }
 
-
-        private static readonly ConcurrentDictionary<string, XDocument> _cache =
+    public class XmlDocumentationFileResolver
+        : IXmlDocumentationFileResolver
+    {
+        private readonly ConcurrentDictionary<string, XDocument> _cache =
             new ConcurrentDictionary<string, XDocument>(
                 StringComparer.OrdinalIgnoreCase);
 
-        /// <summary>
-        /// Returns the contents of the "summary" XML documentation
-        /// tag for the specified member.
-        /// </summary>
-        /// <param name="type">The type.</param>
-        /// <returns>
-        /// The contents of the "summary" tag for the member.
-        /// </returns>
-        internal static string GetXmlSummary(this Type type)
-        {
-            return GetXmlDocumentationTag(
-                type.GetTypeInfo(),
-                _summaryElementName);
-        }
-
-        /// <summary>
-        /// Returns the contents of the "summary" XML documentation
-        /// tag for the specified member.
-        /// </summary>
-        /// <param name="member">The reflected member.</param>
-        /// <returns>The contents of the "summary" tag for the member.</returns>
-        internal static string GetXmlSummary(this MemberInfo member)
-        {
-            return GetXmlDocumentationTag(member, _summaryElementName);
-        }
-
-        /// <summary>
-        /// Returns the contents of the "returns" or "param" XML
-        /// documentation tag for the specified parameter.
-        /// </summary>
-        /// <param name="parameter">
-        /// The reflected parameter or return info.
-        /// </param>
-        /// <returns>The contents of the "returns" or "param" tag.</returns>
-        internal static string GetXmlDocumentation(this ParameterInfo parameter)
-        {
-            var assemblyName = parameter.Member.Module.Assembly.GetName();
-            if (IgnoreAssembly(assemblyName))
-            {
-                return string.Empty;
-            }
-
-            var documentationPath = GetXmlDocumentationPath(
-                parameter.Member.Module.Assembly);
-
-            var element = GetXmlDocumentation(
-                parameter,
-                documentationPath);
-
-            return RemoveLineBreakWhiteSpaces(
-                GetXmlDocumentationText(element));
-        }
-
-        /// <summary>Clears the cache.</summary>
-        /// <returns>The task.</returns>
-        internal static void ClearCache()
-        {
-            _cache.Clear();
-        }
-
-        /// <summary>
-        /// Returns the contents of an XML documentation tag
-        /// for the specified member.
-        /// </summary>
-        /// <param name="type">The type.</param>
-        /// <param name="tagName">Name of the tag.</param>
-        /// <returns>
-        /// The contents of the "summary" tag for the member.
-        /// </returns>
-        private static string GetXmlDocumentationTag(
-            this Type type,
-            string tagName)
-        {
-            return GetXmlDocumentationTag(type, tagName);
-        }
-
-        /// <summary>
-        /// Converts the given XML documentation <see cref="XElement"/> to text.
-        /// </summary>
-        /// <param name="element">The XML element.</param>
-        /// <returns>The text</returns>
-        private static string GetXmlDocumentationText(this XElement element)
-        {
-            if (element == null)
-            {
-                return null;
-            }
-
-            var value = new StringBuilder();
-            foreach (var node in element.Nodes())
-            {
-                var currentElement = node as XElement;
-                if (currentElement == null)
-                {
-                    value.Append(node);
-                    continue;
-                }
-
-                if (currentElement.Name != "see")
-                {
-                    value.Append(currentElement.Value);
-                    continue;
-                }
-
-                var attribute = currentElement.Attribute("langword");
-                if (attribute != null)
-                {
-                    value.Append(attribute.Value);
-                    continue;
-                }
-
-                if (!string.IsNullOrEmpty(currentElement.Value))
-                {
-                    value.Append(currentElement.Value);
-                }
-                else
-                {
-                    attribute = currentElement.Attribute("cref");
-                    if (attribute != null)
-                    {
-                        value.Append(attribute.Value
-                            .Trim('!', ':').Trim()
-                            .Split('.').Last());
-                    }
-                    else
-                    {
-                        attribute = currentElement.Attribute("href");
-                        if (attribute != null)
-                        {
-                            value.Append(attribute.Value);
-                        }
-                    }
-                }
-            }
-
-            return value.ToString();
-        }
-
-        /// <summary>
-        /// Returns the contents of an XML documentation tag for the
-        /// specified member.
-        /// </summary>
-        /// <param name="member">The reflected member.</param>
-        /// <param name="tagName">Name of the tag.</param>
-        /// <returns>The contents of the "summary" tag for the member.</returns>
-        private static string GetXmlDocumentationTag(
-            this MemberInfo member,
-            string tagName)
-        {
-            var assemblyName = member.Module.Assembly.GetName();
-            if (IgnoreAssembly(assemblyName))
-            {
-                return string.Empty;
-            }
-
-            var documentationPath = GetXmlDocumentationPath(
-                member.Module.Assembly);
-
-            var element = GetXmlDocumentation(member, documentationPath);
-
-            return RemoveLineBreakWhiteSpaces(
-                GetXmlDocumentationText(element?.Element(tagName)));
-        }
-
-        private static XElement GetXmlDocumentation(
-            this ParameterInfo parameter,
-            string pathToXmlFile)
-        {
-            try
-            {
-                var assemblyName = parameter.Member.Module.Assembly.GetName();
-                var document = TryGetXmlDocument(assemblyName, pathToXmlFile);
-                if (document == null)
-                {
-                    return null;
-                }
-
-                return GetParameterDocumentation(parameter, document);
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        /// <summary>Returns the contents of an XML documentation tag for the specified member.</summary>
-        /// <param name="member">The reflected member.</param>
-        /// <returns>The contents of the "summary" tag for the member.</returns>
-        private static XElement GetXmlDocumentation(this MemberInfo member)
-        {
-            var assemblyName = member.Module.Assembly.GetName();
-            if (IgnoreAssembly(assemblyName))
-            {
-                return null;
-            }
-
-            var documentationPath = GetXmlDocumentationPath(
-                member.Module.Assembly);
-
-            return GetXmlDocumentation(member, documentationPath);
-        }
-
-        private static XElement GetXmlDocumentation(
-            this MemberInfo member,
-            string pathToXmlFile)
-        {
-            try
-            {
-                var assemblyName = member.Module.Assembly.GetName();
-                var document = TryGetXmlDocument(assemblyName, pathToXmlFile);
-                if (document == null)
-                {
-                    return null;
-                }
-
-                var element = GetMemberDocumentation(member, document);
-                ReplaceInheritdocElements(member, element);
-                return element;
-            }
-            catch
-            {
-                return null;
-            }
-        }
-
-        private static XDocument TryGetXmlDocument(
+        public bool TryGetXmlDocument(
             AssemblyName assemblyName,
-            string pathToXmlFile)
+            out XDocument document)
         {
             if (!_cache.TryGetValue(assemblyName.FullName, out XDocument doc))
             {
                 if (!File.Exists(pathToXmlFile))
                 {
-                    _cache[assemblyName.FullName] = null;
+                    doc = _cache[assemblyName.FullName] = null;
                 }
                 else
                 {
@@ -277,199 +42,8 @@ namespace HotChocolate.Utilities
                 }
             }
 
-            return doc;
-        }
-
-        private static bool IgnoreAssembly(AssemblyName assemblyName)
-        {
-            if (_cache.TryGetValue(assemblyName.FullName, out XDocument value))
-            {
-                return value == null;
-            }
-
-            return false;
-        }
-
-        private static XElement GetMemberDocumentation(
-            this MemberInfo member,
-            XDocument xml)
-        {
-            MemberName name = GetMemberElementName(member);
-            return xml.XPathSelectElements(name.Path)
-                .FirstOrDefault();
-        }
-
-        private static XElement GetParameterDocumentation(
-            this ParameterInfo parameter,
-            XDocument xml)
-        {
-            MemberName name = GetMemberElementName(parameter.Member);
-            var result = xml.XPathSelectElements(name.Path);
-
-            var element = result.FirstOrDefault();
-            if (element == null)
-            {
-                return null;
-            }
-
-            ReplaceInheritdocElements(parameter.Member, element);
-
-            if (parameter.IsRetval || string.IsNullOrEmpty(parameter.Name))
-            {
-                result = xml.XPathSelectElements(name.ReturnsPath);
-            }
-            else
-            {
-                result = xml.XPathSelectElements(
-                    name.GetParameterPath(parameter.Name));
-            }
-
-            return result.FirstOrDefault();
-        }
-
-        private static void ReplaceInheritdocElements(
-            this MemberInfo member,
-            XElement element)
-        {
-            if (element == null)
-            {
-                return;
-            }
-
-            List<XNode> children = element.Nodes().ToList();
-            foreach (var child in children.OfType<XElement>())
-            {
-                if (string.Equals(child.Name.LocalName, _inheritdoc,
-                    StringComparison.OrdinalIgnoreCase))
-                {
-                    Type baseType = member.DeclaringType.GetTypeInfo().BaseType;
-                    MemberInfo baseMember =
-                        baseType?.GetTypeInfo().DeclaredMembers
-                            .SingleOrDefault(m => m.Name == member.Name);
-                    if (baseMember != null)
-                    {
-                        var baseDoc = baseMember.GetXmlDocumentation();
-                        if (baseDoc != null)
-                        {
-                            var nodes = baseDoc.Nodes()
-                                .OfType<object>().ToArray();
-                            child.ReplaceWith(nodes);
-                        }
-                        else
-                        {
-                            ProcessInheritdocInterfaceElements(member, child);
-                        }
-                    }
-                    else
-                    {
-                        ProcessInheritdocInterfaceElements(member, child);
-                    }
-                }
-            }
-        }
-
-        private static void ProcessInheritdocInterfaceElements(
-            this MemberInfo member,
-            XElement child)
-        {
-            foreach (Type baseInterface in member.DeclaringType
-                .GetTypeInfo().ImplementedInterfaces)
-            {
-                MemberInfo baseMember = baseInterface?.GetTypeInfo()
-                    .DeclaredMembers.SingleOrDefault(m =>
-                        m.Name.EqualsOrdinal(member.Name));
-                if (baseMember != null)
-                {
-                    XElement baseDoc = baseMember.GetXmlDocumentation();
-                    if (baseDoc != null)
-                    {
-                        var nodes = baseDoc.Nodes().OfType<object>().ToArray();
-                        child.ReplaceWith(nodes);
-                    }
-                }
-            }
-        }
-
-        // TODO : MST we have a much more efficient functionallity in our parser ... we should user ours instead
-        private static string RemoveLineBreakWhiteSpaces(string documentation)
-        {
-            if (string.IsNullOrEmpty(documentation))
-            {
-                return string.Empty;
-            }
-
-            documentation = "\n" + documentation
-                .Replace("\r", string.Empty).Trim('\n');
-
-            var whitespace = Regex.Match(documentation, "(\\n[ \\t]*)").Value;
-            documentation = documentation.Replace(whitespace, "\n");
-
-            return documentation.Trim('\n');
-        }
-
-        /// <exception cref="ArgumentException">Unknown member type.</exception>
-        private static MemberName GetMemberElementName(MemberInfo member)
-        {
-            char prefixCode;
-
-            var memberName = member is Type memberType
-                && !string.IsNullOrEmpty(memberType.FullName)
-                ? memberType.FullName
-                : member.DeclaringType.FullName + "." + member.Name;
-
-            switch (member.MemberType)
-            {
-                case MemberTypes.Constructor:
-                    memberName = memberName.Replace(".ctor", "#ctor");
-                    goto case MemberTypes.Method;
-
-                case MemberTypes.Method:
-                    prefixCode = 'M';
-
-                    var paramTypesList = string.Join(",",
-                        ((MethodBase)member).GetParameters()
-                        .Select(x => Regex
-                            .Replace(x.ParameterType.FullName,
-                                "(`[0-9]+)|(, .*?PublicKeyToken=[0-9a-z]*)",
-                                string.Empty)
-                            .Replace("[[", "{")
-                            .Replace("]]", "}"))
-                        .ToArray());
-
-                    if (!string.IsNullOrEmpty(paramTypesList))
-                    {
-                        memberName += "(" + paramTypesList + ")";
-                    }
-                    break;
-
-                case MemberTypes.Event:
-                    prefixCode = 'E';
-                    break;
-
-                case MemberTypes.Field:
-                    prefixCode = 'F';
-                    break;
-
-                case MemberTypes.NestedType:
-                    memberName = memberName.Replace('+', '.');
-                    goto case MemberTypes.TypeInfo;
-
-                case MemberTypes.TypeInfo:
-                    prefixCode = 'T';
-                    break;
-
-                case MemberTypes.Property:
-                    prefixCode = 'P';
-                    break;
-
-                default:
-                    throw new ArgumentException(
-                        "Unknown member type.",
-                        "member");
-            }
-
-            return new MemberName(
-                $"{prefixCode}:{memberName.Replace("+", ".")}");
+            document = doc;
+            return document != null;
         }
 
         private static string GetXmlDocumentationPath(Assembly assembly)
@@ -559,43 +133,6 @@ namespace HotChocolate.Utilities
             {
                 return null;
             }
-        }
-
-        private ref struct MemberName
-        {
-            private const string _getMemberDocPath =
-                "/doc/members/member[@name='{0}']";
-            private const string _returnsPath = "{0}/returns";
-            private const string _paramsPath = "{0}/param[@name='{1}']";
-
-            public MemberName(string name)
-            {
-                Value = name;
-                Path = string.Format(
-                    CultureInfo.InvariantCulture,
-                    _getMemberDocPath,
-                    name);
-                ReturnsPath = string.Format(
-                    CultureInfo.InvariantCulture,
-                    _returnsPath,
-                    Path);
-            }
-
-            public string Value { get; }
-
-            public string Path { get; }
-
-            public string ReturnsPath { get; }
-
-            public string GetParameterPath(string name)
-            {
-                return string.Format(
-                    CultureInfo.InvariantCulture,
-                    _paramsPath,
-                    Path,
-                    name);
-            }
-
         }
     }
 }
