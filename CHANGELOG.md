@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for directives on variable definitions [spec](https://github.com/graphql/graphql-spec/pull/510)
 - Added support for directives on enum values [spec](https://graphql.github.io/graphql-spec/June2018/#EnumValueDefinition)
 - Added support for directives on arguments [spec](https://graphql.github.io/graphql-spec/June2018/#ArgumentsDefinition)
+- Added support for XML documentation [715](https://github.com/ChilliCream/hotchocolate/issues/715)
 
 ### Changed
 

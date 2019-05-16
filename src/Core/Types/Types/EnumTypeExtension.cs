@@ -30,7 +30,7 @@ namespace HotChocolate.Types
             IInitializationContext context)
         {
             var descriptor = EnumTypeDescriptor.New(
-                DescriptorContext.Create(context.Services),
+                context.DescriptorContext,
                 GetType());
             _configure(descriptor);
             return descriptor.CreateDefinition();

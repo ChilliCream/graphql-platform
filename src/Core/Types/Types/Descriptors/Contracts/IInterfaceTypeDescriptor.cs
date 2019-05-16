@@ -9,7 +9,8 @@ namespace HotChocolate.Types
         , IFluent
     {
         // <summary>
-        /// Associates the specified <paramref name="interfaceTypeDefinitionNode"/>
+        /// Associates the specified
+        /// <paramref name="interfaceTypeDefinitionNode"/>
         /// with the <see cref="InterfaceType"/>.
         /// </summary>
         /// <param name="syntaxNode">

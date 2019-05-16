@@ -53,7 +53,7 @@ namespace HotChocolate.Types
             IInitializationContext context)
         {
             var descriptor = DirectiveTypeDescriptor.New(
-                DescriptorContext.Create(context.Services),
+                context.DescriptorContext,
                 GetType());
             _configure(descriptor);
             return descriptor.CreateDefinition();

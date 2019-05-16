@@ -26,7 +26,8 @@ namespace HotChocolate.Types
         /// </summary>
         /// <param name="value">The directive type name.</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="value"/> is <c>null</c> or <see cref="string.Empty"/>.
+        /// <paramref name="value"/> is <c>null</c> or
+        /// <see cref="string.Empty"/>.
         /// </exception>
         IDirectiveTypeDescriptor<T> Name(NameString value);
 
@@ -79,18 +80,15 @@ namespace HotChocolate.Types
         /// <param name="value">The directive location.</param>
         IDirectiveTypeDescriptor<T> Location(DirectiveLocation value);
 
-        // TODO : DOCU
-        [Obsolete]
+        [Obsolete("Use `Use(DirectiveMiddleware)`.")]
         IDirectiveTypeDescriptor<T> Middleware(
             DirectiveMiddleware middleware);
 
-        // TODO : DOCU
-        [Obsolete]
+        [Obsolete("Use `Use(DirectiveMiddleware)`.")]
         IDirectiveTypeDescriptor<T> Middleware<TMiddleware>(
             Expression<Func<TMiddleware, object>> method);
 
-        // TODO : DOCU
-        [Obsolete]
+        [Obsolete("Use `Use(DirectiveMiddleware)`.")]
         IDirectiveTypeDescriptor<T> Middleware<TMiddleware>(
             Expression<Action<TMiddleware>> method);
 
@@ -98,7 +96,8 @@ namespace HotChocolate.Types
             DirectiveMiddleware middleware);
 
         /// <summary>
-        /// Allows this directive type to be declared multiple times in a single location.
+        /// Allows this directive type to be declared multiple
+        /// times in a single location.
         /// </summary>
         IDirectiveTypeDescriptor<T> Repeatable();
     }

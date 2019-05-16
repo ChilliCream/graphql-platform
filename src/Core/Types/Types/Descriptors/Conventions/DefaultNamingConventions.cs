@@ -1,11 +1,30 @@
-using System.Reflection;
 using System;
+using System.Linq;
+using System.Reflection;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
     public class DefaultNamingConventions
         : INamingConventions
     {
+        private IDocumentationProvider _documentation;
+
+        public DefaultNamingConventions(IDocumentationProvider documentation)
+        {
+            _documentation = documentation
+                ?? throw new ArgumentNullException(nameof(documentation));
+        }
+
+        public DefaultNamingConventions()
+        {
+            _documentation = new XmlDocumentationProvider(
+                new XmlDocumentationFileResolver());
+        }
+
+        protected IDocumentationProvider DocumentationProvider =>
+            _documentation;
+
         public virtual NameString GetArgumentName(ParameterInfo parameter)
         {
             if (parameter == null)
@@ -21,7 +40,14 @@ namespace HotChocolate.Types.Descriptors
             {
                 throw new ArgumentNullException(nameof(parameter));
             }
-            return parameter.GetGraphQLDescription();
+
+            var description = parameter.GetGraphQLDescription();
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                description = _documentation.GetSummary(parameter);
+            }
+
+            return description;
         }
 
         public virtual NameString GetEnumValueName(object value)
@@ -32,6 +58,25 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return value.ToString().ToUpperInvariant();
+        }
+
+        public virtual string GetEnumValueDescription(object value)
+        {
+            if (value == null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            Type enumType = value.GetType();
+            MemberInfo enumValueMemberInfo = enumType
+                .GetMember(value.ToString())
+                .SingleOrDefault();
+            if (enumValueMemberInfo == null)
+            {
+                return null;
+            }
+
+            return GetMemberDescription(enumValueMemberInfo, MemberKind.Field);
         }
 
         public virtual NameString GetMemberName(
@@ -55,7 +100,13 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(member));
             }
 
-            return member.GetGraphQLDescription();
+            var description = member.GetGraphQLDescription();
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                description = _documentation.GetSummary(member);
+            }
+
+            return description;
         }
 
         public virtual NameString GetTypeName(Type type)
@@ -77,12 +128,10 @@ namespace HotChocolate.Types.Descriptors
 
             string name = type.GetGraphQLName();
 
-            if (kind == TypeKind.InputObject)
+            if (kind == TypeKind.InputObject
+                && !name.EndsWith("Input", StringComparison.Ordinal))
             {
-                if (!name.EndsWith("Input", StringComparison.Ordinal))
-                {
-                    name = name + "Input";
-                }
+                name = name + "Input";
             }
 
             return name;
@@ -95,7 +144,13 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return type.GetGraphQLDescription();
+            var description = type.GetGraphQLDescription();
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                description = _documentation.GetSummary(type);
+            }
+
+            return description;
         }
     }
 }

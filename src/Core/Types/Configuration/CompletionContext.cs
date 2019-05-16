@@ -66,6 +66,9 @@ namespace HotChocolate.Configuration
 
         public ISet<NameString> AlternateTypeNames => _alternateNames;
 
+        public IDescriptorContext DescriptorContext =>
+            _initializationContext.DescriptorContext;
+
         public T GetType<T>(ITypeReference reference)
             where T : IType
         {

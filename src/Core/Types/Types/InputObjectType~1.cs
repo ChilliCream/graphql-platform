@@ -26,9 +26,8 @@ namespace HotChocolate.Types
         protected override InputObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            var descriptor =
-                InputObjectTypeDescriptor.New<T>(
-                    DescriptorContext.Create(context.Services));
+            var descriptor = InputObjectTypeDescriptor.New<T>(
+                context.DescriptorContext);
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }

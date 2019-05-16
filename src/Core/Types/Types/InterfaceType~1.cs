@@ -24,9 +24,8 @@ namespace HotChocolate.Types
         protected override InterfaceTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            var descriptor =
-                InterfaceTypeDescriptor.New<T>(
-                    DescriptorContext.Create(context.Services));
+            var descriptor = InterfaceTypeDescriptor.New<T>(
+                context.DescriptorContext);
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
