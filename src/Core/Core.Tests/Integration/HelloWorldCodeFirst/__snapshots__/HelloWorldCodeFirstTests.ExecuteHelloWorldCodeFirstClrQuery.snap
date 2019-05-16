@@ -1,8 +1,9 @@
-{
+﻿{
   "Data": {
     "hello": "world",
     "state": "initial"
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

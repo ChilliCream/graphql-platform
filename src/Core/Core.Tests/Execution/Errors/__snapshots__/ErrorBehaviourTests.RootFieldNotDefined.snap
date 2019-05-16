@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {},
   "Extensions": {},
   "Errors": [
@@ -12,5 +12,6 @@
         }
       ]
     }
-  ]
+  ],
+  "ContextData": {}
 }

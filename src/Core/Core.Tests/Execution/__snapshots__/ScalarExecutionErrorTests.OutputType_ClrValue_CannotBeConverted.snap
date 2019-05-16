@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "stringToName": null
   },
@@ -19,5 +19,6 @@
       "Exception": null,
       "Extensions": {}
     }
-  ]
+  ],
+  "ContextData": {}
 }

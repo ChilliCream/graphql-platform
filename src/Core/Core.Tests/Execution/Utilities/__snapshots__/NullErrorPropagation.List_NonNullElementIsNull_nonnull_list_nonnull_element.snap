@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "foo": null
   },
@@ -22,5 +22,6 @@
       "Exception": null,
       "Extensions": {}
     }
-  ]
+  ],
+  "ContextData": {}
 }
