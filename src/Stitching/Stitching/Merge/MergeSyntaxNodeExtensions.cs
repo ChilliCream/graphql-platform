@@ -335,7 +335,10 @@ namespace HotChocolate.Stitching.Merge
 
             schemaName.EnsureNotEmpty(nameof(schemaName));
 
-            return AddDelegationPath(field, schemaName, selectionPath);
+            return AddDelegationPath(
+                field,
+                schemaName,
+                selectionPath.ToString());
         }
 
         public static FieldDefinitionNode AddDelegationPath(
