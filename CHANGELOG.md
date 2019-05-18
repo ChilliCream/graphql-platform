@@ -22,11 +22,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for directives on enum values [spec](https://graphql.github.io/graphql-spec/June2018/#EnumValueDefinition)
 - Added support for directives on arguments [spec](https://graphql.github.io/graphql-spec/June2018/#ArgumentsDefinition)
 - Added support for XML documentation [715](https://github.com/ChilliCream/hotchocolate/issues/715)
+- Added access to stitched http response headers (e.g. Set-Cookie) [679](https://github.com/ChilliCream/hotchocolate/issues/679)
 
 ### Changed
 
 - Replaced roslyn compiler with the expression compiler. This will reduce the memory footprint of the server.
 - Changed how the server caches queries.
+- `DiagnosticNames` is now public.
 
 ### Removed
 
