@@ -51,6 +51,49 @@ namespace HotChocolate.Stitching.Merge
         }
 
         [Fact]
+        public void AddDelegationPath_SingleComponent_TwoArgs()
+        {
+            // arrange
+            var fieldNode = new FieldDefinitionNode(
+                null,
+                new NameNode("foo"),
+                null,
+                Array.Empty<InputValueDefinitionNode>(),
+                new NamedTypeNode(new NameNode("Type")),
+                Array.Empty<DirectiveNode>());
+
+            // act
+            var path = new SelectionPathComponent(
+                new NameNode("bar"),
+                new[]
+                {
+                    new ArgumentNode("baz",
+                        new ScopedVariableNode(
+                            null,
+                            new NameNode("qux"),
+                            new NameNode("quux"))),
+                    new ArgumentNode("value_arg", "value")
+                });
+
+            fieldNode = fieldNode.AddDelegationPath("schemName", path);
+
+            // assert
+            var schema = new DocumentNode(new[]
+                {
+                    new ObjectTypeDefinitionNode
+                    (
+                        null,
+                        new NameNode("Object"),
+                        null,
+                        Array.Empty<DirectiveNode>(),
+                        Array.Empty<NamedTypeNode>(),
+                        new[] { fieldNode }
+                    )
+                });
+            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+        }
+
+        [Fact]
         public void AddDelegationPath_SingleComponent_SchemNameIsEmpty()
         {
             // arrange
