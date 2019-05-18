@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for directives on arguments [spec](https://graphql.github.io/graphql-spec/June2018/#ArgumentsDefinition)
 - Added support for XML documentation [715](https://github.com/ChilliCream/hotchocolate/issues/715)
 - Added access to stitched http response headers (e.g. Set-Cookie) [679](https://github.com/ChilliCream/hotchocolate/issues/679)
+- Added helper to add delegation paths to a field.
 
 ### Changed
 

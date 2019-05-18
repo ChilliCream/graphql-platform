@@ -35,6 +35,8 @@ namespace HotChocolate.Stitching.Delegation
 
             for (int i = 1; i < Arguments.Count; i++)
             {
+                sb.Append(',');
+                sb.Append(' ');
                 sb.Append(SerializeArgument(Arguments[i]));
             }
 
