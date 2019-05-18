@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using HotChocolate.Language;
+using HotChocolate.Stitching.Delegation;
 using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching.Merge
@@ -314,7 +316,69 @@ namespace HotChocolate.Stitching.Merge
         public static FieldDefinitionNode AddDelegationPath(
             this FieldDefinitionNode field,
             NameString schemaName) =>
-            AddDelegationPath(field, schemaName, null);
+            AddDelegationPath(field, schemaName, (string)null);
+
+        public static FieldDefinitionNode AddDelegationPath(
+            this FieldDefinitionNode field,
+            NameString schemaName,
+            SelectionPathComponent selectionPath)
+        {
+            if (field == null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            if (selectionPath == null)
+            {
+                throw new ArgumentNullException(nameof(selectionPath));
+            }
+
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+
+            return AddDelegationPath(field, schemaName, selectionPath);
+        }
+
+        public static FieldDefinitionNode AddDelegationPath(
+            this FieldDefinitionNode field,
+            NameString schemaName,
+            IReadOnlyCollection<SelectionPathComponent> selectionPath)
+        {
+            if (field == null)
+            {
+                throw new ArgumentNullException(nameof(field));
+            }
+
+            if (selectionPath == null)
+            {
+                throw new ArgumentNullException(nameof(selectionPath));
+            }
+
+            schemaName.EnsureNotEmpty(nameof(schemaName));
+
+            if (selectionPath.Count == 0)
+            {
+                return AddDelegationPath(field, schemaName);
+            }
+
+            if (selectionPath.Count == 1)
+            {
+                return AddDelegationPath(
+                    field,
+                    schemaName,
+                    selectionPath.Single());
+            }
+
+            var path = new StringBuilder();
+            path.Append(selectionPath.First().ToString());
+
+            foreach (SelectionPathComponent component in selectionPath.Skip(1))
+            {
+                path.Append('.');
+                path.Append(component.ToString());
+            }
+
+            return AddDelegationPath(field, schemaName, path.ToString());
+        }
 
         public static FieldDefinitionNode AddDelegationPath(
             this FieldDefinitionNode field,
