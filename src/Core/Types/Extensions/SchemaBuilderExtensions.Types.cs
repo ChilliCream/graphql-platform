@@ -396,7 +396,7 @@ namespace HotChocolate
             return builder.SetSchema(typeof(TSchema));
         }
 
-        public static ISchemaBuilder AddClrType<TClrType, TSchemaType>(
+        public static ISchemaBuilder BindClrType<TClrType, TSchemaType>(
             this ISchemaBuilder builder)
             where TSchemaType : INamedType
         {
@@ -405,7 +405,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.AddClrType(typeof(TClrType), typeof(TSchemaType));
+            return builder.BindClrType(typeof(TClrType), typeof(TSchemaType));
         }
     }
 }

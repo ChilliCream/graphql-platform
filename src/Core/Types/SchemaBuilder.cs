@@ -142,7 +142,7 @@ namespace HotChocolate
             return this;
         }
 
-        public ISchemaBuilder AddClrType(Type clrType, Type schemaType)
+        public ISchemaBuilder BindClrType(Type clrType, Type schemaType)
         {
             if (clrType == null)
             {
