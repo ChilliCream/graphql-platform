@@ -28,6 +28,7 @@ namespace HotChocolate.Configuration
             IServiceProvider services,
             IDescriptorContext descriptorContext,
             IEnumerable<ITypeReference> initialTypes,
+            IDictionary<ITypeReference, ITypeReference> clrTypes,
             IDictionary<string, object> contextData)
         {
             if (initialTypes == null)
@@ -47,6 +48,8 @@ namespace HotChocolate.Configuration
 
             _descriptorContext = descriptorContext
                 ?? throw new ArgumentNullException(nameof(descriptorContext));
+            ClrTypes = clrTypes
+                ?? throw new ArgumentNullException(nameof(clrTypes));
 
             _unregistered.AddRange(IntrospectionTypes.All);
             _unregistered.AddRange(Directives.All);
@@ -64,8 +67,7 @@ namespace HotChocolate.Configuration
         public IDictionary<ITypeReference, RegisteredType> Registerd
         { get; } = new Dictionary<ITypeReference, RegisteredType>();
 
-        public IDictionary<ITypeReference, ITypeReference> ClrTypes { get; } =
-            new Dictionary<ITypeReference, ITypeReference>();
+        public IDictionary<ITypeReference, ITypeReference> ClrTypes { get; }
 
         public ICollection<ISchemaError> Errors => _errors;
 

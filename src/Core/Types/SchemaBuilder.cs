@@ -30,6 +30,8 @@ namespace HotChocolate
             new Dictionary<OperationType, ITypeReference>();
         private readonly Dictionary<FieldReference, FieldResolver> _resolvers =
             new Dictionary<FieldReference, FieldResolver>();
+        private readonly Dictionary<ITypeReference, ITypeReference> _clrTypes =
+            new Dictionary<ITypeReference, ITypeReference>();
         private readonly IBindingCompiler _bindingCompiler =
             new BindingCompiler();
         private SchemaOptions _options = new SchemaOptions();
@@ -136,6 +138,34 @@ namespace HotChocolate
                     type,
                     SchemaTypeReference.InferTypeContext(type)));
             }
+
+            return this;
+        }
+
+        public ISchemaBuilder AddClrType(Type clrType, Type schemaType)
+        {
+            if (clrType == null)
+            {
+                throw new ArgumentNullException(nameof(clrType));
+            }
+
+            if (schemaType == null)
+            {
+                throw new ArgumentNullException(nameof(schemaType));
+            }
+
+            if (!BaseTypes.IsSchemaType(schemaType))
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "schemaType must be a schema type.",
+                    nameof(schemaType));
+            }
+
+            TypeContext context =
+                SchemaTypeReference.InferTypeContext(schemaType);
+            _clrTypes[new ClrTypeReference(clrType, context)] =
+                new ClrTypeReference(schemaType, context);
 
             return this;
         }

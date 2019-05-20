@@ -51,6 +51,8 @@ namespace HotChocolate
                     types,
                     () => lazy.Schema);
 
+            RegisterClrTypes(initializer);
+
             SchemaTypesDefinition definition =
                 CreateSchemaDefinition(initializer);
 
@@ -72,6 +74,15 @@ namespace HotChocolate
         }
 
         ISchema ISchemaBuilder.Create() => Create();
+
+        private void RegisterClrTypes(TypeInitializer typeInitializer)
+        {
+            foreach (KeyValuePair<ITypeReference, ITypeReference> binding in
+                _clrTypes)
+            {
+                typeInitializer.ClrTypes[binding.Key] = binding.Value;
+            }
+        }
 
         private IEnumerable<ITypeReference> ParseDocuments(
             IServiceProvider services,

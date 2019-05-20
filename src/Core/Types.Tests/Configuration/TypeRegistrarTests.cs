@@ -27,6 +27,7 @@ namespace HotChocolate
                 serviceProvider,
                 DescriptorContext.Create(),
                 initialTypes,
+                new Dictionary<ITypeReference, ITypeReference>(),
                 new Dictionary<string, object>());
 
             // act
@@ -62,6 +63,7 @@ namespace HotChocolate
                 serviceProvider,
                 DescriptorContext.Create(),
                 initialTypes,
+                new Dictionary<ITypeReference, ITypeReference>(),
                 new Dictionary<string, object>());
 
             // act
