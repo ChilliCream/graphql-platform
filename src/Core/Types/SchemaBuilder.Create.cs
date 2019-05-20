@@ -161,6 +161,12 @@ namespace HotChocolate
                 initializer.Resolvers[reference] = resolver;
             }
 
+            foreach (KeyValuePair<ITypeReference, ITypeReference> binding in
+                _clrTypes)
+            {
+                initializer.ClrTypes[binding.Key] = binding.Value;
+            }
+
             initializer.Initialize(schemaResolver);
             return initializer;
         }

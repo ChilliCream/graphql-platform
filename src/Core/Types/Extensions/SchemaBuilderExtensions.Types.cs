@@ -356,7 +356,7 @@ namespace HotChocolate
                 || (directiveType.IsGenericType
                 && directiveType.GetGenericTypeDefinition() ==
                 typeof(DirectiveType<>)))
-            {                
+            {
                 throw new ArgumentException(
                     TypeResources.SchemaBuilderExtensions_DirectiveTypeIsBaseType,
                     nameof(directiveType));
@@ -394,6 +394,18 @@ namespace HotChocolate
             }
 
             return builder.SetSchema(typeof(TSchema));
+        }
+
+        public static ISchemaBuilder BindClrType<TClrType, TSchemaType>(
+            this ISchemaBuilder builder)
+            where TSchemaType : INamedType
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.BindClrType(typeof(TClrType), typeof(TSchemaType));
         }
     }
 }

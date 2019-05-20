@@ -23,8 +23,6 @@ namespace HotChocolate.Configuration
             new Dictionary<RegisteredType, CompletionContext>();
         private readonly Dictionary<ITypeReference, RegisteredType> _types =
             new Dictionary<ITypeReference, RegisteredType>();
-        private readonly Dictionary<ITypeReference, ITypeReference> _clrTypes =
-            new Dictionary<ITypeReference, ITypeReference>();
         private readonly Dictionary<NameString, ITypeReference> _named =
             new Dictionary<NameString, ITypeReference>();
         private readonly Dictionary<ITypeReference, ITypeReference> _depsLup =
@@ -85,6 +83,9 @@ namespace HotChocolate.Configuration
 
         public IDictionary<ITypeReference, RegisteredType> Types => _types;
 
+        public IDictionary<ITypeReference, ITypeReference> ClrTypes { get; } =
+            new Dictionary<ITypeReference, ITypeReference>();
+
         public IDictionary<FieldReference, RegisteredResolver> Resolvers =>
             _res;
 
@@ -144,6 +145,7 @@ namespace HotChocolate.Configuration
                 _services,
                 _descriptorContext,
                 _initialTypes,
+                ClrTypes,
                 _contextData);
 
             if (typeRegistrar.Complete())
@@ -164,11 +166,6 @@ namespace HotChocolate.Configuration
                 foreach (ITypeReference key in typeRegistrar.Registerd.Keys)
                 {
                     _types[key] = typeRegistrar.Registerd[key];
-                }
-
-                foreach (ITypeReference key in typeRegistrar.ClrTypes.Keys)
-                {
-                    _clrTypes[key] = typeRegistrar.ClrTypes[key];
                 }
 
                 return true;
@@ -611,9 +608,9 @@ namespace HotChocolate.Configuration
                         typeInfo.ClrType,
                         typeReference.Context);
 
-                    if ((_clrTypes.TryGetValue(
+                    if ((ClrTypes.TryGetValue(
                             normalized, out ITypeReference r)
-                        || _clrTypes.TryGetValue(
+                        || ClrTypes.TryGetValue(
                             normalized.WithoutContext(), out r))
                         && r is IClrTypeReference cr)
                     {
