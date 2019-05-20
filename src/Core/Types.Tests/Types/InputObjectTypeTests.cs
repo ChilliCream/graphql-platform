@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -385,6 +386,55 @@ namespace HotChocolate.Types
             // assert
             Assert.Throws<SchemaException>(a)
                 .Errors.First().Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Ignore_DescriptorIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                InputObjectTypeDescriptorExtensions
+                    .Ignore<SimpleInput>(null, t => t.Id);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Ignore_ExpressionIsNull_ArgumentNullException()
+        {
+            // arrange
+            InputObjectTypeDescriptor<SimpleInput> descriptor =
+                InputObjectTypeDescriptor.New<SimpleInput>(
+                    DescriptorContext.Create());
+
+            // act
+            Action action = () =>
+                InputObjectTypeDescriptorExtensions
+                    .Ignore(descriptor, null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Ignore_Id_Property()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InputObjectType<SimpleInput>(d => d
+                    .Ignore(t => t.Id)))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
         }
     }
 
