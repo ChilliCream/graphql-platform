@@ -1,3 +1,4 @@
+using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -75,19 +76,22 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context, definition);
 
-            _isOfType = definition.IsOfType;
-            SyntaxNode = definition.SyntaxNode;
+            if (ValidateFields(context, definition))
+            {
+                _isOfType = definition.IsOfType;
+                SyntaxNode = definition.SyntaxNode;
 
-            var fields = new List<ObjectField>();
-            AddIntrospectionFields(context, fields);
-            AddRelayNodeField(context, fields);
-            fields.AddRange(definition.Fields.Select(t => new ObjectField(t)));
+                var fields = new List<ObjectField>();
+                AddIntrospectionFields(context, fields);
+                AddRelayNodeField(context, fields);
+                fields.AddRange(definition.Fields.Select(t => new ObjectField(t)));
 
-            Fields = new FieldCollection<ObjectField>(fields);
+                Fields = new FieldCollection<ObjectField>(fields);
 
-            CompleteInterfaces(context, definition);
-            CompleteIsOfType(context);
-            FieldInitHelper.CompleteFields(context, definition, Fields);
+                CompleteInterfaces(context, definition);
+                CompleteIsOfType(context);
+                FieldInitHelper.CompleteFields(context, definition, Fields);
+            }
         }
 
         private void AddIntrospectionFields(
@@ -169,6 +173,30 @@ namespace HotChocolate.Types
                     _isOfType = IsOfTypeWithClrType;
                 }
             }
+        }
+
+        private bool ValidateFields(
+            ICompletionContext context,
+            ObjectTypeDefinition definition)
+        {
+            ObjectFieldDefinition[] invalidFields =
+                definition.Fields.Where(t => t.Type is null).ToArray();
+
+            foreach (ObjectFieldDefinition field in invalidFields)
+            {
+                context.ReportError(SchemaErrorBuilder.New()
+                    .SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        "Unable to infer or resolve the type of field {0}.{1}.",
+                        Name,
+                        field.Name))
+                    .SetCode(TypeErrorCodes.NoFieldType)
+                    .SetTypeSystemObject(this)
+                    .SetPath(Path.New(Name).Append(field.Name))
+                    .Build());
+            }
+
+            return invalidFields.Length == 0;
         }
 
         private bool IsOfTypeWithClrType(
