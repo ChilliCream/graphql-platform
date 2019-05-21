@@ -31,13 +31,10 @@ namespace HotChocolate.Types.Descriptors
                 clrType, TypeKind.Directive);
         }
 
-        public DirectiveTypeDescriptor(
-            IDescriptorContext context,
-            NameString name)
+        public DirectiveTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
             Definition.ClrType = typeof(object);
-            Definition.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         protected override DirectiveTypeDefinition Definition { get; } =
@@ -132,7 +129,7 @@ namespace HotChocolate.Types.Descriptors
         [Obsolete("Replace Middleware with `Use`.", true)]
         public IDirectiveTypeDescriptor Middleware<T>(
             Expression<Func<T, object>> method)
-        {         
+        {
             throw new NotSupportedException(
                 TypeResources.DirectiveType_ReplaceWithUse);
         }
@@ -157,9 +154,8 @@ namespace HotChocolate.Types.Descriptors
             new DirectiveTypeDescriptor(context, clrType);
 
         public static DirectiveTypeDescriptor New(
-            IDescriptorContext context,
-            NameString name) =>
-            new DirectiveTypeDescriptor(context, name);
+            IDescriptorContext context) =>
+            new DirectiveTypeDescriptor(context);
 
         public static DirectiveTypeDescriptor<T> New<T>(
             IDescriptorContext context) =>

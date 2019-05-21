@@ -28,15 +28,6 @@ namespace HotChocolate.Types.Descriptors
                 clrType, TypeKind.InputObject);
         }
 
-        public InputObjectTypeDescriptor(
-            IDescriptorContext context,
-            NameString name)
-            : base(context)
-        {
-            Definition.ClrType = typeof(object);
-            Definition.Name = name.EnsureNotEmpty(nameof(name));
-        }
-
         public InputObjectTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
@@ -123,9 +114,8 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public static InputObjectTypeDescriptor New(
-            IDescriptorContext context,
-            NameString name) =>
-            new InputObjectTypeDescriptor(context, name);
+            IDescriptorContext context) =>
+            new InputObjectTypeDescriptor(context);
 
         public static InputObjectTypeDescriptor New(
             IDescriptorContext context,

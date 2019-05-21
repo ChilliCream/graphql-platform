@@ -23,11 +23,10 @@ namespace HotChocolate.Types.Descriptors
                 context.Naming.GetTypeDescription(clrType, TypeKind.Union);
         }
 
-        public UnionTypeDescriptor(IDescriptorContext context, NameString name)
+        public UnionTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
             Definition.ClrType = typeof(object);
-            Definition.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         protected override UnionTypeDefinition Definition { get; } =
@@ -119,8 +118,7 @@ namespace HotChocolate.Types.Descriptors
             new UnionTypeDescriptor(context, clrType);
 
         public static UnionTypeDescriptor New(
-            IDescriptorContext context,
-            NameString name) =>
-            new UnionTypeDescriptor(context, name);
+            IDescriptorContext context) =>
+            new UnionTypeDescriptor(context);
     }
 }

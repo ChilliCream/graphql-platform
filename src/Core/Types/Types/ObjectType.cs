@@ -138,6 +138,7 @@ namespace HotChocolate.Types
             {
                 if (!context.TryGetType(interfaceRef, out InterfaceType type))
                 {
+                    // TODO : resources
                     context.ReportError(SchemaErrorBuilder.New()
                         .SetMessage(
                            "COULD NOT RESOLVE INTERFACE")

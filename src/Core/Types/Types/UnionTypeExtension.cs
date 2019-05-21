@@ -29,8 +29,7 @@ namespace HotChocolate.Types
             IInitializationContext context)
         {
             var descriptor = UnionTypeDescriptor.New(
-                context.DescriptorContext,
-                GetType());
+                context.DescriptorContext);
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
