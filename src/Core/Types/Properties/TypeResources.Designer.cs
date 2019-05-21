@@ -1334,7 +1334,8 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The type name was not completed correctly and is still empty. Type names are not allowed to remain empty after name completion was executed..
+        ///   Looks up a localized string similar to The type name was not completed correctly and is still empty. Type names are not allowed to remain empty after name completion was executed.
+        ///Type: `{0}`.
         /// </summary>
         internal static string TypeSystemObjectBase_NameIsNull {
             get {

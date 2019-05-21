@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
 using HotChocolate.Properties;
+using System.Globalization;
 
 namespace HotChocolate.Types
 {
@@ -54,9 +55,11 @@ namespace HotChocolate.Types
 
             if (Name.IsEmpty)
             {
-                // TODO : resources add the type full name!
                 context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage(TypeResources.TypeSystemObjectBase_NameIsNull)
+                    .SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        TypeResources.TypeSystemObjectBase_NameIsNull,
+                        GetType().FullName))
                     .SetCode(TypeErrorCodes.NoName)
                     .SetTypeSystemObject(this)
                     .Build());
