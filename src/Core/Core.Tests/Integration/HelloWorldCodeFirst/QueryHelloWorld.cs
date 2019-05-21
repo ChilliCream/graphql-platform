@@ -14,9 +14,12 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
 
         protected override void Configure(IObjectTypeDescriptor descriptor)
         {
+            descriptor.Name("QueryHelloWorld");
+
             descriptor.Field("hello")
                 .Argument("to", a => a.Type<StringType>())
                 .Resolver(c => c.Argument<string>("to") ?? "world");
+
             descriptor.Field("state").Resolver(() => DataStore.State);
         }
     }
