@@ -94,6 +94,7 @@ namespace HotChocolate.Types
             // arrange
             // act
             UnionType fooBarType = CreateType(new UnionType(d => d
+                .Name("FooOrBar")
                 .Type<FooType>()
                 .Type<BarType>()));
 

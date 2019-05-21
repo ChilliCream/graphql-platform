@@ -69,7 +69,10 @@ namespace HotChocolate.Types
             ICompletionContext context,
             TDefinition definition)
         {
-            Name = definition.Name;
+            if (definition.Name.HasValue)
+            {
+                Name = definition.Name;
+            }
         }
 
         internal sealed override void CompleteType(ICompletionContext context)
