@@ -1,0 +1,24 @@
+﻿[
+  {
+    "Message": "Unable to infer or resolve the type of field abc.def.",
+    "Code": "TS_FIELD_NO_TYPE",
+    "TypeSystemObject": {
+      "Kind": "Object",
+      "SyntaxNode": null,
+      "Interfaces": {},
+      "Fields": null,
+      "Directives": [],
+      "ClrType": "System.Object, System.Private.CoreLib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=7cec85d7bea7798e",
+      "ContextData": {},
+      "Name": "abc",
+      "Description": null
+    },
+    "Path": [
+      "abc",
+      "def"
+    ],
+    "SyntaxNodes": [],
+    "Extensions": {},
+    "Exception": null
+  }
+]

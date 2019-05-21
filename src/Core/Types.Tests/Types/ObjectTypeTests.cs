@@ -1245,6 +1245,23 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Field_Is_Missing_Type_Throws_SchemaException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddObjectType(t => t
+                    .Name("abc")
+                    .Field("def")
+                    .Resolver((object)"ghi"))
+                .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(action)
+                .Errors.MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
