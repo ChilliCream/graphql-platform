@@ -5,6 +5,7 @@ using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -14,15 +15,19 @@ namespace HotChocolate.Execution
 
         private readonly FragmentCollection _fragments;
         private readonly Func<ObjectField, FieldNode, FieldDelegate> _factory;
+        private readonly ITypeConversion _converter;
 
         public FieldCollector(
             FragmentCollection fragments,
-            Func<ObjectField, FieldNode, FieldDelegate> middlewareFactory)
+            Func<ObjectField, FieldNode, FieldDelegate> middlewareFactory,
+            ITypeConversion converter)
         {
             _fragments = fragments
                 ?? throw new ArgumentNullException(nameof(fragments));
             _factory = middlewareFactory
                 ?? throw new ArgumentNullException(nameof(middlewareFactory));
+            _converter = converter
+                ?? throw new ArgumentNullException(nameof(converter));
         }
 
         public IReadOnlyList<FieldSelection> CollectFields(
@@ -226,7 +231,7 @@ namespace HotChocolate.Execution
             return false;
         }
 
-        private static void CoerceArgumentValues(FieldInfo fieldInfo)
+        private void CoerceArgumentValues(FieldInfo fieldInfo)
         {
             var argumentValues = fieldInfo.Selection.Arguments
                 .Where(t => t.Value != null)
@@ -257,7 +262,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private static void CoerceArgumentValue(
+        private void CoerceArgumentValue(
             FieldInfo fieldInfo,
             IInputField argument,
             IDictionary<string, IValueNode> argumentValues)
@@ -296,7 +301,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private static void CreateArgumentValue(
+        private void CreateArgumentValue(
             FieldInfo fieldInfo,
             IInputField argument,
             IValueNode literal)
@@ -317,6 +322,7 @@ namespace HotChocolate.Execution
                 argument.Name,
                 argument.Type,
                 value,
+                _converter,
                 message => ErrorBuilder.New()
                     .SetMessage(message)
                     .AddLocation(fieldInfo.Selection)

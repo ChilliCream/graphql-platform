@@ -5,10 +5,10 @@ namespace HotChocolate.Types
     public interface ICompletedDependencyDescriptor
     {
         ICompletedDependencyDescriptor DependsOn<T>()
-            where T : ITypeSystem;
+            where T : ITypeSystemMember;
 
         ICompletedDependencyDescriptor DependsOn<T>(bool mustBeCompleted)
-            where T : ITypeSystem;
+            where T : ITypeSystemMember;
 
         ICompletedDependencyDescriptor DependsOn(Type schemaType);
 

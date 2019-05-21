@@ -20,7 +20,6 @@ namespace HotChocolate.Resolvers.Expressions
         private static readonly MethodInfo _resolver =
             typeof(IResolverContext).GetMethod("Resolver");
 
-
         private readonly IResolverParameterCompiler[] _compilers;
         private readonly ParameterExpression _context;
         private readonly MethodInfo _taskResult;

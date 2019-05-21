@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
 using HotChocolate.Properties;
+using System.Globalization;
 
 namespace HotChocolate.Types
 {
@@ -51,6 +52,19 @@ namespace HotChocolate.Types
         {
             ExecuteConfigurations(context, ConfigurationKind.Naming);
             OnCompleteName(context, _definition);
+
+            if (Name.IsEmpty)
+            {
+                context.ReportError(SchemaErrorBuilder.New()
+                    .SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        TypeResources.TypeSystemObjectBase_NameIsNull,
+                        GetType().FullName))
+                    .SetCode(TypeErrorCodes.NoName)
+                    .SetTypeSystemObject(this)
+                    .Build());
+            }
+
             base.CompleteName(context);
         }
 
@@ -58,13 +72,10 @@ namespace HotChocolate.Types
             ICompletionContext context,
             TDefinition definition)
         {
-            if (definition.Name.IsEmpty)
+            if (definition.Name.HasValue)
             {
-                throw new InvalidOperationException(
-                    TypeResources.TypeSystemObjectBase_NameIsNull);
+                Name = definition.Name;
             }
-
-            Name = definition.Name;
         }
 
         internal sealed override void CompleteType(ICompletionContext context)

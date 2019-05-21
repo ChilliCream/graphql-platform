@@ -28,8 +28,7 @@ namespace HotChocolate.Types
             IInitializationContext context)
         {
             var descriptor = InputObjectTypeDescriptor.New(
-                context.DescriptorContext,
-                GetType());
+                context.DescriptorContext);
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }

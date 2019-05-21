@@ -115,7 +115,7 @@ namespace HotChocolate.Execution
             }
 
             InputTypeNonNullCheck.CheckForNullValueViolation(
-                variable.Type, variable.Value,
+                variable.Type, variable.Value, _converter,
                 message => ErrorBuilder.New()
                     .SetMessage(message)
                     .AddLocation(variableDefinition)

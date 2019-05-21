@@ -1,3 +1,4 @@
+using System.Threading;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -5,15 +6,20 @@ using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
     internal static class InputTypeNonNullCheck
     {
+        private static ThreadLocal<HashSet<object>> _processed =
+            new ThreadLocal<HashSet<object>>(() => new HashSet<object>());
+
         public static IError CheckForNullValueViolation(
             NameString argumentName,
             IType type,
             object value,
+            ITypeConversion converter,
             Func<string, IError> createError)
         {
             if (type is NonNullType && value == null)
@@ -25,17 +31,24 @@ namespace HotChocolate.Execution
                     TypeVisualizer.Visualize(type)));
             }
 
+            var processed = _processed.Value;
+            processed.Clear();
+
             return CheckForNullValueViolation(
-                type, value, new HashSet<object>(), createError);
+                type, value, processed, converter, createError);
         }
 
         public static void CheckForNullValueViolation(
             IType type,
             object value,
+            ITypeConversion converter,
             Func<string, IError> createError)
         {
+            var processed = _processed.Value;
+            processed.Clear();
+
             IError error = CheckForNullValueViolation(
-                type, value, new HashSet<object>(), createError);
+                type, value, processed, converter, createError);
 
             if (error != null)
             {
@@ -47,6 +60,7 @@ namespace HotChocolate.Execution
             IType type,
             object value,
             ISet<object> processed,
+            ITypeConversion converter,
             Func<string, IError> createError)
         {
             if (value is null)
@@ -64,6 +78,7 @@ namespace HotChocolate.Execution
                     type.ListType(),
                     value,
                     processed,
+                    converter,
                     createError);
             }
 
@@ -74,6 +89,7 @@ namespace HotChocolate.Execution
                     t,
                     value,
                     processed,
+                    converter,
                     createError);
             }
 
@@ -84,6 +100,7 @@ namespace HotChocolate.Execution
             InputObjectType type,
             object value,
             ISet<object> processed,
+            ITypeConversion converter,
             Func<string, IError> createError)
         {
             if (!processed.Add(value))
@@ -93,9 +110,18 @@ namespace HotChocolate.Execution
 
             foreach (InputField field in type.Fields)
             {
-                object fieldValue = field.GetValue(value);
+                object obj = (type.ClrType != null
+                    && !type.ClrType.IsInstanceOfType(value)
+                    && converter.TryConvert(typeof(object), type.ClrType,
+                        value, out object converted))
+                    ? converted
+                    : value;
+
+                object fieldValue = field.GetValue(obj);
                 IError error = CheckForNullValueViolation(
-                    field.Type, fieldValue, processed, createError);
+                    field.Type, fieldValue, processed,
+                    converter, createError);
+
                 if (error != null)
                 {
                     return error;
@@ -109,6 +135,7 @@ namespace HotChocolate.Execution
             ListType type,
             object value,
             ISet<object> processed,
+            ITypeConversion converter,
             Func<string, IError> createError)
         {
             IType elementType = type.ElementType();
@@ -116,7 +143,9 @@ namespace HotChocolate.Execution
             foreach (object item in (IEnumerable)value)
             {
                 IError error = CheckForNullValueViolation(
-                    elementType, item, processed, createError);
+                    elementType, item, processed,
+                    converter, createError);
+
                 if (error != null)
                 {
                     return error;

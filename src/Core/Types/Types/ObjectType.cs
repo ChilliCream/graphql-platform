@@ -54,8 +54,7 @@ namespace HotChocolate.Types
             IInitializationContext context)
         {
             var descriptor = ObjectTypeDescriptor.New(
-                context.DescriptorContext,
-                GetType());
+                context.DescriptorContext);
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
@@ -138,6 +137,7 @@ namespace HotChocolate.Types
             {
                 if (!context.TryGetType(interfaceRef, out InterfaceType type))
                 {
+                    // TODO : resources
                     context.ReportError(SchemaErrorBuilder.New()
                         .SetMessage(
                            "COULD NOT RESOLVE INTERFACE")

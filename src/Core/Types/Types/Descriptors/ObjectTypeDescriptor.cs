@@ -29,13 +29,6 @@ namespace HotChocolate.Types.Descriptors
                 context.Naming.GetTypeDescription(clrType, TypeKind.Object);
         }
 
-        public ObjectTypeDescriptor(IDescriptorContext context, NameString name)
-            : base(context)
-        {
-            Definition.ClrType = typeof(object);
-            Definition.Name = name.EnsureNotEmpty(nameof(name));
-        }
-
         public ObjectTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
@@ -292,9 +285,8 @@ namespace HotChocolate.Types.Descriptors
             new ObjectTypeDescriptor(context, clrType);
 
         public static ObjectTypeDescriptor New(
-            IDescriptorContext context,
-            NameString name) =>
-            new ObjectTypeDescriptor(context, name);
+            IDescriptorContext context) =>
+            new ObjectTypeDescriptor(context);
 
         public static ObjectTypeDescriptor<T> New<T>(
             IDescriptorContext context) =>

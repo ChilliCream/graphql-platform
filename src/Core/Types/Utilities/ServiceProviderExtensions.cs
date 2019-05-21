@@ -8,7 +8,8 @@ namespace HotChocolate.Utilities
         public static ITypeConversion GetTypeConversion(
             this IServiceProvider services)
         {
-            return GetServiceOrDefault(services, TypeConversion.Default);
+            return GetServiceOrDefault<ITypeConversion>(
+                services, TypeConversion.Default);
         }
 
         public static ITypeConversion GetTypeConversion(

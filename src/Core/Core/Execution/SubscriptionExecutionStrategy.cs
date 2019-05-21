@@ -72,7 +72,9 @@ namespace HotChocolate.Execution
             {
                 FieldSelection selection = selections.Single();
                 IReadOnlyDictionary<NameString, ArgumentValue> argumentValues =
-                    selection.CoerceArguments(executionContext.Variables);
+                    selection.CoerceArguments(
+                        executionContext.Variables,
+                        executionContext.Converter);
                 var arguments = new List<ArgumentNode>();
 
                 foreach (KeyValuePair<NameString, ArgumentValue> argValue in

@@ -36,7 +36,11 @@ namespace HotChocolate.Execution
                 new Dictionary<string, object>());
 
             // act
-            var collector = new FieldCollector(fragments, (f, s) => null);
+            var collector = new FieldCollector(
+                fragments,
+                (f, s) => null,
+                TypeConversion.Default);
+
             IReadOnlyCollection<FieldSelection> selections =
                 collector.CollectFields(schema.QueryType,
                     operation.SelectionSet, Path.New("foo"));
@@ -81,7 +85,11 @@ namespace HotChocolate.Execution
                 TypeConversion.Default,
                 new Dictionary<string, object>());
 
-            var collector = new FieldCollector(fragments, (f, s) => null);
+            var collector = new FieldCollector(
+                fragments,
+                (f, s) => null,
+                TypeConversion.Default);
+
             IReadOnlyCollection<FieldSelection> selections =
                 collector.CollectFields(schema.QueryType,
                     operation.SelectionSet, Path.New("foo"));
@@ -117,7 +125,11 @@ namespace HotChocolate.Execution
                 TypeConversion.Default,
                 new Dictionary<string, object>());
 
-            var collector = new FieldCollector(fragments, (f, s) => null);
+            var collector = new FieldCollector(
+                fragments,
+                (f, s) => null,
+                TypeConversion.Default);
+
             IReadOnlyCollection<FieldSelection> selections =
                 collector.CollectFields(schema.QueryType,
                     operation.SelectionSet, Path.New("bar"));
@@ -126,7 +138,7 @@ namespace HotChocolate.Execution
 
             // act
             IReadOnlyDictionary<NameString, ArgumentValue> arguments =
-                selection.CoerceArguments(variables);
+                selection.CoerceArguments(variables, TypeConversion.Default);
 
             // assert
             MatchSnapshot(arguments);
@@ -150,7 +162,11 @@ namespace HotChocolate.Execution
                 TypeConversion.Default,
                 new Dictionary<string, object>());
 
-            var collector = new FieldCollector(fragments, (f, s) => null);
+            var collector = new FieldCollector(
+                fragments,
+                (f, s) => null,
+                TypeConversion.Default);
+
             IReadOnlyCollection<FieldSelection> selections =
                 collector.CollectFields(schema.QueryType,
                     operation.SelectionSet, Path.New("bar"));
@@ -158,7 +174,8 @@ namespace HotChocolate.Execution
             var path = Path.New("bar");
 
             // act
-            Action action = () => selection.CoerceArguments(variables);
+            Action action = () =>
+                selection.CoerceArguments(variables, TypeConversion.Default);
 
             // assert
             Assert.Throws<QueryException>(action).Errors.MatchSnapshot();
@@ -182,14 +199,16 @@ namespace HotChocolate.Execution
                 TypeConversion.Default,
                 new Dictionary<string, object>());
 
-            var collector = new FieldCollector(fragments, (f, s) => null);
+            var collector = new FieldCollector(
+                fragments, (f, s) => null, TypeConversion.Default);
             IReadOnlyCollection<FieldSelection> selections =
                 collector.CollectFields(schema.QueryType,
                     operation.SelectionSet, null);
             FieldSelection selection = selections.First();
 
             // act
-            Action action = () => selection.CoerceArguments(variables);
+            Action action = () =>
+                selection.CoerceArguments(variables, TypeConversion.Default);
 
             // assert
             Assert.Throws<QueryException>(action).Errors.MatchSnapshot();

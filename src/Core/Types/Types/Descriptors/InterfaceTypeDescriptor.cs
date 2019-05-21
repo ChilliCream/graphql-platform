@@ -29,12 +29,10 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public InterfaceTypeDescriptor(
-            IDescriptorContext context,
-            NameString name)
+            IDescriptorContext context)
             : base(context)
         {
             Definition.ClrType = typeof(object);
-            Definition.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         protected override InterfaceTypeDefinition Definition { get; } =
@@ -125,14 +123,12 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public static InterfaceTypeDescriptor New(
-            IDescriptorContext context,
-            Type clrType) =>
-            new InterfaceTypeDescriptor(context, clrType);
+            IDescriptorContext context) =>
+            new InterfaceTypeDescriptor(context);
 
         public static InterfaceTypeDescriptor New(
-            IDescriptorContext context,
-            NameString name) =>
-            new InterfaceTypeDescriptor(context, name);
+            IDescriptorContext context, Type clrType) =>
+            new InterfaceTypeDescriptor(context, clrType);
 
         public static InterfaceTypeDescriptor<T> New<T>(
             IDescriptorContext context) =>

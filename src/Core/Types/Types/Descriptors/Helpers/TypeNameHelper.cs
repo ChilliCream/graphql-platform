@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(dependency));
             }
 
-            if (!typeof(ITypeSystem).IsAssignableFrom(dependency))
+            if (!typeof(ITypeSystemMember).IsAssignableFrom(dependency))
             {
                 throw new ArgumentException(
                     TypeResources.TypeNameHelper_OnlyTsosAreAllowed,

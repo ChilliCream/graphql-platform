@@ -1,3 +1,4 @@
+using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Configuration
 {
@@ -88,6 +90,23 @@ namespace HotChocolate.Configuration
             foreach (InitializationContext context in _initContexts)
             {
                 _errors.AddRange(context.Errors);
+            }
+
+            if (_errors.Count == 0 && Unresolved.Count > 0)
+            {
+                foreach (IClrTypeReference unresolvedReference in Unresolved)
+                {
+                    _errors.Add(SchemaErrorBuilder.New()
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            TypeResources.TypeRegistrar_TypesInconsistent,
+                            unresolvedReference))
+                        .SetExtension(
+                            TypeErrorFields.Reference,
+                            unresolvedReference)
+                        .SetCode(TypeErrorCodes.UnresolvedTypes)
+                        .Build());
+                }
             }
 
             return Unresolved.Count == 0 && _errors.Count == 0;

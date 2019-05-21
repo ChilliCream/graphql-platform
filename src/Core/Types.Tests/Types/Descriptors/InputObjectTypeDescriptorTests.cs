@@ -24,5 +24,11 @@ namespace HotChocolate.Types
             Assert.Collection(description.Fields,
                 t => Assert.Equal("name", t.Name));
         }
+
+        public class SimpleInput
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+        }
     }
 }

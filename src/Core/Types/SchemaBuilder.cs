@@ -158,7 +158,7 @@ namespace HotChocolate
             {
                 // TODO : resources
                 throw new ArgumentException(
-                    "schemaType must be a schema type.",
+                    TypeResources.SchemaBuilder_MustBeSchemaType,
                     nameof(schemaType));
             }
 

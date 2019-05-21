@@ -93,8 +93,7 @@ namespace HotChocolate.Types
             IInitializationContext context)
         {
             var descriptor = InputObjectTypeDescriptor.New(
-                context.DescriptorContext,
-                GetType());
+                context.DescriptorContext);
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
@@ -117,7 +116,8 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context, definition);
 
-            ITypeConversion typeConversion = context.Services.GetTypeConversion();
+            ITypeConversion typeConversion =
+                context.Services.GetTypeConversion();
             _objectToValueConverter =
                 new InputObjectToObjectValueConverter(typeConversion);
             _valueToObjectConverter =

@@ -142,7 +142,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public static ClrTypeReference FromSchemaType<T>()
-            where T : ITypeSystem
+            where T : ITypeSystemMember
         {
             return new ClrTypeReference(
                 typeof(T),
@@ -156,7 +156,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(schemaType));
             }
 
-            if (typeof(ITypeSystem).IsAssignableFrom(schemaType))
+            if (typeof(ITypeSystemMember).IsAssignableFrom(schemaType))
             {
 
                 return new ClrTypeReference(

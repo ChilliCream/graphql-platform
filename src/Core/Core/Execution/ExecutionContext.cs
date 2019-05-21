@@ -42,14 +42,14 @@ namespace HotChocolate.Execution
             var fragments = new FragmentCollection(
                 schema, operation.Document);
 
+            Converter = _requestContext.ServiceScope
+                .ServiceProvider.GetTypeConversion();
+
             _fieldCollector = new FieldCollector(
-                fragments, requestContext.ResolveMiddleware);
+                fragments, requestContext.ResolveMiddleware, Converter);
 
             Activator = new Activator(
                 requestContext.ServiceScope.ServiceProvider);
-
-            Converter = _requestContext.ServiceScope
-                .ServiceProvider.GetTypeConversion();
         }
 
         public ISchema Schema { get; }
