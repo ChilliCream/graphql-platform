@@ -68,15 +68,24 @@ namespace HotChocolate.Types.Descriptors
             }
 
             Type enumType = value.GetType();
-            MemberInfo enumValueMemberInfo = enumType
-                .GetMember(value.ToString())
-                .SingleOrDefault();
-            if (enumValueMemberInfo == null)
+            if (enumType.IsEnum)
             {
-                return null;
+                MemberInfo enumMember = enumType
+                    .GetMember(value.ToString())
+                    .SingleOrDefault();
+
+                if (enumMember != null)
+                {
+                    string description = enumMember.GetGraphQLDescription();
+                    if (string.IsNullOrEmpty(description))
+                    {
+                        return _documentation.GetSummary(enumMember);
+                    }
+                    return description;
+                }
             }
 
-            return GetMemberDescription(enumValueMemberInfo, MemberKind.Field);
+            return null;
         }
 
         public virtual NameString GetMemberName(
