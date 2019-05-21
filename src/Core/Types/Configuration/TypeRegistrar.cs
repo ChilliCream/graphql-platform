@@ -1,3 +1,4 @@
+using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -88,6 +89,24 @@ namespace HotChocolate.Configuration
             foreach (InitializationContext context in _initContexts)
             {
                 _errors.AddRange(context.Errors);
+            }
+
+            if (_errors.Count == 0 && Unresolved.Count > 0)
+            {
+                foreach (IClrTypeReference unresolvedReference in Unresolved)
+                {
+                    // TODO : resources
+                    _errors.Add(SchemaErrorBuilder.New()
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            "Unable to infer or resolve a schema type from the type reference `{0}`.",
+                            unresolvedReference))
+                        .SetExtension(
+                            TypeErrorFields.Reference,
+                            unresolvedReference)
+                        .SetCode(TypeErrorCodes.UnresolvedTypes)
+                        .Build());
+                }
             }
 
             return Unresolved.Count == 0 && _errors.Count == 0;
