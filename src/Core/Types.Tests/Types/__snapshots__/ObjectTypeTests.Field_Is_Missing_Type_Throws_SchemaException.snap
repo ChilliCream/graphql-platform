@@ -1,7 +1,7 @@
 ﻿[
   {
     "Message": "Unable to infer or resolve the type of field abc.def.",
-    "Code": "TS_FIELD_NO_TYPE",
+    "Code": "TS_NO_FIELD_TYPE",
     "TypeSystemObject": {
       "Kind": "Object",
       "SyntaxNode": null,
