@@ -278,9 +278,8 @@ namespace HotChocolate
                 }
                 else
                 {
-                    // TODO : query to constant
                     return type is ObjectType
-                        && type.Name.Equals("Query");
+                        && type.Name.Equals(WellKnownTypes.Query);
                 }
             }
 

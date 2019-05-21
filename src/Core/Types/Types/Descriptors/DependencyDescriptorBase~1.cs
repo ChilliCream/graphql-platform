@@ -20,7 +20,7 @@ namespace HotChocolate.Types.Descriptors
         protected abstract TypeDependencyKind DependencyKind { get; }
 
         protected void DependsOn<TType>(bool mustBeNamedOrCompleted)
-            where TType : ITypeSystem =>
+            where TType : ITypeSystemMember =>
             DependsOn(typeof(TType), mustBeNamedOrCompleted);
 
         protected void DependsOn(Type schemaType, bool mustBeNamedOrCompleted)
@@ -30,7 +30,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(schemaType));
             }
 
-            if (!typeof(ITypeSystem).IsAssignableFrom(schemaType))
+            if (!typeof(ITypeSystemMember).IsAssignableFrom(schemaType))
             {
                 throw new ArgumentException(
                     TypeResources.DependencyDescriptorBase_OnlyTsoIsAllowed,

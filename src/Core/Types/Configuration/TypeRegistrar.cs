@@ -8,6 +8,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Configuration
 {
@@ -95,11 +96,10 @@ namespace HotChocolate.Configuration
             {
                 foreach (IClrTypeReference unresolvedReference in Unresolved)
                 {
-                    // TODO : resources
                     _errors.Add(SchemaErrorBuilder.New()
                         .SetMessage(string.Format(
                             CultureInfo.InvariantCulture,
-                            "Unable to infer or resolve a schema type from the type reference `{0}`.",
+                            TypeResources.TypeRegistrar_TypesInconsistent,
                             unresolvedReference))
                         .SetExtension(
                             TypeErrorFields.Reference,

@@ -294,7 +294,6 @@ namespace HotChocolate.Execution
                 });
         }
 
-        // TODO : enable when schema supports unions
         [Fact]
         public void FieldsAndFragmentDefinitionsUnionType()
         {

@@ -954,6 +954,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to schemaType must be a schema type..
+        /// </summary>
+        internal static string SchemaBuilder_MustBeSchemaType {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_MustBeSchemaType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The schema builder was unable to identify the query type of the schema. Either specify which type is the query type or set the schema builder to non-strict validation mode..
         /// </summary>
         internal static string SchemaBuilder_NoQueryType {
@@ -1294,6 +1303,15 @@ namespace HotChocolate.Properties {
         internal static string TypeNameHelper_OnlyTsosAreAllowed {
             get {
                 return ResourceManager.GetString("TypeNameHelper_OnlyTsosAreAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to infer or resolve a schema type from the type reference `{0}`..
+        /// </summary>
+        internal static string TypeRegistrar_TypesInconsistent {
+            get {
+                return ResourceManager.GetString("TypeRegistrar_TypesInconsistent", resourceCulture);
             }
         }
         

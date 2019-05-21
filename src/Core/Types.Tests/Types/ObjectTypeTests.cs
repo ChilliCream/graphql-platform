@@ -14,17 +14,6 @@ namespace HotChocolate.Types
     public class ObjectTypeTests
         : TypeTestBase
     {
-        // TODO : ADD TESTS
-
-        // the following should not fail
-        /*
-            The argument type should be infered
-         .AddQueryType(new ObjectType<Foo>(t => t
-                    .Field(f => f.GetName(default))
-                    .Argument("a", a => a
-                        .Directive("dummy_arg", new ArgumentNode("a", "a")))))
-         */
-
         [Fact]
         public void ObjectType_DynamicName()
         {

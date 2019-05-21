@@ -572,4 +572,10 @@ Type: `{0}`</value>
   <data name="UnionType_UnableToResolveType" xml:space="preserve">
     <value>Unable to resolve the specified type reference.</value>
   </data>
+  <data name="SchemaBuilder_MustBeSchemaType" xml:space="preserve">
+    <value>schemaType must be a schema type.</value>
+  </data>
+  <data name="TypeRegistrar_TypesInconsistent" xml:space="preserve">
+    <value>Unable to infer or resolve a schema type from the type reference `{0}`.</value>
+  </data>
 </root>
