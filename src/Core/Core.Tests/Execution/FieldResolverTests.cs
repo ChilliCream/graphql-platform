@@ -34,7 +34,11 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
+            var fieldResolver = new FieldCollector(
+                fragments,
+                (f, s) => null,
+                TypeConversion.Default);
+
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(
                     schema.GetType<ObjectType>("Foo"),
@@ -80,7 +84,11 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
+            var fieldResolver = new FieldCollector(
+                fragments,
+                (f, s) => null,
+                TypeConversion.Default);
+
             Action action = () => fieldResolver
                .CollectFields(schema.GetType<ObjectType>("Foo"),
                    operation.SelectionSet, null);
@@ -110,7 +118,11 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
+            var fieldResolver = new FieldCollector(
+                fragments,
+                (f, s) => null,
+                TypeConversion.Default);
+
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, null);
@@ -146,7 +158,11 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
+            var fieldResolver = new FieldCollector(
+                fragments,
+                (f, s) => null,
+                TypeConversion.Default);
+
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, null);
@@ -182,7 +198,11 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
+            var fieldResolver = new FieldCollector(
+                fragments,
+                (f, s) => null,
+                TypeConversion.Default);
+
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, null);
@@ -223,7 +243,11 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
+            var fieldResolver = new FieldCollector(
+                fragments,
+                (f, s) => null,
+                TypeConversion.Default);
+
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, null);
@@ -273,7 +297,11 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
+            var fieldResolver = new FieldCollector(
+                fragments,
+                (f, s) => null,
+                TypeConversion.Default);
+
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, null);
@@ -319,7 +347,11 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
+            var fieldResolver = new FieldCollector(
+                fragments,
+                (f, s) => null,
+                TypeConversion.Default);
+
             IReadOnlyCollection<FieldSelection> fields_a = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, null);
@@ -376,7 +408,11 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
+            var fieldResolver = new FieldCollector(
+                fragments,
+                (f, s) => null,
+                TypeConversion.Default);
+
             IReadOnlyCollection<FieldSelection> fields_a = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, null);
@@ -436,7 +472,11 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
+            var fieldResolver = new FieldCollector(
+                fragments,
+                (f, s) => null,
+                TypeConversion.Default);
+
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, null);
@@ -479,7 +519,11 @@ namespace HotChocolate.Execution
                 .OfType<OperationDefinitionNode>().First();
 
             // act
-            var fieldResolver = new FieldCollector(fragments, (f, s) => null);
+            var fieldResolver = new FieldCollector(
+                fragments,
+                (f, s) => null,
+                TypeConversion.Default);
+
             IReadOnlyCollection<FieldSelection> fields = fieldResolver
                 .CollectFields(schema.GetType<ObjectType>("Foo"),
                     operation.SelectionSet, null);

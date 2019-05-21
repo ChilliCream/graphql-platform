@@ -5,6 +5,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using System;
 using System.Collections.Immutable;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -54,7 +55,8 @@ namespace HotChocolate.Execution
         public FieldDelegate Middleware { get; }
 
         public IReadOnlyDictionary<NameString, ArgumentValue> CoerceArguments(
-            IVariableCollection variables)
+            IVariableCollection variables,
+            ITypeConversion converter)
         {
             if (_hasArgumentErrors)
             {
@@ -81,6 +83,7 @@ namespace HotChocolate.Execution
                     var.Key,
                     var.Value.Type,
                     value,
+                    converter,
                     message => ErrorBuilder.New()
                         .SetMessage(message)
                         .SetPath(_path.AppendOrCreate(ResponseName))

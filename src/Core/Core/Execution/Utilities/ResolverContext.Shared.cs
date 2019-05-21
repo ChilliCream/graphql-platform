@@ -53,7 +53,8 @@ namespace HotChocolate.Execution
             ScopedContextData = ImmutableDictionary<string, object>.Empty;
 
             _arguments = fieldSelection.CoerceArguments(
-                executionContext.Variables);
+                executionContext.Variables,
+                executionContext.Converter);
 
             string responseName = fieldSelection.ResponseName;
             PropagateNonNullViolation = () =>
@@ -76,7 +77,8 @@ namespace HotChocolate.Execution
             _fieldSelection = fieldSelection;
 
             _arguments = fieldSelection.CoerceArguments(
-                sourceContext._executionContext.Variables);
+                sourceContext._executionContext.Variables,
+                sourceContext._executionContext.Converter);
 
             Path = path;
             Source = source;

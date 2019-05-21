@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -444,40 +446,112 @@ namespace HotChocolate.Types
             // assert
             schema.ToString().MatchSnapshot();
         }
-    }
 
-    public class SimpleInput
-    {
-        public int Id { get; set; }
-        public string Name { get; set; }
-    }
-
-    public class SerializationInputObject1
-    {
-        public SerializationInputObject2 Foo { get; set; }
-        public string Bar { get; set; } = "Bar";
-    }
-
-    public class SerializationInputObject2
-    {
-        public List<SerializationInputObject1> FooList { get; set; } =
-            new List<SerializationInputObject1>
+        [Fact]
+        public void Convert_Parts_Of_The_Input_Graph()
         {
+            // arrange
+            var typeConversion = new TypeConversion();
+            typeConversion.Register<Baz, Bar>(from =>
+                new Bar { Text = from.Text });
+            typeConversion.Register<Bar, Baz>(from =>
+                new Baz { Text = from.Text });
+
+            var services = new DictionaryServiceProvider(
+                typeof(ITypeConversion),
+                typeConversion);
+
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddServices(services)
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foo(a: { bar: { text: \"abc\" } }) }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        public class SimpleInput
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
+        }
+
+        public class SerializationInputObject1
+        {
+            public SerializationInputObject2 Foo { get; set; }
+            public string Bar { get; set; } = "Bar";
+        }
+
+        public class SerializationInputObject2
+        {
+            public List<SerializationInputObject1> FooList { get; set; } =
+                new List<SerializationInputObject1>
+            {
             new SerializationInputObject1()
-        };
-    }
+            };
+        }
 
-    public class FooDirectiveType
-        : DirectiveType<FooDirective>
-    {
-        protected override void Configure(
-            IDirectiveTypeDescriptor<FooDirective> descriptor)
+        public class FooDirectiveType
+            : DirectiveType<FooDirective>
         {
-            descriptor.Name("foo");
-            descriptor.Location(DirectiveLocation.InputObject)
-                .Location(DirectiveLocation.InputFieldDefinition);
+            protected override void Configure(
+                IDirectiveTypeDescriptor<FooDirective> descriptor)
+            {
+                descriptor.Name("foo");
+                descriptor.Location(DirectiveLocation.InputObject)
+                    .Location(DirectiveLocation.InputFieldDefinition);
+            }
+        }
+
+        public class FooDirective { }
+
+        public class QueryType
+            : ObjectType
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name("Query");
+                descriptor.Field("foo")
+                    .Argument("a", a => a.Type<FooInputType>())
+                    .Type<StringType>()
+                    .Resolver(ctx => ctx.Argument<Foo>("a").Bar.Text);
+            }
+        }
+
+        public class FooInputType
+            : InputObjectType<Foo>
+        {
+            protected override void Configure(
+                IInputObjectTypeDescriptor<Foo> descriptor)
+            {
+                descriptor.Field(t => t.Bar).Type<BazInputType>();
+            }
+        }
+
+        public class BazInputType
+            : InputObjectType<Baz>
+        {
+        }
+
+        public class Foo
+        {
+            public Bar Bar { get; set; }
+        }
+
+        public class Bar
+        {
+            public string Text { get; set; }
+        }
+
+        public class Baz
+        {
+            public string Text { get; set; }
         }
     }
-
-    public class FooDirective { }
 }
