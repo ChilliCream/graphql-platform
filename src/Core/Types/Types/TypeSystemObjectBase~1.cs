@@ -60,6 +60,7 @@ namespace HotChocolate.Types
         {
             if (definition.Name.IsEmpty)
             {
+                // TODO : resources add the type full name!
                 throw new InvalidOperationException(
                     TypeResources.TypeSystemObjectBase_NameIsNull);
             }
