@@ -173,8 +173,9 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = new InputObjectType<SimpleInput>(
-                d => d.Directive(new DirectiveNode("foo"))
+            var fooType = new InputObjectType<SimpleInput>(d => d
+                    .Name("Bar")
+                    .Directive(new DirectiveNode("foo"))
                     .Field(f => f.Id)
                     .Directive(new DirectiveNode("foo")));
 
@@ -191,10 +192,11 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = new InputObjectType<SimpleInput>(
-                d => d.Directive(new FooDirective())
-                    .Field(f => f.Id)
-                    .Directive(new FooDirective()));
+            var fooType = new InputObjectType<SimpleInput>(d => d
+                .Name("Bar")
+                .Directive(new FooDirective())
+                .Field(f => f.Id)
+                .Directive(new FooDirective()));
 
             // assert
             fooType = CreateType(fooType,
@@ -209,10 +211,11 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = new InputObjectType<SimpleInput>(
-                d => d.Directive<FooDirective>()
-                    .Field(f => f.Id)
-                    .Directive<FooDirective>());
+            var fooType = new InputObjectType<SimpleInput>(d => d
+                .Name("Bar")
+                .Directive<FooDirective>()
+                .Field(f => f.Id)
+                .Directive<FooDirective>());
 
             // assert
             fooType = CreateType(fooType,
@@ -227,11 +230,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = new InputObjectType(
-                d => d.Directive("foo")
-                    .Field("id")
-                    .Type<StringType>()
-                    .Directive("foo"));
+            var fooType = new InputObjectType(d => d
+                .Name("Bar")
+                .Directive("foo")
+                .Field("id")
+                .Type<StringType>()
+                .Directive("foo"));
 
             // assert
             fooType = CreateType(fooType,
@@ -246,11 +250,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = new InputObjectType<SimpleInput>(
-                d => d.Directive(new NameString("foo"))
-                    .Field("id")
-                    .Type<StringType>()
-                    .Directive(new NameString("foo")));
+            var fooType = new InputObjectType<SimpleInput>(d => d
+                .Name("Bar")
+                .Directive(new NameString("foo"))
+                .Field("id")
+                .Type<StringType>()
+                .Directive(new NameString("foo")));
 
             // assert
             fooType = CreateType(fooType,
@@ -265,11 +270,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = new InputObjectType(
-                d => d.Directive(new DirectiveNode("foo"))
-                    .Field("id")
-                    .Type<StringType>()
-                    .Directive(new DirectiveNode("foo")));
+            var fooType = new InputObjectType(d => d
+                .Name("Bar")
+                .Directive(new DirectiveNode("foo"))
+                .Field("id")
+                .Type<StringType>()
+                .Directive(new DirectiveNode("foo")));
 
             // assert
             fooType = CreateType(fooType,
@@ -284,11 +290,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = new InputObjectType(
-                d => d.Directive(new FooDirective())
-                    .Field("id")
-                    .Type<StringType>()
-                    .Directive(new FooDirective()));
+            var fooType = new InputObjectType(d => d
+                .Name("Bar")
+                .Directive(new FooDirective())
+                .Field("id")
+                .Type<StringType>()
+                .Directive(new FooDirective()));
 
             // assert
             fooType = CreateType(fooType,
@@ -303,11 +310,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            var fooType = new InputObjectType(
-                d => d.Directive<FooDirective>()
-                    .Field("id")
-                    .Type<StringType>()
-                    .Directive<FooDirective>());
+            var fooType = new InputObjectType(d => d
+                .Name("Bar")
+                .Directive<FooDirective>()
+                .Field("id")
+                .Type<StringType>()
+                .Directive<FooDirective>());
 
             // assert
             fooType = CreateType(fooType,

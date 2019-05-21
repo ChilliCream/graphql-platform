@@ -207,6 +207,7 @@ namespace HotChocolate.Types
             protected override void Configure(
                 IObjectTypeDescriptor descriptor)
             {
+                descriptor.Name("Query");
                 descriptor.Field("description").Resolver("bar");
             }
         }

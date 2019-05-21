@@ -6,5 +6,6 @@ namespace HotChocolate
         public const string MissingType = "TYPE_MISSING";
         public const string NoResolver = "FIELD_NO_RESOLVER";
         public const string UnresolvedTypes = "CANNOT_RESOLVE_TYPES";
+        public const string NoName = "NO_NAME_DEFINED";
     }
 }

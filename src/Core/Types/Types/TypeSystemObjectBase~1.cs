@@ -51,6 +51,17 @@ namespace HotChocolate.Types
         {
             ExecuteConfigurations(context, ConfigurationKind.Naming);
             OnCompleteName(context, _definition);
+
+            if (Name.IsEmpty)
+            {
+                // TODO : resources add the type full name!
+                context.ReportError(SchemaErrorBuilder.New()
+                    .SetMessage(TypeResources.TypeSystemObjectBase_NameIsNull)
+                    .SetCode(TypeErrorCodes.NoName)
+                    .SetTypeSystemObject(this)
+                    .Build());
+            }
+
             base.CompleteName(context);
         }
 
@@ -58,13 +69,6 @@ namespace HotChocolate.Types
             ICompletionContext context,
             TDefinition definition)
         {
-            if (definition.Name.IsEmpty)
-            {
-                // TODO : resources add the type full name!
-                throw new InvalidOperationException(
-                    TypeResources.TypeSystemObjectBase_NameIsNull);
-            }
-
             Name = definition.Name;
         }
 

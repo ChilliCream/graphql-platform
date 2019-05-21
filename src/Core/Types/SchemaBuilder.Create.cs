@@ -1,3 +1,4 @@
+using System.Net;
 using System.Reflection;
 using System.Linq;
 using System;
@@ -18,28 +19,17 @@ namespace HotChocolate
     {
         public Schema Create()
         {
-            IServiceProvider services = _services ?? new EmptyServiceProvider();
+            IServiceProvider services = _services
+                ?? new EmptyServiceProvider();
+
             DescriptorContext descriptorContext =
                 DescriptorContext.Create(_options, services);
 
             IBindingLookup bindingLookup =
                  _bindingCompiler.Compile(descriptorContext);
 
-            var types = new List<ITypeReference>(_types);
-
-            if (_documents.Count > 0)
-            {
-                types.AddRange(ParseDocuments(services, bindingLookup));
-            }
-
-            if (_schema == null)
-            {
-                types.Add(new SchemaTypeReference(new Schema()));
-            }
-            else
-            {
-                types.Add(_schema);
-            }
+            IReadOnlyCollection<ITypeReference> types =
+                GetTypeReferences(services, bindingLookup);
 
             var lazy = new LazySchema();
 
@@ -72,6 +62,29 @@ namespace HotChocolate
         }
 
         ISchema ISchemaBuilder.Create() => Create();
+
+        private IReadOnlyCollection<ITypeReference> GetTypeReferences(
+            IServiceProvider services,
+            IBindingLookup bindingLookup)
+        {
+            var types = new List<ITypeReference>(_types);
+
+            if (_documents.Count > 0)
+            {
+                types.AddRange(ParseDocuments(services, bindingLookup));
+            }
+
+            if (_schema == null)
+            {
+                types.Add(new SchemaTypeReference(new Schema()));
+            }
+            else
+            {
+                types.Add(_schema);
+            }
+
+            return types;
+        }
 
         private IEnumerable<ITypeReference> ParseDocuments(
             IServiceProvider services,
