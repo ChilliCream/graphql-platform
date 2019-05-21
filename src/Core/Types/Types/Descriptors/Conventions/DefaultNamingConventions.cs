@@ -72,7 +72,7 @@ namespace HotChocolate.Types.Descriptors
             {
                 MemberInfo enumMember = enumType
                     .GetMember(value.ToString())
-                    .SingleOrDefault();
+                    .FirstOrDefault();
 
                 if (enumMember != null)
                 {
