@@ -49,7 +49,7 @@ namespace HotChocolate.Runtime
         object IServiceProvider.GetService(Type serviceType) =>
             CreateInstance(serviceType);
 
-        private FactoryInfo CreateFactoryInfo(
+        private static FactoryInfo CreateFactoryInfo(
             IServiceProvider services,
             Type type)
         {
