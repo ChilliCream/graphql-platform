@@ -50,21 +50,12 @@ namespace HotChocolate.AspNetCore
             CreateQueryRequestAsync(HttpContext context)
         {
             QueryRequestDto request = ReadRequest(context);
-#if ASPNETCLASSIC
-            IServiceProvider serviceProvider = context.CreateRequestServices(
-                Executor.Schema.Services);
-#else
-
-            IServiceProvider serviceProvider = context.CreateRequestServices();
-#endif
-
             return Task.FromResult(
                 QueryRequestBuilder.New()
                     .SetQuery(request.Query)
                     .SetOperation(request.OperationName)
                     .SetVariableValues(QueryMiddlewareUtilities
-                        .ToDictionary(request.Variables))
-                    .SetServices(serviceProvider));
+                        .ToDictionary(request.Variables)));
         }
 
         private static QueryRequestDto ReadRequest(HttpContext context)

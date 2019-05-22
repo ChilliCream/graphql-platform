@@ -1,8 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Net;
 using System.Security.Claims;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -207,7 +204,7 @@ namespace HotChocolate.AspNetCore
                 IServiceProvider serviceProvider = context.CreateRequestServices(
                     serviceScope.ServiceProvider);
 #else
-            IServiceProvider serviceProvider = context.CreateRequestServices();
+            IServiceProvider serviceProvider = context.RequestServices;
 #endif
 
             IReadOnlyQueryRequest request =
