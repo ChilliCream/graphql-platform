@@ -54,7 +54,7 @@ namespace HotChocolate.Configuration.Bindings
 
             throw new ArgumentException(
                 TypeResources.ComplexTypeBindingBuilder_FieldNotComplete,
-                nameof(builder));
+                nameof(configure));
         }
 
         public IComplexTypeBindingBuilder AddField(
@@ -78,8 +78,8 @@ namespace HotChocolate.Configuration.Bindings
                 return this;
             }
 
-            throw new NotSupportedException(
-                TypeResources.ComplexTypeBindingBuilder_FieldBuilderNotSupported);
+            throw new NotSupportedException(TypeResources
+                .ComplexTypeBindingBuilder_FieldBuilderNotSupported);
         }
 
         public bool IsComplete()

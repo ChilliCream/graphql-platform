@@ -255,7 +255,7 @@ namespace HotChocolate.Language
                     position++;
                     break;
                 }
-                else { }
+
                 position++;
                 i++;
             }

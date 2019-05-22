@@ -87,7 +87,7 @@ namespace HotChocolate.Runtime
                 services, type, constructors);
         }
 
-        private FactoryInfo GetBestMatchingConstructor(
+        private static FactoryInfo GetBestMatchingConstructor(
             IServiceProvider services,
             Type type,
             ConstructorInfo[] constructors)

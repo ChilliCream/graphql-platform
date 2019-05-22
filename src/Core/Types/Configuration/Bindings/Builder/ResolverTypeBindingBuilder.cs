@@ -61,7 +61,7 @@ namespace HotChocolate.Configuration.Bindings
 
             throw new ArgumentException(
                 TypeResources.ResolverTypeBindingBuilder_FieldNotComplete,
-                nameof(builder));
+                nameof(configure));
         }
 
         public IResolverTypeBindingBuilder AddField(
