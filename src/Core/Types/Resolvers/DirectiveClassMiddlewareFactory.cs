@@ -5,14 +5,14 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Resolvers
 {
-    public static class FieldClassMiddlewareFactory
+    public static class DirectiveClassMiddlewareFactory
     {
         private static MethodInfo _createGeneric =
-            typeof(FieldClassMiddlewareFactory)
+            typeof(DirectiveClassMiddlewareFactory)
             .GetTypeInfo().DeclaredMethods.First(t =>
             {
                 if (t.Name.EqualsOrdinal(
-                    nameof(FieldClassMiddlewareFactory.Create))
+                    nameof(DirectiveClassMiddlewareFactory.Create))
                     && t.GetGenericArguments().Length == 1)
                 {
                     return t.GetParameters().Length == 0;
@@ -20,7 +20,7 @@ namespace HotChocolate.Resolvers
                 return false;
             });
 
-        internal static FieldMiddleware Create<TMiddleware>()
+        internal static DirectiveMiddleware Create<TMiddleware>()
             where TMiddleware : class
         {
             return next =>
@@ -35,21 +35,21 @@ namespace HotChocolate.Resolvers
             };
         }
 
-        internal static FieldMiddleware Create(Type middlewareType)
+        internal static DirectiveMiddleware Create(Type middlewareType)
         {
-            return (FieldMiddleware)_createGeneric
+            return (DirectiveMiddleware)_createGeneric
                 .MakeGenericMethod(middlewareType)
                 .Invoke(null, Array.Empty<object>());
         }
 
-        internal static FieldMiddleware Create<TMiddleware>(
+        internal static DirectiveMiddleware Create<TMiddleware>(
             Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
             where TMiddleware : class
         {
             return next => CreateDelegate(factory, next);
         }
 
-        internal static FieldDelegate CreateDelegate<TMiddleware>(
+        internal static DirectiveDelegate CreateDelegate<TMiddleware>(
             Func<IServiceProvider, FieldDelegate, TMiddleware> factory,
             FieldDelegate next)
             where TMiddleware : class
