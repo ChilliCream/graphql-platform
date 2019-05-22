@@ -44,19 +44,12 @@ namespace HotChocolate.AspNetCore
         {
             QueryRequestDto request = await ReadRequestAsync(context)
                 .ConfigureAwait(false);
-#if ASPNETCLASSIC
-            if(Executor.Schema.Services.CreateScope())
-            IServiceProvider serviceProvider = context.CreateRequestServices(
-                Executor.Schema.Services);
-#else
-            IServiceProvider serviceProvider = context.CreateRequestServices();
-#endif
+
             return QueryRequestBuilder.New()
                 .SetQuery(request.Query)
                 .SetOperation(request.OperationName)
                 .SetVariableValues(
-                    QueryMiddlewareUtilities.ToDictionary(request.Variables))
-                .SetServices(serviceProvider);
+                    QueryMiddlewareUtilities.ToDictionary(request.Variables));
         }
 
         private static async Task<QueryRequestDto> ReadRequestAsync(

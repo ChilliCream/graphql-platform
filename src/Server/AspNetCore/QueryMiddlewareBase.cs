@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using Microsoft.Extensions.DependencyInjection;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -164,7 +165,9 @@ namespace HotChocolate.AspNetCore
             HttpContext context);
 
         private async Task<IReadOnlyQueryRequest>
-            CreateQueryRequestInternalAsync(HttpContext context)
+            CreateQueryRequestInternalAsync(
+                HttpContext context,
+                IServiceProvider services)
         {
             IQueryRequestBuilder builder =
                 await CreateQueryRequestAsync(context)
@@ -175,6 +178,7 @@ namespace HotChocolate.AspNetCore
 
             builder.AddProperty(nameof(HttpContext), context);
             builder.AddProperty(nameof(ClaimsPrincipal), context.GetUser());
+            builder.SetServices(services);
 
             if (context.IsTracingEnabled())
             {
@@ -197,16 +201,29 @@ namespace HotChocolate.AspNetCore
             HttpContext context,
             IQueryExecutor queryExecutor)
         {
+#if ASPNETCLASSIC
+            using (IServiceScope serviceScope = Executor.Schema.Services.CreateScope())
+            {
+                IServiceProvider serviceProvider = context.CreateRequestServices(
+                    serviceScope.ServiceProvider);
+#else
+            IServiceProvider serviceProvider = context.CreateRequestServices();
+#endif
+
             IReadOnlyQueryRequest request =
-                await CreateQueryRequestInternalAsync(context)
-                .ConfigureAwait(false);
+                await CreateQueryRequestInternalAsync(context, serviceProvider)
+                    .ConfigureAwait(false);
 
-            IExecutionResult result = await queryExecutor
-                .ExecuteAsync(request, context.GetCancellationToken())
-                .ConfigureAwait(false);
+                IExecutionResult result = await queryExecutor
+                    .ExecuteAsync(request, context.GetCancellationToken())
+                    .ConfigureAwait(false);
 
-            await WriteResponseAsync(context.Response, result)
-                .ConfigureAwait(false);
+                await WriteResponseAsync(context.Response, result)
+                    .ConfigureAwait(false);
+
+#if ASPNETCLASSIC
+            }
+#endif
         }
 
         private async Task WriteResponseAsync(

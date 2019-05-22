@@ -1,12 +1,8 @@
 #if ASPNETCLASSIC
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Principal;
 using System.Threading;
 using Microsoft.Owin;
 
-namespace AspNetCore
+namespace HotChocolate.AspNetClassic
 {
     public interface IOwinContextAccessor
     {
@@ -19,7 +15,7 @@ namespace AspNetCore
         private static AsyncLocal<OwinContextHolder> _httpContextCurrent =
             new AsyncLocal<OwinContextHolder>();
 
-        public HttpContext HttpContext
+        public IOwinContext OwinContext
         {
             get
             {
@@ -27,7 +23,7 @@ namespace AspNetCore
             }
             set
             {
-                var holder = _httpContextCurrent.Value;
+                OwinContextHolder holder = _httpContextCurrent.Value;
 
                 if (holder != null)
                 {
@@ -36,7 +32,7 @@ namespace AspNetCore
 
                 if (value != null)
                 {
-                    _httpContextCurrent.Value = new HttpContextHolder
+                    _httpContextCurrent.Value = new OwinContextHolder
                     {
                         Context = value
                     };
