@@ -29,6 +29,7 @@ namespace HotChocolate.AspNetCore
             {
                 { typeof(HttpContext), context }
             };
+
             var serviceProvider = new RequestServiceProvider(
                 rootServiceProvider,
                 services);
@@ -43,11 +44,6 @@ namespace HotChocolate.AspNetCore
         public static IServiceProvider CreateRequestServices(
             this HttpContext context)
         {
-            var services = new Dictionary<Type, object>
-            {
-                { typeof(HttpContext), context }
-            };
-
             return new RequestServiceProvider(
                 context.RequestServices, services);
         }
