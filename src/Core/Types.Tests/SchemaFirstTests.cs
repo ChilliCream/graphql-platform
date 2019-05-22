@@ -54,5 +54,56 @@ namespace HotChocolate
                 await executor.ExecuteAsync("{ __schema { description } }");
             result.MatchSnapshot();
         }
+
+        [Fact]
+        public async Task SchemaBuilder_BindType()
+        {
+            // arrange
+            string sourceText = "type Query { hello: String }";
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .BindComplexType<Query>()
+                .Create();
+
+            // assert
+            IQueryExecutor executor = schema.MakeExecutable();
+            IExecutionResult result =
+                await executor.ExecuteAsync("{ hello }");
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SchemaBuilder_BindType_Configure()
+        {
+            // arrange
+            string sourceText = "type Query { hello: String }";
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .BindComplexType<Query1>(c => c
+                    .To("Query")
+                    .Field(t => t.Hello1())
+                    .Name("hello"))
+                .Create();
+
+            // assert
+            IQueryExecutor executor = schema.MakeExecutable();
+            IExecutionResult result =
+                await executor.ExecuteAsync("{ hello }");
+            result.MatchSnapshot();
+        }
+
+        public class Query
+        {
+            public string Hello() => "World";
+        }
+
+        public class Query1
+        {
+            public string Hello1() => "World1";
+        }
     }
 }

@@ -9,7 +9,7 @@ namespace HotChocolate
     public static partial class SchemaBuilderExtensions
     {
         public static ISchemaBuilder BindResolver<TResolver>(
-            ISchemaBuilder builder)
+            this ISchemaBuilder builder)
             where TResolver : class =>
             BindResolver<TResolver>(
                 builder,
@@ -17,7 +17,7 @@ namespace HotChocolate
                 null);
 
         public static ISchemaBuilder BindResolver<TResolver>(
-            ISchemaBuilder builder,
+            this ISchemaBuilder builder,
             Action<IBindResolver<TResolver>> configure)
             where TResolver : class =>
             BindResolver<TResolver>(
@@ -26,7 +26,7 @@ namespace HotChocolate
                 configure);
 
         public static ISchemaBuilder BindResolver<TResolver>(
-            ISchemaBuilder builder,
+            this ISchemaBuilder builder,
             BindingBehavior bindingBehavior,
             Action<IBindResolver<TResolver>> configure)
             where TResolver : class
@@ -56,7 +56,7 @@ namespace HotChocolate
         }
 
         public static ISchemaBuilder BindComplexType<T>(
-            ISchemaBuilder builder)
+            this ISchemaBuilder builder)
             where T : class =>
             BindComplexType<T>(
                 builder,
@@ -64,7 +64,7 @@ namespace HotChocolate
                 null);
 
         public static ISchemaBuilder BindComplexType<T>(
-            ISchemaBuilder builder,
+            this ISchemaBuilder builder,
             Action<IBindType<T>> configure)
             where T : class =>
             BindComplexType<T>(
@@ -73,7 +73,7 @@ namespace HotChocolate
                 configure);
 
         public static ISchemaBuilder BindComplexType<T>(
-            ISchemaBuilder builder,
+            this ISchemaBuilder builder,
             BindingBehavior bindingBehavior,
             Action<IBindType<T>> configure)
             where T : class
