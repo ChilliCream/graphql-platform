@@ -318,7 +318,7 @@ namespace HotChocolate.Language
             WriteInputValueDefinition(node, writer);
         }
 
-        private void WriteInputValueDefinition(
+        private static void WriteInputValueDefinition(
            InputValueDefinitionNode node,
            DocumentWriter writer)
         {

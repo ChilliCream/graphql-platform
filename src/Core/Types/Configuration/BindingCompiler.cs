@@ -261,7 +261,8 @@ namespace HotChocolate.Configuration
             {
                 if (!registerdResolvers.ContainsKey(field.FieldName))
                 {
-                    IFieldReference fieldReference = field.ResolverMember == null
+                    IFieldReference fieldReference =
+                        field.ResolverMember == null
                         ? (IFieldReference)new FieldResolver(
                             typeName,
                             field.FieldName,
@@ -305,7 +306,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void RegisterFields(
+        private static void RegisterFields(
             ComplexTypeBindingInfo binding,
             Dictionary<NameString, RegisteredResolver> registerdResolvers,
             Dictionary<NameString, MemberInfo> members)

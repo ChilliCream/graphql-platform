@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
             return ExecuteMutationAsync(executionContext, cancellationToken);
         }
 
-        private async Task<IExecutionResult> ExecuteMutationAsync(
+        private static async Task<IExecutionResult> ExecuteMutationAsync(
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
