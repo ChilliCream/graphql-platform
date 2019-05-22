@@ -81,7 +81,8 @@ namespace HotChocolate.Runtime
                 {
                     _ranking.Remove(rank);
                     RemovedEntry?.Invoke(this,
-                        new CacheEntryEventArgs<TValue>(entry.Key, entry.Value));
+                        new CacheEntryEventArgs<TValue>(
+                            entry.Key, entry.Value));
                 }
             }
         }
