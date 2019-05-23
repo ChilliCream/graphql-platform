@@ -29,7 +29,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
             descriptor.Repeatable();
 
-            descriptor.Use<AuthorizeDirective, AuthorizeMiddleware>();
+            descriptor.Use<AuthorizeMiddleware>();
         }
     }
 }

@@ -23,49 +23,5 @@ namespace HotChocolate.Types
             descriptor.Argument(property).Ignore();
             return descriptor;
         }
-
-        public static IDirectiveTypeDescriptor Use<TMiddleware>(
-            this IDirectiveTypeDescriptor descriptor)
-            where TMiddleware : class
-        {
-            return descriptor.Use(
-                DirectiveClassMiddlewareFactory.Create<TMiddleware>());
-        }
-
-        public static IDirectiveTypeDescriptor Use<TMiddleware>(
-            this IDirectiveTypeDescriptor descriptor,
-            Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
-            where TMiddleware : class
-        {
-            if (factory == null)
-            {
-                throw new ArgumentNullException(nameof(factory));
-            }
-
-            return descriptor.Use(
-                DirectiveClassMiddlewareFactory.Create(factory));
-        }
-
-        public static IDirectiveTypeDescriptor<T> Use<T, TMiddleware>(
-           this IDirectiveTypeDescriptor<T> descriptor)
-           where TMiddleware : class
-        {
-            return descriptor.Use(
-                DirectiveClassMiddlewareFactory.Create<TMiddleware>());
-        }
-
-        public static IDirectiveTypeDescriptor<T> Use<T, TMiddleware>(
-            this IDirectiveTypeDescriptor<T> descriptor,
-            Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
-            where TMiddleware : class
-        {
-            if (factory == null)
-            {
-                throw new ArgumentNullException(nameof(factory));
-            }
-
-            return descriptor.Use(
-                DirectiveClassMiddlewareFactory.Create(factory));
-        }
     }
 }
