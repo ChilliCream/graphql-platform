@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HotChocolate.Resolvers;
 using Microsoft.Owin;
 
@@ -7,14 +7,14 @@ namespace HotChocolate.AspNetClassic
     public class Query
     {
         private readonly TestService _service;
-        private readonly IOwinContext _context;
+        private readonly IOwinContextAccessor _contextAccessor;
 
-        public Query(TestService testService, IOwinContext context)
+        public Query(TestService testService, IOwinContextAccessor contextAccessor)
         {
             _service = testService
                 ?? throw new ArgumentNullException(nameof(testService));
-            _context = context
-                ?? throw new ArgumentNullException(nameof(context));
+            _contextAccessor = contextAccessor
+                ?? throw new ArgumentNullException(nameof(contextAccessor));
         }
 
         public string SayHello()
@@ -24,17 +24,18 @@ namespace HotChocolate.AspNetClassic
 
         public string GetRequestPath()
         {
-            return _context.Request.Path.Value;
+            return _contextAccessor.OwinContext.Request.Path.Value;
         }
 
         public string GetRequestPath2(IResolverContext context)
         {
-            return context.Service<IOwinContext>().Request.Path.Value;
+            return context.Service<IOwinContextAccessor>()
+                .OwinContext.Request.Path.Value;
         }
 
-        public string GetRequestPath3([Service]IOwinContext context)
+        public string GetRequestPath3([Service]IOwinContextAccessor context)
         {
-            return context.Request.Path.Value;
+            return context.OwinContext.Request.Path.Value;
         }
 
         public Foo GetBasic()

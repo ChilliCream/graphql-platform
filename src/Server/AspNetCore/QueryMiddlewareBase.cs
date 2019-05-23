@@ -34,7 +34,9 @@ namespace HotChocolate.AspNetCore
         private readonly IQueryResultSerializer _resultSerializer;
         private readonly Func<HttpContext, bool> _isPathValid;
 
-
+#if ASPNETCLASSIC
+        private OwinContextAccessor _accessor;
+#endif
 
         /// <summary>
         /// Instantiates the base query middleware with an optional pointer to
@@ -79,6 +81,12 @@ namespace HotChocolate.AspNetCore
             {
                 _isPathValid = ctx => ctx.IsValidPath(options.Path);
             }
+
+#if ASPNETCLASSIC
+            _accessor = queryExecutor.Schema.Services
+                .GetService<IOwinContextAccessor>()
+                as OwinContextAccessor;
+#endif
         }
 
         /// <summary>
@@ -199,6 +207,11 @@ namespace HotChocolate.AspNetCore
             IQueryExecutor queryExecutor)
         {
 #if ASPNETCLASSIC
+            if (_accessor != null)
+            {
+                _accessor.OwinContext = context;
+            }
+
             using (IServiceScope serviceScope = Executor.Schema.Services.CreateScope())
             {
                 IServiceProvider serviceProvider = context.CreateRequestServices(
@@ -217,7 +230,6 @@ namespace HotChocolate.AspNetCore
 
                 await WriteResponseAsync(context.Response, result)
                     .ConfigureAwait(false);
-
 #if ASPNETCLASSIC
             }
 #endif
