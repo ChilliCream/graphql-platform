@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Authorization.Properties;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
 #if ASPNETCLASSIC
@@ -56,11 +58,9 @@ namespace HotChocolate.AspNetCore.Authorization
             }
             else if (context.Result == null)
             {
-                // TODO : resources
                 context.Result = ErrorBuilder.New()
                     .SetMessage(
-                        "The current user is not authorized to " +
-                        "access this resource.")
+                        AuthResources.AuthorizeMiddleware_NotAuthorized)
                     .SetCode(AuthErrorCodes.NotAuthorized)
                     .SetPath(context.Path)
                     .AddLocation(context.FieldSelection)
@@ -120,10 +120,9 @@ namespace HotChocolate.AspNetCore.Authorization
 
                 if (policy == null)
                 {
-                    // TODO : resources
                     context.Result = context.Result = ErrorBuilder.New()
                         .SetMessage(
-                            "The default authorization policy does not exist.")
+                            AuthResources.AuthorizeMiddleware_NoDefaultPolicy)
                         .SetCode(AuthErrorCodes.NoDefaultPolicy)
                         .SetPath(context.Path)
                         .AddLocation(context.FieldSelection)
@@ -138,11 +137,11 @@ namespace HotChocolate.AspNetCore.Authorization
 
                 if (policy == null)
                 {
-                    // TODO : resources
                     context.Result = ErrorBuilder.New()
-                        .SetMessage(
-                            $"The `{directive.Policy}` authorization policy " +
-                            "does not exist.")
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            AuthResources.AuthorizeMiddleware_PolicyNotFound,
+                            directive.Policy))
                         .SetCode(AuthErrorCodes.PolicyNotFound)
                         .SetPath(context.Path)
                         .AddLocation(context.FieldSelection)

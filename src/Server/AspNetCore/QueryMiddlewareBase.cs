@@ -212,10 +212,12 @@ namespace HotChocolate.AspNetCore
                 _accessor.OwinContext = context;
             }
 
-            using (IServiceScope serviceScope = Executor.Schema.Services.CreateScope())
+            using (IServiceScope serviceScope =
+                Executor.Schema.Services.CreateScope())
             {
-                IServiceProvider serviceProvider = context.CreateRequestServices(
-                    serviceScope.ServiceProvider);
+                IServiceProvider serviceProvider =
+                    context.CreateRequestServices(
+                        serviceScope.ServiceProvider);
 #else
             IServiceProvider serviceProvider = context.RequestServices;
 #endif
