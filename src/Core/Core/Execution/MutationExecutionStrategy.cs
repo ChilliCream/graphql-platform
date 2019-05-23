@@ -117,8 +117,7 @@ namespace HotChocolate.Execution
             await resolverContext.Task.ConfigureAwait(false);
 
             // serialize and integrate result into final query result
-            var completionContext = new CompleteValueContext(enqueueNext);
-            completionContext.CompleteValue(resolverContext);
+            ValueCompletion.CompleteValue(enqueueNext, resolverContext);
         }
     }
 }

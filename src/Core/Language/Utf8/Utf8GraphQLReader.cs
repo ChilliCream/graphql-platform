@@ -125,7 +125,7 @@ namespace HotChocolate.Language
             fixed (byte* bytePtr = unescapedValue)
             {
                 return StringHelper.UTF8Encoding
-                    .GetString(bytePtr, _value.Length);
+                    .GetString(bytePtr, unescapedValue.Length);
             }
         }
 

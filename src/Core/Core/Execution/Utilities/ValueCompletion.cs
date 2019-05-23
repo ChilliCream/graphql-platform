@@ -1,3 +1,4 @@
+using System.Threading;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -5,12 +6,42 @@ using System.Globalization;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using HotChocolate.Configuration;
 
 namespace HotChocolate.Execution
 {
     internal static class ValueCompletion
     {
+        private static ThreadLocal<CompleteValueContext> _completionContext =
+            new ThreadLocal<CompleteValueContext>(
+                () => new CompleteValueContext());
+
         public static void CompleteValue(
+            Action<ResolverContext> enqueueNext,
+            ResolverContext resolverContext)
+        {
+            CompleteValueContext completionContext = _completionContext.Value;
+            completionContext.Clear();
+
+            completionContext.EnqueueNext = enqueueNext;
+            completionContext.ResolverContext = resolverContext;
+
+            CompleteValue(
+                completionContext,
+                resolverContext.Field.Type,
+                resolverContext.Result);
+
+            if (completionContext.IsViolatingNonNullType)
+            {
+                resolverContext.PropagateNonNullViolation.Invoke();
+            }
+            else
+            {
+                resolverContext.SetCompletedValue(completionContext.Value);
+            }
+        }
+
+        private static void CompleteValue(
             ICompleteValueContext context,
             IType type,
             object result)
