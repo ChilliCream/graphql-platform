@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using Microsoft.AspNetCore.Hosting;
@@ -30,6 +30,7 @@ namespace HotChocolate.AspNetCore
                 {
                     configureServices?.Invoke(services);
                     services.AddScoped<TestService>();
+                    services.AddHttpContextAccessor();
                     services.AddGraphQL(configure);
                 });
 
