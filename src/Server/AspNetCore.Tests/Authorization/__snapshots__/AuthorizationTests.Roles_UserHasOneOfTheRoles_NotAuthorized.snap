@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "roles_ab": null
   },
@@ -13,7 +13,10 @@
       ],
       "path": [
         "roles_ab"
-      ]
+      ],
+      "extensions": {
+        "code": "AUTH_NOT_AUTHORIZED"
+      }
     }
   ]
 }

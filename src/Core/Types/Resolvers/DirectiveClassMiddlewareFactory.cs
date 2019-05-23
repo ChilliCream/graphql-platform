@@ -57,9 +57,9 @@ namespace HotChocolate.Resolvers
             object sync = new object();
             TMiddleware middleware = null;
 
-            ClassQueryDelegate<TMiddleware, IMiddlewareContext> compiled =
+            ClassQueryDelegate<TMiddleware, IDirectiveContext> compiled =
                 MiddlewareActivator
-                    .CompileMiddleware<TMiddleware, IMiddlewareContext>();
+                    .CompileMiddleware<TMiddleware, IDirectiveContext>();
 
             return context =>
             {

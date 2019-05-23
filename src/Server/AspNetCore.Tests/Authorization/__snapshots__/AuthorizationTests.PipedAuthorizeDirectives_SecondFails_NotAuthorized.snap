@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "piped": null
   },
@@ -13,7 +13,10 @@
       ],
       "path": [
         "piped"
-      ]
+      ],
+      "extensions": {
+        "code": "AUTH_NOT_AUTHORIZED"
+      }
     }
   ]
 }

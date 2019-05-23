@@ -56,10 +56,12 @@ namespace HotChocolate.AspNetCore.Authorization
             }
             else if (context.Result == null)
             {
+                // TODO : resources
                 context.Result = ErrorBuilder.New()
                     .SetMessage(
                         "The current user is not authorized to " +
                         "access this resource.")
+                    .SetCode(AuthErrorCodes.NotAuthorized)
                     .SetPath(context.Path)
                     .AddLocation(context.FieldSelection)
                     .Build();
@@ -115,11 +117,17 @@ namespace HotChocolate.AspNetCore.Authorization
             {
                 policy = await policyProvider.GetDefaultPolicyAsync()
                     .ConfigureAwait(false);
+
                 if (policy == null)
                 {
-                    context.Result = QueryError.CreateFieldError(
-                        "The default authorization policy does not exist.",
-                        context.FieldSelection);
+                    // TODO : resources
+                    context.Result = context.Result = ErrorBuilder.New()
+                        .SetMessage(
+                            "The default authorization policy does not exist.")
+                        .SetCode(AuthErrorCodes.NoDefaultPolicy)
+                        .SetPath(context.Path)
+                        .AddLocation(context.FieldSelection)
+                        .Build();
                 }
             }
 
@@ -130,18 +138,24 @@ namespace HotChocolate.AspNetCore.Authorization
 
                 if (policy == null)
                 {
-                    context.Result = QueryError.CreateFieldError(
-                        $"The `{directive.Policy}` authorization policy " +
-                        "does not exist.",
-                        context.FieldSelection);
+                    // TODO : resources
+                    context.Result = ErrorBuilder.New()
+                        .SetMessage(
+                            $"The `{directive.Policy}` authorization policy " +
+                            "does not exist.")
+                        .SetCode(AuthErrorCodes.PolicyNotFound)
+                        .SetPath(context.Path)
+                        .AddLocation(context.FieldSelection)
+                        .Build();
                 }
             }
 
             if (context.Result == null && policy != null)
             {
                 AuthorizationResult result =
-                await authorizeService.AuthorizeAsync(principal, policy)
-                    .ConfigureAwait(false);
+                    await authorizeService.AuthorizeAsync(
+                        principal, context, policy)
+                        .ConfigureAwait(false);
                 return result.Succeeded;
             }
 

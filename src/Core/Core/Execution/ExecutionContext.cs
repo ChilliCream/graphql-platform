@@ -52,6 +52,7 @@ namespace HotChocolate.Execution
                 requestContext.ServiceScope.ServiceProvider);
         }
 
+
         public ISchema Schema { get; }
 
         public IRequestServiceScope ServiceScope =>
