@@ -104,6 +104,21 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public new IDirectiveTypeDescriptor<T> Use<TMiddleware>()
+            where TMiddleware : class
+        {
+            base.Use<TMiddleware>();
+            return this;
+        }
+
+        public new IDirectiveTypeDescriptor<T> Use<TMiddleware>(
+            Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
+            where TMiddleware : class
+        {
+            base.Use(factory);
+            return this;
+        }
+
         [Obsolete("Replace Middleware with `Use`.")]
         public new IDirectiveTypeDescriptor<T> Middleware(
             DirectiveMiddleware middleware)

@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Net;
 using System.Security.Claims;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using Microsoft.Extensions.DependencyInjection;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -36,7 +34,9 @@ namespace HotChocolate.AspNetCore
         private readonly IQueryResultSerializer _resultSerializer;
         private readonly Func<HttpContext, bool> _isPathValid;
 
-
+#if ASPNETCLASSIC
+        private OwinContextAccessor _accessor;
+#endif
 
         /// <summary>
         /// Instantiates the base query middleware with an optional pointer to
@@ -81,6 +81,12 @@ namespace HotChocolate.AspNetCore
             {
                 _isPathValid = ctx => ctx.IsValidPath(options.Path);
             }
+
+#if ASPNETCLASSIC
+            _accessor = queryExecutor.Schema.Services
+                .GetService<IOwinContextAccessor>()
+                as OwinContextAccessor;
+#endif
         }
 
         /// <summary>
@@ -164,7 +170,9 @@ namespace HotChocolate.AspNetCore
             HttpContext context);
 
         private async Task<IReadOnlyQueryRequest>
-            CreateQueryRequestInternalAsync(HttpContext context)
+            CreateQueryRequestInternalAsync(
+                HttpContext context,
+                IServiceProvider services)
         {
             IQueryRequestBuilder builder =
                 await CreateQueryRequestAsync(context)
@@ -175,6 +183,7 @@ namespace HotChocolate.AspNetCore
 
             builder.AddProperty(nameof(HttpContext), context);
             builder.AddProperty(nameof(ClaimsPrincipal), context.GetUser());
+            builder.SetServices(services);
 
             if (context.IsTracingEnabled())
             {
@@ -197,16 +206,35 @@ namespace HotChocolate.AspNetCore
             HttpContext context,
             IQueryExecutor queryExecutor)
         {
+#if ASPNETCLASSIC
+            if (_accessor != null)
+            {
+                _accessor.OwinContext = context;
+            }
+
+            using (IServiceScope serviceScope =
+                Executor.Schema.Services.CreateScope())
+            {
+                IServiceProvider serviceProvider =
+                    context.CreateRequestServices(
+                        serviceScope.ServiceProvider);
+#else
+            IServiceProvider serviceProvider = context.RequestServices;
+#endif
+
             IReadOnlyQueryRequest request =
-                await CreateQueryRequestInternalAsync(context)
-                .ConfigureAwait(false);
+                await CreateQueryRequestInternalAsync(context, serviceProvider)
+                    .ConfigureAwait(false);
 
-            IExecutionResult result = await queryExecutor
-                .ExecuteAsync(request, context.GetCancellationToken())
-                .ConfigureAwait(false);
+                IExecutionResult result = await queryExecutor
+                    .ExecuteAsync(request, context.GetCancellationToken())
+                    .ConfigureAwait(false);
 
-            await WriteResponseAsync(context.Response, result)
-                .ConfigureAwait(false);
+                await WriteResponseAsync(context.Response, result)
+                    .ConfigureAwait(false);
+#if ASPNETCLASSIC
+            }
+#endif
         }
 
         private async Task WriteResponseAsync(

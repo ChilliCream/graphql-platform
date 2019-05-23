@@ -31,6 +31,7 @@ namespace HotChocolate.AspNetClassic
                 var serviceCollection = new ServiceCollection();
 
                 configureServices?.Invoke(serviceCollection);
+                serviceCollection.AddOwinContextAccessor();
                 serviceCollection.AddScoped<TestService>();
                 serviceCollection.AddGraphQL(configure);
 

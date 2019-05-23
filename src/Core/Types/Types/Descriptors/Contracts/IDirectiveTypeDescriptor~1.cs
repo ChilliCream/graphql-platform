@@ -92,8 +92,25 @@ namespace HotChocolate.Types
         IDirectiveTypeDescriptor<T> Middleware<TMiddleware>(
             Expression<Action<TMiddleware>> method);
 
+        /// <summary>
+        /// Configure a middleware for this directive.
+        /// </summary>
         IDirectiveTypeDescriptor<T> Use(
             DirectiveMiddleware middleware);
+
+        /// <summary>
+        /// Configure a middleware for this directive.
+        /// </summary>
+        IDirectiveTypeDescriptor<T> Use<TMiddleware>()
+            where TMiddleware : class;
+
+        /// <summary>
+        /// Configure a middleware for this directive.
+        /// </summary>
+        /// <param name="factory">The middleware factory.</param>
+        IDirectiveTypeDescriptor<T> Use<TMiddleware>(
+            Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
+            where TMiddleware : class;
 
         /// <summary>
         /// Allows this directive type to be declared multiple
