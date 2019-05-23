@@ -173,8 +173,6 @@ namespace HotChocolate.Execution
             Action<ResolverContext> enqueueNext,
             CancellationToken cancellationToken)
         {
-            var completionContext = new CompleteValueContext(enqueueNext);
-
             foreach (ResolverContext resolverContext in batch)
             {
                 if (resolverContext.Task.Status != TaskStatus.RanToCompletion)
@@ -182,7 +180,7 @@ namespace HotChocolate.Execution
                     await resolverContext.Task.ConfigureAwait(false);
                 }
 
-                completionContext.CompleteValue(resolverContext);
+                ValueCompletion.CompleteValue(enqueueNext, resolverContext);
 
                 if (!resolverContext.IsRoot)
                 {
