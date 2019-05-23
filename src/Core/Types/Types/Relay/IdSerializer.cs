@@ -36,10 +36,14 @@ namespace HotChocolate.Types.Relay
             (byte type, byte[] value) serializedId = SerializeId(id);
             int length = typeName.Value.Length + serializedId.value.Length + 2;
             bool useStackalloc = length <= _stackallocThreshold;
-            Span<byte> serializedIdSpan = useStackalloc
-                ? stackalloc byte[length]
-                : (serializedIdArray = ArrayPool<byte>.Shared.Rent(length));
-            serializedIdSpan = serializedIdSpan.Slice(0, length);
+            // TODO : we have to first reimplemet the base 64 algorithm in order
+            // to take advantage of span.
+            // Span<byte> serializedIdSpan = useStackalloc
+            //     ? stackalloc byte[length]
+            //     : (serializedIdArray = ArrayPool<byte>.Shared.Rent(length));
+            serializedIdArray = ArrayPool<byte>.Shared.Rent(length);
+            //serializedIdSpan = serializedIdSpan.Slice(0, length);
+            Span<byte> serializedIdSpan = serializedIdArray.AsSpan();
 
             int index = 0;
             for (int i = 0; i < typeName.Value.Length; i++)
