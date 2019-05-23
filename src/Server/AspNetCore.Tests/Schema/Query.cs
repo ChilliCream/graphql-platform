@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Http;
 
@@ -7,14 +7,14 @@ namespace HotChocolate.AspNetCore
     public class Query
     {
         private readonly TestService _service;
-        private readonly HttpContext _context;
+        private readonly IHttpContextAccessor _accessor;
 
-        public Query(TestService testService, HttpContext context)
+        public Query(TestService testService, IHttpContextAccessor accessor)
         {
             _service = testService
                 ?? throw new ArgumentNullException(nameof(testService));
-            _context = context
-                ?? throw new ArgumentNullException(nameof(context));
+            _accessor = accessor
+                ?? throw new ArgumentNullException(nameof(accessor));
         }
 
         public string SayHello()
@@ -24,17 +24,18 @@ namespace HotChocolate.AspNetCore
 
         public string GetRequestPath()
         {
-            return _context.Request.Path;
+            return _accessor.HttpContext.Request.Path;
         }
 
         public string GetRequestPath2(IResolverContext context)
         {
-            return context.Service<HttpContext>().Request.Path;
+            return context.Service<IHttpContextAccessor>()
+                .HttpContext.Request.Path;
         }
 
-        public string GetRequestPath3([Service]HttpContext context)
+        public string GetRequestPath3([Service]IHttpContextAccessor accessor)
         {
-            return context.Request.Path;
+            return accessor.HttpContext.Request.Path;
         }
 
         public Foo GetBasic()

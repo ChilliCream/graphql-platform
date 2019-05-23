@@ -10,7 +10,7 @@
   "Errors": [
     {
       "Message": "Cannot return null for non-nullable field.",
-      "Code": null,
+      "Code": "EXEC_NON_NULL_VIOLATION",
       "Path": [
         "foo",
         "nullable_list_nullable_element",
@@ -24,7 +24,9 @@
         }
       ],
       "Exception": null,
-      "Extensions": {}
+      "Extensions": {
+        "code": "EXEC_NON_NULL_VIOLATION"
+      }
     }
   ],
   "ContextData": {}

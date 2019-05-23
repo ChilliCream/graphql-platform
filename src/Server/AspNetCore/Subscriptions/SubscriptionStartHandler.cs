@@ -27,7 +27,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     .SetOperation(payload.OperationName)
                     .SetVariableValues(QueryMiddlewareUtilities
                         .ToDictionary(payload.Variables))
-                    .SetServices(context.HttpContext.CreateRequestServices());
+                    .SetServices(context.HttpContext.RequestServices);
 
             await context.PrepareRequestAsync(requestBuilder)
                 .ConfigureAwait(false);

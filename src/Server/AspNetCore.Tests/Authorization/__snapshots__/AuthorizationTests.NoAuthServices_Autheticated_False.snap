@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "default": null
   },
@@ -13,7 +13,10 @@
       ],
       "path": [
         "default"
-      ]
+      ],
+      "extensions": {
+        "code": "AUTH_NOT_AUTHORIZED"
+      }
     }
   ]
 }

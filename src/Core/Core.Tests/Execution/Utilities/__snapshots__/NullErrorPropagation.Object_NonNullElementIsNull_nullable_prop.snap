@@ -8,7 +8,7 @@
   "Errors": [
     {
       "Message": "Cannot return null for non-nullable field.",
-      "Code": null,
+      "Code": "EXEC_NON_NULL_VIOLATION",
       "Path": [
         "foo",
         "nullable_prop",
@@ -21,7 +21,9 @@
         }
       ],
       "Exception": null,
-      "Extensions": {}
+      "Extensions": {
+        "code": "EXEC_NON_NULL_VIOLATION"
+      }
     }
   ],
   "ContextData": {}

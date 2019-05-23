@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "default": null
   },
@@ -10,7 +10,13 @@
           "line": 1,
           "column": 3
         }
-      ]
+      ],
+      "path": [
+        "default"
+      ],
+      "extensions": {
+        "code": "AUTH_NO_DEFAULT_POLICY"
+      }
     }
   ]
 }

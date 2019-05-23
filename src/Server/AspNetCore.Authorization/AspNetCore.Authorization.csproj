@@ -34,4 +34,19 @@
     <ProjectReference Include="..\..\Core\Core\Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Properties\AuthResources.Designer.cs">
+      <DependentUpon>AuthResources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Properties\AuthResources.resx">
+      <LastGenOutput>AuthResources.Designer.cs</LastGenOutput>
+      <Generator>ResXFileCodeGenerator</Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

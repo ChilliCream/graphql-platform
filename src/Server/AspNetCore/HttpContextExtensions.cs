@@ -23,33 +23,12 @@ namespace HotChocolate.AspNetCore
 #if ASPNETCLASSIC
         public static IServiceProvider CreateRequestServices(
             this HttpContext context,
-            IServiceProvider rootServiceProvider)
+            IServiceProvider services)
         {
-            var services = new Dictionary<Type, object>
-            {
-                { typeof(HttpContext), context }
-            };
-            var serviceProvider = new RequestServiceProvider(
-                rootServiceProvider,
+            context.Environment.Add(EnvironmentKeys.ServiceProvider,
                 services);
 
-            context.Environment.Add(EnvironmentKeys.ServiceProvider,
-                serviceProvider);
-
-            return serviceProvider;
-        }
-#else
-
-        public static IServiceProvider CreateRequestServices(
-            this HttpContext context)
-        {
-            var services = new Dictionary<Type, object>
-            {
-                { typeof(HttpContext), context }
-            };
-
-            return new RequestServiceProvider(
-                context.RequestServices, services);
+            return services;
         }
 #endif
 

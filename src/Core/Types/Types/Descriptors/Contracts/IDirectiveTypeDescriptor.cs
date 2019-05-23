@@ -49,23 +49,37 @@ namespace HotChocolate.Types
         /// <param name="value">The directive location.</param>
         IDirectiveTypeDescriptor Location(DirectiveLocation value);
 
-        // TODO : DOCU
         [Obsolete("Replace Middleware with `Use`.")]
         IDirectiveTypeDescriptor Middleware(
             DirectiveMiddleware middleware);
 
-        // TODO : DOCU
         [Obsolete("Replace Middleware with `Use`.", true)]
         IDirectiveTypeDescriptor Middleware<T>(
             Expression<Func<T, object>> method);
 
-        // TODO : DOCU
         [Obsolete("Replace Middleware with `Use`.", true)]
         IDirectiveTypeDescriptor Middleware<T>(
             Expression<Action<T>> method);
 
+        /// <summary>
+        /// Configure a middleware for this directive.
+        /// </summary>
         IDirectiveTypeDescriptor Use(
             DirectiveMiddleware middleware);
+
+        /// <summary>
+        /// Configure a middleware for this directive.
+        /// </summary>
+        IDirectiveTypeDescriptor Use<TMiddleware>()
+            where TMiddleware : class;
+
+        /// <summary>
+        /// Configure a middleware for this directive.
+        /// </summary>
+        /// <param name="factory">The middleware factory.</param>
+        IDirectiveTypeDescriptor Use<TMiddleware>(
+            Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
+            where TMiddleware : class;
 
         /// <summary>
         /// Allows this directive type to be declared multiple times
