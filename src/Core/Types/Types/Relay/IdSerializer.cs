@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Buffers;
+using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Text;
@@ -8,6 +9,7 @@ namespace HotChocolate.Types.Relay
 {
     public sealed class IdSerializer
     {
+        private const int _stackallocThreshold = 256;
         private const int _divisor = 4;
         private const byte _separator = (byte)'-';
         private const byte _string = (byte)'x';
@@ -21,9 +23,6 @@ namespace HotChocolate.Types.Relay
 
         private static readonly Encoding _utf8 = Encoding.UTF8;
 
-        private readonly ConcurrentDictionary<string, byte[]> _typeNames =
-            new ConcurrentDictionary<string, byte[]>();
-
         public string Serialize(NameString typeName, object id)
         {
             if (id == null)
@@ -33,9 +32,38 @@ namespace HotChocolate.Types.Relay
 
             typeName.EnsureNotEmpty("typeName");
 
-            return ToBase64String(
-                SerializeTypeName(typeName),
-                SerializeId(id));
+            byte[] serializedIdArray = null;
+            (byte type, byte[] value) serializedId = SerializeId(id);
+            int length = typeName.Value.Length + serializedId.value.Length + 2;
+            bool useStackalloc = length <= _stackallocThreshold;
+            Span<byte> serializedIdSpan = useStackalloc
+                ? stackalloc byte[length]
+                : (serializedIdArray = ArrayPool<byte>.Shared.Rent(length));
+            serializedIdSpan = serializedIdSpan.Slice(0, length);
+
+            int index = 0;
+            for (int i = 0; i < typeName.Value.Length; i++)
+            {
+                serializedIdSpan[index++] = (byte)typeName.Value[i];
+            }
+
+            serializedIdSpan[index++] = _separator;
+            serializedIdSpan[index++] = serializedId.type;
+
+            for (int i = 0; i < serializedId.value.Length; i++)
+            {
+                serializedIdSpan[index++] = (byte)serializedId.value[i];
+            }
+
+            string value = Convert.ToBase64String(serializedIdArray, 0, length);
+
+            if (serializedIdArray != null)
+            {
+                serializedIdSpan.Clear();
+                ArrayPool<byte>.Shared.Return(serializedIdArray);
+            }
+
+            return value;
         }
 
         public IdValue Deserialize(string serializedId)
@@ -48,14 +76,22 @@ namespace HotChocolate.Types.Relay
             ReadOnlySpan<byte> raw = Convert.FromBase64String(serializedId);
             int separatorIndex = FindSeparator(in raw);
 
-            string typeName = _utf8.GetString(
-                raw.Slice(0, separatorIndex).ToArray());
+            string typeName = ToString(raw.Slice(0, separatorIndex).ToArray());
 
             object value = DeserializeId(
                 raw.Slice(separatorIndex + 1, 1),
                 raw.Slice(separatorIndex + 2));
 
             return new IdValue(typeName, value);
+        }
+
+        private static unsafe string ToString(
+            ReadOnlySpan<byte> unescapedValue)
+        {
+            fixed (byte* bytePtr = unescapedValue)
+            {
+                return _utf8.GetString(bytePtr, unescapedValue.Length);
+            }
         }
 
         public static bool IsPossibleBase64String(string s)
@@ -98,19 +134,6 @@ namespace HotChocolate.Types.Relay
                 || c == _forwardSlash;
         }
 
-        private static string ToBase64String(
-            byte[] typeName,
-            (byte type, byte[] value) id)
-        {
-            using (var stream = new MemoryStream())
-            {
-                stream.Write(typeName, 0, typeName.Length);
-                stream.WriteByte(_separator);
-                stream.WriteByte(id.type);
-                stream.Write(id.value, 0, id.value.Length);
-                return Convert.ToBase64String(stream.ToArray());
-            }
-        }
 
         private static (byte, byte[]) SerializeId(object result)
         {
@@ -146,19 +169,8 @@ namespace HotChocolate.Types.Relay
                 case _long:
                     return BitConverter.ToInt64(value.ToArray(), 0);
                 default:
-                    return _utf8.GetString(value.ToArray(), 0, value.Length);
+                    return ToString(value);
             }
-        }
-
-        private byte[] SerializeTypeName(string typeName)
-        {
-            if (!_typeNames.TryGetValue(typeName,
-                out byte[] serialized))
-            {
-                serialized = _utf8.GetBytes(typeName);
-                _typeNames.TryAdd(typeName, serialized);
-            }
-            return serialized;
         }
 
         private static int FindSeparator(in ReadOnlySpan<byte> serializedId)

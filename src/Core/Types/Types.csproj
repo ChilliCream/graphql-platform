@@ -6,6 +6,7 @@
     <AssemblyName>HotChocolate.Types</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
     <PackageId>HotChocolate.Types</PackageId>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>Contains the Hot Chocolate GraphQL type system.</Description>
   </PropertyGroup>
 
