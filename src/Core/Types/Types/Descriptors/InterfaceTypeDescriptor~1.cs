@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Descriptors
         , IInterfaceTypeDescriptor<T>
         , IHasClrType
     {
-        public InterfaceTypeDescriptor(IDescriptorContext context)
+        protected internal InterfaceTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {
         }

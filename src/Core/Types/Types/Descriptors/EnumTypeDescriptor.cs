@@ -11,13 +11,13 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<EnumTypeDefinition>
         , IEnumTypeDescriptor
     {
-        public EnumTypeDescriptor(IDescriptorContext context)
+        protected EnumTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
             Definition.ClrType = typeof(object);
         }
 
-        public EnumTypeDescriptor(IDescriptorContext context, Type clrType)
+        protected EnumTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
             Definition.ClrType = clrType
@@ -139,5 +139,14 @@ namespace HotChocolate.Types.Descriptors
         public static EnumTypeDescriptor<T> New<T>(
             IDescriptorContext context) =>
             new EnumTypeDescriptor<T>(context);
+
+        public static EnumTypeDescriptor FromSchemaType(
+            IDescriptorContext context,
+            Type schemaType)
+        {
+            var descriptor = New(context, schemaType);
+            descriptor.Definition.ClrType = typeof(object);
+            return descriptor;
+        }
     }
 }

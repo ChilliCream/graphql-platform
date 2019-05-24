@@ -54,8 +54,9 @@ namespace HotChocolate.Types
         protected override ObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            var descriptor = ObjectTypeDescriptor.New(
-                context.DescriptorContext);
+            var descriptor = ObjectTypeDescriptor.FromSchemaType(
+                context.DescriptorContext,
+                GetType());
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
@@ -184,6 +185,7 @@ namespace HotChocolate.Types
 
             foreach (ObjectFieldDefinition field in invalidFields)
             {
+                // TODO : resources
                 context.ReportError(SchemaErrorBuilder.New()
                     .SetMessage(string.Format(
                         CultureInfo.InvariantCulture,

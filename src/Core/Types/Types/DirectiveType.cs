@@ -52,8 +52,9 @@ namespace HotChocolate.Types
         protected override DirectiveTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            var descriptor = DirectiveTypeDescriptor.New(
-                context.DescriptorContext);
+            var descriptor = DirectiveTypeDescriptor.FromSchemaType(
+                context.DescriptorContext,
+                GetType());
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }

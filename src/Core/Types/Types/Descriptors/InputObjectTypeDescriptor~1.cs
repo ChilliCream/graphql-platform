@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Descriptors
         , IInputObjectTypeDescriptor<T>
         , IHasClrType
     {
-        public InputObjectTypeDescriptor(IDescriptorContext context)
+        protected internal InputObjectTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {
         }

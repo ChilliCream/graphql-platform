@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<UnionTypeDefinition>
         , IUnionTypeDescriptor
     {
-        public UnionTypeDescriptor(IDescriptorContext context, Type clrType)
+        protected UnionTypeDescriptor(IDescriptorContext context, Type clrType)
             : base(context)
         {
             if (clrType == null)
@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Descriptors
                 context.Naming.GetTypeDescription(clrType, TypeKind.Union);
         }
 
-        public UnionTypeDescriptor(IDescriptorContext context)
+        protected UnionTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
             Definition.ClrType = typeof(object);
@@ -120,5 +120,14 @@ namespace HotChocolate.Types.Descriptors
         public static UnionTypeDescriptor New(
             IDescriptorContext context) =>
             new UnionTypeDescriptor(context);
+
+        public static UnionTypeDescriptor FromSchemaType(
+            IDescriptorContext context,
+            Type schemaType)
+        {
+            var descriptor = New(context, schemaType);
+            descriptor.Definition.ClrType = typeof(object);
+            return descriptor;
+        }
     }
 }

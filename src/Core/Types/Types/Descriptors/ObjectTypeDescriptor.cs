@@ -280,16 +280,25 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public static ObjectTypeDescriptor New(
+            IDescriptorContext context) =>
+            new ObjectTypeDescriptor(context);
+
+        public static ObjectTypeDescriptor New(
             IDescriptorContext context,
             Type clrType) =>
             new ObjectTypeDescriptor(context, clrType);
 
-        public static ObjectTypeDescriptor New(
-            IDescriptorContext context) =>
-            new ObjectTypeDescriptor(context);
-
         public static ObjectTypeDescriptor<T> New<T>(
             IDescriptorContext context) =>
             new ObjectTypeDescriptor<T>(context);
+
+        public static ObjectTypeDescriptor FromSchemaType(
+            IDescriptorContext context,
+            Type schemaType)
+        {
+            var descriptor = new ObjectTypeDescriptor(context, schemaType);
+            descriptor.Definition.ClrType = typeof(object);
+            return descriptor;
+        }
     }
 }

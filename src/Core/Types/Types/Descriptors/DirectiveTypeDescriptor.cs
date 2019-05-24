@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +15,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<DirectiveTypeDefinition>
         , IDirectiveTypeDescriptor
     {
-        public DirectiveTypeDescriptor(
+        protected DirectiveTypeDescriptor(
             IDescriptorContext context,
             Type clrType)
             : base(context)
@@ -31,7 +32,7 @@ namespace HotChocolate.Types.Descriptors
                 clrType, TypeKind.Directive);
         }
 
-        public DirectiveTypeDescriptor(IDescriptorContext context)
+        protected DirectiveTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
             Definition.ClrType = typeof(object);
@@ -178,5 +179,14 @@ namespace HotChocolate.Types.Descriptors
         public static DirectiveTypeDescriptor<T> New<T>(
             IDescriptorContext context) =>
             new DirectiveTypeDescriptor<T>(context);
+
+        public static DirectiveTypeDescriptor FromSchemaType(
+            IDescriptorContext context,
+            Type schemaType)
+        {
+            var descriptor = New(context, schemaType);
+            descriptor.Definition.ClrType = typeof(object);
+            return descriptor;
+        }
     }
 }
