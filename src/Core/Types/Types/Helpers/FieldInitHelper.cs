@@ -51,10 +51,16 @@ namespace HotChocolate.Types
         {
             if (context.Type is IType type && fields.Count == 0)
             {
+                string kind = context.Type is IType t
+                    ? t.Kind.ToString()
+                    : TypeKind.Directive.ToString();
+
                 context.ReportError(SchemaErrorBuilder.New()
                     .SetMessage(string.Format(
                         CultureInfo.InvariantCulture,
-                        TypeResources.FieldInitHelper_NoFields))
+                        TypeResources.FieldInitHelper_NoFields,
+                        kind,
+                        context.Type.Name))
                     .SetCode(TypeErrorCodes.MissingType)
                     .SetTypeSystemObject(context.Type)
                     .AddSyntaxNode(definition.SyntaxNode)
