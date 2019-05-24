@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Descriptors
         , IDirectiveTypeDescriptor<T>
         , IHasClrType
     {
-        public DirectiveTypeDescriptor(IDescriptorContext context)
+        protected internal DirectiveTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {
         }

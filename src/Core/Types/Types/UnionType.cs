@@ -39,16 +39,17 @@ namespace HotChocolate.Types
         public IReadOnlyDictionary<NameString, ObjectType> Types => _typeMap;
 
         public ObjectType ResolveType(
-            IResolverContext context, object resolverResult)
-            => _resolveAbstractType(context, resolverResult);
+            IResolverContext context, object resolverResult) =>
+            _resolveAbstractType(context, resolverResult);
 
         #region Initialization
 
         protected override UnionTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            var descriptor = UnionTypeDescriptor.New(
-                context.DescriptorContext);
+            var descriptor = UnionTypeDescriptor.FromSchemaType(
+                context.DescriptorContext,
+                GetType());
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }

@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<InputObjectTypeDefinition>
         , IInputObjectTypeDescriptor
     {
-        public InputObjectTypeDescriptor(
+        protected InputObjectTypeDescriptor(
             IDescriptorContext context,
             Type clrType)
             : base(context)
@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Descriptors
                 clrType, TypeKind.InputObject);
         }
 
-        public InputObjectTypeDescriptor(IDescriptorContext context)
+        protected InputObjectTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
             Definition.ClrType = typeof(object);
@@ -125,5 +125,14 @@ namespace HotChocolate.Types.Descriptors
         public static InputObjectTypeDescriptor<T> New<T>(
             IDescriptorContext context) =>
             new InputObjectTypeDescriptor<T>(context);
+
+        public static InputObjectTypeDescriptor FromSchemaType(
+            IDescriptorContext context,
+            Type schemaType)
+        {
+            var descriptor = New(context, schemaType);
+            descriptor.Definition.ClrType = typeof(object);
+            return descriptor;
+        }
     }
 }

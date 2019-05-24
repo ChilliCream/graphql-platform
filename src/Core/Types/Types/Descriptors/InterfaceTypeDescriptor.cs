@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<InterfaceTypeDefinition>
         , IInterfaceTypeDescriptor
     {
-        public InterfaceTypeDescriptor(
+        protected InterfaceTypeDescriptor(
             IDescriptorContext context,
             Type clrType)
             : base(context)
@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Descriptors
                 context.Naming.GetTypeDescription(clrType, TypeKind.Interface);
         }
 
-        public InterfaceTypeDescriptor(
+        protected InterfaceTypeDescriptor(
             IDescriptorContext context)
             : base(context)
         {
@@ -133,5 +133,13 @@ namespace HotChocolate.Types.Descriptors
         public static InterfaceTypeDescriptor<T> New<T>(
             IDescriptorContext context) =>
             new InterfaceTypeDescriptor<T>(context);
+
+        public static InterfaceTypeDescriptor FromSchemaType(
+            IDescriptorContext context, Type schemaType)
+        {
+            var descriptor = New(context, schemaType);
+            descriptor.Definition.ClrType = typeof(object);
+            return descriptor;
+        }
     }
 }

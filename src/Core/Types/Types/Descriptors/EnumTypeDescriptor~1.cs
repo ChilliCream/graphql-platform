@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Descriptors
         : EnumTypeDescriptor
         , IEnumTypeDescriptor<T>
     {
-        public EnumTypeDescriptor(IDescriptorContext context)
+        protected internal EnumTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {
         }
