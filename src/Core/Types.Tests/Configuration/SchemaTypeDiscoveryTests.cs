@@ -120,16 +120,16 @@ namespace HotChocolate.Discovery
                 t => Assert.Equal("BAR", t.Name));
         }
 
-        [Fact(Skip = "This will be fixed with extensions")]
+        [Fact]
         public void InferCustomScalarTypes()
         {
             // arrange
             // act
-            ISchema schema = Schema.Create(c =>
-            {
-                c.RegisterType<ByteArrayType>();
-                c.RegisterQueryType<QueryWithCustomScalar>();
-            });
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithCustomScalar>()
+                .AddType<ByteArrayType>()
+                .BindClrType<byte[], ByteArrayType>()
+                .Create();
 
             // assert
             ObjectType fooByte = schema.GetType<ObjectType>("FooByte");

@@ -208,7 +208,21 @@ namespace HotChocolate.Configuration
                 }
                 else
                 {
-                    var normalizedTypeRef = new ClrTypeReference(
+                    ClrTypeReference normalizedTypeRef;
+
+                    if (typeInfo.Components.Count > 1)
+                    {
+                        normalizedTypeRef = new ClrTypeReference(
+                            typeInfo.Components[typeInfo.Components.Count - 2],
+                            typeReference.Context);
+
+                        if (IsTypeResolved(normalizedTypeRef))
+                        {
+                            return;
+                        }
+                    }
+
+                    normalizedTypeRef = new ClrTypeReference(
                         typeInfo.ClrType,
                         typeReference.Context);
 
