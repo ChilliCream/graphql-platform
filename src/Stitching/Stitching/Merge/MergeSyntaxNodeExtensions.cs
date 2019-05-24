@@ -316,12 +316,25 @@ namespace HotChocolate.Stitching.Merge
         public static FieldDefinitionNode AddDelegationPath(
             this FieldDefinitionNode field,
             NameString schemaName) =>
+            AddDelegationPath(field, schemaName, false);
+
+        public static FieldDefinitionNode AddDelegationPath(
+            this FieldDefinitionNode field,
+            NameString schemaName,
+            bool overwrite) =>
             AddDelegationPath(field, schemaName, (string)null);
 
         public static FieldDefinitionNode AddDelegationPath(
             this FieldDefinitionNode field,
             NameString schemaName,
-            SelectionPathComponent selectionPath)
+            SelectionPathComponent selectionPath) =>
+            AddDelegationPath(field, schemaName, selectionPath, false);
+
+        public static FieldDefinitionNode AddDelegationPath(
+            this FieldDefinitionNode field,
+            NameString schemaName,
+            SelectionPathComponent selectionPath,
+            bool overwrite)
         {
             if (field == null)
             {
@@ -338,13 +351,21 @@ namespace HotChocolate.Stitching.Merge
             return AddDelegationPath(
                 field,
                 schemaName,
-                selectionPath.ToString());
+                selectionPath.ToString(),
+                overwrite);
         }
 
         public static FieldDefinitionNode AddDelegationPath(
             this FieldDefinitionNode field,
             NameString schemaName,
-            IReadOnlyCollection<SelectionPathComponent> selectionPath)
+            IReadOnlyCollection<SelectionPathComponent> selectionPath) =>
+            AddDelegationPath(field, schemaName, selectionPath, false);
+
+        public static FieldDefinitionNode AddDelegationPath(
+            this FieldDefinitionNode field,
+            NameString schemaName,
+            IReadOnlyCollection<SelectionPathComponent> selectionPath,
+            bool overwrite)
         {
             if (field == null)
             {
@@ -380,13 +401,21 @@ namespace HotChocolate.Stitching.Merge
                 path.Append(component.ToString());
             }
 
-            return AddDelegationPath(field, schemaName, path.ToString());
+            return AddDelegationPath(
+                field, schemaName, path.ToString(), overwrite);
         }
 
         public static FieldDefinitionNode AddDelegationPath(
             this FieldDefinitionNode field,
             NameString schemaName,
-            string delegationPath)
+            string delegationPath) =>
+            AddDelegationPath(field, schemaName, delegationPath, false);
+
+        public static FieldDefinitionNode AddDelegationPath(
+            this FieldDefinitionNode field,
+            NameString schemaName,
+            string delegationPath,
+            bool overwrite)
         {
             if (field == null)
             {
@@ -394,6 +423,12 @@ namespace HotChocolate.Stitching.Merge
             }
 
             schemaName.EnsureNotEmpty(nameof(schemaName));
+
+            if (!overwrite && field.Directives.Any(t =>
+                DirectiveNames.Delegate.Equals(t.Name.Value)))
+            {
+                return field;
+            }
 
             var list = new List<DirectiveNode>(field.Directives);
 

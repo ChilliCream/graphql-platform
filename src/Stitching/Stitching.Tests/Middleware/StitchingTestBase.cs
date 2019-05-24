@@ -1,3 +1,5 @@
+using System.Linq;
+using System.Runtime.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -8,6 +10,10 @@ using HotChocolate.AspNetCore;
 using HotChocolate.Stitching.Schemas.Contracts;
 using HotChocolate.Stitching.Schemas.Customers;
 using HotChocolate.Resolvers;
+using HotChocolate.Stitching.Merge.Rewriters;
+using HotChocolate.Language;
+using HotChocolate.Stitching.Merge;
+using HotChocolate.Stitching.Delegation;
 
 namespace HotChocolate.Stitching
 {
@@ -27,7 +33,7 @@ namespace HotChocolate.Stitching
             return CreateRemoteSchemas(new Dictionary<string, HttpClient>());
         }
 
-        protected IHttpClientFactory CreateRemoteSchemas(
+        protected virtual IHttpClientFactory CreateRemoteSchemas(
             Dictionary<string, HttpClient> connections)
         {
             TestServer server_contracts = TestServerFactory.Create(

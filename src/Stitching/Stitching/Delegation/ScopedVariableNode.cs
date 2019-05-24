@@ -8,6 +8,20 @@ namespace HotChocolate.Stitching.Delegation
         , IEquatable<ScopedVariableNode>
     {
         public ScopedVariableNode(
+            string scope,
+            string name)
+            : this(new NameNode(scope), new NameNode(name))
+        {
+        }
+
+        public ScopedVariableNode(
+            NameNode scope,
+            NameNode name)
+            : this(null, scope, name)
+        {
+        }
+
+        public ScopedVariableNode(
             Language.Location location,
             NameNode scope,
             NameNode name)
