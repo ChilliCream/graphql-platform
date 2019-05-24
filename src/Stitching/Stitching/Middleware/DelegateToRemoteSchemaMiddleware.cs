@@ -336,21 +336,21 @@ namespace HotChocolate.Stitching
 
                     if (context.Schema.TryGetType(
                         arg.Type.NamedType().Name,
-                        out ILeafType leafType))
+                        out INamedInputType inputType))
                     {
                         object value = variable.Value;
 
-                        if (!leafType.IsInstanceOfType(value))
+                        if (!inputType.IsInstanceOfType(value))
                         {
                             value = typeConversion.Convert(
-                                typeof(object), leafType.ClrType, value);
+                                typeof(object), inputType.ClrType, value);
                         }
 
                         variable = new VariableValue
                         (
                             variable.Name,
                             variable.Type,
-                            leafType.Serialize(value),
+                            inputType.Serialize(value),
                             variable.DefaultValue
                         );
                     }

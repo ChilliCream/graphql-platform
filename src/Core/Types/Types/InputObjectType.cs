@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -16,6 +17,8 @@ namespace HotChocolate.Types
         private readonly Action<IInputObjectTypeDescriptor> _configure;
         private InputObjectToObjectValueConverter _objectToValueConverter;
         private ObjectValueToInputObjectConverter _valueToObjectConverter;
+        private InputObjectToDictionaryConverter _objectToDictionary;
+        private DictionaryToInputObjectConverter _dictionaryToObject;
 
         protected InputObjectType()
         {
@@ -85,6 +88,43 @@ namespace HotChocolate.Types
             return _objectToValueConverter.Convert(this, value);
         }
 
+        public object Serialize(object value)
+        {
+            if (value is IReadOnlyDictionary<string, object>
+                || value is IDictionary<string, object>)
+            {
+                return value;
+            }
+
+            return _objectToDictionary.Convert(this, value);
+        }
+
+        public virtual object Deserialize(object serialized)
+        {
+            if ((serialized is IReadOnlyDictionary<string, object>
+                || serialized is IDictionary<string, object>)
+                && ClrType == typeof(object))
+            {
+                return serialized;
+            }
+
+            return _dictionaryToObject.Convert(serialized, this);
+        }
+
+        public bool TryDeserialize(object serialized, out object value)
+        {
+            try
+            {
+                value = Deserialize(serialized);
+                return true;
+            }
+            catch
+            {
+                value = null;
+                return false;
+            }
+        }
+
         #endregion
 
         #region Initialization
@@ -123,6 +163,10 @@ namespace HotChocolate.Types
                 new InputObjectToObjectValueConverter(typeConversion);
             _valueToObjectConverter =
                 new ObjectValueToInputObjectConverter(typeConversion);
+            _objectToDictionary =
+                new InputObjectToDictionaryConverter(typeConversion);
+            _dictionaryToObject =
+                new DictionaryToInputObjectConverter(typeConversion);
 
             SyntaxNode = definition.SyntaxNode;
             Fields = new FieldCollection<InputField>(
