@@ -476,6 +476,131 @@ namespace HotChocolate.Types
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public void IsInstanceOfType_ValueIsNull_True()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InputObjectType<SimpleInput>(d => d
+                    .Ignore(t => t.Id)))
+                .Create();
+
+            InputObjectType type =
+                schema.GetType<InputObjectType>("SimpleInput");
+
+            // act
+            bool result = type.IsInstanceOfType((object)null);
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_ValueIsSimpleInput_True()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InputObjectType<SimpleInput>(d => d
+                    .Ignore(t => t.Id)))
+                .Create();
+
+            InputObjectType type =
+                schema.GetType<InputObjectType>("SimpleInput");
+
+            // act
+            bool result = type.IsInstanceOfType(new SimpleInput());
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_ValueIsObject_False()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InputObjectType<SimpleInput>(d => d
+                    .Ignore(t => t.Id)))
+                .Create();
+
+            InputObjectType type =
+                schema.GetType<InputObjectType>("SimpleInput");
+
+            // act
+            bool result = type.IsInstanceOfType(new object());
+
+            // assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void ParseValue_ValueIsNull()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InputObjectType<SimpleInput>(d => d
+                    .Ignore(t => t.Id)))
+                .Create();
+
+            InputObjectType type =
+                schema.GetType<InputObjectType>("SimpleInput");
+
+            // act
+            IValueNode valueNode = type.ParseValue((object)null);
+
+            // assert
+            QuerySyntaxSerializer.Serialize(valueNode).MatchSnapshot();
+        }
+
+        [Fact]
+        public void ParseValue_ValueIsSimpleInput_True()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InputObjectType<SimpleInput>(d => d
+                    .Ignore(t => t.Id)))
+                .Create();
+
+            InputObjectType type =
+                schema.GetType<InputObjectType>("SimpleInput");
+
+            // act
+            IValueNode valueNode = type.ParseValue(
+                new SimpleInput
+                {
+                    Id = 1,
+                    Name = "foo"
+                });
+
+            // assert
+            QuerySyntaxSerializer.Serialize(valueNode).MatchSnapshot();
+        }
+
         public class SimpleInput
         {
             public int Id { get; set; }

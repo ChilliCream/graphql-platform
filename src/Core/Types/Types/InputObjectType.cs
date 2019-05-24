@@ -85,11 +85,21 @@ namespace HotChocolate.Types
 
         public IValueNode ParseValue(object value)
         {
+            if (value is null)
+            {
+                return NullValueNode.Default;
+            }
+
             return _objectToValueConverter.Convert(this, value);
         }
 
         public object Serialize(object value)
         {
+            if (value is null)
+            {
+                return null;
+            }
+
             if (value is IReadOnlyDictionary<string, object>
                 || value is IDictionary<string, object>)
             {
@@ -101,6 +111,11 @@ namespace HotChocolate.Types
 
         public virtual object Deserialize(object serialized)
         {
+            if (serialized is null)
+            {
+                return null;
+            }
+
             if ((serialized is IReadOnlyDictionary<string, object>
                 || serialized is IDictionary<string, object>)
                 && ClrType == typeof(object))
