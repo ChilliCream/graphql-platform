@@ -43,6 +43,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Includes directive definitions in serialized schema [#717](https://github.com/ChilliCream/hotchocolate/issues/717)
 - Field types are now validated. [#713](https://github.com/ChilliCream/hotchocolate/issues/713)
 - Variables in object values and lists are now correctly recognised [#215](https://github.com/ChilliCream/hotchocolate/issues/215) and [#745](https://github.com/ChilliCream/hotchocolate/issues/745).
+- Fixed issue with input type arguments on the stitching layer
+- Delegate Directive not being assigned correctly with ITypeRewriter. [#766](https://github.com/ChilliCream/hotchocolate/issues/766)
+- Format Exception when registering types. [#787](https://github.com/ChilliCream/hotchocolate/issues/787)
+- The schema factory does not throw an exception if an annotated directive is not correct. [#619](https://github.com/ChilliCream/hotchocolate/issues/619)
 
 ## [0.8.2] - 2019-04-10
 
