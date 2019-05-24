@@ -573,7 +573,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void ParseValue_ValueIsSimpleInput_True()
+        public void ParseValue_ValueIsSimpleInput()
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
@@ -599,6 +599,171 @@ namespace HotChocolate.Types
 
             // assert
             QuerySyntaxSerializer.Serialize(valueNode).MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_ValueIsNull()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InputObjectType<SimpleInput>(d => d
+                    .Ignore(t => t.Id)))
+                .Create();
+
+            InputObjectType type =
+                schema.GetType<InputObjectType>("SimpleInput");
+
+            // act
+            object serialized = type.Serialize(null);
+
+            // assert
+            Assert.Null(serialized);
+        }
+
+        [Fact]
+        public void Serialize_ValueIsSimpleInput()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InputObjectType<SimpleInput>(d => d
+                    .Ignore(t => t.Id)))
+                .Create();
+
+            InputObjectType type =
+                schema.GetType<InputObjectType>("SimpleInput");
+
+            // act
+            object serialized = type.Serialize(
+                new SimpleInput
+                {
+                    Id = 1,
+                    Name = "foo"
+                });
+
+            // assert
+            serialized.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Serialize_ValueIsDictionary()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InputObjectType<SimpleInput>(d => d
+                    .Ignore(t => t.Id)))
+                .Create();
+
+            InputObjectType type =
+                schema.GetType<InputObjectType>("SimpleInput");
+
+            // act
+            object serialized = type.Serialize(
+                new Dictionary<string, object>
+                {
+                    { "name", "foo" }
+                });
+
+            // assert
+            serialized.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Deserialize_ValueIsNull()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InputObjectType<SimpleInput>(d => d
+                    .Ignore(t => t.Id)))
+                .Create();
+
+            InputObjectType type =
+                schema.GetType<InputObjectType>("SimpleInput");
+
+            // act
+            bool result = type.TryDeserialize(null, out object value);
+
+            // assert
+            Assert.Null(value);
+        }
+
+        [Fact]
+        public void Deserialize_ValueIsDictionary()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InputObjectType<SimpleInput>(d => d
+                    .Ignore(t => t.Id)))
+                .Create();
+
+            InputObjectType type =
+                schema.GetType<InputObjectType>("SimpleInput");
+
+            // act
+            bool result = type.TryDeserialize(
+                new Dictionary<string, object>
+                {
+                    { "name", "foo" }
+                },
+                out object value);
+
+            // assert
+            Assert.Equal("foo", Assert.IsType<SimpleInput>(value).Name);
+        }
+
+        [Fact]
+        public void Deserialize_ClrTypeIsObject_ValueIsDictionary()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InputObjectType(d => d
+                    .Name("Bar")
+                    .Field("name")
+                    .Type<StringType>()))
+                .Create();
+
+            InputObjectType type =
+                schema.GetType<InputObjectType>("Bar");
+
+            // act
+            bool result = type.TryDeserialize(
+                new Dictionary<string, object>
+                {
+                    { "name", "foo" }
+                },
+                out object value);
+
+            // assert
+            Assert.IsType<Dictionary<string, object>>(value);
         }
 
         public class SimpleInput
