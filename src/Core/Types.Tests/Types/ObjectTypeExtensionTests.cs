@@ -486,6 +486,7 @@ namespace HotChocolate.Types
             {
                 descriptor.Name("dummy_rep");
                 descriptor.Repeatable();
+                descriptor.Argument("a").Type<StringType>();
                 descriptor.Location(DirectiveLocation.Object);
                 descriptor.Location(DirectiveLocation.FieldDefinition);
                 descriptor.Location(DirectiveLocation.ArgumentDefinition);
