@@ -166,7 +166,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     context.User = new ClaimsPrincipal(
                         new ClaimsIdentity("testauth"));
                 });
-            
+
             var request = "{ age }";
             var contentType = "application/graphql";
 

@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution;
@@ -160,6 +161,38 @@ namespace HotChocolate
             IExecutionResult result =
                 await executor.ExecuteAsync("{ hello }");
             result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void DirectiveArgumentsAreValidated()
+        {
+            // arrange
+            string sourceText = @"
+                type Query {
+                    foo: String @a(b:1 e:true)
+                }
+
+                directive @a(c:Int d:Int! e:Int) on FIELD_DEFINITION
+            ";
+
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .AddResolver("Query", "foo", "bar")
+                .Create();
+
+            // assert
+            Assert.Collection(
+                Assert.Throws<SchemaException>(action).Errors,
+                    error => Assert.Equal(
+                        TypeErrorCodes.InvalidArgument,
+                        error.Code),
+                    error => Assert.Equal(
+                        TypeErrorCodes.ArgumentValueTypeWrong,
+                        error.Code),
+                    error => Assert.Equal(
+                        TypeErrorCodes.NonNullArgument,
+                        error.Code));
         }
 
         public class Query
