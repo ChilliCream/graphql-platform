@@ -333,5 +333,54 @@ namespace HotChocolate.Stitching.Merge
             // assert
             Assert.Throws<ArgumentNullException>(action);
         }
+
+        [Fact]
+        public void AddDelegationPath_Overwrite()
+        {
+            // arrange
+            var fieldNode = new FieldDefinitionNode(
+                null,
+                new NameNode("foo"),
+                null,
+                Array.Empty<InputValueDefinitionNode>(),
+                new NamedTypeNode(new NameNode("Type")),
+                Array.Empty<DirectiveNode>());
+
+            var path = new SelectionPathComponent(
+                new NameNode("bar"),
+                new[]
+                {
+                    new ArgumentNode("baz",
+                        new ScopedVariableNode(
+                            null,
+                            new NameNode("qux"),
+                            new NameNode("quux")))
+                });
+
+            fieldNode = fieldNode.AddDelegationPath("schemName", path);
+            Assert.Collection(fieldNode.Directives,
+                d => Assert.Equal("delegate", d.Name.Value));
+
+            // act
+            fieldNode = fieldNode.AddDelegationPath(
+                "schemaName",
+                "$ContextData:fooBar",
+                true);
+
+            // assert
+            var schema = new DocumentNode(new[]
+                {
+                    new ObjectTypeDefinitionNode
+                    (
+                        null,
+                        new NameNode("Object"),
+                        null,
+                        Array.Empty<DirectiveNode>(),
+                        Array.Empty<NamedTypeNode>(),
+                        new[] { fieldNode }
+                    )
+                });
+            SchemaSyntaxSerializer.Serialize(schema).MatchSnapshot();
+        }
     }
 }
