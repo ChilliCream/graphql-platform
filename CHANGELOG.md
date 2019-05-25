@@ -43,6 +43,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Includes directive definitions in serialized schema [#717](https://github.com/ChilliCream/hotchocolate/issues/717)
 - Field types are now validated. [#713](https://github.com/ChilliCream/hotchocolate/issues/713)
 - Variables in object values and lists are now correctly recognised [#215](https://github.com/ChilliCream/hotchocolate/issues/215) and [#745](https://github.com/ChilliCream/hotchocolate/issues/745).
+- Fixed issue with input type arguments on the stitching layer
+- Delegate Directive not being assigned correctly with ITypeRewriter. [#766](https://github.com/ChilliCream/hotchocolate/issues/766)
+- Format Exception when registering types. [#787](https://github.com/ChilliCream/hotchocolate/issues/787)
+- The schema factory does not throw an exception if an annotated directive is not correct. [#619](https://github.com/ChilliCream/hotchocolate/issues/619)
 
 ## [0.8.2] - 2019-04-10
 
@@ -242,7 +246,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Diagnostic source which can be used to track field execution times and other events.
 - Implementing a directive middleware has now become much easier with this release. We have built the authorize-directive with these new APIs.
 
-[unreleased]: https://github.com/ChilliCream/hotchocolate/compare/0.7.0...HEAD
+[unreleased]: https://github.com/ChilliCream/hotchocolate/compare/0.8.2...HEAD
+[0.8.2]: https://github.com/ChilliCream/hotchocolate/compare/0.8.1...0.8.2
+[0.8.1]: https://github.com/ChilliCream/hotchocolate/compare/0.8.0...0.8.1
+[0.8.0]: https://github.com/ChilliCream/hotchocolate/compare/0.7.0...0.8.0
 [0.7.0]: https://github.com/ChilliCream/hotchocolate/compare/0.6.11...0.7.0
 [0.6.11]: https://github.com/ChilliCream/hotchocolate/compare/0.6.10...0.6.11
 [0.6.10]: https://github.com/ChilliCream/hotchocolate/compare/0.6.9...0.6.10
