@@ -11,6 +11,8 @@ namespace HotChocolate.Execution
 
         new ICollection<IError> Errors { get; }
 
+        new IDictionary<string, object> ContextData { get; }
+
         IReadOnlyQueryResult AsReadOnly();
     }
 }

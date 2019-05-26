@@ -1,0 +1,23 @@
+﻿[
+  {
+    "Kind": "Name",
+    "Start": 0,
+    "End": 3,
+    "Line": 1,
+    "Column": 1
+  },
+  {
+    "Kind": "String",
+    "Start": 4,
+    "End": 10,
+    "Line": 1,
+    "Column": 5
+  },
+  {
+    "Kind": "Name",
+    "Start": 12,
+    "End": 15,
+    "Line": 1,
+    "Column": 13
+  }
+]

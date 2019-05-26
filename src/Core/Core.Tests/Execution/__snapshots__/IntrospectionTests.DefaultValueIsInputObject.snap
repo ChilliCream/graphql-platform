@@ -2,7 +2,7 @@
   "Data": {
     "__schema": {
       "queryType": {
-        "name": "BarType"
+        "name": "Bar"
       },
       "mutationType": null,
       "subscriptionType": null,
@@ -872,7 +872,7 @@
         },
         {
           "kind": "OBJECT",
-          "name": "BarType",
+          "name": "Bar",
           "description": null,
           "fields": [
             {
@@ -884,7 +884,7 @@
                   "description": null,
                   "type": {
                     "kind": "INPUT_OBJECT",
-                    "name": "BazInput",
+                    "name": "Baz",
                     "ofType": null
                   },
                   "defaultValue": "{ qux: \"fooBar\" }"
@@ -946,7 +946,7 @@
         },
         {
           "kind": "INPUT_OBJECT",
-          "name": "BazInput",
+          "name": "Baz",
           "description": null,
           "fields": null,
           "inputFields": [
@@ -1058,5 +1058,6 @@
     }
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

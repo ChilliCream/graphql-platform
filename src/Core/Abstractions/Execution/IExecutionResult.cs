@@ -7,5 +7,7 @@ namespace HotChocolate.Execution
         IReadOnlyCollection<IError> Errors { get; }
 
         IReadOnlyDictionary<string, object> Extensions { get; }
+
+        IReadOnlyDictionary<string, object> ContextData { get; }
     }
 }

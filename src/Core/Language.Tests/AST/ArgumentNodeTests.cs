@@ -9,10 +9,7 @@ namespace HotChocolate.Language
         public void CreateArgumentWithLocation()
         {
             // arrange
-            var source = new Source("foo");
-            var start = new SyntaxToken(
-                TokenKind.StartOfFile, 0, 0, 1, 1, null);
-            var location = new Location(source, start, start);
+            var location = new Location(0, 0, 0, 0);
             var name = new NameNode("foo");
             var value = new StringValueNode("bar");
 

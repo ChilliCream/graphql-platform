@@ -11,7 +11,7 @@ namespace HotChocolate.Validation
         : QueryVisitorErrorBase
     {
         private readonly Dictionary<NameString, DirectiveType> _directives;
-        private readonly Dictionary<string, VariableDefinitionNode> _variableDefinitions
+        private readonly Dictionary<string, VariableDefinitionNode> _varDefs
             = new Dictionary<string, VariableDefinitionNode>();
         private readonly List<VariableUsage> _variablesUsages =
             new List<VariableUsage>();
@@ -39,12 +39,12 @@ namespace HotChocolate.Validation
             foreach (VariableDefinitionNode variable in
                 operation.VariableDefinitions)
             {
-                _variableDefinitions[variable.Variable.Name.Value] = variable;
+                _varDefs[variable.Variable.Name.Value] = variable;
             }
 
             FindVariableUsageErrors();
 
-            _variableDefinitions.Clear();
+            _varDefs.Clear();
             _variablesUsages.Clear();
         }
 
@@ -65,7 +65,8 @@ namespace HotChocolate.Validation
             DirectiveNode directive,
             ImmutableStack<ISyntaxNode> path)
         {
-            if (_directives.TryGetValue(directive.Name.Value, out DirectiveType d))
+            if (_directives.TryGetValue(directive.Name.Value,
+                out DirectiveType d))
             {
                 ValidateArguments(d.Arguments, directive.Arguments);
             }
@@ -92,7 +93,7 @@ namespace HotChocolate.Validation
         {
             foreach (VariableUsage variableUsage in _variablesUsages)
             {
-                if (_variableDefinitions.TryGetValue(
+                if (_varDefs.TryGetValue(
                     variableUsage.Name,
                     out VariableDefinitionNode variableDefinition)
                     && !IsVariableUsageAllowed(

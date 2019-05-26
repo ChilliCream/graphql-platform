@@ -20,5 +20,7 @@ namespace HotChocolate.Types.Descriptors
         string GetArgumentDescription(ParameterInfo parameter);
 
         NameString GetEnumValueName(object value);
+
+        string GetEnumValueDescription(object value);
     }
 }

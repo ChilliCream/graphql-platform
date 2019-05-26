@@ -10,30 +10,10 @@ namespace HotChocolate.Types
         : DescriptorTestBase
     {
         [Fact]
-        public void InitialName()
-        {
-            // act
-            var descriptor = new EnumTypeDescriptor(Context, "Foo");
-
-            // assert
-            Assert.Equal("Foo", descriptor.CreateDefinition().Name);
-        }
-
-        [Fact]
-        public void NoNameProvided()
-        {
-            // act
-            Action a = () => new EnumTypeDescriptor(Context, (string)null);
-
-            // assert
-            Assert.Throws<ArgumentException>(a);
-        }
-
-        [Fact]
         public void InferNameFromType()
         {
             // act
-            var descriptor = new EnumTypeDescriptor(Context, typeof(FooEnum));
+            var descriptor = EnumTypeDescriptor.New(Context, typeof(FooEnum));
 
             // assert
             Assert.Equal("FooEnum", descriptor.CreateDefinition().Name);
@@ -43,7 +23,7 @@ namespace HotChocolate.Types
         public void NoTypeProvided()
         {
             // act
-            Action a = () => new EnumTypeDescriptor(Context, (Type)null);
+            Action a = () => EnumTypeDescriptor.New(Context, (Type)null);
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
@@ -53,7 +33,7 @@ namespace HotChocolate.Types
         public void InferValuesFromType()
         {
             // act
-            var descriptor = new EnumTypeDescriptor(Context, typeof(FooEnum));
+            var descriptor = EnumTypeDescriptor.New(Context, typeof(FooEnum));
 
             // assert
             EnumTypeDefinition description = descriptor.CreateDefinition();
@@ -74,7 +54,7 @@ namespace HotChocolate.Types
         public void SpecifyOneValueInferTheOthers()
         {
             // arrange
-            var descriptor = new EnumTypeDescriptor(Context, typeof(FooEnum));
+            var descriptor = EnumTypeDescriptor.New(Context, typeof(FooEnum));
 
             // act
             IEnumTypeDescriptor desc = descriptor;
@@ -99,7 +79,7 @@ namespace HotChocolate.Types
         public void ExplicitValueBinding()
         {
             // arrange
-            var descriptor = new EnumTypeDescriptor(Context, typeof(FooEnum));
+            var descriptor = EnumTypeDescriptor.New(Context, typeof(FooEnum));
 
             // act
             IEnumTypeDescriptor desc = descriptor;
@@ -120,7 +100,7 @@ namespace HotChocolate.Types
         public void AddDirective()
         {
             // arrange
-            var descriptor = new EnumTypeDescriptor(Context, "Foo");
+            var descriptor = EnumTypeDescriptor.New(Context);
 
             // act
             IEnumTypeDescriptor desc = descriptor;
@@ -136,7 +116,7 @@ namespace HotChocolate.Types
         public void AddDirectiveWithDirectiveNode()
         {
             // arrange
-            var descriptor = new EnumTypeDescriptor(Context, "Foo");
+            var descriptor = EnumTypeDescriptor.New(Context);
 
             // act
             IEnumTypeDescriptor desc = descriptor;
@@ -152,7 +132,7 @@ namespace HotChocolate.Types
         public void AddDirectiveWithArgument()
         {
             // arrange
-            var descriptor = new EnumTypeDescriptor(Context, "Foo");
+            var descriptor = EnumTypeDescriptor.New(Context);
 
             // act
             IEnumTypeDescriptor desc = descriptor;

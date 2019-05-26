@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Descriptors
         : EnumTypeDescriptor
         , IEnumTypeDescriptor<T>
     {
-        public EnumTypeDescriptor(IDescriptorContext context)
+        protected internal EnumTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {
         }
@@ -40,6 +40,8 @@ namespace HotChocolate.Types.Descriptors
         {
             return base.Item(value);
         }
+
+        public IEnumValueDescriptor Value(T value) => Item(value);
 
         public new IEnumTypeDescriptor<T> Directive<TDirective>(
             TDirective directiveInstance)

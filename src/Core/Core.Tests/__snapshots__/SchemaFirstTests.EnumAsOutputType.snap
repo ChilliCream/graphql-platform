@@ -1,7 +1,8 @@
-{
+﻿{
   "Data": {
     "enumValue": "BAR"
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Collections.Concurrent;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -10,8 +11,8 @@ namespace HotChocolate.Runtime
         private readonly object _sync = new object();
         private readonly LinkedList<string> _ranking =
             new LinkedList<string>();
-        private ImmutableDictionary<string, CacheEntry> _cache =
-            ImmutableDictionary<string, CacheEntry>.Empty;
+        private readonly ConcurrentDictionary<string, CacheEntry> _cache =
+            new ConcurrentDictionary<string, CacheEntry>();
         private LinkedListNode<string> _first;
 
         public event EventHandler<CacheEntryEventArgs<TValue>> RemovedEntry;
@@ -64,7 +65,7 @@ namespace HotChocolate.Runtime
                     {
                         ClearSpaceForNewEntry();
                         _ranking.AddFirst(entry.Rank);
-                        _cache = _cache.SetItem(entry.Key, entry);
+                        _cache[entry.Key] = entry;
                         _first = entry.Rank;
                     }
                 }
@@ -76,12 +77,13 @@ namespace HotChocolate.Runtime
             if (_cache.Count >= Size)
             {
                 LinkedListNode<string> rank = _ranking.Last;
-                CacheEntry entry = _cache[rank.Value];
-                _cache = _cache.Remove(rank.Value);
-                _ranking.Remove(rank);
-
-                RemovedEntry?.Invoke(this,
-                    new CacheEntryEventArgs<TValue>(entry.Key, entry.Value));
+                if (_cache.TryRemove(rank.Value, out CacheEntry entry))
+                {
+                    _ranking.Remove(rank);
+                    RemovedEntry?.Invoke(this,
+                        new CacheEntryEventArgs<TValue>(
+                            entry.Key, entry.Value));
+                }
             }
         }
 

@@ -5,7 +5,8 @@ namespace HotChocolate
     [AttributeUsage(AttributeTargets.Class
         | AttributeTargets.Property
         | AttributeTargets.Method
-        | AttributeTargets.Parameter)]
+        | AttributeTargets.Parameter
+        | AttributeTargets.Field)]
     public sealed class GraphQLDescriptionAttribute
         : Attribute
     {

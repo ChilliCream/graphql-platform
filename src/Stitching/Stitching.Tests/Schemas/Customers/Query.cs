@@ -38,5 +38,10 @@ namespace HotChocolate.Stitching.Schemas.Customers
             }
             return GetCustomer(id);
         }
+
+        public Customer GetCustomer(CustomerKind kind)
+        {
+            return _repository.Customers.FirstOrDefault(t => t.Kind == kind);
+        }
     }
 }

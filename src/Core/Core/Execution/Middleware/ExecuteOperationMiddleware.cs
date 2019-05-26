@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Properties;
 using HotChocolate.Runtime;
 
 namespace HotChocolate.Execution
@@ -33,11 +34,11 @@ namespace HotChocolate.Execution
         {
             if (IsContextIncomplete(context))
             {
-                // TODO : resources
-                context.Result = QueryResult.CreateError(new QueryError(
-                    "The execute operation middleware expects the " +
-                    "query document to be parsed and the operation to " +
-                    "be resolved."));
+                context.Result = QueryResult.CreateError(
+                    ErrorBuilder.New()
+                        .SetMessage(CoreResources
+                            .ExecuteOperationMiddleware_InComplete)
+                        .Build());
             }
             else
             {
@@ -74,8 +75,10 @@ namespace HotChocolate.Execution
             var requestContext = new RequestContext
             (
                 context.ServiceScope,
-                fs => directives.GetOrCreateMiddleware(fs,
-                    () => context.MiddlewareResolver.Invoke(fs)),
+                (field, selection) =>
+                    directives.GetOrCreateMiddleware(field, selection,
+                    () => context.MiddlewareResolver.Invoke(field, selection)),
+                context.CachedQuery,
                 context.ContextData,
                 _diagnosticEvents
             );

@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "age": null
   },
@@ -13,7 +13,10 @@
       ],
       "path": [
         "age"
-      ]
+      ],
+      "extensions": {
+        "code": "AUTH_NOT_AUTHORIZED"
+      }
     }
   ]
 }

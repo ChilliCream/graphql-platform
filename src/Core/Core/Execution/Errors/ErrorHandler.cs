@@ -1,13 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
     public class ErrorHandler
         : IErrorHandler
     {
+        private const string _messageProperty = "message";
+        private const string _stackTraceProperty = "stackTrace";
+
         private readonly IErrorFilter[] _filters;
         private readonly bool _includeExceptionDetails;
 
@@ -51,57 +55,34 @@ namespace HotChocolate.Execution
                 if (current == null)
                 {
                     throw new InvalidOperationException(
-                        "IErrorFilter.OnError mustn't return null.");
+                        CoreResources.ErrorHandler_ErrorIsNull);
                 }
             }
 
             return current;
         }
 
-        public IError Handle(
-            Exception exception,
-            Action<IErrorBuilder> configure)
+        public IErrorBuilder CreateUnexpectedError(Exception exception)
         {
             if (exception == null)
             {
                 throw new ArgumentNullException(nameof(exception));
             }
 
-            if (configure == null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
-            IErrorBuilder builder = CreateErrorFromException(exception);
-            configure(builder);
-
-            IError current = builder.Build();
-
-            foreach (IErrorFilter filter in _filters)
-            {
-                current = filter.OnError(current);
-
-                if (current == null)
-                {
-                    throw new InvalidOperationException(
-                        "IErrorFilter.OnError mustn't return null.");
-                }
-            }
-
-            return current;
+            return CreateErrorFromException(exception);
         }
 
         private IErrorBuilder CreateErrorFromException(Exception exception)
         {
             IErrorBuilder builder = ErrorBuilder.New()
-                .SetMessage("Unexpected Execution Error")
+                .SetMessage(CoreResources.ErrorHandler_UnexpectedError)
                 .SetException(exception);
 
             if (_includeExceptionDetails)
             {
                 builder
-                    .SetExtension("message", exception.Message)
-                    .SetExtension("stackTrace", exception.StackTrace);
+                    .SetExtension(_messageProperty, exception.Message)
+                    .SetExtension(_stackTraceProperty, exception.StackTrace);
             }
 
             return builder;

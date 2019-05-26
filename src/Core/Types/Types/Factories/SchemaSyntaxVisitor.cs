@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Factories
@@ -38,6 +39,11 @@ namespace HotChocolate.Types.Factories
         public string MutationTypeName { get; private set; }
 
         public string SubscriptionTypeName { get; private set; }
+
+        public string Description { get; private set; }
+
+        public IReadOnlyCollection<DirectiveNode> Directives
+        { get; private set; }
 
         public IReadOnlyList<ITypeReference> Types => _types;
 
@@ -93,6 +99,9 @@ namespace HotChocolate.Types.Factories
             SchemaDefinitionNode node,
             object context)
         {
+            Description = node.Description?.Value;
+            Directives = node.Directives;
+
             foreach (OperationTypeDefinitionNode operationType in
                 node.OperationTypes)
             {
@@ -101,16 +110,18 @@ namespace HotChocolate.Types.Factories
                     case OperationType.Query:
                         QueryTypeName = operationType.Type.Name.Value;
                         break;
+
                     case OperationType.Mutation:
                         MutationTypeName = operationType.Type.Name.Value;
                         break;
+
                     case OperationType.Subscription:
                         SubscriptionTypeName = operationType.Type.Name.Value;
                         break;
+
                     default:
-                        // TODO : resources
                         throw new InvalidOperationException(
-                            "Unknown operation type.");
+                            TypeResources.SchemaSyntaxVisitor_UnknownOperationType);
                 }
             }
         }

@@ -26,6 +26,7 @@ namespace HotChocolate
 
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
+                DescriptorContext.Create(),
                 initialTypes,
                 new List<Type>(),
                 new Dictionary<string, object>(),
@@ -70,6 +71,7 @@ namespace HotChocolate
 
             var typeInitializer = new TypeInitializer(
                 serviceProvider,
+                DescriptorContext.Create(),
                 initialTypes,
                 new List<Type>(),
                 new Dictionary<string, object>(),

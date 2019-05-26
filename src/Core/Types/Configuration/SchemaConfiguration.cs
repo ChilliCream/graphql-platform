@@ -6,9 +6,9 @@ namespace HotChocolate.Configuration
 {
     internal partial class SchemaConfiguration
         : ISchemaConfiguration
+        , ISchemaConfigurationExtension
     {
         private readonly SchemaBuilder _builder = SchemaBuilder.New();
-
 
         public ISchemaOptions Options { get; set; } = new SchemaOptions();
 
@@ -44,8 +44,19 @@ namespace HotChocolate.Configuration
             return this;
         }
 
-        public ISchemaConfiguration Extend(Action<ISchemaBuilder> build)
+        public ISchemaConfigurationExtension Extend()
         {
+            return this;
+        }
+
+        ISchemaConfiguration ISchemaConfigurationExtension.OnBeforeBuild(
+            Action<ISchemaBuilder> build)
+        {
+            if (build == null)
+            {
+                throw new ArgumentNullException(nameof(build));
+            }
+
             build(_builder);
             return this;
         }

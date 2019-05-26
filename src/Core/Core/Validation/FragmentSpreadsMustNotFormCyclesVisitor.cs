@@ -125,7 +125,7 @@ namespace HotChocolate.Validation
             }
         }
 
-        private IEnumerable<ISyntaxNode> GetCyclePath(
+        private static IEnumerable<ISyntaxNode> GetCyclePath(
             ImmutableStack<ISyntaxNode> path)
         {
             ImmutableStack<ISyntaxNode> current = path;

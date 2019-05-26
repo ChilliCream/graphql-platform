@@ -26,9 +26,8 @@ namespace HotChocolate.Types
         protected override DirectiveTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            var descriptor =
-                DirectiveTypeDescriptor.New<TDirective>(
-                    DescriptorContext.Create(context.Services));
+            var descriptor = DirectiveTypeDescriptor.New<TDirective>(
+                context.DescriptorContext);
             _conf(descriptor);
             return descriptor.CreateDefinition();
         }
@@ -36,13 +35,11 @@ namespace HotChocolate.Types
         protected virtual void Configure(
             IDirectiveTypeDescriptor<TDirective> descriptor)
         {
-
         }
 
         protected sealed override void Configure(
             IDirectiveTypeDescriptor descriptor)
         {
-            // TODO : resources
             throw new NotSupportedException();
         }
     }

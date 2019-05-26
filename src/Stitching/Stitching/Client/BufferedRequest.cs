@@ -14,7 +14,7 @@ namespace HotChocolate.Stitching.Client
             Request = request;
             Document = request is IRemoteQueryRequest remoteRequest
                 ? remoteRequest.Query
-                : Parser.Default.Parse(request.Query);
+                : Utf8GraphQLParser.Parse(request.Query);
         }
 
         public IReadOnlyQueryRequest Request { get; }

@@ -196,5 +196,23 @@ namespace HotChocolate.Language
             // assert
             document.Snapshot();
         }
+
+        [Fact]
+        public void ParseDirectiveOnVariableDefinition()
+        {
+            // arrange
+            string sourceText =
+                "query queryName($foo: ComplexType @foo) { bar }";
+
+            // act
+            DocumentNode document = Parser.Default.Parse(sourceText);
+
+            // assert
+            Assert.Collection(
+                document.Definitions.OfType<OperationDefinitionNode>().First()
+                    .VariableDefinitions.First()
+                    .Directives,
+                d => Assert.Equal("foo", d.Name.Value));
+        }
     }
 }

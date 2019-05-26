@@ -128,8 +128,8 @@ Task("PublishTemplates")
         OutputDirectory = "src/Templates"
     };
 
-    ReplaceTextInFiles("src/Templates/StarWars/content/StarWars/StarWars.csproj", "0.8.2", packageVersion);
-    ReplaceTextInFiles("src/Templates/Server/content/HotChocolate.Server.csproj", "0.8.2", packageVersion);
+    ReplaceTextInFiles("src/Templates/StarWars/content/StarWars/StarWars.csproj", "9.0.0-preview.29", packageVersion);
+    ReplaceTextInFiles("src/Templates/Server/content/HotChocolate.Server.csproj", "9.0.0-preview.29", packageVersion);
     NuGetPack("src/Templates/StarWars/HotChocolate.Templates.StarWars.nuspec", nuGetPackSettings);
     NuGetPack("src/Templates/Server/HotChocolate.Templates.Server.nuspec", nuGetPackSettings);
 });
@@ -226,11 +226,8 @@ Task("SonarBegin")
         Exclusions = "**/*.js,**/*.html,**/*.css,**/examples/**/*.*,**/benchmarks/**/*.*,**/src/Templates/**/*.*",
         Verbose = false,
         Version = packageVersion,
-        ArgumentCustomization = args => {
-            var a = args;
-            // TODO : ENABLE THIS BEFORE COMPLETING THE PR
-            // if(!string.IsNullOrEmpty(sonarPrKey))
-            if(true == false)
+        ArgumentCustomization = a => {
+            if(!string.IsNullOrEmpty(sonarPrKey))
             {
                 a = a.Append($"/d:sonar.pullrequest.key=\"{sonarPrKey}\"");
                 a = a.Append($"/d:sonar.pullrequest.branch=\"{sonarBranch}\"");
@@ -239,7 +236,6 @@ Task("SonarBegin")
                 a = a.Append($"/d:sonar.pullrequest.github.repository=\"ChilliCream/hotchocolate\"");
                 // a = a.Append($"/d:sonar.pullrequest.github.endpoint=\"https://api.github.com/\"");
             }
-
             return a;
         }
     });

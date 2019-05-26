@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,7 +82,7 @@ namespace HotChocolate.Stitching.Merge.Handlers
                             new ScopedVariableNode(
                                 null,
                                 new NameNode(ScopeNames.Arguments),
-                                t.Name))).ToList()).ToString();
+                                t.Name))).ToList());
 
                     var newName = new NameNode(
                         typeInfo.CreateUniqueName(current));

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
@@ -16,13 +17,16 @@ namespace HotChocolate.Types
         private readonly Action<IInputObjectTypeDescriptor> _configure;
         private InputObjectToObjectValueConverter _objectToValueConverter;
         private ObjectValueToInputObjectConverter _valueToObjectConverter;
+        private InputObjectToDictionaryConverter _objectToDictionary;
+        private DictionaryToInputObjectConverter _dictionaryToObject;
 
-        internal InputObjectType()
+        protected InputObjectType()
         {
             _configure = Configure;
         }
 
-        internal InputObjectType(Action<IInputObjectTypeDescriptor> configure)
+        public InputObjectType(
+            Action<IInputObjectTypeDescriptor> configure)
         {
             _configure = configure
                 ?? throw new ArgumentNullException(nameof(configure));
@@ -81,7 +85,59 @@ namespace HotChocolate.Types
 
         public IValueNode ParseValue(object value)
         {
+            if (value is null)
+            {
+                return NullValueNode.Default;
+            }
+
             return _objectToValueConverter.Convert(this, value);
+        }
+
+        public object Serialize(object value)
+        {
+            if (value is null)
+            {
+                return null;
+            }
+
+            if (value is IReadOnlyDictionary<string, object>
+                || value is IDictionary<string, object>)
+            {
+                return value;
+            }
+
+            return _objectToDictionary.Convert(this, value);
+        }
+
+        public virtual object Deserialize(object serialized)
+        {
+            if (serialized is null)
+            {
+                return null;
+            }
+
+            if ((serialized is IReadOnlyDictionary<string, object>
+                || serialized is IDictionary<string, object>)
+                && ClrType == typeof(object))
+            {
+                return serialized;
+            }
+
+            return _dictionaryToObject.Convert(serialized, this);
+        }
+
+        public bool TryDeserialize(object serialized, out object value)
+        {
+            try
+            {
+                value = Deserialize(serialized);
+                return true;
+            }
+            catch
+            {
+                value = null;
+                return false;
+            }
         }
 
         #endregion
@@ -91,10 +147,9 @@ namespace HotChocolate.Types
         protected override InputObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            var descriptor =
-                InputObjectTypeDescriptor.New(
-                    DescriptorContext.Create(context.Services),
-                    GetType());
+            var descriptor = InputObjectTypeDescriptor.FromSchemaType(
+                context.DescriptorContext,
+                GetType());
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
@@ -108,19 +163,7 @@ namespace HotChocolate.Types
             InputObjectTypeDefinition definition)
         {
             base.OnRegisterDependencies(context, definition);
-
-            context.RegisterDependencyRange(
-                definition.Fields.Select(t => t.Type),
-                TypeDependencyKind.Default);
-
-            context.RegisterDependencyRange(
-                definition.Directives.Select(t => t.TypeReference),
-                TypeDependencyKind.Completed);
-
-            context.RegisterDependencyRange(
-                definition.Fields.SelectMany(t => t.Directives)
-                    .Select(t => t.TypeReference),
-                TypeDependencyKind.Completed);
+            context.RegisterDependencies(definition);
         }
 
         protected override void OnCompleteType(
@@ -129,11 +172,16 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context, definition);
 
-            ITypeConversion typeConversion = context.Services.GetTypeConversion();
+            ITypeConversion typeConversion =
+                context.Services.GetTypeConversion();
             _objectToValueConverter =
                 new InputObjectToObjectValueConverter(typeConversion);
             _valueToObjectConverter =
                 new ObjectValueToInputObjectConverter(typeConversion);
+            _objectToDictionary =
+                new InputObjectToDictionaryConverter(typeConversion);
+            _dictionaryToObject =
+                new DictionaryToInputObjectConverter(typeConversion);
 
             SyntaxNode = definition.SyntaxNode;
             Fields = new FieldCollection<InputField>(

@@ -1,5 +1,8 @@
+using System;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -161,9 +164,10 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(t => t
-                .BindFields(BindingBehavior.Explicit)
-                .Field(p => p.Bar)));
+            InterfaceType<IFoo> fooType = CreateType(
+                new InterfaceType<IFoo>(t => t
+                    .BindFields(BindingBehavior.Explicit)
+                    .Field(p => p.Bar)));
 
             // assert
             Assert.Collection(
@@ -181,11 +185,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(d => d
-                .Directive("foo")
-                .Field(f => f.Bar)
-                .Directive("foo")),
-                b => b.AddDirectiveType<FooDirectiveType>());
+            InterfaceType<IFoo> fooType = CreateType(
+                new InterfaceType<IFoo>(d => d
+                    .Directive("foo")
+                    .Field(f => f.Bar)
+                    .Directive("foo")),
+                    b => b.AddDirectiveType<FooDirectiveType>());
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -197,11 +202,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(d => d
-                .Directive(new NameString("foo"))
-                .Field(f => f.Bar)
-                .Directive(new NameString("foo"))),
-                b => b.AddDirectiveType<FooDirectiveType>());
+            InterfaceType<IFoo> fooType = CreateType(
+                new InterfaceType<IFoo>(d => d
+                    .Directive(new NameString("foo"))
+                    .Field(f => f.Bar)
+                    .Directive(new NameString("foo"))),
+                    b => b.AddDirectiveType<FooDirectiveType>());
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -213,11 +219,12 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(d => d
-                .Directive(new DirectiveNode("foo"))
-                .Field(f => f.Bar)
-                .Directive(new DirectiveNode("foo"))),
-                b => b.AddDirectiveType<FooDirectiveType>());
+            InterfaceType<IFoo> fooType = CreateType(
+                new InterfaceType<IFoo>(d => d
+                    .Directive(new DirectiveNode("foo"))
+                    .Field(f => f.Bar)
+                    .Directive(new DirectiveNode("foo"))),
+                    b => b.AddDirectiveType<FooDirectiveType>());
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -229,10 +236,11 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(d => d
-                .Directive(new FooDirective())
-                .Field(f => f.Bar)
-                .Directive(new FooDirective())),
+            InterfaceType<IFoo> fooType = CreateType(
+                new InterfaceType<IFoo>(d => d
+                    .Directive(new FooDirective())
+                    .Field(f => f.Bar)
+                    .Directive(new FooDirective())),
                 b => b.AddDirectiveType<FooDirectiveType>());
 
             // assert
@@ -344,6 +352,88 @@ namespace HotChocolate.Types
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
             Assert.NotEmpty(fooType.Fields["id"].Directives["foo"]);
+        }
+
+        [Fact]
+        public void DoNotAllow_InputTypes_OnFields()
+        {
+            // arrange
+            // act
+            Action a = () => SchemaBuilder.New()
+                .AddType(new InterfaceType(t => t
+                    .Name("Foo")
+                    .Field("bar")
+                    .Type<NonNullType<InputObjectType<object>>>()))
+                .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(a)
+                .Errors.First().Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void DoNotAllow_DynamicInputTypes_OnFields()
+        {
+            // arrange
+            // act
+            Action a = () => SchemaBuilder.New()
+                .AddType(new InterfaceType(t => t
+                    .Name("Foo")
+                    .Field("bar")
+                    .Type(new NonNullType(new InputObjectType<object>()))))
+                .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(a)
+                .Errors.First().Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Ignore_DescriptorIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                InterfaceTypeDescriptorExtensions
+                    .Ignore<IFoo>(null, t => t.Bar);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Ignore_ExpressionIsNull_ArgumentNullException()
+        {
+            // arrange
+            InterfaceTypeDescriptor<IFoo> descriptor =
+                InterfaceTypeDescriptor.New<IFoo>(DescriptorContext.Create());
+
+            // act
+            Action action = () =>
+                InterfaceTypeDescriptorExtensions
+                    .Ignore(descriptor, null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Ignore_Bar_Property()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InterfaceType<IFoo>(d => d
+                    .Ignore(t => t.Bar)))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
         }
 
         public interface IFoo

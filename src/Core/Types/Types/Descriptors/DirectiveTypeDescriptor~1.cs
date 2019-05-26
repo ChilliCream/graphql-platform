@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -6,6 +6,7 @@ using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -14,7 +15,7 @@ namespace HotChocolate.Types.Descriptors
         , IDirectiveTypeDescriptor<T>
         , IHasClrType
     {
-        public DirectiveTypeDescriptor(IDescriptorContext context)
+        protected internal DirectiveTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {
         }
@@ -84,9 +85,8 @@ namespace HotChocolate.Types.Descriptors
                 return descriptor;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed in this expression.",
+                TypeResources.DirectiveTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
 
@@ -101,6 +101,21 @@ namespace HotChocolate.Types.Descriptors
             DirectiveMiddleware middleware)
         {
             base.Use(middleware);
+            return this;
+        }
+
+        public new IDirectiveTypeDescriptor<T> Use<TMiddleware>()
+            where TMiddleware : class
+        {
+            base.Use<TMiddleware>();
+            return this;
+        }
+
+        public new IDirectiveTypeDescriptor<T> Use<TMiddleware>(
+            Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
+            where TMiddleware : class
+        {
+            base.Use(factory);
             return this;
         }
 

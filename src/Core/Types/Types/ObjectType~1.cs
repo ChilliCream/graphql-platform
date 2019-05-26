@@ -25,7 +25,7 @@ namespace HotChocolate.Types
             IInitializationContext context)
         {
             var descriptor = ObjectTypeDescriptor.New<T>(
-                DescriptorContext.Create(context.Services));
+                context.DescriptorContext);
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
@@ -37,7 +37,6 @@ namespace HotChocolate.Types
         protected sealed override void Configure(
             IObjectTypeDescriptor descriptor)
         {
-            // TODO : resources
             throw new NotSupportedException();
         }
     }

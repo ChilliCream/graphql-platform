@@ -1,0 +1,23 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  baz(a: Bar): String @delegate(schema: "server_1", path: "foo(a:$arguments:a)")
+  foo(a: Bar): String @delegate(schema: "server_1")
+}
+
+input Bar @source(name: "Bar", schema: "server_1") {
+  a: String
+}
+
+directive @delegate(path: String "The name of the schema to which this field shall be delegated to." schema: Name!) on FieldDefinition
+
+"Annotates the original name of a type."
+directive @source("The original name of the annotated type." name: Name! "The name of the schema to which this type belongs to." schema: Name!) repeatable on Enum | Object | Interface | Union | InputObject | FieldDefinition | InputFieldDefinition | ArgumentDefinition | EnumValue
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String
+
+"The name scalar represents a valid GraphQL name as specified in the spec and can be used to refer to fields or types."
+scalar Name

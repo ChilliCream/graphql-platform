@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
@@ -21,22 +21,6 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// Gets the list of directives that are annotated to this field.
         /// </summary>
         public IList<DirectiveDefinition> Directives { get; } =
-            new List<DirectiveDefinition>();
-
-        protected override void OnValidate(ICollection<IError> errors)
-        {
-            if (!Ignore)
-            {
-                base.OnValidate(errors);
-
-                if (Type == null)
-                {
-                    // TODO : resources
-                    errors.Add(ErrorBuilder.New()
-                        .SetMessage("A field / argument type mustn't be null.")
-                        .Build());
-                }
-            }
-        }
+            new List<DirectiveDefinition>();        
     }
 }

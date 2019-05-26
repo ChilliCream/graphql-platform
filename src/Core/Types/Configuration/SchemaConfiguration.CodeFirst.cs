@@ -54,10 +54,16 @@ namespace HotChocolate.Configuration
             return this;
         }
 
-        public ISchemaConfiguration RegisterType<T>(T namedType)
-            where T : class, INamedType
+        public ISchemaConfiguration RegisterType(INamedType namedType)
         {
             _builder.AddType(namedType);
+            return this;
+        }
+
+        public ISchemaConfiguration RegisterType(
+            INamedTypeExtension namedTypeExtension)
+        {
+            _builder.AddType(namedTypeExtension);
             return this;
         }
 

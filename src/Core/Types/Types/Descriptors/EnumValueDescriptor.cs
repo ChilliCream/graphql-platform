@@ -18,6 +18,8 @@ namespace HotChocolate.Types.Descriptors
 
             Definition.Name = context.Naming.GetEnumValueName(value);
             Definition.Value = value;
+            Definition.Description = context.Naming
+                .GetEnumValueDescription(value);
         }
 
         protected override EnumValueDefinition Definition { get; } =
@@ -45,6 +47,27 @@ namespace HotChocolate.Types.Descriptors
         public IEnumValueDescriptor DeprecationReason(string reason)
         {
             Definition.DeprecationReason = reason;
+            return this;
+        }
+
+        public IEnumValueDescriptor Directive<T>(T directiveInstance)
+            where T : class
+        {
+            Definition.AddDirective(directiveInstance);
+            return this;
+        }
+
+        public IEnumValueDescriptor Directive<T>()
+            where T : class, new()
+        {
+            Definition.AddDirective(new T());
+            return this;
+        }
+
+        public IEnumValueDescriptor Directive(
+            NameString name, params ArgumentNode[] arguments)
+        {
+            Definition.AddDirective(name, arguments);
             return this;
         }
 

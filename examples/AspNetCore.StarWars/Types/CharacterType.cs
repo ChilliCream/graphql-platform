@@ -4,25 +4,25 @@ using StarWars.Models;
 namespace StarWars.Types
 {
     public class CharacterType
-        : InterfaceType
+        : InterfaceType<ICharacter>
     {
-        protected override void Configure(IInterfaceTypeDescriptor descriptor)
+        protected override void Configure(IInterfaceTypeDescriptor<ICharacter> descriptor)
         {
             descriptor.Name("Character");
 
-            descriptor.Field("id")
+            descriptor.Field(f => f.Id)
                 .Type<NonNullType<IdType>>();
 
-            descriptor.Field("name")
+            descriptor.Field(f => f.Name)
                 .Type<StringType>();
 
-            descriptor.Field("friends")
+            descriptor.Field(f => f.Friends)
                 .Type<ListType<CharacterType>>();
 
-            descriptor.Field("appearsIn")
+            descriptor.Field(f => f.AppearsIn)
                 .Type<ListType<EpisodeType>>();
 
-            descriptor.Field("height")
+            descriptor.Field(f => f.Height)
                 .Type<FloatType>()
                 .Argument("unit", a => a.Type<EnumType<Unit>>());
         }

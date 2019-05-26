@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Runtime;
 
 namespace HotChocolate.Execution
@@ -11,13 +12,13 @@ namespace HotChocolate.Execution
     {
         private readonly QueryDelegate _next;
         private readonly IQueryParser _parser;
-        private readonly Cache<DocumentNode> _queryCache;
+        private readonly Cache<ICachedQuery> _queryCache;
         private readonly QueryExecutionDiagnostics _diagnosticEvents;
 
         public ParseQueryMiddleware(
             QueryDelegate next,
             IQueryParser parser,
-            Cache<DocumentNode> queryCache,
+            Cache<ICachedQuery> queryCache,
             QueryExecutionDiagnostics diagnosticEvents)
         {
             _next = next
@@ -34,10 +35,11 @@ namespace HotChocolate.Execution
         {
             if (IsContextIncomplete(context))
             {
-                // TODO : resources
-                context.Result = QueryResult.CreateError(new QueryError(
-                   "The parse query middleware expects " +
-                   "a valid query request."));
+                context.Result = QueryResult.CreateError(
+                    ErrorBuilder.New()
+                        .SetMessage(CoreResources
+                            .ParseQueryMiddleware_InComplete)
+                        .Build());
             }
             else
             {
@@ -47,14 +49,18 @@ namespace HotChocolate.Execution
                 {
                     bool documentRetrievedFromCache = true;
 
-                    context.Document = _queryCache.GetOrCreate(
+                    context.CachedQuery = _queryCache.GetOrCreate(
                         context.Request.Query,
                         () =>
                         {
                             documentRetrievedFromCache = false;
-                            return ParseDocument(context.Request.Query);
+                            DocumentNode document =
+                                ParseDocument(context.Request.Query);
+                            return new CachedQuery(
+                                context.Request.Query,
+                                document);
                         });
-
+                    context.Document = context.CachedQuery.Document;
                     context.ContextData[ContextDataKeys.DocumentCached] =
                         documentRetrievedFromCache;
                 }

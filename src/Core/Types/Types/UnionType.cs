@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -13,6 +14,8 @@ namespace HotChocolate.Types
         : NamedTypeBase<UnionTypeDefinition>
         , INamedOutputType
     {
+        private const string _typeReference = "typeReference";
+
         private readonly Action<IUnionTypeDescriptor> _configure;
         private readonly Dictionary<NameString, ObjectType> _typeMap =
             new Dictionary<NameString, ObjectType>();
@@ -36,15 +39,16 @@ namespace HotChocolate.Types
         public IReadOnlyDictionary<NameString, ObjectType> Types => _typeMap;
 
         public ObjectType ResolveType(
-            IResolverContext context, object resolverResult)
-            => _resolveAbstractType(context, resolverResult);
+            IResolverContext context, object resolverResult) =>
+            _resolveAbstractType(context, resolverResult);
 
         #region Initialization
 
-        protected override UnionTypeDefinition CreateDefinition(IInitializationContext context)
+        protected override UnionTypeDefinition CreateDefinition(
+            IInitializationContext context)
         {
-            var descriptor = UnionTypeDescriptor.New(
-                DescriptorContext.Create(context.Services),
+            var descriptor = UnionTypeDescriptor.FromSchemaType(
+                context.DescriptorContext,
                 GetType());
             _configure(descriptor);
             return descriptor.CreateDefinition();
@@ -92,10 +96,8 @@ namespace HotChocolate.Types
 
             if (typeSet.Count == 0)
             {
-                // TODO : RESOURCES
                 context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage("A Union type must define one or " +
-                        "more unique member types.")
+                    .SetMessage(TypeResources.UnionType_MustHaveTypes)
                     .SetCode(TypeErrorCodes.MissingType)
                     .SetTypeSystemObject(this)
                     .AddSyntaxNode(SyntaxNode)
@@ -116,11 +118,11 @@ namespace HotChocolate.Types
                 }
                 else
                 {
-                    // TODO : RESOURCES
                     context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage("")
+                        .SetMessage(TypeResources.UnionType_UnableToResolveType)
                         .SetCode(TypeErrorCodes.MissingType)
                         .SetTypeSystemObject(this)
+                        .SetExtension(_typeReference, typeReference)
                         .AddSyntaxNode(SyntaxNode)
                         .Build());
                 }

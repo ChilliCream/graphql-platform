@@ -43,6 +43,15 @@ namespace HotChocolate.Types
                 (fields, extensionField, typeField) => { });
         }
 
+        public static void MergeInputObjectFields(
+            ICompletionContext context,
+            IList<InputFieldDefinition> extensionFields,
+            IList<InputFieldDefinition> typeFields)
+        {
+            MergeFields(context, extensionFields, typeFields,
+                (fields, extensionField, typeField) => { });
+        }
+
         private static void MergeOutputFields<T>(
             ICompletionContext context,
             IList<T> extensionFields,

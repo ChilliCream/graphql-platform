@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
@@ -171,6 +171,8 @@ namespace HotChocolate.Execution
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
+                descriptor.Name("Query");
+
                 descriptor.Field("a")
                     .Type<StringType>()
                     .Resolver(() => "a");
@@ -186,6 +188,8 @@ namespace HotChocolate.Execution
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
+                descriptor.Name("Foo");
+
                 descriptor.Field("a")
                     .Type<StringType>()
                     .Resolver(() => "foo.a");
@@ -197,6 +201,7 @@ namespace HotChocolate.Execution
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
+                descriptor.Name("Bar");
                 descriptor.Field("a")
                     .Type<StringType>()
                     .Argument("b", a => a.Type<BazType>()
@@ -211,6 +216,7 @@ namespace HotChocolate.Execution
             protected override void Configure(
                 IInputObjectTypeDescriptor<Baz> descriptor)
             {
+                descriptor.Name("Baz");
                 descriptor.Field(t => t.Qux).DefaultValue("123456");
             }
         }
@@ -229,7 +235,7 @@ namespace HotChocolate.Execution
             {
                 descriptor.Name("upper");
                 descriptor.Location(DirectiveLocation.Field);
-                descriptor.Middleware(next => async context =>
+                descriptor.Use(next => async context =>
                 {
                     await next.Invoke(context);
 

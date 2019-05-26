@@ -6,6 +6,7 @@
     <AssemblyName>HotChocolate.Types</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
     <PackageId>HotChocolate.Types</PackageId>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Description>Contains the Hot Chocolate GraphQL type system.</Description>
   </PropertyGroup>
 
@@ -14,7 +15,7 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>Full</DebugType>
+    <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
@@ -24,7 +25,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="2.9.0" />
     <PackageReference Include="GreenDonut" Version="2.0.0" />
     <PackageReference Include="System.Memory" Version="4.5.2" />
   </ItemGroup>

@@ -104,7 +104,6 @@ namespace HotChocolate.Stitching
                 mergedSchema = RemoveBuiltInTypes(mergedSchema);
                 VisitMerged(builder, mergedSchema);
 
-
                 // create factory
                 return new StitchingFactory(builder, executors, mergedSchema);
             }

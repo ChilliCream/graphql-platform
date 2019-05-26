@@ -33,17 +33,18 @@ This document shall give and outlook of what we have planned for the next releas
   - [x] FragmentDefinition
   - [x] FragmentSpread
   - [x] InlineFragment
-  - [ ] Schema (in development - 0.9.0)
-  - [ ] Scalar (in development - 0.9.0)
+  - [x] Schema
+  - [ ] Scalar (in development - 9.0.0)
   - [x] Object
   - [x] FieldDefinition
-  - [ ] ArgumentDefinition
+  - [x] ArgumentDefinition
   - [x] Interface
   - [x] Union
   - [x] Enum
   - [x] EnumValue
   - [x] InputObject
   - [x] InputFieldDefinition
+  - [x] VariableDefinition
 
 ### Validation
 
@@ -87,8 +88,8 @@ We are currently working on the following features that are proposed for the nex
 
 - [x] [Limit directive uniqueness to explicitly marked directives](https://github.com/facebook/graphql/pull/472)
 - [x] ["Directive order is significant" section](https://github.com/facebook/graphql/pull/470)
-- [ ] [Add rules for how circular references in Input Objects are handled](https://github.com/facebook/graphql/pull/445) (in development - 0.9.0)
-- [ ] [Add description to Schema](https://github.com/facebook/graphql/pull/466) (in development - 0.9.0)
+- [ ] [Add rules for how circular references in Input Objects are handled](https://github.com/facebook/graphql/pull/445) (in development - 9.1.0)
+- [x] [Add description to Schema](https://github.com/facebook/graphql/pull/466)
 
 ## Experimental Features
 
@@ -108,7 +109,7 @@ We are currently working on the following features that are proposed for the nex
 ## Additional Directives
 
 - [x] Schema Stitching
-- [ ] HTTP Directives (in development - 0.9.0)
+- [ ] HTTP Directives (in development - 10.0.0)
 - [x] Custom Schema Directives
 - [x] Custom Query Directives
 
@@ -121,7 +122,7 @@ We are currently working on the following features that are proposed for the nex
 
 - [x] Schema-First approach
 - [x] Code-First approach
-- [ ] Schema Builder (in development - 0.9.0)
+- [x] Schema Builder
 
 ## Supported Frameworks
 
@@ -129,7 +130,7 @@ We are currently working on the following features that are proposed for the nex
 
   - [x] Get
   - [x] Post
-  - [ ] _WebSockets_ (in development - 0.10.0)
+  - [ ] _WebSockets_ (in development - 12.0.0)
   - [x] .net Framework 4.7
   - [x] .net Framework 4.6.1
 

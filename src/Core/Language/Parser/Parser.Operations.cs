@@ -50,8 +50,10 @@ namespace HotChocolate.Language
         /// SelectionSet
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private static OperationDefinitionNode ParseOperationDefinitionShortHandForm(
-            ParserContext context, SyntaxToken start)
+        private static OperationDefinitionNode
+            ParseOperationDefinitionShortHandForm(
+                ParserContext context,
+                SyntaxToken start)
         {
             SelectionSetNode selectionSet = ParseSelectionSet(context);
             Location location = context.CreateLocation(start);
@@ -123,6 +125,8 @@ namespace HotChocolate.Language
             IValueNode defaultValue = context.Skip(TokenKind.Equal)
                 ? ParseValueLiteral(context, true)
                 : null;
+            List<DirectiveNode> directives =
+                ParseDirectives(context, true);
             Location location = context.CreateLocation(start);
 
             return new VariableDefinitionNode
@@ -130,7 +134,8 @@ namespace HotChocolate.Language
                 location,
                 variable,
                 type,
-                defaultValue
+                defaultValue,
+                directives
             );
         }
 

@@ -3,6 +3,8 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
+using HotChocolate.Properties;
+using System.Globalization;
 
 namespace HotChocolate.Types
 {
@@ -27,11 +29,8 @@ namespace HotChocolate.Types
             }
             catch (Exception ex)
             {
-                // TODO : RESOURCES
                 context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage(
-                        "Could not parse the native value of input field " +
-                        $"`{context.Type.Name}.{definition.Name}`.")
+                    .SetMessage(TypeResources.FieldInitHelper_InvalidDefaultValue)
                     .SetCode(TypeErrorCodes.MissingType)
                     .SetTypeSystemObject(context.Type)
                     .AddSyntaxNode(definition.SyntaxNode)
@@ -52,9 +51,16 @@ namespace HotChocolate.Types
         {
             if (context.Type is IType type && fields.Count == 0)
             {
-                // TODO : RESOURCES
+                string kind = context.Type is IType t
+                    ? t.Kind.ToString()
+                    : TypeKind.Directive.ToString();
+
                 context.ReportError(SchemaErrorBuilder.New()
-                    .SetMessage($"{type.Kind} `{definition.Name}` has no fields declared.")
+                    .SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        TypeResources.FieldInitHelper_NoFields,
+                        kind,
+                        context.Type.Name))
                     .SetCode(TypeErrorCodes.MissingType)
                     .SetTypeSystemObject(context.Type)
                     .AddSyntaxNode(definition.SyntaxNode)

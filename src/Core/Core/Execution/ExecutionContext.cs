@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using HotChocolate.Execution.Instrumentation;
+using HotChocolate.Language;
+using HotChocolate.Types;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
@@ -11,6 +14,8 @@ namespace HotChocolate.Execution
     {
         private readonly object _syncRoot = new object();
         private readonly IRequestContext _requestContext;
+        private readonly FieldCollector _fieldCollector;
+        private readonly ICachedQuery _cachedQuery;
 
         public ExecutionContext(
             ISchema schema,
@@ -27,6 +32,8 @@ namespace HotChocolate.Execution
 
             RequestAborted = requestAborted;
 
+            _cachedQuery = _requestContext.CachedQuery;
+
             ErrorHandler = requestContext.ServiceScope.ServiceProvider
                 .GetRequiredService<IErrorHandler>();
 
@@ -35,16 +42,16 @@ namespace HotChocolate.Execution
             var fragments = new FragmentCollection(
                 schema, operation.Document);
 
-            var fieldCollector = new FieldCollector(
-                operation.Variables, fragments);
+            Converter = _requestContext.ServiceScope
+                .ServiceProvider.GetTypeConversion();
 
-            FieldHelper = new FieldHelper(
-                fieldCollector, requestContext.ResolveMiddleware,
-                AddError);
+            _fieldCollector = new FieldCollector(
+                fragments, requestContext.ResolveMiddleware, Converter);
 
             Activator = new Activator(
                 requestContext.ServiceScope.ServiceProvider);
         }
+
 
         public ISchema Schema { get; }
 
@@ -67,12 +74,12 @@ namespace HotChocolate.Execution
 
         public CancellationToken RequestAborted { get; }
 
-        public IFieldHelper FieldHelper { get; }
-
         public IActivator Activator { get; }
 
         public QueryExecutionDiagnostics Diagnostics =>
             _requestContext.Diagnostics;
+
+        public ITypeConversion Converter { get; }
 
         public void AddError(IError error)
         {
@@ -85,6 +92,41 @@ namespace HotChocolate.Execution
             {
                 Result.Errors.Add(error);
             }
+        }
+
+        public IReadOnlyCollection<FieldSelection> CollectFields(
+            ObjectType objectType,
+            SelectionSetNode selectionSet,
+            Path path)
+        {
+            if (objectType == null)
+            {
+                throw new ArgumentNullException(nameof(objectType));
+            }
+
+            if (selectionSet == null)
+            {
+                throw new ArgumentNullException(nameof(selectionSet));
+            }
+
+            IReadOnlyList<FieldSelection> fields =
+                _cachedQuery.GetOrCollectFields(
+                    objectType,
+                    selectionSet,
+                    () => _fieldCollector.CollectFields(
+                        objectType, selectionSet, path));
+
+            var visibleFields = new List<FieldSelection>();
+
+            for (int i = 0; i < fields.Count; i++)
+            {
+                if (fields[i].IsVisible(Variables))
+                {
+                    visibleFields.Add(fields[i]);
+                }
+            }
+            return visibleFields;
+
         }
 
         public IExecutionContext Clone()

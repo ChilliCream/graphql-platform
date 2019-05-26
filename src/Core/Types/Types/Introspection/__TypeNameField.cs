@@ -1,9 +1,9 @@
-﻿using HotChocolate.Types.Descriptors;
+using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Introspection
 {
-    // TODO : resources
     [Introspection]
     internal sealed class __TypeNameField
         : ObjectField
@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Introspection
         {
         }
 
-        public override bool IsIntrospectionField { get; } = true;
+        public override bool IsIntrospectionField => true;
 
         private static ObjectFieldDefinition CreateDefinition(
             IDescriptorContext context)
@@ -21,8 +21,7 @@ namespace HotChocolate.Types.Introspection
             var descriptor = ObjectFieldDescriptor
                 .New(context, IntrospectionFields.TypeName);
 
-            descriptor.Description(
-                "The name of the current Object type at runtime.")
+            descriptor.Description(TypeResources.TypeNameField_Description)
                 .Type<NonNullType<StringType>>()
                 .Resolver(ctx => ctx.ObjectType.Name.Value);
 

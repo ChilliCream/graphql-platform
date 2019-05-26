@@ -1,8 +1,6 @@
-using System.Reflection.Metadata;
 using System;
-using HotChocolate.Configuration;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
+using HotChocolate.Properties;
 
 namespace HotChocolate
 {
@@ -19,11 +17,12 @@ namespace HotChocolate
 
             if (string.IsNullOrEmpty(schema))
             {
-                // TODO : resources
-                throw new ArgumentException("message", nameof(schema));
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilderExtensions_SchemaIsEmpty,
+                    nameof(schema));
             }
 
-            DocumentNode document = Parser.Default.Parse(schema);
+            DocumentNode document = Utf8GraphQLParser.Parse(schema);
             return builder.AddDocument(sp => document);
         }
 

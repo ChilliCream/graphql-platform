@@ -56,7 +56,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(schema));
             }
 
-            var referenced = new HashSet<string>();
+            var referenced = new ReferencedTypes();
 
             var typeDefinitions = GetNonScalarTypes(schema)
                 .Select(t => SerializeNonScalarTypeDefinition(t, referenced))
@@ -71,9 +71,15 @@ namespace HotChocolate
                     SerializeSchemaTypeDefinition(schema, referenced));
             }
 
+            IEnumerable<DirectiveDefinitionNode> directiveTypeDefinitions = schema.DirectiveTypes
+                .Where(t => referenced.DirectiveNames.Contains(t.Name))
+                .Select(t => SerializeDirectiveTypeDefinition(t, referenced));
+
+            typeDefinitions.AddRange(directiveTypeDefinitions);
+
             IEnumerable<ScalarTypeDefinitionNode> scalarTypeDefinitions = schema.Types
                 .OfType<ScalarType>()
-                .Where(t => referenced.Contains(t.Name))
+                .Where(t => referenced.TypeNames.Contains(t.Name))
                 .Select(t => SerializeScalarType(t));
 
             typeDefinitions.AddRange(scalarTypeDefinitions);
@@ -103,9 +109,32 @@ namespace HotChocolate
             return true;
         }
 
+        private static DirectiveDefinitionNode SerializeDirectiveTypeDefinition(
+            DirectiveType directiveType,
+            ReferencedTypes referenced)
+        {
+            var arguments = directiveType.Arguments
+               .Select(t => SerializeInputField(t, referenced))
+               .ToList();
+
+            var locations = directiveType.Locations
+                .Select(l => new NameNode(l.ToString()))
+                .ToList();
+
+            return new DirectiveDefinitionNode
+            (
+                null,
+                new NameNode(directiveType.Name),
+                SerializeDescription(directiveType.Description),
+                directiveType.IsRepeatable,
+                arguments,
+                locations
+            );
+        }
+
         private static SchemaDefinitionNode SerializeSchemaTypeDefinition(
             ISchema schema,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             var operations = new List<OperationTypeDefinitionNode>();
 
@@ -133,10 +162,15 @@ namespace HotChocolate
                     referenced));
             }
 
+            var directives = schema.Directives
+                .Select(t => SerializeDirective(t, referenced))
+                .ToList();
+
             return new SchemaDefinitionNode
             (
                 null,
-                Array.Empty<DirectiveNode>(),
+                SerializeDescription(schema.Description),
+                directives,
                 operations
             );
         }
@@ -144,7 +178,7 @@ namespace HotChocolate
         private static OperationTypeDefinitionNode SerializeOperationType(
            ObjectType type,
            OperationType operation,
-           ISet<string> referenced)
+           ReferencedTypes referenced)
         {
             return new OperationTypeDefinitionNode
             (
@@ -156,7 +190,7 @@ namespace HotChocolate
 
         private static ITypeDefinitionNode SerializeNonScalarTypeDefinition(
             INamedType namedType,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             switch (namedType)
             {
@@ -173,7 +207,7 @@ namespace HotChocolate
                     return SerializeUnionType(type, referenced);
 
                 case EnumType type:
-                    return SerializeEnumType(type);
+                    return SerializeEnumType(type, referenced);
 
                 default:
                     throw new NotSupportedException();
@@ -182,10 +216,10 @@ namespace HotChocolate
 
         private static ObjectTypeDefinitionNode SerializeObjectType(
             ObjectType objectType,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             var directives = objectType.Directives
-                .Select(t => t.ToNode())
+                .Select(t => SerializeDirective(t, referenced))
                 .ToList();
 
             var interfaces = objectType.Interfaces.Values
@@ -210,10 +244,10 @@ namespace HotChocolate
 
         private static InterfaceTypeDefinitionNode SerializeInterfaceType(
             InterfaceType interfaceType,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             var directives = interfaceType.Directives
-                .Select(t => t.ToNode())
+                .Select(t => SerializeDirective(t, referenced))
                 .ToList();
 
             var fields = interfaceType.Fields
@@ -232,10 +266,10 @@ namespace HotChocolate
 
         private static InputObjectTypeDefinitionNode SerializeInputObjectType(
             InputObjectType inputObjectType,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             var directives = inputObjectType.Directives
-                .Select(t => t.ToNode())
+                .Select(t => SerializeDirective(t, referenced))
                 .ToList();
 
             var fields = inputObjectType.Fields
@@ -254,10 +288,10 @@ namespace HotChocolate
 
         private static UnionTypeDefinitionNode SerializeUnionType(
             UnionType unionType,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             var directives = unionType.Directives
-                .Select(t => t.ToNode())
+                .Select(t => SerializeDirective(t, referenced))
                 .ToList();
 
             var types = unionType.Types.Values
@@ -275,14 +309,15 @@ namespace HotChocolate
         }
 
         private static EnumTypeDefinitionNode SerializeEnumType(
-            EnumType enumType)
+            EnumType enumType,
+            ReferencedTypes referenced)
         {
             var directives = enumType.Directives
-                .Select(t => t.ToNode())
+                .Select(t => SerializeDirective(t, referenced))
                 .ToList();
 
             var values = enumType.Values
-                .Select(t => SerializeEnumValue(t))
+                .Select(t => SerializeEnumValue(t, referenced))
                 .ToList();
 
             return new EnumTypeDefinitionNode
@@ -297,14 +332,19 @@ namespace HotChocolate
 
 
         private static EnumValueDefinitionNode SerializeEnumValue(
-            EnumValue enumValue)
+            EnumValue enumValue,
+            ReferencedTypes referenced)
         {
+            var directives = enumValue.Directives
+                .Select(t => SerializeDirective(t, referenced))
+                .ToList();
+
             return new EnumValueDefinitionNode
             (
                 null,
                 new NameNode(enumValue.Name),
                 SerializeDescription(enumValue.Description),
-                Array.Empty<DirectiveNode>()
+                directives
             );
         }
 
@@ -322,14 +362,14 @@ namespace HotChocolate
 
         private static FieldDefinitionNode SerializeObjectField(
             IOutputField field,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             var arguments = field.Arguments
                 .Select(t => SerializeInputField(t, referenced))
                 .ToList();
 
             var directives = field.Directives
-                .Select(t => t.ToNode())
+                .Select(t => SerializeDirective(t, referenced))
                 .ToList();
 
             return new FieldDefinitionNode
@@ -345,7 +385,7 @@ namespace HotChocolate
 
         private static InputValueDefinitionNode SerializeInputField(
             IInputField inputValue,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             return new InputValueDefinitionNode
             (
@@ -354,13 +394,14 @@ namespace HotChocolate
                 SerializeDescription(inputValue.Description),
                 SerializeType(inputValue.Type, referenced),
                 inputValue.DefaultValue,
-                inputValue.Directives.Select(t => t.ToNode()).ToList()
+                inputValue.Directives.Select(t =>
+                    SerializeDirective(t, referenced)).ToList()
             );
         }
 
         private static ITypeNode SerializeType(
             IType type,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
             if (type is NonNullType nt)
             {
@@ -385,10 +426,18 @@ namespace HotChocolate
 
         private static NamedTypeNode SerializeNamedType(
             INamedType namedType,
-            ISet<string> referenced)
+            ReferencedTypes referenced)
         {
-            referenced.Add(namedType.Name);
+            referenced.TypeNames.Add(namedType.Name);
             return new NamedTypeNode(null, new NameNode(namedType.Name));
+        }
+
+        private static DirectiveNode SerializeDirective(
+            IDirective directiveType,
+            ReferencedTypes referenced)
+        {
+            referenced.DirectiveNames.Add(directiveType.Name);
+            return directiveType.ToNode();
         }
 
         private static StringValueNode SerializeDescription(string description)
@@ -396,6 +445,12 @@ namespace HotChocolate
             return string.IsNullOrEmpty(description)
                 ? null
                 : new StringValueNode(description);
+        }
+
+        private class ReferencedTypes
+        {
+            public ISet<string> TypeNames { get; } = new HashSet<string>();
+            public ISet<string> DirectiveNames { get; } = new HashSet<string>();
         }
     }
 }

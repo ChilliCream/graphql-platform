@@ -10,10 +10,7 @@ namespace HotChocolate.Language
         public void EnumTypeDefinitionWithLocation()
         {
             // arrange
-            var source = new Source("foo");
-            var start = new SyntaxToken(
-                TokenKind.StartOfFile, 0, 0, 1, 1, null);
-            var location = new Location(source, start, start);
+            var location = new Location(0, 0, 0, 0);
             var name = new NameNode("foo");
             var description = new StringValueNode("bar");
             var directives = new List<DirectiveNode>();
@@ -67,10 +64,7 @@ namespace HotChocolate.Language
         public void EnumTypeDefinitionWithoutName_ArgumentNullException()
         {
             // arrange
-            var source = new Source("foo");
-            var start = new SyntaxToken(
-                TokenKind.StartOfFile, 0, 0, 1, 1, null);
-            var location = new Location(source, start, start);
+            var location = new Location(0, 0, 0, 0);
             var description = new StringValueNode("bar");
             var directives = new List<DirectiveNode>();
             var values = new List<EnumValueDefinitionNode>();
@@ -92,10 +86,7 @@ namespace HotChocolate.Language
         public void EnumTypeDefinitionWithoutDirectives_ArgumentNullException()
         {
             // arrange
-            var source = new Source("foo");
-            var start = new SyntaxToken(
-                TokenKind.StartOfFile, 0, 0, 1, 1, null);
-            var location = new Location(source, start, start);
+            var location = new Location(0, 0, 0, 0);
             var name = new NameNode("foo");
             var description = new StringValueNode("bar");
             var values = new List<EnumValueDefinitionNode>();
@@ -117,10 +108,7 @@ namespace HotChocolate.Language
         public void EnumTypeDefinitionWithoutValues_ArgumentNullException()
         {
             // arrange
-            var source = new Source("foo");
-            var start = new SyntaxToken(
-                TokenKind.StartOfFile, 0, 0, 1, 1, null);
-            var location = new Location(source, start, start);
+            var location = new Location(0, 0, 0, 0);
             var name = new NameNode("foo");
             var description = new StringValueNode("bar");
             var directives = new List<DirectiveNode>();
@@ -141,10 +129,7 @@ namespace HotChocolate.Language
         public void WithName()
         {
             // arrange
-            var source = new Source("foo");
-            var start = new SyntaxToken(
-                TokenKind.StartOfFile, 0, 0, 1, 1, null);
-            var location = new Location(source, start, start);
+            var location = new Location(0, 0, 0, 0);
             var name = new NameNode("foo");
             var description = new StringValueNode("bar");
             var directives = new List<DirectiveNode>();
@@ -169,10 +154,7 @@ namespace HotChocolate.Language
         public void WithDescription()
         {
             // arrange
-            var source = new Source("foo");
-            var start = new SyntaxToken(
-                TokenKind.StartOfFile, 0, 0, 1, 1, null);
-            var location = new Location(source, start, start);
+            var location = new Location(0, 0, 0, 0);
             var name = new NameNode("foo");
             var description = new StringValueNode("bar");
             var directives = new List<DirectiveNode>();
@@ -197,10 +179,7 @@ namespace HotChocolate.Language
         public void WithDirectives()
         {
             // arrange
-            var source = new Source("foo");
-            var start = new SyntaxToken(
-                TokenKind.StartOfFile, 0, 0, 1, 1, null);
-            var location = new Location(source, start, start);
+            var location = new Location(0, 0, 0, 0);
             var name = new NameNode("foo");
             var description = new StringValueNode("bar");
             var directives = new List<DirectiveNode>();
@@ -225,10 +204,7 @@ namespace HotChocolate.Language
         public void WithValues()
         {
             // arrange
-            var source = new Source("foo");
-            var start = new SyntaxToken(
-                TokenKind.StartOfFile, 0, 0, 1, 1, null);
-            var location = new Location(source, start, start);
+            var location = new Location(0, 0, 0, 0);
             var name = new NameNode("foo");
             var description = new StringValueNode("bar");
             var directives = new List<DirectiveNode>();
@@ -253,10 +229,7 @@ namespace HotChocolate.Language
         public void WithLocation()
         {
             // arrange
-            var source = new Source("foo");
-            var start = new SyntaxToken(
-                TokenKind.StartOfFile, 0, 0, 1, 1, null);
-            var location = new Location(source, start, start);
+            var location = new Location(0, 0, 0, 0);
             var name = new NameNode("foo");
             var description = new StringValueNode("bar");
             var directives = new List<DirectiveNode>();

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,6 +8,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Configuration
 {
@@ -14,6 +16,7 @@ namespace HotChocolate.Configuration
     {
         private readonly TypeInspector _typeInspector = new TypeInspector();
         private readonly ServiceFactory _serviceFactory = new ServiceFactory();
+        private readonly IDescriptorContext _descriptorContext;
         private readonly List<InitializationContext> _initContexts =
             new List<InitializationContext>();
         private readonly HashSet<InitializationContext> _handledContexts =
@@ -25,7 +28,9 @@ namespace HotChocolate.Configuration
 
         public TypeRegistrar(
             IServiceProvider services,
+            IDescriptorContext descriptorContext,
             IEnumerable<ITypeReference> initialTypes,
+            IDictionary<ITypeReference, ITypeReference> clrTypes,
             IDictionary<string, object> contextData)
         {
             if (initialTypes == null)
@@ -43,6 +48,11 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(services));
             }
 
+            _descriptorContext = descriptorContext
+                ?? throw new ArgumentNullException(nameof(descriptorContext));
+            ClrTypes = clrTypes
+                ?? throw new ArgumentNullException(nameof(clrTypes));
+
             _unregistered.AddRange(IntrospectionTypes.All);
             _unregistered.AddRange(Directives.All);
             _unregistered.AddRange(initialTypes);
@@ -59,8 +69,7 @@ namespace HotChocolate.Configuration
         public IDictionary<ITypeReference, RegisteredType> Registerd
         { get; } = new Dictionary<ITypeReference, RegisteredType>();
 
-        public IDictionary<ITypeReference, ITypeReference> ClrTypes { get; } =
-            new Dictionary<ITypeReference, ITypeReference>();
+        public IDictionary<ITypeReference, ITypeReference> ClrTypes { get; }
 
         public ICollection<ISchemaError> Errors => _errors;
 
@@ -81,6 +90,23 @@ namespace HotChocolate.Configuration
             foreach (InitializationContext context in _initContexts)
             {
                 _errors.AddRange(context.Errors);
+            }
+
+            if (_errors.Count == 0 && Unresolved.Count > 0)
+            {
+                foreach (IClrTypeReference unresolvedReference in Unresolved)
+                {
+                    _errors.Add(SchemaErrorBuilder.New()
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            TypeResources.TypeRegistrar_TypesInconsistent,
+                            unresolvedReference))
+                        .SetExtension(
+                            TypeErrorFields.Reference,
+                            unresolvedReference)
+                        .SetCode(TypeErrorCodes.UnresolvedTypes)
+                        .Build());
+                }
             }
 
             return Unresolved.Count == 0 && _errors.Count == 0;
@@ -261,20 +287,33 @@ namespace HotChocolate.Configuration
             ITypeReference internalReference,
             TypeSystemObjectBase typeSystemObject)
         {
-            var initializationContext = new InitializationContext(
-                typeSystemObject,
-                _serviceFactory.Services,
-                _contextData);
-            typeSystemObject.Initialize(initializationContext);
-            _initContexts.Add(initializationContext);
+            try
+            {
+                var initializationContext = new InitializationContext(
+                    typeSystemObject,
+                    _serviceFactory.Services,
+                    _descriptorContext,
+                    _contextData);
+                typeSystemObject.Initialize(initializationContext);
+                _initContexts.Add(initializationContext);
 
-            var registeredType = new RegisteredType(
-                internalReference,
-                typeSystemObject,
-                initializationContext.TypeDependencies);
-            Registerd.Add(internalReference, registeredType);
+                var registeredType = new RegisteredType(
+                    internalReference,
+                    typeSystemObject,
+                    initializationContext.TypeDependencies);
+                Registerd.Add(internalReference, registeredType);
 
-            return registeredType;
+                return registeredType;
+            }
+            catch (Exception ex)
+            {
+                throw new SchemaException(
+                    SchemaErrorBuilder.New()
+                        .SetMessage(ex.Message)
+                        .SetException(ex)
+                        .SetTypeSystemObject(typeSystemObject)
+                        .Build());
+            }
         }
 
         private bool IsTypeResolved(IClrTypeReference typeReference)

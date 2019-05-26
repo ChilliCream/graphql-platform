@@ -38,8 +38,9 @@ namespace HotChocolate.Execution
 
                 if (observers != null)
                 {
-                    QueryExecutionDiagnostics diagnosticEvents = _applicationServices
-                        .GetService<QueryExecutionDiagnostics>();
+                    QueryExecutionDiagnostics diagnosticEvents =
+                        _applicationServices
+                            .GetService<QueryExecutionDiagnostics>();
                     diagnosticEvents.Subscribe(observers);
                 }
             }
@@ -66,7 +67,8 @@ namespace HotChocolate.Execution
                 Schema,
                 serviceScope,
                 request,
-                fs => _fieldMiddlewareCompiler.GetMiddleware(fs.Field));
+                (field, selection) =>
+                    _fieldMiddlewareCompiler.GetMiddleware(field));
 
             return ExecuteMiddlewareAsync(context);
         }

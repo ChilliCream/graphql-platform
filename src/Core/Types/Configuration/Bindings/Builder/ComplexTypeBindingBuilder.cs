@@ -1,4 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration.Bindings
@@ -8,6 +12,8 @@ namespace HotChocolate.Configuration.Bindings
     {
         private readonly ComplexTypeBindingInfo _bindingInfo =
             new ComplexTypeBindingInfo();
+        private readonly List<ComplexTypeFieldBindingBuilder> _fields =
+            new List<ComplexTypeFieldBindingBuilder>();
 
         public IComplexTypeBindingBuilder SetName(NameString typeName)
         {
@@ -42,12 +48,13 @@ namespace HotChocolate.Configuration.Bindings
 
             if (builder.IsComplete())
             {
-                _bindingInfo.Fields = _bindingInfo.Fields.Add(builder.Create());
+                _fields.Add(builder);
                 return this;
             }
 
-            // TODO : resources
-            throw new ArgumentException("notcompleted", nameof(builder));
+            throw new ArgumentException(
+                TypeResources.ComplexTypeBindingBuilder_FieldNotComplete,
+                nameof(configure));
         }
 
         public IComplexTypeBindingBuilder AddField(
@@ -60,28 +67,43 @@ namespace HotChocolate.Configuration.Bindings
 
             if (!builder.IsComplete())
             {
-                // TODO : resources
-                throw new ArgumentException("notcompleted", nameof(builder));
+                throw new ArgumentException(
+                    TypeResources.ComplexTypeBindingBuilder_FieldNotComplete,
+                    nameof(builder));
             }
 
             if (builder is ComplexTypeFieldBindingBuilder b)
             {
-                _bindingInfo.Fields = _bindingInfo.Fields.Add(b.Create());
+                _fields.Add(b);
                 return this;
             }
 
-            // TODO : resources
-            throw new NotSupportedException("builder not supported");
+            throw new NotSupportedException(TypeResources
+                .ComplexTypeBindingBuilder_FieldBuilderNotSupported);
         }
 
         public bool IsComplete()
         {
-            return _bindingInfo.IsValid();
+            if (_bindingInfo.BindingBehavior == BindingBehavior.Explicit
+                && _fields.Count == 0)
+            {
+                return false;
+            }
+
+            if (_bindingInfo.Type == null)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         public IBindingInfo Create()
         {
-            return _bindingInfo.Clone();
+            ComplexTypeBindingInfo cloned = _bindingInfo.Clone();
+            cloned.Fields = ImmutableList.CreateRange(
+                _fields.Select(t => t.Create()));
+            return cloned;
         }
 
         public static ComplexTypeBindingBuilder New() =>

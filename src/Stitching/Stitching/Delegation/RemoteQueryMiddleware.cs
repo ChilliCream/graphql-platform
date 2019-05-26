@@ -34,7 +34,8 @@ namespace HotChocolate.Stitching.Delegation
 
             context.Result = await _client.FetchAsync(
                 context.Request,
-                httpClientFactory.CreateClient(_schemaName))
+                httpClientFactory.CreateClient(_schemaName),
+                context.Services.GetServices<IHttpQueryRequestInterceptor>())
                 .ConfigureAwait(false);
 
             await _next.Invoke(context).ConfigureAwait(false);

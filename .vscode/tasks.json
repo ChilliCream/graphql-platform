@@ -27,6 +27,19 @@
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "label": "build server",
+      "command": "dotnet build src/Server /property:GenerateFullPaths=true",
+      "type": "shell",
+      "presentation": {
+        "reveal": "silent"
+      },
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     }
   ]
 }

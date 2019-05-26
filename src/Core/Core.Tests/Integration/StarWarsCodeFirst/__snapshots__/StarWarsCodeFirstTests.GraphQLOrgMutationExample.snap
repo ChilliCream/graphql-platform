@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "createReview": {
       "stars": 5,
@@ -6,5 +6,6 @@
     }
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <DebugType>Full</DebugType>
+    <DebugType>portable</DebugType>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
@@ -21,7 +21,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <PackageReference Include="Moq" Version="4.10.1" />
     <PackageReference Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
-    <PackageReference Include="Snapshooter.Xunit" Version="0.4.1" />
+    <PackageReference Include="Snapshooter.Xunit" Version="0.4.5" />
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.4.0-beta.1.build3958" />
   </ItemGroup>
 

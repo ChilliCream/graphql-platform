@@ -78,6 +78,36 @@ namespace HotChocolate.Types
             RegisterDirectiveDependencies(context, definition);
         }
 
+        public static void RegisterDependencies(
+            this IInitializationContext context,
+            InputObjectTypeDefinition definition)
+        {
+            if (context == null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (definition == null)
+            {
+                throw new ArgumentNullException(nameof(definition));
+            }
+
+            RegisterDirectiveDependencies(context, definition);
+
+            foreach (InputFieldDefinition field in definition.Fields)
+            {
+                if (field.Type != null)
+                {
+                    context.RegisterDependency(field.Type,
+                        TypeDependencyKind.Default);
+                }
+
+                context.RegisterDependencyRange(
+                    field.Directives.Select(t => t.TypeReference),
+                    TypeDependencyKind.Completed);
+            }
+        }
+
         private static void RegisterDirectiveDependencies<T>(
             this IInitializationContext context,
             TypeDefinitionBase<T> definition)

@@ -1,9 +1,10 @@
-{
+﻿{
   "Data": {
     "drink": {
       "kind": "BLACKTEA"
     }
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }
