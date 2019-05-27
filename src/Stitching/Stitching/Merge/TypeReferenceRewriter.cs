@@ -10,6 +10,13 @@ namespace HotChocolate.Stitching.Merge
     internal sealed class TypeReferenceRewriter
         : SchemaSyntaxRewriter<TypeReferenceRewriter.Context>
     {
+        private HashSet<NameString> _knownDirectives = new HashSet<NameString>
+        {
+            DirectiveNames.Computed,
+            DirectiveNames.Delegate,
+            DirectiveNames.Source
+        };
+
         public DocumentNode RewriteSchema(
             DocumentNode document,
             NameString schemaName)
