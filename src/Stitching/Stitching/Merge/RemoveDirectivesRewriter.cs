@@ -10,12 +10,13 @@ namespace HotChocolate.Stitching.Merge
     internal sealed class RemoveDirectivesRewriter
         : SchemaSyntaxRewriter<object>
     {
-        private HashSet<NameString> _knownDirectives = new HashSet<NameString>
-        {
-            DirectiveNames.Computed,
-            DirectiveNames.Delegate,
-            DirectiveNames.Source
-        };
+        private readonly HashSet<NameString> _knownDirectives =
+            new HashSet<NameString>
+            {
+                DirectiveNames.Computed,
+                DirectiveNames.Delegate,
+                DirectiveNames.Source
+            };
 
         public DocumentNode RemoveDirectives(
             DocumentNode document)
