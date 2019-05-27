@@ -604,18 +604,21 @@ namespace HotChocolate.Configuration
                 }
                 else
                 {
-                    normalized = new ClrTypeReference(
-                        typeInfo.ClrType,
-                        typeReference.Context);
-
-                    if ((ClrTypes.TryGetValue(
-                            normalized, out ITypeReference r)
-                        || ClrTypes.TryGetValue(
-                            normalized.WithoutContext(), out r))
-                        && r is IClrTypeReference cr)
+                    for (int i = 0; i < typeInfo.Components.Count; i++)
                     {
-                        normalized = cr;
-                        return true;
+                        normalized = new ClrTypeReference(
+                            typeInfo.Components[i],
+                            typeReference.Context);
+
+                        if ((ClrTypes.TryGetValue(
+                                normalized, out ITypeReference r)
+                            || ClrTypes.TryGetValue(
+                                normalized.WithoutContext(), out r))
+                            && r is IClrTypeReference cr)
+                        {
+                            normalized = cr;
+                            return true;
+                        }
                     }
                 }
             }

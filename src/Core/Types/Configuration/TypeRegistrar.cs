@@ -208,27 +208,21 @@ namespace HotChocolate.Configuration
                 }
                 else
                 {
-                    ClrTypeReference normalizedTypeRef;
-
-                    if (typeInfo.Components.Count > 1)
+                    for (int i = 0; i < typeInfo.Components.Count; i++)
                     {
-                        normalizedTypeRef = new ClrTypeReference(
-                            typeInfo.Components[typeInfo.Components.Count - 2],
+                        var normalizedTypeRef = new ClrTypeReference(
+                            typeInfo.Components[i],
                             typeReference.Context);
 
                         if (IsTypeResolved(normalizedTypeRef))
                         {
-                            return;
+                            break;
                         }
-                    }
 
-                    normalizedTypeRef = new ClrTypeReference(
-                        typeInfo.ClrType,
-                        typeReference.Context);
-
-                    if (!IsTypeResolved(normalizedTypeRef))
-                    {
-                        Unresolved.Add(normalizedTypeRef);
+                        if ((i + 1) == typeInfo.Components.Count)
+                        {
+                            Unresolved.Add(normalizedTypeRef);
+                        }
                     }
                 }
             }
@@ -339,7 +333,6 @@ namespace HotChocolate.Configuration
             }
             return false;
         }
-
 
         private TypeSystemObjectBase CreateInstance(Type type) =>
             (TypeSystemObjectBase)_serviceFactory.CreateInstance(type);

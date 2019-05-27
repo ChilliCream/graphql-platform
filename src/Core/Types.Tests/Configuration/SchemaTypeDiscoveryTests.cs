@@ -128,7 +128,6 @@ namespace HotChocolate.Discovery
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<QueryWithCustomScalar>()
                 .AddType<ByteArrayType>()
-                .BindClrType<byte[], ByteArrayType>()
                 .Create();
 
             // assert
