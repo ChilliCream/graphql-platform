@@ -19,16 +19,20 @@ namespace HotChocolate.Discovery
             });
 
             // assert
-            INamedOutputType foo = schema.GetType<INamedOutputType>("Foo");
+            INamedOutputType foo =
+                schema.GetType<INamedOutputType>("Foo");
             Assert.NotNull(foo);
 
-            INamedOutputType bar = schema.GetType<INamedOutputType>("Bar");
+            INamedOutputType bar =
+                schema.GetType<INamedOutputType>("Bar");
             Assert.NotNull(foo);
 
-            INamedInputType fooInput = schema.GetType<INamedInputType>("FooInput");
+            INamedInputType fooInput =
+                schema.GetType<INamedInputType>("FooInput");
             Assert.NotNull(fooInput);
 
-            INamedInputType barInput = schema.GetType<INamedInputType>("BarInput");
+            INamedInputType barInput =
+                schema.GetType<INamedInputType>("BarInput");
             Assert.NotNull(barInput);
         }
 

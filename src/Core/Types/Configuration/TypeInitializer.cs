@@ -275,8 +275,10 @@ namespace HotChocolate.Configuration
                     foreach (Type sourceType in attribute.Types
                         .Where(t => !BaseTypes.IsNonGenericBaseType(t)))
                     {
+
                         ObjectType objectType = types.Values
-                            .FirstOrDefault(t => t.GetType() == sourceType);
+                            .FirstOrDefault(t => t.GetType() == sourceType
+                                || t.ClrType == sourceType);
                         if (objectType != null)
                         {
                             AddResolvers(_descriptorContext, objectType, type);
