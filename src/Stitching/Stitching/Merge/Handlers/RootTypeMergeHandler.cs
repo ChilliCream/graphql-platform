@@ -8,7 +8,7 @@ using HotChocolate.Stitching.Delegation;
 namespace HotChocolate.Stitching.Merge.Handlers
 {
     internal class RootTypeMergeHandler
-         : ITypeMergeHanlder
+         : ITypeMergeHandler
     {
         private readonly MergeTypeRuleDelegate _next;
 

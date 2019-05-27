@@ -455,7 +455,7 @@ namespace HotChocolate.Stitching
 
         public static IStitchingBuilder AddMergeHandler<T>(
             this IStitchingBuilder builder)
-            where T : ITypeMergeHanlder
+            where T : ITypeMergeHandler
         {
             if (builder == null)
             {
