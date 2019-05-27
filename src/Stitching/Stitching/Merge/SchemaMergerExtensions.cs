@@ -192,7 +192,7 @@ namespace HotChocolate.Stitching.Merge
 
         public static ISchemaMerger AddMergeHandler<T>(
            this ISchemaMerger merger)
-           where T : ITypeMergeHanlder
+           where T : ITypeMergeHandler
         {
             if (merger == null)
             {
@@ -205,7 +205,7 @@ namespace HotChocolate.Stitching.Merge
         }
 
         internal static MergeTypeRuleFactory CreateHandler<T>()
-            where T : ITypeMergeHanlder
+            where T : ITypeMergeHandler
         {
             ConstructorInfo constructor = typeof(T).GetTypeInfo()
                 .DeclaredConstructors.SingleOrDefault(c =>
@@ -224,7 +224,7 @@ namespace HotChocolate.Stitching.Merge
 
             return next =>
             {
-                ITypeMergeHanlder handler = (ITypeMergeHanlder)constructor
+                ITypeMergeHandler handler = (ITypeMergeHandler)constructor
                     .Invoke(new object[] { next });
                 return handler.Merge;
             };
