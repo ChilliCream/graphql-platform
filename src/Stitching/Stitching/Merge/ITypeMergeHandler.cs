@@ -2,7 +2,7 @@
 
 namespace HotChocolate.Stitching.Merge
 {
-    public interface ITypeMergeHanlder
+    public interface ITypeMergeHandler
     {
         void Merge(
             ISchemaMergeContext context,
