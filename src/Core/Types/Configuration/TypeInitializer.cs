@@ -275,8 +275,10 @@ namespace HotChocolate.Configuration
                     foreach (Type sourceType in attribute.Types
                         .Where(t => !BaseTypes.IsNonGenericBaseType(t)))
                     {
+
                         ObjectType objectType = types.Values
-                            .FirstOrDefault(t => t.GetType() == sourceType);
+                            .FirstOrDefault(t => t.GetType() == sourceType
+                                || t.ClrType == sourceType);
                         if (objectType != null)
                         {
                             AddResolvers(_descriptorContext, objectType, type);
@@ -604,18 +606,21 @@ namespace HotChocolate.Configuration
                 }
                 else
                 {
-                    normalized = new ClrTypeReference(
-                        typeInfo.ClrType,
-                        typeReference.Context);
-
-                    if ((ClrTypes.TryGetValue(
-                            normalized, out ITypeReference r)
-                        || ClrTypes.TryGetValue(
-                            normalized.WithoutContext(), out r))
-                        && r is IClrTypeReference cr)
+                    for (int i = 0; i < typeInfo.Components.Count; i++)
                     {
-                        normalized = cr;
-                        return true;
+                        normalized = new ClrTypeReference(
+                            typeInfo.Components[i],
+                            typeReference.Context);
+
+                        if ((ClrTypes.TryGetValue(
+                                normalized, out ITypeReference r)
+                            || ClrTypes.TryGetValue(
+                                normalized.WithoutContext(), out r))
+                            && r is IClrTypeReference cr)
+                        {
+                            normalized = cr;
+                            return true;
+                        }
                     }
                 }
             }

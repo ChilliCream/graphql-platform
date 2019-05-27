@@ -151,7 +151,9 @@ namespace HotChocolate.Utilities
                     && IsNonNullType(components[2])
                     && IsPossibleNamedType(components[3]))
                 {
-                    typeInfo = new TypeInfo(components[3],
+                    typeInfo = new TypeInfo(
+                        components[3],
+                        components,
                         t => new NonNullType(new ListType(new NonNullType(t))));
                     return true;
                 }
@@ -161,7 +163,9 @@ namespace HotChocolate.Utilities
                     && IsNullableType(components[2])
                     && components[3].IsValueType)
                 {
-                    typeInfo = new TypeInfo(components[2],
+                    typeInfo = new TypeInfo(
+                        components[2],
+                        components,
                         t => new NonNullType(new ListType(t)));
                     return true;
                 }
@@ -180,7 +184,10 @@ namespace HotChocolate.Utilities
                     && IsNullableType(components[1])
                     && components[2].IsValueType)
                 {
-                    typeInfo = new TypeInfo(components[2], t => new ListType(t));
+                    typeInfo = new TypeInfo(
+                        components[2],
+                        components,
+                        t => new ListType(t));
                     return true;
                 }
 
@@ -188,7 +195,9 @@ namespace HotChocolate.Utilities
                     && IsNonNullType(components[1])
                     && IsPossibleNamedType(components[2]))
                 {
-                    typeInfo = new TypeInfo(components[2],
+                    typeInfo = new TypeInfo(
+                        components[2],
+                        components,
                         t => new ListType(new NonNullType(t)));
                     return true;
                 }
@@ -197,7 +206,9 @@ namespace HotChocolate.Utilities
                     && IsListType(components[1])
                     && IsPossibleNamedType(components[2]))
                 {
-                    typeInfo = new TypeInfo(components[2],
+                    typeInfo = new TypeInfo(
+                        components[2],
+                        components,
                         t => new NonNullType(new ListType(t)));
                     return true;
                 }
@@ -215,7 +226,9 @@ namespace HotChocolate.Utilities
                 if (IsListType(components[0])
                     && components[1].IsValueType)
                 {
-                    typeInfo = new TypeInfo(components[1],
+                    typeInfo = new TypeInfo(
+                        components[1],
+                        components,
                         t => new ListType(new NonNullType(t)));
                     return true;
                 }
@@ -223,7 +236,9 @@ namespace HotChocolate.Utilities
                 if (IsListType(components[0])
                     && IsPossibleNamedType(components[1]))
                 {
-                    typeInfo = new TypeInfo(components[1],
+                    typeInfo = new TypeInfo(
+                        components[1],
+                        components,
                         t => new ListType(t));
                     return true;
                 }
@@ -231,14 +246,19 @@ namespace HotChocolate.Utilities
                 if (IsNullableType(components[0])
                     && components[1].IsValueType)
                 {
-                    typeInfo = new TypeInfo(components[1], t => t);
+                    typeInfo = new TypeInfo(
+                        components[1],
+                        components,
+                        t => t);
                     return true;
                 }
 
                 if (IsNonNullType(components[0])
                     && IsPossibleNamedType(components[1]))
                 {
-                    typeInfo = new TypeInfo(components[1],
+                    typeInfo = new TypeInfo(
+                        components[1],
+                        components,
                         t => new NonNullType(t));
                     return true;
                 }
@@ -255,13 +275,19 @@ namespace HotChocolate.Utilities
             {
                 if (components[0].IsValueType)
                 {
-                    typeInfo = new TypeInfo(components[0], t => new NonNullType(t));
+                    typeInfo = new TypeInfo(
+                        components[0],
+                        components,
+                        t => new NonNullType(t));
                     return true;
                 }
 
                 if (IsPossibleNamedType(components[0]))
                 {
-                    typeInfo = new TypeInfo(components[0], t => t);
+                    typeInfo = new TypeInfo(
+                        components[0],
+                        components,
+                        t => t);
                     return true;
                 }
             }

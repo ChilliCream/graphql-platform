@@ -32,7 +32,7 @@ namespace HotChocolate.Types
 
             foreach (ObjectFieldDefinition field in definition.Fields)
             {
-                if (field.Member != null)
+                if (field.Member != null && field.Resolver == null)
                 {
                     context.RegisterResolver(
                         field.Name,
