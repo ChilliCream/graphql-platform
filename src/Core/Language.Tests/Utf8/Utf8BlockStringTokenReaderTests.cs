@@ -206,5 +206,66 @@ namespace HotChocolate.Language
             // assert
             Assert.True(raised);
         }
+
+        [Fact]
+        private void NoDigitAfterZeroException()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes("01");
+            var reader = new Utf8GraphQLReader(source);
+            bool raised = false;
+
+            // act
+            try
+            {
+                reader.Read();
+            }
+            catch (SyntaxException ex)
+            {
+                raised = true;
+                ex.Message.MatchSnapshot();
+            }
+
+            // assert
+            Assert.True(raised);
+        }
+
+        [Fact]
+        private void InvalidDigit()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes("123.F");
+            var reader = new Utf8GraphQLReader(source);
+            bool raised = false;
+
+            // act
+            try
+            {
+                reader.Read();
+            }
+            catch (SyntaxException ex)
+            {
+                raised = true;
+                ex.Message.MatchSnapshot();
+            }
+
+            // assert
+            Assert.True(raised);
+        }
+
+        [Fact]
+        private void Zero()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes("0 ");
+            var reader = new Utf8GraphQLReader(source);
+
+            // act
+            reader.Read();
+
+            // assert
+            Assert.Equal("0", reader.GetScalarValue());
+            Assert.Equal(TokenKind.Integer, reader.Kind);
+        }
     }
 }

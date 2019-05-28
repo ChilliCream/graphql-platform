@@ -410,7 +410,8 @@ namespace HotChocolate.Language
                 if (GraphQLConstants.IsDigit(in code))
                 {
                     throw new SyntaxException(this,
-                        $"Invalid number, unexpected digit after 0: {code}.");
+                        "Invalid number, unexpected digit after 0: " +
+                        $"`{(char)code}` ({code}).");
                 }
             }
             else
@@ -465,7 +466,8 @@ namespace HotChocolate.Language
             if (!firstCode.IsDigit())
             {
                 throw new SyntaxException(this,
-                    $"Invalid number, expected digit but got: {firstCode}.");
+                    "Invalid number, expected digit but got: " +
+                    $"`{(char)firstCode}` ({firstCode}).");
             }
 
             while (++Position < GraphQLData.Length
