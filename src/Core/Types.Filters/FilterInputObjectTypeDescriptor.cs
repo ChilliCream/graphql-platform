@@ -80,6 +80,13 @@ namespace HotChocolate.Types.Filters
              */
         }
 
+        public IFilterInputObjectTypeDescriptor<T> BindFields(
+            BindingBehavior bindingBehavior)
+        {
+            Definition.Fields.BindingBehavior = bindingBehavior;
+            return this;
+        }
+
         public IStringFilterFieldDescriptor Filter(
             Expression<Func<T, string>> propertyOrMethod)
         {
@@ -112,25 +119,7 @@ namespace HotChocolate.Types.Filters
                 nameof(propertyOrMethod));
         }
 
-        public IFilterInputObjectTypeDescriptor<T> BindFields(BindingBehavior bindingBehavior)
-        {
-            Definition.Fields.BindingBehavior = bindingBehavior;
-            return this;
-        }
 
-        public IObjectFilterFieldDescriptor Filter<TFilter>(Expression<Func<T, object>> propertyOrMethod) where TFilter : IFilterInputType
-        {
-            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
-            {
-                var field = new ObjectFilterFieldsDescriptor(typeof(TFilter), Context, p);
-                Fields.Add(field);
-                return field;
-            }
-
-            throw new ArgumentException(
-                "Only properties are allowed for input types.",
-                nameof(propertyOrMethod));
-        }
 
         /// <summary>
         /// TODO:
@@ -139,7 +128,9 @@ namespace HotChocolate.Types.Filters
         /// <param name="propertyOrMethod"></param>
         /// <param name="descriptor"></param>
         /// <returns></returns>
-        public IEnumerableFilterFieldDescriptor Filter(Expression<Func<T, IEnumerable<string>>> propertyOrMethod, Action<IStringFilterFieldDescriptor> descriptor)
+        public IEnumerableFilterFieldDescriptor Filter(
+            Expression<Func<T, IEnumerable<string>>> propertyOrMethod,
+            Action<IStringFilterFieldDescriptor> descriptor)
         {
             if (propertyOrMethod.ExtractMember() is PropertyInfo p)
             {
@@ -165,7 +156,10 @@ namespace HotChocolate.Types.Filters
                 nameof(propertyOrMethod));
         }
 
-        public IEnumerableFilterFieldDescriptor Filter<TComparable>(Expression<Func<T, IEnumerable<TComparable>>> propertyOrMethod, Action<IComparableFilterFieldDescriptor> descriptor) where TComparable : IComparable
+        public IEnumerableFilterFieldDescriptor Filter<TComparable>(
+            Expression<Func<T, IEnumerable<TComparable>>> propertyOrMethod,
+            Action<IComparableFilterFieldDescriptor> descriptor)
+            where TComparable : IComparable
         {
             if (propertyOrMethod.ExtractMember() is PropertyInfo p)
             {
@@ -192,7 +186,9 @@ namespace HotChocolate.Types.Filters
         }
 
 
-        public IEnumerableFilterFieldDescriptor Filter<TFilter>(Expression<Func<T, IEnumerable<object>>> propertyOrMethod) where TFilter : IFilterInputType
+        public IEnumerableFilterFieldDescriptor Filter<TFilter>(
+            Expression<Func<T, IEnumerable<object>>> propertyOrMethod)
+            where TFilter : IFilterInputType
         {
             if (propertyOrMethod.ExtractMember() is PropertyInfo p)
             {

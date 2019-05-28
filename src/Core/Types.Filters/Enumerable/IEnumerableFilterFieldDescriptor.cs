@@ -11,14 +11,13 @@ namespace HotChocolate.Types.Filters
         IEnumerableFilterFieldDescriptor BindFilters(
             BindingBehavior bindingBehavior);
 
-
         IEnumerableFilterFieldDetailsDescriptor AllowSome();
-         
+
     }
 
-    public interface IEnumerableFilterFieldDetailsDescriptor 
+    public interface IEnumerableFilterFieldDetailsDescriptor
         : IDescriptor<InputFieldDefinition>
-        , IFluent 
+        , IFluent
     {
         IEnumerableFilterFieldDescriptor And();
 
