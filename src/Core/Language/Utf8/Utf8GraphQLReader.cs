@@ -76,18 +76,18 @@ namespace HotChocolate.Language
 
         public unsafe string GetString()
         {
+            if (_value.Length == 0)
+            {
+                return string.Empty;
+            }
+
             bool isBlockString = Kind == TokenKind.BlockString;
 
             int length = checked((int)_value.Length);
             bool useStackalloc =
                 length <= GraphQLConstants.StackallocThreshold;
 
-            byte[] escapedArray = null;
             byte[] unescapedArray = null;
-
-            Span<byte> escapedSpan = useStackalloc
-                ? stackalloc byte[length]
-                : (escapedArray = ArrayPool<byte>.Shared.Rent(length));
 
             Span<byte> unescapedSpan = useStackalloc
                 ? stackalloc byte[length]
@@ -95,10 +95,7 @@ namespace HotChocolate.Language
 
             try
             {
-                _value.CopyTo(escapedSpan);
-                escapedSpan = escapedSpan.Slice(0, length);
-
-                UnescapeValue(escapedSpan, ref unescapedSpan, isBlockString);
+                UnescapeValue(_value, ref unescapedSpan, isBlockString);
 
                 fixed (byte* bytePtr = unescapedSpan)
                 {
@@ -109,12 +106,10 @@ namespace HotChocolate.Language
             }
             finally
             {
-                if (escapedArray != null)
+                if (unescapedSpan != null)
                 {
-                    escapedSpan.Clear();
                     unescapedSpan.Clear();
 
-                    ArrayPool<byte>.Shared.Return(escapedArray);
                     ArrayPool<byte>.Shared.Return(unescapedArray);
                 }
             }
@@ -122,6 +117,11 @@ namespace HotChocolate.Language
 
         public unsafe string GetString(ReadOnlySpan<byte> unescapedValue)
         {
+            if (unescapedValue.Length == 0)
+            {
+                return string.Empty;
+            }
+
             fixed (byte* bytePtr = unescapedValue)
             {
                 return StringHelper.UTF8Encoding
@@ -135,6 +135,7 @@ namespace HotChocolate.Language
             {
                 StringHelper.TrimStringToken(ref _value);
             }
+
             return GetString(_value);
         }
 
