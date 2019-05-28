@@ -170,5 +170,33 @@ namespace HotChocolate.Language
             // assert
             tokens.MatchSnapshot();
         }
+
+        [Fact]
+        public void Skip_Boml()
+        {
+            // arrange
+            byte[] sourceText = new[]
+            {
+                (byte)239,
+                (byte)187,
+                (byte)191,
+                (byte)'a',
+                (byte)'b',
+                (byte)'c'
+            };
+
+
+            var tokens = new List<SyntaxTokenInfo>();
+            var reader = new Utf8GraphQLReader(sourceText);
+
+            while (reader.Read())
+            {
+                tokens.Add(SyntaxTokenInfo.FromReader(in reader));
+            }
+
+            // assert
+            Assert.Collection(tokens,
+                t => Assert.Equal(TokenKind.Name, t.Kind));
+        }
     }
 }
