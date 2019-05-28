@@ -86,7 +86,7 @@ namespace HotChocolate.AspNetCore.Authorization
                 roles?.ToList().AsReadOnly();
 
             if (string.IsNullOrEmpty(policy)
-                && (readOnlyRoles == null || readOnlyRoles.Count > 0))
+                && (readOnlyRoles == null || !readOnlyRoles.Any()))
             {
                 throw new ArgumentException(
                     "Either policy or roles has to be set.");
