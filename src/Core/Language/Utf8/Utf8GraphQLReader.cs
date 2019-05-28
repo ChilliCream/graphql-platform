@@ -168,6 +168,11 @@ namespace HotChocolate.Language
 
         public bool Read()
         {
+            if (Position == 0)
+            {
+                SkipBoml();
+            }
+
             SkipWhitespaces();
             UpdateColumn();
 
@@ -668,6 +673,22 @@ namespace HotChocolate.Language
                 }
 
                 code = ref GraphQLData[Position];
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void SkipBoml()
+        {
+            ref readonly byte code = ref GraphQLData[Position];
+
+            if (code == 239)
+            {
+                ref readonly byte second = ref GraphQLData[Position + 1];
+                ref readonly byte third = ref GraphQLData[Position + 2];
+                if (second == 187 && third == 191)
+                {
+                    Position += 3;
+                }
             }
         }
 

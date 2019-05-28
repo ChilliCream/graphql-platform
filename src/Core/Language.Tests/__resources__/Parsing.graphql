@@ -1,0 +1,13 @@
+﻿schema {
+    query: Query
+}
+
+type Query {
+    people: [Person!]
+}
+
+type Person {
+    id: ID!
+    firstName: String!
+    lastName: String!
+}
