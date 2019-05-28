@@ -160,6 +160,11 @@ namespace HotChocolate.Language
 
         public void UnescapeValue(ref Span<byte> unescapedValue)
         {
+            if (unescapedValue.Length == 0)
+            {
+                return;
+            }
+
             UnescapeValue(
                 in _value,
                 ref unescapedValue,
