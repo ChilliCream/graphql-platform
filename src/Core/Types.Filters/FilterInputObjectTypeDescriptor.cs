@@ -19,9 +19,7 @@ namespace HotChocolate.Types.Filters
         : DescriptorBase<InputObjectTypeDefinition>
         , IFilterInputObjectTypeDescriptor<T>
     {
-        private readonly IInitializationContext initializationContext;
-
-        public FilterInputObjectTypeDescriptor(IInitializationContext initializationContext,
+        public FilterInputObjectTypeDescriptor(
             IDescriptorContext context,
             Type clrType)
             : base(context)
@@ -36,7 +34,6 @@ namespace HotChocolate.Types.Filters
                 clrType, TypeKind.InputObject);
             Definition.Description = context.Naming.GetTypeDescription(
                 clrType, TypeKind.InputObject);
-            this.initializationContext = initializationContext;
         }
 
         protected override InputObjectTypeDefinition Definition { get; } =
@@ -98,7 +95,9 @@ namespace HotChocolate.Types.Filters
                 nameof(propertyOrMethod));
         }
 
-        public IComparableFilterFieldDescriptor Filter<TComparable>(Expression<Func<T, TComparable>> propertyOrMethod) where TComparable : IComparable
+        public IComparableFilterFieldDescriptor Filter<TComparable>(
+            Expression<Func<T, TComparable>> propertyOrMethod)
+            where TComparable : IComparable
         {
             if (propertyOrMethod.ExtractMember() is PropertyInfo p)
             {
@@ -107,6 +106,7 @@ namespace HotChocolate.Types.Filters
                 return field;
             }
 
+            // TODO : resources
             throw new ArgumentException(
                 "Only properties are allowed for input types.",
                 nameof(propertyOrMethod));
@@ -117,12 +117,6 @@ namespace HotChocolate.Types.Filters
             Definition.Fields.BindingBehavior = bindingBehavior;
             return this;
         }
-
-
-        public static FilterInputObjectTypeDescriptor<T> New(
-              IInitializationContext context, Type clrType) =>
-            new FilterInputObjectTypeDescriptor<T>(context,
-                    DescriptorContext.Create(context.Services), clrType);
 
         public IObjectFilterFieldDescriptor Filter<TFilter>(Expression<Func<T, object>> propertyOrMethod) where TFilter : IFilterInputType
         {
@@ -212,5 +206,9 @@ namespace HotChocolate.Types.Filters
                 "Only properties are allowed for input types.",
                 nameof(propertyOrMethod));
         }
+
+        public static FilterInputObjectTypeDescriptor<T> New(
+            IDescriptorContext context, Type clrType) =>
+            new FilterInputObjectTypeDescriptor<T>(context, clrType);
     }
 }
