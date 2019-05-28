@@ -73,7 +73,7 @@ namespace HotChocolate.Runtime
             if (services == null)
             {
                 ConstructorInfo constructor = constructors
-                    .FirstOrDefault(t => !t.GetParameters().Any());
+                    .FirstOrDefault(t => !t.GetParameters().Length > 0);
                 if (constructor == null)
                 {
                     throw new InvalidOperationException(

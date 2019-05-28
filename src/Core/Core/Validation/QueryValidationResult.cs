@@ -31,7 +31,7 @@ namespace HotChocolate.Validation
             }
 
             Errors = errors.ToArray();
-            HasErrors = errors.Any();
+            HasErrors = Errors.Count > 0;
         }
 
         public bool HasErrors { get; }

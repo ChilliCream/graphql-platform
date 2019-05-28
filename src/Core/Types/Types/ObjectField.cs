@@ -118,7 +118,7 @@ namespace HotChocolate.Types
 
             if (Resolver == null && Middleware == null)
             {
-                if (_executableDirectives.Any())
+                if (_executableDirectives.Count > 0)
                 {
                     Middleware = ctx => Task.CompletedTask;
                 }

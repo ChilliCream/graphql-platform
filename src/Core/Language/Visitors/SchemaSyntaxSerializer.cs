@@ -36,7 +36,7 @@ namespace HotChocolate.Language
             DocumentNode node,
             DocumentWriter writer)
         {
-            if (node.Definitions.Any())
+            if (node.Definitions.Count > 0)
             {
                 VisitDefinition(node.Definitions.First(), writer);
 
@@ -239,7 +239,7 @@ namespace HotChocolate.Language
 
             writer.WriteName(node.Name);
 
-            if (node.Arguments.Any())
+            if (node.Arguments.Count > 0)
             {
                 writer.Write("(");
                 writer.WriteMany(
@@ -279,7 +279,7 @@ namespace HotChocolate.Language
             writer.Write('@');
             writer.WriteName(node.Name);
 
-            if (node.Arguments.Any())
+            if (node.Arguments.Count > 0)
             {
                 writer.Write("(");
                 writer.WriteMany(
@@ -377,7 +377,7 @@ namespace HotChocolate.Language
             IReadOnlyList<DirectiveNode> directives,
             DocumentWriter writer)
         {
-            if (directives.Any())
+            if (directives.Count > 0)
             {
                 writer.WriteSpace();
                 writer.WriteMany(directives,

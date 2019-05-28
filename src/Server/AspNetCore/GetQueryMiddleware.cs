@@ -72,7 +72,7 @@ namespace HotChocolate.AspNetCore
                 Query = requestQuery[_queryIdentifier],
                 NamedQuery = requestQuery[_namedQueryIdentifier],
                 OperationName = requestQuery[_operationNameIdentifier],
-                Variables = (variables != null && variables.Any())
+                Variables = (variables != null && variables.Length > 0)
                     ? JsonConvert.DeserializeObject<JObject>(
                         variables, QueryMiddlewareUtilities.JsonSettings)
                     : null

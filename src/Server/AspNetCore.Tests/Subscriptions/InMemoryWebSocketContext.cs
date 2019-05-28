@@ -64,7 +64,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested
-                && !Incoming.Any())
+                && !Incoming.Count > 0)
             {
                 await Task.Delay(100, cancellationToken);
             }

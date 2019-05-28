@@ -20,7 +20,7 @@ namespace HotChocolate.Utilities
             {
                 List<Type> components = DecomposeType(type);
 
-                if (components.Any()
+                if (components.Count > 0
                     && (TryCreate4ComponentType(components, out typeInfo)
                     || TryCreate3ComponentType(components, out typeInfo)
                     || TryCreate2ComponentType(components, out typeInfo)

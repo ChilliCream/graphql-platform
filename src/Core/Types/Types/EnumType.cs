@@ -220,7 +220,7 @@ namespace HotChocolate.Types
                 enumValue.CompleteValue(context);
             }
 
-            if (!Values.Any())
+            if (Values.Count == 0)
             {
                 context.ReportError(
                     SchemaErrorBuilder.New()

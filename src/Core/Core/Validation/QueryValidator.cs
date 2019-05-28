@@ -30,6 +30,7 @@ namespace HotChocolate.Validation
             }
 
             var errors = new List<IError>();
+
             for (int i = 0; i < _rules.Length; i++)
             {
                 QueryValidationResult result = _rules[i].Validate(
@@ -40,7 +41,7 @@ namespace HotChocolate.Validation
                 }
             }
 
-            if (errors.Any())
+            if (errors.Count > 0)
             {
                 return new QueryValidationResult(errors);
             }

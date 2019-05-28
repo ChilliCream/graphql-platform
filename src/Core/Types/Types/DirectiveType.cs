@@ -104,7 +104,7 @@ namespace HotChocolate.Types
                 definition.Arguments.Select(t => new Argument(t)));
             IsExecutable = MiddlewareComponents.Count > 0;
 
-            if (!Locations.Any())
+            if (Locations.Count == 0)
             {
                 context.ReportError(SchemaErrorBuilder.New()
                     .SetMessage(string.Format(

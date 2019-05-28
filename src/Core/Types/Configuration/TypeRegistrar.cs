@@ -114,7 +114,7 @@ namespace HotChocolate.Configuration
 
         private void CompleteSchemaTypes()
         {
-            while (_unregistered.Any())
+            while (_unregistered.Count > 0)
             {
                 InitializeTypes();
                 EnqueueUnhandled();

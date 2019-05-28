@@ -60,7 +60,7 @@ namespace HotChocolate.Language
             DocumentNode node,
             DocumentWriter writer)
         {
-            if (node.Definitions.Any())
+            if (node.Definitions.Count > 0)
             {
                 VisitDefinition(node.Definitions.First(), writer);
 
@@ -108,7 +108,7 @@ namespace HotChocolate.Language
                 writer.WriteSpace();
 
                 writer.WriteName(node.Name);
-                if (node.VariableDefinitions.Any())
+                if (node.VariableDefinitions.Count > 0)
                 {
                     writer.Write('(');
 
@@ -156,7 +156,7 @@ namespace HotChocolate.Language
             writer.WriteName(node.Name);
             writer.WriteSpace();
 
-            if (node.VariableDefinitions.Any())
+            if (node.VariableDefinitions.Count > 0)
             {
                 writer.Write('(');
 
@@ -187,7 +187,7 @@ namespace HotChocolate.Language
             SelectionSetNode node,
             DocumentWriter writer)
         {
-            if (node != null && node.Selections.Any())
+            if (node != null && node.Selections.Count > 0))
             {
                 writer.Write('{');
 
@@ -235,14 +235,14 @@ namespace HotChocolate.Language
 
             writer.WriteName(node.Name);
 
-            if (node.Arguments.Any())
+            if (node.Arguments.Count > 0)
             {
                 writer.Write('(');
                 writer.WriteMany(node.Arguments, (n, w) => w.WriteArgument(n));
                 writer.Write(')');
             }
 
-            if (node.Directives.Any())
+            if (node.Directives.Count > 0)
             {
                 writer.WriteSpace();
                 writer.WriteMany(node.Directives,
@@ -250,7 +250,8 @@ namespace HotChocolate.Language
                     w => w.WriteSpace());
             }
 
-            if (node.SelectionSet != null && node.SelectionSet.Selections.Any())
+            if (node.SelectionSet != null
+                && node.SelectionSet.Selections.Count > 0)
             {
                 writer.WriteSpace();
                 VisitSelectionSet(node.SelectionSet, writer);
@@ -266,7 +267,7 @@ namespace HotChocolate.Language
             writer.Write("... ");
             writer.WriteName(node.Name);
 
-            if (node.Directives.Any())
+            if (node.Directives.Count > 0)
             {
                 writer.WriteMany(node.Directives,
                     (n, w) => w.WriteDirective(n),
@@ -291,7 +292,7 @@ namespace HotChocolate.Language
                 writer.WriteNamedType(node.TypeCondition);
             }
 
-            if (node.Directives.Any())
+            if (node.Directives.Count > 0)
             {
                 writer.WriteSpace();
                 writer.WriteMany(node.Directives,

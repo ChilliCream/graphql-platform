@@ -47,7 +47,7 @@ namespace HotChocolate.Execution
                 IReadOnlyList<IDirective> directives =
                     CollectDirectives(field, selection);
 
-                if (directives.Any())
+                if (directives.Count > 0)
                 {
                     directivePipeline = Compile(
                         directivePipeline,

@@ -324,7 +324,7 @@ namespace HotChocolate.Language
 
             writer.WriteName(node.Name);
 
-            if (node.Arguments.Any())
+            if (node.Arguments.Count > 0)
             {
                 writer.Write('(');
 

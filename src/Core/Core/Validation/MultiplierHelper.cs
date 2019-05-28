@@ -89,7 +89,7 @@ namespace HotChocolate.Validation
             ObjectValueNode obj,
             Queue<string> path)
         {
-            if (path.Any())
+            if (path.Count > 0)
             {
                 string name = path.Dequeue();
                 ObjectFieldNode fieldValue = obj.Fields

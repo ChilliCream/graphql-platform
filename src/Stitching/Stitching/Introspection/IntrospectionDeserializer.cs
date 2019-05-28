@@ -30,7 +30,7 @@ namespace HotChocolate.Stitching.Introspection
             {
                 DirectiveDefinitionNode directiveDefinition =
                     CreateDirectiveDefinition(directive);
-                if (directiveDefinition.Locations.Any())
+                if (directiveDefinition.Locations.Count > 0)
                 {
                     typeDefinitions.Add(directiveDefinition);
                 }
