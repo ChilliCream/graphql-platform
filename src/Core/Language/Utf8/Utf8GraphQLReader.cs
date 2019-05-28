@@ -480,7 +480,7 @@ namespace HotChocolate.Language
         private void ReadCommentToken()
         {
             var start = Position;
-            var trimStart = Position;
+            var trimStart = Position + 1;
             bool trim = true;
 
             while (++Position < GraphQLData.Length
