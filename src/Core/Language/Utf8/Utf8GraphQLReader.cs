@@ -235,7 +235,7 @@ namespace HotChocolate.Language
             }
 
             throw new SyntaxException(this,
-                "Unexpected character.");
+                $"Unexpected character `{(char)code}` ({code}).");
         }
 
         /// <summary>

@@ -1,6 +1,8 @@
-﻿using System;
+﻿using System.Net.Http.Headers;
+using System;
 using System.Text;
 using Xunit;
+using Snapshooter.Xunit;
 
 namespace HotChocolate.Language
 {
@@ -180,6 +182,29 @@ namespace HotChocolate.Language
             // assert
             Assert.Equal(3, span.Length);
             Assert.Equal("abc", reader.GetString(span));
+        }
+
+        [Fact]
+        private void UnexpectedSyntaxException()
+        {
+            // arrange
+            byte[] source = new byte[] { 187 };
+            var reader = new Utf8GraphQLReader(source);
+            bool raised = false;
+
+            // act
+            try
+            {
+                reader.Read();
+            }
+            catch (SyntaxException ex)
+            {
+                raised = true;
+                ex.Message.MatchSnapshot();
+            }
+
+            // assert
+            Assert.True(raised);
         }
     }
 }
