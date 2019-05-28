@@ -1,5 +1,8 @@
-﻿using System.Text;
+﻿using System.Net.Http.Headers;
+using System;
+using System.Text;
 using Xunit;
+using Snapshooter.Xunit;
 
 namespace HotChocolate.Language
 {
@@ -144,6 +147,125 @@ namespace HotChocolate.Language
             Assert.Equal(1, reader.Column);
             Assert.Equal(0, reader.Start);
             Assert.Equal(19, reader.End);
+        }
+
+        [Fact]
+        private void UnescapeEmpty()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes("\"\"");
+            var reader = new Utf8GraphQLReader(source);
+            reader.Read();
+
+            // act
+            var buffer = new byte[1];
+            var span = buffer.AsSpan();
+            reader.UnescapeValue(ref span);
+
+            // assert
+            Assert.Equal(0, span.Length);
+        }
+
+        [Fact]
+        private void UnescapeString()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes("\"abc\"");
+            var reader = new Utf8GraphQLReader(source);
+            reader.Read();
+
+            // act
+            var buffer = new byte[3 * 4];
+            var span = buffer.AsSpan();
+            reader.UnescapeValue(ref span);
+
+            // assert
+            Assert.Equal(3, span.Length);
+            Assert.Equal("abc", reader.GetString(span));
+        }
+
+        [Fact]
+        private void UnexpectedSyntaxException()
+        {
+            // arrange
+            byte[] source = new byte[] { 187 };
+            var reader = new Utf8GraphQLReader(source);
+            bool raised = false;
+
+            // act
+            try
+            {
+                reader.Read();
+            }
+            catch (SyntaxException ex)
+            {
+                raised = true;
+                ex.Message.MatchSnapshot();
+            }
+
+            // assert
+            Assert.True(raised);
+        }
+
+        [Fact]
+        private void NoDigitAfterZeroException()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes("01");
+            var reader = new Utf8GraphQLReader(source);
+            bool raised = false;
+
+            // act
+            try
+            {
+                reader.Read();
+            }
+            catch (SyntaxException ex)
+            {
+                raised = true;
+                ex.Message.MatchSnapshot();
+            }
+
+            // assert
+            Assert.True(raised);
+        }
+
+        [Fact]
+        private void InvalidDigit()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes("123.F");
+            var reader = new Utf8GraphQLReader(source);
+            bool raised = false;
+
+            // act
+            try
+            {
+                reader.Read();
+            }
+            catch (SyntaxException ex)
+            {
+                raised = true;
+                ex.Message.MatchSnapshot();
+            }
+
+            // assert
+            Assert.True(raised);
+        }
+
+        [Fact]
+        private void Zero()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes("0 ");
+            var reader = new Utf8GraphQLReader(source);
+
+            // act
+            reader.Read();
+
+            // assert
+            Assert.Equal("0", reader.GetScalarValue());
+            Assert.Equal(TokenKind.Integer, reader.Kind);
         }
     }
 }
