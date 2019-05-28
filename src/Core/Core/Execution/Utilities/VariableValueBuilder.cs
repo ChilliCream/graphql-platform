@@ -115,7 +115,7 @@ namespace HotChocolate.Execution
             }
 
             InputTypeNonNullCheck.CheckForNullValueViolation(
-                variable.Type, variable.Value,
+                variable.Type, variable.Value, _converter,
                 message => ErrorBuilder.New()
                     .SetMessage(message)
                     .AddLocation(variableDefinition)
@@ -186,7 +186,7 @@ namespace HotChocolate.Execution
             return value;
         }
 
-        private void CheckForInvalidValueType(
+        private static void CheckForInvalidValueType(
             VariableDefinitionNode variableDefinition,
             Variable variable)
         {
@@ -203,7 +203,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private void CheckForInvalidValueType(
+        private static void CheckForInvalidValueType(
             VariableDefinitionNode variableDefinition,
             Variable variable,
             IValueNode value)

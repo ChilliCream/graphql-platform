@@ -28,10 +28,7 @@ namespace HotChocolate.Language
                 throw new ArgumentNullException(nameof(node));
             }
 
-            if (node != null)
-            {
-                VisitInternal(node, writer);
-            }
+            VisitInternal(node, writer);
         }
 
         private void VisitInternal(

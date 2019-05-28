@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "foo": {
       "nullable_prop": null
@@ -14,5 +14,6 @@
       "Exception": null,
       "Extensions": {}
     }
-  ]
+  ],
+  "ContextData": {}
 }

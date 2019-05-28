@@ -155,7 +155,6 @@ namespace HotChocolate.Execution
 
             for (int i = components.Count - 1; i >= 0; i--)
             {
-
                 DirectiveDelegate component = components[i].Invoke(next);
 
                 next = context =>

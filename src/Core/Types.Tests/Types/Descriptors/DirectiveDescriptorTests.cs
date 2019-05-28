@@ -13,9 +13,10 @@ namespace HotChocolate.Types
         public void DeclareName()
         {
             // arrange
+            var descriptor = DirectiveTypeDescriptor.New(Context);
+
             // act
-            var descriptor =
-                DirectiveTypeDescriptor.New(Context, "Foo");
+            descriptor.Name("Foo");
 
             // assert
             Assert.Equal("Foo", descriptor.CreateDefinition().Name);
@@ -55,8 +56,7 @@ namespace HotChocolate.Types
         public void DeclareNullName()
         {
             // arrange
-            var descriptor =
-                DirectiveTypeDescriptor.New(Context, "Foo");
+            var descriptor = DirectiveTypeDescriptor.New(Context);
 
             // act
             Action a = () => descriptor.Name(null);
@@ -69,8 +69,7 @@ namespace HotChocolate.Types
         public void DeclareEmptyName()
         {
             // arrange
-            var descriptor =
-                DirectiveTypeDescriptor.New(Context, "Foo");
+            var descriptor = DirectiveTypeDescriptor.New(Context);
 
             // act
             Action a = () => descriptor.Name(string.Empty);
@@ -83,8 +82,7 @@ namespace HotChocolate.Types
         public void DeclareDescription()
         {
             // arrange
-            var descriptor =
-                DirectiveTypeDescriptor.New(Context, "Foo");
+            var descriptor = DirectiveTypeDescriptor.New(Context);
 
             // act
             descriptor.Description("Desc");
@@ -97,8 +95,7 @@ namespace HotChocolate.Types
         public void DeclareArgument()
         {
             // arrange
-            var descriptor =
-                DirectiveTypeDescriptor.New(Context, "Foo");
+            var descriptor = DirectiveTypeDescriptor.New(Context);
 
             // act
             descriptor.Argument("arg").Type<BooleanType>(); ;
@@ -199,8 +196,7 @@ namespace HotChocolate.Types
         public void DeclareLocation()
         {
             // arrange
-            var descriptor =
-                DirectiveTypeDescriptor.New(Context, "Foo");
+            var descriptor = DirectiveTypeDescriptor.New(Context);
 
             // act
             descriptor.Location(DirectiveLocation.Enum);

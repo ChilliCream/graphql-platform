@@ -123,18 +123,16 @@ namespace HotChocolate.Validation
             ArgumentNode argument)
         {
             if (argumentFields.TryGetField(argument.Name.Value,
-                out IInputField argumentField))
+                out IInputField argumentField)
+                && !(argument.Value is VariableNode)
+                && !IsInstanceOfType(argumentField.Type, argument.Value))
             {
-                if (!(argument.Value is VariableNode)
-                    && !IsInstanceOfType(argumentField.Type, argument.Value))
-                {
-                    Errors.Add(new ValidationError(
-                        "The specified argument value " +
-                        "does not match the argument type.\n" +
-                        $"Argument: `{argument.Name.Value}`\n" +
-                        $"Value: `{argument.Value}`",
-                        argument));
-                }
+                Errors.Add(new ValidationError(
+                    "The specified argument value " +
+                    "does not match the argument type.\n" +
+                    $"Argument: `{argument.Name.Value}`\n" +
+                    $"Value: `{argument.Value}`",
+                    argument));
             }
         }
 
@@ -158,7 +156,9 @@ namespace HotChocolate.Validation
             throw new NotSupportedException();
         }
 
-        private bool IsInstanceOfType(IInputType inputType, IValueNode value)
+        private static bool IsInstanceOfType(
+            IInputType inputType,
+            IValueNode value)
         {
             IInputType internalType = inputType;
             if (inputType.IsNonNullType())

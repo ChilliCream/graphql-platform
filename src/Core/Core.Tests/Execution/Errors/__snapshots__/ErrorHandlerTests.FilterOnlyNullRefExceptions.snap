@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "foo": null,
     "bar": null
@@ -23,7 +23,7 @@
         "Data": null,
         "InnerException": null,
         "HelpURL": null,
-        "StackTraceString": "   at HotChocolate.Execution.Errors.ErrorHandlerTests.<>c.<FilterOnlyNullRefExceptions>b__1_3(IResolverContext ctx) in /Users/michael/local/hotchocolate/src/Core/Core.Tests/Execution/Errors/ErrorHandlerTests.cs:line 52\n   at HotChocolate.Configuration.ResolverRegistry.<>c__DisplayClass21_0.<<CreateResolverMiddleware>b__0>d.MoveNext()\n--- End of stack trace from previous location where exception was thrown ---\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteFieldMiddlewareAsync(ResolverTask resolverTask)\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteMiddlewareAsync(ResolverTask resolverTask, IErrorHandler errorHandler)",
+        "StackTraceString": "   at HotChocolate.Execution.Errors.ErrorHandlerTests.<>c.<FilterOnlyNullRefExceptions>b__1_3(IResolverContext ctx) in /Users/michael/Local/hotchocolate/src/Core/Core.Tests/Execution/Errors/ErrorHandlerTests.cs:line 52\n   at HotChocolate.Types.FieldMiddlewareCompiler.<>c__DisplayClass3_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in /Users/michael/Local/hotchocolate/src/Core/Types/Types/Helpers/FieldMiddlewareCompiler.cs:line 74\n--- End of stack trace from previous location where exception was thrown ---\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteMiddlewareAsync(ResolverContext resolverContext, IErrorHandler errorHandler) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/ExecutionStrategyBase.Resolver.cs:line 41",
         "RemoteStackTraceString": null,
         "RemoteStackIndex": 0,
         "ExceptionMethod": null,
@@ -51,7 +51,7 @@
         "Data": null,
         "InnerException": null,
         "HelpURL": null,
-        "StackTraceString": "   at HotChocolate.Execution.Errors.ErrorHandlerTests.<>c.<FilterOnlyNullRefExceptions>b__1_4(IResolverContext ctx) in /Users/michael/local/hotchocolate/src/Core/Core.Tests/Execution/Errors/ErrorHandlerTests.cs:line 59\n   at HotChocolate.Configuration.ResolverRegistry.<>c__DisplayClass21_0.<<CreateResolverMiddleware>b__0>d.MoveNext()\n--- End of stack trace from previous location where exception was thrown ---\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteFieldMiddlewareAsync(ResolverTask resolverTask)\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteMiddlewareAsync(ResolverTask resolverTask, IErrorHandler errorHandler)",
+        "StackTraceString": "   at HotChocolate.Execution.Errors.ErrorHandlerTests.<>c.<FilterOnlyNullRefExceptions>b__1_4(IResolverContext ctx) in /Users/michael/Local/hotchocolate/src/Core/Core.Tests/Execution/Errors/ErrorHandlerTests.cs:line 59\n   at HotChocolate.Types.FieldMiddlewareCompiler.<>c__DisplayClass3_0.<<CreateResolverMiddleware>b__0>d.MoveNext() in /Users/michael/Local/hotchocolate/src/Core/Types/Types/Helpers/FieldMiddlewareCompiler.cs:line 74\n--- End of stack trace from previous location where exception was thrown ---\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteMiddlewareAsync(ResolverContext resolverContext, IErrorHandler errorHandler) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/ExecutionStrategyBase.Resolver.cs:line 41",
         "RemoteStackTraceString": null,
         "RemoteStackIndex": 0,
         "ExceptionMethod": null,
@@ -63,5 +63,6 @@
         "code": "NullRef"
       }
     }
-  ]
+  ],
+  "ContextData": {}
 }

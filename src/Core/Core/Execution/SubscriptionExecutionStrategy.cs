@@ -72,7 +72,9 @@ namespace HotChocolate.Execution
             {
                 FieldSelection selection = selections.Single();
                 IReadOnlyDictionary<NameString, ArgumentValue> argumentValues =
-                    selection.CoerceArguments(executionContext.Variables);
+                    selection.CoerceArguments(
+                        executionContext.Variables,
+                        executionContext.Converter);
                 var arguments = new List<ArgumentNode>();
 
                 foreach (KeyValuePair<NameString, ArgumentValue> argValue in
@@ -90,8 +92,8 @@ namespace HotChocolate.Execution
             }
             else
             {
-                // TODO : Error message
-                throw new QueryException();
+                throw new QueryException(
+                    CoreResources.Subscriptions_SingleRootField);
             }
         }
 
@@ -104,8 +106,11 @@ namespace HotChocolate.Execution
 
             if (eventRegistry == null)
             {
-                throw new QueryException(new QueryError(CoreResources
-                    .SubscriptionExecutionStrategy_NoEventRegistry));
+                throw new QueryException(
+                    ErrorBuilder.New()
+                        .SetMessage(CoreResources
+                            .SubscriptionExecutionStrategy_NoEventRegistry)
+                        .Build());
             }
 
             return eventRegistry.SubscribeAsync(@event);

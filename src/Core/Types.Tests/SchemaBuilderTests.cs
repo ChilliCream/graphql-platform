@@ -460,7 +460,7 @@ namespace HotChocolate
             Assert.Throws<ArgumentNullException>(action);
         }
 
-        [Fact(Skip = "Fix THIS")]
+        [Fact]
         public void AddType_TypeIsResolverTypeByType_QueryContainsBazField()
         {
             // arrange
@@ -471,8 +471,7 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            Assert.True(queryType.Fields.ContainsField("baz"));
+            schema.MakeExecutable().Execute("{ foo }").MatchSnapshot();
         }
 
         [Fact]
@@ -807,6 +806,67 @@ namespace HotChocolate
             Assert.Equal(resolverDelegate, type.Fields["foo"].Resolver);
         }
 
+        [Fact]
+        public void BindClrType_IntToString_IntFieldIsStringField()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithIntField>()
+                .BindClrType<int, StringType>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void BindClrType_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.BindClrType<int, StringType>(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void BindClrType_ClrTypeIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilder.New().BindClrType(null, typeof(StringType));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void BindClrType_SchemaTypeIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilder.New().BindClrType(typeof(string), null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void BindClrType_SchemaTypeIsNotTso_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilder.New().BindClrType(typeof(string), typeof(string));
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
 
         public class QueryType
             : ObjectType
@@ -869,7 +929,7 @@ namespace HotChocolate
         [GraphQLResolverOf(typeof(QueryType))]
         public class QueryResolverOnType
         {
-            public string Baz { get; }
+            public string GetFoo([Parent]object o) => "QueryResolverOnType";
         }
 
         [GraphQLResolverOf("Query")]
@@ -890,5 +950,10 @@ namespace HotChocolate
         public class MyEnumType
             : EnumType
         { }
+
+        public class QueryWithIntField
+        {
+            public int Foo { get; set; }
+        }
     }
 }

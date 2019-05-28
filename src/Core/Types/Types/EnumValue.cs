@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
@@ -21,9 +22,8 @@ namespace HotChocolate.Types
 
             if (enumValueDefinition.Value == null)
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The inner value of enum value cannot be null or empty.",
+                    TypeResources.EnumValue_ValueIsNull,
                     nameof(enumValueDefinition));
             }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
 using Moq;
 using Snapshooter.Xunit;
 using Xunit;
@@ -13,17 +14,6 @@ namespace HotChocolate.Types
     public class ObjectTypeTests
         : TypeTestBase
     {
-        // TODO : ADD TESTS
-
-        // the following should not fail
-        /*
-            The argument type should be infered
-         .AddQueryType(new ObjectType<Foo>(t => t
-                    .Field(f => f.GetName(default))
-                    .Argument("a", a => a
-                        .Directive("dummy_arg", new ArgumentNode("a", "a")))))
-         */
-
         [Fact]
         public void ObjectType_DynamicName()
         {
@@ -1197,6 +1187,80 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Argument_Type_IsInfered_From_Parameter()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithIntArg>(t => t
+                    .Field(f => f.GetBar(1))
+                    .Argument("foo", a => a.DefaultValue(default)))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Argument_Type_Cannot_Be_Inferred()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddQueryType<QueryWithIntArg>(t => t
+                    .Field(f => f.GetBar(1))
+                    .Argument("bar", a => a.DefaultValue(default)))
+                .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(action)
+                .Errors.First().Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void CreateObjectTypeWithXmlDocumentation()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithDocumentation>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void CreateObjectTypeWithXmlDocumentation_IgnoreXmlDocs()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithDocumentation>()
+                .ModifyOptions(options => options.UseXmlDocumentation = false)
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Field_Is_Missing_Type_Throws_SchemaException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddObjectType(t => t
+                    .Name("abc")
+                    .Field("def")
+                    .Resolver((object)"ghi"))
+                .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(action)
+                .Errors.MatchSnapshot();
+        }
 
         public class GenericFoo<T>
         {

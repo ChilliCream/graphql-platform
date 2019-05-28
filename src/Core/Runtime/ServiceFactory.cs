@@ -49,7 +49,7 @@ namespace HotChocolate.Runtime
         object IServiceProvider.GetService(Type serviceType) =>
             CreateInstance(serviceType);
 
-        private FactoryInfo CreateFactoryInfo(
+        private static FactoryInfo CreateFactoryInfo(
             IServiceProvider services,
             Type type)
         {
@@ -87,7 +87,7 @@ namespace HotChocolate.Runtime
                 services, type, constructors);
         }
 
-        private FactoryInfo GetBestMatchingConstructor(
+        private static FactoryInfo GetBestMatchingConstructor(
             IServiceProvider services,
             Type type,
             ConstructorInfo[] constructors)
@@ -105,7 +105,7 @@ namespace HotChocolate.Runtime
             return null;
         }
 
-        private bool TryResolveParameters(
+        private static bool TryResolveParameters(
             IServiceProvider services,
             FactoryInfo factoryInfo)
         {

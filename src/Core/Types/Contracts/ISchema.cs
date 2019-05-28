@@ -14,7 +14,7 @@ namespace HotChocolate
         : IHasDirectives
         , IHasName
         , IHasDescription
-        , ITypeSystem
+        , ITypeSystemMember
     {
         /// <summary>
         /// Gets the global schema services.

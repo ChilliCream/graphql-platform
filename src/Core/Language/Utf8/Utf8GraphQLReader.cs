@@ -4,6 +4,8 @@ using System.Buffers;
 using System;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Globalization;
+using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
@@ -123,7 +125,7 @@ namespace HotChocolate.Language
             fixed (byte* bytePtr = unescapedValue)
             {
                 return StringHelper.UTF8Encoding
-                    .GetString(bytePtr, _value.Length);
+                    .GetString(bytePtr, unescapedValue.Length);
             }
         }
 
@@ -166,6 +168,11 @@ namespace HotChocolate.Language
 
         public bool Read()
         {
+            if (Position == 0)
+            {
+                SkipBoml();
+            }
+
             SkipWhitespaces();
             UpdateColumn();
 
@@ -344,17 +351,20 @@ namespace HotChocolate.Language
                     }
                     else
                     {
-                        // TODO : exception
                         Position--;
-                        throw new SyntaxException((LexerState)null,
-                            "Expected a spread token.");
+                        throw new SyntaxException(this,
+                            string.Format(CultureInfo.InvariantCulture,
+                                LangResources.Reader_InvalidToken,
+                                TokenKind.Spread));
                     }
                     break;
 
                 default:
                     Position--;
-                    throw new SyntaxException((LexerState)null,
-                        "Unexpected punctuator character.");
+                    throw new SyntaxException(this,
+                        string.Format(CultureInfo.InvariantCulture,
+                            LangResources.Reader_UnexpectedPunctuatorToken,
+                            code));
             }
         }
 
@@ -515,7 +525,6 @@ namespace HotChocolate.Language
         private void ReadStringValueToken()
         {
             var start = Position;
-            var value = new StringBuilder();
 
             ref readonly byte code = ref GraphQLData[++Position];
 
@@ -664,6 +673,22 @@ namespace HotChocolate.Language
                 }
 
                 code = ref GraphQLData[Position];
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void SkipBoml()
+        {
+            ref readonly byte code = ref GraphQLData[Position];
+
+            if (code == 239)
+            {
+                ref readonly byte second = ref GraphQLData[Position + 1];
+                ref readonly byte third = ref GraphQLData[Position + 2];
+                if (second == 187 && third == 191)
+                {
+                    Position += 3;
+                }
             }
         }
 

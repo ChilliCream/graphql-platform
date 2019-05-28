@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
             return ExecuteMutationAsync(executionContext, cancellationToken);
         }
 
-        private async Task<IExecutionResult> ExecuteMutationAsync(
+        private static async Task<IExecutionResult> ExecuteMutationAsync(
             IExecutionContext executionContext,
             CancellationToken cancellationToken)
         {
@@ -56,7 +56,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private async Task ExecuteResolverBatchSeriallyAsync(
+        private static async Task ExecuteResolverBatchSeriallyAsync(
            IExecutionContext executionContext,
            IEnumerable<ResolverContext> batch,
            BatchOperationHandler batchOperationHandler,
@@ -94,7 +94,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private async Task ExecuteResolverSeriallyAsync(
+        private static async Task ExecuteResolverSeriallyAsync(
             ResolverContext resolverContext,
             Action<ResolverContext> enqueueNext,
             BatchOperationHandler batchOperationHandler,
@@ -117,8 +117,7 @@ namespace HotChocolate.Execution
             await resolverContext.Task.ConfigureAwait(false);
 
             // serialize and integrate result into final query result
-            var completionContext = new CompleteValueContext(enqueueNext);
-            completionContext.CompleteValue(resolverContext);
+            ValueCompletion.CompleteValue(enqueueNext, resolverContext);
         }
     }
 }

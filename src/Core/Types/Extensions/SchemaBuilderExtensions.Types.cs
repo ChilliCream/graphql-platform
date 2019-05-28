@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate
@@ -356,14 +357,16 @@ namespace HotChocolate
                 && directiveType.GetGenericTypeDefinition() ==
                 typeof(DirectiveType<>)))
             {
-                // TODO : resources
-                throw new ArgumentException("df", nameof(directiveType));
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilderExtensions_DirectiveTypeIsBaseType,
+                    nameof(directiveType));
             }
 
             if (!typeof(DirectiveType).IsAssignableFrom(directiveType))
             {
-                // TODO : resources
-                throw new ArgumentException("df", nameof(directiveType));
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilderExtensions_MustBeDirectiveType,
+                    nameof(directiveType));
             }
 
             return builder.AddType(directiveType);
@@ -391,6 +394,18 @@ namespace HotChocolate
             }
 
             return builder.SetSchema(typeof(TSchema));
+        }
+
+        public static ISchemaBuilder BindClrType<TClrType, TSchemaType>(
+            this ISchemaBuilder builder)
+            where TSchemaType : INamedType
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.BindClrType(typeof(TClrType), typeof(TSchemaType));
         }
     }
 }

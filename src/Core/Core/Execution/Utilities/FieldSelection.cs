@@ -5,6 +5,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using System;
 using System.Collections.Immutable;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -14,7 +15,7 @@ namespace HotChocolate.Execution
         private static IReadOnlyDictionary<NameString, ArgumentValue> _empty =
             ImmutableDictionary<NameString, ArgumentValue>.Empty;
         private readonly IReadOnlyDictionary<NameString, ArgumentValue> _args;
-        private readonly IReadOnlyDictionary<NameString, VariableValue> _varArgs;
+        private readonly IReadOnlyDictionary<NameString, VariableValue> _vars;
         private readonly IReadOnlyList<FieldVisibility> _visibility;
         private readonly Path _path;
         private readonly bool _hasArgumentErrors;
@@ -22,7 +23,7 @@ namespace HotChocolate.Execution
         internal FieldSelection(FieldInfo fieldInfo)
         {
             _args = fieldInfo.Arguments ?? _empty;
-            _varArgs = fieldInfo.VarArguments;
+            _vars = fieldInfo.VarArguments;
             _visibility = fieldInfo.Visibilities;
             _path = fieldInfo.Path;
             _hasArgumentErrors =
@@ -54,23 +55,22 @@ namespace HotChocolate.Execution
         public FieldDelegate Middleware { get; }
 
         public IReadOnlyDictionary<NameString, ArgumentValue> CoerceArguments(
-            IVariableCollection variables)
+            IVariableCollection variables,
+            ITypeConversion converter)
         {
             if (_hasArgumentErrors)
             {
-                Path path = CreatePath();
-                throw new QueryException(
-                    _args.Values.Select(t => t.Error.WithPath(path)));
+                throw new QueryException(_args.Values.Select(t => t.Error));
             }
 
-            if (_varArgs == null)
+            if (_vars == null)
             {
                 return _args;
             }
 
             var args = _args.ToDictionary(t => t.Key, t => t.Value);
 
-            foreach (KeyValuePair<NameString, VariableValue> var in _varArgs)
+            foreach (KeyValuePair<NameString, VariableValue> var in _vars)
             {
                 if (!variables.TryGetVariable(
                     var.Value.VariableName,
@@ -83,9 +83,10 @@ namespace HotChocolate.Execution
                     var.Key,
                     var.Value.Type,
                     value,
+                    converter,
                     message => ErrorBuilder.New()
                         .SetMessage(message)
-                        .SetPath(CreatePath())
+                        .SetPath(_path.AppendOrCreate(ResponseName))
                         .AddLocation(Selection)
                         .SetExtension("argument", var.Key)
                         .Build());
@@ -120,11 +121,6 @@ namespace HotChocolate.Execution
 
             return true;
         }
-
-        private Path CreatePath() =>
-            _path == null
-                ? Path.New(ResponseName)
-                : _path.Append(ResponseName);
 
         private static FieldNode MergeField(FieldInfo fieldInfo)
         {

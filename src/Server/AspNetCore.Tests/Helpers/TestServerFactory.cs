@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using Microsoft.AspNetCore.Hosting;
@@ -20,6 +20,24 @@ namespace HotChocolate.AspNetCore
         }
 
         public TestServer Create(
+            ISchema schema,
+            QueryMiddlewareOptions options)
+        {
+            IWebHostBuilder builder = new WebHostBuilder()
+                .Configure(app => app.UseGraphQL(options))
+                .ConfigureServices(services =>
+                {
+                    services.AddScoped<TestService>();
+                    services.AddHttpContextAccessor();
+                    services.AddGraphQL(schema);
+                });
+
+            var server = new TestServer(builder);
+            _instances.Add(server);
+            return server;
+        }
+
+        public TestServer Create(
             Action<ISchemaConfiguration> configure,
             Action<IServiceCollection> configureServices,
             QueryMiddlewareOptions options)
@@ -30,6 +48,7 @@ namespace HotChocolate.AspNetCore
                 {
                     configureServices?.Invoke(services);
                     services.AddScoped<TestService>();
+                    services.AddHttpContextAccessor();
                     services.AddGraphQL(configure);
                 });
 

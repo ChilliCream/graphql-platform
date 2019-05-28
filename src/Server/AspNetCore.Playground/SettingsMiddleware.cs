@@ -65,15 +65,16 @@ namespace HotChocolate.AspNetCore.Playground
 #endif
         {
             string queryUrl = BuildUrl(context.Request, false, _queryPath);
-            string subscriptionUrl = BuildUrl(context.Request, true,
-                _subscriptionPath);
+            string subscriptionUrl = _options.EnableSubscription
+                ? $"\"{BuildUrl(context.Request, true, _subscriptionPath)}\""
+                : "null";
 
             context.Response.ContentType = "application/javascript";
 
             await context.Response.WriteAsync($@"
                 window.Settings = {{
                     url: ""{queryUrl}"",
-                    subscriptionUrl: ""{subscriptionUrl}"",
+                    subscriptionUrl: {subscriptionUrl},
                 }}
             ",
             context.GetCancellationToken())

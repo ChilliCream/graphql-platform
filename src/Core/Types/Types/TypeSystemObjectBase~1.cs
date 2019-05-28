@@ -3,6 +3,8 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
+using HotChocolate.Properties;
+using System.Globalization;
 
 namespace HotChocolate.Types
 {
@@ -28,9 +30,8 @@ namespace HotChocolate.Types
 
             if (_definition == null)
             {
-                // TODO : exception type
-                // TODO : resources
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(
+                    TypeResources.TypeSystemObjectBase_DefinitionIsNull);
             }
 
             RegisterConfigurationDependencies(context);
@@ -51,6 +52,19 @@ namespace HotChocolate.Types
         {
             ExecuteConfigurations(context, ConfigurationKind.Naming);
             OnCompleteName(context, _definition);
+
+            if (Name.IsEmpty)
+            {
+                context.ReportError(SchemaErrorBuilder.New()
+                    .SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        TypeResources.TypeSystemObjectBase_NameIsNull,
+                        GetType().FullName))
+                    .SetCode(TypeErrorCodes.NoName)
+                    .SetTypeSystemObject(this)
+                    .Build());
+            }
+
             base.CompleteName(context);
         }
 
@@ -58,15 +72,10 @@ namespace HotChocolate.Types
             ICompletionContext context,
             TDefinition definition)
         {
-            if (definition.Name.IsEmpty)
+            if (definition.Name.HasValue)
             {
-                // TODO : exception type
-                // TODO : resources
-                throw new InvalidOperationException(
-                    "The type is initialize bla bla ...");
+                Name = definition.Name;
             }
-
-            Name = definition.Name;
         }
 
         internal sealed override void CompleteType(ICompletionContext context)

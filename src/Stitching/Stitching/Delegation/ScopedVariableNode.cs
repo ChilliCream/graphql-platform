@@ -3,10 +3,24 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Stitching.Delegation
 {
-    internal sealed class ScopedVariableNode
+    public sealed class ScopedVariableNode
         : IValueNode<string>
         , IEquatable<ScopedVariableNode>
     {
+        public ScopedVariableNode(
+            string scope,
+            string name)
+            : this(new NameNode(scope), new NameNode(name))
+        {
+        }
+
+        public ScopedVariableNode(
+            NameNode scope,
+            NameNode name)
+            : this(null, scope, name)
+        {
+        }
+
         public ScopedVariableNode(
             Language.Location location,
             NameNode scope,

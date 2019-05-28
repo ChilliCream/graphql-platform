@@ -2,6 +2,7 @@ using System;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -19,7 +20,7 @@ namespace HotChocolate.Types.Descriptors
         protected abstract TypeDependencyKind DependencyKind { get; }
 
         protected void DependsOn<TType>(bool mustBeNamedOrCompleted)
-            where TType : ITypeSystem =>
+            where TType : ITypeSystemMember =>
             DependsOn(typeof(TType), mustBeNamedOrCompleted);
 
         protected void DependsOn(Type schemaType, bool mustBeNamedOrCompleted)
@@ -29,11 +30,11 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(schemaType));
             }
 
-            if (!typeof(ITypeSystem).IsAssignableFrom(schemaType))
+            if (!typeof(ITypeSystemMember).IsAssignableFrom(schemaType))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "Only type system objects are allowed.");
+                    TypeResources.DependencyDescriptorBase_OnlyTsoIsAllowed,
+                    nameof(schemaType));
             }
 
             TypeDependencyKind kind = mustBeNamedOrCompleted

@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Configuration;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -26,10 +27,8 @@ namespace HotChocolate.Types
         protected override InputObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            var descriptor =
-                InputObjectTypeDescriptor.New(
-                    DescriptorContext.Create(context.Services),
-                    GetType());
+            var descriptor = InputObjectTypeDescriptor.New(
+                context.DescriptorContext);
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
@@ -69,8 +68,9 @@ namespace HotChocolate.Types
             }
             else
             {
-                // TODO : resources
-                throw new ArgumentException("CANNOT MERGE");
+                throw new ArgumentException(
+                    TypeResources.InputObjectTypeExtension_CannotMerge,
+                    nameof(type));
             }
         }
     }

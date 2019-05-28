@@ -76,25 +76,23 @@ namespace HotChocolate.AspNetCore.Authorization
             : this(policy, null)
         { }
 
-        public AuthorizeDirective(IEnumerable<string> roles)
+        public AuthorizeDirective(IReadOnlyCollection<string> roles)
             : this(null, roles)
         { }
 
-        public AuthorizeDirective(string policy, IEnumerable<string> roles)
+        public AuthorizeDirective(
+            string policy,
+            IReadOnlyCollection<string> roles)
         {
-            ReadOnlyCollection<string> readOnlyRoles =
-                roles?.ToList().AsReadOnly();
-
             if (string.IsNullOrEmpty(policy)
-                && (readOnlyRoles == null || readOnlyRoles.Count > 0))
+                && (roles == null || roles.Count == 0))
             {
                 throw new ArgumentException(
                     "Either policy or roles has to be set.");
             }
 
             Policy = policy;
-            Roles = (IReadOnlyCollection<string>)readOnlyRoles 
-                ?? Array.Empty<string>();
+            Roles = (IReadOnlyCollection<string>)roles ?? Array.Empty<string>();
         }
 
         public AuthorizeDirective(

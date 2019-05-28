@@ -50,13 +50,13 @@ namespace HotChocolate.Types.Filters
         {
             var fields = new Dictionary<NameString, InputFieldDefinition>();
             var handledProperties = new HashSet<PropertyInfo>();
-            
+
             FieldDescriptorUtilities.AddExplicitFields(
                 Fields.SelectMany(x => x.CreateDefinitions()),
                 f => f.Property,
                 fields,
                 handledProperties);
-            
+
 
             OnCompleteFields(fields, handledProperties);
 
@@ -67,20 +67,20 @@ namespace HotChocolate.Types.Filters
             IDictionary<NameString, InputFieldDefinition> fields,
             ISet<PropertyInfo> handledProperties)
         {
-           /*
-            *  TODO: CLEANUP
-            *  Do we even need this?
-            * if (Definition.Fields.IsImplicitBinding())
-            {
-                FieldDescriptorUtilities.AddImplicitFields(
-                    this,
-                    p => InputFieldDescriptor
-                        .New(Context, p)
-                        .CreateDefinition(),
-                    fields,
-                    handledProperties);
-            }
-            */
+            /*
+             *  TODO: CLEANUP
+             *  Do we even need this?
+             * if (Definition.Fields.IsImplicitBinding())
+             {
+                 FieldDescriptorUtilities.AddImplicitFields(
+                     this,
+                     p => InputFieldDescriptor
+                         .New(Context, p)
+                         .CreateDefinition(),
+                     fields,
+                     handledProperties);
+             }
+             */
         }
 
         public IStringFilterFieldDescriptor Filter(
@@ -139,7 +139,7 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <summary>
-        /// TODO: 
+        /// TODO:
         /// The idea of the IEnumerable types is to use the existing filter types.
         /// </summary>
         /// <param name="propertyOrMethod"></param>
@@ -151,7 +151,7 @@ namespace HotChocolate.Types.Filters
             {
                 // TODO: This just feels really really really bad
                 var innerField = new StringFilterFieldsDescriptor(Context, p);
-                descriptor.Invoke(innerField); 
+                descriptor.Invoke(innerField);
                 var enumerableFilterType = new FilterInputType<T>(
                     x => x.Extend().OnBeforeCreate(
                         y =>
@@ -175,7 +175,7 @@ namespace HotChocolate.Types.Filters
         {
             if (propertyOrMethod.ExtractMember() is PropertyInfo p)
             {
-                 
+
                 var innerField = new ComparableFilterFieldsDescriptor(Context, p);
                 descriptor.Invoke(innerField);
                 var enumerableFilterType = new FilterInputType<T>(
@@ -186,7 +186,7 @@ namespace HotChocolate.Types.Filters
                             y.Fields.AddRange(innerField.CreateDefinitions());
                         }
                     )
-                ); 
+                );
                 var field = new EnumerableFilterFieldsDescriptor(enumerableFilterType, Context, p);
                 Fields.Add(field);
                 return field;
@@ -201,11 +201,11 @@ namespace HotChocolate.Types.Filters
         public IEnumerableFilterFieldDescriptor Filter<TFilter>(Expression<Func<T, IEnumerable<object>>> propertyOrMethod) where TFilter : IFilterInputType
         {
             if (propertyOrMethod.ExtractMember() is PropertyInfo p)
-            { 
-                Type listType = typeof(ListType<>).MakeGenericType(typeof(TFilter)); 
+            {
+                Type listType = typeof(ListType<>).MakeGenericType(typeof(TFilter));
                 var field = new EnumerableFilterFieldsDescriptor(new ClrTypeReference(listType, TypeContext.Input, true, true), Context, p);
                 Fields.Add(field);
-                return field; 
+                return field;
             }
 
             throw new ArgumentException(

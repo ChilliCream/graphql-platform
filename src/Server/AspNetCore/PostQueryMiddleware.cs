@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Newtonsoft.Json;
+using Microsoft.Extensions.DependencyInjection;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -43,18 +44,12 @@ namespace HotChocolate.AspNetCore
         {
             QueryRequestDto request = await ReadRequestAsync(context)
                 .ConfigureAwait(false);
-#if ASPNETCLASSIC
-            IServiceProvider serviceProvider = context.CreateRequestServices(
-                Executor.Schema.Services);
-#else
-            IServiceProvider serviceProvider = context.CreateRequestServices();
-#endif
+
             return QueryRequestBuilder.New()
                 .SetQuery(request.Query)
                 .SetOperation(request.OperationName)
                 .SetVariableValues(
-                    QueryMiddlewareUtilities.ToDictionary(request.Variables))
-                .SetServices(serviceProvider);
+                    QueryMiddlewareUtilities.ToDictionary(request.Variables));
         }
 
         private static async Task<QueryRequestDto> ReadRequestAsync(

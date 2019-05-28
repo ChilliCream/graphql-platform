@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,21 +22,39 @@ namespace HotChocolate.Stitching.Utilities
             };
 
         public Task<QueryResult> FetchAsync(
-            IReadOnlyQueryRequest request, HttpClient httpClient) =>
-            FetchAsync(CreateRemoteRequest(request), httpClient);
+            IReadOnlyQueryRequest request,
+            HttpClient httpClient,
+            IEnumerable<IHttpQueryRequestInterceptor> interceptors) =>
+            FetchAsync(CreateRemoteRequest(request), httpClient, interceptors);
 
         public async Task<QueryResult> FetchAsync(
             HttpQueryRequest request,
-            HttpClient httpClient)
+            HttpClient httpClient,
+            IEnumerable<IHttpQueryRequestInterceptor> interceptors)
         {
-            string result = await FetchStringAsync(request, httpClient)
-                .ConfigureAwait(false);
+            (string json, HttpResponseMessage message) result =
+                await FetchStringAsync(request, httpClient)
+                    .ConfigureAwait(false);
 
-            return HttpResponseDeserializer.Deserialize(
-                JsonConvert.DeserializeObject<JObject>(result, _jsonSettings));
+            QueryResult queryResult = HttpResponseDeserializer.Deserialize(
+                JsonConvert.DeserializeObject<JObject>(
+                    result.json, _jsonSettings));
+
+            if (interceptors != null)
+            {
+                foreach (IHttpQueryRequestInterceptor interceptor in
+                    interceptors)
+                {
+                    await interceptor.OnResponseReceivedAsync(
+                        request, result.message, queryResult)
+                        .ConfigureAwait(false);
+                }
+            }
+
+            return queryResult;
         }
 
-        public Task<string> FetchStringAsync(
+        public Task<(string, HttpResponseMessage)> FetchStringAsync(
             HttpQueryRequest request,
             HttpClient httpClient)
         {
@@ -52,9 +71,10 @@ namespace HotChocolate.Stitching.Utilities
             return FetchStringInternalAsync(request, httpClient);
         }
 
-        private async Task<string> FetchStringInternalAsync(
-            HttpQueryRequest request,
-            HttpClient httpClient)
+        private async Task<(string, HttpResponseMessage)>
+            FetchStringInternalAsync(
+                HttpQueryRequest request,
+                HttpClient httpClient)
         {
             var content = new StringContent(
                 SerializeRemoteRequest(request),
@@ -66,8 +86,10 @@ namespace HotChocolate.Stitching.Utilities
                     .ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
-            return await response.Content.ReadAsStringAsync()
+            string json = await response.Content.ReadAsStringAsync()
                 .ConfigureAwait(false);
+
+            return (json, response);
         }
 
         private HttpQueryRequest CreateRemoteRequest(

@@ -57,7 +57,7 @@ namespace HotChocolate.Validation
             }
         }
 
-        private Dictionary<string, ObjectFieldNode> CreateFieldMap(
+        private static Dictionary<string, ObjectFieldNode> CreateFieldMap(
             ObjectValueNode objectValue)
         {
             var fields = new Dictionary<string, ObjectFieldNode>();

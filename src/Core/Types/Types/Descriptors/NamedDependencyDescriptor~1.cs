@@ -19,11 +19,11 @@ namespace HotChocolate.Types.Descriptors
             TypeDependencyKind.Named;
 
         public INamedDependencyDescriptor DependsOn<TType>()
-            where TType : ITypeSystem =>
+            where TType : ITypeSystemMember =>
             DependsOn<TType>(false);
 
         public new INamedDependencyDescriptor DependsOn<TType>(bool mustBeNamed)
-            where TType : ITypeSystem
+            where TType : ITypeSystemMember
         {
             base.DependsOn<TType>(mustBeNamed);
             return this;

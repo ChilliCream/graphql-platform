@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types.Introspection
 {
-    // TODO : resources
     [Introspection]
     internal sealed class __Directive
         : ObjectType
@@ -13,13 +13,7 @@ namespace HotChocolate.Types.Introspection
         {
             descriptor.Name("__Directive");
 
-            descriptor.Description(
-                "A Directive provides a way to describe alternate runtime execution and " +
-                "type validation behavior in a GraphQL document.\n\n" +
-                "In some cases, you need to provide options to alter GraphQL's " +
-                "execution behavior in ways field arguments will not suffice, such as " +
-                "conditionally including or skipping a field. Directives provide this by " +
-                "describing additional information to the executor.");
+            descriptor.Description(TypeResources.Directive_Description);
 
             descriptor.Field("name")
                 .Type<NonNullType<StringType>>()
@@ -44,17 +38,17 @@ namespace HotChocolate.Types.Introspection
             descriptor.Field("onOperation")
                 .Type<NonNullType<BooleanType>>()
                 .Resolver(c => GetOnOperation(c))
-                .DeprecationReason("Use `locations`.");
+                .DeprecationReason(TypeResources.Directive_UseLocation);
 
             descriptor.Field("onFragment")
                 .Type<NonNullType<BooleanType>>()
                 .Resolver(c => GetOnFragment(c))
-                .DeprecationReason("Use `locations`.");
+                .DeprecationReason(TypeResources.Directive_UseLocation);
 
             descriptor.Field("onField")
                 .Type<NonNullType<BooleanType>>()
                 .Resolver(c => GetOnField(c))
-                .DeprecationReason("Use `locations`.");
+                .DeprecationReason(TypeResources.Directive_UseLocation);
         }
 
         private static bool GetOnOperation(IResolverContext context)

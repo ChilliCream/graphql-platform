@@ -1,19 +1,20 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
     internal class ExecutionStrategyResolver
         : IExecutionStrategyResolver
     {
-        private readonly Dictionary<OperationType, IExecutionStrategy> _strategies;
+        private readonly Dictionary<OperationType, IExecutionStrategy> _strats;
 
         public ExecutionStrategyResolver(
             IRequestTimeoutOptionsAccessor options)
         {
-            _strategies = new Dictionary<OperationType, IExecutionStrategy>()
+            _strats = new Dictionary<OperationType, IExecutionStrategy>()
             {
                 {
                     OperationType.Query,
@@ -32,13 +33,14 @@ namespace HotChocolate.Execution
 
         public IExecutionStrategy Resolve(OperationType operationType)
         {
-            if (_strategies.TryGetValue(operationType,
+            if (_strats.TryGetValue(operationType,
                 out IExecutionStrategy strategy))
             {
                 return strategy;
             }
 
-            throw new NotSupportedException("Operation not supported!");
+            throw new NotSupportedException(
+                CoreResources.ExecutionStrategyResolver_NotSupported);
         }
     }
 }

@@ -5,10 +5,10 @@ namespace HotChocolate.Types
     public interface INamedDependencyDescriptor
     {
         INamedDependencyDescriptor DependsOn<T>()
-            where T : ITypeSystem;
+            where T : ITypeSystemMember;
 
         INamedDependencyDescriptor DependsOn<T>(bool mustBeNamed)
-            where T : ITypeSystem;
+            where T : ITypeSystemMember;
 
         INamedDependencyDescriptor DependsOn(Type schemaType);
 

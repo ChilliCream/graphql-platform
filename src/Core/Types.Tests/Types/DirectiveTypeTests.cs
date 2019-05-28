@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
+using HotChocolate.Types.Descriptors;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -54,7 +57,7 @@ namespace HotChocolate.Types
         [Fact]
         public void NoName()
         {
-            // act            
+            // act
             Action a = () =>
                 CreateDirective(new DirectiveType(d => { }));
 
@@ -225,6 +228,246 @@ namespace HotChocolate.Types
                 });
         }
 
+        [Fact]
+        public void Ignore_DescriptorIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+               DirectiveTypeDescriptorExtensions
+                   .Ignore<CustomDirective2>(null, t => t.Argument2);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Ignore_ExpressionIsNull_ArgumentNullException()
+        {
+            // arrange
+            DirectiveTypeDescriptor<CustomDirective2> descriptor =
+                DirectiveTypeDescriptor.New<CustomDirective2>(
+                    DescriptorContext.Create());
+
+            // act
+            Action action = () =>
+                DirectiveTypeDescriptorExtensions
+                    .Ignore(descriptor, null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Ignore_Argument2_Property()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
+                    .Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Ignore(t => t.Argument2)))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Use_DelegateMiddleware()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
+                    .Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Use(next => context => Task.CompletedTask)))
+                .Create();
+
+            // assert
+            DirectiveType directive = schema.GetDirectiveType("foo");
+            Assert.Collection(directive.MiddlewareComponents,
+                t => Assert.NotNull(t));
+        }
+
+        [Fact]
+        public void Use_ClassMiddleware()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
+                    .Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Use<DirectiveMiddleware>()))
+                .Create();
+
+            // assert
+            DirectiveType directive = schema.GetDirectiveType("foo");
+            Assert.Collection(directive.MiddlewareComponents,
+                t => Assert.NotNull(t));
+        }
+
+        [Fact]
+        public void Use_ClassMiddleware_WithFactory()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
+                    .Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Use((sp, next) => new DirectiveMiddleware(next))))
+                .Create();
+
+            // assert
+            DirectiveType directive = schema.GetDirectiveType("foo");
+            Assert.Collection(directive.MiddlewareComponents,
+                t => Assert.NotNull(t));
+        }
+
+        [Fact]
+        public void Use_ClassMiddleware_WithFactoryNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddDirectiveType(new DirectiveType<CustomDirective2>(d => d
+                    .Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Use(null)))
+                .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(action);
+        }
+
+        [Fact]
+        public void Use2_DelegateMiddleware()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddDirectiveType(new DirectiveType(d => d
+                    .Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Use(next => context => Task.CompletedTask)))
+                .Create();
+
+            // assert
+            DirectiveType directive = schema.GetDirectiveType("foo");
+            Assert.Collection(directive.MiddlewareComponents,
+                t => Assert.NotNull(t));
+        }
+
+        [Fact]
+        public void Use2_ClassMiddleware()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddDirectiveType(new DirectiveType(d => d
+                    .Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Use<DirectiveMiddleware>()))
+                .Create();
+
+            // assert
+            DirectiveType directive = schema.GetDirectiveType("foo");
+            Assert.Collection(directive.MiddlewareComponents,
+                t => Assert.NotNull(t));
+        }
+
+        [Fact]
+        public void Use2_ClassMiddleware_WithFactory()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddDirectiveType(new DirectiveType(d => d
+                    .Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Use((sp, next) => new DirectiveMiddleware(next))))
+                .Create();
+
+            // assert
+            DirectiveType directive = schema.GetDirectiveType("foo");
+            Assert.Collection(directive.MiddlewareComponents,
+                t => Assert.NotNull(t));
+        }
+
+        [Fact]
+        public void Use2_ClassMiddleware_WithFactoryNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Directive("foo")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddDirectiveType(new DirectiveType(d => d
+                    .Name("foo")
+                    .Location(DirectiveLocation.Object)
+                    .Use(null)))
+                .Create();
+
+            // assert
+            Assert.Throws<SchemaException>(action);
+        }
+
         public class CustomDirectiveType
             : DirectiveType<CustomDirective>
         {
@@ -238,9 +481,28 @@ namespace HotChocolate.Types
             }
         }
 
+        public class DirectiveMiddleware
+        {
+            private FieldDelegate _next;
+
+            public DirectiveMiddleware(FieldDelegate next)
+            {
+                _next = next;
+            }
+
+            public Task InvokeAsync(IDirectiveContext context) =>
+                Task.CompletedTask;
+        }
+
         public class CustomDirective
         {
             public string Argument { get; set; }
+        }
+
+        public class CustomDirective2
+        {
+            public string Argument1 { get; set; }
+            public string Argument2 { get; set; }
         }
     }
 }

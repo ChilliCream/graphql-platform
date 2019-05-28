@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
@@ -141,7 +142,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public static ClrTypeReference FromSchemaType<T>()
-            where T : ITypeSystem
+            where T : ITypeSystemMember
         {
             return new ClrTypeReference(
                 typeof(T),
@@ -155,7 +156,7 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(schemaType));
             }
 
-            if (typeof(ITypeSystem).IsAssignableFrom(schemaType))
+            if (typeof(ITypeSystemMember).IsAssignableFrom(schemaType))
             {
 
                 return new ClrTypeReference(
@@ -163,9 +164,8 @@ namespace HotChocolate.Types.Descriptors
                     SchemaTypeReference.InferTypeContext(schemaType));
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only type system objects are allowed.");
+                TypeResources.ClrTypeReference_OnlyTsosAreAllowed);
         }
     }
 }

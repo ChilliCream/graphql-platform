@@ -7,11 +7,11 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal class InterfaceTypeDescriptor
+    public class InterfaceTypeDescriptor
         : DescriptorBase<InterfaceTypeDefinition>
         , IInterfaceTypeDescriptor
     {
-        public InterfaceTypeDescriptor(
+        protected InterfaceTypeDescriptor(
             IDescriptorContext context,
             Type clrType)
             : base(context)
@@ -28,19 +28,17 @@ namespace HotChocolate.Types.Descriptors
                 context.Naming.GetTypeDescription(clrType, TypeKind.Interface);
         }
 
-        public InterfaceTypeDescriptor(
-            IDescriptorContext context,
-            NameString name)
+        protected InterfaceTypeDescriptor(
+            IDescriptorContext context)
             : base(context)
         {
             Definition.ClrType = typeof(object);
-            Definition.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         protected override InterfaceTypeDefinition Definition { get; } =
             new InterfaceTypeDefinition();
 
-        protected List<InterfaceFieldDescriptor> Fields { get; } =
+        protected ICollection<InterfaceFieldDescriptor> Fields { get; } =
             new List<InterfaceFieldDescriptor>();
 
         protected override void OnCreateDefinition(
@@ -125,17 +123,23 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public static InterfaceTypeDescriptor New(
-            IDescriptorContext context,
-            Type clrType) =>
-            new InterfaceTypeDescriptor(context, clrType);
+            IDescriptorContext context) =>
+            new InterfaceTypeDescriptor(context);
 
         public static InterfaceTypeDescriptor New(
-            IDescriptorContext context,
-            NameString name) =>
-            new InterfaceTypeDescriptor(context, name);
+            IDescriptorContext context, Type clrType) =>
+            new InterfaceTypeDescriptor(context, clrType);
 
         public static InterfaceTypeDescriptor<T> New<T>(
             IDescriptorContext context) =>
             new InterfaceTypeDescriptor<T>(context);
+
+        public static InterfaceTypeDescriptor FromSchemaType(
+            IDescriptorContext context, Type schemaType)
+        {
+            var descriptor = New(context, schemaType);
+            descriptor.Definition.ClrType = typeof(object);
+            return descriptor;
+        }
     }
 }

@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Reflection;
 using HotChocolate.Language;
@@ -42,6 +43,12 @@ namespace HotChocolate.Types.Descriptors
                 member, MemberKind.ObjectField);
             Definition.Type = context.Inspector.GetOutputReturnType(member);
             Definition.ResolverType = resolverType;
+
+            if (member is MethodInfo m)
+            {
+                Parameters = m.GetParameters().ToDictionary(
+                    t => new NameString(t.Name));
+            }
         }
 
         protected override ObjectFieldDefinition Definition { get; } =

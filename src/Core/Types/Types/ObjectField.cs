@@ -99,13 +99,15 @@ namespace HotChocolate.Types
 
             Resolver = definition.Resolver;
 
-            if (Resolver == null)
+            if (!isIntrospectionField || Resolver == null)
             {
-                FieldResolver resolver = context.GetResolver(definition.Name);
-                if (resolver != null)
-                {
-                    Resolver = resolver.Resolver;
-                }
+                // gets resolvers that were provided via type extensions,
+                // explicit resolver results or are provided through the
+                // resolver compiler.
+                FieldResolver resolver =
+                    context.GetResolver(definition.Name);
+                Resolver = GetMostSpecificResolver(
+                    context.Type.Name, Resolver, resolver);
             }
 
             Middleware = FieldMiddlewareCompiler.Compile(
@@ -132,6 +134,34 @@ namespace HotChocolate.Types
                         .Build());
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets the most relevant overwrite of a resolver.
+        /// </summary>
+        private static FieldResolverDelegate GetMostSpecificResolver(
+            NameString typeName,
+            FieldResolverDelegate currentResolver,
+            FieldResolver externalCompiledResolver)
+        {
+            // if there is no external compiled resolver then we will pick
+            // the internal resolver delegate.
+            if (externalCompiledResolver == null)
+            {
+                return currentResolver;
+            }
+
+            // if the internal resolver is null or if the external compiled
+            // resolver represents an explicit overwrite of the type resolver
+            // then we will pick the external compiled resolver.
+            if (currentResolver == null
+                || externalCompiledResolver.TypeName.Equals(typeName))
+            {
+                return externalCompiledResolver.Resolver;
+            }
+
+            // in all other cases we will pick the internal resolver delegate.
+            return currentResolver;
         }
     }
 }

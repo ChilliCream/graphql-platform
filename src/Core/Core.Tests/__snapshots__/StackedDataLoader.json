@@ -5,20 +5,23 @@
       "b": "babbbcbdbe"
     },
     "Extensions": {},
-    "Errors": []
+    "Errors": [],
+    "ContextData": {}
   },
   {
     "Data": {
       "a": "aaabacadae"
     },
     "Extensions": {},
-    "Errors": []
+    "Errors": [],
+    "ContextData": {}
   },
   {
     "Data": {
       "c": "cacbcccdce"
     },
     "Extensions": {},
-    "Errors": []
+    "Errors": [],
+    "ContextData": {}
   }
 ]

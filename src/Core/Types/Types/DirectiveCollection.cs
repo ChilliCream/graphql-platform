@@ -1,8 +1,11 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using HotChocolate.Configuration;
+using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
@@ -48,31 +51,39 @@ namespace HotChocolate.Types
 
             foreach (DirectiveDefinition description in _definitions)
             {
-                CompleteDirective(context, description, processed);
+                if (TryCompleteDirective(
+                    context, description, processed,
+                    out Directive directive))
+                {
+                    _directives.Add(directive);
+                    ValidateArguments(context, directive);
+                }
             }
 
             _lookup = _directives.ToLookup(t => t.Name);
             _definitions = null;
         }
 
-        private void CompleteDirective(
+        private bool TryCompleteDirective(
             ICompletionContext context,
             DirectiveDefinition definition,
-            ISet<string> processed)
+            ISet<string> processed,
+            out Directive directive)
         {
             DirectiveType directiveType =
                 context.GetDirectiveType(definition.Reference);
+            directive = null;
 
             if (directiveType != null)
             {
                 if (!processed.Add(directiveType.Name)
                     && !directiveType.IsRepeatable)
                 {
-                    // TODO : resources
                     context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(
-                            $"The specified directive `@{directiveType.Name}` " +
-                            "is unique and cannot be added twice.")
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            TypeResources.DirectiveCollection_DirectiveIsUnique,
+                            directiveType.Name))
                         .SetCode(TypeErrorCodes.MissingType)
                         .SetTypeSystemObject(context.Type)
                         .AddSyntaxNode(definition.ParsedDirective)
@@ -80,20 +91,84 @@ namespace HotChocolate.Types
                 }
                 else if (directiveType.Locations.Contains(_location))
                 {
-                    _directives.Add(Directive.FromDescription(
-                        directiveType, definition, _source));
+                    directive = Directive.FromDescription(directiveType, definition, _source);
+                }
+                else
+                {
+                    context.ReportError(SchemaErrorBuilder.New()
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            TypeResources.DirectiveCollection_LocationNotAllowed,
+                            directiveType.Name,
+                            _location))
+                        .SetCode(TypeErrorCodes.MissingType)
+                        .SetTypeSystemObject(context.Type)
+                        .AddSyntaxNode(definition.ParsedDirective)
+                        .Build());
+                }
+            }
+
+            return directive != null;
+        }
+
+        private void ValidateArguments(ICompletionContext context, Directive directive)
+        {
+            Dictionary<string, ArgumentNode> arguments =
+                directive.ToNode().Arguments.ToDictionary(t => t.Name.Value);
+
+            foreach (ArgumentNode argument in arguments.Values)
+            {
+                if (directive.Type.Arguments.TryGetField(
+                    argument.Name.Value, out Argument arg))
+                {
+                    if (!arg.Type.IsInstanceOfType(argument.Value))
+                    {
+                        // TODO : resources
+                        context.ReportError(SchemaErrorBuilder.New()
+                            .SetMessage(string.Format(
+                                CultureInfo.InvariantCulture,
+                                "The argument `{0}` value type is wrong.",
+                                arg.Name))
+                            .SetCode(TypeErrorCodes.ArgumentValueTypeWrong)
+                            .SetTypeSystemObject(context.Type)
+                            .AddSyntaxNode(directive.ToNode())
+                            .Build());
+                    }
                 }
                 else
                 {
                     // TODO : resources
                     context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(
-                            $"The specified directive `@{directiveType.Name}` " +
-                            "is not allowed on the current location " +
-                            $"`{_location}`.")
-                        .SetCode(TypeErrorCodes.MissingType)
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            "The argument `{0}` does not exist on the " +
+                            "directive `{1}`.",
+                            argument.Name.Value,
+                            directive.Type.Name))
+                        .SetCode(TypeErrorCodes.InvalidArgument)
                         .SetTypeSystemObject(context.Type)
-                        .AddSyntaxNode(definition.ParsedDirective)
+                        .AddSyntaxNode(directive.ToNode())
+                        .Build());
+                }
+            }
+
+            foreach (Argument argument in directive.Type.Arguments
+                .Where(a => a.Type.IsNonNullType()))
+            {
+                if (!arguments.TryGetValue(argument.Name, out ArgumentNode arg)
+                    || arg.Value is NullValueNode)
+                {
+                    // TODO : resources
+                    context.ReportError(SchemaErrorBuilder.New()
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            "The argument `{0}` of directive `{1}` " +
+                            "mustn't be null.",
+                            argument.Name.Value,
+                            directive.Type.Name))
+                        .SetCode(TypeErrorCodes.NonNullArgument)
+                        .SetTypeSystemObject(context.Type)
+                        .AddSyntaxNode(directive.ToNode())
                         .Build());
                 }
             }

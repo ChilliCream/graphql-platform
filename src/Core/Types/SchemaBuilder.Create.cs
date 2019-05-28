@@ -1,3 +1,4 @@
+using System.Net;
 using System.Reflection;
 using System.Linq;
 using System;
@@ -10,6 +11,7 @@ using HotChocolate.Utilities;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Bindings;
 using HotChocolate.Types.Factories;
+using HotChocolate.Properties;
 
 namespace HotChocolate
 {
@@ -17,10 +19,54 @@ namespace HotChocolate
     {
         public Schema Create()
         {
-            IServiceProvider services = _services ?? new EmptyServiceProvider();
-            IBindingLookup bindingLookup =
-                _bindingCompiler.Compile(DescriptorContext.Create(services));
+            IServiceProvider services = _services
+                ?? new EmptyServiceProvider();
 
+            DescriptorContext descriptorContext =
+                DescriptorContext.Create(_options, services);
+
+            IBindingLookup bindingLookup =
+                 _bindingCompiler.Compile(descriptorContext);
+
+            IReadOnlyCollection<ITypeReference> types =
+                GetTypeReferences(services, bindingLookup);
+
+            var lazy = new LazySchema();
+
+            TypeInitializer initializer =
+                InitializeTypes(
+                    services,
+                    descriptorContext,
+                    bindingLookup,
+                    types,
+                    () => lazy.Schema);
+
+            SchemaTypesDefinition definition =
+                CreateSchemaDefinition(initializer);
+
+            if (definition.QueryType == null && _options.StrictValidation)
+            {
+                throw new SchemaException(
+                    SchemaErrorBuilder.New()
+                        .SetMessage(TypeResources.SchemaBuilder_NoQueryType)
+                        .Build());
+            }
+
+            Schema schema = initializer.Types.Values
+                .Select(t => t.Type)
+                .OfType<Schema>()
+                .First();
+            schema.CompleteSchema(definition);
+            lazy.Schema = schema;
+            return schema;
+        }
+
+        ISchema ISchemaBuilder.Create() => Create();
+
+        private IReadOnlyCollection<ITypeReference> GetTypeReferences(
+            IServiceProvider services,
+            IBindingLookup bindingLookup)
+        {
             var types = new List<ITypeReference>(_types);
 
             if (_documents.Count > 0)
@@ -37,34 +83,8 @@ namespace HotChocolate
                 types.Add(_schema);
             }
 
-            var lazy = new LazySchema();
-
-            TypeInitializer initializer =
-                InitializeTypes(services, bindingLookup, types,
-                    () => lazy.Schema);
-
-            SchemaTypesDefinition definition =
-                CreateSchemaDefinition(initializer);
-
-            if (definition.QueryType == null && _options.StrictValidation)
-            {
-                // TODO : Resources
-                throw new SchemaException(
-                    SchemaErrorBuilder.New()
-                        .SetMessage("No QUERY TYPE")
-                        .Build());
-            }
-
-            Schema schema = initializer.Types.Values
-                .Select(t => t.Type)
-                .OfType<Schema>()
-                .First();
-            schema.CompleteSchema(definition);
-            lazy.Schema = schema;
-            return schema;
+            return types;
         }
-
-        ISchema ISchemaBuilder.Create() => Create();
 
         private IEnumerable<ITypeReference> ParseDocuments(
             IServiceProvider services,
@@ -125,12 +145,13 @@ namespace HotChocolate
 
         private TypeInitializer InitializeTypes(
             IServiceProvider services,
+            IDescriptorContext descriptorContext,
             IBindingLookup bindingLookup,
             IEnumerable<ITypeReference> types,
             Func<ISchema> schemaResolver)
         {
             var initializer = new TypeInitializer(
-                services, types, _resolverTypes,
+                services, descriptorContext, types, _resolverTypes,
                 _contextData, _isOfType, IsQueryType);
 
             foreach (FieldMiddleware component in _globalComponents)
@@ -151,6 +172,12 @@ namespace HotChocolate
                     resolver.Field.TypeName,
                     resolver.Field.FieldName);
                 initializer.Resolvers[reference] = resolver;
+            }
+
+            foreach (KeyValuePair<ITypeReference, ITypeReference> binding in
+                _clrTypes)
+            {
+                initializer.ClrTypes[binding.Key] = binding.Value;
             }
 
             initializer.Initialize(schemaResolver);
@@ -251,9 +278,8 @@ namespace HotChocolate
                 }
                 else
                 {
-                    // TODO : query to constant
                     return type is ObjectType
-                        && type.Name.Equals("Query");
+                        && type.Name.Equals(WellKnownTypes.Query);
                 }
             }
 

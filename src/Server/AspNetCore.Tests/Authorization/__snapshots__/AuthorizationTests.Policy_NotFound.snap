@@ -10,7 +10,13 @@
           "line": 1,
           "column": 3
         }
-      ]
+      ],
+      "path": [
+        "age"
+      ],
+      "extensions": {
+        "code": "AUTH_POLICY_NOT_FOUND"
+      }
     }
   ]
 }

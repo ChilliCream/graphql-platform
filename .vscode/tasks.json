@@ -29,8 +29,8 @@
       }
     },
     {
-      "label": "build benchmarks",
-      "command": "dotnet build benchmarks /property:GenerateFullPaths=true",
+      "label": "build server",
+      "command": "dotnet build src/Server /property:GenerateFullPaths=true",
       "type": "shell",
       "presentation": {
         "reveal": "silent"

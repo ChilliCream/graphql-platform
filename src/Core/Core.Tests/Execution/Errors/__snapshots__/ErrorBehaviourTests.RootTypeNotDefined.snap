@@ -1,10 +1,15 @@
-{
+﻿{
   "Data": {},
   "Extensions": {},
   "Errors": [
     {
+      "Message": "The specified root type `Mutation` does not exist.",
+      "Code": null,
+      "Path": null,
+      "Locations": [],
       "Exception": null,
-      "message": "The specified root type `Mutation` does not exist."
+      "Extensions": {}
     }
-  ]
+  ],
+  "ContextData": {}
 }

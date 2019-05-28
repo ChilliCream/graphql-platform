@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Configuration;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -6,29 +7,30 @@ namespace HotChocolate.Types.Descriptors
         : IDescriptorContext
     {
         private DescriptorContext(
+            IReadOnlySchemaOptions options,
             INamingConventions naming,
             ITypeInspector inspector)
         {
-            if (naming == null)
-            {
-                throw new ArgumentNullException(nameof(naming));
-            }
-
-            if (inspector == null)
-            {
-                throw new ArgumentNullException(nameof(inspector));
-            }
-
+            Options = options;
             Naming = naming;
             Inspector = inspector;
         }
+
+        public IReadOnlySchemaOptions Options { get; }
 
         public INamingConventions Naming { get; }
 
         public ITypeInspector Inspector { get; }
 
-        public static DescriptorContext Create(IServiceProvider services)
+        public static DescriptorContext Create(
+            IReadOnlySchemaOptions options,
+            IServiceProvider services)
         {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
             if (services == null)
             {
                 throw new ArgumentNullException(nameof(services));
@@ -39,7 +41,12 @@ namespace HotChocolate.Types.Descriptors
                     typeof(INamingConventions));
             if (naming == null)
             {
-                naming = new DefaultNamingConventions();
+                naming = options.UseXmlDocumentation
+                    ? new DefaultNamingConventions(
+                        new XmlDocumentationProvider(
+                            new XmlDocumentationFileResolver()))
+                    : new DefaultNamingConventions(
+                        new NoopDocumentationProvider());
             }
 
             var inspector =
@@ -50,7 +57,15 @@ namespace HotChocolate.Types.Descriptors
                 inspector = new DefaultTypeInspector();
             }
 
-            return new DescriptorContext(naming, inspector);
+            return new DescriptorContext(options, naming, inspector);
+        }
+
+        public static DescriptorContext Create()
+        {
+            return new DescriptorContext(
+                new SchemaOptions(),
+                new DefaultNamingConventions(),
+                new DefaultTypeInspector());
         }
     }
 }

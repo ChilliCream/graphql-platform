@@ -199,6 +199,12 @@ namespace HotChocolate.Stitching.Client
                 }
             }
 
+            foreach (KeyValuePair<string, object> item in
+                mergedResult.ContextData)
+            {
+                result.ContextData[item.Key] = item.Value;
+            }
+
             return result;
         }
 
