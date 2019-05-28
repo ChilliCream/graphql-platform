@@ -106,10 +106,9 @@ namespace HotChocolate.Language
             }
             finally
             {
-                if (unescapedSpan != null)
+                if (unescapedArray != null)
                 {
                     unescapedSpan.Clear();
-
                     ArrayPool<byte>.Shared.Return(unescapedArray);
                 }
             }
