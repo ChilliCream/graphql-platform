@@ -144,6 +144,7 @@ namespace HotChocolate.Language
             ParserOptions options) =>
             new Utf8GraphQLParser(graphQLData, options).Parse();
 
+#if !NETSTANDARD1_2
         public static DocumentNode Parse(string sourceText) =>
             Parse(sourceText, ParserOptions.Default);
 
@@ -204,5 +205,6 @@ namespace HotChocolate.Language
                 }
             }
         }
+#endif
     }
 }

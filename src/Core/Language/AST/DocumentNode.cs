@@ -37,7 +37,12 @@ namespace HotChocolate.Language
             return new DocumentNode(Location, definitions);
         }
 
+#if NETSTANDARD1_2
+        public static DocumentNode Empty { get; } =
+            new DocumentNode(null, new IDefinitionNode[0]);
+#else
         public static DocumentNode Empty { get; } =
             new DocumentNode(null, Array.Empty<IDefinitionNode>());
+#endif
     }
 }

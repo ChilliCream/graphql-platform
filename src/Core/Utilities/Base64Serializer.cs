@@ -16,7 +16,7 @@ namespace HotChocolate.Utilities
         public static T Deserialize<T>(string s)
         {
             byte[] buffer = Convert.FromBase64String(s);
-            string json = Encoding.UTF8.GetString(buffer);
+            string json = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
             return JsonConvert.DeserializeObject<T>(json);
         }
     }

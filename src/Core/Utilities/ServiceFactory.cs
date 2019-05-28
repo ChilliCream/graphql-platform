@@ -23,7 +23,7 @@ namespace HotChocolate.Runtime
                 return service;
             }
 
-#if NETSTANDARD1_4
+#if NETSTANDARD1_4 || NETSTANDARD1_3 || NETSTANDARD1_2
             if (type.GetTypeInfo().IsInterface || type.GetTypeInfo().IsAbstract)
 #else
             if (type.IsInterface || type.IsAbstract)
@@ -53,7 +53,7 @@ namespace HotChocolate.Runtime
             IServiceProvider services,
             Type type)
         {
-#if NETSTANDARD1_4
+#if NETSTANDARD1_4 || NETSTANDARD1_3 || NETSTANDARD1_2
             ConstructorInfo[] constructors = type.GetTypeInfo()
                 .DeclaredConstructors
                 .Where(t => t.IsPublic && !t.IsAbstract)

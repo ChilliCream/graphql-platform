@@ -7,6 +7,11 @@ namespace HotChocolate.Language
     // Implements the parsing rules in the Fragments section.
     public ref partial struct Utf8GraphQLParser
     {
+#if NETSTANDARD1_2
+        private readonly static VariableDefinitionNode[] _emptyVarDefs =
+            new VariableDefinitionNode[0];
+#endif
+
         /// <summary>
         /// Parses a fragment spred or inline fragment within a selection set.
         /// <see cref="ParseFragmentSpread" /> and
@@ -82,6 +87,17 @@ namespace HotChocolate.Language
                 SelectionSetNode selectionSet = ParseSelectionSet();
                 Location location = CreateLocation(in start);
 
+#if NETSTANDARD1_2
+                return new FragmentDefinitionNode
+                (
+                    location,
+                    name,
+                    _emptyVarDefs,
+                    typeCondition,
+                    directives,
+                    selectionSet
+                );
+#else
                 return new FragmentDefinitionNode
                 (
                   location,
@@ -91,6 +107,7 @@ namespace HotChocolate.Language
                   directives,
                   selectionSet
                 );
+#endif
             }
         }
 

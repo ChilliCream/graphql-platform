@@ -143,7 +143,7 @@ namespace HotChocolate.Language
         /// </returns>
         public override string ToString()
         {
-#if NETSTANDARD1_4
+#if NETSTANDARD1_4 || NETSTANDARD1_3 || NETSTANDARD1_2
             return Value.ToString();
 #else
             return Value.ToString(CultureInfo.InvariantCulture);

@@ -61,6 +61,17 @@ namespace HotChocolate.Language
             SelectionSetNode selectionSet = ParseSelectionSet();
             Location location = CreateLocation(in start);
 
+#if NETSTANDARD1_2
+            return new OperationDefinitionNode
+            (
+                location,
+                null,
+                OperationType.Query,
+                _emptyVarDefs,
+                _emptyDirectives,
+                selectionSet
+            );
+#else
             return new OperationDefinitionNode
             (
                 location,
@@ -70,6 +81,7 @@ namespace HotChocolate.Language
                 Array.Empty<DirectiveNode>(),
                 selectionSet
             );
+#endif
         }
 
         /// <summary>

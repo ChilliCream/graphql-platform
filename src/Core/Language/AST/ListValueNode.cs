@@ -21,11 +21,8 @@ namespace HotChocolate.Language
                 throw new ArgumentNullException(nameof(item));
             }
 
-            var items = new List<IValueNode>(1);
-            items.Add(item);
-
             Location = location;
-            Items = items.AsReadOnly();
+            Items = new IValueNode[] { item };
         }
 
         public ListValueNode(

@@ -143,6 +143,7 @@ namespace HotChocolate.Language
             return new Source(File.ReadAllText(filePath));
         }
 
+#if !NETSTANDARD1_2
         /// <summary>
         /// Reads a GraphQL source from a file.
         /// </summary>
@@ -169,6 +170,7 @@ namespace HotChocolate.Language
 
             return new Source(File.ReadAllText(file.FullName));
         }
+#endif
 
         /// <summary>
         /// Reads a GraphQL source from a read stream.

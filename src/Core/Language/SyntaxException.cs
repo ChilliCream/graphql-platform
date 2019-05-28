@@ -3,7 +3,7 @@ using System;
 
 namespace HotChocolate.Language
 {
-#if netstandard1_4
+#if !NETSTANDARD1_2
     [Serializable]
 #endif
     public class SyntaxException
