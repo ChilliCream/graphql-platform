@@ -160,15 +160,17 @@ namespace HotChocolate.Language
 
         public void UnescapeValue(ref Span<byte> unescapedValue)
         {
-            if (unescapedValue.Length == 0)
+            if (_value.Length == 0)
             {
-                return;
+                unescapedValue = unescapedValue.Slice(0, 0);
             }
-
-            UnescapeValue(
-                in _value,
-                ref unescapedValue,
-                Kind == TokenKind.BlockString);
+            else
+            {
+                UnescapeValue(
+                    in _value,
+                    ref unescapedValue,
+                    Kind == TokenKind.BlockString);
+            }
         }
 
         public bool Read()
@@ -218,7 +220,8 @@ namespace HotChocolate.Language
 
             if (code == GraphQLConstants.Quote)
             {
-                if (GraphQLData[Position + 1] == GraphQLConstants.Quote
+                if (GraphQLData.Length > Position + 2
+                    && GraphQLData[Position + 1] == GraphQLConstants.Quote
                     && GraphQLData[Position + 2] == GraphQLConstants.Quote)
                 {
                     Position += 2;

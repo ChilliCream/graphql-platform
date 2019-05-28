@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using Xunit;
 
 namespace HotChocolate.Language
@@ -144,6 +145,41 @@ namespace HotChocolate.Language
             Assert.Equal(1, reader.Column);
             Assert.Equal(0, reader.Start);
             Assert.Equal(19, reader.End);
+        }
+
+        [Fact]
+        private void UnescapeEmpty()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes("\"\"");
+            var reader = new Utf8GraphQLReader(source);
+            reader.Read();
+
+            // act
+            var buffer = new byte[1];
+            var span = buffer.AsSpan();
+            reader.UnescapeValue(ref span);
+
+            // assert
+            Assert.Equal(0, span.Length);
+        }
+
+        [Fact]
+        private void UnescapeString()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes("\"abc\"");
+            var reader = new Utf8GraphQLReader(source);
+            reader.Read();
+
+            // act
+            var buffer = new byte[3 * 4];
+            var span = buffer.AsSpan();
+            reader.UnescapeValue(ref span);
+
+            // assert
+            Assert.Equal(3, span.Length);
+            Assert.Equal("abc", reader.GetString(span));
         }
     }
 }
