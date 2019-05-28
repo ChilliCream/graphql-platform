@@ -42,6 +42,7 @@ namespace StarWars
 
                 .AddQueryType<QueryType>()
                 .AddMutationType<MutationType>()
+                .AddSubscriptionType<SubscriptionType>()
                 .AddType<HumanType>()
                 .AddType<DroidType>()
                 .AddType<EpisodeType>()
@@ -87,6 +88,10 @@ namespace StarWars
                 .UseGraphiQL("/graphql")
                 .UsePlayground("/graphql")
                 .UseVoyager("/graphql");
+
+            // disable subscriptions for playground and graphiql
+            // .UseGraphiQL(new GraphiQLOptions { QueryPath = "/graphql", EnableSubscription = false })
+            // .UsePlayground(new PlaygroundOptions { QueryPath = "/graphql", EnableSubscription = false })
 
             /*
             Note: comment app.UseGraphQL("/graphql"); and uncomment this

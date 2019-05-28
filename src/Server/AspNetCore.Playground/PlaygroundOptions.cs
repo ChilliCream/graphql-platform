@@ -14,6 +14,7 @@ namespace HotChocolate.AspNetCore.Playground
 {
     public class PlaygroundOptions
     {
+        private bool _pathIsSet = false;
         private PathString _path = new PathString("/playground");
         private PathString _queryPath = new PathString("/");
         private PathString _subscriptionPath = new PathString("/ws");
@@ -46,6 +47,11 @@ namespace HotChocolate.AspNetCore.Playground
 
                 _queryPath = value;
                 _subscriptionPath = value.Add(new PathString("/ws"));
+
+                if (!_pathIsSet)
+                {
+                    _path = value.Add(new PathString("/playground"));
+                }
             }
         }
 
@@ -63,5 +69,7 @@ namespace HotChocolate.AspNetCore.Playground
                 _subscriptionPath = value;
             }
         }
+
+        public bool EnableSubscription { get; set; } = true;
     }
 }
