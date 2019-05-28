@@ -411,5 +411,50 @@ namespace HotChocolate.Language
                     .Directives,
                 d => Assert.Equal("foo", d.Name.Value));
         }
+
+        [Fact]
+        public void StringArgumentIsEmpty()
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                "{ foo(bar: \"\") }");
+
+            // act
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
+
+            // assert
+            IValueNode value =
+                document.Definitions.OfType<OperationDefinitionNode>().First()
+                    .SelectionSet.Selections.OfType<FieldNode>().First()
+                    .Arguments.First().Value;
+
+            Assert.Equal(string.Empty,
+                Assert.IsType<StringValueNode>(value).Value);
+        }
+
+        [Fact]
+        public void LargeString()
+        {
+            // arrange
+            string s = new string('s', 2048);
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                "{ foo(bar: \"" + s + "\") }");
+
+            // act
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
+
+            // assert
+            IValueNode value =
+                document.Definitions.OfType<OperationDefinitionNode>().First()
+                    .SelectionSet.Selections.OfType<FieldNode>().First()
+                    .Arguments.First().Value;
+
+            Assert.Equal(s,
+                Assert.IsType<StringValueNode>(value).Value);
+        }
     }
 }
