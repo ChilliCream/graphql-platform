@@ -121,6 +121,16 @@ namespace HotChocolate.Language
             return node;
         }
 
+        protected virtual TParent RewriteDirectives<TParent>(
+            TParent parent,
+            IReadOnlyList<DirectiveNode> directives,
+            TContext context,
+            Func<IReadOnlyList<DirectiveNode>, TParent> rewrite)
+        {
+            return RewriteMany(parent, directives, context,
+                RewriteDirective, rewrite);
+        }
+
         protected virtual NamedTypeNode RewriteNamedType(
             NamedTypeNode node,
             TContext context)

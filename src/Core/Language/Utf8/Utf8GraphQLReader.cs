@@ -76,18 +76,18 @@ namespace HotChocolate.Language
 
         public unsafe string GetString()
         {
+            if (_value.Length == 0)
+            {
+                return string.Empty;
+            }
+
             bool isBlockString = Kind == TokenKind.BlockString;
 
             int length = checked((int)_value.Length);
             bool useStackalloc =
                 length <= GraphQLConstants.StackallocThreshold;
 
-            byte[] escapedArray = null;
             byte[] unescapedArray = null;
-
-            Span<byte> escapedSpan = useStackalloc
-                ? stackalloc byte[length]
-                : (escapedArray = ArrayPool<byte>.Shared.Rent(length));
 
             Span<byte> unescapedSpan = useStackalloc
                 ? stackalloc byte[length]
@@ -95,10 +95,7 @@ namespace HotChocolate.Language
 
             try
             {
-                _value.CopyTo(escapedSpan);
-                escapedSpan = escapedSpan.Slice(0, length);
-
-                UnescapeValue(escapedSpan, ref unescapedSpan, isBlockString);
+                UnescapeValue(_value, ref unescapedSpan, isBlockString);
 
                 fixed (byte* bytePtr = unescapedSpan)
                 {
@@ -109,12 +106,9 @@ namespace HotChocolate.Language
             }
             finally
             {
-                if (escapedArray != null)
+                if (unescapedArray != null)
                 {
-                    escapedSpan.Clear();
                     unescapedSpan.Clear();
-
-                    ArrayPool<byte>.Shared.Return(escapedArray);
                     ArrayPool<byte>.Shared.Return(unescapedArray);
                 }
             }
@@ -122,6 +116,11 @@ namespace HotChocolate.Language
 
         public unsafe string GetString(ReadOnlySpan<byte> unescapedValue)
         {
+            if (unescapedValue.Length == 0)
+            {
+                return string.Empty;
+            }
+
             fixed (byte* bytePtr = unescapedValue)
             {
                 return StringHelper.UTF8Encoding
@@ -135,6 +134,7 @@ namespace HotChocolate.Language
             {
                 StringHelper.TrimStringToken(ref _value);
             }
+
             return GetString(_value);
         }
 
@@ -160,14 +160,26 @@ namespace HotChocolate.Language
 
         public void UnescapeValue(ref Span<byte> unescapedValue)
         {
-            UnescapeValue(
-                in _value,
-                ref unescapedValue,
-                Kind == TokenKind.BlockString);
+            if (_value.Length == 0)
+            {
+                unescapedValue = unescapedValue.Slice(0, 0);
+            }
+            else
+            {
+                UnescapeValue(
+                    in _value,
+                    ref unescapedValue,
+                    Kind == TokenKind.BlockString);
+            }
         }
 
         public bool Read()
         {
+            if (Position == 0)
+            {
+                SkipBoml();
+            }
+
             SkipWhitespaces();
             UpdateColumn();
 
@@ -208,7 +220,8 @@ namespace HotChocolate.Language
 
             if (code == GraphQLConstants.Quote)
             {
-                if (GraphQLData[Position + 1] == GraphQLConstants.Quote
+                if (GraphQLData.Length > Position + 2
+                    && GraphQLData[Position + 1] == GraphQLConstants.Quote
                     && GraphQLData[Position + 2] == GraphQLConstants.Quote)
                 {
                     Position += 2;
@@ -222,7 +235,7 @@ namespace HotChocolate.Language
             }
 
             throw new SyntaxException(this,
-                "Unexpected character.");
+                $"Unexpected character `{(char)code}` ({code}).");
         }
 
         /// <summary>
@@ -397,7 +410,8 @@ namespace HotChocolate.Language
                 if (GraphQLConstants.IsDigit(in code))
                 {
                     throw new SyntaxException(this,
-                        $"Invalid number, unexpected digit after 0: {code}.");
+                        "Invalid number, unexpected digit after 0: " +
+                        $"`{(char)code}` ({code}).");
                 }
             }
             else
@@ -452,7 +466,8 @@ namespace HotChocolate.Language
             if (!firstCode.IsDigit())
             {
                 throw new SyntaxException(this,
-                    $"Invalid number, expected digit but got: {firstCode}.");
+                    "Invalid number, expected digit but got: " +
+                    $"`{(char)firstCode}` ({firstCode}).");
             }
 
             while (++Position < GraphQLData.Length
@@ -475,7 +490,7 @@ namespace HotChocolate.Language
         private void ReadCommentToken()
         {
             var start = Position;
-            var trimStart = Position;
+            var trimStart = Position + 1;
             bool trim = true;
 
             while (++Position < GraphQLData.Length
@@ -668,6 +683,22 @@ namespace HotChocolate.Language
                 }
 
                 code = ref GraphQLData[Position];
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void SkipBoml()
+        {
+            ref readonly byte code = ref GraphQLData[Position];
+
+            if (code == 239)
+            {
+                ref readonly byte second = ref GraphQLData[Position + 1];
+                ref readonly byte third = ref GraphQLData[Position + 2];
+                if (second == 187 && third == 191)
+                {
+                    Position += 3;
+                }
             }
         }
 

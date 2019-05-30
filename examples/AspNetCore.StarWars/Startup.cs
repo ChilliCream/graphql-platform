@@ -23,14 +23,8 @@ namespace StarWars
             services.AddSingleton<CharacterRepository>();
             services.AddSingleton<ReviewRepository>();
 
-            services.AddSingleton<Query>();
-            services.AddSingleton<Mutation>();
-            services.AddSingleton<Subscription>();
-
             // Add in-memory event provider
-            var eventRegistry = new InMemoryEventRegistry();
-            services.AddSingleton<IEventRegistry>(eventRegistry);
-            services.AddSingleton<IEventSender>(eventRegistry);
+            services.AddInMemorySubscriptionProvider();
 
             // Add GraphQL Services
             services.AddGraphQL(sp => SchemaBuilder.New()
@@ -42,6 +36,7 @@ namespace StarWars
 
                 .AddQueryType<QueryType>()
                 .AddMutationType<MutationType>()
+                .AddSubscriptionType<SubscriptionType>()
                 .AddType<HumanType>()
                 .AddType<DroidType>()
                 .AddType<EpisodeType>()
@@ -72,38 +67,28 @@ namespace StarWars
 
             app
                 .UseWebSockets()
-                .UseGraphQL(new QueryMiddlewareOptions
-                {
-                    Path = "/graphql",
-                    OnCreateRequest = (ctx, builder, ct) =>
-                    {
-                        var identity = new ClaimsIdentity("abc");
-                        identity.AddClaim(new Claim(ClaimTypes.Country, "us"));
-                        ctx.User = new ClaimsPrincipal(identity);
-                        builder.SetProperty(nameof(ClaimsPrincipal), ctx.User);
-                        return Task.CompletedTask;
-                    }
-                })
+                .UseGraphQL("/graphql")
                 .UseGraphiQL("/graphql")
                 .UsePlayground("/graphql")
                 .UseVoyager("/graphql");
 
             /*
             Note: comment app.UseGraphQL("/graphql"); and uncomment this
-            section in order to simulare a user that has a country claim and
+            section in order to simulate a user that has a country claim and
             passes the configured authorization rule.
 
-            app.UseGraphQL(new GraphQLMiddlewareOptions
+            .UseGraphQL(new QueryMiddlewareOptions
             {
                 Path = "/graphql",
                 OnCreateRequest = (ctx, builder, ct) =>
                 {
-                    var identity = new ClaimsIdentity();
+                    var identity = new ClaimsIdentity("abc");
                     identity.AddClaim(new Claim(ClaimTypes.Country, "us"));
-                    c.User.AddIdentity(identity);
+                    ctx.User = new ClaimsPrincipal(identity);
+                    builder.SetProperty(nameof(ClaimsPrincipal), ctx.User);
                     return Task.CompletedTask;
                 }
-            });
+            })
             */
         }
     }

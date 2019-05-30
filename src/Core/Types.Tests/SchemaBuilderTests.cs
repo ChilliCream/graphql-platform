@@ -460,7 +460,7 @@ namespace HotChocolate
             Assert.Throws<ArgumentNullException>(action);
         }
 
-        [Fact(Skip = "Fix THIS")]
+        [Fact]
         public void AddType_TypeIsResolverTypeByType_QueryContainsBazField()
         {
             // arrange
@@ -471,8 +471,7 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            Assert.True(queryType.Fields.ContainsField("baz"));
+            schema.MakeExecutable().Execute("{ foo }").MatchSnapshot();
         }
 
         [Fact]
@@ -930,7 +929,7 @@ namespace HotChocolate
         [GraphQLResolverOf(typeof(QueryType))]
         public class QueryResolverOnType
         {
-            public string Baz { get; }
+            public string GetFoo([Parent]object o) => "QueryResolverOnType";
         }
 
         [GraphQLResolverOf("Query")]

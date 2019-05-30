@@ -47,6 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Delegate Directive not being assigned correctly with ITypeRewriter. [#766](https://github.com/ChilliCream/hotchocolate/issues/766)
 - Format Exception when registering types. [#787](https://github.com/ChilliCream/hotchocolate/issues/787)
 - The schema factory does not throw an exception if an annotated directive is not correct. [#619](https://github.com/ChilliCream/hotchocolate/issues/619)
+- Temprarily fixed issues with type system directives. We will add a final patch with the next release.
+- Fixed issues with external resolver overwrites.
 
 ## [0.8.2] - 2019-04-10
 

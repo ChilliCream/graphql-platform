@@ -1,4 +1,4 @@
-﻿{
+{
   "Data": {
     "age": null
   },
@@ -15,7 +15,7 @@
         "age"
       ],
       "extensions": {
-        "code": "AUTH_POLICY_NOT_FOUNT"
+        "code": "AUTH_POLICY_NOT_FOUND"
       }
     }
   ]

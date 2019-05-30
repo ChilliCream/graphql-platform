@@ -14,6 +14,7 @@ namespace HotChocolate.AspNetCore.GraphiQL
 {
     public class GraphiQLOptions
     {
+        private bool _pathIsSet = false;
         private PathString _path = new PathString("/graphiql");
         private PathString _queryPath = new PathString("/");
         private PathString _subscriptionPath = new PathString("/ws");
@@ -30,6 +31,7 @@ namespace HotChocolate.AspNetCore.GraphiQL
                 }
 
                 _path = value;
+                _pathIsSet = true;
             }
         }
 
@@ -46,6 +48,11 @@ namespace HotChocolate.AspNetCore.GraphiQL
 
                 _queryPath = value;
                 _subscriptionPath = value.Add(new PathString("/ws"));
+
+                if (!_pathIsSet)
+                {
+                    _path = value.Add(new PathString("/graphiql"));
+                }
             }
         }
 
@@ -63,5 +70,7 @@ namespace HotChocolate.AspNetCore.GraphiQL
                 _subscriptionPath = value;
             }
         }
+
+        public bool EnableSubscription { get; set; } = true;
     }
 }
