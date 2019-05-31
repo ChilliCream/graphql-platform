@@ -19,7 +19,9 @@ namespace HotChocolate.Execution
                 return default;
             }
 
-            IType innerType = type.InnerType();
+            IType innerType = type.IsNonNullType()
+                ? type.InnerType()
+                : type;
 
             if (innerType is ListType listType)
             {
