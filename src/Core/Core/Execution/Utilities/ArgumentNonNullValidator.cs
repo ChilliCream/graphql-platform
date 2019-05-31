@@ -14,7 +14,7 @@ namespace HotChocolate.Execution
             {
                 if (type.IsNonNullType())
                 {
-                    return CreateError(type, path);
+                    return new Report(type, path);
                 }
                 return default;
             }
@@ -23,7 +23,14 @@ namespace HotChocolate.Execution
 
             if (innerType is ListType listType)
             {
-                return ValidateList(listType, (ListValueNode)value, path);
+                if (value is ListValueNode)
+                {
+                    return ValidateList(listType, (ListValueNode)value, path);
+                }
+                else
+                {
+                    Validate(listType.ElementType, value, path);
+                }
             }
 
             if (innerType is InputObjectType inputType)
@@ -84,26 +91,18 @@ namespace HotChocolate.Execution
             return default;
         }
 
-        private static Report CreateError(IType type, Path path)
-        {
-            return new Report(path, string.Format(
-                CultureInfo.InvariantCulture,
-                TypeResources.InputTypeNonNullCheck_ValueIsNull,
-                TypeVisualizer.Visualize(type)));
-        }
-
         internal ref struct Report
         {
-            internal Report(Path path, string message)
+            internal Report(IType type, Path path)
             {
-                HasErrors = true;
+                Type = type;
                 Path = path;
-                Message = message;
+                HasErrors = true;
             }
 
             public bool HasErrors { get; }
             public Path Path { get; }
-            public string Message { get; }
+            public IType Type { get; }
         }
     }
 }

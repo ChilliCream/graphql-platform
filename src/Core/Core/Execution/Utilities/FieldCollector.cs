@@ -8,6 +8,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.ArgumentNonNullValidator;
+using System.Globalization;
 
 namespace HotChocolate.Execution
 {
@@ -326,7 +327,11 @@ namespace HotChocolate.Execution
             if (report.HasErrors)
             {
                 IError error = ErrorBuilder.New()
-                    .SetMessage(report.Message)
+                    .SetMessage(string.Format(string.Format(
+                        CultureInfo.InvariantCulture,
+                        TypeResources.ArgumentValueBuilder_NonNull,
+                        argument.Name,
+                        TypeVisualizer.Visualize(report.Type))))
                     .AddLocation(fieldInfo.Selection)
                     .SetExtension(_argumentProperty, report.Path.ToCollection())
                     .SetPath(fieldInfo.Path.AppendOrCreate(
