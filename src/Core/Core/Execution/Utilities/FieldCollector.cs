@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,6 +7,7 @@ using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using static HotChocolate.Execution.ArgumentNonNullValidator;
 
 namespace HotChocolate.Execution
 {
@@ -278,11 +280,15 @@ namespace HotChocolate.Execution
                             new Dictionary<NameString, VariableValue>();
                     }
 
+                    object defaultValue = argument.Type.IsLeafType()
+                        ? ParseLiteral(argument.Type, argument.DefaultValue)
+                        : argument.DefaultValue;
+
                     fieldInfo.VarArguments[argument.Name] =
                         new VariableValue(
                             argument.Type,
                             variable.Name.Value,
-                            ParseLiteral(argument.Type, argument.DefaultValue));
+                            defaultValue);
                 }
                 else
                 {
@@ -312,31 +318,35 @@ namespace HotChocolate.Execution
                     new Dictionary<NameString, ArgumentValue>();
             }
 
-            object value = ParseLiteral(argument.Type, literal);
-
-            fieldInfo.Arguments[argument.Name] = new ArgumentValue(
+            Report report = ArgumentNonNullValidator.Validate(
                 argument.Type,
-                value);
+                literal,
+                Path.New(argument.Name));
 
-            IError error = InputTypeNonNullCheck.CheckForNullValueViolation(
-                argument.Name,
-                argument.Type,
-                value,
-                _converter,
-                message => ErrorBuilder.New()
-                    .SetMessage(message)
+            if (report.HasErrors)
+            {
+                IError error = ErrorBuilder.New()
+                    .SetMessage(report.Message)
                     .AddLocation(fieldInfo.Selection)
-                    .SetExtension(_argumentProperty, argument.Name)
+                    .SetExtension(_argumentProperty, report.Path.ToCollection())
                     .SetPath(fieldInfo.Path.AppendOrCreate(
                         fieldInfo.ResponseName))
-                    .Build());
+                    .Build();
 
-            if (error != null)
+                fieldInfo.Arguments[argument.Name] =
+                    new ArgumentValue(argument.Type, error);
+            }
+            else if (argument.Type.IsLeafType())
             {
                 fieldInfo.Arguments[argument.Name] =
                     new ArgumentValue(
                         argument.Type,
-                        error);
+                        ParseLiteral(argument.Type, literal));
+            }
+            else
+            {
+                fieldInfo.Arguments[argument.Name] =
+                    new ArgumentValue(argument.Type, literal);
             }
         }
 

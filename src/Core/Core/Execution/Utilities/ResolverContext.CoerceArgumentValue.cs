@@ -35,19 +35,26 @@ namespace HotChocolate.Execution
             string name,
             ArgumentValue argumentValue)
         {
-            if (argumentValue.Value is T value)
+            object value = argumentValue.Value;
+
+            if (argumentValue.Literal != null)
             {
-                return value;
+                value = argumentValue.Type.ParseLiteral(argumentValue.Literal);
             }
 
-            if (argumentValue.Value == null)
+            if (value is null)
             {
                 return default;
             }
 
-            if (TryConvertValue(argumentValue, out value))
+            if (value is T resolved)
             {
-                return value;
+                return resolved;
+            }
+
+            if (TryConvertValue(argumentValue, out resolved))
+            {
+                return resolved;
             }
 
             IError error = ErrorBuilder.New()
