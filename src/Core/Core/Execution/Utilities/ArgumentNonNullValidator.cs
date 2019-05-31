@@ -25,9 +25,9 @@ namespace HotChocolate.Execution
 
             if (innerType is ListType listType)
             {
-                if (value is ListValueNode)
+                if (value is ListValueNode listValue)
                 {
-                    return ValidateList(listType, (ListValueNode)value, path);
+                    return ValidateList(listType, listValue, path);
                 }
                 else
                 {
