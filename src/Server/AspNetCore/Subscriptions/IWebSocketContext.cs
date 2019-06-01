@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipelines;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -33,7 +34,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             CancellationToken cancellationToken);
 
         Task ReceiveMessageAsync(
-            Stream messageStream,
+            PipeWriter writer,
             CancellationToken cancellationToken);
 
         Task<ConnectionStatus> OpenAsync(

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipelines;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
@@ -60,7 +61,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         }
 
         public async Task ReceiveMessageAsync(
-            Stream messageStream,
+            PipeWriter writer,
             CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested
@@ -78,7 +79,17 @@ namespace HotChocolate.AspNetCore.Subscriptions
             string json = JsonConvert.SerializeObject(message);
             byte[] buffer = Encoding.UTF8.GetBytes(json);
 
-            messageStream.Write(buffer, 0, buffer.Length);
+            Memory<byte> memory = writer.GetMemory(buffer.Length);
+            for (int i = 0; i < buffer.Length; i++)
+            {
+                memory.Span[i] = buffer[i];
+            }
+
+            writer.Advance(buffer.Length);
+
+            await writer
+                .FlushAsync(cancellationToken)
+                .ConfigureAwait(false);
         }
 
         public Task SendMessageAsync(

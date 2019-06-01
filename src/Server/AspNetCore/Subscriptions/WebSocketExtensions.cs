@@ -1,4 +1,4 @@
-﻿#if !ASPNETCLASSIC
+#if !ASPNETCLASSIC
 
 using System.Collections.Generic;
 using System.IO;

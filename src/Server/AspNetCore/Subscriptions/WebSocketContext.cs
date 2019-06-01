@@ -1,10 +1,11 @@
 #if !ASPNETCLASSIC
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Pipelines;
 using System.Net.WebSockets;
+using System.Runtime.InteropServices;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
@@ -128,25 +129,46 @@ namespace HotChocolate.AspNetCore.Subscriptions
         }
 
         public async Task ReceiveMessageAsync(
-            Stream messageStream,
+            PipeWriter writer,
             CancellationToken cancellationToken)
         {
-            WebSocketReceiveResult result;
-            var buffer = new byte[_maxMessageSize];
-
+            WebSocketReceiveResult socketResult = null;
             do
             {
-                result = await WebSocket.ReceiveAsync(
-                    new ArraySegment<byte>(buffer),
-                    cancellationToken)
-                    .ConfigureAwait(false);
+                Memory<byte> memory = writer.GetMemory(_maxMessageSize);
+                bool success = MemoryMarshal
+                    .TryGetArray(memory, out ArraySegment<byte> buffer);
+                if (success)
+                {
+                    try
+                    {
+                        socketResult = await WebSocket
+                            .ReceiveAsync(buffer, cancellationToken)
+                            .ConfigureAwait(false);
 
-                await messageStream.WriteAsync(
-                    buffer, 0, result.Count,
-                    cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            while (!result.EndOfMessage);
+                        if (socketResult.Count == 0)
+                        {
+                            break;
+                        }
+
+                        writer.Advance(socketResult.Count);
+                    }
+                    catch (Exception ex)
+                    {
+                        // TODO: Log
+                        break;
+                    }
+
+                    FlushResult result = await writer
+                        .FlushAsync(cancellationToken)
+                        .ConfigureAwait(false);
+
+                    if (result.IsCompleted)
+                    {
+                        break;
+                    }
+                }
+            } while (socketResult == null || !socketResult.EndOfMessage);
         }
 
         public async Task<ConnectionStatus> OpenAsync(

@@ -1,5 +1,5 @@
-﻿#if !ASPNETCLASSIC
-
+#if !ASPNETCLASSIC
+using System.IO.Pipelines;
 using System;
 using System.Net.WebSockets;
 using System.Threading;
@@ -25,6 +25,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 new SubscriptionStopHandler(),
             };
 
+        private readonly Pipe _pipe = new Pipe();
+        private readonly SubscriptionReceiver _subscriptionReceiver;
+
         private readonly CancellationTokenSource _cts =
             new CancellationTokenSource();
         private readonly IWebSocketContext _context;
@@ -33,6 +36,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
             IWebSocketContext context)
         {
             _context = context;
+            _subscriptionReceiver = new SubscriptionReceiver(
+                context, _pipe.Writer, _cts);
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -40,7 +45,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
             try
             {
                 StartKeepConnectionAlive();
-                await ReceiveMessagesAsync(cancellationToken)
+
+                await _subscriptionReceiver
+                    .StartAsync(cancellationToken)
                     .ConfigureAwait(false);
             }
             finally
