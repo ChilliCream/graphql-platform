@@ -39,7 +39,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 string json = Encoding.UTF8.GetString(slice.ToArray());
                 if (!string.IsNullOrEmpty(json.Trim()))
                 {
-                    await HandleMessage(json, combined.Token);
+                    await HandleMessageAsync(json, combined.Token)
+                        .ConfigureAwait(false);
                 }
                 else
                 {
@@ -50,7 +51,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
         }
 
-        private async Task HandleMessage(
+        private async Task HandleMessageAsync(
             string content,
             CancellationToken cancellationToken)
         {

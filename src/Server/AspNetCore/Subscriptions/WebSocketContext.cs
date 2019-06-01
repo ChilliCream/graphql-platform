@@ -155,7 +155,6 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     }
                     catch (Exception)
                     {
-                        // TODO: Log
                         break;
                     }
 
