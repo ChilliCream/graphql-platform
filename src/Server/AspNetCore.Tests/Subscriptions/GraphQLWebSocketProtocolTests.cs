@@ -36,8 +36,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             await ConnectAsync(webSocket);
         }
 
-        // TODO : FIX THIS ONE
-        [Fact(Skip = "Temporarily disabled")]
+        [Fact]
         public async Task Send_Start_ReceiveDataOnMutation()
         {
             // arrange
