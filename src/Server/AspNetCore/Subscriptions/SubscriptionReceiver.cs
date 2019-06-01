@@ -1,6 +1,5 @@
 #if !ASPNETCLASSIC
 using System;
-using System.Diagnostics;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
@@ -54,7 +53,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex);
+                // TODO: Log 
                 throw;
             }
         }
