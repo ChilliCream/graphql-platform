@@ -153,7 +153,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
                         writer.Advance(socketResult.Count);
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         // TODO: Log
                         break;

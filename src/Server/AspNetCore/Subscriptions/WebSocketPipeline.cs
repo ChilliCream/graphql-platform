@@ -62,9 +62,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 if (handler.CanHandle(message))
                 {
                     await handler.HandleAsync(
-                        _context,
-                        message,
-                        cancellationToken);
+                            _context,
+                            message,
+                            cancellationToken)
+                        .ConfigureAwait(false);
 
                     return;
                 }

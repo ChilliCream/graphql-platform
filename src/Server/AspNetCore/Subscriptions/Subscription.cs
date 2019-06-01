@@ -10,7 +10,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
     internal class Subscription
         : ISubscription
     {
-        public static byte Delimiter => 0x07;
+        internal static readonly byte Delimiter = 0x07;
 
         private readonly CancellationTokenSource _cts =
             new CancellationTokenSource();

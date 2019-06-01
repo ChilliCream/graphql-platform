@@ -22,19 +22,21 @@ namespace HotChocolate.AspNetCore.Subscriptions
         public void Start()
         {
             Task.Factory.StartNew(
-                KeepConnectionAlive,
+                KeepConnectionAliveAsync,
                 _cts.Token,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
         }
 
-        private async Task KeepConnectionAlive()
+        private async Task KeepConnectionAliveAsync()
         {
             while (!_context.Closed || !_cts.IsCancellationRequested)
             {
                 await Task.Delay(_keepAliveTimeout, _cts.Token)
                     .ConfigureAwait(false);
-                await _context.SendConnectionKeepAliveMessageAsync(_cts.Token)
+
+                await _context
+                    .SendConnectionKeepAliveMessageAsync(_cts.Token)
                     .ConfigureAwait(false);
             }
         }

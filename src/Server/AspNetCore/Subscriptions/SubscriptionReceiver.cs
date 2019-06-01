@@ -29,8 +29,12 @@ namespace HotChocolate.AspNetCore.Subscriptions
             {
                 while (!_webSocket.Closed || !combined.IsCancellationRequested)
                 {
-                    await _webSocket.ReceiveMessageAsync(_writer, combined.Token);
-                    await WriteMessageDelimiterAsync(combined.Token);
+                    await _webSocket
+                        .ReceiveMessageAsync(_writer, combined.Token)
+                        .ConfigureAwait(false);
+
+                    await WriteMessageDelimiterAsync(combined.Token)
+                        .ConfigureAwait(false);
                 }
 
                 _writer.Complete();
@@ -51,7 +55,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     .FlushAsync(cancellationToken)
                     .ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 // TODO: Log 
                 throw;

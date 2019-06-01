@@ -27,13 +27,13 @@ namespace HotChocolate.AspNetCore.Subscriptions
         public void Start(CancellationToken cancellationToken)
         {
             Task.Factory.StartNew(
-                () => StartSendAsync(cancellationToken),
+                () => StartReplyAsync(cancellationToken),
                 _cts.Token,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
         }
 
-        private async Task StartSendAsync(
+        private async Task StartReplyAsync(
             CancellationToken cancellationToken)
         {
             while (true)
@@ -52,8 +52,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     if (position != null)
                     {
                         await _pipeline.ProcessMessageAsync(
-                            buffer.Slice(0, position.Value),
-                            cancellationToken);
+                                buffer.Slice(0, position.Value),
+                                cancellationToken)
+                            .ConfigureAwait(false);
 
                         // Skip the message which was read.
                         buffer = buffer
