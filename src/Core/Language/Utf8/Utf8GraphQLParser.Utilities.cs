@@ -23,11 +23,8 @@ namespace HotChocolate.Language
             );
         }
 
-        private bool MoveNext()
-        {
-            while (_reader.Read() && _reader.Kind == TokenKind.Comment) ;
-            return !_reader.IsEndOfStream();
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool MoveNext() => _reader.MoveNext();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private TokenInfo Start() =>
@@ -168,15 +165,7 @@ namespace HotChocolate.Language
         private bool SkipAmpersand() => Skip(TokenKind.Ampersand);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool Skip(TokenKind kind)
-        {
-            if (_reader.Kind == kind)
-            {
-                MoveNext();
-                return true;
-            }
-            return false;
-        }
+        private bool Skip(TokenKind kind) => _reader.Skip(kind); 
 
         private bool SkipRepeatableKeyword() =>
             SkipKeyword(GraphQLKeywords.Repeatable);

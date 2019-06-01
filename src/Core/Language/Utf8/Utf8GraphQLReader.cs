@@ -17,10 +17,11 @@ namespace HotChocolate.Language
         private ReadOnlySpan<byte> _value;
         private int _length;
         private int _position;
+        private TokenKind _kind;
 
         public Utf8GraphQLReader(ReadOnlySpan<byte> graphQLData)
         {
-            Kind = TokenKind.StartOfFile;
+            _kind = TokenKind.StartOfFile;
             Start = 0;
             End = 0;
             LineStart = 0;
@@ -38,7 +39,7 @@ namespace HotChocolate.Language
         /// <summary>
         /// Gets the kind of <see cref="SyntaxToken" />.
         /// </summary>
-        public TokenKind Kind { get; private set; }
+        public TokenKind Kind => _kind;
 
         /// <summary>
         /// Gets the character offset at which this node begins.
@@ -85,7 +86,7 @@ namespace HotChocolate.Language
                 return string.Empty;
             }
 
-            bool isBlockString = Kind == TokenKind.BlockString;
+            bool isBlockString = _kind == TokenKind.BlockString;
 
             int length = checked((int)_value.Length);
             bool useStackalloc =
@@ -173,8 +174,24 @@ namespace HotChocolate.Language
                 UnescapeValue(
                     in _value,
                     ref unescapedValue,
-                    Kind == TokenKind.BlockString);
+                    _kind == TokenKind.BlockString);
             }
+        }
+
+        public bool MoveNext()
+        {
+            while (Read() && _kind == TokenKind.Comment) { }
+            return !IsEndOfStream();
+        }
+
+        public bool Skip(TokenKind kind)
+        {
+            if (_kind == kind)
+            {
+                MoveNext();
+                return true;
+            }
+            return false;
         }
 
         public bool Read()
@@ -191,7 +208,7 @@ namespace HotChocolate.Language
             {
                 Start = _position;
                 End = _position;
-                Kind = TokenKind.EndOfFile;
+                _kind = TokenKind.EndOfFile;
                 _value = null;
                 return false;
             }
@@ -267,7 +284,7 @@ namespace HotChocolate.Language
                 && GraphQLConstants.IsLetterOrDigitOrUnderscore(
                     in _graphQLData[position]));
 
-            Kind = TokenKind.Name;
+            _kind = TokenKind.Name;
             Start = start;
             End = position;
             _value = _graphQLData.Slice(start, position - start);
@@ -302,55 +319,55 @@ namespace HotChocolate.Language
             switch (code)
             {
                 case GraphQLConstants.Bang:
-                    Kind = TokenKind.Bang;
+                    _kind = TokenKind.Bang;
                     break;
 
                 case GraphQLConstants.Dollar:
-                    Kind = TokenKind.Dollar;
+                    _kind = TokenKind.Dollar;
                     break;
 
                 case GraphQLConstants.Ampersand:
-                    Kind = TokenKind.Ampersand;
+                    _kind = TokenKind.Ampersand;
                     break;
 
                 case GraphQLConstants.LeftParenthesis:
-                    Kind = TokenKind.LeftParenthesis;
+                    _kind = TokenKind.LeftParenthesis;
                     break;
 
                 case GraphQLConstants.RightParenthesis:
-                    Kind = TokenKind.RightParenthesis;
+                    _kind = TokenKind.RightParenthesis;
                     break;
 
                 case GraphQLConstants.Colon:
-                    Kind = TokenKind.Colon;
+                    _kind = TokenKind.Colon;
                     break;
 
                 case GraphQLConstants.Equal:
-                    Kind = TokenKind.Equal;
+                    _kind = TokenKind.Equal;
                     break;
 
                 case GraphQLConstants.At:
-                    Kind = TokenKind.At;
+                    _kind = TokenKind.At;
                     break;
 
                 case GraphQLConstants.LeftBracket:
-                    Kind = TokenKind.LeftBracket;
+                    _kind = TokenKind.LeftBracket;
                     break;
 
                 case GraphQLConstants.RightBracket:
-                    Kind = TokenKind.RightBracket;
+                    _kind = TokenKind.RightBracket;
                     break;
 
                 case GraphQLConstants.LeftBrace:
-                    Kind = TokenKind.LeftBrace;
+                    _kind = TokenKind.LeftBrace;
                     break;
 
                 case GraphQLConstants.RightBrace:
-                    Kind = TokenKind.RightBrace;
+                    _kind = TokenKind.RightBrace;
                     break;
 
                 case GraphQLConstants.Pipe:
-                    Kind = TokenKind.Pipe;
+                    _kind = TokenKind.Pipe;
                     break;
 
                 case GraphQLConstants.Dot:
@@ -359,7 +376,7 @@ namespace HotChocolate.Language
                     {
                         _position += 2;
                         End = _position;
-                        Kind = TokenKind.Spread;
+                        _kind = TokenKind.Spread;
                     }
                     else
                     {
@@ -458,7 +475,7 @@ namespace HotChocolate.Language
                 ReadDigits(in code);
             }
 
-            Kind = isFloat ? TokenKind.Float : TokenKind.Integer;
+            _kind = isFloat ? TokenKind.Float : TokenKind.Integer;
             Start = start;
             End = _position;
             _value = _graphQLData.Slice(start, _position - start);
@@ -518,7 +535,7 @@ namespace HotChocolate.Language
                 }
             }
 
-            Kind = TokenKind.Comment;
+            _kind = TokenKind.Comment;
             Start = start;
             End = _position;
             _value = _graphQLData.Slice(trimStart, _position - trimStart);
@@ -548,7 +565,7 @@ namespace HotChocolate.Language
                 // closing Quote (")
                 if (code == GraphQLConstants.Quote)
                 {
-                    Kind = TokenKind.String;
+                    _kind = TokenKind.String;
                     Start = start;
                     End = _position;
                     _value = _graphQLData.Slice(start + 1, _position - start - 1);
@@ -604,7 +621,7 @@ namespace HotChocolate.Language
                     && _graphQLData[_position + 2] == GraphQLConstants.Quote)
                 {
                     _nextNewLines--;
-                    Kind = TokenKind.BlockString;
+                    _kind = TokenKind.BlockString;
                     Start = start;
                     End = _position + 2;
                     _value = _graphQLData.Slice(start + 3, _position - start - 3);
