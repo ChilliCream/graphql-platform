@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Subscriptions;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions

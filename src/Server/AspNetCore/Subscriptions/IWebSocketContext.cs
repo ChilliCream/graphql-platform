@@ -1,10 +1,8 @@
 #if !ASPNETCLASSIC
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
-using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -19,7 +17,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         IQueryExecutor QueryExecutor { get; }
 
-        WebSocketCloseStatus? CloseStatus { get; }
+        bool Closed { get; }
 
         IDictionary<string, object> RequestProperties { get; }
 

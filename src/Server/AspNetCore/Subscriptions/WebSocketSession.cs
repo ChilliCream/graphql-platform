@@ -14,20 +14,21 @@ namespace HotChocolate.AspNetCore.Subscriptions
         : IDisposable
     {
         private const string _protocol = "graphql-ws";
-        private const int _keepAliveTimeout = 5000;
-
-        private readonly Pipe _pipe = new Pipe();
-        private readonly SubscriptionReceiver _subscriptionReceiver;
-        private readonly SubscriptionReplier _subscriptionReplier;
 
         private readonly CancellationTokenSource _cts =
             new CancellationTokenSource();
         private readonly IWebSocketContext _context;
 
+        private readonly Pipe _pipe = new Pipe();
+        private readonly WebSocketKeepAlive _keepAlive;
+        private readonly SubscriptionReceiver _subscriptionReceiver;
+        private readonly SubscriptionReplier _subscriptionReplier;
+
         private WebSocketSession(
             IWebSocketContext context)
         {
             _context = context;
+            _keepAlive = new WebSocketKeepAlive(context, _cts);
             _subscriptionReplier = new SubscriptionReplier(
                 _pipe.Reader, new WebSocketPipeline(context, _cts), _cts);
             _subscriptionReceiver = new SubscriptionReceiver(
@@ -38,7 +39,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             try
             {
-                StartKeepConnectionAlive();
+                _keepAlive.Start();
                 _subscriptionReplier.Start(cancellationToken);
 
                 await _subscriptionReceiver
@@ -48,23 +49,6 @@ namespace HotChocolate.AspNetCore.Subscriptions
             finally
             {
                  await _context.CloseAsync().ConfigureAwait(false);
-            }
-        }
-
-        private void StartKeepConnectionAlive()
-        {
-            Task.Run(KeepConnectionAlive);
-        }
-
-        private async Task KeepConnectionAlive()
-        {
-            while (!_context.CloseStatus.HasValue
-                || !_cts.IsCancellationRequested)
-            {
-                await Task.Delay(_keepAliveTimeout, _cts.Token)
-                    .ConfigureAwait(false);
-                await _context.SendConnectionKeepAliveMessageAsync(_cts.Token)
-                    .ConfigureAwait(false);
             }
         }
 

@@ -48,7 +48,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public WebSocket WebSocket { get; }
 
-        public WebSocketCloseStatus? CloseStatus => WebSocket.CloseStatus;
+        public bool Closed => WebSocket.CloseStatus.HasValue;
 
         public IDictionary<string, object> RequestProperties
         { get; private set; }

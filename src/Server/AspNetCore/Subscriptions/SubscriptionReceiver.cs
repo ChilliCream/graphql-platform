@@ -28,8 +28,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             using (var combined = CancellationTokenSource
                 .CreateLinkedTokenSource(cancellationToken, _cts.Token))
             {
-                while (!_webSocket.CloseStatus.HasValue
-                       || !combined.IsCancellationRequested)
+                while (!_webSocket.Closed || !combined.IsCancellationRequested)
                 {
                     await _webSocket.ReceiveMessageAsync(_writer, combined.Token);
                     await WriteMessageDelimiterAsync(combined.Token);

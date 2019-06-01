@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Pipelines;
 using System.Linq;
-using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -29,7 +28,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public IQueryExecutor QueryExecutor { get; set; }
 
-        public WebSocketCloseStatus? CloseStatus { get; set; }
+        public bool Closed { get; set; }
 
         public bool IsDisposed { get; private set; }
         public IDictionary<string, object> RequestProperties
