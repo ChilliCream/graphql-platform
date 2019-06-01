@@ -33,7 +33,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 .ConnectAsync(SubscriptionUri, CancellationToken.None);
 
             // act and assert
-            await ConnectAsync(webSocket);
+            await SessionInitializeAsync(webSocket);
         }
 
         [Fact]
@@ -45,7 +45,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             WebSocket webSocket = await client
                 .ConnectAsync(SubscriptionUri, CancellationToken.None);
 
-            await ConnectAsync(webSocket);
+            await SessionInitializeAsync(webSocket);
 
             var query = new SubscriptionQuery
             {
@@ -107,7 +107,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 new QueryMiddlewareOptions());
         }
 
-        private async Task ConnectAsync(WebSocket webSocket)
+        private async Task SessionInitializeAsync(WebSocket webSocket)
         {
             // act
             await webSocket.SendConnectionInitializeAsync();

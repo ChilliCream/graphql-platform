@@ -13,6 +13,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
     internal sealed class WebSocketSession
         : IDisposable
     {
+        private static readonly TimeSpan KeepAliveTimeout =
+            TimeSpan.FromSeconds(5);
         private const string _protocol = "graphql-ws";
 
         private readonly CancellationTokenSource _cts =
@@ -28,7 +30,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             IWebSocketContext context)
         {
             _context = context;
-            _keepAlive = new WebSocketKeepAlive(context, _cts);
+            _keepAlive = new WebSocketKeepAlive(context, KeepAliveTimeout, _cts);
             _subscriptionReplier = new SubscriptionReplier(
                 _pipe.Reader, new WebSocketPipeline(context, _cts), _cts);
             _subscriptionReceiver = new SubscriptionReceiver(

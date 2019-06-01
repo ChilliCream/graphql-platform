@@ -1,4 +1,5 @@
 #if !ASPNETCLASSIC
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -6,16 +7,17 @@ namespace HotChocolate.AspNetCore.Subscriptions
 {
     internal sealed class WebSocketKeepAlive
     {
-        private readonly int _keepAliveTimeout = 5000;
-
         private readonly IWebSocketContext _context;
+        private readonly TimeSpan _timeout;
         private readonly CancellationTokenSource _cts;
 
         public WebSocketKeepAlive(
             IWebSocketContext context,
+            TimeSpan timeout,
             CancellationTokenSource cts)
         {
             _context = context;
+            _timeout = timeout;
             _cts = cts;
         }
 
@@ -32,7 +34,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             while (!_context.Closed || !_cts.IsCancellationRequested)
             {
-                await Task.Delay(_keepAliveTimeout, _cts.Token)
+                await Task.Delay(_timeout, _cts.Token)
                     .ConfigureAwait(false);
 
                 await _context
