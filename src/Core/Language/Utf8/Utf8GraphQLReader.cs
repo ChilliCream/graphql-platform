@@ -224,7 +224,7 @@ namespace HotChocolate.Language
 
             if (code == GraphQLConstants.Quote)
             {
-                if (_graphQLData.Length > _position + 2
+                if (_length > _position + 2
                     && _graphQLData[_position + 1] == GraphQLConstants.Quote
                     && _graphQLData[_position + 2] == GraphQLConstants.Quote)
                 {
@@ -263,7 +263,7 @@ namespace HotChocolate.Language
             {
                 position++;
             }
-            while (position < _graphQLData.Length
+            while (position < _length
                 && GraphQLConstants.IsLetterOrDigitOrUnderscore(
                     in _graphQLData[position]));
 
@@ -421,7 +421,7 @@ namespace HotChocolate.Language
             else
             {
                 ReadDigits(in code);
-                if (_position < _graphQLData.Length)
+                if (_position < _length)
                 {
                     code = ref _graphQLData[_position];
                 }
@@ -436,7 +436,7 @@ namespace HotChocolate.Language
                 isFloat = true;
                 code = ref _graphQLData[++_position];
                 ReadDigits(in code);
-                if (_position < _graphQLData.Length)
+                if (_position < _length)
                 {
                     code = ref _graphQLData[_position];
                 }
@@ -474,7 +474,7 @@ namespace HotChocolate.Language
                     $"`{(char)firstCode}` ({firstCode}).");
             }
 
-            while (++_position < _graphQLData.Length
+            while (++_position < _length
                 && GraphQLConstants.IsDigit(_graphQLData[_position]))
             { }
         }
@@ -497,7 +497,7 @@ namespace HotChocolate.Language
             var trimStart = _position + 1;
             bool trim = true;
 
-            while (++_position < _graphQLData.Length
+            while (++_position < _length
                 && !GraphQLConstants.IsControlCharacter(
                     in _graphQLData[_position]))
             {
@@ -676,7 +676,7 @@ namespace HotChocolate.Language
                 if (code == GraphQLConstants.NewLine)
                 {
                     int next = _position + 1;
-                    if (next < _graphQLData.Length
+                    if (next < _length
                         && _graphQLData[next] == GraphQLConstants.Return)
                     {
                         _position = next;
@@ -686,7 +686,7 @@ namespace HotChocolate.Language
                 else if (code == GraphQLConstants.Return)
                 {
                     int next = _position + 1;
-                    if (next < _graphQLData.Length
+                    if (next < -_length
                         && _graphQLData[next] == GraphQLConstants.NewLine)
                     {
                         _position = next;
