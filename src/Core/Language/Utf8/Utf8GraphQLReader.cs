@@ -603,6 +603,7 @@ namespace HotChocolate.Language
                     && _graphQLData[_position + 1] == GraphQLConstants.Quote
                     && _graphQLData[_position + 2] == GraphQLConstants.Quote)
                 {
+                    _nextNewLines--;
                     Kind = TokenKind.BlockString;
                     Start = start;
                     End = _position + 2;
