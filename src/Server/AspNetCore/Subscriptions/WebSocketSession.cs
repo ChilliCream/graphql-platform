@@ -16,17 +16,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
         private const string _protocol = "graphql-ws";
         private const int _keepAliveTimeout = 5000;
 
-        private readonly static IRequestHandler[] _requestHandlers =
-            new IRequestHandler[]
-            {
-                new ConnectionInitializeHandler(),
-                new ConnectionTerminateHandler(),
-                new SubscriptionStartHandler(),
-                new SubscriptionStopHandler(),
-            };
-
         private readonly Pipe _pipe = new Pipe();
         private readonly SubscriptionReceiver _subscriptionReceiver;
+        private readonly SubscriptionReplier _subscriptionReplier;
 
         private readonly CancellationTokenSource _cts =
             new CancellationTokenSource();
@@ -36,6 +28,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
             IWebSocketContext context)
         {
             _context = context;
+            _subscriptionReplier = new SubscriptionReplier(
+                _pipe.Reader, new WebSocketPipeline(context, _cts), _cts);
             _subscriptionReceiver = new SubscriptionReceiver(
                 context, _pipe.Writer, _cts);
         }
@@ -45,6 +39,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             try
             {
                 StartKeepConnectionAlive();
+                _subscriptionReplier.Start(cancellationToken);
 
                 await _subscriptionReceiver
                     .StartAsync(cancellationToken)
@@ -54,51 +49,6 @@ namespace HotChocolate.AspNetCore.Subscriptions
             {
                  await _context.CloseAsync().ConfigureAwait(false);
             }
-        }
-
-        private async Task ReceiveMessagesAsync(
-            CancellationToken cancellationToken)
-        {
-            using (var combined = CancellationTokenSource
-                .CreateLinkedTokenSource(cancellationToken, _cts.Token))
-            {
-                while (!_context.CloseStatus.HasValue
-                    || !combined.IsCancellationRequested)
-                {
-                    GenericOperationMessage message = await _context
-                        .ReceiveMessageAsync(combined.Token);
-
-                    if (message == null)
-                    {
-                        await _context.SendConnectionKeepAliveMessageAsync(
-                            combined.Token).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await HandleMessage(message, combined.Token)
-                            .ConfigureAwait(false);
-                    }
-                }
-            }
-        }
-
-        private Task HandleMessage(
-            GenericOperationMessage message,
-            CancellationToken cancellationToken)
-        {
-            foreach (IRequestHandler requestHandler in _requestHandlers)
-            {
-                if (requestHandler.CanHandle(message))
-                {
-                    return requestHandler.HandleAsync(
-                        _context,
-                        message,
-                        cancellationToken);
-                }
-            }
-
-            throw new NotSupportedException(
-                "The specified message type is not supported.");
         }
 
         private void StartKeepConnectionAlive()
