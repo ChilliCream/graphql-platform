@@ -558,7 +558,7 @@ namespace HotChocolate.Configuration
             {
                 case IClrTypeReference r:
                     if (TryNormalizeClrReference(
-                        r, out IClrTypeReference cnr))
+                        r, out ITypeReference cnr))
                     {
                         _depsLup[typeReference] = cnr;
                         normalized = cnr;
@@ -591,7 +591,7 @@ namespace HotChocolate.Configuration
 
         private bool TryNormalizeClrReference(
             IClrTypeReference typeReference,
-            out IClrTypeReference normalized)
+            out ITypeReference normalized)
         {
             if (!BaseTypes.IsNonGenericBaseType(typeReference.Type)
                 && _typeInspector.TryCreate(typeReference.Type,
@@ -608,17 +608,16 @@ namespace HotChocolate.Configuration
                 {
                     for (int i = 0; i < typeInfo.Components.Count; i++)
                     {
-                        normalized = new ClrTypeReference(
+                        var n = new ClrTypeReference(
                             typeInfo.Components[i],
                             typeReference.Context);
 
                         if ((ClrTypes.TryGetValue(
-                                normalized, out ITypeReference r)
+                                n, out ITypeReference r)
                             || ClrTypes.TryGetValue(
-                                normalized.WithoutContext(), out r))
-                            && r is IClrTypeReference cr)
+                                n.WithoutContext(), out r)))
                         {
-                            normalized = cr;
+                            normalized = r;
                             return true;
                         }
                     }

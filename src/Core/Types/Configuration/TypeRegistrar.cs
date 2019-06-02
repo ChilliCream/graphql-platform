@@ -161,14 +161,7 @@ namespace HotChocolate.Configuration
                 else if (typeReference is ISchemaTypeReference str
                     && str.Type is TypeSystemObjectBase tso)
                 {
-                    if (BaseTypes.IsNonGenericBaseType(tso.GetType()))
-                    {
-                        RegisterTypeSystemObject(tso, str);
-                    }
-                    else
-                    {
-                        RegisterTypeSystemObject(tso);
-                    }
+                    RegisterTypeSystemObject(tso, str);
                 }
                 else if (typeReference is ISyntaxTypeReference sr
                     && Scalars.TryGetScalar(

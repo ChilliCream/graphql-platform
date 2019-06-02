@@ -147,12 +147,22 @@ namespace HotChocolate.Configuration
                 throw new NotSupportedException();
             }
 
-            if (reference is ClrTypeDirectiveReference cr
-                && _typeInitializer.TryGetRegisteredType(
-                    new ClrTypeReference(cr.ClrType, TypeContext.None),
-                    out RegisteredType registeredType))
+
+
+            if (reference is ClrTypeDirectiveReference cr)
             {
-                return (DirectiveType)registeredType.Type;
+                ITypeReference a = new ClrTypeReference(cr.ClrType, TypeContext.None);
+                if (!_typeInitializer.ClrTypes.TryGetValue(a, out ITypeReference internalReference))
+                {
+                    internalReference = a;
+                }
+
+                if (_typeInitializer.TryGetRegisteredType(
+                    internalReference,
+                    out RegisteredType registeredType))
+                {
+                    return (DirectiveType)registeredType.Type;
+                }
             }
 
             if (reference is NameDirectiveReference nr)
