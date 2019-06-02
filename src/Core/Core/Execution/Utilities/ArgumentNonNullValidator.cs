@@ -43,7 +43,6 @@ namespace HotChocolate.Execution
             return default;
         }
 
-
         private static Report ValidateObject(
             InputObjectType type,
             ObjectValueNode value,
