@@ -3,9 +3,9 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -320,7 +320,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     identity.AddClaim(new Claim(
                         ClaimTypes.Role,
                         "b"));
-                    context.User.AddIdentity(identity);
+                    context.AddIdentity(identity);
                 });
 
             var request = "{ roles }";
@@ -360,7 +360,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     identity.AddClaim(new Claim(
                         ClaimTypes.Role,
                         "c"));
-                    context.User.AddIdentity(identity);
+                    context.AddIdentity(identity);
                 });
 
             var request = "{ roles_ab }";
@@ -539,7 +539,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     identity.AddClaim(new Claim(
                         ClaimTypes.DateOfBirth,
                         "2013-05-30"));
-                    context.User.AddIdentity(identity);
+                    context.AddIdentity(identity);
                 });
 
             var request = "{ piped }";
@@ -575,7 +575,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         private TestServer CreateTestServer(
             Action<IServiceCollection> configureServices,
-            Action<HttpContext> configureUser)
+            Action<IHttpContext> configureUser)
         {
             return TestServerFactory.Create(
                 builder =>

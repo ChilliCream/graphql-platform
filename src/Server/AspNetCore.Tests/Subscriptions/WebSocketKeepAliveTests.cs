@@ -1,6 +1,8 @@
-﻿using System;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Configuration;
+using HotChocolate.Execution;
 using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions
@@ -12,7 +14,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             // arrange
             var timeout = TimeSpan.FromMilliseconds(100);
-            var context = new InMemoryWebSocketContext();
+            (WebSocketContext context, WebSocketMock socket) =
+                WebSocketContextHelper.Create();
             var keepAlive = new WebSocketKeepAlive(context, timeout, new CancellationTokenSource());
 
             // act
@@ -20,7 +23,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             await Task.Delay(timeout.Add(TimeSpan.FromMilliseconds(100)));
 
             // assert
-            Assert.Collection(context.Outgoing,
+            Assert.Collection(socket.Outgoing,
                 t =>
                 {
                     Assert.Equal(MessageTypes.Connection.KeepAlive, t.Type);

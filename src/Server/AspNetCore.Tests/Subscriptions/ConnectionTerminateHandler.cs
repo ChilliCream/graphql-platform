@@ -1,5 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Configuration;
+using HotChocolate.Execution;
 using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions
@@ -44,7 +46,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
         public async Task Handle_TerminateMessage_True()
         {
             // arrange
-            var webSocketContext = new InMemoryWebSocketContext();
+            (WebSocketContext context, WebSocketMock socket) =
+                WebSocketContextHelper.Create();
             var handler = new ConnectionTerminateHandler();
             var message = new GenericOperationMessage
             {
@@ -53,12 +56,12 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             // act
             await handler.HandleAsync(
-                webSocketContext,
+                context,
                 message,
                 CancellationToken.None);
 
             // assert
-            Assert.True(webSocketContext.IsDisposed);
+            Assert.True(socket.Closed);
         }
     }
 }

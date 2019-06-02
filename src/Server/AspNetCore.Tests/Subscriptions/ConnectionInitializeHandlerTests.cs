@@ -44,7 +44,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
         public async Task Handle_InitializeMessage_True()
         {
             // arrange
-            var webSocketContext = new InMemoryWebSocketContext();
+            (WebSocketContext context, WebSocketMock socket) =
+                WebSocketContextHelper.Create();
             var handler = new ConnectionInitializeHandler();
             var message = new GenericOperationMessage
             {
@@ -53,12 +54,12 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             // act
             await handler.HandleAsync(
-                webSocketContext,
+                context,
                 message,
                 CancellationToken.None);
 
             // assert
-            Assert.Collection(webSocketContext.Outgoing,
+            Assert.Collection(socket.Outgoing,
                 t =>
                 {
                     Assert.Equal(MessageTypes.Connection.Accept, t.Type);

@@ -6,14 +6,13 @@ using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
     internal interface IWebSocketContext
         : IDisposable
     {
-        HttpContext HttpContext { get; }
+        IHttpContext HttpContext { get; }
 
         IQueryExecutor QueryExecutor { get; }
 

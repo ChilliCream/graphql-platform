@@ -8,7 +8,6 @@ using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
@@ -24,7 +23,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         private bool _disposed;
 
         public WebSocketContext(
-            HttpContext httpContext,
+            IHttpContext httpContext,
             IWebSocket webSocket,
             IQueryExecutor queryExecutor,
             OnConnectWebSocketAsync onConnectAsync,
@@ -41,7 +40,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             _onCreateRequest = onCreateRequest;
         }
 
-        public HttpContext HttpContext { get; }
+        public IHttpContext HttpContext { get; }
 
         public IQueryExecutor QueryExecutor { get; }
 

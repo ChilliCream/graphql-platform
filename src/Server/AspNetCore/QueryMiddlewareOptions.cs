@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.Execution;
 
 #if ASPNETCLASSIC
@@ -18,12 +19,12 @@ namespace HotChocolate.AspNetCore
 #endif
 {
     public delegate Task<ConnectionStatus> OnConnectWebSocketAsync(
-        HttpContext context,
+        IHttpContext context,
         IDictionary<string, object> properties,
         CancellationToken cancellationToken);
 
     public delegate Task OnCreateRequestAsync(
-        HttpContext context,
+        IHttpContext context,
         IQueryRequestBuilder requestBuilder,
         CancellationToken cancellationToken);
 
