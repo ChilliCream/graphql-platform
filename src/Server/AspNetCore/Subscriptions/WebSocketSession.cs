@@ -84,8 +84,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 .Contains(socket.SubProtocol))
             {
                 var context = new WebSocketContext(
-                    httpContext, socket, queryExecutor,
-                    onConnectAsync, onCreateRequest);
+                    httpContext,
+                    new WebSocketWrapper(socket),
+                    queryExecutor,
+                    onConnectAsync,
+                    onCreateRequest);
 
                 return new WebSocketSession(context);
             }
