@@ -8,61 +8,6 @@ namespace HotChocolate.AspNetCore.Authorization
     public class AuthorizeDirectiveTests
     {
         [Fact]
-        public void CreateInstance_Policy_PolicyIsNull()
-        {
-            // arrange
-            // act
-            Action action = () => new AuthorizeDirective((string)null);
-
-            // assert
-            Assert.Equal(
-                "Either policy or roles has to be set.",
-                Assert.Throws<ArgumentException>(action).Message);
-        }
-
-        [Fact]
-        public void CreateInstance_Roles_RolesIsNull()
-        {
-            // arrange
-            // act
-            Action action = () => new AuthorizeDirective(
-                (IReadOnlyCollection<string>)null);
-
-            // assert
-            Assert.Equal(
-                "Either policy or roles has to be set.",
-                Assert.Throws<ArgumentException>(action).Message);
-        }
-
-        [Fact]
-        public void CreateInstance_PolicyRoles_PolicyIsNullRolesIsNull()
-        {
-            // arrange
-            // act
-            Action action = () => new AuthorizeDirective(null, null);
-
-            // assert
-            Assert.Equal(
-                "Either policy or roles has to be set.",
-                Assert.Throws<ArgumentException>(action).Message);
-        }
-
-        [Fact]
-        public void CreateInstance_PolicyRoles_PolicyIsNullRolesIsEmpty()
-        {
-            // arrange
-            // act
-            Action action = () => new AuthorizeDirective(
-                null,
-                Array.Empty<string>());
-
-            // assert
-            Assert.Equal(
-                "Either policy or roles has to be set.",
-                Assert.Throws<ArgumentException>(action).Message);
-        }
-
-        [Fact]
         public void CreateInstance_PolicyRoles_PolicyIsNullRolesHasItems()
         {
             // arrange
