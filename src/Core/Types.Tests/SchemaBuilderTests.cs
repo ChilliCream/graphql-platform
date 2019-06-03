@@ -932,6 +932,23 @@ namespace HotChocolate
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Could_Not_Resolve_Type()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddDocumentFromString("type Query { foo : Bar } scalar Bar")
+                .AddResolver("Query", "foo", "bar")
+                .Create();
+
+            // assert
+            Assert.Equal(
+                "Unable to resolve type reference `Output: Bar`. " +
+                "- Type: Query",
+                Assert.Throws<SchemaException>(action).Message);
+        }
+
         public class DynamicFooType
             : ObjectType
         {
