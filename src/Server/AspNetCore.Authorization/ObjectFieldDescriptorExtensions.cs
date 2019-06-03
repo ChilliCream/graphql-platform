@@ -24,6 +24,17 @@ namespace HotChocolate.Types
 
 #if !ASPNETCLASSIC
         public static IObjectFieldDescriptor Authorize(
+            this IObjectFieldDescriptor self)
+        {
+            if (self == null)
+            {
+                throw new ArgumentNullException(nameof(self));
+            }
+
+            return self.Directive(new AuthorizeDirective());
+        }
+
+        public static IObjectFieldDescriptor Authorize(
             this IObjectFieldDescriptor self,
             string policy)
         {

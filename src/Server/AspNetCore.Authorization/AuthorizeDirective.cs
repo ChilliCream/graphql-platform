@@ -84,15 +84,8 @@ namespace HotChocolate.AspNetCore.Authorization
             string policy,
             IReadOnlyCollection<string> roles)
         {
-            if (string.IsNullOrEmpty(policy)
-                && (roles == null || roles.Count == 0))
-            {
-                throw new ArgumentException(
-                    "Either policy or roles has to be set.");
-            }
-
             Policy = policy;
-            Roles = (IReadOnlyCollection<string>)roles ?? Array.Empty<string>();
+            Roles = roles ?? Array.Empty<string>();
         }
 
         public AuthorizeDirective(
