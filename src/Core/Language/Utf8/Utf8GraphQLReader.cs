@@ -1,9 +1,6 @@
-using System.Collections.Generic;
-using System.Xml.Schema;
 using System.Buffers;
 using System;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Globalization;
 using HotChocolate.Language.Properties;
 
@@ -18,15 +15,20 @@ namespace HotChocolate.Language
         private int _length;
         private int _position;
         private TokenKind _kind;
+        public int _start;
+        public int _end;
+        public int _line;
+        public int _lineStart;
+        public int _column;
 
         public Utf8GraphQLReader(ReadOnlySpan<byte> graphQLData)
         {
             _kind = TokenKind.StartOfFile;
-            Start = 0;
-            End = 0;
-            LineStart = 0;
-            Line = 1;
-            Column = 1;
+            _start = 0;
+            _end = 0;
+            _lineStart = 0;
+            _line = 1;
+            _column = 1;
             _graphQLData = graphQLData;
             _length = graphQLData.Length;
             _nextNewLines = 0;
@@ -44,12 +46,12 @@ namespace HotChocolate.Language
         /// <summary>
         /// Gets the character offset at which this node begins.
         /// </summary>
-        public int Start { get; private set; }
+        public int Start => _start;
 
         /// <summary>
         /// Gets the character offset at which this node ends.
         /// </summary>
-        public int End { get; private set; }
+        public int End => _end;
 
         /// <summary>
         /// The current position of the lexer pointer.
@@ -60,18 +62,18 @@ namespace HotChocolate.Language
         /// Gets the 1-indexed line number on which this
         /// <see cref="SyntaxToken" /> appears.
         /// </summary>
-        public int Line { get; private set; }
+        public int Line => _line;
 
         /// <summary>
         /// The source index of where the current line starts.
         /// </summary>
-        public int LineStart { get; private set; }
+        public int LineStart => _lineStart;
 
         /// <summary>
         /// Gets the 1-indexed column number at which this
         /// <see cref="SyntaxToken" /> begins.
         /// </summary>
-        public int Column { get; private set; }
+        public int Column => _column;
 
         /// <summary>
         /// For non-punctuation tokens, represents the interpreted
@@ -206,30 +208,30 @@ namespace HotChocolate.Language
 
             if (IsEndOfStream())
             {
-                Start = _position;
-                End = _position;
+                _start = _position;
+                _end = _position;
                 _kind = TokenKind.EndOfFile;
                 _value = null;
                 return false;
             }
 
-            ref readonly byte code = ref _graphQLData[_position];
+            byte code = _graphQLData[_position];
 
-            if (GraphQLConstants.IsLetterOrUnderscore(in code))
+            if (GraphQLConstants.IsLetterOrUnderscore(code))
             {
                 ReadNameToken();
                 return true;
             }
 
-            if (GraphQLConstants.IsPunctuator(in code))
+            if (GraphQLConstants.IsPunctuator(code))
             {
-                ReadPunctuatorToken(in code);
+                ReadPunctuatorToken(code);
                 return true;
             }
 
-            if (GraphQLConstants.IsDigitOrMinus(in code))
+            if (GraphQLConstants.IsDigitOrMinus(code))
             {
-                ReadNumberToken(in code);
+                ReadNumberToken(code);
                 return true;
             }
 
@@ -282,11 +284,11 @@ namespace HotChocolate.Language
             }
             while (position < _length
                 && GraphQLConstants.IsLetterOrDigitOrUnderscore(
-                    in _graphQLData[position]));
+                    _graphQLData[position]));
 
             _kind = TokenKind.Name;
-            Start = start;
-            End = position;
+            _start = start;
+            _end = position;
             _value = _graphQLData.Slice(start, position - start);
             _position = position;
         }
@@ -312,8 +314,8 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReadPunctuatorToken(in byte code)
         {
-            Start = _position;
-            End = ++_position;
+            _start = _position;
+            _end = ++_position;
             _value = null;
 
             switch (code)
@@ -375,7 +377,7 @@ namespace HotChocolate.Language
                         && _graphQLData[_position + 1] == GraphQLConstants.Dot)
                     {
                         _position += 2;
-                        End = _position;
+                        _end = _position;
                         _kind = TokenKind.Spread;
                     }
                     else
@@ -413,22 +415,21 @@ namespace HotChocolate.Language
         /// Returns the int or float tokens read from the current lexer state.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ReadNumberToken(
-            in byte firstCode)
+        private void ReadNumberToken(byte firstCode)
         {
             int start = _position;
-            ref readonly byte code = ref firstCode;
+            byte code = firstCode;
             var isFloat = false;
 
             if (code == GraphQLConstants.Minus)
             {
-                code = ref _graphQLData[++_position];
+                code = _graphQLData[++_position];
             }
 
             if (code == GraphQLConstants.Zero)
             {
-                code = ref _graphQLData[++_position];
-                if (GraphQLConstants.IsDigit(in code))
+                code = _graphQLData[++_position];
+                if (GraphQLConstants.IsDigit(code))
                 {
                     throw new SyntaxException(this,
                         "Invalid number, unexpected digit after 0: " +
@@ -437,52 +438,52 @@ namespace HotChocolate.Language
             }
             else
             {
-                ReadDigits(in code);
+                ReadDigits(code);
                 if (_position < _length)
                 {
-                    code = ref _graphQLData[_position];
+                    code = _graphQLData[_position];
                 }
                 else
                 {
-                    code = ref _space;
+                    code = _space;
                 }
             }
 
             if (code == GraphQLConstants.Dot)
             {
                 isFloat = true;
-                code = ref _graphQLData[++_position];
-                ReadDigits(in code);
+                code = _graphQLData[++_position];
+                ReadDigits(code);
                 if (_position < _length)
                 {
-                    code = ref _graphQLData[_position];
+                    code = _graphQLData[_position];
                 }
                 else
                 {
-                    code = ref _space;
+                    code = GraphQLConstants.Space;
                 }
             }
 
             if ((code | (char)0x20) == GraphQLConstants.E)
             {
                 isFloat = true;
-                code = ref _graphQLData[++_position];
+                code = _graphQLData[++_position];
                 if (code == GraphQLConstants.Plus
                     || code == GraphQLConstants.Minus)
                 {
-                    code = ref _graphQLData[++_position];
+                    code = _graphQLData[++_position];
                 }
-                ReadDigits(in code);
+                ReadDigits(code);
             }
 
             _kind = isFloat ? TokenKind.Float : TokenKind.Integer;
-            Start = start;
-            End = _position;
+            _start = start;
+            _end = _position;
             _value = _graphQLData.Slice(start, _position - start);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ReadDigits(in byte firstCode)
+        private void ReadDigits(byte firstCode)
         {
             if (!firstCode.IsDigit())
             {
@@ -516,7 +517,7 @@ namespace HotChocolate.Language
 
             while (++_position < _length
                 && !GraphQLConstants.IsControlCharacter(
-                    in _graphQLData[_position]))
+                    _graphQLData[_position]))
             {
                 if (trim)
                 {
@@ -536,8 +537,8 @@ namespace HotChocolate.Language
             }
 
             _kind = TokenKind.Comment;
-            Start = start;
-            End = _position;
+            _start = start;
+            _end = _position;
             _value = _graphQLData.Slice(trimStart, _position - trimStart);
         }
 
@@ -556,8 +557,7 @@ namespace HotChocolate.Language
         private void ReadStringValueToken()
         {
             var start = _position;
-
-            ref readonly byte code = ref _graphQLData[++_position];
+            byte code = _graphQLData[++_position];
 
             while (code != GraphQLConstants.NewLine
                 && code != GraphQLConstants.Return)
@@ -566,15 +566,15 @@ namespace HotChocolate.Language
                 if (code == GraphQLConstants.Quote)
                 {
                     _kind = TokenKind.String;
-                    Start = start;
-                    End = _position;
+                    _start = start;
+                    _end = _position;
                     _value = _graphQLData.Slice(start + 1, _position - start - 1);
                     _position++;
                     return;
                 }
 
                 // SourceCharacter
-                if (GraphQLConstants.IsControlCharacter(in code))
+                if (GraphQLConstants.IsControlCharacter(code))
                 {
                     throw new SyntaxException(this,
                         $"Invalid character within String: {code}.");
@@ -582,15 +582,15 @@ namespace HotChocolate.Language
 
                 if (code == GraphQLConstants.Backslash)
                 {
-                    code = ref _graphQLData[++_position];
-                    if (!GraphQLConstants.IsValidEscapeCharacter(in code))
+                    code = _graphQLData[++_position];
+                    if (!GraphQLConstants.IsValidEscapeCharacter(code))
                     {
                         throw new SyntaxException(this,
                             $"Invalid character escape sequence: \\{code}.");
                     }
                 }
 
-                code = ref _graphQLData[++_position];
+                code = _graphQLData[++_position];
             }
 
             throw new SyntaxException(this, "Unterminated string.");
@@ -611,7 +611,7 @@ namespace HotChocolate.Language
             var start = _position - 2;
             _nextNewLines = 0;
 
-            ref readonly byte code = ref _graphQLData[++_position];
+            byte code = _graphQLData[++_position];
 
             while (!IsEndOfStream())
             {
@@ -622,10 +622,10 @@ namespace HotChocolate.Language
                 {
                     _nextNewLines--;
                     _kind = TokenKind.BlockString;
-                    Start = start;
-                    End = _position + 2;
+                    _start = start;
+                    _end = _position + 2;
                     _value = _graphQLData.Slice(start + 3, _position - start - 3);
-                    _position = End + 1;
+                    _position = _end + 1;
                     return;
                 }
 
@@ -666,7 +666,7 @@ namespace HotChocolate.Language
                     _nextNewLines++;
                 }
 
-                code = ref _graphQLData[++_position];
+                code = _graphQLData[++_position];
             }
 
             throw new SyntaxException(this, "Unterminated string.");
@@ -686,9 +686,9 @@ namespace HotChocolate.Language
                 _nextNewLines = 0;
             }
 
-            ref readonly byte code = ref _graphQLData[_position];
+            byte code = _graphQLData[_position];
 
-            while (GraphQLConstants.IsWhitespace(in code))
+            while (GraphQLConstants.IsWhitespace(code))
             {
                 if (code == GraphQLConstants.NewLine)
                 {
@@ -718,20 +718,19 @@ namespace HotChocolate.Language
                     return;
                 }
 
-                code = ref _graphQLData[_position];
+                code = _graphQLData[_position];
             }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void SkipBoml()
         {
-            ref readonly byte code = ref _graphQLData[_position];
+            byte code = _graphQLData[_position];
 
             if (code == 239)
             {
-                ref readonly byte second = ref _graphQLData[_position + 1];
-                ref readonly byte third = ref _graphQLData[_position + 2];
-                if (second == 187 && third == 191)
+                if (_graphQLData[_position + 1] == 187
+                    && _graphQLData[_position + 2] == 191)
                 {
                     _position += 3;
                 }
@@ -744,8 +743,8 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void NewLine()
         {
-            Line++;
-            LineStart = _position;
+            _line++;
+            _lineStart = _position;
             UpdateColumn();
         }
 
@@ -763,8 +762,8 @@ namespace HotChocolate.Language
                     "Must be greater or equal to 1.");
             }
 
-            Line += lines;
-            LineStart = _position;
+            _line += lines;
+            _lineStart = _position;
             UpdateColumn();
         }
 
@@ -774,7 +773,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void UpdateColumn()
         {
-            Column = 1 + _position - LineStart;
+            _column = 1 + _position - _lineStart;
         }
 
         /// <summary>

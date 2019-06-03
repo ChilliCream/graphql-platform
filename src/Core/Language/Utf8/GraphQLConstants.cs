@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Language
+namespace HotChocolate.Language
 {
     /// <summary>
     /// This class provides internal char utilities
@@ -61,48 +61,48 @@
         public const byte Return = (byte)'\r';
         public const byte Quote = (byte)'"';
 
-        public static bool IsLetterOrDigitOrUnderscore(in this byte c)
+        public static bool IsLetterOrDigitOrUnderscore(this byte c)
         {
-            return IsLetterOrUnderscore(in c) || IsDigit(in c);
+            return IsLetterOrUnderscore(c) || IsDigit(c);
         }
 
-        public static bool IsLetter(in this byte c)
+        public static bool IsLetter(this byte c)
         {
             byte normalized = (byte)(c | 0x20);
             return (normalized >= A && normalized <= Z);
         }
 
-        public static bool IsLetterOrUnderscore(in this byte c)
+        public static bool IsLetterOrUnderscore(this byte c)
         {
             return _isLetterOrUnderscore[c];
         }
 
-        public static bool IsDigit(in this byte c)
+        public static bool IsDigit(this byte c)
         {
             return c >= 48 && c <= 57;
         }
 
-        public static bool IsDigitOrMinus(in this byte c)
+        public static bool IsDigitOrMinus(this byte c)
         {
             return _isDigitOrMinus[c];
         }
 
-        public static bool IsPunctuator(in this byte c)
+        public static bool IsPunctuator(this byte c)
         {
             return _isPunctuator[c];
         }
 
-        public static bool IsWhitespace(in this byte c)
+        public static bool IsWhitespace(this byte c)
         {
             return _isWhitespace[c];
         }
 
-        public static bool IsValidEscapeCharacter(in this byte c)
+        public static bool IsValidEscapeCharacter(this byte c)
         {
             return _isEscapeCharacter[c];
         }
 
-        public static byte EscapeCharacter(in this byte c)
+        public static byte EscapeCharacter(this byte c)
         {
             switch (c)
             {
@@ -121,7 +121,7 @@
             }
         }
 
-        public static bool IsControlCharacter(in this byte c)
+        public static bool IsControlCharacter(this byte c)
         {
             return _isControlCharacter[c];
         }

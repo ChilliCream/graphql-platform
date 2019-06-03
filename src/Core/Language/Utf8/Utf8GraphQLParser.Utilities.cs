@@ -30,10 +30,10 @@ namespace HotChocolate.Language
         private TokenInfo Start() =>
             _createLocation
                 ? new TokenInfo(
-                    _reader.Start,
-                    _reader.End,
-                    _reader.Line,
-                    _reader.Column)
+                    _reader._start,
+                    _reader._end,
+                    _reader._line,
+                    _reader._column)
                 : default;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -41,7 +41,7 @@ namespace HotChocolate.Language
             _createLocation
                 ? new Location(
                     start.Start,
-                    _reader.End,
+                    _reader._end,
                     start.Line,
                     start.Column)
                 : null;
