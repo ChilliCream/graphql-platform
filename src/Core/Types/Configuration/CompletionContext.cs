@@ -147,8 +147,6 @@ namespace HotChocolate.Configuration
                 throw new NotSupportedException();
             }
 
-
-
             if (reference is ClrTypeDirectiveReference cr)
             {
                 ITypeReference a = new ClrTypeReference(cr.ClrType, TypeContext.None);
@@ -239,7 +237,9 @@ namespace HotChocolate.Configuration
             }
 
             return _typeInitializer.Types.Values
-                .Select(t => t.Type).OfType<T>();
+                .Select(t => t.Type)
+                .OfType<T>()
+                .Distinct();
         }
 
         public void ReportError(ISchemaError error)

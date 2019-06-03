@@ -2,6 +2,10 @@
   query: Query
 }
 
+type MyBar {
+  bar: String
+}
+
 type MyFoo {
   bar: String
 }

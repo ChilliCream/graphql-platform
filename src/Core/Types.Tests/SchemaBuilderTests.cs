@@ -898,6 +898,30 @@ namespace HotChocolate
                 .Resolver(new object()));
 
             // act
+            Action action = () => SchemaBuilder.New()
+                .AddQueryType(queryType)
+                .AddType(new DynamicFooType("MyFoo"))
+                .AddType(new DynamicFooType("MyBar"))
+                .Create();
+
+            // assert
+            Assert.Equal(
+                "The name `MyFoo` was already registered by another type. " +
+                "- Type: MyFoo",
+                Assert.Throws<SchemaException>(action).Message);
+        }
+
+        [Fact]
+        public void UseFirstRegisteredDynamicType()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type<DynamicFooType>()
+                .Resolver(new object()));
+
+            // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType(queryType)
                 .AddType(new DynamicFooType("MyFoo"))

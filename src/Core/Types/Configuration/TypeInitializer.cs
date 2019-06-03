@@ -179,12 +179,14 @@ namespace HotChocolate.Configuration
         {
             var extensions = _types.Values
                 .Where(t => t.Type is INamedTypeExtensionMerger)
+                .Distinct()
                 .ToList();
 
             if (extensions.Count > 0)
             {
                 var types = _types.Values
                     .Where(t => t.Type is INamedType)
+                    .Distinct()
                     .ToList();
 
                 foreach (RegisteredType extension in extensions)
@@ -204,7 +206,7 @@ namespace HotChocolate.Configuration
                         // update dependencies
                         context = _cmpCtx[type];
                         type = type.AddDependencies(extension.Dependencies);
-                        _types[type.Reference] = type;
+                        type.Update(_types);
                         _cmpCtx[type] = context;
                         CopyAlternateNames(_cmpCtx[extension], context);
                     }
@@ -334,12 +336,20 @@ namespace HotChocolate.Configuration
 
         private void RegisterImplicitInterfaceDependencies()
         {
-            var withClrType =
-                _types.Values.Where(t => t.ClrType != typeof(object)).ToList();
-            var interfaceTypes =
-                withClrType.Where(t => t.Type is InterfaceType).ToList();
-            var objectTypes =
-                withClrType.Where(t => t.Type is ObjectType).ToList();
+            var withClrType = _types.Values
+                .Where(t => t.ClrType != typeof(object))
+                .Distinct()
+                .ToList();
+
+            var interfaceTypes = withClrType
+                .Where(t => t.Type is InterfaceType)
+                .Distinct()
+                .ToList();
+
+            var objectTypes = withClrType
+                .Where(t => t.Type is ObjectType)
+                .Distinct()
+                .ToList();
 
             var dependencies = new List<TypeDependency>();
 
@@ -361,8 +371,7 @@ namespace HotChocolate.Configuration
                 if (dependencies.Count > 0)
                 {
                     dependencies.AddRange(objectType.Dependencies);
-                    _types[objectType.Reference] =
-                        objectType.WithDependencies(dependencies);
+                    objectType.WithDependencies(dependencies).Update(_types);
                     dependencies = new List<TypeDependency>();
                 }
             }
@@ -400,7 +409,7 @@ namespace HotChocolate.Configuration
                             return false;
                         }
                         _named[registeredType.Type.Name] =
-                            registeredType.Reference;
+                            registeredType.References[0];
                     }
 
                     return true;
@@ -416,7 +425,7 @@ namespace HotChocolate.Configuration
 
         private void UpdateDependencyLookup()
         {
-            foreach (RegisteredType registeredType in _types.Values)
+            foreach (RegisteredType registeredType in _types.Values.Distinct())
             {
                 TryNormalizeDependencies(
                     registeredType,
@@ -458,21 +467,29 @@ namespace HotChocolate.Configuration
                         failed = true;
                         break;
                     }
-                    processed.Add(registeredType.Reference);
+
+                    foreach (ITypeReference reference in
+                        registeredType.References)
+                    {
+                        processed.Add(reference);
+                    }
                 }
 
-                batch.Clear();
-                batch.AddRange(GetNextBatch(processed, kind));
+                if (!failed)
+                {
+                    batch.Clear();
+                    batch.AddRange(GetNextBatch(processed, kind));
+                }
             }
 
-            if (processed.Count < _types.Count)
+            if (!failed && processed.Count < _types.Count)
             {
-                foreach (RegisteredType type in _types.Values
-                    .Where(t => !processed.Contains(t.Reference)))
+                foreach (RegisteredType type in _types.Values.Distinct()
+                    .Where(t => !processed.Contains(t.References[0])))
                 {
                     string name = type.Type.Name.HasValue
                         ? type.Type.Name.Value
-                        : type.Reference.ToString();
+                        : type.References.ToString();
 
                     _errors.Add(SchemaErrorBuilder.New()
                         .SetMessage(string.Format(
@@ -494,17 +511,18 @@ namespace HotChocolate.Configuration
         private IEnumerable<RegisteredType> GetInitialBatch(
             TypeDependencyKind kind)
         {
-            return _types.Values.Where(t =>
-                t.Dependencies.All(d => d.Kind != kind));
+            return _types.Values
+                .Where(t => t.Dependencies.All(d => d.Kind != kind))
+                .Distinct();
         }
 
         private IEnumerable<RegisteredType> GetNextBatch(
             ISet<ITypeReference> processed,
             TypeDependencyKind kind)
         {
-            foreach (RegisteredType type in _types.Values)
+            foreach (RegisteredType type in _types.Values.Distinct())
             {
-                if (!processed.Contains(type.Reference))
+                if (!processed.Contains(type.References[0]))
                 {
                     IEnumerable<ITypeReference> references =
                         type.Dependencies.Where(t => t.Kind == kind)
