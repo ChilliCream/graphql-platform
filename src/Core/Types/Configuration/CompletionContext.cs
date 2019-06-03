@@ -87,7 +87,7 @@ namespace HotChocolate.Configuration
                             "Unable to resolve type reference `{0}`.",
                             reference))
                         .SetTypeSystemObject(Type)
-                        .SetExtension("reference", reference)
+                        .SetExtension(nameof(reference), reference)
                         .Build());
             }
             return type;
@@ -161,10 +161,13 @@ namespace HotChocolate.Configuration
 
             if (reference is ClrTypeDirectiveReference cr)
             {
-                ITypeReference a = new ClrTypeReference(cr.ClrType, TypeContext.None);
-                if (!_typeInitializer.ClrTypes.TryGetValue(a, out ITypeReference internalReference))
+                ITypeReference clrTypeReference = new ClrTypeReference(
+                    cr.ClrType, TypeContext.None);
+                if (!_typeInitializer.ClrTypes.TryGetValue(
+                    clrTypeReference,
+                    out ITypeReference internalReference))
                 {
-                    internalReference = a;
+                    internalReference = clrTypeReference;
                 }
 
                 if (_typeInitializer.TryGetRegisteredType(
