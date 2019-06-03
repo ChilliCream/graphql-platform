@@ -154,11 +154,52 @@ namespace HotChocolate.Execution
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task CachedVariablesAreNotAltered()
+        {
+            // arrange
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterQueryType(new ObjectType<Query>(d =>
+                {
+                    d.BindFields(BindingBehavior.Explicit);
+                    d.Field(t => t.SingleFoo(default))
+                        .Name("a")
+                        .Type<ObjectType<Bar>>()
+                        .Argument("foo", a => a.Type<InputObjectType<Foo>>());
+                }));
+
+                c.RegisterType(new ObjectType<Bar>());
+                c.RegisterType(new InputObjectType<Foo>());
+            });
+
+            var obj = new ObjectValueNode(new List<ObjectFieldNode>
+            {
+                new ObjectFieldNode("bar", new StringValueNode("123"))
+            });
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            await executor.ExecuteAsync(
+                "query x { a(foo:{bar: \"abc\"}) { foo } }");
+
+            IExecutionResult result =
+                await executor.ExecuteAsync(
+                    "query x { a(foo:{bar: \"abc\"}) { foo } }",
+                    new Dictionary<string, object> { { "x", obj } });
+
+            // assert
+            Assert.Empty(result.Errors);
+            result.MatchSnapshot();
+        }
+
 
         public class Query
         {
             public Bar SingleFoo(Foo foo)
             {
+                foo.Bar += "_";
                 return new Bar { Foo = foo.Bar };
             }
 

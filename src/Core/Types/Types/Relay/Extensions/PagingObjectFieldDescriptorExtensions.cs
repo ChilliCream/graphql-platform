@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Relay
     {
         public static IObjectFieldDescriptor UsePaging<TSchemaType, TClrType>(
             this IObjectFieldDescriptor descriptor)
-            where TSchemaType : IOutputType, new()
+            where TSchemaType : class, IOutputType
         {
             return descriptor
                 .AddPagingArguments()
@@ -19,7 +19,7 @@ namespace HotChocolate.Types.Relay
 
         public static IObjectFieldDescriptor UsePaging<TSchemaType>(
             this IObjectFieldDescriptor descriptor)
-            where TSchemaType : IOutputType, new()
+            where TSchemaType : class, IOutputType
         {
             FieldMiddleware placeholder =
                 next => context => Task.CompletedTask;

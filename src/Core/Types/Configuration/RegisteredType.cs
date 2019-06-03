@@ -14,15 +14,32 @@ namespace HotChocolate.Configuration
             TypeSystemObjectBase type,
             IReadOnlyList<TypeDependency> dependencies)
         {
-            Reference = reference
-                ?? throw new ArgumentNullException(nameof(reference));
+            if (reference == null)
+            {
+                throw new ArgumentNullException(nameof(reference));
+            }
+
+            References = new[] { reference };
             Type = type
                 ?? throw new ArgumentNullException(nameof(type));
             Dependencies = dependencies
                 ?? throw new ArgumentNullException(nameof(dependencies));
         }
 
-        public ITypeReference Reference { get; }
+        public RegisteredType(
+            IReadOnlyList<ITypeReference> references,
+            TypeSystemObjectBase type,
+            IReadOnlyList<TypeDependency> dependencies)
+        {
+            References = references
+                ?? throw new ArgumentNullException(nameof(references));
+            Type = type
+                ?? throw new ArgumentNullException(nameof(type));
+            Dependencies = dependencies
+                ?? throw new ArgumentNullException(nameof(dependencies));
+        }
+
+        public IReadOnlyList<ITypeReference> References { get; }
 
         public TypeSystemObjectBase Type { get; }
 
@@ -48,7 +65,7 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(dependencies));
             }
 
-            return new RegisteredType(Reference, Type, dependencies);
+            return new RegisteredType(References, Type, dependencies);
         }
 
         public RegisteredType AddDependencies(
@@ -62,7 +79,15 @@ namespace HotChocolate.Configuration
             var merged = Dependencies.ToList();
             merged.AddRange(dependencies);
 
-            return new RegisteredType(Reference, Type, merged);
+            return new RegisteredType(References, Type, merged);
+        }
+
+        public void Update(IDictionary<ITypeReference, RegisteredType> types)
+        {
+            foreach (ITypeReference reference in References)
+            {
+                types[reference] = this;
+            }
         }
     }
 }

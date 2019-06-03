@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -9,7 +10,7 @@ namespace HotChocolate.Types.Relay
     public class ConnectionType<T>
         : ObjectType<IConnection>
         , IConnectionType
-        where T : IOutputType, new()
+        where T : IOutputType
     {
         public ConnectionType()
             : base(descriptor => Configure(descriptor))
@@ -27,6 +28,7 @@ namespace HotChocolate.Types.Relay
         }
 
         public IEdgeType EdgeType { get; private set; }
+
 
         protected new static void Configure(
             IObjectTypeDescriptor<IConnection> descriptor)
@@ -47,6 +49,12 @@ namespace HotChocolate.Types.Relay
                 .Name("edges")
                 .Description("A list of edges.")
                 .Type<ListType<NonNullType<EdgeType<T>>>>();
+
+            descriptor.Field("items")
+                .Description("A flattened list of the nodes.")
+                .Type<ListType<T>>()
+                .Resolver(ctx =>
+                    ctx.Parent<IConnection>().Edges.Select(t => t.Node));
         }
 
         protected override void OnRegisterDependencies(
