@@ -27,7 +27,8 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             // act
-            ConnectionType<StringType> type = CreateType(new ConnectionType<StringType>());
+            ConnectionType<StringType> type = CreateType(
+                new ConnectionType<StringType>());
 
             // assert
             Assert.Collection(
@@ -39,6 +40,12 @@ namespace HotChocolate.Types.Relay
                     Assert.IsType<NonNullType>(((ListType)t.Type).ElementType);
                     Assert.IsType<EdgeType<StringType>>(
                         ((NonNullType)((ListType)t.Type).ElementType).Type);
+                },
+                t =>
+                {
+                    Assert.Equal("items", t.Name);
+                    Assert.IsType<StringType>(
+                        Assert.IsType<ListType>(t.Type).ElementType);
                 },
                 t =>
                 {
@@ -81,6 +88,40 @@ namespace HotChocolate.Types.Relay
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task UsePaging_WithNonNull_ElementType()
+        {
+            // arrange
+            ISchema schema = Schema.Create(
+                c => c.RegisterQueryType<QueryType2>());
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            string query = @"
+            {
+                s(last:2)
+                {
+                    edges {
+                        cursor
+                        node
+                    }
+                    items
+                    pageInfo
+                    {
+                        hasNextPage
+                    }
+                    totalCount
+                }
+            }
+            ";
+
+            // act
+            IExecutionResult result = await executor
+                .ExecuteAsync(new QueryRequest(query));
+
+            // assert
+            result.MatchSnapshot();
+        }
+
         public class QueryType
             : ObjectType
         {
@@ -92,6 +133,21 @@ namespace HotChocolate.Types.Relay
                 descriptor.Name("Query");
                 descriptor.Field("s")
                     .UsePaging<StringType>()
+                    .Resolver(ctx => _source);
+            }
+        }
+
+        public class QueryType2
+            : ObjectType
+        {
+            private readonly List<string> _source =
+                new List<string> { "a", "b", "c", "d", "e", "f", "g" };
+
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name("Query");
+                descriptor.Field("s")
+                    .UsePaging<NonNullType<StringType>>()
                     .Resolver(ctx => _source);
             }
         }
