@@ -868,6 +868,104 @@ namespace HotChocolate
             Assert.Throws<ArgumentException>(action);
         }
 
+        [Fact]
+        public void Dynamic_Types_Are_Integrated()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type(new DynamicFooType("MyFoo"))
+                .Resolver(new object()));
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(queryType)
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void DuplicateName()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type(new DynamicFooType("MyFoo"))
+                .Resolver(new object()));
+
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddQueryType(queryType)
+                .AddType(new DynamicFooType("MyFoo"))
+                .AddType(new DynamicFooType("MyBar"))
+                .Create();
+
+            // assert
+            Assert.Equal(
+                "The name `MyFoo` was already registered by another type. " +
+                "- Type: MyFoo",
+                Assert.Throws<SchemaException>(action).Message);
+        }
+
+        [Fact]
+        public void UseFirstRegisteredDynamicType()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type<DynamicFooType>()
+                .Resolver(new object()));
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(queryType)
+                .AddType(new DynamicFooType("MyFoo"))
+                .AddType(new DynamicFooType("MyBar"))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Could_Not_Resolve_Type()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddDocumentFromString("type Query { foo : Bar } scalar Bar")
+                .AddResolver("Query", "foo", "bar")
+                .Create();
+
+            // assert
+            Assert.Equal(
+                "Unable to resolve type reference `Output: Bar`. " +
+                "- Type: Query",
+                Assert.Throws<SchemaException>(action).Message);
+        }
+
+        public class DynamicFooType
+            : ObjectType
+        {
+            private NameString _typeName;
+
+            public DynamicFooType(NameString typeName)
+            {
+                _typeName = typeName;
+            }
+
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name(_typeName);
+                descriptor.Field("bar").Resolver("baz");
+            }
+        }
+
         public class QueryType
             : ObjectType
         {

@@ -29,6 +29,7 @@ namespace HotChocolate.Types.Relay
 
         public IEdgeType EdgeType { get; private set; }
 
+
         protected new static void Configure(
             IObjectTypeDescriptor<IConnection> descriptor)
         {
