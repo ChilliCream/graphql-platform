@@ -1,0 +1,106 @@
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using Xunit;
+using HotChocolate.AspNetCore;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Execution;
+using Snapshooter.Xunit;
+using Moq;
+using Microsoft.AspNetCore.TestHost;
+using HotChocolate.Stitching.Merge.Rewriters;
+using HotChocolate.Language;
+using HotChocolate.Stitching.Merge;
+using HotChocolate.Stitching.Delegation;
+using System.Linq;
+using Snapshooter;
+using HotChocolate.Stitching.Introspection;
+using ChilliCream.Testing;
+using System.IO;
+
+namespace HotChocolate.Stitching
+{
+    public class DummyTests
+        : StitchingTestBase
+    {
+        public DummyTests(TestServerFactory testServerFactory)
+            : base(testServerFactory)
+        {
+        }
+
+        [Fact]
+        public async Task SourceSchemaHasTypeSystemDirectives()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+
+            var connections = new Dictionary<string, HttpClient>();
+            serviceCollection.AddSingleton(CreateRemoteSchemas(connections));
+
+            DocumentNode doc = IntrospectionDeserializer.Deserialize(FileResource.Open("phase_2.json"));
+            File.WriteAllText("schema.graphql", SchemaSyntaxSerializer.Serialize(doc));
+
+            serviceCollection.AddStitchedSchema(builder => builder
+                .AddSchema(
+                    "server_1",
+                    s => doc));
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor = services
+                .GetRequiredService<IQueryExecutor>();
+
+            // act
+            IExecutionResult result = null;
+
+            using (IServiceScope scope = services.CreateScope())
+            {
+                IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                    .SetQuery("{ __typename }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create();
+
+                result = await executor.ExecuteAsync(request);
+            }
+
+            // assert
+            result.MatchSnapshot(new SnapshotNameExtension("result"));
+            executor.Schema.ToString().MatchSnapshot(
+                new SnapshotNameExtension("schema"));
+        }
+
+        protected override IHttpClientFactory CreateRemoteSchemas(
+               Dictionary<string, HttpClient> connections)
+        {
+            TestServer server_1 = TestServerFactory.Create(
+                SchemaBuilder.New()
+                    .AddDocumentFromString
+                    (
+                        @"
+                        type Query { foo: String @bar }
+                        directive @bar on FIELD_DEFINITION
+                        "
+                    )
+                    .AddResolver("Query", "foo", "bar")
+                    .Create(),
+                new QueryMiddlewareOptions());
+
+            connections["server_1"] = server_1.CreateClient();
+
+            var httpClientFactory = new Mock<IHttpClientFactory>();
+            httpClientFactory.Setup(t => t.CreateClient(It.IsAny<string>()))
+                .Returns(new Func<string, HttpClient>(n =>
+                {
+                    if (connections.ContainsKey(n))
+                    {
+                        return connections[n];
+                    }
+
+                    throw new Exception();
+                }));
+            return httpClientFactory.Object;
+        }
+    }
+}

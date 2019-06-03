@@ -1,3 +1,4 @@
+using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -77,7 +78,18 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(reference));
             }
 
-            TryGetType(reference, out T type);
+            if (!TryGetType(reference, out T type))
+            {
+                throw new SchemaException(
+                    SchemaErrorBuilder.New()
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            "Unable to resolve type reference `{0}`.",
+                            reference))
+                        .SetTypeSystemObject(Type)
+                        .SetExtension("reference", reference)
+                        .Build());
+            }
             return type;
         }
 
