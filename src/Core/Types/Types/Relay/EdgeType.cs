@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Relay
         {
             base.OnCompleteType(context, definition);
 
-            EntityType = context.GetType<T>(
+            EntityType = context.GetType<IOutputType>(
                 ClrTypeReference.FromSchemaType<T>());
         }
     }

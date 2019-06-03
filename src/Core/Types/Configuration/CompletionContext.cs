@@ -1,3 +1,4 @@
+using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -77,7 +78,18 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(reference));
             }
 
-            TryGetType(reference, out T type);
+            if (!TryGetType(reference, out T type))
+            {
+                throw new SchemaException(
+                    SchemaErrorBuilder.New()
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            "Unable to resolve type reference `{0}`.",
+                            reference))
+                        .SetTypeSystemObject(Type)
+                        .SetExtension(nameof(reference), reference)
+                        .Build());
+            }
             return type;
         }
 
@@ -147,12 +159,23 @@ namespace HotChocolate.Configuration
                 throw new NotSupportedException();
             }
 
-            if (reference is ClrTypeDirectiveReference cr
-                && _typeInitializer.TryGetRegisteredType(
-                    new ClrTypeReference(cr.ClrType, TypeContext.None),
-                    out RegisteredType registeredType))
+            if (reference is ClrTypeDirectiveReference cr)
             {
-                return (DirectiveType)registeredType.Type;
+                ITypeReference clrTypeReference = new ClrTypeReference(
+                    cr.ClrType, TypeContext.None);
+                if (!_typeInitializer.ClrTypes.TryGetValue(
+                    clrTypeReference,
+                    out ITypeReference internalReference))
+                {
+                    internalReference = clrTypeReference;
+                }
+
+                if (_typeInitializer.TryGetRegisteredType(
+                    internalReference,
+                    out RegisteredType registeredType))
+                {
+                    return (DirectiveType)registeredType.Type;
+                }
             }
 
             if (reference is NameDirectiveReference nr)
@@ -229,7 +252,9 @@ namespace HotChocolate.Configuration
             }
 
             return _typeInitializer.Types.Values
-                .Select(t => t.Type).OfType<T>();
+                .Select(t => t.Type)
+                .OfType<T>()
+                .Distinct();
         }
 
         public void ReportError(ISchemaError error)
