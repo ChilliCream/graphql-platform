@@ -27,7 +27,8 @@ namespace HotChocolate.Types.Relay
         {
             // arrange
             // act
-            ConnectionType<StringType> type = CreateType(new ConnectionType<StringType>());
+            ConnectionType<StringType> type = CreateType(
+                new ConnectionType<StringType>());
 
             // assert
             Assert.Collection(
@@ -39,6 +40,12 @@ namespace HotChocolate.Types.Relay
                     Assert.IsType<NonNullType>(((ListType)t.Type).ElementType);
                     Assert.IsType<EdgeType<StringType>>(
                         ((NonNullType)((ListType)t.Type).ElementType).Type);
+                },
+                t =>
+                {
+                    Assert.Equal("items", t.Name);
+                    Assert.IsType<StringType>(
+                        Assert.IsType<ListType>(t.Type).ElementType);
                 },
                 t =>
                 {
