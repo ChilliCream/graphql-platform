@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Language
+namespace HotChocolate.Language
 {
     internal static partial class GraphQLConstants
     {
@@ -9,6 +9,7 @@
             InitializeIsWhitespaceCache();
             InitializeIsPunctuatorCache();
             InitializeIsLetterOrUnderscoreCache();
+            InitializeIsLetterOrDigitOUnderscoreCache();
             InitializeIsDigitOrMinusCache();
         }
 
@@ -78,6 +79,32 @@
             }
 
             _isLetterOrUnderscore['_'] = true;
+        }
+
+        private static void InitializeIsLetterOrDigitOUnderscoreCache()
+        {
+            for (char c = 'a'; c <= 'z'; c++)
+            {
+                _isLetterOrDigitOrUnderscore[c] = true;
+            }
+
+            for (char c = 'A'; c <= 'Z'; c++)
+            {
+                _isLetterOrDigitOrUnderscore[c] = true;
+            }
+
+            _isLetterOrDigitOrUnderscore['0'] = true;
+            _isLetterOrDigitOrUnderscore['1'] = true;
+            _isLetterOrDigitOrUnderscore['2'] = true;
+            _isLetterOrDigitOrUnderscore['3'] = true;
+            _isLetterOrDigitOrUnderscore['4'] = true;
+            _isLetterOrDigitOrUnderscore['5'] = true;
+            _isLetterOrDigitOrUnderscore['6'] = true;
+            _isLetterOrDigitOrUnderscore['7'] = true;
+            _isLetterOrDigitOrUnderscore['8'] = true;
+            _isLetterOrDigitOrUnderscore['9'] = true;
+
+            _isLetterOrDigitOrUnderscore['_'] = true;
         }
 
         private static void InitializeIsDigitOrMinusCache()

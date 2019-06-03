@@ -9,6 +9,8 @@ namespace HotChocolate.Language
     {
         private static readonly bool[] _isLetterOrUnderscore =
             new bool[char.MaxValue + 1];
+        private static readonly bool[] _isLetterOrDigitOrUnderscore =
+            new bool[char.MaxValue + 1];
         private static readonly bool[] _isControlCharacter =
             new bool[char.MaxValue + 1];
         private static readonly bool[] _isEscapeCharacter =
@@ -63,7 +65,7 @@ namespace HotChocolate.Language
 
         public static bool IsLetterOrDigitOrUnderscore(this byte c)
         {
-            return IsLetterOrUnderscore(c) || IsDigit(c);
+            return _isLetterOrDigitOrUnderscore[c];
         }
 
         public static bool IsLetter(this byte c)
