@@ -61,6 +61,14 @@ namespace HotChocolate.Types.Factories
                 {
                     valueDescriptor.DeprecationReason(deprecactionReason);
                 }
+
+                foreach (DirectiveNode directive in value.Directives)
+                {
+                    if (!directive.IsDeprecationReason())
+                    {
+                        valueDescriptor.Directive(directive);
+                    }
+                }
             }
         }
     }
