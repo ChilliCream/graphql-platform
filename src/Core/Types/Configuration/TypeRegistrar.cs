@@ -167,7 +167,11 @@ namespace HotChocolate.Configuration
                     }
                     else
                     {
-                        RegisterTypeSystemObject(tso);
+                        var secondaryRef = new ClrTypeReference(
+                            tso.GetType(),
+                            SchemaTypeReference.InferTypeContext(tso));
+
+                        RegisterTypeSystemObject(tso, str, secondaryRef);
                     }
                 }
                 else if (typeReference is ISyntaxTypeReference sr
@@ -252,15 +256,16 @@ namespace HotChocolate.Configuration
 
         private void RegisterTypeSystemObject(
             TypeSystemObjectBase typeSystemObject,
-            ITypeReference internalReference)
+            params ITypeReference[] internalReferences)
         {
             TypeContext typeContext =
                 SchemaTypeReference.InferTypeContext(typeSystemObject);
 
-            if (!Registerd.ContainsKey(internalReference))
+            if (internalReferences.Length > 0
+                && !Registerd.ContainsKey(internalReferences[0]))
             {
                 RegisteredType registeredType =
-                    InitializeAndRegister(internalReference, typeSystemObject);
+                    InitializeAndRegister(typeSystemObject, internalReferences);
 
                 if (registeredType.ClrType != typeof(object))
                 {
@@ -272,7 +277,7 @@ namespace HotChocolate.Configuration
 
                     if (!ClrTypes.ContainsKey(clrTypeRef))
                     {
-                        ClrTypes.Add(clrTypeRef, internalReference);
+                        ClrTypes.Add(clrTypeRef, internalReferences[0]);
                     }
                 }
             }
@@ -292,9 +297,21 @@ namespace HotChocolate.Configuration
         }
 
         private RegisteredType InitializeAndRegister(
-            ITypeReference internalReference,
-            TypeSystemObjectBase typeSystemObject)
+            TypeSystemObjectBase typeSystemObject,
+            params ITypeReference[] internalReferences)
         {
+            ITypeReference[] references = internalReferences
+                .Where(t => !Registerd.ContainsKey(t)).ToArray();
+
+            if (references.Length == 0)
+            {
+                throw new SchemaException(
+                    SchemaErrorBuilder.New()
+                        .SetMessage("Unable to register the specified type.")
+                        .SetTypeSystemObject(typeSystemObject)
+                        .Build());
+            }
+
             try
             {
                 var initializationContext = new InitializationContext(
@@ -302,14 +319,19 @@ namespace HotChocolate.Configuration
                     _serviceFactory.Services,
                     _descriptorContext,
                     _contextData);
+
                 typeSystemObject.Initialize(initializationContext);
                 _initContexts.Add(initializationContext);
 
                 var registeredType = new RegisteredType(
-                    internalReference,
+                    references,
                     typeSystemObject,
                     initializationContext.TypeDependencies);
-                Registerd.Add(internalReference, registeredType);
+
+                foreach (ITypeReference reference in references)
+                {
+                    Registerd.Add(reference, registeredType);
+                }
 
                 return registeredType;
             }

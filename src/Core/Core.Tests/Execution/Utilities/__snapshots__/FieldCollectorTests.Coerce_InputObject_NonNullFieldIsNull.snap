@@ -1,6 +1,6 @@
 ﻿[
   {
-    "Message": "The input value of type `Int!` must not be null.",
+    "Message": "Argument `a` of non-null type `Int!` must not be null.",
     "Code": null,
     "Path": [
       "foo"
@@ -13,7 +13,11 @@
     ],
     "Exception": null,
     "Extensions": {
-      "argument": "a"
+      "argument": [
+        "a",
+        "a",
+        "bar_a"
+      ]
     }
   }
 ]
