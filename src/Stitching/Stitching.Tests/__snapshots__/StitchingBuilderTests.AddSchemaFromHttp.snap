@@ -42,6 +42,8 @@ input SayInput @source(name: "SayInput", schema: "customer") {
 type CustomerConnection @source(name: "CustomerConnection", schema: "customer") {
   "A list of edges."
   edges: [CustomerEdge!]
+  "A flattened list of the nodes."
+  items: [Customer]
   "Information to aid in pagination."
   pageInfo: PageInfo!
   totalCount: Int!

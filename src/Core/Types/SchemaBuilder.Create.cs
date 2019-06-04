@@ -56,6 +56,7 @@ namespace HotChocolate
                 .Select(t => t.Type)
                 .OfType<Schema>()
                 .First();
+
             schema.CompleteSchema(definition);
             lazy.Schema = schema;
             return schema;
@@ -190,9 +191,16 @@ namespace HotChocolate
             var definition = new SchemaTypesDefinition();
 
             definition.Types = initializer.Types.Values
-                .Select(t => t.Type).OfType<INamedType>().ToList();
+                .Select(t => t.Type)
+                .OfType<INamedType>()
+                .Distinct()
+                .ToArray();
+
             definition.DirectiveTypes = initializer.Types.Values
-                .Select(t => t.Type).OfType<DirectiveType>().ToList();
+                .Select(t => t.Type)
+                .OfType<DirectiveType>()
+                .Distinct()
+                .ToArray();
 
             RegisterOperationName(OperationType.Query,
                 _options.QueryTypeName);
@@ -242,7 +250,8 @@ namespace HotChocolate
                 if (reference is ISyntaxTypeReference str)
                 {
                     NamedTypeNode namedType = str.Type.NamedType();
-                    return initializer.Types.Values.Select(t => t.Type)
+                    return initializer.Types.Values
+                        .Select(t => t.Type)
                         .OfType<ObjectType>()
                         .FirstOrDefault(t => t.Name.Equals(
                             namedType.Name.Value));
