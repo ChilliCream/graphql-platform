@@ -14,7 +14,9 @@
     ],
     "Exception": null,
     "Extensions": {
-      "argument": "a"
+      "argument": [
+        "a"
+      ]
     }
   }
 ]

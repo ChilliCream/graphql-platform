@@ -9,6 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- nothing yet ;)
+
+## [9.0.0] - 2019-06-04
+
+### Added
+
 - Added new SchemaBuilder. [#369](https://github.com/ChilliCream/hotchocolate/issues/369)
 - Added code-first type extensions. [#683](https://github.com/ChilliCream/hotchocolate/issues/683)
 - Added support for schema description. [spec](https://github.com/graphql/graphql-spec/pull/466)
@@ -32,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced roslyn compiler with the expression compiler. This will reduce the memory footprint of the server.
 - Changed how the server caches queries.
 - `DiagnosticNames` is now public.
+- Reworked how input object arguments are cached [#805](https://github.com/ChilliCream/hotchocolate/pull/805)
+  
 
 ### Removed
 
@@ -49,6 +57,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The schema factory does not throw an exception if an annotated directive is not correct. [#619](https://github.com/ChilliCream/hotchocolate/issues/619)
 - Temprarily fixed issues with type system directives. We will add a final patch with the next release.
 - Fixed issues with external resolver overwrites.
+- Fixed authorization directive validation issues [#804](https://github.com/ChilliCream/hotchocolate/issues/804)
+- Fixed schema initialization issues
+- Fixed paging extension overloads [#811](https://github.com/ChilliCream/hotchocolate/issues/811)
+- Fixed null reference exception in Path.Equals [#802](https://github.com/ChilliCream/hotchocolate/issues/802)
 
 ## [0.8.2] - 2019-04-10
 
