@@ -24,13 +24,9 @@ namespace HotChocolate.Types.Filters.String
 
         public IStringFilterOperationDescriptor AllowEquals()
         {
-
-
-
-            var field = StringFilterOperationDescriptor.New(context, this, Definition.Name, )
-
-            desc.Filter(t => t.Foo).Contains("a", "b", "c")
-
+            var field = StringFilterOperationDescriptor.New(
+                Context, this, Definition.Name, Definition.Type);
+            Filters.Add(field);
             return field;
         }
 
@@ -76,12 +72,19 @@ namespace HotChocolate.Types.Filters.String
 
 
 
-    internal static class StringFilterOperation
+    public enum FilterOperationKind
     {
-        public new const string Equals = "eq";
-        public const string Contains = "contains";
-        public const string In = "in";
-        public const string StartsWith = "starts_with";
-        public const string EndsWith = "ends_with";
+        Equals,
+        Contains,
+        In,
+        StartsWith,
+        EndsWith
+    }
+
+    public class FilterOperation
+    {
+        public Type Type { get; }
+        public FilterOperationKind Kind { get; }
+        public PropertyInfo Property { get; }
     }
 }
