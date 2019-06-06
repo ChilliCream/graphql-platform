@@ -101,107 +101,108 @@ namespace HotChocolate.Types.Filters
                 "Only properties are allowed for input types.",
                 nameof(propertyOrMethod));
         }
+        /*
+                public IComparableFilterFieldDescriptor Filter<TComparable>(
+                    Expression<Func<T, TComparable>> propertyOrMethod)
+                    where TComparable : IComparable
+                {
+                    if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+                    {
+                        var field = new ComparableFilterFieldsDescriptor(Context, p);
+                        Fields.Add(field);
+                        return field;
+                    }
 
-        public IComparableFilterFieldDescriptor Filter<TComparable>(
-            Expression<Func<T, TComparable>> propertyOrMethod)
-            where TComparable : IComparable
-        {
-            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
-            {
-                var field = new ComparableFilterFieldsDescriptor(Context, p);
-                Fields.Add(field);
-                return field;
-            }
-
-            // TODO : resources
-            throw new ArgumentException(
-                "Only properties are allowed for input types.",
-                nameof(propertyOrMethod));
-        }
-
-
-
-        /// <summary>
-        /// TODO:
-        /// The idea of the IEnumerable types is to use the existing filter types.
-        /// </summary>
-        /// <param name="propertyOrMethod"></param>
-        /// <param name="descriptor"></param>
-        /// <returns></returns>
-        public IEnumerableFilterFieldDescriptor Filter(
-            Expression<Func<T, IEnumerable<string>>> propertyOrMethod,
-            Action<IStringFilterFieldDescriptor> descriptor)
-        {
-            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
-            {
-                // TODO: This just feels really really really bad
-                var innerField = new StringFilterFieldsDescriptor(Context, p);
-                descriptor.Invoke(innerField);
-                var enumerableFilterType = new FilterInputType<T>(
-                    x => x.Extend().OnBeforeCreate(
-                        y =>
-                        {
-                            y.Name = p.Name + "TestFilter";
-                            y.Fields.AddRange(innerField.CreateDefinitions());
-                        }
-                    )
-                );
-                var field = new EnumerableFilterFieldsDescriptor(enumerableFilterType, Context, p);
-                Fields.Add(field);
-                return field;
-            }
-
-            throw new ArgumentException(
-                "Only properties are allowed for input types.",
-                nameof(propertyOrMethod));
-        }
-
-        public IEnumerableFilterFieldDescriptor Filter<TComparable>(
-            Expression<Func<T, IEnumerable<TComparable>>> propertyOrMethod,
-            Action<IComparableFilterFieldDescriptor> descriptor)
-            where TComparable : IComparable
-        {
-            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
-            {
-
-                var innerField = new ComparableFilterFieldsDescriptor(Context, p);
-                descriptor.Invoke(innerField);
-                var enumerableFilterType = new FilterInputType<T>(
-                    x => x.Extend().OnBeforeCreate(
-                        y =>
-                        {
-                            y.Name = p.Name + "TestComparableFilter";
-                            y.Fields.AddRange(innerField.CreateDefinitions());
-                        }
-                    )
-                );
-                var field = new EnumerableFilterFieldsDescriptor(enumerableFilterType, Context, p);
-                Fields.Add(field);
-                return field;
-            }
-
-            throw new ArgumentException(
-                "Only properties are allowed for input types.",
-                nameof(propertyOrMethod));
-        }
+                    // TODO : resources
+                    throw new ArgumentException(
+                        "Only properties are allowed for input types.",
+                        nameof(propertyOrMethod));
+                }
 
 
-        public IEnumerableFilterFieldDescriptor Filter<TFilter>(
-            Expression<Func<T, IEnumerable<object>>> propertyOrMethod)
-            where TFilter : IFilterInputType
-        {
-            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
-            {
-                Type listType = typeof(ListType<>).MakeGenericType(typeof(TFilter));
-                var field = new EnumerableFilterFieldsDescriptor(new ClrTypeReference(listType, TypeContext.Input, true, true), Context, p);
-                Fields.Add(field);
-                return field;
-            }
 
-            throw new ArgumentException(
-                "Only properties are allowed for input types.",
-                nameof(propertyOrMethod));
-        }
+                /// <summary>
+                /// TODO:
+                /// The idea of the IEnumerable types is to use the existing filter types.
+                /// </summary>
+                /// <param name="propertyOrMethod"></param>
+                /// <param name="descriptor"></param>
+                /// <returns></returns>
+                public IEnumerableFilterFieldDescriptor Filter(
+                    Expression<Func<T, IEnumerable<string>>> propertyOrMethod,
+                    Action<IStringFilterFieldDescriptor> descriptor)
+                {
+                    if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+                    {
+                        // TODO: This just feels really really really bad
+                        var innerField = new StringFilterFieldsDescriptor(Context, p);
+                        descriptor.Invoke(innerField);
+                        var enumerableFilterType = new FilterInputType<T>(
+                            x => x.Extend().OnBeforeCreate(
+                                y =>
+                                {
+                                    y.Name = p.Name + "TestFilter";
+                                    y.Fields.AddRange(innerField.CreateDefinitions());
+                                }
+                            )
+                        );
+                        var field = new EnumerableFilterFieldsDescriptor(enumerableFilterType, Context, p);
+                        Fields.Add(field);
+                        return field;
+                    }
+
+                    throw new ArgumentException(
+                        "Only properties are allowed for input types.",
+                        nameof(propertyOrMethod));
+                }
+
+                public IEnumerableFilterFieldDescriptor Filter<TComparable>(
+                    Expression<Func<T, IEnumerable<TComparable>>> propertyOrMethod,
+                    Action<IComparableFilterFieldDescriptor> descriptor)
+                    where TComparable : IComparable
+                {
+                    if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+                    {
+
+                        var innerField = new ComparableFilterFieldsDescriptor(Context, p);
+                        descriptor.Invoke(innerField);
+                        var enumerableFilterType = new FilterInputType<T>(
+                            x => x.Extend().OnBeforeCreate(
+                                y =>
+                                {
+                                    y.Name = p.Name + "TestComparableFilter";
+                                    y.Fields.AddRange(innerField.CreateDefinitions());
+                                }
+                            )
+                        );
+                        var field = new EnumerableFilterFieldsDescriptor(enumerableFilterType, Context, p);
+                        Fields.Add(field);
+                        return field;
+                    }
+
+                    throw new ArgumentException(
+                        "Only properties are allowed for input types.",
+                        nameof(propertyOrMethod));
+                }
+
+
+                public IEnumerableFilterFieldDescriptor Filter<TFilter>(
+                    Expression<Func<T, IEnumerable<object>>> propertyOrMethod)
+                    where TFilter : IFilterInputType
+                {
+                    if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+                    {
+                        Type listType = typeof(ListType<>).MakeGenericType(typeof(TFilter));
+                        var field = new EnumerableFilterFieldsDescriptor(new ClrTypeReference(listType, TypeContext.Input, true, true), Context, p);
+                        Fields.Add(field);
+                        return field;
+                    }
+
+                    throw new ArgumentException(
+                        "Only properties are allowed for input types.",
+                        nameof(propertyOrMethod));
+                }
+                 */
 
         public static FilterInputObjectTypeDescriptor<T> New(
             IDescriptorContext context, Type clrType) =>

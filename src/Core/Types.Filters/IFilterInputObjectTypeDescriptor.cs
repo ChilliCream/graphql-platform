@@ -32,6 +32,7 @@ namespace HotChocolate.Types.Filters
         IStringFilterFieldDescriptor Filter(
             Expression<Func<T, string>> propertyOrMethod);
 
+        /*
         IComparableFilterFieldDescriptor Filter<TComparable>(
             Expression<Func<T, TComparable>> propertyOrMethod)
             where TComparable : IComparable;
@@ -54,5 +55,6 @@ namespace HotChocolate.Types.Filters
         IEnumerableFilterFieldDescriptor Filter<TFilter>(
             Expression<Func<T, IEnumerable<object>>> propertyOrMethod)
             where TFilter : IFilterInputType;
+             */
     }
 }

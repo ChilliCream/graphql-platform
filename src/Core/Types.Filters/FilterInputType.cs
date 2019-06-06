@@ -7,8 +7,8 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {
-    public class FilterInputType<T> 
-    : InputObjectType<T>, IFilterInputType
+    public class FilterInputType<T>
+        : InputObjectType<T>, IFilterInputType
     {
         private readonly Action<IFilterInputObjectTypeDescriptor<T>> _configure;
 
@@ -29,8 +29,9 @@ namespace HotChocolate.Types.Filters
         protected override InputObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            var descriptor =
-                FilterInputObjectTypeDescriptor<T>.New(context,  GetType());
+            var descriptor = FilterInputObjectTypeDescriptor<T>.New(
+                context.DescriptorContext,
+                GetType());
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
