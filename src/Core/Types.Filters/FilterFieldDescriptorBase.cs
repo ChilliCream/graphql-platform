@@ -9,9 +9,8 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types.Filters
 {
     public class FilterFieldDescriptorBase
-        : ArgumentDescriptorBase<FilterFieldDefintion>
-    {  
-
+        : DescriptorBase<FilterFieldDefintion>
+    {
         protected FilterFieldDescriptorBase(
             IDescriptorContext context,
             PropertyInfo property)
@@ -26,13 +25,48 @@ namespace HotChocolate.Types.Filters
             Definition.Type = context.Inspector.GetInputReturnType(property);
         }
 
+        protected override FilterFieldDefintion Definition { get; } =
+            new FilterFieldDefintion();
 
-        public IEnumerable<InputFieldDefinition> CreateDefinitions()
+        protected ICollection<FilterFieldDescriptor> Filters { get; } =
+            new List<FilterFieldDescriptor>();
+
+        protected override void OnCreateDefinition(
+            FilterFieldDefintion definition)
         {
-           return  Definition.Filters.Select(x => x.CreateDefinition());
+            var fields = new Dictionary<NameString, FilterDefintion>();
+            var handledFilterKinds = new HashSet<NameString>();
+
+            AddExplicitFilters(fields, handledFilterKinds);
+            OnCompleteFilters(fields, handledFilterKinds);
+
+            Definition.Filters.AddRange(fields.Values);
         }
 
-        protected FilterFieldDescriptorBase BindFilters(BindingBehavior bindingBehavior)
+        protected virtual void OnCompleteFilters(
+            IDictionary<NameString, FilterDefintion> fields,
+            ISet<NameString> handledFilterKinds)
+        {
+        }
+
+        private void AddExplicitFilters(
+            IDictionary<NameString, FilterDefintion> fields,
+            ISet<NameString> handledFilterKinds)
+        {
+            foreach (FilterDefintion filterDefinition in
+                Filters.Select(t => t.CreateDefinition()))
+            {
+                if (!filterDefinition.Ignore)
+                {
+                    fields[filterDefinition.Name] = filterDefinition;
+                }
+
+                handledFilterKinds.Add(filterDefinition.Kind);
+            }
+        }
+
+        protected FilterFieldDescriptorBase BindFilters(
+            BindingBehavior bindingBehavior)
         {
             Definition.Filters.BindingBehavior = bindingBehavior;
             return this;

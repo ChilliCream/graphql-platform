@@ -6,9 +6,17 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {
-    public class FilterFieldDefintion : InputFieldDefinition
-    { 
-        public IBindableList<InputFieldDescriptor> Filters { get; }
-           = new BindableList<InputFieldDescriptor>();
+    /// <summary>
+    /// Represents a field that can be filtered.
+    /// </summary>
+    public class FilterFieldDefintion
+        : InputFieldDefinition
+    {
+
+        /// <summary>
+        /// Gets the filters that can be applied on this field.
+        /// </summary>
+        public IBindableList<FilterDefintion> Filters { get; } =
+            new BindableList<FilterDefintion>();
     }
 }

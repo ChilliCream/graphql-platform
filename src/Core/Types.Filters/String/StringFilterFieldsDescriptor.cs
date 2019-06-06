@@ -21,11 +21,11 @@ namespace HotChocolate.Types.Filters.String
 
         public IStringFilterFieldDetailsDescriptor AllowContains()
         {
-           
+
             var field = new StringFilterContainsDescriptor(this, Context, propertyInfo);
             Definition.Filters.Add(field);
             return field;
-            
+
         }
 
         public IStringFilterFieldDetailsDescriptor AllowEquals()

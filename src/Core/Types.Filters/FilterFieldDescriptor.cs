@@ -6,9 +6,13 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Filters
 {
-    public class FilterFieldDescriptor : InputFieldDescriptor
+    public class FilterFieldDescriptor
+        : InputFieldDescriptor
     {
-        public FilterFieldDescriptor(IDescriptorContext context, PropertyInfo property) : base(context, property)
+        public FilterFieldDescriptor(
+            IDescriptorContext context,
+            PropertyInfo property)
+            : base(context, property)
         {
         }
 
@@ -17,7 +21,7 @@ namespace HotChocolate.Types.Filters
             if (Definition.Type is ClrTypeReference type)
             {
                 Type innerType = type.Type;
-                // TODO: This might not work 
+                // TODO: This might not work
                 if (type.Type.IsValueType)
                 {
                     innerType = typeof(Nullable<>).MakeGenericType(type.Type);
