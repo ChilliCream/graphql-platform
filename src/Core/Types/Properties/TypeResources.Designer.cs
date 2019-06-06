@@ -1118,6 +1118,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unable to convert type from `{0}` to `{1}`.
+        /// </summary>
+        internal static string TypeConvertion_ConvertNotSupported {
+            get {
+                return ResourceManager.GetString("TypeConvertion_ConvertNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified type is not a schema type..
         /// </summary>
         internal static string TypeDependency_MustBeSchemaType {

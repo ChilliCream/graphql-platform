@@ -578,4 +578,7 @@ Type: `{0}`</value>
   <data name="TypeRegistrar_TypesInconsistent" xml:space="preserve">
     <value>Unable to infer or resolve a schema type from the type reference `{0}`.</value>
   </data>
+  <data name="TypeConvertion_ConvertNotSupported" xml:space="preserve">
+    <value>Unable to convert type from `{0}` to `{1}`</value>
+  </data>
 </root>
