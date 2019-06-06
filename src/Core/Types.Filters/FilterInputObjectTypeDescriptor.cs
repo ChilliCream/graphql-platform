@@ -92,7 +92,7 @@ namespace HotChocolate.Types.Filters
         {
             if (propertyOrMethod.ExtractMember() is PropertyInfo p)
             {
-                var field = new StringFilterFieldsDescriptor(Context, p);
+                var field = new StringFilterFieldDescriptor(Context, p);
                 Fields.Add(field);
                 return field;
             }

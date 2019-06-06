@@ -28,8 +28,8 @@ namespace HotChocolate.Types.Filters
         protected override FilterFieldDefintion Definition { get; } =
             new FilterFieldDefintion();
 
-        protected ICollection<FilterFieldDescriptor> Filters { get; } =
-            new List<FilterFieldDescriptor>();
+        protected ICollection<FilterDescriptorBase> Filters { get; } =
+            new List<FilterDescriptorBase>();
 
         protected override void OnCreateDefinition(
             FilterFieldDefintion definition)

@@ -9,56 +9,34 @@ namespace HotChocolate.Types.Filters
         IStringFilterFieldDescriptor BindFilters(
             BindingBehavior bindingBehavior);
 
-        IStringFilterFieldDetailsDescriptor AllowContains();
+        IStringFilterDescriptor AllowContains();
 
-        IStringFilterFieldDetailsDescriptor AllowEquals();
+        IStringFilterDescriptor AllowEquals();
 
-        IStringFilterFieldDetailsDescriptor AllowIn();
-        IStringFilterFieldDetailsDescriptor AllowStartsWith();
+        IStringFilterDescriptor AllowIn();
+        IStringFilterDescriptor AllowStartsWith();
 
-        IStringFilterFieldDetailsDescriptor AllowEndsWith();
+        IStringFilterDescriptor AllowEndsWith();
     }
 
-    public interface IStringFilterFieldDetailsDescriptor
+    public interface IStringFilterDescriptor
         : IDescriptor<InputFieldDefinition>
         , IFluent
     {
         IStringFilterFieldDescriptor And();
 
-        IStringFilterFieldDetailsDescriptor Name(NameString value);
+        IStringFilterDescriptor Name(NameString value);
 
-        IStringFilterFieldDetailsDescriptor Description(string value);
+        IStringFilterDescriptor Description(string value);
 
-        IStringFilterFieldDetailsDescriptor Directive<T>(T directiveInstance)
+        IStringFilterDescriptor Directive<T>(T directiveInstance)
             where T : class;
 
-        IStringFilterFieldDetailsDescriptor Directive<T>()
+        IStringFilterDescriptor Directive<T>()
             where T : class, new();
 
-        IStringFilterFieldDetailsDescriptor Directive(
+        IStringFilterDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments);
-    }
-
-    public class Dummy
-    {
-
-        public void Foo(IFilterInputObjectTypeDescriptor<Foo> descriptor)
-        {
-            descriptor
-                .BindFields(BindingBehavior.Explicit)
-                .Filter(t => t.Bar)
-                .BindFilters(BindingBehavior.Explicit)
-                .AllowContains()
-                .Name("bar_contains")
-                .And()
-                .AllowIn()
-                .Name("bar_in");
-        }
-    }
-
-    public class Foo
-    {
-        public string Bar { get; }
     }
 }
