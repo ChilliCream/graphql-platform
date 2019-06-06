@@ -1,42 +1,21 @@
-using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {
-
     public interface IStringFilterFieldDescriptor
+        : IFluent
     {
         IStringFilterFieldDescriptor BindFilters(
             BindingBehavior bindingBehavior);
 
-        IStringFilterDescriptor AllowContains();
+        IStringFilterOperationDescriptor AllowContains();
 
-        IStringFilterDescriptor AllowEquals();
+        IStringFilterOperationDescriptor AllowEquals();
 
-        IStringFilterDescriptor AllowIn();
-        IStringFilterDescriptor AllowStartsWith();
+        IStringFilterOperationDescriptor AllowIn();
 
-        IStringFilterDescriptor AllowEndsWith();
-    }
+        IStringFilterOperationDescriptor AllowStartsWith();
 
-    public interface IStringFilterDescriptor
-        : IDescriptor<InputFieldDefinition>
-        , IFluent
-    {
-        IStringFilterFieldDescriptor And();
-
-        IStringFilterDescriptor Name(NameString value);
-
-        IStringFilterDescriptor Description(string value);
-
-        IStringFilterDescriptor Directive<T>(T directiveInstance)
-            where T : class;
-
-        IStringFilterDescriptor Directive<T>()
-            where T : class, new();
-
-        IStringFilterDescriptor Directive(
-            NameString name,
-            params ArgumentNode[] arguments);
+        IStringFilterOperationDescriptor AllowEndsWith();
     }
 }

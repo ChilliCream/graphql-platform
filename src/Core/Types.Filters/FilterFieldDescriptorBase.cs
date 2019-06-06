@@ -28,32 +28,32 @@ namespace HotChocolate.Types.Filters
         protected override FilterFieldDefintion Definition { get; } =
             new FilterFieldDefintion();
 
-        protected ICollection<FilterDescriptorBase> Filters { get; } =
-            new List<FilterDescriptorBase>();
+        protected ICollection<FilterOperationDescriptorBase> Filters { get; } =
+            new List<FilterOperationDescriptorBase>();
 
         protected override void OnCreateDefinition(
             FilterFieldDefintion definition)
         {
-            var fields = new Dictionary<NameString, FilterDefintion>();
-            var handledFilterKinds = new HashSet<NameString>();
+            var fields = new Dictionary<NameString, FilterOperationDefintion>();
+            var handledOperations = new HashSet<NameString>();
 
-            AddExplicitFilters(fields, handledFilterKinds);
-            OnCompleteFilters(fields, handledFilterKinds);
+            AddExplicitFilters(fields, handledOperations);
+            OnCompleteFilters(fields, handledOperations);
 
             Definition.Filters.AddRange(fields.Values);
         }
 
         protected virtual void OnCompleteFilters(
-            IDictionary<NameString, FilterDefintion> fields,
+            IDictionary<NameString, FilterOperationDefintion> fields,
             ISet<NameString> handledFilterKinds)
         {
         }
 
         private void AddExplicitFilters(
-            IDictionary<NameString, FilterDefintion> fields,
+            IDictionary<NameString, FilterOperationDefintion> fields,
             ISet<NameString> handledFilterKinds)
         {
-            foreach (FilterDefintion filterDefinition in
+            foreach (FilterOperationDefintion filterDefinition in
                 Filters.Select(t => t.CreateDefinition()))
             {
                 if (!filterDefinition.Ignore)
@@ -61,7 +61,7 @@ namespace HotChocolate.Types.Filters
                     fields[filterDefinition.Name] = filterDefinition;
                 }
 
-                handledFilterKinds.Add(filterDefinition.Kind);
+                handledFilterKinds.Add(filterDefinition.Operation);
             }
         }
 

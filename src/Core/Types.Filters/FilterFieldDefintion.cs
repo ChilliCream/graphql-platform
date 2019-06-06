@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Gets the filters that can be applied on this field.
         /// </summary>
-        public IBindableList<FilterDefintion> Filters { get; } =
-            new BindableList<FilterDefintion>();
+        public IBindableList<FilterOperationDefintion> Filters { get; } =
+            new BindableList<FilterOperationDefintion>();
     }
 }

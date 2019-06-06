@@ -5,12 +5,12 @@ namespace HotChocolate.Types.Filters
     /// <summary>
     /// Represents a specific filter that can be applied on a field.
     /// </summary>
-    public class FilterDefintion
+    public class FilterOperationDefintion
         : InputFieldDefinition
     {
         /// <summary>
-        /// Gets or sets the filter kind (e.g. contains, greater than ...).
+        /// Gets or sets the filter operation (e.g. contains, greater than ...).
         /// </summary>
-        public NameString Kind { get; set; }
+        public NameString Operation { get; set; }
     }
 }
