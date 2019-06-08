@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -9,6 +9,45 @@ namespace HotChocolate.Execution
 {
     public class ArgumentTests
     {
+        [Fact]
+        public async Task ListIsNotNull()
+        {
+            // arrange
+            var schema = Schema.Create(c =>
+            {
+                c.Options.StrictValidation = true;
+
+                c.RegisterQueryType(new ObjectType<Query>(d =>
+                {
+                    d.BindFields(BindingBehavior.Explicit);
+                    d.Field(t => t.ListIsNotNull(default))
+                        .Name("a")
+                        .Type<BooleanType>()
+                        .Argument("foo", a => a.Type<ListType<IntType>>());
+                }));
+
+                c.RegisterType(new ObjectType<Bar>());
+            });
+
+            var list = new ListValueNode(new List<IValueNode>
+            {
+                new IntValueNode(1),
+                new IntValueNode(2),
+                new IntValueNode(3)
+            });
+
+            // act
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "query { a(foo:[1,2,3]) }"
+                    //,new Dictionary<string, object> { { "x", list } }
+                    );
+
+            // assert
+            Assert.Empty(result.Errors);
+            result.MatchSnapshot();
+        }
+
         [Fact]
         public async Task ListOfInt()
         {
@@ -227,7 +266,13 @@ namespace HotChocolate.Execution
                 }
                 return bar;
             }
+
+            public bool ListIsNotNull(List<int> foo)
+            {
+                return foo != null;
+            }
         }
+
 
         public class Foo
         {
