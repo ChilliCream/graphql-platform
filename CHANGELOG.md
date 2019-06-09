@@ -11,6 +11,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - nothing yet ;)
 
+## [9.0.1] - 2019-06-09
+
+### Changed
+
+- Better error message when failing TypeConvertion enhancement [#819](https://github.com/ChilliCream/hotchocolate/issues/819)
+
+### Fixed
+
+- Fixed list argument conversion issue. [#823](https://github.com/ChilliCream/hotchocolate/issues/823)
+
 ## [9.0.0] - 2019-06-04
 
 ### Added
