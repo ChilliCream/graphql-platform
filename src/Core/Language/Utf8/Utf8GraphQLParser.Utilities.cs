@@ -120,7 +120,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Expect(TokenKind kind)
         {
-            if (!Skip(kind))
+            if (!_reader.Skip(kind))
             {
                 throw new SyntaxException(_reader,
                     string.Format(CultureInfo.InvariantCulture,
@@ -156,16 +156,13 @@ namespace HotChocolate.Language
             }
         }
 
-        private bool SkipPipe() => Skip(TokenKind.Pipe);
+        private bool SkipPipe() => _reader.Skip(TokenKind.Pipe);
 
-        private bool SkipEqual() => Skip(TokenKind.Equal);
+        private bool SkipEqual() => _reader.Skip(TokenKind.Equal);
 
-        private bool SkipColon() => Skip(TokenKind.Colon);
+        private bool SkipColon() => _reader.Skip(TokenKind.Colon);
 
-        private bool SkipAmpersand() => Skip(TokenKind.Ampersand);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool Skip(TokenKind kind) => _reader.Skip(kind); 
+        private bool SkipAmpersand() => _reader.Skip(TokenKind.Ampersand);
 
         private bool SkipRepeatableKeyword() =>
             SkipKeyword(GraphQLKeywords.Repeatable);
