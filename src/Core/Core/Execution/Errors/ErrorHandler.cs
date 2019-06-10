@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Properties;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace HotChocolate.Execution
 {
@@ -14,10 +16,12 @@ namespace HotChocolate.Execution
 
         private readonly IErrorFilter[] _filters;
         private readonly bool _includeExceptionDetails;
+        private readonly ILogger<ErrorHandler> _logger;
 
         public ErrorHandler(
             IEnumerable<IErrorFilter> errorFilters,
-            IErrorHandlerOptionsAccessor options)
+            IErrorHandlerOptionsAccessor options,
+            ILogger<ErrorHandler> logger = null)
         {
             if (errorFilters == null)
             {
@@ -31,12 +35,14 @@ namespace HotChocolate.Execution
 
             _filters = errorFilters.ToArray();
             _includeExceptionDetails = options.IncludeExceptionDetails;
+            _logger = logger ?? new NullLogger<ErrorHandler>();
         }
 
         private ErrorHandler()
         {
             _filters = Array.Empty<IErrorFilter>();
             _includeExceptionDetails = false;
+            _logger = new NullLogger<ErrorHandler>();
         }
 
         public IError Handle(IError error)
@@ -69,6 +75,7 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(exception));
             }
 
+            _logger.LogError(exception, exception.Message);
             return CreateErrorFromException(exception);
         }
 
