@@ -99,7 +99,7 @@ namespace HotChocolate.Utilities
 
                 Type expectedType = context.ClrType == typeof(object)
                     ? typeof(List<object>)
-                    : context.ClrType;
+                    : typeof(List<>).MakeGenericType(context.ClrType);
 
                 context.Object = expectedType.IsAssignableFrom(tempType)
                     ? temp
