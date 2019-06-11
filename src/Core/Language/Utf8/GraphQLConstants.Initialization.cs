@@ -46,7 +46,7 @@ namespace HotChocolate.Language
 
         private static void InitializeEscapeCharacterCache()
         {
-            for (int i = 0; i < 256; i++)
+            for (int i = byte.MinValue; i <= byte.MaxValue; i++)
             {
                 char c = (char)i;
                 _escapeCharacters[c] = (byte)c;
@@ -167,13 +167,17 @@ namespace HotChocolate.Language
             _punctuatorKind[GraphQLConstants.Bang] = TokenKind.Bang;
             _punctuatorKind[GraphQLConstants.Dollar] = TokenKind.Dollar;
             _punctuatorKind[GraphQLConstants.Ampersand] = TokenKind.Ampersand;
-            _punctuatorKind[GraphQLConstants.LeftParenthesis] = TokenKind.LeftParenthesis;
-            _punctuatorKind[GraphQLConstants.RightParenthesis] = TokenKind.RightParenthesis;
+            _punctuatorKind[GraphQLConstants.LeftParenthesis] =
+                TokenKind.LeftParenthesis;
+            _punctuatorKind[GraphQLConstants.RightParenthesis] =
+                TokenKind.RightParenthesis;
             _punctuatorKind[GraphQLConstants.Colon] = TokenKind.Colon;
             _punctuatorKind[GraphQLConstants.Equal] = TokenKind.Equal;
             _punctuatorKind[GraphQLConstants.At] = TokenKind.At;
-            _punctuatorKind[GraphQLConstants.LeftBracket] = TokenKind.LeftBracket;
-            _punctuatorKind[GraphQLConstants.RightBracket] = TokenKind.RightBracket;
+            _punctuatorKind[GraphQLConstants.LeftBracket] =
+                TokenKind.LeftBracket;
+            _punctuatorKind[GraphQLConstants.RightBracket] =
+                TokenKind.RightBracket;
             _punctuatorKind[GraphQLConstants.LeftBrace] = TokenKind.LeftBrace;
             _punctuatorKind[GraphQLConstants.RightBrace] = TokenKind.RightBrace;
             _punctuatorKind[GraphQLConstants.Pipe] = TokenKind.Pipe;

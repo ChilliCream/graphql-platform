@@ -17,7 +17,7 @@ namespace HotChocolate.Language
 
             bool isBlockString = _kind == TokenKind.BlockString;
 
-            int length = checked((int)_value.Length);
+            int length = checked(_value.Length);
             bool useStackalloc =
                 length <= GraphQLConstants.StackallocThreshold;
 
@@ -48,7 +48,7 @@ namespace HotChocolate.Language
             }
         }
 
-        public unsafe string GetString(ReadOnlySpan<byte> unescapedValue)
+        public unsafe static string GetString(ReadOnlySpan<byte> unescapedValue)
         {
             if (unescapedValue.Length == 0)
             {

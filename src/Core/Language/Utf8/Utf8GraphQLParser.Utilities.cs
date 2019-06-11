@@ -151,7 +151,7 @@ namespace HotChocolate.Language
                 throw new SyntaxException(_reader,
                     string.Format(CultureInfo.InvariantCulture,
                         LangResources.Parser_InvalidToken,
-                        _reader.GetString(keyword),
+                        Utf8GraphQLReader.GetString(keyword),
                         found));
             }
         }

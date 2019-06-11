@@ -395,7 +395,9 @@ namespace HotChocolate.Language
                     _kind = TokenKind.String;
                     _start = start;
                     _end = _position;
-                    _value = _graphQLData.Slice(start + 1, _position - start - 1);
+                    _value = _graphQLData.Slice(
+                        start + 1,
+                        _position - start - 1);
                     _position++;
                     return;
                 }
