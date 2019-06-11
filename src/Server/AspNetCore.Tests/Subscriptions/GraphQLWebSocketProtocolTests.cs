@@ -88,13 +88,14 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     GenericOperationMessage message =
                         await webSocket.ReceiveServerMessageAsync();
 
-                    if (message?.Type == messageType)
+                    if (messageType.Equals(message?.Type))
                     {
                         return message;
                     }
 
                     if (message != null
-                        && message.Type != MessageTypes.Connection.KeepAlive)
+                        && MessageTypes.Connection.KeepAlive.Equals(
+                            message.Type))
                     {
                         throw new Exception(
                             $"Unexpected message type: {message.Type}");
