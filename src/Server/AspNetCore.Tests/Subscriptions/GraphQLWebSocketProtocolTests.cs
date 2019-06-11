@@ -94,7 +94,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     }
 
                     if (message != null
-                        && MessageTypes.Connection.KeepAlive.Equals(
+                        && !MessageTypes.Connection.KeepAlive.Equals(
                             message.Type))
                     {
                         throw new Exception(
