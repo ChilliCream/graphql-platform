@@ -43,6 +43,8 @@ namespace HotChocolate.Types.Descriptors
                 member, MemberKind.ObjectField);
             Definition.Type = context.Inspector.GetOutputReturnType(member);
             Definition.ResolverType = resolverType;
+            Definition.DeprecationReason =
+                context.Naming.GetDeprecationReason(member);
 
             if (member is MethodInfo m)
             {

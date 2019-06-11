@@ -161,5 +161,34 @@ namespace HotChocolate.Types.Descriptors
 
             return description;
         }
+
+        public string GetDeprecationReason(MemberInfo member)
+        {
+            if (member == null)
+            {
+                throw new ArgumentNullException(nameof(member));
+            }
+
+            return member.GetGraphQLDeprecationReason();
+        }
+
+        public string GetDeprecationReason(object value)
+        {
+            Type enumType = value.GetType();
+
+            if (enumType.IsEnum)
+            {
+                MemberInfo enumMember = enumType
+                    .GetMember(value.ToString())
+                    .FirstOrDefault();
+
+                if (enumMember != null)
+                {
+                    return enumMember.GetGraphQLDeprecationReason();
+                }
+            }
+
+            return null;
+        }
     }
 }
