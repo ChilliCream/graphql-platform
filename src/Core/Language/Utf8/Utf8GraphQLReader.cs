@@ -8,18 +8,17 @@ namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLReader
     {
-        private static readonly byte _space = (byte)' ';
         private int _nextNewLines;
         private ReadOnlySpan<byte> _graphQLData;
         private ReadOnlySpan<byte> _value;
         private int _length;
         private int _position;
         private TokenKind _kind;
-        public int _start;
-        public int _end;
-        public int _line;
-        public int _lineStart;
-        public int _column;
+        private int _start;
+        private int _end;
+        private int _line;
+        private int _lineStart;
+        private int _column;
 
         public Utf8GraphQLReader(ReadOnlySpan<byte> graphQLData)
         {
@@ -266,30 +265,14 @@ namespace HotChocolate.Language
             }
             else
             {
-                ReadDigits(code);
-                if (_position < _length)
-                {
-                    code = _graphQLData[_position];
-                }
-                else
-                {
-                    code = _space;
-                }
+                code = ReadDigits(code);
             }
 
             if (code == GraphQLConstants.Dot)
             {
                 isFloat = true;
                 code = _graphQLData[++_position];
-                ReadDigits(code);
-                if (_position < _length)
-                {
-                    code = _graphQLData[_position];
-                }
-                else
-                {
-                    code = GraphQLConstants.Space;
-                }
+                code = ReadDigits(code);
             }
 
             if ((code | 0x20) == GraphQLConstants.E)
@@ -311,7 +294,7 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ReadDigits(byte firstCode)
+        private byte ReadDigits(byte firstCode)
         {
             if (!GraphQLConstants.IsDigit(firstCode))
             {
@@ -320,9 +303,24 @@ namespace HotChocolate.Language
                     $"`{(char)firstCode}` ({firstCode}).");
             }
 
-            while (++_position < _length
-                && GraphQLConstants.IsDigit(_graphQLData[_position]))
-            { }
+            byte code = firstCode;
+
+            while (true)
+            {
+                if (++_position >= _length)
+                {
+                    code = GraphQLConstants.Space;
+                    break;
+                }
+
+                code = _graphQLData[_position];
+                if (!GraphQLConstants.IsDigit(code))
+                {
+                    break;
+                }
+            }
+
+            return code;
         }
 
         /// <summary>

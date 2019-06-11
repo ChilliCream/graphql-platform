@@ -13,8 +13,8 @@ namespace HotChocolate.Language
             : base(message)
         {
             Position = reader.Position;
-            Line = reader._line;
-            Column = reader._column;
+            Line = reader.Line;
+            Column = reader.Column;
             SourceText = Encoding.UTF8.GetString(reader.GraphQLData.ToArray());
         }
 
