@@ -1,3 +1,4 @@
+using System.Diagnostics;
 
 using System;
 using System.Collections.Generic;
@@ -62,7 +63,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
             });
 
             GenericOperationMessage message =
-                await WaitForMessage(webSocket, MessageTypes.Subscription.Data);
+                await WaitForMessage(
+                    webSocket,
+                    MessageTypes.Subscription.Data,
+                    TimeSpan.FromSeconds(10));
 
             Assert.NotNull(message);
             Assert.Equal(MessageTypes.Subscription.Data, message.Type);
@@ -73,22 +77,33 @@ namespace HotChocolate.AspNetCore.Subscriptions
         }
 
         private async Task<GenericOperationMessage> WaitForMessage(
-            WebSocket webSocket, string messageType)
+            WebSocket webSocket, string messageType, TimeSpan timeout)
         {
-            for (var i = 0; i < 10; i++)
+            Stopwatch timer = Stopwatch.StartNew();
+
+            try
             {
-                GenericOperationMessage message =
-                    await webSocket.ReceiveServerMessageAsync();
-
-                if (message?.Type == messageType)
+                while (timer.Elapsed <= timeout)
                 {
-                    return message;
-                }
+                    GenericOperationMessage message =
+                        await webSocket.ReceiveServerMessageAsync();
 
-                if (message?.Type != MessageTypes.Connection.KeepAlive)
-                {
-                    break;
+                    if (message?.Type == messageType)
+                    {
+                        return message;
+                    }
+
+                    if (message != null
+                        && message.Type != MessageTypes.Connection.KeepAlive)
+                    {
+                        throw new Exception(
+                            $"Unexpected message type: {message.Type}");
+                    }
                 }
+            }
+            finally
+            {
+                timer.Stop();
             }
 
             return null;
