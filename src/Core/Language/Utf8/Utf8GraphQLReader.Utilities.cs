@@ -107,13 +107,15 @@ namespace HotChocolate.Language
             }
         }
 
-        public bool MoveNext()
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal bool MoveNext()
         {
             while (Read() && _kind == TokenKind.Comment) { }
             return !IsEndOfStream();
         }
 
-        public bool Skip(TokenKind kind)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal bool Skip(TokenKind kind)
         {
             if (_kind == kind)
             {

@@ -203,84 +203,27 @@ namespace HotChocolate.Language
             _end = ++_position;
             _value = null;
 
-            switch (code)
+            if (code == GraphQLConstants.Dot)
             {
-                case GraphQLConstants.Bang:
-                    _kind = TokenKind.Bang;
-                    break;
-
-                case GraphQLConstants.Dollar:
-                    _kind = TokenKind.Dollar;
-                    break;
-
-                case GraphQLConstants.Ampersand:
-                    _kind = TokenKind.Ampersand;
-                    break;
-
-                case GraphQLConstants.LeftParenthesis:
-                    _kind = TokenKind.LeftParenthesis;
-                    break;
-
-                case GraphQLConstants.RightParenthesis:
-                    _kind = TokenKind.RightParenthesis;
-                    break;
-
-                case GraphQLConstants.Colon:
-                    _kind = TokenKind.Colon;
-                    break;
-
-                case GraphQLConstants.Equal:
-                    _kind = TokenKind.Equal;
-                    break;
-
-                case GraphQLConstants.At:
-                    _kind = TokenKind.At;
-                    break;
-
-                case GraphQLConstants.LeftBracket:
-                    _kind = TokenKind.LeftBracket;
-                    break;
-
-                case GraphQLConstants.RightBracket:
-                    _kind = TokenKind.RightBracket;
-                    break;
-
-                case GraphQLConstants.LeftBrace:
-                    _kind = TokenKind.LeftBrace;
-                    break;
-
-                case GraphQLConstants.RightBrace:
-                    _kind = TokenKind.RightBrace;
-                    break;
-
-                case GraphQLConstants.Pipe:
-                    _kind = TokenKind.Pipe;
-                    break;
-
-                case GraphQLConstants.Dot:
-                    if (_graphQLData[_position] == GraphQLConstants.Dot
-                        && _graphQLData[_position + 1] == GraphQLConstants.Dot)
-                    {
-                        _position += 2;
-                        _end = _position;
-                        _kind = TokenKind.Spread;
-                    }
-                    else
-                    {
-                        _position--;
-                        throw new SyntaxException(this,
-                            string.Format(CultureInfo.InvariantCulture,
-                                LangResources.Reader_InvalidToken,
-                                TokenKind.Spread));
-                    }
-                    break;
-
-                default:
+                if (_graphQLData[_position] == GraphQLConstants.Dot
+                    && _graphQLData[_position + 1] == GraphQLConstants.Dot)
+                {
+                    _position += 2;
+                    _end = _position;
+                    _kind = TokenKind.Spread;
+                }
+                else
+                {
                     _position--;
                     throw new SyntaxException(this,
                         string.Format(CultureInfo.InvariantCulture,
-                            LangResources.Reader_UnexpectedPunctuatorToken,
-                            code));
+                            LangResources.Reader_InvalidToken,
+                            TokenKind.Spread));
+                }
+            }
+            else
+            {
+                _kind = GraphQLConstants.PunctuatorKind(code);
             }
         }
 
@@ -349,7 +292,7 @@ namespace HotChocolate.Language
                 }
             }
 
-            if ((code | (char)0x20) == GraphQLConstants.E)
+            if ((code | 0x20) == GraphQLConstants.E)
             {
                 isFloat = true;
                 code = _graphQLData[++_position];
@@ -370,7 +313,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReadDigits(byte firstCode)
         {
-            if (!firstCode.IsDigit())
+            if (!GraphQLConstants.IsDigit(firstCode))
             {
                 throw new SyntaxException(this,
                     "Invalid number, expected digit but got: " +
@@ -400,23 +343,24 @@ namespace HotChocolate.Language
             var trimStart = _position + 1;
             bool trim = true;
 
-            while (++_position < _length
-                && !GraphQLConstants.IsControlCharacter(
-                    _graphQLData[_position]))
+            while (++_position < _length)
             {
+                byte code = _graphQLData[_position];
+
+                if (GraphQLConstants.IsControlCharacter(code))
+                {
+                    break;
+                }
+
                 if (trim)
                 {
-                    switch (_graphQLData[_position])
+                    if (GraphQLConstants.TrimComment(code))
                     {
-                        case GraphQLConstants.Hash:
-                        case GraphQLConstants.Space:
-                        case GraphQLConstants.Tab:
-                            trimStart = _position;
-                            break;
-
-                        default:
-                            trim = false;
-                            break;
+                        trimStart = _position;
+                    }
+                    else
+                    {
+                        trim = false;
                     }
                 }
             }

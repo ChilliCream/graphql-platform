@@ -27,6 +27,10 @@ namespace HotChocolate.Language
             new bool[256];
         private static readonly byte[] _escapeCharacters =
             new byte[256];
+        private static readonly bool[] _trimComment =
+            new bool[256];
+        private static readonly TokenKind[] _punctuatorKind =
+            new TokenKind[256];
 
         public const int StackallocThreshold = 256;
 
@@ -128,6 +132,18 @@ namespace HotChocolate.Language
         public static bool IsControlCharacter(this byte c)
         {
             return _isControlCharacter[c];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool TrimComment(this byte c)
+        {
+            return _trimComment[c];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TokenKind PunctuatorKind(this byte c)
+        {
+            return _punctuatorKind[c];
         }
     }
 }

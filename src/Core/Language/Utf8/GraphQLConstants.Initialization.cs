@@ -13,6 +13,8 @@ namespace HotChocolate.Language
             InitializeIsLetterOrUnderscoreCache();
             InitializeIsLetterOrDigitOUnderscoreCache();
             InitializeIsDigitOrMinusCache();
+            InitializeTrimComment();
+            InitializePunctuator();
         }
 
         private static void InitializeIsControlCharacterCache()
@@ -151,6 +153,30 @@ namespace HotChocolate.Language
             _isDigitOrMinus['7'] = true;
             _isDigitOrMinus['8'] = true;
             _isDigitOrMinus['9'] = true;
+        }
+
+        private static void InitializeTrimComment()
+        {
+            _trimComment[GraphQLConstants.Hash] = true;
+            _trimComment[GraphQLConstants.Space] = true;
+            _trimComment[GraphQLConstants.Tab] = true;
+        }
+
+        private static void InitializePunctuator()
+        {
+            _punctuatorKind[GraphQLConstants.Bang] = TokenKind.Bang;
+            _punctuatorKind[GraphQLConstants.Dollar] = TokenKind.Dollar;
+            _punctuatorKind[GraphQLConstants.Ampersand] = TokenKind.Ampersand;
+            _punctuatorKind[GraphQLConstants.LeftParenthesis] = TokenKind.LeftParenthesis;
+            _punctuatorKind[GraphQLConstants.RightParenthesis] = TokenKind.RightParenthesis;
+            _punctuatorKind[GraphQLConstants.Colon] = TokenKind.Colon;
+            _punctuatorKind[GraphQLConstants.Equal] = TokenKind.Equal;
+            _punctuatorKind[GraphQLConstants.At] = TokenKind.At;
+            _punctuatorKind[GraphQLConstants.LeftBracket] = TokenKind.LeftBracket;
+            _punctuatorKind[GraphQLConstants.RightBracket] = TokenKind.RightBracket;
+            _punctuatorKind[GraphQLConstants.LeftBrace] = TokenKind.LeftBrace;
+            _punctuatorKind[GraphQLConstants.RightBrace] = TokenKind.RightBrace;
+            _punctuatorKind[GraphQLConstants.Pipe] = TokenKind.Pipe;
         }
     }
 }
