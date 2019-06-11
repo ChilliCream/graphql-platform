@@ -22,7 +22,7 @@ namespace HotChocolate.Language
             // assert
             Assert.Equal(
                 "helloWorld_123\r\n\t\tfoo\r\n\tbar",
-                reader.GetString(reader.Value));
+                Utf8GraphQLReader.GetString(reader.Value));
 
             Assert.Equal(
                 "helloWorld_123\n\tfoo\nbar",
@@ -181,7 +181,7 @@ namespace HotChocolate.Language
 
             // assert
             Assert.Equal(3, span.Length);
-            Assert.Equal("abc", reader.GetString(span));
+            Assert.Equal("abc", Utf8GraphQLReader.GetString(span));
         }
 
         [Fact]
