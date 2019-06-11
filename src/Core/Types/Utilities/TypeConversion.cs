@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Utilities
 {
@@ -38,7 +39,11 @@ namespace HotChocolate.Utilities
         {
             if (!TryConvert(from, to, source, out object converted))
             {
-                throw new NotSupportedException();
+                throw new NotSupportedException(
+                    string.Format(
+                        TypeResources.TypeConvertion_ConvertNotSupported,
+                        from.Name,
+                        to.Name));
             }
             return converted;
         }

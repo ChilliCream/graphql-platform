@@ -104,12 +104,37 @@ namespace HotChocolate
                 false))
             {
                 GraphQLDescriptionAttribute attribute =
-                    attributeProvider.GetCustomAttributes(
-                        typeof(GraphQLDescriptionAttribute),
-                        false)
-                        .OfType<GraphQLDescriptionAttribute>()
-                        .FirstOrDefault();
+                    (GraphQLDescriptionAttribute)
+                        attributeProvider.GetCustomAttributes(
+                            typeof(GraphQLDescriptionAttribute),
+                            false)[0];
                 return attribute.Description;
+            }
+
+            return null;
+        }
+
+        public static string GetGraphQLDeprecationReason(
+            this ICustomAttributeProvider attributeProvider)
+        {
+            if (attributeProvider.IsDefined(
+                typeof(ObsoleteAttribute),
+                false))
+            {
+                ObsoleteAttribute attribute =
+                    (ObsoleteAttribute)attributeProvider.GetCustomAttributes(
+                        typeof(ObsoleteAttribute),
+                        false)[0];
+
+                if (string.IsNullOrEmpty(attribute.Message))
+                {
+                    // TODO : resources
+                    return "This field is no longer supported.";
+                }
+                else
+                {
+                    return attribute.Message;
+                }
             }
 
             return null;

@@ -57,7 +57,7 @@ namespace HotChocolate.Types
         {
             DeclaringType = context.Type;
             Type = context.GetType<TType>(_definition.Type);
-            ClrType = Type.NamedType() is IHasClrType hasClrType
+            ClrType = Type is IHasClrType hasClrType
                 ? hasClrType.ClrType
                 : typeof(object);
 

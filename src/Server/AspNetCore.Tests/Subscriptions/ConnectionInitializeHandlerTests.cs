@@ -1,4 +1,4 @@
-﻿using System.Threading;
+using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -11,7 +11,6 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             // arrange
             var handler = new ConnectionInitializeHandler();
-
             var message = new GenericOperationMessage
             {
                 Type = MessageTypes.Connection.Initialize
@@ -29,7 +28,6 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             // arrange
             var handler = new ConnectionInitializeHandler();
-
             var message = new GenericOperationMessage
             {
                 Type = MessageTypes.Connection.Accept
@@ -43,13 +41,12 @@ namespace HotChocolate.AspNetCore.Subscriptions
         }
 
         [Fact]
-        public async Task Can_AcceptMessage_False()
+        public async Task Handle_InitializeMessage_True()
         {
             // arrange
-            var webSocketContext = new InMemoryWebSocketContext();
-
+            (WebSocketContext context, WebSocketMock socket) =
+                WebSocketContextHelper.Create();
             var handler = new ConnectionInitializeHandler();
-
             var message = new GenericOperationMessage
             {
                 Type = MessageTypes.Connection.Initialize
@@ -57,12 +54,12 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             // act
             await handler.HandleAsync(
-                webSocketContext,
+                context,
                 message,
                 CancellationToken.None);
 
             // assert
-            Assert.Collection(webSocketContext.Outgoing,
+            Assert.Collection(socket.Outgoing,
                 t =>
                 {
                     Assert.Equal(MessageTypes.Connection.Accept, t.Type);

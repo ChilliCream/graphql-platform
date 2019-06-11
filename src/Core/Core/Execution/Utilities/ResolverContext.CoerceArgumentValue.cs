@@ -52,7 +52,9 @@ namespace HotChocolate.Execution
                 return resolved;
             }
 
-            if (TryConvertValue(argumentValue, out resolved))
+            if (TryConvertValue(
+                argumentValue.Type.ClrType,
+                value, out resolved))
             {
                 return resolved;
             }
@@ -72,18 +74,19 @@ namespace HotChocolate.Execution
         }
 
         private bool TryConvertValue<T>(
-            ArgumentValue argumentValue,
-            out T value)
+            Type type,
+            object value,
+            out T converted)
         {
             if (Converter.TryConvert(
-                argumentValue.Type.ClrType, typeof(T),
-                argumentValue.Value, out object converted))
+                type, typeof(T),
+                value, out object c))
             {
-                value = (T)converted;
+                converted = (T)c;
                 return true;
             }
 
-            value = default;
+            converted = default;
             return false;
         }
     }

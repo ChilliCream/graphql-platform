@@ -1,4 +1,4 @@
-﻿#if !ASPNETCLASSIC
+#if !ASPNETCLASSIC
 
 using System;
 using System.Threading;
@@ -10,6 +10,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
     internal class Subscription
         : ISubscription
     {
+        internal const byte _delimiter = 0x07;
+
         private readonly CancellationTokenSource _cts =
             new CancellationTokenSource();
         private readonly IWebSocketContext _context;
