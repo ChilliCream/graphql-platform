@@ -81,126 +81,16 @@ namespace HotChocolate.Language
         /// </summary>
         public ReadOnlySpan<byte> Value => _value;
 
-        public unsafe string GetString()
-        {
-            if (_value.Length == 0)
-            {
-                return string.Empty;
-            }
-
-            bool isBlockString = _kind == TokenKind.BlockString;
-
-            int length = checked((int)_value.Length);
-            bool useStackalloc =
-                length <= GraphQLConstants.StackallocThreshold;
-
-            byte[] unescapedArray = null;
-
-            Span<byte> unescapedSpan = useStackalloc
-                ? stackalloc byte[length]
-                : (unescapedArray = ArrayPool<byte>.Shared.Rent(length));
-
-            try
-            {
-                UnescapeValue(_value, ref unescapedSpan, isBlockString);
-
-                fixed (byte* bytePtr = unescapedSpan)
-                {
-                    return StringHelper.UTF8Encoding.GetString(
-                        bytePtr,
-                        unescapedSpan.Length);
-                }
-            }
-            finally
-            {
-                if (unescapedArray != null)
-                {
-                    unescapedSpan.Clear();
-                    ArrayPool<byte>.Shared.Return(unescapedArray);
-                }
-            }
-        }
-
-        public unsafe string GetString(ReadOnlySpan<byte> unescapedValue)
-        {
-            if (unescapedValue.Length == 0)
-            {
-                return string.Empty;
-            }
-
-            fixed (byte* bytePtr = unescapedValue)
-            {
-                return StringHelper.UTF8Encoding
-                    .GetString(bytePtr, unescapedValue.Length);
-            }
-        }
-
-        public string GetComment()
-        {
-            if (_value.Length > 0)
-            {
-                StringHelper.TrimStringToken(ref _value);
-            }
-
-            return GetString(_value);
-        }
-
-        public string GetName() => GetString(_value);
-        public string GetScalarValue() => GetString(_value);
-
-        private static void UnescapeValue(
-            in ReadOnlySpan<byte> escaped,
-            ref Span<byte> unescapedValue,
-            bool isBlockString)
-        {
-            Utf8Helper.Unescape(
-                in escaped,
-                ref unescapedValue,
-                isBlockString);
-
-            if (isBlockString)
-            {
-                StringHelper.TrimBlockStringToken(
-                    unescapedValue, ref unescapedValue);
-            }
-        }
-
-        public void UnescapeValue(ref Span<byte> unescapedValue)
-        {
-            if (_value.Length == 0)
-            {
-                unescapedValue = unescapedValue.Slice(0, 0);
-            }
-            else
-            {
-                UnescapeValue(
-                    in _value,
-                    ref unescapedValue,
-                    _kind == TokenKind.BlockString);
-            }
-        }
-
-        public bool MoveNext()
-        {
-            while (Read() && _kind == TokenKind.Comment) { }
-            return !IsEndOfStream();
-        }
-
-        public bool Skip(TokenKind kind)
-        {
-            if (_kind == kind)
-            {
-                MoveNext();
-                return true;
-            }
-            return false;
-        }
-
         public bool Read()
         {
             if (_position == 0)
             {
                 SkipBoml();
+            }
+
+            if (_position > 940)
+            {
+
             }
 
             SkipWhitespaces();
@@ -606,6 +496,7 @@ namespace HotChocolate.Language
         /// <returns>
         /// Returns the block string token read from the current lexer state.
         /// </returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReadBlockStringToken()
         {
             var start = _position - 2;
@@ -620,11 +511,12 @@ namespace HotChocolate.Language
                     && _graphQLData[_position + 1] == GraphQLConstants.Quote
                     && _graphQLData[_position + 2] == GraphQLConstants.Quote)
                 {
-                    _nextNewLines--;
                     _kind = TokenKind.BlockString;
                     _start = start;
                     _end = _position + 2;
-                    _value = _graphQLData.Slice(start + 3, _position - start - 3);
+                    _value = _graphQLData.Slice(
+                        start + 3,
+                        _position - start - 3);
                     _position = _end + 1;
                     return;
                 }
@@ -735,6 +627,14 @@ namespace HotChocolate.Language
                     _position += 3;
                 }
             }
+
+            if (code == 254)
+            {
+                if (_graphQLData[_position + 1] == 255)
+                {
+                    _position += 2;
+                }
+            }
         }
 
         /// <summary>
@@ -754,6 +654,7 @@ namespace HotChocolate.Language
         /// <param name="lines">
         /// The number of lines to skip.
         /// </param>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void NewLine(int lines)
         {
             if (lines < 1)

@@ -6,8 +6,10 @@ namespace HotChocolate.Language
         {
             InitializeIsControlCharacterCache();
             InitializeIsEscapeCharacterCache();
+            InitializeEscapeCharacterCache();
             InitializeIsWhitespaceCache();
             InitializeIsPunctuatorCache();
+            InitializeIsLetterCache();
             InitializeIsLetterOrUnderscoreCache();
             InitializeIsLetterOrDigitOUnderscoreCache();
             InitializeIsDigitOrMinusCache();
@@ -19,10 +21,12 @@ namespace HotChocolate.Language
             {
                 _isControlCharacter[i] = true;
             }
+
             for (int i = 10; i <= 31; i++)
             {
                 _isControlCharacter[i] = true;
             }
+
             _isControlCharacter[127] = true;
         }
 
@@ -38,6 +42,21 @@ namespace HotChocolate.Language
             _isEscapeCharacter['t'] = true;
         }
 
+        private static void InitializeEscapeCharacterCache()
+        {
+            for (int i = 0; i < 256; i++)
+            {
+                char c = (char)i;
+                _escapeCharacters[c] = (byte)c;
+            }
+
+            _escapeCharacters[B] = Backspace;
+            _escapeCharacters[F] = Formfeed;
+            _escapeCharacters[N] = NewLine;
+            _escapeCharacters[R] = Return;
+            _escapeCharacters[T] = Tab;
+        }
+
         private static void InitializeIsWhitespaceCache()
         {
             _isWhitespace['\t'] = true;
@@ -45,7 +64,6 @@ namespace HotChocolate.Language
             _isWhitespace['\n'] = true;
             _isWhitespace[' '] = true;
             _isWhitespace[','] = true;
-            _isWhitespace[0xfeff] = true;
         }
 
         private static void InitializeIsPunctuatorCache()
@@ -64,6 +82,19 @@ namespace HotChocolate.Language
             _isPunctuator['|'] = true;
             _isPunctuator['}'] = true;
             _isPunctuator['.'] = true;
+        }
+
+        private static void InitializeIsLetterCache()
+        {
+            for (char c = 'a'; c <= 'z'; c++)
+            {
+                _isLetter[c] = true;
+            }
+
+            for (char c = 'A'; c <= 'Z'; c++)
+            {
+                _isLetter[c] = true;
+            }
         }
 
         private static void InitializeIsLetterOrUnderscoreCache()

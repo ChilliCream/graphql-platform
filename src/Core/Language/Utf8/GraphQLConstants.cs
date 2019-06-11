@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace HotChocolate.Language
 {
     /// <summary>
@@ -7,20 +9,24 @@ namespace HotChocolate.Language
     /// </summary>
     internal static partial class GraphQLConstants
     {
+        private static readonly bool[] _isLetter =
+            new bool[256];
         private static readonly bool[] _isLetterOrUnderscore =
-            new bool[char.MaxValue + 1];
+            new bool[256];
         private static readonly bool[] _isLetterOrDigitOrUnderscore =
-            new bool[char.MaxValue + 1];
+            new bool[256];
         private static readonly bool[] _isControlCharacter =
-            new bool[char.MaxValue + 1];
+            new bool[256];
         private static readonly bool[] _isEscapeCharacter =
-            new bool[char.MaxValue + 1];
+            new bool[256];
         private static readonly bool[] _isWhitespace =
-            new bool[char.MaxValue + 1];
+            new bool[256];
         private static readonly bool[] _isPunctuator =
-            new bool[char.MaxValue + 1];
+            new bool[256];
         private static readonly bool[] _isDigitOrMinus =
-            new bool[char.MaxValue + 1];
+            new bool[256];
+        private static readonly byte[] _escapeCharacters =
+            new byte[256];
 
         public const int StackallocThreshold = 256;
 
@@ -31,6 +37,7 @@ namespace HotChocolate.Language
         public const byte Plus = (byte)'+';
         public const byte Minus = (byte)'-';
         public const byte Backslash = (byte)'\\';
+        public const byte Forwardslash = (byte)'/';
         public const byte B = (byte)'b';
         public const byte Backspace = (byte)'\b';
         public const byte F = (byte)'f';
@@ -63,66 +70,61 @@ namespace HotChocolate.Language
         public const byte Return = (byte)'\r';
         public const byte Quote = (byte)'"';
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsLetter(this byte c)
+        {
+            return _isLetter[c];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsLetterOrDigitOrUnderscore(this byte c)
         {
             return _isLetterOrDigitOrUnderscore[c];
         }
 
-        public static bool IsLetter(this byte c)
-        {
-            byte normalized = (byte)(c | 0x20);
-            return (normalized >= A && normalized <= Z);
-        }
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsLetterOrUnderscore(this byte c)
         {
             return _isLetterOrUnderscore[c];
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsDigit(this byte c)
         {
             return c >= 48 && c <= 57;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsDigitOrMinus(this byte c)
         {
             return _isDigitOrMinus[c];
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsPunctuator(this byte c)
         {
             return _isPunctuator[c];
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsWhitespace(this byte c)
         {
             return _isWhitespace[c];
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsValidEscapeCharacter(this byte c)
         {
             return _isEscapeCharacter[c];
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static byte EscapeCharacter(this byte c)
         {
-            switch (c)
-            {
-                case B:
-                    return Backspace;
-                case F:
-                    return Formfeed;
-                case N:
-                    return NewLine;
-                case R:
-                    return Return;
-                case T:
-                    return Tab;
-                default:
-                    return c;
-            }
+            return _escapeCharacters[c];
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsControlCharacter(this byte c)
         {
             return _isControlCharacter[c];
