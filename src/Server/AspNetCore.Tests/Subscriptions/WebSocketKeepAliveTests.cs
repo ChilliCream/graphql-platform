@@ -22,7 +22,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             // act
             keepAlive.Start();
-            await Task.Delay(timeout.Add(TimeSpan.FromMilliseconds(100)));
+            await Task.Delay(timeout.Add(TimeSpan.FromMilliseconds(500)));
 
             // assert
             Assert.True(socket.Outgoing.Any(t =>
