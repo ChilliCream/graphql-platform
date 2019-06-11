@@ -8,6 +8,7 @@ using Xunit;
 namespace HotChocolate.Types
 {
     public class EnumTypeTests
+        : TypeTestBase
     {
         [Fact]
         public void EnumType_DynamicName()
@@ -431,6 +432,23 @@ namespace HotChocolate.Types
             Assert.Throws<ArgumentException>(action);
         }
 
+        [Fact]
+        public void Deprecate_Obsolete_Values()
+        {
+            // act
+            var schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType<FooObsolete>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public enum Foo
         {
             Bar1,
@@ -438,5 +456,13 @@ namespace HotChocolate.Types
         }
 
         public class Bar { }
+
+        public enum FooObsolete
+        {
+            Bar1,
+
+            [Obsolete]
+            Bar2
+        }
     }
 }

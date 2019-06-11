@@ -18,8 +18,10 @@ namespace HotChocolate.Types.Descriptors
 
             Definition.Name = context.Naming.GetEnumValueName(value);
             Definition.Value = value;
-            Definition.Description = context.Naming
-                .GetEnumValueDescription(value);
+            Definition.Description =
+                context.Naming.GetEnumValueDescription(value);
+            Definition.DeprecationReason =
+                context.Naming.GetDeprecationReason(value);
         }
 
         protected override EnumValueDefinition Definition { get; } =
