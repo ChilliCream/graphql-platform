@@ -23,11 +23,8 @@ namespace HotChocolate.Language
             );
         }
 
-        private bool MoveNext()
-        {
-            while (_reader.Read() && _reader.Kind == TokenKind.Comment) ;
-            return !_reader.IsEndOfStream();
-        }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool MoveNext() => _reader.MoveNext();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private TokenInfo Start() =>
@@ -123,7 +120,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Expect(TokenKind kind)
         {
-            if (!Skip(kind))
+            if (!_reader.Skip(kind))
             {
                 throw new SyntaxException(_reader,
                     string.Format(CultureInfo.InvariantCulture,
@@ -154,29 +151,18 @@ namespace HotChocolate.Language
                 throw new SyntaxException(_reader,
                     string.Format(CultureInfo.InvariantCulture,
                         LangResources.Parser_InvalidToken,
-                        _reader.GetString(keyword),
+                        Utf8GraphQLReader.GetString(keyword),
                         found));
             }
         }
 
-        private bool SkipPipe() => Skip(TokenKind.Pipe);
+        private bool SkipPipe() => _reader.Skip(TokenKind.Pipe);
 
-        private bool SkipEqual() => Skip(TokenKind.Equal);
+        private bool SkipEqual() => _reader.Skip(TokenKind.Equal);
 
-        private bool SkipColon() => Skip(TokenKind.Colon);
+        private bool SkipColon() => _reader.Skip(TokenKind.Colon);
 
-        private bool SkipAmpersand() => Skip(TokenKind.Ampersand);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool Skip(TokenKind kind)
-        {
-            if (_reader.Kind == kind)
-            {
-                MoveNext();
-                return true;
-            }
-            return false;
-        }
+        private bool SkipAmpersand() => _reader.Skip(TokenKind.Ampersand);
 
         private bool SkipRepeatableKeyword() =>
             SkipKeyword(GraphQLKeywords.Repeatable);
