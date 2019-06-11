@@ -146,7 +146,7 @@ namespace HotChocolate.Types.Descriptors
             return name;
         }
 
-        public string GetTypeDescription(Type type, TypeKind kind)
+        public virtual string GetTypeDescription(Type type, TypeKind kind)
         {
             if (type == null)
             {
@@ -162,7 +162,7 @@ namespace HotChocolate.Types.Descriptors
             return description;
         }
 
-        public string GetDeprecationReason(MemberInfo member)
+        public virtual string GetDeprecationReason(MemberInfo member)
         {
             if (member == null)
             {
@@ -172,7 +172,7 @@ namespace HotChocolate.Types.Descriptors
             return member.GetGraphQLDeprecationReason();
         }
 
-        public string GetDeprecationReason(object value)
+        public virtual string GetDeprecationReason(object value)
         {
             Type enumType = value.GetType();
 
