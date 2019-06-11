@@ -115,7 +115,7 @@ namespace HotChocolate.Types
                 return CreateArray(new ListValueNode(literal));
             }
 
-            if (_isInputType && literal is ListValueNode listValueLiteral)
+            if (literal is ListValueNode listValueLiteral)
             {
                 return CreateArray(listValueLiteral);
             }
