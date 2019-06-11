@@ -88,11 +88,6 @@ namespace HotChocolate.Language
                 SkipBoml();
             }
 
-            if (_position > 940)
-            {
-
-            }
-
             SkipWhitespaces();
             UpdateColumn();
 
