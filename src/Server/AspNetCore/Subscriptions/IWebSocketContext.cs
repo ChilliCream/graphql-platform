@@ -1,24 +1,22 @@
 #if !ASPNETCLASSIC
-
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net.WebSockets;
+using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
     internal interface IWebSocketContext
         : IDisposable
     {
-        HttpContext HttpContext { get; }
+        IHttpContext HttpContext { get; }
 
         IQueryExecutor QueryExecutor { get; }
 
-        WebSocketCloseStatus? CloseStatus { get; }
+        bool Closed { get; }
 
         IDictionary<string, object> RequestProperties { get; }
 
@@ -33,7 +31,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             CancellationToken cancellationToken);
 
         Task ReceiveMessageAsync(
-            Stream messageStream,
+            PipeWriter writer,
             CancellationToken cancellationToken);
 
         Task<ConnectionStatus> OpenAsync(

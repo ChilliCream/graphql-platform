@@ -1,5 +1,4 @@
-﻿#if !ASPNETCLASSIC
-
+#if !ASPNETCLASSIC
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -13,8 +12,6 @@ namespace HotChocolate.AspNetCore.Subscriptions
 {
     internal static class WebSocketExtensions
     {
-        private const int _maxMessageSize = 1024 * 4;
-
         private static readonly JsonSerializerSettings _settings =
             new JsonSerializerSettings
             {
@@ -136,28 +133,6 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             string json = JsonConvert.SerializeObject(message, _settings);
             return new MemoryStream(Encoding.UTF8.GetBytes(json));
-        }
-
-        public static async Task<GenericOperationMessage> ReceiveMessageAsync(
-            this IWebSocketContext context,
-            CancellationToken cancellationToken)
-        {
-            using (var messageStream = new MemoryStream())
-            {
-                await context.ReceiveMessageAsync(
-                    messageStream,
-                    cancellationToken)
-                    .ConfigureAwait(false);
-
-                string json = Encoding.UTF8.GetString(messageStream.ToArray());
-                if (string.IsNullOrEmpty(json?.Trim()))
-                {
-                    return null;
-                }
-
-                return JsonConvert
-                    .DeserializeObject<GenericOperationMessage>(json);
-            }
         }
     }
 }

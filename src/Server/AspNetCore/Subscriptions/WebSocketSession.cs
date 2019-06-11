@@ -1,5 +1,5 @@
-﻿#if !ASPNETCLASSIC
-
+#if !ASPNETCLASSIC
+using System.IO.Pipelines;
 using System;
 using System.Net.WebSockets;
 using System.Threading;
@@ -13,101 +13,44 @@ namespace HotChocolate.AspNetCore.Subscriptions
     internal sealed class WebSocketSession
         : IDisposable
     {
+        private static readonly TimeSpan KeepAliveTimeout =
+            TimeSpan.FromSeconds(5);
         private const string _protocol = "graphql-ws";
-        private const int _keepAliveTimeout = 5000;
-
-        private readonly static IRequestHandler[] _requestHandlers =
-            new IRequestHandler[]
-            {
-                new ConnectionInitializeHandler(),
-                new ConnectionTerminateHandler(),
-                new SubscriptionStartHandler(),
-                new SubscriptionStopHandler(),
-            };
 
         private readonly CancellationTokenSource _cts =
             new CancellationTokenSource();
         private readonly IWebSocketContext _context;
 
+        private readonly Pipe _pipe = new Pipe();
+        private readonly WebSocketKeepAlive _keepAlive;
+        private readonly SubscriptionReceiver _subscriptionReceiver;
+        private readonly SubscriptionReplier _subscriptionReplier;
+
         private WebSocketSession(
             IWebSocketContext context)
         {
             _context = context;
+            _keepAlive = new WebSocketKeepAlive(context, KeepAliveTimeout, _cts);
+            _subscriptionReplier = new SubscriptionReplier(
+                _pipe.Reader, new WebSocketPipeline(context, _cts), _cts);
+            _subscriptionReceiver = new SubscriptionReceiver(
+                context, _pipe.Writer, _cts);
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             try
             {
-                StartKeepConnectionAlive();
-                await ReceiveMessagesAsync(cancellationToken)
+                _keepAlive.Start();
+                _subscriptionReplier.Start(cancellationToken);
+
+                await _subscriptionReceiver
+                    .StartAsync(cancellationToken)
                     .ConfigureAwait(false);
             }
             finally
             {
                  await _context.CloseAsync().ConfigureAwait(false);
-            }
-        }
-
-        private async Task ReceiveMessagesAsync(
-            CancellationToken cancellationToken)
-        {
-            using (var combined = CancellationTokenSource
-                .CreateLinkedTokenSource(cancellationToken, _cts.Token))
-            {
-                while (!_context.CloseStatus.HasValue
-                    || !combined.IsCancellationRequested)
-                {
-                    GenericOperationMessage message = await _context
-                        .ReceiveMessageAsync(combined.Token);
-
-                    if (message == null)
-                    {
-                        await _context.SendConnectionKeepAliveMessageAsync(
-                            combined.Token).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        await HandleMessage(message, combined.Token)
-                            .ConfigureAwait(false);
-                    }
-                }
-            }
-        }
-
-        private Task HandleMessage(
-            GenericOperationMessage message,
-            CancellationToken cancellationToken)
-        {
-            foreach (IRequestHandler requestHandler in _requestHandlers)
-            {
-                if (requestHandler.CanHandle(message))
-                {
-                    return requestHandler.HandleAsync(
-                        _context,
-                        message,
-                        cancellationToken);
-                }
-            }
-
-            throw new NotSupportedException(
-                "The specified message type is not supported.");
-        }
-
-        private void StartKeepConnectionAlive()
-        {
-            Task.Run(KeepConnectionAlive);
-        }
-
-        private async Task KeepConnectionAlive()
-        {
-            while (!_context.CloseStatus.HasValue
-                || !_cts.IsCancellationRequested)
-            {
-                await Task.Delay(_keepAliveTimeout, _cts.Token)
-                    .ConfigureAwait(false);
-                await _context.SendConnectionKeepAliveMessageAsync(_cts.Token)
-                    .ConfigureAwait(false);
             }
         }
 
@@ -141,8 +84,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 .Contains(socket.SubProtocol))
             {
                 var context = new WebSocketContext(
-                    httpContext, socket, queryExecutor,
-                    onConnectAsync, onCreateRequest);
+                    new HttpContextWrapper(httpContext),
+                    new WebSocketWrapper(socket),
+                    queryExecutor,
+                    onConnectAsync,
+                    onCreateRequest);
 
                 return new WebSocketSession(context);
             }
