@@ -48,6 +48,36 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
+        public async Task ListOfIntLiterals()
+        {
+            // arrange
+            var schema = Schema.Create(c =>
+            {
+                c.Options.StrictValidation = true;
+
+                c.RegisterQueryType(new ObjectType<Query>(d =>
+                {
+                    d.BindFields(BindingBehavior.Explicit);
+                    d.Field(t => t.ListOfInt(default))
+                        .Name("a")
+                        .Type<ListType<ObjectType<Bar>>>()
+                        .Argument("foo", a => a.Type<ListType<IntType>>());
+                }));
+
+                c.RegisterType(new ObjectType<Bar>());
+            });
+
+            // act
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(
+                    "query { a(foo:[1 2 3 4 5]) { foo } }");
+
+            // assert
+            Assert.Empty(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task ListOfFoo()
         {
             // arrange
