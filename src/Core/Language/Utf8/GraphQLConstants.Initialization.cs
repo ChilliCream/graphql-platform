@@ -37,9 +37,6 @@ namespace HotChocolate.Language
 
             _isControlCharacterNoNewLine['\r'] = false;
             _isControlCharacterNoNewLine['\n'] = false;
-
-            _isNewLineOrReturn['\r'] = true;
-            _isNewLineOrReturn['\n'] = true;
         }
 
         private static void InitializeIsEscapeCharacterCache()

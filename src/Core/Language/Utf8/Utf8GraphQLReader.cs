@@ -387,7 +387,8 @@ namespace HotChocolate.Language
             var start = _position;
             byte code = _graphQLData[++_position];
 
-            while (!GraphQLConstants.IsNewLineOrReturn(code))
+            while (code != GraphQLConstants.NewLine
+                && code != GraphQLConstants.Return)
             {
                 // closing Quote (")
                 if (code == GraphQLConstants.Quote)

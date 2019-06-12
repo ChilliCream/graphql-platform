@@ -147,12 +147,6 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsNewLineOrReturn(this byte c)
-        {
-            return _isNewLineOrReturn[c];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool TrimComment(this byte c)
         {
             return _trimComment[c];
