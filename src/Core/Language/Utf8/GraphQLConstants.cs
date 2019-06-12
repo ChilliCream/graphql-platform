@@ -35,8 +35,6 @@ namespace HotChocolate.Language
             new TokenKind[256];
         private static readonly bool[] _isControlCharacterNoNewLine =
             new bool[256];
-        private static readonly bool[] _isNewLineOrReturn =
-            new bool[256];
 
         public const int StackallocThreshold = 256;
 
