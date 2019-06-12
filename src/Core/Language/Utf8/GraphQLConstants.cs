@@ -33,6 +33,10 @@ namespace HotChocolate.Language
             new bool[256];
         private static readonly TokenKind[] _punctuatorKind =
             new TokenKind[256];
+        private static readonly bool[] _isControlCharacterNoNewLine =
+            new bool[256];
+        private static readonly bool[] _isNewLineOrReturn =
+            new bool[256];
 
         public const int StackallocThreshold = 256;
 
@@ -134,6 +138,18 @@ namespace HotChocolate.Language
         public static bool IsControlCharacter(this byte c)
         {
             return _isControlCharacter[c];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsControlCharacterNoNewLine(this byte c)
+        {
+            return _isControlCharacterNoNewLine[c];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsNewLineOrReturn(this byte c)
+        {
+            return _isNewLineOrReturn[c];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

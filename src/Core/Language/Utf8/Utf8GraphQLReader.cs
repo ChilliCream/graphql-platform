@@ -162,13 +162,14 @@ namespace HotChocolate.Language
             var start = _position;
             var position = _position;
 
-            do
+            while (++position < _length)
             {
-                position++;
+                if (!GraphQLConstants.IsLetterOrDigitOrUnderscore(
+                    _graphQLData[position]))
+                {
+                    break;
+                }
             }
-            while (position < _length
-                && GraphQLConstants.IsLetterOrDigitOrUnderscore(
-                    _graphQLData[position]));
 
             _kind = TokenKind.Name;
             _start = start;
@@ -386,8 +387,7 @@ namespace HotChocolate.Language
             var start = _position;
             byte code = _graphQLData[++_position];
 
-            while (code != GraphQLConstants.NewLine
-                && code != GraphQLConstants.Return)
+            while (!GraphQLConstants.IsNewLineOrReturn(code))
             {
                 // closing Quote (")
                 if (code == GraphQLConstants.Quote)
@@ -461,9 +461,7 @@ namespace HotChocolate.Language
                 }
 
                 // SourceCharacter
-                if (code.IsControlCharacter()
-                    && code != GraphQLConstants.NewLine
-                    && code != GraphQLConstants.Return)
+                if (code.IsControlCharacterNoNewLine())
                 {
                     throw new SyntaxException(this,
                         $"Invalid character within String: ${code}.");

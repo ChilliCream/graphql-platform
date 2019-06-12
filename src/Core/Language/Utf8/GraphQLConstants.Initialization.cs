@@ -23,14 +23,23 @@ namespace HotChocolate.Language
             for (int i = 0; i < 9; i++)
             {
                 _isControlCharacter[i] = true;
+                _isControlCharacterNoNewLine[i] = true;
             }
 
             for (int i = 10; i <= 31; i++)
             {
                 _isControlCharacter[i] = true;
+                _isControlCharacterNoNewLine[i] = true;
             }
 
             _isControlCharacter[127] = true;
+            _isControlCharacterNoNewLine[127] = true;
+
+            _isControlCharacterNoNewLine['\r'] = false;
+            _isControlCharacterNoNewLine['\n'] = false;
+
+            _isNewLineOrReturn['\r'] = true;
+            _isNewLineOrReturn['\n'] = true;
         }
 
         private static void InitializeIsEscapeCharacterCache()
