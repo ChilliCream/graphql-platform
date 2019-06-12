@@ -1,3 +1,4 @@
+using System.Diagnostics;
 
 using System;
 using System.Collections.Generic;
@@ -6,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Subscriptions;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
 namespace HotChocolate.AspNetCore.Subscriptions
@@ -34,11 +34,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 .ConnectAsync(SubscriptionUri, CancellationToken.None);
 
             // act and assert
-            await ConnectAsync(webSocket);
+            await SessionInitializeAsync(webSocket);
         }
 
-        // TODO : FIX THIS ONE
-        [Fact(Skip = "Temporarily disabled")]
+        [Fact(Skip = "FIX: This test still does not run on the build server.")]
         public async Task Send_Start_ReceiveDataOnMutation()
         {
             // arrange
@@ -47,7 +46,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             WebSocket webSocket = await client
                 .ConnectAsync(SubscriptionUri, CancellationToken.None);
 
-            await ConnectAsync(webSocket);
+            await SessionInitializeAsync(webSocket);
 
             var query = new SubscriptionQuery
             {
@@ -64,7 +63,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
             });
 
             GenericOperationMessage message =
-                await WaitForMessage(webSocket, MessageTypes.Subscription.Data);
+                await WaitForMessage(
+                    webSocket,
+                    MessageTypes.Subscription.Data,
+                    TimeSpan.FromSeconds(10));
 
             Assert.NotNull(message);
             Assert.Equal(MessageTypes.Subscription.Data, message.Type);
@@ -75,22 +77,34 @@ namespace HotChocolate.AspNetCore.Subscriptions
         }
 
         private async Task<GenericOperationMessage> WaitForMessage(
-            WebSocket webSocket, string messageType)
+            WebSocket webSocket, string messageType, TimeSpan timeout)
         {
-            for (var i = 0; i < 10; i++)
+            Stopwatch timer = Stopwatch.StartNew();
+
+            try
             {
-                GenericOperationMessage message =
-                    await webSocket.ReceiveServerMessageAsync();
-
-                if (message?.Type == messageType)
+                while (timer.Elapsed <= timeout)
                 {
-                    return message;
-                }
+                    GenericOperationMessage message =
+                        await webSocket.ReceiveServerMessageAsync();
 
-                if (message?.Type != MessageTypes.Connection.KeepAlive)
-                {
-                    break;
+                    if (messageType.Equals(message?.Type))
+                    {
+                        return message;
+                    }
+
+                    if (message != null
+                        && !MessageTypes.Connection.KeepAlive.Equals(
+                            message.Type))
+                    {
+                        throw new Exception(
+                            $"Unexpected message type: {message.Type}");
+                    }
                 }
+            }
+            finally
+            {
+                timer.Stop();
             }
 
             return null;
@@ -109,7 +123,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 new QueryMiddlewareOptions());
         }
 
-        private async Task ConnectAsync(WebSocket webSocket)
+        private async Task SessionInitializeAsync(WebSocket webSocket)
         {
             // act
             await webSocket.SendConnectionInitializeAsync();

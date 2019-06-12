@@ -9,7 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- nothing yet ;)
+- Added support to infer if a field or enum value is deprecated. [#826](https://github.com/ChilliCream/hotchocolate/pull/826)
+
+### Changed
+
+- Subscription now uses pipeline API to abstract sockets. [#807](https://github.com/ChilliCream/hotchocolate/pull/807)
+- Improved parser performance. [#806](https://github.com/ChilliCream/hotchocolate/pull/806)
 
 ## [9.0.1] - 2019-06-09
 
