@@ -34,8 +34,8 @@ namespace HotChocolate.Types.Filters.String
 
         public IStringFilterOperationDescriptor AllowContains()
         {
-
-            var field = new StringFilterContainsDescriptor(this, Context, propertyInfo);
+            var field = StringFilterOperationDescriptor.New(
+                Context, this, Definition.Name + "_contains", Definition.Type);
             Definition.Filters.Add(field);
             return field;
 
