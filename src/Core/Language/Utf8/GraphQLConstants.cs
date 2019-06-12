@@ -25,6 +25,8 @@ namespace HotChocolate.Language
             new bool[256];
         private static readonly bool[] _isDigitOrMinus =
             new bool[256];
+        private static readonly bool[] _isDigit =
+            new bool[256];
         private static readonly byte[] _escapeCharacters =
             new byte[256];
         private static readonly bool[] _trimComment =
@@ -95,7 +97,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsDigit(this byte c)
         {
-            return c >= 48 && c <= 57;
+            return _isDigit[c];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

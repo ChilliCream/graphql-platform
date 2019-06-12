@@ -12,6 +12,7 @@ namespace HotChocolate.Language
             InitializeIsLetterCache();
             InitializeIsLetterOrUnderscoreCache();
             InitializeIsLetterOrDigitOUnderscoreCache();
+            InitializeIsDigitCache();
             InitializeIsDigitOrMinusCache();
             InitializeTrimComment();
             InitializePunctuator();
@@ -143,6 +144,20 @@ namespace HotChocolate.Language
         private static void InitializeIsDigitOrMinusCache()
         {
             _isDigitOrMinus['-'] = true;
+            _isDigitOrMinus['0'] = true;
+            _isDigitOrMinus['1'] = true;
+            _isDigitOrMinus['2'] = true;
+            _isDigitOrMinus['3'] = true;
+            _isDigitOrMinus['4'] = true;
+            _isDigitOrMinus['5'] = true;
+            _isDigitOrMinus['6'] = true;
+            _isDigitOrMinus['7'] = true;
+            _isDigitOrMinus['8'] = true;
+            _isDigitOrMinus['9'] = true;
+        }
+
+        private static void InitializeIsDigitCache()
+        {
             _isDigitOrMinus['0'] = true;
             _isDigitOrMinus['1'] = true;
             _isDigitOrMinus['2'] = true;

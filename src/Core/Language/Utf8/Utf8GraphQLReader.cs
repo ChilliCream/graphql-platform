@@ -196,7 +196,7 @@ namespace HotChocolate.Language
         /// Returns the punctuator token read from the current lexer state.
         /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ReadPunctuatorToken(in byte code)
+        private void ReadPunctuatorToken(byte code)
         {
             _start = _position;
             _end = ++_position;
