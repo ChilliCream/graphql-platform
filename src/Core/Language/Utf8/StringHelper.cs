@@ -122,7 +122,6 @@ namespace HotChocolate.Language
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetLeadingWhitespace(
             in ReadOnlySpan<byte> chunk,
             ref int position)
@@ -138,7 +137,6 @@ namespace HotChocolate.Language
             return i;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GetTrailingWhitespace(
             in ReadOnlySpan<byte> chunk)
         {
@@ -152,7 +150,6 @@ namespace HotChocolate.Language
             return position;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ReadOnlySpan<byte> GetNextLine(
                     in ReadOnlySpan<byte> data,
                     ref int position)
@@ -162,7 +159,6 @@ namespace HotChocolate.Language
             return data.Slice(start, length);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Span<byte> GetNextLine(
             in Span<byte> data,
             ref int position)
@@ -180,7 +176,6 @@ namespace HotChocolate.Language
             return data.Slice(position, length);
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GoToNextLine(
             in ReadOnlySpan<byte> data,
             ref int position)
@@ -217,7 +212,6 @@ namespace HotChocolate.Language
             return i;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GoToNextLine(
             in Span<byte> data,
             ref int position)
@@ -255,7 +249,6 @@ namespace HotChocolate.Language
             return i;
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int GoToPreviousLine(
             in Span<byte> data,
             ref int position)
