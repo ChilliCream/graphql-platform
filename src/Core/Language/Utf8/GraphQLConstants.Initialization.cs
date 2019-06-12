@@ -158,16 +158,16 @@ namespace HotChocolate.Language
 
         private static void InitializeIsDigitCache()
         {
-            _isDigitOrMinus['0'] = true;
-            _isDigitOrMinus['1'] = true;
-            _isDigitOrMinus['2'] = true;
-            _isDigitOrMinus['3'] = true;
-            _isDigitOrMinus['4'] = true;
-            _isDigitOrMinus['5'] = true;
-            _isDigitOrMinus['6'] = true;
-            _isDigitOrMinus['7'] = true;
-            _isDigitOrMinus['8'] = true;
-            _isDigitOrMinus['9'] = true;
+            _isDigit['0'] = true;
+            _isDigit['1'] = true;
+            _isDigit['2'] = true;
+            _isDigit['3'] = true;
+            _isDigit['4'] = true;
+            _isDigit['5'] = true;
+            _isDigit['6'] = true;
+            _isDigit['7'] = true;
+            _isDigit['8'] = true;
+            _isDigit['9'] = true;
         }
 
         private static void InitializeTrimComment()
