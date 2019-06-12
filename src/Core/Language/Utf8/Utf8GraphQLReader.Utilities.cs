@@ -75,6 +75,7 @@ namespace HotChocolate.Language
         public string GetName() => GetString(_value);
         public string GetScalarValue() => GetString(_value);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void UnescapeValue(
             in ReadOnlySpan<byte> escaped,
             ref Span<byte> unescapedValue,
