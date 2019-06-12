@@ -477,12 +477,6 @@ namespace HotChocolate.Language
                 }
                 else if (code == GraphQLConstants.NewLine)
                 {
-                    int next = _position + 1;
-                    if (next < _length
-                        && _graphQLData[next] == GraphQLConstants.Return)
-                    {
-                        _position = next;
-                    }
                     _nextNewLines++;
                 }
                 else if (code == GraphQLConstants.Return)
@@ -522,12 +516,6 @@ namespace HotChocolate.Language
             {
                 if (code == GraphQLConstants.NewLine)
                 {
-                    int next = _position + 1;
-                    if (next < _length
-                        && _graphQLData[next] == GraphQLConstants.Return)
-                    {
-                        _position = next;
-                    }
                     NewLine();
                 }
                 else if (code == GraphQLConstants.Return)
