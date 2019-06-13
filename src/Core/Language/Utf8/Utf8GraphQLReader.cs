@@ -469,51 +469,84 @@ namespace HotChocolate.Language
             var start = _position - 2;
             _nextNewLines = 0;
 
-            while (!IsEndOfStream())
+            while (++_position < _length)
             {
-                byte code = _graphQLData[++_position];
+                byte code = _graphQLData[_position];
 
-                // Closing Triple-Quote (""")
-                if (code == GraphQLConstants.Quote
-                    && _graphQLData[_position + 1] == GraphQLConstants.Quote
-                    && _graphQLData[_position + 2] == GraphQLConstants.Quote)
+                switch (code)
                 {
-                    _kind = TokenKind.BlockString;
-                    _start = start;
-                    _end = _position + 2;
-                    _value = _graphQLData.Slice(
-                        start + 3,
-                        _position - start - 3);
-                    _position = _end + 1;
-                    return;
-                }
-                else if (code == GraphQLConstants.Backslash
-                    && _graphQLData[_position + 1] == GraphQLConstants.Quote
-                    && _graphQLData[_position + 2] == GraphQLConstants.Quote
-                    && _graphQLData[_position + 3] == GraphQLConstants.Quote)
-                {
-                    _position += 3;
-                }
-                else if (code == GraphQLConstants.NewLine)
-                {
-                    _nextNewLines++;
-                }
-                else if (code == GraphQLConstants.Return)
-                {
-                    int next = _position + 1;
-                    if (next < _length
-                        && _graphQLData[next] == GraphQLConstants.NewLine)
-                    {
-                        _position = next;
-                    }
-                    _nextNewLines++;
-                }
+                    case GraphQLConstants.NewLine:
+                        _nextNewLines++;
+                        break;
 
-                // SourceCharacter
-                if (code.IsControlCharacterNoNewLine())
-                {
-                    throw new SyntaxException(this,
-                        $"Invalid character within String: ${code}.");
+                    case GraphQLConstants.Return:
+                        int next = _position + 1;
+                        if (next < _length
+                            && _graphQLData[next] == GraphQLConstants.NewLine)
+                        {
+                            _position = next;
+                        }
+                        _nextNewLines++;
+                        break;
+
+                    // Closing Triple-Quote (""")
+                    case GraphQLConstants.Quote:
+                        if (_graphQLData[_position + 1] == GraphQLConstants.Quote
+                            && _graphQLData[_position + 2] == GraphQLConstants.Quote)
+                        {
+                            _kind = TokenKind.BlockString;
+                            _start = start;
+                            _end = _position + 2;
+                            _value = _graphQLData.Slice(
+                                start + 3,
+                                _position - start - 3);
+                            _position = _end + 1;
+                            return;
+                        }
+                        break;
+
+                    case GraphQLConstants.Backslash:
+                        if (_graphQLData[_position + 1] == GraphQLConstants.Quote
+                            && _graphQLData[_position + 2] == GraphQLConstants.Quote
+                            && _graphQLData[_position + 3] == GraphQLConstants.Quote)
+                        {
+                            _position += 3;
+                        }
+                        break;
+
+                    // SourceCharacter
+                    case 0:
+                    case 1:
+                    case 2:
+                    case 3:
+                    case 4:
+                    case 5:
+                    case 6:
+                    case 7:
+                    case 8:
+                    case 11:
+                    case 12:
+                    case 14:
+                    case 15:
+                    case 16:
+                    case 17:
+                    case 18:
+                    case 19:
+                    case 20:
+                    case 21:
+                    case 22:
+                    case 23:
+                    case 24:
+                    case 25:
+                    case 26:
+                    case 27:
+                    case 28:
+                    case 29:
+                    case 30:
+                    case 31:
+                    case 127:
+                        throw new SyntaxException(this,
+                            $"Invalid character within String: {code}.");
                 }
             }
 

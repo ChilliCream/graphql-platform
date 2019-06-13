@@ -7,9 +7,7 @@ namespace HotChocolate.Language
             InitializeIsControlCharacterCache();
             InitializeIsEscapeCharacterCache();
             InitializeEscapeCharacterCache();
-            InitializeIsWhitespaceCache();
             InitializeIsPunctuatorCache();
-            InitializeIsLetterCache();
             InitializeIsLetterOrUnderscoreCache();
             InitializeIsLetterOrDigitOUnderscoreCache();
             InitializeIsDigitCache();
@@ -22,17 +20,14 @@ namespace HotChocolate.Language
         {
             for (int i = 0; i < 9; i++)
             {
-                _isControlCharacter[i] = true;
                 _isControlCharacterNoNewLine[i] = true;
             }
 
             for (int i = 10; i <= 31; i++)
             {
-                _isControlCharacter[i] = true;
                 _isControlCharacterNoNewLine[i] = true;
             }
 
-            _isControlCharacter[127] = true;
             _isControlCharacterNoNewLine[127] = true;
 
             _isControlCharacterNoNewLine['\r'] = false;
@@ -66,15 +61,6 @@ namespace HotChocolate.Language
             _escapeCharacters[T] = Tab;
         }
 
-        private static void InitializeIsWhitespaceCache()
-        {
-            _isWhitespace['\t'] = true;
-            _isWhitespace['\r'] = true;
-            _isWhitespace['\n'] = true;
-            _isWhitespace[' '] = true;
-            _isWhitespace[','] = true;
-        }
-
         private static void InitializeIsPunctuatorCache()
         {
             _isPunctuator['!'] = true;
@@ -91,19 +77,6 @@ namespace HotChocolate.Language
             _isPunctuator['|'] = true;
             _isPunctuator['}'] = true;
             _isPunctuator['.'] = true;
-        }
-
-        private static void InitializeIsLetterCache()
-        {
-            for (char c = 'a'; c <= 'z'; c++)
-            {
-                _isLetter[c] = true;
-            }
-
-            for (char c = 'A'; c <= 'Z'; c++)
-            {
-                _isLetter[c] = true;
-            }
         }
 
         private static void InitializeIsLetterOrUnderscoreCache()

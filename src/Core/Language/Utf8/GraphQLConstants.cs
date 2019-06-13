@@ -9,17 +9,11 @@ namespace HotChocolate.Language
     /// </summary>
     internal static partial class GraphQLConstants
     {
-        private static readonly bool[] _isLetter =
-            new bool[256];
         private static readonly bool[] _isLetterOrUnderscore =
             new bool[256];
         private static readonly bool[] _isLetterOrDigitOrUnderscore =
             new bool[256];
-        private static readonly bool[] _isControlCharacter =
-            new bool[256];
         private static readonly bool[] _isEscapeCharacter =
-            new bool[256];
-        private static readonly bool[] _isWhitespace =
             new bool[256];
         private static readonly bool[] _isPunctuator =
             new bool[256];
@@ -80,12 +74,6 @@ namespace HotChocolate.Language
         public const byte Comma = (byte)',';
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsLetter(this byte c)
-        {
-            return _isLetter[c];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsLetterOrDigitOrUnderscore(this byte c)
         {
             return _isLetterOrDigitOrUnderscore[c];
@@ -116,12 +104,6 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsWhitespace(this byte c)
-        {
-            return _isWhitespace[c];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsValidEscapeCharacter(this byte c)
         {
             return _isEscapeCharacter[c];
@@ -131,12 +113,6 @@ namespace HotChocolate.Language
         public static byte EscapeCharacter(this byte c)
         {
             return _escapeCharacters[c];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsControlCharacter(this byte c)
-        {
-            return _isControlCharacter[c];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
