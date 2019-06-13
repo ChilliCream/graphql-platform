@@ -7,11 +7,10 @@ namespace HotChocolate.Language
             InitializeIsControlCharacterCache();
             InitializeIsEscapeCharacterCache();
             InitializeEscapeCharacterCache();
-            InitializeIsWhitespaceCache();
             InitializeIsPunctuatorCache();
-            InitializeIsLetterCache();
             InitializeIsLetterOrUnderscoreCache();
             InitializeIsLetterOrDigitOUnderscoreCache();
+            InitializeIsDigitCache();
             InitializeIsDigitOrMinusCache();
             InitializeTrimComment();
             InitializePunctuator();
@@ -21,15 +20,18 @@ namespace HotChocolate.Language
         {
             for (int i = 0; i < 9; i++)
             {
-                _isControlCharacter[i] = true;
+                _isControlCharacterNoNewLine[i] = true;
             }
 
             for (int i = 10; i <= 31; i++)
             {
-                _isControlCharacter[i] = true;
+                _isControlCharacterNoNewLine[i] = true;
             }
 
-            _isControlCharacter[127] = true;
+            _isControlCharacterNoNewLine[127] = true;
+
+            _isControlCharacterNoNewLine['\r'] = false;
+            _isControlCharacterNoNewLine['\n'] = false;
         }
 
         private static void InitializeIsEscapeCharacterCache()
@@ -59,15 +61,6 @@ namespace HotChocolate.Language
             _escapeCharacters[T] = Tab;
         }
 
-        private static void InitializeIsWhitespaceCache()
-        {
-            _isWhitespace['\t'] = true;
-            _isWhitespace['\r'] = true;
-            _isWhitespace['\n'] = true;
-            _isWhitespace[' '] = true;
-            _isWhitespace[','] = true;
-        }
-
         private static void InitializeIsPunctuatorCache()
         {
             _isPunctuator['!'] = true;
@@ -84,19 +77,6 @@ namespace HotChocolate.Language
             _isPunctuator['|'] = true;
             _isPunctuator['}'] = true;
             _isPunctuator['.'] = true;
-        }
-
-        private static void InitializeIsLetterCache()
-        {
-            for (char c = 'a'; c <= 'z'; c++)
-            {
-                _isLetter[c] = true;
-            }
-
-            for (char c = 'A'; c <= 'Z'; c++)
-            {
-                _isLetter[c] = true;
-            }
         }
 
         private static void InitializeIsLetterOrUnderscoreCache()
@@ -153,6 +133,20 @@ namespace HotChocolate.Language
             _isDigitOrMinus['7'] = true;
             _isDigitOrMinus['8'] = true;
             _isDigitOrMinus['9'] = true;
+        }
+
+        private static void InitializeIsDigitCache()
+        {
+            _isDigit['0'] = true;
+            _isDigit['1'] = true;
+            _isDigit['2'] = true;
+            _isDigit['3'] = true;
+            _isDigit['4'] = true;
+            _isDigit['5'] = true;
+            _isDigit['6'] = true;
+            _isDigit['7'] = true;
+            _isDigit['8'] = true;
+            _isDigit['9'] = true;
         }
 
         private static void InitializeTrimComment()

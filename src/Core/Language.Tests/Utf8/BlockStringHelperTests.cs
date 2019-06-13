@@ -66,7 +66,7 @@ namespace HotChocolate.Language
             "    block string uses\n    block string uses",
             "    block string uses\nblock string uses")]
         [InlineData(
-            "    block string uses\n\r\tblock string uses",
+            "    block string uses\n\tblock string uses",
             "    block string uses\nblock string uses")]
         [InlineData(
             "    block string uses\r\n\tblock string uses",

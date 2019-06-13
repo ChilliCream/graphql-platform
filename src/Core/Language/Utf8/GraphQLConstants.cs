@@ -9,21 +9,17 @@ namespace HotChocolate.Language
     /// </summary>
     internal static partial class GraphQLConstants
     {
-        private static readonly bool[] _isLetter =
-            new bool[256];
         private static readonly bool[] _isLetterOrUnderscore =
             new bool[256];
         private static readonly bool[] _isLetterOrDigitOrUnderscore =
             new bool[256];
-        private static readonly bool[] _isControlCharacter =
-            new bool[256];
         private static readonly bool[] _isEscapeCharacter =
-            new bool[256];
-        private static readonly bool[] _isWhitespace =
             new bool[256];
         private static readonly bool[] _isPunctuator =
             new bool[256];
         private static readonly bool[] _isDigitOrMinus =
+            new bool[256];
+        private static readonly bool[] _isDigit =
             new bool[256];
         private static readonly byte[] _escapeCharacters =
             new byte[256];
@@ -31,6 +27,8 @@ namespace HotChocolate.Language
             new bool[256];
         private static readonly TokenKind[] _punctuatorKind =
             new TokenKind[256];
+        private static readonly bool[] _isControlCharacterNoNewLine =
+            new bool[256];
 
         public const int StackallocThreshold = 256;
 
@@ -73,12 +71,7 @@ namespace HotChocolate.Language
         public const byte NewLine = (byte)'\n';
         public const byte Return = (byte)'\r';
         public const byte Quote = (byte)'"';
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsLetter(this byte c)
-        {
-            return _isLetter[c];
-        }
+        public const byte Comma = (byte)',';
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsLetterOrDigitOrUnderscore(this byte c)
@@ -95,7 +88,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsDigit(this byte c)
         {
-            return c >= 48 && c <= 57;
+            return _isDigit[c];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -111,12 +104,6 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsWhitespace(this byte c)
-        {
-            return _isWhitespace[c];
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsValidEscapeCharacter(this byte c)
         {
             return _isEscapeCharacter[c];
@@ -129,9 +116,9 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool IsControlCharacter(this byte c)
+        public static bool IsControlCharacterNoNewLine(this byte c)
         {
-            return _isControlCharacter[c];
+            return _isControlCharacterNoNewLine[c];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
