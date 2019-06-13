@@ -77,6 +77,7 @@ namespace HotChocolate.Language
         public const byte NewLine = (byte)'\n';
         public const byte Return = (byte)'\r';
         public const byte Quote = (byte)'"';
+        public const byte Comma = (byte)',';
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsLetter(this byte c)

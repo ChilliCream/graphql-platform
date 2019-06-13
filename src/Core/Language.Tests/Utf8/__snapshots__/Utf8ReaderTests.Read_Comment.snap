@@ -18,13 +18,13 @@
     "Start": 21,
     "End": 23,
     "Line": 2,
-    "Column": 3
+    "Column": 2
   },
   {
     "Kind": "RightBrace",
     "Start": 24,
     "End": 25,
     "Line": 2,
-    "Column": 6
+    "Column": 5
   }
 ]
