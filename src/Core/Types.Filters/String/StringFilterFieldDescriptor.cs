@@ -1,12 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
-using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Types.Filters.Comparable.Fields;
-using HotChocolate.Types.Filters.String.Fields;
 
 namespace HotChocolate.Types.Filters.String
 {
@@ -24,41 +18,70 @@ namespace HotChocolate.Types.Filters.String
 
         public IStringFilterOperationDescriptor AllowEquals()
         {
+            var operation = new FilterOperation(
+                typeof(string),
+                FilterOperationKind.Equals,
+                Definition.Property);
+
             var field = StringFilterOperationDescriptor.New(
-                Context, this, Definition.Name, Definition.Type);
+                Context, this, Definition.Name, Definition.Type, operation);
+
             Filters.Add(field);
             return field;
         }
 
-
-
         public IStringFilterOperationDescriptor AllowContains()
         {
+            var operation = new FilterOperation(
+                typeof(string),
+                FilterOperationKind.Equals,
+                Definition.Property);
+
             var field = StringFilterOperationDescriptor.New(
-                Context, this, Definition.Name + "_contains", Definition.Type);
-            Definition.Filters.Add(field);
+                Context, this, Definition.Name + "_contains", Definition.Type, operation);
+
+            Filters.Add(field);
             return field;
-
         }
-
 
         public IStringFilterOperationDescriptor AllowIn()
         {
-            var field = new StringFilterInDescriptor(this, Context, propertyInfo);
-            Definition.Filters.Add(field);
+            var operation = new FilterOperation(
+                typeof(string),
+                FilterOperationKind.Equals,
+                Definition.Property);
+
+            var field = StringFilterOperationDescriptor.New(
+                Context, this, Definition.Name + "_in", Definition.Type, operation);
+
+            Filters.Add(field);
             return field;
         }
         public IStringFilterOperationDescriptor AllowStartsWith()
         {
-            var field = new StringFilterStartsWithDescriptor(this, Context, propertyInfo);
-            Definition.Filters.Add(field);
+            var operation = new FilterOperation(
+                typeof(string),
+                FilterOperationKind.Equals,
+                Definition.Property);
+
+            var field = StringFilterOperationDescriptor.New(
+                Context, this, Definition.Name + "_starts_with", Definition.Type, operation);
+
+            Filters.Add(field);
             return field;
         }
 
         public IStringFilterOperationDescriptor AllowEndsWith()
         {
-            var field = new StringFilterEndsWithDescriptor(this, Context, propertyInfo);
-            Definition.Filters.Add(field);
+            var operation = new FilterOperation(
+                typeof(string),
+                FilterOperationKind.Equals,
+                Definition.Property);
+
+            var field = StringFilterOperationDescriptor.New(
+                Context, this, Definition.Name + "_ends_with", Definition.Type, operation);
+
+            Filters.Add(field);
             return field;
         }
 
@@ -68,23 +91,5 @@ namespace HotChocolate.Types.Filters.String
             return this;
         }
 
-    }
-
-
-
-    public enum FilterOperationKind
-    {
-        Equals,
-        Contains,
-        In,
-        StartsWith,
-        EndsWith
-    }
-
-    public class FilterOperation
-    {
-        public Type Type { get; }
-        public FilterOperationKind Kind { get; }
-        public PropertyInfo Property { get; }
     }
 }

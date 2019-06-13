@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Filters
         {
             var schema = CreateSchema(builder =>
                 builder.AddType(
-                    new FilterInputType<Foo>(c => c.Filter(t => t.Bar))));
+                    new FilterInputType<Foo>(c => c.Filter(t => t.Bar).AllowEquals().And().AllowContains())));
 
             schema.ToString().MatchSnapshot();
 

@@ -35,7 +35,7 @@ namespace HotChocolate.Types.Filters
             FilterFieldDefintion definition)
         {
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
-            var handledOperations = new HashSet<NameString>();
+            var handledOperations = new HashSet<FilterOperationKind>();
 
             AddExplicitFilters(fields, handledOperations);
             OnCompleteFilters(fields, handledOperations);
@@ -45,13 +45,13 @@ namespace HotChocolate.Types.Filters
 
         protected virtual void OnCompleteFilters(
             IDictionary<NameString, FilterOperationDefintion> fields,
-            ISet<NameString> handledFilterKinds)
+            ISet<FilterOperationKind> handledFilterKinds)
         {
         }
 
         private void AddExplicitFilters(
             IDictionary<NameString, FilterOperationDefintion> fields,
-            ISet<NameString> handledFilterKinds)
+            ISet<FilterOperationKind> handledFilterKinds)
         {
             foreach (FilterOperationDefintion filterDefinition in
                 Filters.Select(t => t.CreateDefinition()))
@@ -61,7 +61,7 @@ namespace HotChocolate.Types.Filters
                     fields[filterDefinition.Name] = filterDefinition;
                 }
 
-                handledFilterKinds.Add(filterDefinition.Operation);
+                handledFilterKinds.Add(filterDefinition.Operation.Kind);
             }
         }
 

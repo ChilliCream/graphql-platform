@@ -9,8 +9,8 @@ namespace HotChocolate.Types.Filters
         : InputFieldDefinition
     {
         /// <summary>
-        /// Gets or sets the filter operation (e.g. contains, greater than ...).
+        /// Gets or sets the operation description for this field.
         /// </summary>
-        public NameString Operation { get; set; }
+        public FilterOperation Operation { get; set; }
     }
 }

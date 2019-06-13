@@ -15,12 +15,15 @@ namespace HotChocolate.Types.Filters.String
             IDescriptorContext context,
             StringFilterFieldDescriptor descriptor,
             NameString name,
-            ITypeReference type)
+            ITypeReference type,
+            FilterOperation operation)
             : base(context)
         {
             Definition.Name = name.EnsureNotEmpty(nameof(name));
             Definition.Type = type
                 ?? throw new ArgumentNullException(nameof(type));
+            Definition.Operation = operation
+                ?? throw new ArgumentNullException(nameof(operation));
             _descriptor = descriptor
                 ?? throw new ArgumentNullException(nameof(descriptor));
         }
@@ -66,8 +69,9 @@ namespace HotChocolate.Types.Filters.String
             IDescriptorContext context,
             StringFilterFieldDescriptor descriptor,
             NameString name,
-            ITypeReference type) =>
+            ITypeReference type,
+            FilterOperation operation) =>
             new StringFilterOperationDescriptor(
-                context, descriptor, name, type);
+                context, descriptor, name, type, operation);
     }
 }

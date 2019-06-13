@@ -1,17 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 using System.Linq;
 using HotChocolate.Types.Descriptors;
 using System.Linq.Expressions;
 using HotChocolate.Utilities;
 using HotChocolate.Types.Filters.String;
-using HotChocolate.Types.Filters.Comparable;
-using HotChocolate.Configuration;
-using HotChocolate.Types.Filters.Object;
-using HotChocolate.Types.Filters.IEnumerable;
 
 namespace HotChocolate.Types.Filters
 {
@@ -49,11 +44,11 @@ namespace HotChocolate.Types.Filters
             var handledProperties = new HashSet<PropertyInfo>();
 
             FieldDescriptorUtilities.AddExplicitFields(
-                Fields.SelectMany(x => x.CreateDefinitions()),
+                Fields.Select(t => t.CreateDefinition())
+                    .SelectMany(t => t.Filters),
                 f => f.Property,
                 fields,
                 handledProperties);
-
 
             OnCompleteFields(fields, handledProperties);
 
