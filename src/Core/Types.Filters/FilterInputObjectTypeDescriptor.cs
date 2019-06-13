@@ -40,13 +40,13 @@ namespace HotChocolate.Types.Filters
         protected override void OnCreateDefinition(
             InputObjectTypeDefinition definition)
         {
-            var fields = new Dictionary<NameString, InputFieldDefinition>();
+            var fields = new Dictionary<NameString, FilterOperationDefintion>();
             var handledProperties = new HashSet<PropertyInfo>();
 
             FieldDescriptorUtilities.AddExplicitFields(
                 Fields.Select(t => t.CreateDefinition())
                     .SelectMany(t => t.Filters),
-                f => f.Property,
+                f => f.Operation.Property,
                 fields,
                 handledProperties);
 
@@ -56,23 +56,39 @@ namespace HotChocolate.Types.Filters
         }
 
         protected virtual void OnCompleteFields(
-            IDictionary<NameString, InputFieldDefinition> fields,
+            IDictionary<NameString, FilterOperationDefintion> fields,
             ISet<PropertyInfo> handledProperties)
         {
-            /*
-             *  TODO: CLEANUP
-             *  Do we even need this?
-             * if (Definition.Fields.IsImplicitBinding())
-             {
-                 FieldDescriptorUtilities.AddImplicitFields(
-                     this,
-                     p => InputFieldDescriptor
-                         .New(Context, p)
-                         .CreateDefinition(),
-                     fields,
-                     handledProperties);
-             }
-             */
+            if (Definition.Fields.IsImplicitBinding()
+                && Definition.ClrType != typeof(object))
+            {
+                foreach (PropertyInfo property in Context.Inspector
+                    .GetMembers(Definition.ClrType)
+                    .OfType<PropertyInfo>())
+                {
+                    if (TryCreateImplicitFilter(property, FilterOperationDefintion definition))
+                    {
+                        TField fieldDefinition = createdFieldDefinition(property);
+
+                        if (!handledMembers.Contains(property)
+                            && !fields.ContainsKey(fieldDefinition.Name))
+                        {
+                            handledMembers.Add(property);
+                            fields[fieldDefinition.Name] = fieldDefinition;
+                        }
+                    }
+                }
+            }
+        }
+
+        private bool TryCreateImplicitFilter(PropertyInfo property, out FilterOperationDefintion defintion)
+        {
+            if (property.PropertyType == typeof(string))
+            {
+
+            }
+
+            throw new NotSupportedException();
         }
 
         public IFilterInputObjectTypeDescriptor<T> BindFields(
