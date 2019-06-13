@@ -80,7 +80,7 @@ namespace HotChocolate.Language
         /// </summary>
         public ReadOnlySpan<byte> Value => _value;
 
-        public bool Read_()
+        public bool Read()
         {
             if (_position == 0)
             {
