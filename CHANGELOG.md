@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - nothing yet ;)
 
+## [9.0.3] - 2019-06-13
+
+### Fixed
+
+- Fixed issues where the type initializer would swallow schema errors.
+
 ## [9.0.2] - 2019-06-12
 
 ### Fixed
