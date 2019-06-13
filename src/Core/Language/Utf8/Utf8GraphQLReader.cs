@@ -80,7 +80,7 @@ namespace HotChocolate.Language
         /// </summary>
         public ReadOnlySpan<byte> Value => _value;
 
-        public bool Read()
+        public bool Read_()
         {
             if (_position == 0)
             {
@@ -101,15 +101,15 @@ namespace HotChocolate.Language
 
             byte code = _graphQLData[_position];
 
-            if (GraphQLConstants.IsLetterOrUnderscore(code))
-            {
-                ReadNameToken();
-                return true;
-            }
-
             if (GraphQLConstants.IsPunctuator(code))
             {
                 ReadPunctuatorToken(code);
+                return true;
+            }
+
+            if (GraphQLConstants.IsLetterOrUnderscore(code))
+            {
+                ReadNameToken();
                 return true;
             }
 
@@ -181,18 +181,6 @@ namespace HotChocolate.Language
         /// one of ! $ ( ) ... : = @ [ ] { | }
         /// additionaly the reader will tokenize ampersands.
         /// </summary>
-        /// <param name="state">
-        /// The lexer state.
-        /// </param>
-        /// <param name="previous">
-        /// The previous-token.
-        /// </param>
-        /// <param name="firstCode">
-        /// The first character of the punctuator.
-        /// </param>
-        /// <returns>
-        /// Returns the punctuator token read from the current lexer state.
-        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReadPunctuatorToken(byte code)
         {
@@ -231,14 +219,6 @@ namespace HotChocolate.Language
         /// http://facebook.github.io/graphql/October2016/#FloatValue
         /// from the current lexer state.
         /// </summary>
-        /// <param name="state">The lexer state.</param>
-        /// <param name="previous">The previous-token.</param>
-        /// <param name="firstCode">
-        /// The first character of the int or float token.
-        /// </param>
-        /// <returns>
-        /// Returns the int or float tokens read from the current lexer state.
-        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReadNumberToken(byte firstCode)
         {
@@ -327,11 +307,6 @@ namespace HotChocolate.Language
         /// #[\u0009\u0020-\uFFFF]*
         /// from the current lexer state.
         /// </summary>
-        /// <param name="state">The lexer state.</param>
-        /// <param name="previous">The previous-token.</param>
-        /// <returns>
-        /// Returns the comment token read from the current lexer state.
-        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReadCommentToken()
         {
@@ -409,11 +384,6 @@ namespace HotChocolate.Language
         /// "([^"\\\u000A\u000D]|(\\(u[0-9a-fA-F]{4}|["\\/bfnrt])))*"
         /// from the current lexer state.
         /// </summary>
-        /// <param name="state">The lexer state.</param>
-        /// <param name="previous">The previous-token.</param>
-        /// <returns>
-        /// Returns the string value token read from the current lexer state.
-        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReadStringValueToken()
         {
@@ -493,11 +463,6 @@ namespace HotChocolate.Language
         /// http://facebook.github.io/graphql/draft/#BlockStringCharacter
         /// from the current lexer state.
         /// </summary>
-        /// <param name="state">The lexer state.</param>
-        /// <param name="previous">The previous-token.</param>
-        /// <returns>
-        /// Returns the block string token read from the current lexer state.
-        /// </returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ReadBlockStringToken()
         {
@@ -663,7 +628,6 @@ namespace HotChocolate.Language
         /// Checks if the lexer source pointer has reached
         /// the end of the GraphQL source text.
         /// </summary>
-        /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool IsEndOfStream()
         {
