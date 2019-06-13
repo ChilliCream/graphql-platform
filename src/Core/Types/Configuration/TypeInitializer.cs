@@ -648,7 +648,7 @@ namespace HotChocolate.Configuration
 
         private void ThrowOnErrors()
         {
-            var errors = new List<ISchemaError>();
+            var errors = new List<ISchemaError>(_errors);
 
             foreach (InitializationContext context in _initContexts)
             {

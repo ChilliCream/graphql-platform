@@ -16,9 +16,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Subscription now uses pipeline API to abstract sockets. [#807](https://github.com/ChilliCream/hotchocolate/pull/807)
 - Improved parser performance. [#806](https://github.com/ChilliCream/hotchocolate/pull/806)
 
+## [9.0.2] - 2019-06-12
+
+### Fixed
+
+- Fixed issues with list input types.
+
 ## [9.0.1] - 2019-06-09
 
-### Changed
+### Changed
 
 - Better error message when failing TypeConvertion enhancement [#819](https://github.com/ChilliCream/hotchocolate/issues/819)
 
