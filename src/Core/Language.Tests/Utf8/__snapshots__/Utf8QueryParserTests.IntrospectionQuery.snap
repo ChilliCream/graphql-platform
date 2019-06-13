@@ -47,7 +47,7 @@
                 "Start": 38,
                 "End": 334,
                 "Line": 2,
-                "Column": 13
+                "Column": 12
               },
               "Selections": [
                 {
@@ -60,7 +60,7 @@
                       "Start": 54,
                       "End": 89,
                       "Line": 3,
-                      "Column": 16
+                      "Column": 15
                     },
                     "Selections": [
                       {
@@ -72,7 +72,7 @@
                           "Start": 62,
                           "End": 72,
                           "Line": 4,
-                          "Column": 8
+                          "Column": 7
                         },
                         "Name": {
                           "Kind": "Name",
@@ -80,7 +80,7 @@
                             "Start": 62,
                             "End": 72,
                             "Line": 4,
-                            "Column": 8
+                            "Column": 7
                           },
                           "Value": "name"
                         },
@@ -92,7 +92,7 @@
                     "Start": 44,
                     "End": 89,
                     "Line": 3,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -100,7 +100,7 @@
                       "Start": 44,
                       "End": 55,
                       "Line": 3,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "queryType"
                   },
@@ -116,7 +116,7 @@
                       "Start": 90,
                       "End": 129,
                       "Line": 6,
-                      "Column": 19
+                      "Column": 18
                     },
                     "Selections": [
                       {
@@ -128,7 +128,7 @@
                           "Start": 98,
                           "End": 108,
                           "Line": 7,
-                          "Column": 8
+                          "Column": 7
                         },
                         "Name": {
                           "Kind": "Name",
@@ -136,7 +136,7 @@
                             "Start": 98,
                             "End": 108,
                             "Line": 7,
-                            "Column": 8
+                            "Column": 7
                           },
                           "Value": "name"
                         },
@@ -148,7 +148,7 @@
                     "Start": 77,
                     "End": 129,
                     "Line": 6,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -156,7 +156,7 @@
                       "Start": 77,
                       "End": 91,
                       "Line": 6,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "mutationType"
                   },
@@ -172,7 +172,7 @@
                       "Start": 130,
                       "End": 158,
                       "Line": 9,
-                      "Column": 23
+                      "Column": 22
                     },
                     "Selections": [
                       {
@@ -184,7 +184,7 @@
                           "Start": 138,
                           "End": 148,
                           "Line": 10,
-                          "Column": 8
+                          "Column": 7
                         },
                         "Name": {
                           "Kind": "Name",
@@ -192,7 +192,7 @@
                             "Start": 138,
                             "End": 148,
                             "Line": 10,
-                            "Column": 8
+                            "Column": 7
                           },
                           "Value": "name"
                         },
@@ -204,7 +204,7 @@
                     "Start": 113,
                     "End": 158,
                     "Line": 9,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -212,7 +212,7 @@
                       "Start": 113,
                       "End": 131,
                       "Line": 9,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "subscriptionType"
                   },
@@ -228,7 +228,7 @@
                       "Start": 159,
                       "End": 199,
                       "Line": 12,
-                      "Column": 12
+                      "Column": 11
                     },
                     "Selections": [
                       {
@@ -237,7 +237,7 @@
                           "Start": 167,
                           "End": 184,
                           "Line": 13,
-                          "Column": 8
+                          "Column": 7
                         },
                         "Name": {
                           "Kind": "Name",
@@ -245,7 +245,7 @@
                             "Start": 170,
                             "End": 184,
                             "Line": 13,
-                            "Column": 11
+                            "Column": 10
                           },
                           "Value": "FullType"
                         },
@@ -257,7 +257,7 @@
                     "Start": 153,
                     "End": 199,
                     "Line": 12,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -265,7 +265,7 @@
                       "Start": 153,
                       "End": 160,
                       "Line": 12,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "types"
                   },
@@ -281,7 +281,7 @@
                       "Start": 200,
                       "End": 332,
                       "Line": 15,
-                      "Column": 17
+                      "Column": 16
                     },
                     "Selections": [
                       {
@@ -293,7 +293,7 @@
                           "Start": 208,
                           "End": 230,
                           "Line": 16,
-                          "Column": 8
+                          "Column": 7
                         },
                         "Name": {
                           "Kind": "Name",
@@ -301,7 +301,7 @@
                             "Start": 208,
                             "End": 230,
                             "Line": 16,
-                            "Column": 8
+                            "Column": 7
                           },
                           "Value": "name"
                         },
@@ -316,7 +316,7 @@
                           "Start": 219,
                           "End": 241,
                           "Line": 17,
-                          "Column": 8
+                          "Column": 7
                         },
                         "Name": {
                           "Kind": "Name",
@@ -324,7 +324,7 @@
                             "Start": 219,
                             "End": 241,
                             "Line": 17,
-                            "Column": 8
+                            "Column": 7
                           },
                           "Value": "description"
                         },
@@ -340,7 +340,7 @@
                             "Start": 242,
                             "End": 291,
                             "Line": 18,
-                            "Column": 13
+                            "Column": 12
                           },
                           "Selections": [
                             {
@@ -349,7 +349,7 @@
                                 "Start": 252,
                                 "End": 273,
                                 "Line": 19,
-                                "Column": 10
+                                "Column": 9
                               },
                               "Name": {
                                 "Kind": "Name",
@@ -357,7 +357,7 @@
                                   "Start": 255,
                                   "End": 273,
                                   "Line": 19,
-                                  "Column": 13
+                                  "Column": 12
                                 },
                                 "Value": "InputValue"
                               },
@@ -369,7 +369,7 @@
                           "Start": 237,
                           "End": 291,
                           "Line": 18,
-                          "Column": 8
+                          "Column": 7
                         },
                         "Name": {
                           "Kind": "Name",
@@ -377,7 +377,7 @@
                             "Start": 237,
                             "End": 243,
                             "Line": 18,
-                            "Column": 8
+                            "Column": 7
                           },
                           "Value": "args"
                         },
@@ -392,7 +392,7 @@
                           "Start": 280,
                           "End": 308,
                           "Line": 21,
-                          "Column": 8
+                          "Column": 7
                         },
                         "Name": {
                           "Kind": "Name",
@@ -400,7 +400,7 @@
                             "Start": 280,
                             "End": 308,
                             "Line": 21,
-                            "Column": 8
+                            "Column": 7
                           },
                           "Value": "onOperation"
                         },
@@ -415,7 +415,7 @@
                           "Start": 298,
                           "End": 322,
                           "Line": 22,
-                          "Column": 8
+                          "Column": 7
                         },
                         "Name": {
                           "Kind": "Name",
@@ -423,7 +423,7 @@
                             "Start": 298,
                             "End": 322,
                             "Line": 22,
-                            "Column": 8
+                            "Column": 7
                           },
                           "Value": "onFragment"
                         },
@@ -438,7 +438,7 @@
                           "Start": 315,
                           "End": 328,
                           "Line": 23,
-                          "Column": 8
+                          "Column": 7
                         },
                         "Name": {
                           "Kind": "Name",
@@ -446,7 +446,7 @@
                             "Start": 315,
                             "End": 328,
                             "Line": 23,
-                            "Column": 8
+                            "Column": 7
                           },
                           "Value": "onField"
                         },
@@ -458,7 +458,7 @@
                     "Start": 189,
                     "End": 332,
                     "Line": 15,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -466,7 +466,7 @@
                       "Start": 189,
                       "End": 201,
                       "Line": 15,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "directives"
                   },
@@ -478,7 +478,7 @@
               "Start": 29,
               "End": 334,
               "Line": 2,
-              "Column": 4
+              "Column": 3
             },
             "Name": {
               "Kind": "Name",
@@ -486,7 +486,7 @@
                 "Start": 29,
                 "End": 39,
                 "Line": 2,
-                "Column": 4
+                "Column": 3
               },
               "Value": "__schema"
             },
@@ -504,7 +504,7 @@
           "Start": 357,
           "End": 365,
           "Line": 28,
-          "Column": 23
+          "Column": 22
         },
         "Name": {
           "Kind": "Name",
@@ -512,7 +512,7 @@
             "Start": 357,
             "End": 365,
             "Line": 28,
-            "Column": 23
+            "Column": 22
           },
           "Value": "__Type"
         }
@@ -523,7 +523,7 @@
           "Start": 364,
           "End": 797,
           "Line": 28,
-          "Column": 30
+          "Column": 29
         },
         "Selections": [
           {
@@ -535,7 +535,7 @@
               "Start": 368,
               "End": 379,
               "Line": 29,
-              "Column": 4
+              "Column": 3
             },
             "Name": {
               "Kind": "Name",
@@ -543,7 +543,7 @@
                 "Start": 368,
                 "End": 379,
                 "Line": 29,
-                "Column": 4
+                "Column": 3
               },
               "Value": "kind"
             },
@@ -558,7 +558,7 @@
               "Start": 375,
               "End": 393,
               "Line": 30,
-              "Column": 4
+              "Column": 3
             },
             "Name": {
               "Kind": "Name",
@@ -566,7 +566,7 @@
                 "Start": 375,
                 "End": 393,
                 "Line": 30,
-                "Column": 4
+                "Column": 3
               },
               "Value": "name"
             },
@@ -581,7 +581,7 @@
               "Start": 382,
               "End": 402,
               "Line": 31,
-              "Column": 4
+              "Column": 3
             },
             "Name": {
               "Kind": "Name",
@@ -589,7 +589,7 @@
                 "Start": 382,
                 "End": 402,
                 "Line": 31,
-                "Column": 4
+                "Column": 3
               },
               "Value": "description"
             },
@@ -605,7 +605,7 @@
                   "Start": 403,
                   "End": 427,
                   "Line": 32,
-                  "Column": 11
+                  "Column": 10
                 },
                 "Name": {
                   "Kind": "Name",
@@ -613,7 +613,7 @@
                     "Start": 403,
                     "End": 421,
                     "Line": 32,
-                    "Column": 11
+                    "Column": 10
                   },
                   "Value": "includeDeprecated"
                 },
@@ -623,7 +623,7 @@
                     "Start": 422,
                     "End": 427,
                     "Line": 32,
-                    "Column": 30
+                    "Column": 29
                   },
                   "Value": true
                 }
@@ -635,7 +635,7 @@
                 "Start": 428,
                 "End": 582,
                 "Line": 32,
-                "Column": 36
+                "Column": 35
               },
               "Selections": [
                 {
@@ -647,7 +647,7 @@
                     "Start": 434,
                     "End": 454,
                     "Line": 33,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -655,7 +655,7 @@
                       "Start": 434,
                       "End": 454,
                       "Line": 33,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "name"
                   },
@@ -670,7 +670,7 @@
                     "Start": 443,
                     "End": 463,
                     "Line": 34,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -678,7 +678,7 @@
                       "Start": 443,
                       "End": 463,
                       "Line": 34,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "description"
                   },
@@ -694,7 +694,7 @@
                       "Start": 464,
                       "End": 500,
                       "Line": 35,
-                      "Column": 11
+                      "Column": 10
                     },
                     "Selections": [
                       {
@@ -703,7 +703,7 @@
                           "Start": 472,
                           "End": 491,
                           "Line": 36,
-                          "Column": 8
+                          "Column": 7
                         },
                         "Name": {
                           "Kind": "Name",
@@ -711,7 +711,7 @@
                             "Start": 475,
                             "End": 491,
                             "Line": 36,
-                            "Column": 11
+                            "Column": 10
                           },
                           "Value": "InputValue"
                         },
@@ -723,7 +723,7 @@
                     "Start": 459,
                     "End": 500,
                     "Line": 35,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -731,7 +731,7 @@
                       "Start": 459,
                       "End": 465,
                       "Line": 35,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "args"
                   },
@@ -747,7 +747,7 @@
                       "Start": 501,
                       "End": 542,
                       "Line": 38,
-                      "Column": 11
+                      "Column": 10
                     },
                     "Selections": [
                       {
@@ -756,7 +756,7 @@
                           "Start": 509,
                           "End": 525,
                           "Line": 39,
-                          "Column": 8
+                          "Column": 7
                         },
                         "Name": {
                           "Kind": "Name",
@@ -764,7 +764,7 @@
                             "Start": 512,
                             "End": 525,
                             "Line": 39,
-                            "Column": 11
+                            "Column": 10
                           },
                           "Value": "TypeRef"
                         },
@@ -776,7 +776,7 @@
                     "Start": 496,
                     "End": 542,
                     "Line": 38,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -784,7 +784,7 @@
                       "Start": 496,
                       "End": 502,
                       "Line": 38,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "type"
                   },
@@ -799,7 +799,7 @@
                     "Start": 530,
                     "End": 564,
                     "Line": 41,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -807,7 +807,7 @@
                       "Start": 530,
                       "End": 564,
                       "Line": 41,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "isDeprecated"
                   },
@@ -822,7 +822,7 @@
                     "Start": 547,
                     "End": 568,
                     "Line": 42,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -830,7 +830,7 @@
                       "Start": 547,
                       "End": 568,
                       "Line": 42,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "deprecationReason"
                   },
@@ -842,7 +842,7 @@
               "Start": 396,
               "End": 582,
               "Line": 32,
-              "Column": 4
+              "Column": 3
             },
             "Name": {
               "Kind": "Name",
@@ -850,7 +850,7 @@
                 "Start": 396,
                 "End": 403,
                 "Line": 32,
-                "Column": 4
+                "Column": 3
               },
               "Value": "fields"
             },
@@ -866,7 +866,7 @@
                 "Start": 583,
                 "End": 619,
                 "Line": 44,
-                "Column": 16
+                "Column": 15
               },
               "Selections": [
                 {
@@ -875,7 +875,7 @@
                     "Start": 589,
                     "End": 606,
                     "Line": 45,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -883,7 +883,7 @@
                       "Start": 592,
                       "End": 606,
                       "Line": 45,
-                      "Column": 9
+                      "Column": 8
                     },
                     "Value": "InputValue"
                   },
@@ -895,7 +895,7 @@
               "Start": 571,
               "End": 619,
               "Line": 44,
-              "Column": 4
+              "Column": 3
             },
             "Name": {
               "Kind": "Name",
@@ -903,7 +903,7 @@
                 "Start": 571,
                 "End": 584,
                 "Line": 44,
-                "Column": 4
+                "Column": 3
               },
               "Value": "inputFields"
             },
@@ -919,7 +919,7 @@
                 "Start": 620,
                 "End": 653,
                 "Line": 47,
-                "Column": 15
+                "Column": 14
               },
               "Selections": [
                 {
@@ -928,7 +928,7 @@
                     "Start": 626,
                     "End": 640,
                     "Line": 48,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -936,7 +936,7 @@
                       "Start": 629,
                       "End": 640,
                       "Line": 48,
-                      "Column": 9
+                      "Column": 8
                     },
                     "Value": "TypeRef"
                   },
@@ -948,7 +948,7 @@
               "Start": 609,
               "End": 653,
               "Line": 47,
-              "Column": 4
+              "Column": 3
             },
             "Name": {
               "Kind": "Name",
@@ -956,7 +956,7 @@
                 "Start": 609,
                 "End": 621,
                 "Line": 47,
-                "Column": 4
+                "Column": 3
               },
               "Value": "interfaces"
             },
@@ -972,7 +972,7 @@
                   "Start": 654,
                   "End": 678,
                   "Line": 50,
-                  "Column": 15
+                  "Column": 14
                 },
                 "Name": {
                   "Kind": "Name",
@@ -980,7 +980,7 @@
                     "Start": 654,
                     "End": 672,
                     "Line": 50,
-                    "Column": 15
+                    "Column": 14
                   },
                   "Value": "includeDeprecated"
                 },
@@ -990,7 +990,7 @@
                     "Start": 673,
                     "End": 678,
                     "Line": 50,
-                    "Column": 34
+                    "Column": 33
                   },
                   "Value": true
                 }
@@ -1002,7 +1002,7 @@
                 "Start": 679,
                 "End": 764,
                 "Line": 50,
-                "Column": 40
+                "Column": 39
               },
               "Selections": [
                 {
@@ -1014,7 +1014,7 @@
                     "Start": 685,
                     "End": 705,
                     "Line": 51,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -1022,7 +1022,7 @@
                       "Start": 685,
                       "End": 705,
                       "Line": 51,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "name"
                   },
@@ -1037,7 +1037,7 @@
                     "Start": 694,
                     "End": 722,
                     "Line": 52,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -1045,7 +1045,7 @@
                       "Start": 694,
                       "End": 722,
                       "Line": 52,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "description"
                   },
@@ -1060,7 +1060,7 @@
                     "Start": 710,
                     "End": 744,
                     "Line": 53,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -1068,7 +1068,7 @@
                       "Start": 710,
                       "End": 744,
                       "Line": 53,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "isDeprecated"
                   },
@@ -1083,7 +1083,7 @@
                     "Start": 727,
                     "End": 748,
                     "Line": 54,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -1091,7 +1091,7 @@
                       "Start": 727,
                       "End": 748,
                       "Line": 54,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "deprecationReason"
                   },
@@ -1103,7 +1103,7 @@
               "Start": 643,
               "End": 764,
               "Line": 50,
-              "Column": 4
+              "Column": 3
             },
             "Name": {
               "Kind": "Name",
@@ -1111,7 +1111,7 @@
                 "Start": 643,
                 "End": 654,
                 "Line": 50,
-                "Column": 4
+                "Column": 3
               },
               "Value": "enumValues"
             },
@@ -1127,7 +1127,7 @@
                 "Start": 765,
                 "End": 787,
                 "Line": 56,
-                "Column": 18
+                "Column": 17
               },
               "Selections": [
                 {
@@ -1136,7 +1136,7 @@
                     "Start": 771,
                     "End": 785,
                     "Line": 57,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -1144,7 +1144,7 @@
                       "Start": 774,
                       "End": 785,
                       "Line": 57,
-                      "Column": 9
+                      "Column": 8
                     },
                     "Value": "TypeRef"
                   },
@@ -1156,7 +1156,7 @@
               "Start": 751,
               "End": 787,
               "Line": 56,
-              "Column": 4
+              "Column": 3
             },
             "Name": {
               "Kind": "Name",
@@ -1164,7 +1164,7 @@
                 "Start": 751,
                 "End": 766,
                 "Line": 56,
-                "Column": 4
+                "Column": 3
               },
               "Value": "possibleTypes"
             },
@@ -1176,7 +1176,7 @@
         "Start": 336,
         "End": 797,
         "Line": 28,
-        "Column": 2
+        "Column": 1
       },
       "Name": {
         "Kind": "Name",
@@ -1184,7 +1184,7 @@
           "Start": 345,
           "End": 356,
           "Line": 28,
-          "Column": 11
+          "Column": 10
         },
         "Value": "FullType"
       },
@@ -1199,7 +1199,7 @@
           "Start": 812,
           "End": 826,
           "Line": 61,
-          "Column": 25
+          "Column": 24
         },
         "Name": {
           "Kind": "Name",
@@ -1207,7 +1207,7 @@
             "Start": 812,
             "End": 826,
             "Line": 61,
-            "Column": 25
+            "Column": 24
           },
           "Value": "__InputValue"
         }
@@ -1218,7 +1218,7 @@
           "Start": 825,
           "End": 902,
           "Line": 61,
-          "Column": 38
+          "Column": 37
         },
         "Selections": [
           {
@@ -1230,7 +1230,7 @@
               "Start": 829,
               "End": 847,
               "Line": 62,
-              "Column": 4
+              "Column": 3
             },
             "Name": {
               "Kind": "Name",
@@ -1238,7 +1238,7 @@
                 "Start": 829,
                 "End": 847,
                 "Line": 62,
-                "Column": 4
+                "Column": 3
               },
               "Value": "name"
             },
@@ -1253,7 +1253,7 @@
               "Start": 836,
               "End": 854,
               "Line": 63,
-              "Column": 4
+              "Column": 3
             },
             "Name": {
               "Kind": "Name",
@@ -1261,7 +1261,7 @@
                 "Start": 836,
                 "End": 854,
                 "Line": 63,
-                "Column": 4
+                "Column": 3
               },
               "Value": "description"
             },
@@ -1277,7 +1277,7 @@
                 "Start": 855,
                 "End": 890,
                 "Line": 64,
-                "Column": 9
+                "Column": 8
               },
               "Selections": [
                 {
@@ -1286,7 +1286,7 @@
                     "Start": 861,
                     "End": 875,
                     "Line": 65,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -1294,7 +1294,7 @@
                       "Start": 864,
                       "End": 875,
                       "Line": 65,
-                      "Column": 9
+                      "Column": 8
                     },
                     "Value": "TypeRef"
                   },
@@ -1306,7 +1306,7 @@
               "Start": 850,
               "End": 890,
               "Line": 64,
-              "Column": 4
+              "Column": 3
             },
             "Name": {
               "Kind": "Name",
@@ -1314,7 +1314,7 @@
                 "Start": 850,
                 "End": 856,
                 "Line": 64,
-                "Column": 4
+                "Column": 3
               },
               "Value": "type"
             },
@@ -1329,7 +1329,7 @@
               "Start": 878,
               "End": 892,
               "Line": 67,
-              "Column": 4
+              "Column": 3
             },
             "Name": {
               "Kind": "Name",
@@ -1337,7 +1337,7 @@
                 "Start": 878,
                 "End": 892,
                 "Line": 67,
-                "Column": 4
+                "Column": 3
               },
               "Value": "defaultValue"
             },
@@ -1349,7 +1349,7 @@
         "Start": 789,
         "End": 902,
         "Line": 61,
-        "Column": 2
+        "Column": 1
       },
       "Name": {
         "Kind": "Name",
@@ -1357,7 +1357,7 @@
           "Start": 798,
           "End": 811,
           "Line": 61,
-          "Column": 11
+          "Column": 10
         },
         "Value": "InputValue"
       },
@@ -1372,7 +1372,7 @@
           "Start": 914,
           "End": 922,
           "Line": 70,
-          "Column": 22
+          "Column": 21
         },
         "Name": {
           "Kind": "Name",
@@ -1380,7 +1380,7 @@
             "Start": 914,
             "End": 922,
             "Line": 70,
-            "Column": 22
+            "Column": 21
           },
           "Value": "__Type"
         }
@@ -1391,7 +1391,7 @@
           "Start": 921,
           "End": 1062,
           "Line": 70,
-          "Column": 29
+          "Column": 28
         },
         "Selections": [
           {
@@ -1403,7 +1403,7 @@
               "Start": 925,
               "End": 936,
               "Line": 71,
-              "Column": 4
+              "Column": 3
             },
             "Name": {
               "Kind": "Name",
@@ -1411,7 +1411,7 @@
                 "Start": 925,
                 "End": 936,
                 "Line": 71,
-                "Column": 4
+                "Column": 3
               },
               "Value": "kind"
             },
@@ -1426,7 +1426,7 @@
               "Start": 932,
               "End": 945,
               "Line": 72,
-              "Column": 4
+              "Column": 3
             },
             "Name": {
               "Kind": "Name",
@@ -1434,7 +1434,7 @@
                 "Start": 932,
                 "End": 945,
                 "Line": 72,
-                "Column": 4
+                "Column": 3
               },
               "Value": "name"
             },
@@ -1450,7 +1450,7 @@
                 "Start": 946,
                 "End": 1061,
                 "Line": 73,
-                "Column": 11
+                "Column": 10
               },
               "Selections": [
                 {
@@ -1462,7 +1462,7 @@
                     "Start": 952,
                     "End": 965,
                     "Line": 74,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -1470,7 +1470,7 @@
                       "Start": 952,
                       "End": 965,
                       "Line": 74,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "kind"
                   },
@@ -1485,7 +1485,7 @@
                     "Start": 961,
                     "End": 976,
                     "Line": 75,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -1493,7 +1493,7 @@
                       "Start": 961,
                       "End": 976,
                       "Line": 75,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "name"
                   },
@@ -1509,7 +1509,7 @@
                       "Start": 977,
                       "End": 1059,
                       "Line": 76,
-                      "Column": 13
+                      "Column": 12
                     },
                     "Selections": [
                       {
@@ -1521,7 +1521,7 @@
                           "Start": 985,
                           "End": 1000,
                           "Line": 77,
-                          "Column": 8
+                          "Column": 7
                         },
                         "Name": {
                           "Kind": "Name",
@@ -1529,7 +1529,7 @@
                             "Start": 985,
                             "End": 1000,
                             "Line": 77,
-                            "Column": 8
+                            "Column": 7
                           },
                           "Value": "kind"
                         },
@@ -1544,7 +1544,7 @@
                           "Start": 996,
                           "End": 1013,
                           "Line": 78,
-                          "Column": 8
+                          "Column": 7
                         },
                         "Name": {
                           "Kind": "Name",
@@ -1552,7 +1552,7 @@
                             "Start": 996,
                             "End": 1013,
                             "Line": 78,
-                            "Column": 8
+                            "Column": 7
                           },
                           "Value": "name"
                         },
@@ -1568,7 +1568,7 @@
                             "Start": 1014,
                             "End": 1055,
                             "Line": 79,
-                            "Column": 15
+                            "Column": 14
                           },
                           "Selections": [
                             {
@@ -1580,7 +1580,7 @@
                                 "Start": 1024,
                                 "End": 1041,
                                 "Line": 80,
-                                "Column": 10
+                                "Column": 9
                               },
                               "Name": {
                                 "Kind": "Name",
@@ -1588,7 +1588,7 @@
                                   "Start": 1024,
                                   "End": 1041,
                                   "Line": 80,
-                                  "Column": 10
+                                  "Column": 9
                                 },
                                 "Value": "kind"
                               },
@@ -1603,7 +1603,7 @@
                                 "Start": 1037,
                                 "End": 1049,
                                 "Line": 81,
-                                "Column": 10
+                                "Column": 9
                               },
                               "Name": {
                                 "Kind": "Name",
@@ -1611,7 +1611,7 @@
                                   "Start": 1037,
                                   "End": 1049,
                                   "Line": 81,
-                                  "Column": 10
+                                  "Column": 9
                                 },
                                 "Value": "name"
                               },
@@ -1623,7 +1623,7 @@
                           "Start": 1007,
                           "End": 1055,
                           "Line": 79,
-                          "Column": 8
+                          "Column": 7
                         },
                         "Name": {
                           "Kind": "Name",
@@ -1631,7 +1631,7 @@
                             "Start": 1007,
                             "End": 1015,
                             "Line": 79,
-                            "Column": 8
+                            "Column": 7
                           },
                           "Value": "ofType"
                         },
@@ -1643,7 +1643,7 @@
                     "Start": 970,
                     "End": 1059,
                     "Line": 76,
-                    "Column": 6
+                    "Column": 5
                   },
                   "Name": {
                     "Kind": "Name",
@@ -1651,7 +1651,7 @@
                       "Start": 970,
                       "End": 978,
                       "Line": 76,
-                      "Column": 6
+                      "Column": 5
                     },
                     "Value": "ofType"
                   },
@@ -1663,7 +1663,7 @@
               "Start": 939,
               "End": 1061,
               "Line": 73,
-              "Column": 4
+              "Column": 3
             },
             "Name": {
               "Kind": "Name",
@@ -1671,7 +1671,7 @@
                 "Start": 939,
                 "End": 947,
                 "Line": 73,
-                "Column": 4
+                "Column": 3
               },
               "Value": "ofType"
             },
@@ -1683,7 +1683,7 @@
         "Start": 894,
         "End": 1062,
         "Line": 70,
-        "Column": 2
+        "Column": 1
       },
       "Name": {
         "Kind": "Name",
@@ -1691,7 +1691,7 @@
           "Start": 903,
           "End": 913,
           "Line": 70,
-          "Column": 11
+          "Column": 10
         },
         "Value": "TypeRef"
       },
