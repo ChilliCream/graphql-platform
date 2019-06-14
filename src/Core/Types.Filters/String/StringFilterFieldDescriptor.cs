@@ -59,11 +59,7 @@ namespace HotChocolate.Types.Filters.String
             if (handledFilterKinds.Add(operationKind))
             {
                 FilterOperationDefintion definition =
-                    CreateOperation(
-                        RewriteTypeToNullableType(),
-                        operationKind)
-                        .CreateDefinition();
-
+                    CreateOperation(operationKind).CreateDefinition();
                 if (!fields.ContainsKey(definition.Name))
                 {
                     fields.Add(definition.Name, definition);
@@ -74,9 +70,7 @@ namespace HotChocolate.Types.Filters.String
         public IStringFilterOperationDescriptor AllowEquals()
         {
             StringFilterOperationDescriptor field =
-                CreateOperation(
-                    RewriteTypeToNullableType(),
-                    FilterOperationKind.Equals);
+                CreateOperation(FilterOperationKind.Equals);
             Filters.Add(field);
             return field;
         }
@@ -84,9 +78,7 @@ namespace HotChocolate.Types.Filters.String
         public IStringFilterOperationDescriptor AllowContains()
         {
             StringFilterOperationDescriptor field =
-                CreateOperation(
-                    RewriteTypeToNullableType(),
-                    FilterOperationKind.Contains);
+                CreateOperation(FilterOperationKind.Contains);
             Filters.Add(field);
             return field;
         }
@@ -94,9 +86,7 @@ namespace HotChocolate.Types.Filters.String
         public IStringFilterOperationDescriptor AllowIn()
         {
             StringFilterOperationDescriptor field =
-                CreateOperation(
-                    RewriteTypeToNullableListType(),
-                    FilterOperationKind.In);
+                CreateOperation(FilterOperationKind.In);
             Filters.Add(field);
             return field;
         }
@@ -104,9 +94,7 @@ namespace HotChocolate.Types.Filters.String
         public IStringFilterOperationDescriptor AllowStartsWith()
         {
             StringFilterOperationDescriptor field =
-                CreateOperation(
-                    RewriteTypeToNullableType(),
-                    FilterOperationKind.StartsWith);
+                CreateOperation(FilterOperationKind.StartsWith);
             Filters.Add(field);
             return field;
         }
@@ -114,9 +102,7 @@ namespace HotChocolate.Types.Filters.String
         public IStringFilterOperationDescriptor AllowEndsWith()
         {
             StringFilterOperationDescriptor field =
-                CreateOperation(
-                    RewriteTypeToNullableType(),
-                    FilterOperationKind.EndsWith);
+                CreateOperation(FilterOperationKind.EndsWith);
             Filters.Add(field);
             return field;
         }
@@ -129,7 +115,6 @@ namespace HotChocolate.Types.Filters.String
         }
 
         private StringFilterOperationDescriptor CreateOperation(
-            ITypeReference reference,
             FilterOperationKind operationKind)
         {
             var operation = new FilterOperation(
@@ -141,8 +126,17 @@ namespace HotChocolate.Types.Filters.String
                 Context,
                 this,
                 CreateFieldName(operationKind),
-                reference,
+                RewriteType(operationKind),
                 operation);
+        }
+
+        private ITypeReference RewriteType(FilterOperationKind operationKind)
+        {
+            if (operationKind == FilterOperationKind.In)
+            {
+                return RewriteTypeToNullableListType();
+            }
+            return RewriteTypeToNullableType();
         }
     }
 }
