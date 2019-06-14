@@ -48,7 +48,7 @@ namespace HotChocolate.Types.Relay
                 .Description("A list of edges.")
                 .Type<ListType<NonNullType<EdgeType<T>>>>();
 
-            descriptor.Field("items")
+            descriptor.Field("nodes")
                 .Description("A flattened list of the nodes.")
                 .Type<ListType<T>>()
                 .Resolver(ctx =>
