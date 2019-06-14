@@ -1,9 +1,9 @@
-schema {
+﻿schema {
   query: DummyQuery
 }
 
 interface Simple {
-  a: String
+  a: String @deprecated(reason: "reason123")
 }
 
 type DummyQuery {
