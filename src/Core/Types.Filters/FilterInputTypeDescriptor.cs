@@ -6,7 +6,6 @@ using System.Linq;
 using HotChocolate.Types.Descriptors;
 using System.Linq.Expressions;
 using HotChocolate.Utilities;
-using HotChocolate.Types.Filters.String;
 
 namespace HotChocolate.Types.Filters
 {

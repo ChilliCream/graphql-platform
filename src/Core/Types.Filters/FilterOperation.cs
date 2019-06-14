@@ -1,6 +1,5 @@
 using System;
 using System.Reflection;
-using HotChocolate.Types.Filters.String;
 
 namespace HotChocolate.Types.Filters
 {

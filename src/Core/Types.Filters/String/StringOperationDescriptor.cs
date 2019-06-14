@@ -2,7 +2,7 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Types.Filters.String
+namespace HotChocolate.Types.Filters
 {
     public class StringFilterOperationDescriptor
         : FilterOperationDescriptorBase

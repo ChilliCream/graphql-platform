@@ -1,7 +1,7 @@
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
-namespace HotChocolate.Types.Filters.String
+namespace HotChocolate.Types.Filters
 {
     // TODO : we also need not equals
     public class StringFilterFieldDescriptor
