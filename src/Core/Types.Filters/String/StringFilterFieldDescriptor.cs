@@ -17,10 +17,19 @@ namespace HotChocolate.Types.Filters
             AllowedOperations = new HashSet<FilterOperationKind>
             {
                 FilterOperationKind.Equals,
+                FilterOperationKind.NotEquals,
+
                 FilterOperationKind.Contains,
+                FilterOperationKind.NotContains,
+
                 FilterOperationKind.StartsWith,
+                FilterOperationKind.NotStartsWith,
+
                 FilterOperationKind.EndsWith,
-                FilterOperationKind.In
+                FilterOperationKind.NotEndsWith,
+
+                FilterOperationKind.In,
+                FilterOperationKind.NotIn
             };
         }
 
@@ -33,6 +42,13 @@ namespace HotChocolate.Types.Filters
             Filters.Add(field);
             return field;
         }
+        public IStringFilterOperationDescriptor AllowNotEquals()
+        {
+            StringFilterOperationDescriptor field =
+                CreateOperation(FilterOperationKind.NotEquals);
+            Filters.Add(field);
+            return field;
+        }
 
         public IStringFilterOperationDescriptor AllowContains()
         {
@@ -41,8 +57,22 @@ namespace HotChocolate.Types.Filters
             Filters.Add(field);
             return field;
         }
+        public IStringFilterOperationDescriptor AllowNotContains()
+        {
+            StringFilterOperationDescriptor field =
+                CreateOperation(FilterOperationKind.NotContains);
+            Filters.Add(field);
+            return field;
+        }
 
         public IStringFilterOperationDescriptor AllowIn()
+        {
+            StringFilterOperationDescriptor field =
+                CreateOperation(FilterOperationKind.In);
+            Filters.Add(field);
+            return field;
+        }
+        public IStringFilterOperationDescriptor AllowNotIn()
         {
             StringFilterOperationDescriptor field =
                 CreateOperation(FilterOperationKind.In);
@@ -58,10 +88,25 @@ namespace HotChocolate.Types.Filters
             return field;
         }
 
+        public IStringFilterOperationDescriptor AllowNotStartsWith()
+        {
+            StringFilterOperationDescriptor field =
+                CreateOperation(FilterOperationKind.NotStartsWith);
+            Filters.Add(field);
+            return field;
+        }
+
         public IStringFilterOperationDescriptor AllowEndsWith()
         {
             StringFilterOperationDescriptor field =
                 CreateOperation(FilterOperationKind.EndsWith);
+            Filters.Add(field);
+            return field;
+        }
+        public IStringFilterOperationDescriptor AllowNotEndsWith()
+        {
+            StringFilterOperationDescriptor field =
+                CreateOperation(FilterOperationKind.NotEndsWith);
             Filters.Add(field);
             return field;
         }
@@ -97,6 +142,6 @@ namespace HotChocolate.Types.Filters
                 CreateFieldName(operationKind),
                 RewriteType(operationKind),
                 operation);
-        }
+        } 
     }
 }

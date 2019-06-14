@@ -13,13 +13,18 @@ namespace HotChocolate.Types.Filters
         IStringFilterFieldDescriptor BindImplicitly();
 
         IStringFilterOperationDescriptor AllowContains();
+        IStringFilterOperationDescriptor AllowNotContains();
 
         IStringFilterOperationDescriptor AllowEquals();
+        IStringFilterOperationDescriptor AllowNotEquals();
 
         IStringFilterOperationDescriptor AllowIn();
+        IStringFilterOperationDescriptor AllowNotIn();
 
         IStringFilterOperationDescriptor AllowStartsWith();
+        IStringFilterOperationDescriptor AllowNotStartsWith();
 
         IStringFilterOperationDescriptor AllowEndsWith();
+        IStringFilterOperationDescriptor AllowNotEndsWith();
     }
 }
