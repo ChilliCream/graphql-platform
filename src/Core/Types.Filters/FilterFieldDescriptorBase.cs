@@ -109,5 +109,24 @@ namespace HotChocolate.Types.Filters
             // TODO : michae: implement this one
             return Definition.Type;
         }
+
+        protected NameString CreateFieldName(FilterOperationKind kind)
+        {
+            switch (kind)
+            {
+                case FilterOperationKind.Equals:
+                    return Definition.Name;
+                case FilterOperationKind.Contains:
+                    return Definition.Name + "_contains";
+                case FilterOperationKind.In:
+                    return Definition.Name + "_in";
+                case FilterOperationKind.StartsWith:
+                    return Definition.Name + "_starts_with";
+                case FilterOperationKind.EndsWith:
+                    return Definition.Name + "_ends_with";
+                default:
+                    throw new NotSupportedException();
+            }
+        }
     }
 }

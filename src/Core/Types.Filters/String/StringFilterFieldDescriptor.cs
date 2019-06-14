@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -17,95 +18,105 @@ namespace HotChocolate.Types.Filters.String
         {
         }
 
+        protected override void OnCompleteFilters(
+            IDictionary<NameString, FilterOperationDefintion> fields,
+            ISet<FilterOperationKind> handledFilterKinds)
+        {
+            if (Definition.Filters.BindingBehavior == BindingBehavior.Implicit)
+            {
+                AddImplicitOperation(
+                    fields,
+                    handledFilterKinds,
+                    FilterOperationKind.Equals);
+
+                AddImplicitOperation(
+                    fields,
+                    handledFilterKinds,
+                    FilterOperationKind.Contains);
+
+                AddImplicitOperation(
+                    fields,
+                    handledFilterKinds,
+                    FilterOperationKind.In);
+
+                AddImplicitOperation(
+                    fields,
+                    handledFilterKinds,
+                    FilterOperationKind.StartsWith);
+
+                AddImplicitOperation(
+                    fields,
+                    handledFilterKinds,
+                    FilterOperationKind.EndsWith);
+            }
+        }
+
+        private void AddImplicitOperation(
+            IDictionary<NameString, FilterOperationDefintion> fields,
+            ISet<FilterOperationKind> handledFilterKinds,
+            FilterOperationKind operationKind)
+        {
+            if (handledFilterKinds.Add(operationKind))
+            {
+                FilterOperationDefintion definition =
+                    CreateOperation(
+                        RewriteTypeToNullableType(),
+                        operationKind)
+                        .CreateDefinition();
+
+                if (!fields.ContainsKey(definition.Name))
+                {
+                    fields.Add(definition.Name, definition);
+                }
+            }
+        }
+
         public IStringFilterOperationDescriptor AllowEquals()
         {
-            var operation = new FilterOperation(
-                typeof(string),
-                FilterOperationKind.Equals,
-                Definition.Property);
-
-            var field = StringFilterOperationDescriptor.New(
-                Context,
-                this,
-                Definition.Name,
-                RewriteTypeToNullableType(),
-                operation);
-
+            StringFilterOperationDescriptor field =
+                CreateOperation(
+                    RewriteTypeToNullableType(),
+                    FilterOperationKind.Equals);
             Filters.Add(field);
             return field;
         }
 
         public IStringFilterOperationDescriptor AllowContains()
         {
-            var operation = new FilterOperation(
-                typeof(string),
-                FilterOperationKind.Equals,
-                Definition.Property);
-
-            var field = StringFilterOperationDescriptor.New(
-                Context,
-                this,
-                // TODO : conventions _contains
-                Definition.Name + "_contains",
-                RewriteTypeToNullableListType(),
-                operation);
-
+            StringFilterOperationDescriptor field =
+                CreateOperation(
+                    RewriteTypeToNullableType(),
+                    FilterOperationKind.Contains);
             Filters.Add(field);
             return field;
         }
 
         public IStringFilterOperationDescriptor AllowIn()
         {
-            var operation = new FilterOperation(
-                typeof(string),
-                FilterOperationKind.Equals,
-                Definition.Property);
-
-            var field = StringFilterOperationDescriptor.New(
-                Context,
-                this,
-                // TODO : conventions _in
-                Definition.Name + "_in",
-                RewriteTypeToNullableListType(),
-                operation);
-
+            StringFilterOperationDescriptor field =
+                CreateOperation(
+                    RewriteTypeToNullableListType(),
+                    FilterOperationKind.In);
             Filters.Add(field);
             return field;
         }
+
         public IStringFilterOperationDescriptor AllowStartsWith()
         {
-            var operation = new FilterOperation(
-                typeof(string),
-                FilterOperationKind.Equals,
-                Definition.Property);
-
-            var field = StringFilterOperationDescriptor.New(
-                Context,
-                this,
-                // TODO : conventions _starts_with
-                Definition.Name + "_starts_with",
-                RewriteTypeToNullableType(),
-                operation);
-
+            StringFilterOperationDescriptor field =
+                CreateOperation(
+                    RewriteTypeToNullableType(),
+                    FilterOperationKind.StartsWith);
             Filters.Add(field);
             return field;
         }
 
         public IStringFilterOperationDescriptor AllowEndsWith()
         {
-            var operation = new FilterOperation(
-                typeof(string),
-                FilterOperationKind.Equals,
-                Definition.Property);
-
-            var field = StringFilterOperationDescriptor.New(
-                Context,
-                this,
-                // TODO : conventions _ends_with
-                Definition.Name + "_ends_with",
-                RewriteTypeToNullableType(),
-                operation);
-
+            StringFilterOperationDescriptor field =
+                CreateOperation(
+                    RewriteTypeToNullableType(),
+                    FilterOperationKind.EndsWith);
             Filters.Add(field);
             return field;
         }
@@ -115,6 +126,23 @@ namespace HotChocolate.Types.Filters.String
         {
             base.BindFilters(bindingBehavior);
             return this;
+        }
+
+        private StringFilterOperationDescriptor CreateOperation(
+            ITypeReference reference,
+            FilterOperationKind operationKind)
+        {
+            var operation = new FilterOperation(
+                typeof(string),
+                operationKind,
+                Definition.Property);
+
+            return StringFilterOperationDescriptor.New(
+                Context,
+                this,
+                CreateFieldName(operationKind),
+                reference,
+                operation);
         }
     }
 }

@@ -8,14 +8,14 @@ namespace HotChocolate.Types.Filters
         : TypeTestBase
     {
         [Fact]
-        public void TestMew()
+        public void CreateImplictFilters()
         {
-            var schema = CreateSchema(builder =>
-                builder.AddType(
-                    new FilterInputType<Foo>(c => c.Filter(t => t.Bar))));
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<Foo>());
 
+            // assert
             schema.ToString().MatchSnapshot();
-
         }
 
 
