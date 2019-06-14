@@ -158,6 +158,14 @@ namespace HotChocolate.Types.Filters
                     return Definition.Name + "_starts_with";
                 case FilterOperationKind.EndsWith:
                     return Definition.Name + "_ends_with";
+                case FilterOperationKind.GreaterThan:
+                    return Definition.Name + "_gt";
+                case FilterOperationKind.GreaterThanOrEqual:
+                    return Definition.Name + "_gte";
+                case FilterOperationKind.LowerThan:
+                    return Definition.Name + "_lt";
+                case FilterOperationKind.LowerThanOrEqual:
+                    return Definition.Name + "_lte";
                 default:
                     throw new NotSupportedException();
             }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -32,11 +32,11 @@ namespace HotChocolate.Types.Filters
         IStringFilterFieldDescriptor Filter(
             Expression<Func<T, string>> propertyOrMethod);
 
-        /*
         IComparableFilterFieldDescriptor Filter<TComparable>(
             Expression<Func<T, TComparable>> propertyOrMethod)
             where TComparable : IComparable;
 
+        /*
 
         IObjectFilterFieldDescriptor Filter<TFilter>(
             Expression<Func<T, object>> propertyOrMethod)

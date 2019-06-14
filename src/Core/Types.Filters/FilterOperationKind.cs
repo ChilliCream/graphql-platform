@@ -7,6 +7,10 @@ namespace HotChocolate.Types.Filters
         Contains = 0x0001,
         In = 0x0002,
         StartsWith = 0x0004,
-        EndsWith = 0x0008
+        EndsWith = 0x0008,
+        GreaterThan = 0x0016,
+        GreaterThanOrEqual = 0x0018,
+        LowerThan = 0x0020,
+        LowerThanOrEqual = 0x0022,
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -112,6 +112,23 @@ namespace HotChocolate.Types.Filters
             if (propertyOrMethod.ExtractMember() is PropertyInfo p)
             {
                 var field = new StringFilterFieldDescriptor(Context, p);
+                Fields.Add(field);
+                return field;
+            }
+
+            // TODO : resources
+            throw new ArgumentException(
+                "Only properties are allowed for input types.",
+                nameof(propertyOrMethod));
+        }
+
+
+        public IComparableFilterFieldDescriptor Filter<TComparable>(
+            Expression<Func<T, TComparable>> propertyOrMethod) where TComparable : IComparable
+        {
+            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+            {
+                var field = new ComparableFilterFieldDescriptor(Context, p);
                 Fields.Add(field);
                 return field;
             }
