@@ -8,11 +8,42 @@ namespace HotChocolate.Types.Filters
         : TypeTestBase
     {
         [Fact]
-        public void CreateImplictFilters()
+        public void Create_Implicit_Filters()
         {
             // arrange
             // act
             var schema = CreateSchema(new FilterInputType<Foo>());
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Explicit_Filters()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<Foo>(d => d
+                    .Filter(f => f.Bar)
+                        .BindFilters(BindingBehavior.Explicit)
+                        .AllowEquals()
+                        .Name("foo_eq")));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Rename_Specific_Filter()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<Foo>(d => d
+                    .Filter(f => f.Bar)
+                        .AllowEquals()
+                        .Name("foo")));
 
             // assert
             schema.ToString().MatchSnapshot();

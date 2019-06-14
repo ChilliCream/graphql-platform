@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Filters
         {
             var descriptor = FilterInputTypeDescriptor<T>.New(
                 context.DescriptorContext,
-                GetType());
+                typeof(T));
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
