@@ -35,9 +35,8 @@ namespace HotChocolate.Types.Filters
         IBooleanFilterFieldDescriptor Filter(
             Expression<Func<T, bool>> propertyOrMethod);
 
-        IComparableFilterFieldDescriptor Filter<TComparable>(
-            Expression<Func<T, TComparable>> propertyOrMethod)
-            where TComparable : IComparable;
+        IComparableFilterFieldDescriptor Filter(
+            Expression<Func<T, IComparable>> propertyOrMethod);
 
         /*
 

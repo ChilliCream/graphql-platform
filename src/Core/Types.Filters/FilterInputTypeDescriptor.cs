@@ -140,8 +140,8 @@ namespace HotChocolate.Types.Filters
         }
 
 
-        public IComparableFilterFieldDescriptor Filter<TComparable>(
-            Expression<Func<T, TComparable>> propertyOrMethod) where TComparable : IComparable
+        public IComparableFilterFieldDescriptor Filter(
+            Expression<Func<T, IComparable>> propertyOrMethod)
         {
             if (propertyOrMethod.ExtractMember() is PropertyInfo p)
             {
