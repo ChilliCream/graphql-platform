@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Filters
         : InputObjectType
         , IFilterInputType
     {
-        private readonly Action<IFilterInputObjectTypeDescriptor<T>> _configure;
+        private readonly Action<IFilterInputTypeDescriptor<T>> _configure;
 
         public FilterInputType()
         {
@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Filters
         }
 
         public FilterInputType(
-            Action<IFilterInputObjectTypeDescriptor<T>> configure)
+            Action<IFilterInputTypeDescriptor<T>> configure)
         {
             _configure = configure
                 ?? throw new ArgumentNullException(nameof(configure));
@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Filters
         protected override InputObjectTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            var descriptor = FilterInputObjectTypeDescriptor<T>.New(
+            var descriptor = FilterInputTypeDescriptor<T>.New(
                 context.DescriptorContext,
                 GetType());
             _configure(descriptor);
@@ -35,7 +35,7 @@ namespace HotChocolate.Types.Filters
         }
 
         protected virtual void Configure(
-            IFilterInputObjectTypeDescriptor<T> descriptor)
+            IFilterInputTypeDescriptor<T> descriptor)
         {
 
         }

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -10,11 +10,11 @@ using HotChocolate.Types.Filters.String;
 
 namespace HotChocolate.Types.Filters
 {
-    public class FilterInputObjectTypeDescriptor<T>
+    public class FilterInputTypeDescriptor<T>
         : DescriptorBase<InputObjectTypeDefinition>
-        , IFilterInputObjectTypeDescriptor<T>
+        , IFilterInputTypeDescriptor<T>
     {
-        public FilterInputObjectTypeDescriptor(
+        public FilterInputTypeDescriptor(
             IDescriptorContext context,
             Type clrType)
             : base(context)
@@ -100,7 +100,7 @@ namespace HotChocolate.Types.Filters
             return false;
         }
 
-        public IFilterInputObjectTypeDescriptor<T> BindFields(
+        public IFilterInputTypeDescriptor<T> BindFields(
             BindingBehavior bindingBehavior)
         {
             Definition.Fields.BindingBehavior = bindingBehavior;
@@ -123,8 +123,8 @@ namespace HotChocolate.Types.Filters
                 nameof(propertyOrMethod));
         }
 
-        public static FilterInputObjectTypeDescriptor<T> New(
+        public static FilterInputTypeDescriptor<T> New(
             IDescriptorContext context, Type clrType) =>
-            new FilterInputObjectTypeDescriptor<T>(context, clrType);
+            new FilterInputTypeDescriptor<T>(context, clrType);
     }
 }

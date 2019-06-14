@@ -1,11 +1,11 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {
-    public interface IFilterInputObjectTypeDescriptor<T>
+    public interface IFilterInputTypeDescriptor<T>
         : IDescriptor<InputObjectTypeDefinition>
         , IFluent
     {
@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Filters
         /// All filters have to be specified explicitly via one of the `Filter`
         /// methods.
         /// </param>
-        IFilterInputObjectTypeDescriptor<T> BindFields(
+        IFilterInputTypeDescriptor<T> BindFields(
             BindingBehavior bindingBehavior);
 
         IStringFilterFieldDescriptor Filter(
