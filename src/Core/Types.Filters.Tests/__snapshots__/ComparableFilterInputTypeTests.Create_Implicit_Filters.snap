@@ -68,6 +68,18 @@ input FooInput {
   barLong_not_in: [Long!]
   barLong_not_lt: Long!
   barLong_not_lte: Long!
+  barShort: Short!
+  barShort_gt: Short!
+  barShort_gte: Short!
+  barShort_in: [Short!]
+  barShort_lt: Short!
+  barShort_lte: Short!
+  barShort_not: Short!
+  barShort_not_gt: Short!
+  barShort_not_gte: Short!
+  barShort_not_in: [Short!]
+  barShort_not_lt: Short!
+  barShort_not_lte: Short!
   OR: [FooInput!]
 }
 
@@ -76,6 +88,9 @@ scalar String
 
 "The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
 scalar Int
+
+"The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
+scalar Short
 
 "The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
 scalar Long
