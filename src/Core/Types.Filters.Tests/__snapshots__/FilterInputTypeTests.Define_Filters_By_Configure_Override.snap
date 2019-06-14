@@ -7,7 +7,7 @@ type Query {
 }
 
 input FooInput {
-  And: [FooInput!]
+  AND: [FooInput!]
   bar_contains: String
   bar_in: [String]
   equals: String

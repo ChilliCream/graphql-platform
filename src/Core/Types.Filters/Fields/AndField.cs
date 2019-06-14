@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Filters
             IDescriptorContext context, InputObjectType filterType)
         {
             var definition = InputFieldDescriptor
-                .New(context, "And")
+                .New(context, "AND")
                 .CreateDefinition();
 
             definition.Type = new SchemaTypeReference(

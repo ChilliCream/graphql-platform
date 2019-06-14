@@ -7,12 +7,12 @@ type Query {
 }
 
 input FooInput {
+  AND: [FooInput!]
   bar: String
   bar_contains: String
   bar_ends_with: String
   bar_in: [String]
   bar_starts_with: String
-  AND: [FooInput!]
   OR: [FooInput!]
 }
 
