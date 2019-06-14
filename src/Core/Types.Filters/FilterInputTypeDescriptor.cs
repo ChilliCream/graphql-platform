@@ -123,6 +123,23 @@ namespace HotChocolate.Types.Filters
         }
 
 
+        public IBooleanFilterFieldDescriptor Filter(
+            Expression<Func<T, bool>> propertyOrMethod)
+        {
+            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+            {
+                var field = new BooleanFilterFieldDescriptor(Context, p);
+                Fields.Add(field);
+                return field;
+            }
+
+            // TODO : resources
+            throw new ArgumentException(
+                "Only properties are allowed for input types.",
+                nameof(propertyOrMethod));
+        }
+
+
         public IComparableFilterFieldDescriptor Filter<TComparable>(
             Expression<Func<T, TComparable>> propertyOrMethod) where TComparable : IComparable
         {
