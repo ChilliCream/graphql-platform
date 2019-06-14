@@ -26,7 +26,7 @@ namespace HotChocolate.Types.Filters
             var schema = CreateSchema(
                 new FilterInputType<Foo>(d => d
                     .Filter(f => f.Bar)
-                        .BindFilters(BindingBehavior.Explicit)
+                        .BindExplicitly()
                         .AllowEquals()
                         .Name("foo_eq")));
 

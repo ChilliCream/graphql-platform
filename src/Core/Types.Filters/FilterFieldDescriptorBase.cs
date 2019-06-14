@@ -32,6 +32,14 @@ namespace HotChocolate.Types.Filters
         protected ICollection<FilterOperationDescriptorBase> Filters { get; } =
             new List<FilterOperationDescriptorBase>();
 
+        protected abstract ISet<FilterOperationKind> AllowedOperations { get; }
+
+        protected virtual ISet<FilterOperationKind> ListOperations { get; } =
+            new HashSet<FilterOperationKind>
+            {
+                FilterOperationKind.In
+            };
+
         protected override void OnCreateDefinition(
             FilterFieldDefintion definition)
         {
@@ -91,22 +99,6 @@ namespace HotChocolate.Types.Filters
                 }
             }
         }
-
-        protected virtual ISet<FilterOperationKind> AllowedOperations =>
-            new HashSet<FilterOperationKind>
-            {
-                FilterOperationKind.Equals,
-                FilterOperationKind.Contains,
-                FilterOperationKind.StartsWith,
-                FilterOperationKind.EndsWith,
-                FilterOperationKind.In
-            };
-
-        protected virtual ISet<FilterOperationKind> ListOperations =>
-            new HashSet<FilterOperationKind>
-            {
-                FilterOperationKind.In
-            };
 
         protected FilterFieldDescriptorBase BindFilters(
             BindingBehavior bindingBehavior)

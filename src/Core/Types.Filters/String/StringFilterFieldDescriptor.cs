@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
 
@@ -13,7 +14,17 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property)
             : base(context, property)
         {
+            AllowedOperations = new HashSet<FilterOperationKind>
+            {
+                FilterOperationKind.Equals,
+                FilterOperationKind.Contains,
+                FilterOperationKind.StartsWith,
+                FilterOperationKind.EndsWith,
+                FilterOperationKind.In
+            };
         }
+
+        protected override ISet<FilterOperationKind> AllowedOperations { get; }
 
         public IStringFilterOperationDescriptor AllowEquals()
         {
