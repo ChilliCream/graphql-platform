@@ -43,7 +43,7 @@ namespace HotChocolate.Types.Relay
                 },
                 t =>
                 {
-                    Assert.Equal("items", t.Name);
+                    Assert.Equal("nodes", t.Name);
                     Assert.IsType<StringType>(
                         Assert.IsType<ListType>(t.Type).ElementType);
                 },
@@ -104,7 +104,7 @@ namespace HotChocolate.Types.Relay
                         cursor
                         node
                     }
-                    items
+                    nodes
                     pageInfo
                     {
                         hasNextPage

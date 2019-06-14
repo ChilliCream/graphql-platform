@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - nothing yet ;)
 
+## [9.0.4] - 2019-06-16
+
+### Fixed
+
+- Fixed paging flaws that in some cases lead to the connection type being registered twice. [#842](https://github.com/ChilliCream/hotchocolate/pull/842)
+
 ## [9.0.3] - 2019-06-13
 
 ### Fixed
