@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -48,7 +49,11 @@ namespace HotChocolate.Types.Filters
             fields.Add(new AndField(context.DescriptorContext, this));
             fields.Add(new OrField(context.DescriptorContext, this));
 
-            base.OnCompleteFields(context, definition, fields);
+            foreach (FilterOperationDefintion fieldDefinition in
+                definition.Fields.OfType<FilterOperationDefintion>())
+            {
+                fields.Add(new FilterOperationField(fieldDefinition));
+            }
         }
 
         #endregion
