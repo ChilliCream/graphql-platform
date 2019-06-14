@@ -45,10 +45,10 @@ namespace HotChocolate.Types.Filters
 
             FieldDescriptorUtilities.AddExplicitFields(
                 Fields.Select(t => t.CreateDefinition())
-                    .SelectMany(t => t.Filters),
-                f => f.Operation.Property,
-                fields,
-                handledProperties);
+                        .SelectMany(t => t.Filters),
+                    f => f.Operation.Property,
+                    fields,
+                    handledProperties);
 
             OnCompleteFields(fields, handledProperties);
 

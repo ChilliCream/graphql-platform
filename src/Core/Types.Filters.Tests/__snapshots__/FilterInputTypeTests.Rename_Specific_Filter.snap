@@ -7,11 +7,13 @@ type Query {
 }
 
 input FooInput {
+  And: [FooInput!]
   bar_contains: String
   bar_ends_with: String
   bar_in: [String]
   bar_starts_with: String
   foo: String
+  OR: [FooInput!]
 }
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."

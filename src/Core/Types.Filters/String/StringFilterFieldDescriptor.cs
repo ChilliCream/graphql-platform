@@ -114,6 +114,12 @@ namespace HotChocolate.Types.Filters.String
             return this;
         }
 
+        public IStringFilterFieldDescriptor BindExplicitly() =>
+            BindFilters(BindingBehavior.Explicit);
+
+        public IStringFilterFieldDescriptor BindImplicitly() =>
+            BindFilters(BindingBehavior.Explicit);
+
         private StringFilterOperationDescriptor CreateOperation(
             FilterOperationKind operationKind)
         {

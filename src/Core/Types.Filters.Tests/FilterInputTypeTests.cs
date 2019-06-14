@@ -49,11 +49,35 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Define_Filters_By_Configure_Override()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FooFilterType());
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
 
         public class Foo
         {
             public string Bar { get; set; }
         }
 
+        public class FooFilterType
+            : FilterInputType<Foo>
+        {
+            protected override void Configure(
+                IFilterInputTypeDescriptor<Foo> descriptor)
+            {
+                descriptor.Filter(t => t.Bar)
+                    .BindExplicitly()
+                    .AllowContains().And()
+                    .AllowEquals().Name("equals").And()
+                    .AllowIn();
+            }
+        }
     }
 }

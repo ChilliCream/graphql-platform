@@ -8,6 +8,10 @@ namespace HotChocolate.Types.Filters
         IStringFilterFieldDescriptor BindFilters(
             BindingBehavior bindingBehavior);
 
+        IStringFilterFieldDescriptor BindExplicitly();
+
+        IStringFilterFieldDescriptor BindImplicitly();
+
         IStringFilterOperationDescriptor AllowContains();
 
         IStringFilterOperationDescriptor AllowEquals();

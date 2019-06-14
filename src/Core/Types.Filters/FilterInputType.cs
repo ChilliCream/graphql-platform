@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -37,8 +38,22 @@ namespace HotChocolate.Types.Filters
         protected virtual void Configure(
             IFilterInputTypeDescriptor<T> descriptor)
         {
-
         }
+
+        protected override void OnCompleteFields(
+            ICompletionContext context,
+            InputObjectTypeDefinition definition,
+            ICollection<InputField> fields)
+        {
+            fields.Add(new AndField(context.DescriptorContext, this));
+            fields.Add(new OrField(context.DescriptorContext, this));
+
+            base.OnCompleteFields(context, definition, fields);
+        }
+
+        #endregion
+
+        #region Disabled
 
         // we are disabling the default configure method so
         // that this does not lead to confusion.
