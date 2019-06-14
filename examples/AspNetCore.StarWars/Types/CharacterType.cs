@@ -18,8 +18,7 @@ namespace StarWars.Types
                 .Type<StringType>();
 
             descriptor.Field(f => f.Friends)
-                .Type<ConnectionType<CharacterType>>()
-                .AddPagingArguments();
+                .UsePaging<CharacterType>();
 
             descriptor.Field(f => f.AppearsIn)
                 .Type<ListType<EpisodeType>>();
