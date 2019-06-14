@@ -1,6 +1,7 @@
 using System;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters.String
 {
@@ -24,7 +25,11 @@ namespace HotChocolate.Types.Filters.String
                 Definition.Property);
 
             var field = StringFilterOperationDescriptor.New(
-                Context, this, Definition.Name, Definition.Type, operation);
+                Context,
+                this,
+                Definition.Name,
+                RewriteTypeToNullableType(),
+                operation);
 
             Filters.Add(field);
             return field;
@@ -38,7 +43,12 @@ namespace HotChocolate.Types.Filters.String
                 Definition.Property);
 
             var field = StringFilterOperationDescriptor.New(
-                Context, this, Definition.Name + "_contains", Definition.Type, operation);
+                Context,
+                this,
+                // TODO : conventions _contains
+                Definition.Name + "_contains",
+                RewriteTypeToNullableListType(),
+                operation);
 
             Filters.Add(field);
             return field;
@@ -52,7 +62,12 @@ namespace HotChocolate.Types.Filters.String
                 Definition.Property);
 
             var field = StringFilterOperationDescriptor.New(
-                Context, this, Definition.Name + "_in", Definition.Type, operation);
+                Context,
+                this,
+                // TODO : conventions _in
+                Definition.Name + "_in",
+                RewriteTypeToNullableListType(),
+                operation);
 
             Filters.Add(field);
             return field;
@@ -65,7 +80,12 @@ namespace HotChocolate.Types.Filters.String
                 Definition.Property);
 
             var field = StringFilterOperationDescriptor.New(
-                Context, this, Definition.Name + "_starts_with", Definition.Type, operation);
+                Context,
+                this,
+                // TODO : conventions _starts_with
+                Definition.Name + "_starts_with",
+                RewriteTypeToNullableType(),
+                operation);
 
             Filters.Add(field);
             return field;
@@ -79,17 +99,22 @@ namespace HotChocolate.Types.Filters.String
                 Definition.Property);
 
             var field = StringFilterOperationDescriptor.New(
-                Context, this, Definition.Name + "_ends_with", Definition.Type, operation);
+                Context,
+                this,
+                // TODO : conventions _ends_with
+                Definition.Name + "_ends_with",
+                RewriteTypeToNullableType(),
+                operation);
 
             Filters.Add(field);
             return field;
         }
 
-        public new IStringFilterFieldDescriptor BindFilters(BindingBehavior bindingBehavior)
+        public new IStringFilterFieldDescriptor BindFilters(
+            BindingBehavior bindingBehavior)
         {
             base.BindFilters(bindingBehavior);
             return this;
         }
-
     }
 }

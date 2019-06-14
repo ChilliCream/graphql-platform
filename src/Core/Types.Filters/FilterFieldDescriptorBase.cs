@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -70,6 +71,43 @@ namespace HotChocolate.Types.Filters
         {
             Definition.Filters.BindingBehavior = bindingBehavior;
             return this;
+        }
+
+        protected ITypeReference RewriteTypeToNullableListType()
+        {
+            ITypeReference reference = RewriteTypeToNullableType();
+
+            if (reference is IClrTypeReference clrRef)
+            {
+                if (BaseTypes.IsSchemaType(clrRef.Type))
+                {
+                    return clrRef.WithType(
+                        typeof(ListType<>).MakeGenericType(clrRef.Type));
+                }
+                else
+                {
+                    return clrRef.WithType(
+                        typeof(List<>).MakeGenericType(clrRef.Type));
+                }
+            }
+
+            if (reference is ISchemaTypeReference schemaRef)
+            {
+                return schemaRef.WithType(new ListType((IType)schemaRef.Type));
+            }
+
+            if (reference is ISyntaxTypeReference syntaxRef)
+            {
+                return syntaxRef.WithType(new ListTypeNode(syntaxRef.Type));
+            }
+
+            throw new NotSupportedException();
+        }
+
+        protected ITypeReference RewriteTypeToNullableType()
+        {
+            // TODO : michae: implement this one
+            return Definition.Type;
         }
     }
 }
