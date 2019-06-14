@@ -12,15 +12,28 @@ namespace HotChocolate.Types.Filters
 
         IComparableFilterFieldDescriptor BindImplicitly();
 
+
         IComparableFilterOperationDescriptor AllowEquals();
+        IComparableFilterOperationDescriptor AllowNotEquals();
+
 
         IComparableFilterOperationDescriptor AllowIn();
 
+        IComparableFilterOperationDescriptor AllowNotIn();
+
+
         IComparableFilterOperationDescriptor AllowGreaterThan();
+        IComparableFilterOperationDescriptor AllowNotGreaterThan();
+
         IComparableFilterOperationDescriptor AllowGreaterThanOrEquals();
+        IComparableFilterOperationDescriptor AllowNotGreaterThanOrEquals();
+
 
         IComparableFilterOperationDescriptor AllowLowerThan();
+        IComparableFilterOperationDescriptor AllowNotLowerThan();
+
 
         IComparableFilterOperationDescriptor AllowLowerThanOrEquals();
+        IComparableFilterOperationDescriptor AllowNotLowerThanOrEquals();
     }
 }

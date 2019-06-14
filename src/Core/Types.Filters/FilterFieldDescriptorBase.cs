@@ -37,7 +37,8 @@ namespace HotChocolate.Types.Filters
         protected virtual ISet<FilterOperationKind> ListOperations { get; } =
             new HashSet<FilterOperationKind>
             {
-                FilterOperationKind.In
+                FilterOperationKind.In,
+                FilterOperationKind.NotIn
             };
 
         protected override void OnCreateDefinition(
@@ -150,22 +151,49 @@ namespace HotChocolate.Types.Filters
             {
                 case FilterOperationKind.Equals:
                     return Definition.Name;
+                case FilterOperationKind.NotEquals:
+                    return Definition.Name +"_not";
+
                 case FilterOperationKind.Contains:
                     return Definition.Name + "_contains";
+                case FilterOperationKind.NotContains:
+                    return Definition.Name + "_not_contains";
+
                 case FilterOperationKind.In:
                     return Definition.Name + "_in";
+                case FilterOperationKind.NotIn:
+                    return Definition.Name + "_not_in";
+
                 case FilterOperationKind.StartsWith:
                     return Definition.Name + "_starts_with";
+                case FilterOperationKind.NotStartsWith:
+                    return Definition.Name + "_not_starts_with";
+
                 case FilterOperationKind.EndsWith:
                     return Definition.Name + "_ends_with";
+                case FilterOperationKind.NotEndsWith:
+                    return Definition.Name + "_not_ends_with";
+
                 case FilterOperationKind.GreaterThan:
                     return Definition.Name + "_gt";
+                case FilterOperationKind.NotGreaterThan:
+                    return Definition.Name + "_not_gt";
+
                 case FilterOperationKind.GreaterThanOrEqual:
                     return Definition.Name + "_gte";
+                case FilterOperationKind.NotGreaterThanOrEqual:
+                    return Definition.Name + "_not_gte";
+
                 case FilterOperationKind.LowerThan:
                     return Definition.Name + "_lt";
+                case FilterOperationKind.NotLowerThan:
+                    return Definition.Name + "_not_lt";
+
                 case FilterOperationKind.LowerThanOrEqual:
                     return Definition.Name + "_lte";
+                case FilterOperationKind.NotLowerThanOrEqual:
+                    return Definition.Name + "_not_lte";
+
                 default:
                     throw new NotSupportedException();
             }

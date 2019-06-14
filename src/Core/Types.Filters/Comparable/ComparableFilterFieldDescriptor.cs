@@ -16,12 +16,24 @@ namespace HotChocolate.Types.Filters
         {
             AllowedOperations = new HashSet<FilterOperationKind>
             {
-                FilterOperationKind.Equals, 
+                FilterOperationKind.Equals,
+                FilterOperationKind.NotEquals,
+
                 FilterOperationKind.In,
+                FilterOperationKind.NotIn,
+
                 FilterOperationKind.GreaterThan,
+                FilterOperationKind.NotGreaterThan,
+
                 FilterOperationKind.GreaterThanOrEqual,
+                FilterOperationKind.NotGreaterThanOrEqual,
+
                 FilterOperationKind.LowerThan,
-                FilterOperationKind.LowerThanOrEqual
+                FilterOperationKind.NotLowerThan,
+
+                FilterOperationKind.LowerThanOrEqual,
+                FilterOperationKind.NotLowerThanOrEqual
+
             };
         }
 
@@ -35,10 +47,25 @@ namespace HotChocolate.Types.Filters
             return field;
         }
 
+        public IComparableFilterOperationDescriptor AllowNotEquals()
+        {
+            ComparableFilterOperationDescriptor field =
+                CreateOperation(FilterOperationKind.NotEquals);
+            Filters.Add(field);
+            return field;
+        }
+
         public IComparableFilterOperationDescriptor AllowIn()
         {
             ComparableFilterOperationDescriptor field =
                 CreateOperation(FilterOperationKind.In);
+            Filters.Add(field);
+            return field;
+        }
+        public IComparableFilterOperationDescriptor AllowNotIn()
+        {
+            ComparableFilterOperationDescriptor field =
+                CreateOperation(FilterOperationKind.NotIn);
             Filters.Add(field);
             return field;
         }
@@ -50,11 +77,25 @@ namespace HotChocolate.Types.Filters
             Filters.Add(field);
             return field;
         }
+        public IComparableFilterOperationDescriptor AllowNotGreaterThan()
+        {
+            ComparableFilterOperationDescriptor field =
+                 CreateOperation(FilterOperationKind.NotGreaterThan);
+            Filters.Add(field);
+            return field;
+        }
 
         public IComparableFilterOperationDescriptor AllowGreaterThanOrEquals()
         {
             ComparableFilterOperationDescriptor field =
                  CreateOperation(FilterOperationKind.GreaterThanOrEqual);
+            Filters.Add(field);
+            return field;
+        }
+        public IComparableFilterOperationDescriptor AllowNotGreaterThanOrEquals()
+        {
+            ComparableFilterOperationDescriptor field =
+                 CreateOperation(FilterOperationKind.NotGreaterThanOrEqual);
             Filters.Add(field);
             return field;
         }
@@ -67,10 +108,27 @@ namespace HotChocolate.Types.Filters
             return field;
         }
 
+
+        public IComparableFilterOperationDescriptor AllowNotLowerThan()
+        {
+            ComparableFilterOperationDescriptor field =
+                 CreateOperation(FilterOperationKind.NotLowerThan);
+            Filters.Add(field);
+            return field;
+        }
+
         public IComparableFilterOperationDescriptor AllowLowerThanOrEquals()
         {
             ComparableFilterOperationDescriptor field =
                  CreateOperation(FilterOperationKind.LowerThanOrEqual);
+            Filters.Add(field);
+            return field;
+        }
+
+        public IComparableFilterOperationDescriptor AllowNotLowerThanOrEquals()
+        {
+            ComparableFilterOperationDescriptor field =
+                 CreateOperation(FilterOperationKind.NotLowerThanOrEqual);
             Filters.Add(field);
             return field;
         }
