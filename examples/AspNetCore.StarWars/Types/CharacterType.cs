@@ -1,4 +1,5 @@
 ﻿using HotChocolate.Types;
+using HotChocolate.Types.Relay;
 using StarWars.Models;
 
 namespace StarWars.Types
@@ -17,7 +18,8 @@ namespace StarWars.Types
                 .Type<StringType>();
 
             descriptor.Field(f => f.Friends)
-                .Type<ListType<CharacterType>>();
+                .Type<ConnectionType<CharacterType>>()
+                .AddPagingArguments();
 
             descriptor.Field(f => f.AppearsIn)
                 .Type<ListType<EpisodeType>>();

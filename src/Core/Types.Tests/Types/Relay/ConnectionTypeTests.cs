@@ -122,6 +122,43 @@ namespace HotChocolate.Types.Relay
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task UsePaging_WithComplexType()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddType<FooType>()
+                .AddQueryType<QueryType3>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            string query = @"
+            {
+                s
+                {
+                    bar {
+                        edges {
+                            cursor
+                            node
+                        }
+                        pageInfo
+                        {
+                            hasNextPage
+                        }
+                        totalCount
+                    }
+                }
+            }
+            ";
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
         public class QueryType
             : ObjectType
         {
@@ -152,9 +189,50 @@ namespace HotChocolate.Types.Relay
             }
         }
 
+        public class QueryType3
+            : ObjectType
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name("Query");
+                descriptor.Field("s")
+                    .Resolver(ctx => new Foo());
+            }
+        }
+
         public class Query
         {
             public ICollection<string> Strings { get; } =
+                new List<string> { "a", "b", "c", "d", "e", "f", "g" };
+        }
+
+        public class FooType
+            : ObjectType<Foo>
+        {
+            protected override void Configure(
+                IObjectTypeDescriptor<Foo> descriptor)
+            {
+                descriptor.Interface<FooInterfaceType>();
+                descriptor.Field(t => t.Bar).UsePaging<StringType>();
+            }
+        }
+
+        public class FooInterfaceType
+            : InterfaceType
+        {
+            protected override void Configure(
+                IInterfaceTypeDescriptor descriptor)
+            {
+                descriptor.Name("IFoo");
+                descriptor.Field("bar")
+                    .Type<ConnectionType<StringType>>()
+                    .AddPagingArguments();
+            }
+        }
+
+        public class Foo
+        {
+            public ICollection<string> Bar { get; } =
                 new List<string> { "a", "b", "c", "d", "e", "f", "g" };
         }
     }
