@@ -1,8 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters.String
 {
@@ -16,55 +13,6 @@ namespace HotChocolate.Types.Filters.String
             PropertyInfo property)
             : base(context, property)
         {
-        }
-
-        protected override void OnCompleteFilters(
-            IDictionary<NameString, FilterOperationDefintion> fields,
-            ISet<FilterOperationKind> handledFilterKinds)
-        {
-            if (Definition.Filters.BindingBehavior == BindingBehavior.Implicit)
-            {
-                AddImplicitOperation(
-                    fields,
-                    handledFilterKinds,
-                    FilterOperationKind.Equals);
-
-                AddImplicitOperation(
-                    fields,
-                    handledFilterKinds,
-                    FilterOperationKind.Contains);
-
-                AddImplicitOperation(
-                    fields,
-                    handledFilterKinds,
-                    FilterOperationKind.In);
-
-                AddImplicitOperation(
-                    fields,
-                    handledFilterKinds,
-                    FilterOperationKind.StartsWith);
-
-                AddImplicitOperation(
-                    fields,
-                    handledFilterKinds,
-                    FilterOperationKind.EndsWith);
-            }
-        }
-
-        private void AddImplicitOperation(
-            IDictionary<NameString, FilterOperationDefintion> fields,
-            ISet<FilterOperationKind> handledFilterKinds,
-            FilterOperationKind operationKind)
-        {
-            if (handledFilterKinds.Add(operationKind))
-            {
-                FilterOperationDefintion definition =
-                    CreateOperation(operationKind).CreateDefinition();
-                if (!fields.ContainsKey(definition.Name))
-                {
-                    fields.Add(definition.Name, definition);
-                }
-            }
         }
 
         public IStringFilterOperationDescriptor AllowEquals()
@@ -120,6 +68,10 @@ namespace HotChocolate.Types.Filters.String
         public IStringFilterFieldDescriptor BindImplicitly() =>
             BindFilters(BindingBehavior.Explicit);
 
+        protected override FilterOperationDefintion CreateOperationDefinition(
+            FilterOperationKind operationKind) =>
+            CreateOperation(operationKind).CreateDefinition();
+
         private StringFilterOperationDescriptor CreateOperation(
             FilterOperationKind operationKind)
         {
@@ -134,15 +86,6 @@ namespace HotChocolate.Types.Filters.String
                 CreateFieldName(operationKind),
                 RewriteType(operationKind),
                 operation);
-        }
-
-        private ITypeReference RewriteType(FilterOperationKind operationKind)
-        {
-            if (operationKind == FilterOperationKind.In)
-            {
-                return RewriteTypeToNullableListType();
-            }
-            return RewriteTypeToNullableType();
         }
     }
 }
