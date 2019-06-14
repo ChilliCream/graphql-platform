@@ -46,7 +46,10 @@ namespace HotChocolate.Types.Filters
             // assert
             schema.ToString().MatchSnapshot();
         }
-
+        public enum FooBar
+        {
+            FOO, BAR
+        }
 
         public class Foo
         {
@@ -56,6 +59,7 @@ namespace HotChocolate.Types.Filters
             public float BarFloat { get; set; }
             public double BarDouble { get; set; }
             public decimal BarDecimal { get; set; }
+            public FooBar FooBar { get; set; }
         }
 
         public class FooFilterType
@@ -70,6 +74,7 @@ namespace HotChocolate.Types.Filters
                 descriptor.Filter(x => x.BarFloat);
                 descriptor.Filter(x => x.BarDouble);
                 descriptor.Filter(x => x.BarDecimal);
+                descriptor.Filter(x => x.FooBar);
 
             }
         }

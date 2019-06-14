@@ -80,7 +80,24 @@ input FooInput {
   barShort_not_in: [Short!]
   barShort_not_lt: Short!
   barShort_not_lte: Short!
+  fooBar: FooBar!
+  fooBar_gt: FooBar!
+  fooBar_gte: FooBar!
+  fooBar_in: [FooBar!]
+  fooBar_lt: FooBar!
+  fooBar_lte: FooBar!
+  fooBar_not: FooBar!
+  fooBar_not_gt: FooBar!
+  fooBar_not_gte: FooBar!
+  fooBar_not_in: [FooBar!]
+  fooBar_not_lt: FooBar!
+  fooBar_not_lte: FooBar!
   OR: [FooInput!]
+}
+
+enum FooBar {
+  FOO
+  BAR
 }
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
