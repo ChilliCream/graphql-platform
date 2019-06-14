@@ -1262,6 +1262,24 @@ namespace HotChocolate.Types
                 .Errors.MatchSnapshot();
         }
 
+        [Fact]
+        public void Deprecate_Obsolete_Fields()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new ObjectType<FooObsolete>())
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1319,6 +1337,12 @@ namespace HotChocolate.Types
                     .Resolver(() => new List<string>())
                     .Type<ListType<StringType>>();
             }
+        }
+
+        public class FooObsolete
+        {
+            [Obsolete("Baz")]
+            public string Bar() => "foo";
         }
     }
 }

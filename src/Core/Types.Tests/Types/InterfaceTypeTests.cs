@@ -436,6 +436,24 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Deprecate_Obsolete_Fields()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InterfaceType<FooObsolete>())
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public interface IFoo
         {
             bool Bar { get; }
@@ -472,5 +490,11 @@ namespace HotChocolate.Types
         }
 
         public class FooDirective { }
+
+        public class FooObsolete
+        {
+            [Obsolete("Baz")]
+            public string Bar() => "foo";
+        }
     }
 }
