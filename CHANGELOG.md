@@ -16,6 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Subscription now uses pipeline API to abstract sockets. [#807](https://github.com/ChilliCream/hotchocolate/pull/807)
 - Improved parser performance. [#806](https://github.com/ChilliCream/hotchocolate/pull/806)
 
+## [9.0.4] - 2019-06-16
+
+### Fixed
+
+- Fixed paging flaws that in some cases lead to the connection type being registered twice. [#842](https://github.com/ChilliCream/hotchocolate/pull/842)
+
+## [9.0.3] - 2019-06-13
+
+### Fixed
+
+- Fixed issues where the type initializer would swallow schema errors.
+
 ## [9.0.2] - 2019-06-12
 
 ### Fixed

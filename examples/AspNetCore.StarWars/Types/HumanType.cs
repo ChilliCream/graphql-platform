@@ -1,4 +1,5 @@
 ﻿using HotChocolate.Types;
+using HotChocolate.Types.Relay;
 using StarWars.Models;
 using StarWars.Resolvers;
 
@@ -18,7 +19,7 @@ namespace StarWars.Types
                 .Type<ListType<EpisodeType>>();
 
             descriptor.Field<SharedResolvers>(r => r.GetCharacter(default, default))
-                .Type<ListType<CharacterType>>()
+                .UsePaging<CharacterType>()
                 .Name("friends");
 
             descriptor.Field<SharedResolvers>(t => t.GetHeight(default, default))

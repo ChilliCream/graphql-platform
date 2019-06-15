@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Relay
         {
             return descriptor
                 .AddPagingArguments()
-                .Type(ConnectionType<TSchemaType>.CreateWithTotalCount())
+                .Type<ConnectionWithCountType<TSchemaType>>()
                 .Use<QueryableConnectionMiddleware<TClrType>>();
         }
 
@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Relay
 
             descriptor
                 .AddPagingArguments()
-                .Type(ConnectionType<TSchemaType>.CreateWithTotalCount())
+                .Type<ConnectionWithCountType<TSchemaType>>()
                 .Use(placeholder)
                 .Extend()
                 .OnBeforeCompletion((context, defintion) =>
@@ -52,8 +52,29 @@ namespace HotChocolate.Types.Relay
             return descriptor;
         }
 
+        public static IInterfaceFieldDescriptor UsePaging<TSchemaType>(
+            this IInterfaceFieldDescriptor descriptor)
+            where TSchemaType : class, IOutputType
+        {
+            descriptor
+                .AddPagingArguments()
+                .Type<ConnectionWithCountType<TSchemaType>>();
+
+            return descriptor;
+        }
+
         public static IObjectFieldDescriptor AddPagingArguments(
             this IObjectFieldDescriptor descriptor)
+        {
+            return descriptor
+                .Argument("first", a => a.Type<PaginationAmountType>())
+                .Argument("after", a => a.Type<StringType>())
+                .Argument("last", a => a.Type<PaginationAmountType>())
+                .Argument("before", a => a.Type<StringType>());
+        }
+
+        public static IInterfaceFieldDescriptor AddPagingArguments(
+            this IInterfaceFieldDescriptor descriptor)
         {
             return descriptor
                 .Argument("first", a => a.Type<PaginationAmountType>())
