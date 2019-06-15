@@ -56,10 +56,6 @@ namespace HotChocolate.Types.Relay
             this IInterfaceFieldDescriptor descriptor)
             where TSchemaType : class, IOutputType
         {
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
-            Type middlewareDefinition = typeof(QueryableConnectionMiddleware<>);
-
             descriptor
                 .AddPagingArguments()
                 .Type<ConnectionWithCountType<TSchemaType>>();
