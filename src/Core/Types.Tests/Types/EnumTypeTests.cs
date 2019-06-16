@@ -449,6 +449,23 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Deprecate_Fields_With_Deprecated_Attribute()
+        {
+            // act
+            var schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType<FooDeprecated>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public enum Foo
         {
             Bar1,
@@ -462,6 +479,13 @@ namespace HotChocolate.Types
             Bar1,
 
             [Obsolete]
+            Bar2
+        }
+
+        public enum FooDeprecated
+        {
+            Bar1,
+            [GraphQLDeprecated("Baz.")]
             Bar2
         }
     }
