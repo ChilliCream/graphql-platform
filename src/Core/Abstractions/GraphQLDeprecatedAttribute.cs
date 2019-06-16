@@ -18,6 +18,11 @@ namespace HotChocolate
         /// <param name="deprecationReason">The deprecation reason.</param>
         public GraphQLDeprecatedAttribute(string deprecationReason)
         {
+            if (string.IsNullOrEmpty(deprecationReason))
+            {
+                throw new ArgumentNullException(nameof(deprecationReason));
+            }
+            
             DeprecationReason = deprecationReason;
         }
         
