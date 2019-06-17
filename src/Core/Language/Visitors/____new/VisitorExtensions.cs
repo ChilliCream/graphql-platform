@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language
@@ -148,27 +147,6 @@ namespace HotChocolate.Language
                 return v.Invoke(visitor, node, parent, path, ancestors);
             }
             return VisitorAction.Skip;
-        }
-
-        private readonly struct SyntaxNodeInfo
-        {
-            public SyntaxNodeInfo(ISyntaxNode node, string name)
-            {
-                Node = node;
-                Name = name;
-                Index = null;
-            }
-
-            public SyntaxNodeInfo(ISyntaxNode node, string name, int? index)
-            {
-                Node = node;
-                Name = name;
-                Index = index;
-            }
-
-            public ISyntaxNode Node { get; }
-            public string Name { get; }
-            public int? Index { get; }
         }
 
         private delegate VisitorAction IntVisitorFn(

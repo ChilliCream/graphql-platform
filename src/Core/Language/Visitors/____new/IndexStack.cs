@@ -16,6 +16,7 @@ namespace HotChocolate.Language
         : IEnumerable<T>
         , ICollection
         , IReadOnlyList<T>
+        , IStack<T>
     {
         private T[] _array; // Storage for stack elements. Do not rename (binary serialization)
         private int _size; // Number of items in the stack. Do not rename (binary serialization)
@@ -306,7 +307,9 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void PushWithResize(T item)
         {
-            Array.Resize(ref _array, (_array.Length == 0) ? DefaultCapacity : 2 * _array.Length);
+            Array.Resize(ref _array, (_array.Length == 0)
+                ? DefaultCapacity
+                : 2 * _array.Length);
             _array[_size] = item;
             _version++;
             _size++;

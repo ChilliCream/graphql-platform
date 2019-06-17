@@ -8,14 +8,8 @@ namespace HotChocolate.Language
     export const QueryDocumentKeys = {
       Name: [],
 
-      Document: ['definitions'],
-      OperationDefinition: [
-        'name',
-        'variableDefinitions',
-        'directives',
-        'selectionSet',
-      ],
-      VariableDefinition: ['variable', 'type', 'defaultValue', 'directives'],
+
+
       Variable: ['name'],
       SelectionSet: ['selections'],
       Field: ['alias', 'name', 'arguments', 'directives', 'selectionSet'],
@@ -32,16 +26,6 @@ namespace HotChocolate.Language
         'directives',
         'selectionSet',
       ],
-
-      IntValue: [],
-      FloatValue: [],
-      StringValue: [],
-      BooleanValue: [],
-      NullValue: [],
-      EnumValue: [],
-      ListValue: ['values'],
-      ObjectValue: ['fields'],
-      ObjectField: ['name', 'value'],
 
       Directive: ['name', 'arguments'],
 
@@ -88,14 +72,32 @@ namespace HotChocolate.Language
 
      */
 
-    public static partial class VisitorExtensions
+    public interface IVisitationMap
     {
-        private static void ResolveChildren(
+        void ResolveChildren(ISyntaxNode node, IStack<SyntaxNodeInfo> children);
+    }
+
+    public class VisitationMap
+        : IVisitationMap
+    {
+        public virtual void ResolveChildren(
             ISyntaxNode node,
-            IndexStack<SyntaxNodeInfo> children)
+            IStack<SyntaxNodeInfo> children)
         {
             switch (node)
             {
+                case DocumentNode document:
+                    ResolveChildren(document, children);
+                    break;
+
+                case OperationDefinitionNode operationDefinition:
+                    ResolveChildren(operationDefinition, children);
+                    break;
+
+                case VariableDefinitionNode variableDefinition:
+                    ResolveChildren(variableDefinition, children);
+                    break;
+
                 case ListValueNode list:
                     ResolveChildren(list, children);
                     break;
@@ -110,32 +112,92 @@ namespace HotChocolate.Language
             }
         }
 
-        private static void ResolveChildren(
+        protected virtual void ResolveChildren(
+            DocumentNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Definitions),
+                node.Definitions,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            OperationDefinitionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.VariableDefinitions),
+                node.VariableDefinitions,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+
+            ResolveChildren(
+                nameof(node.SelectionSet),
+                node.SelectionSet,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            VariableDefinitionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Variable),
+                node.Variable,
+                children);
+
+            ResolveChildren(
+                nameof(node.Type),
+                node.Type,
+                children);
+
+            ResolveChildren(
+                nameof(node.DefaultValue),
+                node.DefaultValue,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
             ListValueNode node,
-            IndexStack<SyntaxNodeInfo> children)
+            IStack<SyntaxNodeInfo> children)
         {
             ResolveChildren(nameof(node.Items), node.Items, children);
         }
 
-        private static void ResolveChildren(
+        protected virtual void ResolveChildren(
             ObjectValueNode node,
-            IndexStack<SyntaxNodeInfo> children)
+            IStack<SyntaxNodeInfo> children)
         {
             ResolveChildren(nameof(node.Fields), node.Fields, children);
         }
 
-        private static void ResolveChildren(
+        protected virtual void ResolveChildren(
             ObjectFieldNode node,
-            IndexStack<SyntaxNodeInfo> children)
+            IStack<SyntaxNodeInfo> children)
         {
             ResolveChildren(nameof(node.Name), node.Name, children);
             ResolveChildren(nameof(node.Value), node.Value, children);
         }
 
-        private static void ResolveChildren(
+        protected void ResolveChildren(
             string name,
             ISyntaxNode child,
-            IndexStack<SyntaxNodeInfo> children)
+            IStack<SyntaxNodeInfo> children)
         {
             if (child != null)
             {
@@ -143,10 +205,10 @@ namespace HotChocolate.Language
             }
         }
 
-        private static void ResolveChildren(
+        protected void ResolveChildren(
             string name,
             IReadOnlyList<ISyntaxNode> items,
-            IndexStack<SyntaxNodeInfo> children)
+            IStack<SyntaxNodeInfo> children)
         {
             if (items.Count == 0)
             {
