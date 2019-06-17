@@ -195,6 +195,64 @@ namespace HotChocolate
                         error.Code));
         }
 
+        [Fact]
+        public void BuiltInScalarsAreRecognized()
+        {
+            // arrange
+            string sourceText = @"
+                type Query {
+                    string_field: String
+                    string_non_null_field: String!
+                    int_field: Int
+                    int_non_null_field: Int!
+                    float_field: Float
+                    float_non_null_field: Float!
+                    bool_field: Boolean
+                    bool_non_null_field: Boolean!
+                }
+            ";
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .Use(next => context => Task.CompletedTask)
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+         [Fact]
+        public void BuiltInScalarsAreRecognized2()
+        {
+            // arrange
+            string sourceText = @"
+                type Query {
+                    foo: Foo
+                }
+
+                type Foo {
+                    string_field: String
+                    string_non_null_field: String!
+                    int_field: Int
+                    int_non_null_field: Int!
+                    float_field: Float
+                    float_non_null_field: Float!
+                    bool_field: Boolean
+                    bool_non_null_field: Boolean!
+                }
+            ";
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(sourceText)
+                .Use(next => context => Task.CompletedTask)
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class Query
         {
             public string Hello() => "World";
