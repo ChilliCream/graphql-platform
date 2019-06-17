@@ -117,23 +117,29 @@ namespace HotChocolate
         public static string GetGraphQLDeprecationReason(
             this ICustomAttributeProvider attributeProvider)
         {
-            if (attributeProvider.IsDefined(
-                typeof(ObsoleteAttribute),
-                false))
-            {
-                ObsoleteAttribute attribute =
-                    (ObsoleteAttribute)attributeProvider.GetCustomAttributes(
-                        typeof(ObsoleteAttribute),
-                        false)[0];
+            var deprecatedAttribute = GetAttributeIfDefined<GraphQLDeprecatedAttribute>(
+                attributeProvider
+            );
 
-                if (string.IsNullOrEmpty(attribute.Message))
+            if (deprecatedAttribute != null)
+            {
+                return deprecatedAttribute.DeprecationReason;
+            }
+
+            var obsoleteAttribute = GetAttributeIfDefined<ObsoleteAttribute>(
+                attributeProvider
+            );
+
+            if (obsoleteAttribute != null)
+            {
+                if (string.IsNullOrEmpty(obsoleteAttribute.Message))
                 {
                     // TODO : resources
                     return "This field is no longer supported.";
                 }
                 else
                 {
-                    return attribute.Message;
+                    return obsoleteAttribute.Message;
                 }
             }
 
@@ -167,6 +173,20 @@ namespace HotChocolate
                     name.Substring(1);
             }
             return name.ToLowerInvariant();
+        }
+
+        private static TAttribute GetAttributeIfDefined<TAttribute>(ICustomAttributeProvider attributeProvider)
+            where TAttribute : Attribute
+        {
+            Type attributeType = typeof(TAttribute);
+            
+            if (attributeProvider.IsDefined(attributeType, false))
+            {
+                return (TAttribute)attributeProvider
+                    .GetCustomAttributes(attributeType, false)[0];
+            }
+
+            return null;
         }
     }
 }

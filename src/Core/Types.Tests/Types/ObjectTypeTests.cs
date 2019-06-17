@@ -1280,6 +1280,24 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Deprecate_Fields_With_Deprecated_Attribute()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new ObjectType<FooDeprecated>())
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1343,6 +1361,14 @@ namespace HotChocolate.Types
         {
             [Obsolete("Baz")]
             public string Bar() => "foo";
+        }
+
+        public class FooDeprecated
+        {
+            [GraphQLDeprecated("Use Bar2.")]
+            public string Bar() => "foo";
+
+            public string Bar2() => "Foo 2: Electric foo-galoo";
         }
     }
 }
