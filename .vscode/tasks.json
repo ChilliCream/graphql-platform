@@ -40,6 +40,19 @@
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "label": "build client",
+      "command": "dotnet build src/Client /property:GenerateFullPaths=true",
+      "type": "shell",
+      "presentation": {
+        "reveal": "silent"
+      },
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     }
   ]
 }
