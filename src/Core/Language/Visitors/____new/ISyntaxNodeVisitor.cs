@@ -64,15 +64,44 @@ namespace HotChocolate.Language
 
     public static class VisitorExtensions
     {
+        private static readonly Dictionary<Type, VisitorFn> _enterVisitors =
+            new Dictionary<Type, VisitorFn>()
+            {
+                { typeof(IValueNode), EnterVisitor<IValueNode>() },
+                { typeof(ObjectValueNode), EnterVisitor<ObjectValueNode>() },
+                { typeof(ObjectFieldNode), EnterVisitor<ObjectFieldNode>() },
+                { typeof(ListValueNode), EnterVisitor<ListValueNode>() },
+                { typeof(StringValueNode), EnterVisitor<StringValueNode>() },
+                { typeof(IntValueNode), EnterVisitor<IntValueNode>() },
+                { typeof(FloatValueNode), EnterVisitor<FloatValueNode>() },
+                { typeof(BooleanValueNode), EnterVisitor<BooleanValueNode>() },
+                { typeof(EnumValueNode), EnterVisitor<EnumValueNode>() },
+                { typeof(VariableNode), EnterVisitor<VariableNode>() },
+            };
+
+        private static readonly Dictionary<Type, VisitorFn> _leaveVisitors =
+            new Dictionary<Type, VisitorFn>()
+            {
+                { typeof(IValueNode), EnterVisitor<IValueNode>() },
+                { typeof(ObjectValueNode), EnterVisitor<ObjectValueNode>() },
+                { typeof(ObjectFieldNode), EnterVisitor<ObjectFieldNode>() },
+                { typeof(ListValueNode), EnterVisitor<ListValueNode>() },
+                { typeof(StringValueNode), EnterVisitor<StringValueNode>() },
+                { typeof(IntValueNode), EnterVisitor<IntValueNode>() },
+                { typeof(FloatValueNode), EnterVisitor<FloatValueNode>() },
+                { typeof(BooleanValueNode), EnterVisitor<BooleanValueNode>() },
+                { typeof(EnumValueNode), EnterVisitor<EnumValueNode>() },
+                { typeof(VariableNode), EnterVisitor<VariableNode>() },
+            };
 
         public static void Accept(
             this ISyntaxNode node,
             ISyntaxNodeVisitor visitor)
         {
-            var path = new Stack<object>();
-            var ancestors = new Stack<SyntaxNodeInfo>();
-            var ancestorNodes = new Stack<ISyntaxNode>();
-            var level = new List<Stack<SyntaxNodeInfo>>();
+            var path = new IndexStack<object>();
+            var ancestors = new IndexStack<SyntaxNodeInfo>();
+            var ancestorNodes = new IndexStack<ISyntaxNode>();
+            var level = new List<IndexStack<SyntaxNodeInfo>>();
             // process.Add(new Stack<ISyntaxNode> { node });
 
             int index = -1;
@@ -128,16 +157,42 @@ namespace HotChocolate.Language
 
         }
 
-        private static Stack<SyntaxNodeInfo> GetChildren(ISyntaxNode node)
+        private static IndexStack<SyntaxNodeInfo> GetChildren(ISyntaxNode node)
         {
             throw new NotImplementedException();
         }
 
-        private static VisitorAction Enter(ISyntaxNodeVisitor visitor, ISyntaxNode node, ISyntaxNode parent, IReadOnlyCollection<object> path, IReadOnlyCollection<ISyntaxNode> ancestors)
+        private static VisitorAction Enter(ISyntaxNodeVisitor visitor, ISyntaxNode node, ISyntaxNode parent, IReadOnlyList<object> path, IReadOnlyList<ISyntaxNode> ancestors)
         { }
 
-        private static VisitorAction Leave(ISyntaxNodeVisitor visitor, ISyntaxNode node, ISyntaxNode parent, IReadOnlyCollection<object> path, IReadOnlyCollection<ISyntaxNode> ancestors)
+        private static VisitorAction Leave(ISyntaxNodeVisitor visitor, ISyntaxNode node, ISyntaxNode parent, IReadOnlyList<object> path, IReadOnlyList<ISyntaxNode> ancestors)
         { }
+
+        private static VisitorFn EnterVisitor<T>()
+            where T : ISyntaxNode =>
+            CreateVisitor<T>(true);
+
+        private static VisitorFn CreateVisitor<T>(bool enter)
+            where T : ISyntaxNode
+        {
+
+            return (visitor, node, parent, path, ancestors) =>
+            {
+                if (visitor is ISyntaxNodeVisitor<T> typedVisitor)
+                {
+                    if (enter)
+                    {
+                        return typedVisitor.Enter((T)node, parent, path, ancestors);
+                    }
+                    else
+                    {
+                        return typedVisitor.Leave((T)node, parent, path, ancestors);
+                    }
+                }
+                return VisitorAction.Continue;
+            };
+
+        }
 
         private readonly struct SyntaxNodeInfo
         {
@@ -152,5 +207,12 @@ namespace HotChocolate.Language
             public string Name { get; }
             public int? Index { get; }
         }
+
+        private delegate VisitorAction VisitorFn(
+            ISyntaxNodeVisitor visitor,
+            ISyntaxNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors);
     }
 }
