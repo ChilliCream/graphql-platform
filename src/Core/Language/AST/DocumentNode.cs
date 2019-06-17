@@ -6,6 +6,11 @@ namespace HotChocolate.Language
     public sealed class DocumentNode
         : ISyntaxNode
     {
+        public DocumentNode(IDefinitionNode definition)
+            : this(null, new[] { definition })
+        {
+        }
+
         public DocumentNode(IReadOnlyList<IDefinitionNode> definitions)
             : this(null, definitions)
         {

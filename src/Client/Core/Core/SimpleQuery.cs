@@ -45,7 +45,7 @@ namespace HotChocolate.Client.Core
         /// <summary>
         /// Gets the GraphQL operation definition.
         /// </summary>
-        public OperationDefinition OperationDefinition { get; }
+        public OperationDefinitionNode OperationDefinition { get; }
 
         /// <summary>
         /// Gets the GraphQL query string.
@@ -58,12 +58,14 @@ namespace HotChocolate.Client.Core
         public Func<JObject, TResult> ResultBuilder { get; }
 
         /// <inheritdoc/>
-        public override string ToString() => ToString(2);
+        public override string ToString() => ToString(true);
 
         /// <inheritdoc/>
-        public string ToString(int indentation)
+        public string ToString(bool useIndentation)
         {
-            return new QuerySerializer(indentation).Serialize(OperationDefinition);
+            return QuerySyntaxSerializer.Serialize(
+                new DocumentNode(OperationDefinition),
+                useIndentation);
         }
 
         /// <summary>
