@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Language
@@ -49,7 +50,7 @@ namespace HotChocolate.Language
             {
                 throw new ArgumentNullException(nameof(collection));
             }
-            _array = EnumerableHelpers.ToArray(collection, out _size);
+            _array = collection.ToArray();
         }
 
         public int Count
@@ -68,22 +69,12 @@ namespace HotChocolate.Language
         {
             get
             {
-                int size = _size - 1;
                 T[] array = _array;
-
-                // if (_size == 0) is equivalent to if (size == -1), and this case
-                // is covered with (uint)size, thus allowing bounds check elimination
-                // https://github.com/dotnet/coreclr/pull/9773
-                if ((uint)size >= (uint)array.Length)
+                if (_size <= index)
                 {
-                    ThrowForEmptyStack();
+                    throw new IndexOutOfRangeException();
                 }
-
-                _version++;
-                _size = size;
-                T item = array[size];
-                array[size] = default(T);     // Free memory quicker.
-                return item;
+                return array[index];
             }
         }
 
@@ -123,12 +114,16 @@ namespace HotChocolate.Language
                 throw new ArgumentOutOfRangeException(
                     nameof(arrayIndex),
                     arrayIndex,
-                    SR.ArgumentOutOfRange_Index);
+                    "Index was out of range. Must be non-negative and less " +
+                    "than the size of the collection.");
             }
 
             if (array.Length - arrayIndex < _size)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(
+                    "Offset and length were out of bounds for the array " +
+                    "or count is greater than the number of elements from " +
+                    "index to the end of the source collection.");
             }
 
             Debug.Assert(array != _array);
@@ -150,25 +145,33 @@ namespace HotChocolate.Language
             if (array.Rank != 1)
             {
                 throw new ArgumentException(
-                    SR.Arg_RankMultiDimNotSupported,
+                    "Only single dimensional arrays are supported " +
+                    "for the requested action.",
                     nameof(array));
             }
 
             if (array.GetLowerBound(0) != 0)
             {
                 throw new ArgumentException(
-                    SR.Arg_NonZeroLowerBound,
+                    "The lower bound of target array must be zero.",
                     nameof(array));
             }
 
             if (arrayIndex < 0 || arrayIndex > array.Length)
             {
-                throw new ArgumentOutOfRangeException(nameof(arrayIndex), arrayIndex, SR.ArgumentOutOfRange_Index);
+                throw new ArgumentOutOfRangeException(
+                    nameof(arrayIndex),
+                    arrayIndex,
+                    "Index was out of range. Must be non-negative and " +
+                    "less than the size of the collection.");
             }
 
             if (array.Length - arrayIndex < _size)
             {
-                throw new ArgumentException(SR.Argument_InvalidOffLen);
+                throw new ArgumentException(
+                    "Offset and length were out of bounds for the array or " +
+                    "count is greater than the number of elements from index " +
+                    "to the end of the source collection.");
             }
 
             try
@@ -179,7 +182,8 @@ namespace HotChocolate.Language
             catch (ArrayTypeMismatchException)
             {
                 throw new ArgumentException(
-                    SR.Argument_InvalidArrayType,
+                    "Target array type is not compatible with the type " +
+                    "of items in the collection.",
                     nameof(array));
             }
         }
@@ -327,11 +331,16 @@ namespace HotChocolate.Language
         private void ThrowForEmptyStack()
         {
             Debug.Assert(_size == 0);
-            throw new InvalidOperationException(SR.InvalidOperation_EmptyStack);
+            throw new InvalidOperationException("Stack empty.");
         }
 
-        [SuppressMessage("Microsoft.Performance", "CA1815:OverrideEqualsAndOperatorEqualsOnValueTypes", Justification = "not an expected scenario")]
-        public struct Enumerator : IEnumerator<T>, System.Collections.IEnumerator
+        [SuppressMessage(
+            "Microsoft.Performance",
+            "CA1815:OverrideEqualsAndOperatorEqualsOnValueTypes",
+            Justification = "not an expected scenario")]
+        public struct Enumerator
+            : IEnumerator<T>
+            , IEnumerator
         {
             private readonly IndexStack<T> _stack;
             private readonly int _version;
@@ -343,7 +352,7 @@ namespace HotChocolate.Language
                 _stack = stack;
                 _version = stack._version;
                 _index = -2;
-                _currentElement = default(T); // TODO-NULLABLE: Remove ! when nullable attributes are respected
+                _currentElement = default(T);
             }
 
             public void Dispose()
@@ -357,7 +366,8 @@ namespace HotChocolate.Language
                 if (_version != _stack._version)
                 {
                     throw new InvalidOperationException(
-                        SR.InvalidOperation_EnumFailedVersion);
+                        "Collection was modified after the enumerator " +
+                        "was instantiated.");
                 }
                 if (_index == -2)
                 {  // First call to enumerator.
@@ -379,7 +389,7 @@ namespace HotChocolate.Language
                 }
                 else
                 {
-                    _currentElement = default(T); // TODO-NULLABLE: Remove ! when nullable attributes are respected
+                    _currentElement = default(T);
                 }
                 return retval;
             }
@@ -399,8 +409,8 @@ namespace HotChocolate.Language
                 Debug.Assert(_index == -1 || _index == -2);
                 throw new InvalidOperationException(
                     _index == -2
-                    ? SR.InvalidOperation_EnumNotStarted
-                    : SR.InvalidOperation_EnumEnded);
+                    ? "Enumeration has not started. Call MoveNext."
+                    : "Enumeration already finished.");
             }
 
             object System.Collections.IEnumerator.Current
@@ -413,10 +423,11 @@ namespace HotChocolate.Language
                 if (_version != _stack._version)
                 {
                     throw new InvalidOperationException(
-                        SR.InvalidOperation_EnumFailedVersion);
+                        "Collection was modified after the enumerator " +
+                        "was instantiated.");
                 }
                 _index = -2;
-                _currentElement = default(T); // TODO-NULLABLE: Remove ! when nullable attributes are respected
+                _currentElement = default(T);
             }
         }
     }

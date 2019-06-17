@@ -14,6 +14,36 @@ namespace HotChocolate.Language
         , ISyntaxNodeVisitor<EnumValueNode>
         , ISyntaxNodeVisitor<VariableNode>
     {
+        private readonly IReadOnlyDictionary<NodeKind, VisitorAction> _actions;
+        private readonly VisitorAction _defaultAction;
+
+        protected SyntaxNodeVisitor()
+        {
+            _actions = null;
+            _defaultAction = VisitorAction.Skip;
+        }
+
+        protected SyntaxNodeVisitor(VisitorAction defaultAction)
+        {
+            _actions = null;
+            _defaultAction = defaultAction;
+        }
+
+        protected SyntaxNodeVisitor(
+            IReadOnlyDictionary<NodeKind, VisitorAction> actions,
+            VisitorAction defaultAction)
+        {
+            _actions = actions;
+            _defaultAction = defaultAction;
+        }
+
+        protected SyntaxNodeVisitor(
+            IReadOnlyDictionary<NodeKind, VisitorAction> actions)
+        {
+            _actions = actions;
+            _defaultAction = VisitorAction.Skip;
+        }
+
         public virtual VisitorAction Enter(
             IValueNode node,
             ISyntaxNode parent,
@@ -49,7 +79,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
         }
 
         public virtual VisitorAction Enter(
@@ -58,7 +88,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
         }
 
         public virtual VisitorAction Enter(
@@ -67,7 +97,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
         }
 
         public virtual VisitorAction Enter(
@@ -76,7 +106,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
         }
 
         public virtual VisitorAction Enter(
@@ -85,7 +115,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
         }
 
         public virtual VisitorAction Enter(
@@ -94,7 +124,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
         }
 
         public virtual VisitorAction Enter(
@@ -103,7 +133,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
         }
 
         public virtual VisitorAction Enter(
@@ -112,7 +142,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
         }
 
         public virtual VisitorAction Enter(
@@ -121,7 +151,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
         }
 
         public virtual VisitorAction Leave(
@@ -159,7 +189,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
         }
 
         public virtual VisitorAction Leave(
@@ -168,7 +198,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
         }
 
         public virtual VisitorAction Leave(
@@ -177,7 +207,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
         }
 
         public virtual VisitorAction Leave(
@@ -186,7 +216,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
         }
 
         public virtual VisitorAction Leave(
@@ -195,7 +225,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
         }
 
         public virtual VisitorAction Leave(
@@ -204,7 +234,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
         }
 
         public virtual VisitorAction Leave(
@@ -213,7 +243,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
         }
 
         public virtual VisitorAction Leave(
@@ -222,7 +252,7 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
         }
 
         public virtual VisitorAction Leave(
@@ -231,7 +261,17 @@ namespace HotChocolate.Language
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            return VisitorAction.Skip;
+            return GetDefaultAction(node.Kind);
+        }
+
+        protected VisitorAction GetDefaultAction(NodeKind kind)
+        {
+            if (_actions != null
+                && _actions.TryGetValue(kind, out VisitorAction action))
+            {
+                return action;
+            }
+            return _defaultAction;
         }
     }
 }
