@@ -222,7 +222,7 @@ namespace HotChocolate
             schema.ToString().MatchSnapshot();
         }
 
-         [Fact]
+        [Fact]
         public void BuiltInScalarsAreRecognized2()
         {
             // arrange
