@@ -1,7 +1,11 @@
+using System.Runtime.InteropServices;
+using System;
+using System.ComponentModel;
 using System.Collections.Generic;
 namespace HotChocolate.Language
 {
     public interface ISyntaxNodeVisitor<T>
+        : ISyntaxNodeVisitor
         where T : ISyntaxNode
     {
         /// <summary>
@@ -54,5 +58,99 @@ namespace HotChocolate.Language
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors);
+    }
+
+    public interface ISyntaxNodeVisitor { }
+
+    public static class VisitorExtensions
+    {
+
+        public static void Accept(
+            this ISyntaxNode node,
+            ISyntaxNodeVisitor visitor)
+        {
+            var path = new Stack<object>();
+            var ancestors = new Stack<SyntaxNodeInfo>();
+            var ancestorNodes = new Stack<ISyntaxNode>();
+            var level = new List<Stack<SyntaxNodeInfo>>();
+            // process.Add(new Stack<ISyntaxNode> { node });
+
+            int index = -1;
+
+            while (true)
+            {
+                index++;
+                bool isLeaving = level[index].Count == 0;
+                VisitorAction action = default;
+                SyntaxNodeInfo parent = default;
+                SyntaxNodeInfo current = default;
+
+                if (isLeaving)
+                {
+                    path.Pop();
+                    ancestorNodes.Pop();
+                    current = ancestors.Pop();
+                    parent = ancestors.Peek();
+                    action = Leave(
+                        visitor,
+                        current.Node,
+                        parent.Node,
+                        path,
+                        ancestorNodes);
+                }
+                else
+                {
+                    current = level[index].Pop();
+
+                    action = Enter(
+                        visitor,
+                        current.Node,
+                        parent.Node,
+                        path,
+                        ancestorNodes);
+
+                    if (action == VisitorAction.Continue)
+                    {
+                        level.Add(GetChildren(current.Node));
+                    }
+
+                    parent = current;
+                    ancestors.Push(current);
+                    ancestorNodes.Push(current.Node);
+                    path.Push((object)current.Index ?? current.Name);
+                }
+
+                if (action == VisitorAction.Break)
+                {
+                    break;
+                }
+            }
+
+        }
+
+        private static Stack<SyntaxNodeInfo> GetChildren(ISyntaxNode node)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static VisitorAction Enter(ISyntaxNodeVisitor visitor, ISyntaxNode node, ISyntaxNode parent, IReadOnlyCollection<object> path, IReadOnlyCollection<ISyntaxNode> ancestors)
+        { }
+
+        private static VisitorAction Leave(ISyntaxNodeVisitor visitor, ISyntaxNode node, ISyntaxNode parent, IReadOnlyCollection<object> path, IReadOnlyCollection<ISyntaxNode> ancestors)
+        { }
+
+        private readonly struct SyntaxNodeInfo
+        {
+            public SyntaxNodeInfo(ISyntaxNode node, string name, int? index)
+            {
+                Node = node;
+                Name = name;
+                Index = index;
+            }
+
+            public ISyntaxNode Node { get; }
+            public string Name { get; }
+            public int? Index { get; }
+        }
     }
 }
