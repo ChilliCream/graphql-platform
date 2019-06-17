@@ -6,6 +6,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Client.Core.Syntax;
 using HotChocolate.Client.Core.Utilities;
+using HotChocolate.Language;
 using Newtonsoft.Json.Linq;
 
 namespace HotChocolate.Client.Core.Builders
@@ -18,14 +19,14 @@ namespace HotChocolate.Client.Core.Builders
 
         static readonly ParameterExpression RootDataParameter = Expression.Parameter(typeof(JObject), "data");
 
-        OperationDefinition root;
+        OperationDefinitionNode root;
         Expression rootExpression;
         SyntaxTree syntax;
         Dictionary<ParameterExpression, LambdaParameter> lambdaParameters;
         List<ISubquery> subqueries = new List<ISubquery>();
         Expression<Func<JObject, IEnumerable<JToken>>> parentIds;
         Expression<Func<JObject, JToken>> pageInfo;
-        FragmentDefinition currentFragment;
+        FragmentDefinitionNode currentFragment;
         Dictionary<string, LambdaExpression> fragmentExpressions = new Dictionary<string, LambdaExpression>();
 
         public ICompiledQuery<TResult> Build<TResult>(IQueryableValue<TResult> query)

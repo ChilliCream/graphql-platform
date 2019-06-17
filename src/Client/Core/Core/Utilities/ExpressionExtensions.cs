@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
-using HotChocolate.Client.Core.Syntax;
 using Newtonsoft.Json.Linq;
 using HotChocolate.Client.Core.Builders;
+using HotChocolate.Language;
 
 namespace HotChocolate.Client.Core.Utilities
 {
@@ -72,9 +72,9 @@ namespace HotChocolate.Client.Core.Utilities
         /// <param name="instance">The expression.</param>
         /// <param name="field">The field to return.</param>
         /// <returns>A new expression.</returns>
-        public static Expression AddIndexer(this Expression instance, FieldSelection field)
+        public static Expression AddIndexer(this Expression instance, FieldNode field)
         {
-            return AddIndexer(instance, field.Alias ?? field.Name);
+            return AddIndexer(instance, (field.Alias ?? field.Name).Value);
         }
 
         /// <summary>

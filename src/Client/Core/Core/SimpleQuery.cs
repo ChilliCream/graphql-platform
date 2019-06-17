@@ -10,6 +10,7 @@ using HotChocolate.Client.Core.Builders;
 using HotChocolate.Client.Core.Deserializers;
 using HotChocolate.Client.Core.Serializers;
 using HotChocolate.Client.Core.Syntax;
+using HotChocolate.Language;
 
 namespace HotChocolate.Client.Core
 {
@@ -27,7 +28,7 @@ namespace HotChocolate.Client.Core
         /// A function which transforms JSON data into the final result.
         /// </param>
         public SimpleQuery(
-            OperationDefinition operationDefinition,
+            OperationDefinitionNode operationDefinition,
             Expression<Func<JObject, TResult>> resultBuilder)
         {
             var serializer = new QuerySerializer();
@@ -72,7 +73,7 @@ namespace HotChocolate.Client.Core
         /// <returns>The payload string.</returns>
         public string GetPayload(IDictionary<string, object> variables)
         {
-           var payload = new
+            var payload = new
             {
                 Query,
                 Variables = variables,

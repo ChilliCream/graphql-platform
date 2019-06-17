@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using HotChocolate.Client.Core.Builders;
 using HotChocolate.Client.Core.Deserializers;
 using HotChocolate.Client.Core.Syntax;
+using HotChocolate.Language;
 
 namespace HotChocolate.Client.Core
 {
@@ -38,7 +39,7 @@ namespace HotChocolate.Client.Core
         /// for all entities which can be auto-paged.
         /// </param>
         public SimpleSubquery(
-            OperationDefinition operationDefinition,
+            OperationDefinitionNode operationDefinition,
             Expression<Func<JObject, TResult>> resultBuilder,
             Expression<Func<JObject, IEnumerable<JToken>>> parentIds,
             Expression<Func<JObject, JToken>> pageInfo,
@@ -80,7 +81,7 @@ namespace HotChocolate.Client.Core
 
         internal static ISubquery Create(
             Type resultType,
-            OperationDefinition operationDefinition,
+            OperationDefinitionNode operationDefinition,
             Expression expression,
             Expression<Func<JObject, IEnumerable<JToken>>> parentIds,
             Expression<Func<JObject, JToken>> pageInfo,
