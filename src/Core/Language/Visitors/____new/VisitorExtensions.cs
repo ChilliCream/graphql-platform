@@ -1,22 +1,38 @@
+using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language
 {
     public static partial class VisitorExtensions
     {
-        public static void Accept<T>(
-            this ISyntaxNode node,
-            VisitorFn<T> enter,
-            VisitorFn<T> leave)
-            where T : ISyntaxNode
-        {
-            Accept(node, new VisitorFnWrapper<T>(enter, leave));
-        }
+        private static readonly VisitationMap _defaultVisitationMap =
+            new VisitationMap();
 
         public static void Accept(
             this ISyntaxNode node,
-            ISyntaxNodeVisitor visitor)
+            ISyntaxNodeVisitor visitor) =>
+            Accept(node, visitor, _defaultVisitationMap);
+
+        public static void Accept(
+            this ISyntaxNode node,
+            ISyntaxNodeVisitor visitor,
+            IVisitationMap visitationMap)
         {
+            if (node is null)
+            {
+                throw new ArgumentNullException(nameof(node));
+            }
+
+            if (visitor is null)
+            {
+                throw new ArgumentNullException(nameof(visitor));
+            }
+
+            if (visitationMap is null)
+            {
+                throw new ArgumentNullException(nameof(visitationMap));
+            }
+
             var path = new IndexStack<object>();
             var ancestors = new IndexStack<SyntaxNodeInfo>();
             var ancestorNodes = new IndexStack<ISyntaxNode>();
@@ -91,7 +107,7 @@ namespace HotChocolate.Language
 
                     if (action == VisitorAction.Continue)
                     {
-                        level.Push(GetChildren(current.Node));
+                        level.Push(GetChildren(current.Node, visitationMap));
                     }
                     else if (action == VisitorAction.Skip)
                     {
@@ -114,10 +130,12 @@ namespace HotChocolate.Language
             level.Clear();
         }
 
-        private static IndexStack<SyntaxNodeInfo> GetChildren(ISyntaxNode node)
+        private static IndexStack<SyntaxNodeInfo> GetChildren(
+            ISyntaxNode node,
+            IVisitationMap visitationMap)
         {
             var children = new IndexStack<SyntaxNodeInfo>();
-            ResolveChildren(node, children);
+            visitationMap.ResolveChildren(node, children);
             return children;
         }
 
