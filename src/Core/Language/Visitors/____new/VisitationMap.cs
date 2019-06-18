@@ -1,3 +1,4 @@
+using System.Diagnostics.Tracing;
 using System.Collections.Generic;
 using HotChocolate.Language;
 
@@ -7,16 +8,6 @@ namespace HotChocolate.Language
     /*
     export const QueryDocumentKeys = {
       Name: [],
-
-
-
-
-
-      Directive: ['name', 'arguments'],
-
-      NamedType: ['name'],
-      ListType: ['type'],
-      NonNullType: ['type'],
 
       SchemaDefinition: ['directives', 'operationTypes'],
       OperationTypeDefinition: ['type'],
@@ -66,20 +57,6 @@ namespace HotChocolate.Language
         : IVisitationMap
     {
 
-        /*
-
-
-      InlineFragment: ['typeCondition', 'directives', 'selectionSet'],
-      FragmentDefinition: [
-        'name',
-        // Note: fragment variable definitions are experimental and may be changed
-        // or removed in the future.
-        'variableDefinitions',
-        'typeCondition',
-        'directives',
-        'selectionSet',
-      ],
-         */
         public virtual void ResolveChildren(
             ISyntaxNode node,
             IStack<SyntaxNodeInfo> children)
@@ -116,6 +93,30 @@ namespace HotChocolate.Language
 
                 case FragmentSpreadNode fragmentSpread:
                     ResolveChildren(fragmentSpread, children);
+                    break;
+
+                case InlineFragmentNode inlineFragment:
+                    ResolveChildren(inlineFragment, children);
+                    break;
+
+                case FragmentDefinitionNode fragmentDefinition:
+                    ResolveChildren(fragmentDefinition, children);
+                    break;
+
+                case DirectiveNode directive:
+                    ResolveChildren(directive, children);
+                    break;
+
+                case NamedTypeNode namedType:
+                    ResolveChildren(namedType, children);
+                    break;
+
+                case ListTypeNode listType:
+                    ResolveChildren(listType, children);
+                    break;
+
+                case NonNullTypeNode nonNullType:
+                    ResolveChildren(nonNullType, children);
                     break;
 
                 case ListValueNode list:
@@ -300,6 +301,116 @@ namespace HotChocolate.Language
                     node.Directives,
                     children);
             }
+        }
+
+        protected virtual void ResolveChildren(
+            InlineFragmentNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            if (node.TypeCondition != null)
+            {
+                ResolveChildren(
+                    nameof(node.TypeCondition),
+                    node.TypeCondition,
+                    children);
+            }
+
+            if (node.Directives.Count != 0)
+            {
+                ResolveChildren(
+                    nameof(node.Directives),
+                    node.Directives,
+                    children);
+            }
+
+            ResolveChildren(
+                nameof(node.SelectionSet),
+                node.SelectionSet,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            FragmentDefinitionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            if (node.Directives.Count != 0)
+            {
+                ResolveChildren(
+                    nameof(node.VariableDefinitions),
+                    node.VariableDefinitions,
+                    children);
+            }
+
+            ResolveChildren(
+                nameof(node.TypeCondition),
+                node.TypeCondition,
+                children);
+
+            if (node.Directives.Count != 0)
+            {
+                ResolveChildren(
+                    nameof(node.Directives),
+                    node.Directives,
+                    children);
+            }
+
+            ResolveChildren(
+                nameof(node.SelectionSet),
+                node.SelectionSet,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            DirectiveNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            if (node.Arguments.Count != 0)
+            {
+                ResolveChildren(
+                    nameof(node.Arguments),
+                    node.Arguments,
+                    children);
+            }
+        }
+
+        protected virtual void ResolveChildren(
+            NamedTypeNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            ListTypeNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Type),
+                node.Type,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            NonNullTypeNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Type),
+                node.Type,
+                children);
         }
 
         protected virtual void ResolveChildren(
