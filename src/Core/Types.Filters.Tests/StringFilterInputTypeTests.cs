@@ -4,7 +4,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
-    public class FilterInputTypeTests
+    public class StringFilterInputTypeTests
         : TypeTestBase
     {
         [Fact]
