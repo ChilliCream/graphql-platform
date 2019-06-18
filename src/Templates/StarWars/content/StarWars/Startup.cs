@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Authorization;
@@ -41,6 +42,46 @@ namespace StarWars
                 .AddType<DroidType>()
                 .AddType<EpisodeType>()
                 .AddDirectiveType<AuthorizeDirectiveType>()
+                /*
+                Run query:
+                query {
+                  droid (id:1) {
+                    id
+                    name
+                  }
+                  __schema {
+                    queryType {
+                      name
+                      description
+                    }
+                  }
+                }
+
+                Results:
+                {
+                  "data": {
+                    "droid": {
+                      "id": "I see you! I have eat your results...",
+                      "name": "I see you! I have eat your results..."
+                    },
+                    "__schema": {
+                      "queryType": {
+                        "name": "Query",
+                        "description": null
+                      }
+                    }
+                  }
+                }
+
+                Please notice that introspection results are not corrupted.
+                Middlerware is not executing for introspection fields.
+
+                 */
+                .Use(next => context =>
+                {
+                    context.Result = "I see you! I have eat your results...";
+                    return Task.CompletedTask;
+                })
                 .Create());
 
             // Add Authorization Policies
