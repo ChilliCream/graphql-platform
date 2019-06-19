@@ -41,8 +41,10 @@ namespace HotChocolate.Types.Filters.Expressions
 
                     case FilterOperationKind.NotEquals:
                         expression = Expression.Equal(
-                            property,
-                            Expression.Constant(s.Value));
+                            Expression.Equal(
+                                property,
+                                Expression.Constant(s.Value)),
+                            Expression.Constant(false));
                         return true;
 
                     case FilterOperationKind.StartsWith:

@@ -1,6 +1,4 @@
 using System;
-using System.Linq;
-using System.Linq.Expressions;
 using HotChocolate.Language;
 using Xunit;
 
@@ -33,6 +31,29 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void Create_StringNotEqual_Expression()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("bar_not",
+                    new StringValueNode("a")));
+
+            var fooType = CreateType(new FooFilterType());
+
+            // act
+            var filter = new QueryableFilterVisitor(fooType, typeof(Foo));
+            value.Accept(filter);
+            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+
+            // assert
+            var a = new Foo { Bar = "a" };
+            Assert.False(func(a));
+
+            var b = new Foo { Bar = "b" };
+            Assert.True(func(b));
+        }
+
+        [Fact]
         public void Create_StringStartsWith_Expression()
         {
             // arrange
@@ -56,6 +77,29 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void Create_StringNotStartsWith_Expression()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("bar_not_starts_with",
+                    new StringValueNode("a")));
+
+            var fooType = CreateType(new FooFilterType());
+
+            // act
+            var filter = new QueryableFilterVisitor(fooType, typeof(Foo));
+            value.Accept(filter);
+            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+
+            // assert
+            var a = new Foo { Bar = "ab" };
+            Assert.False(func(a));
+
+            var b = new Foo { Bar = "ba" };
+            Assert.True(func(b));
+        }
+
+        [Fact]
         public void Create_StringEndsWith_Expression()
         {
             // arrange
@@ -76,6 +120,29 @@ namespace HotChocolate.Types.Filters
 
             var b = new Foo { Bar = "ba" };
             Assert.True(func(b));
+        }
+
+        [Fact]
+        public void Create_StringNotEndsWith_Expression()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("bar_not_ends_with",
+                    new StringValueNode("a")));
+
+            var fooType = CreateType(new FooFilterType());
+
+            // act
+            var filter = new QueryableFilterVisitor(fooType, typeof(Foo));
+            value.Accept(filter);
+            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+
+            // assert
+            var a = new Foo { Bar = "ab" };
+            Assert.True(func(a));
+
+            var b = new Foo { Bar = "ba" };
+            Assert.False(func(b));
         }
 
         public class Foo
