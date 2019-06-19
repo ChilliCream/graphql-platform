@@ -10,34 +10,38 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types.Filters
 {
     public class FilterInputTypeDescriptor<T>
-        : DescriptorBase<InputObjectTypeDefinition>
+        : DescriptorBase<FilterInputTypeDefinition>
         , IFilterInputTypeDescriptor<T>
     {
         public FilterInputTypeDescriptor(
             IDescriptorContext context,
-            Type clrType)
+            Type entityType)
             : base(context)
         {
-            if (clrType == null)
+            if (entityType is null)
             {
-                throw new ArgumentNullException(nameof(clrType));
+                throw new ArgumentNullException(nameof(entityType));
             }
 
-            Definition.ClrType = clrType;
+            Definition.EntityType = entityType;
+            Definition.ClrType = typeof(object);
+
+            // TODO : should we rework get type name?
             Definition.Name = context.Naming.GetTypeName(
-                clrType, TypeKind.InputObject);
+                entityType, TypeKind.Object) + "Filter";
+            // TODO : should we rework get type description?
             Definition.Description = context.Naming.GetTypeDescription(
-                clrType, TypeKind.InputObject);
+                entityType, TypeKind.Object);
         }
 
-        protected override InputObjectTypeDefinition Definition { get; } =
-            new InputObjectTypeDefinition();
+        protected override FilterInputTypeDefinition Definition { get; } =
+            new FilterInputTypeDefinition();
 
         protected List<FilterFieldDescriptorBase> Fields { get; } =
             new List<FilterFieldDescriptorBase>();
 
         protected override void OnCreateDefinition(
-            InputObjectTypeDefinition definition)
+            FilterInputTypeDefinition definition)
         {
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
             var handledProperties = new HashSet<PropertyInfo>();
@@ -59,10 +63,10 @@ namespace HotChocolate.Types.Filters
             ISet<PropertyInfo> handledProperties)
         {
             if (Definition.Fields.IsImplicitBinding()
-                && Definition.ClrType != typeof(object))
+                && Definition.EntityType != typeof(object))
             {
                 foreach (PropertyInfo property in Context.Inspector
-                    .GetMembers(Definition.ClrType)
+                    .GetMembers(Definition.EntityType)
                     .OfType<PropertyInfo>())
                 {
                     if (!handledProperties.Contains(property))
@@ -157,7 +161,7 @@ namespace HotChocolate.Types.Filters
         }
 
         public static FilterInputTypeDescriptor<T> New(
-            IDescriptorContext context, Type clrType) =>
-            new FilterInputTypeDescriptor<T>(context, clrType);
+            IDescriptorContext context, Type entityType) =>
+            new FilterInputTypeDescriptor<T>(context, entityType);
     }
 }

@@ -5,39 +5,52 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Filters
 {
-    public class FilterObjectFieldDescriptorExtensions
+    public static class FilterObjectFieldDescriptorExtensions
     {
-        public static IObjectFieldDescriptor UsePaging<TFilter>(
+        public static IObjectFieldDescriptor UseFilter<T>(
             this IObjectFieldDescriptor descriptor)
-            where TFilter : class, IFilterInputType
         {
             FieldMiddleware placeholder =
                 next => context => Task.CompletedTask;
-            Type middlewareDefinition = typeof(QueryableConnectionMiddleware<>);
+            Type middlewareDefinition = typeof(FilterMiddleware<>);
+
+            Type filterType =
+                typeof(IFilterInputType).IsAssignableFrom(typeof(T))
+                    ? typeof(T)
+                    : typeof(FilterInputType<>).MakeGenericType(typeof(T));
 
             descriptor
-
+                .AddFilterArguments(filterType)
                 .Use(placeholder)
                 .Extend()
                 .OnBeforeCompletion((context, defintion) =>
                 {
                     var reference = new ClrTypeReference(
-                        typeof(IInputType),
+                        filterType,
                         TypeContext.Input);
-                    IFilterInputType type = context.GetType<IFilterInputType>(reference);
-
+                    IFilterInputType type =
+                        context.GetType<IFilterInputType>(reference);
                     Type middlewareType = middlewareDefinition
-                        .MakeGenericType(hasClrType.ClrType);
+                        .MakeGenericType(type.EntityType);
                     FieldMiddleware middleware =
                         FieldClassMiddlewareFactory.Create(middlewareType);
                     int index =
                         defintion.MiddlewareComponents.IndexOf(placeholder);
                     defintion.MiddlewareComponents[index] = middleware;
-
                 })
-                .DependsOn<TSchemaType>();
+                .DependsOn(filterType, mustBeCompleted: true);
 
             return descriptor;
+        }
+
+        private static IObjectFieldDescriptor AddFilterArguments(
+            this IObjectFieldDescriptor descriptor,
+            Type filterType)
+        {
+            return descriptor.Argument("where", a =>
+                a.Extend().OnBeforeCreate(d =>
+                    d.Type = new ClrTypeReference(
+                        filterType, TypeContext.Input)));
         }
 
         public static IObjectFieldDescriptor AddFilterArguments<TFilter>(
