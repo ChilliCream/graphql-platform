@@ -1,4 +1,6 @@
+using System;
 using System.Linq;
+using System.Linq.Expressions;
 using HotChocolate.Language;
 using Xunit;
 
@@ -8,26 +10,29 @@ namespace HotChocolate.Types.Filters
         : TypeTestBase
     {
         [Fact]
-        public void Create_Implicit_Filters()
+        public void Create_Equal_Expression()
         {
             // arrange
-            string query = "{ foo(where: { bar: \"a\" AND: [ {bar: \"b\"} {bar: \"c\"} ] OR: [ {bar: \"d\"} {bar: \"e\"} ]  }) }";
-            ObjectValueNode value = Utf8GraphQLParser.Parse(query)
-                .Definitions.OfType<OperationDefinitionNode>().First()
-                .SelectionSet.Selections.OfType<FieldNode>().First()
-                .Arguments.Select(t => t.Value)
-                .OfType<ObjectValueNode>().First();
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("bar",
+                    new StringValueNode("a")));
 
             var fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new DummyFilter(fooType);
+            var filter = new QueryableFilterVisitor(fooType, typeof(Foo));
             value.Accept(filter);
 
             // assert
             Assert.Equal(
                 "(Bar = a AND (Bar = b AND Bar = c) AND (Bar = d OR Bar = e))",
                 filter.Query);
+        }
+
+        [Fact]
+        public void FooBar()
+        {
+            Expression<Func<Foo, bool>> x = c => c.Bar == "a" && ( c.Bar == "b" || c.Bar == "f" || c.Bar == "x");
         }
 
         public class Foo
