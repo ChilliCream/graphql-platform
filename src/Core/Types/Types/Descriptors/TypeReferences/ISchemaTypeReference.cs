@@ -4,5 +4,7 @@ namespace HotChocolate.Types.Descriptors
         : ITypeReference
     {
         ITypeSystemMember Type { get; }
+
+        ISchemaTypeReference WithType(ITypeSystemMember type);
     }
 }

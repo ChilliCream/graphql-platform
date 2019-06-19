@@ -141,6 +141,20 @@ namespace HotChocolate.Types.Descriptors
                 IsTypeNullable, IsElementTypeNullable);
         }
 
+        public IClrTypeReference WithType(Type type)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            return new ClrTypeReference(
+                type,
+                Context,
+                IsTypeNullable,
+                IsElementTypeNullable);
+        }
+
         public static ClrTypeReference FromSchemaType<T>()
             where T : ITypeSystemMember
         {

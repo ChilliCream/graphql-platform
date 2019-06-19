@@ -184,10 +184,23 @@ namespace HotChocolate.Types
                 new DictionaryToInputObjectConverter(typeConversion);
 
             SyntaxNode = definition.SyntaxNode;
-            Fields = new FieldCollection<InputField>(
-                definition.Fields.Select(t => new InputField(t)));
 
+            var fields = new List<InputField>();
+            OnCompleteFields(context, definition, fields);
+
+            Fields = new FieldCollection<InputField>(fields);
             FieldInitHelper.CompleteFields(context, definition, Fields);
+        }
+
+        protected virtual void OnCompleteFields(
+            ICompletionContext context,
+            InputObjectTypeDefinition definition,
+            ICollection<InputField> fields)
+        {
+            foreach (InputFieldDefinition fieldDefinition in definition.Fields)
+            {
+                fields.Add(new InputField(fieldDefinition));
+            }
         }
 
         #endregion

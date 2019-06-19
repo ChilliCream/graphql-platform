@@ -20,7 +20,7 @@ namespace HotChocolate.Resolvers
                 return false;
             });
 
-        internal static FieldMiddleware Create<TMiddleware>()
+        public static FieldMiddleware Create<TMiddleware>()
             where TMiddleware : class
         {
             return next =>
@@ -35,21 +35,21 @@ namespace HotChocolate.Resolvers
             };
         }
 
-        internal static FieldMiddleware Create(Type middlewareType)
+        public static FieldMiddleware Create(Type middlewareType)
         {
             return (FieldMiddleware)_createGeneric
                 .MakeGenericMethod(middlewareType)
                 .Invoke(null, Array.Empty<object>());
         }
 
-        internal static FieldMiddleware Create<TMiddleware>(
+        public static FieldMiddleware Create<TMiddleware>(
             Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
             where TMiddleware : class
         {
             return next => CreateDelegate(factory, next);
         }
 
-        internal static FieldDelegate CreateDelegate<TMiddleware>(
+        private static FieldDelegate CreateDelegate<TMiddleware>(
             Func<IServiceProvider, FieldDelegate, TMiddleware> factory,
             FieldDelegate next)
             where TMiddleware : class
