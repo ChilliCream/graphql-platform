@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Filters
         : TypeTestBase
     {
         [Fact]
-        public void Create_Equal_Expression()
+        public void Create_StringEqual_Expression()
         {
             // arrange
             var value = new ObjectValueNode(
@@ -22,17 +22,60 @@ namespace HotChocolate.Types.Filters
             // act
             var filter = new QueryableFilterVisitor(fooType, typeof(Foo));
             value.Accept(filter);
+            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
             // assert
-            Assert.Equal(
-                "(Bar = a AND (Bar = b AND Bar = c) AND (Bar = d OR Bar = e))",
-                filter.Query);
+            var a = new Foo { Bar = "a" };
+            Assert.True(func(a));
+
+            var b = new Foo { Bar = "b" };
+            Assert.False(func(b));
         }
 
         [Fact]
-        public void FooBar()
+        public void Create_StringStartsWith_Expression()
         {
-            Expression<Func<Foo, bool>> x = c => c.Bar == "a" && ( c.Bar == "b" || c.Bar == "f" || c.Bar == "x");
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("bar_starts_with",
+                    new StringValueNode("a")));
+
+            var fooType = CreateType(new FooFilterType());
+
+            // act
+            var filter = new QueryableFilterVisitor(fooType, typeof(Foo));
+            value.Accept(filter);
+            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+
+            // assert
+            var a = new Foo { Bar = "ab" };
+            Assert.True(func(a));
+
+            var b = new Foo { Bar = "ba" };
+            Assert.False(func(b));
+        }
+
+        [Fact]
+        public void Create_StringEndsWith_Expression()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("bar_ends_with",
+                    new StringValueNode("a")));
+
+            var fooType = CreateType(new FooFilterType());
+
+            // act
+            var filter = new QueryableFilterVisitor(fooType, typeof(Foo));
+            value.Accept(filter);
+            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+
+            // assert
+            var a = new Foo { Bar = "ab" };
+            Assert.False(func(a));
+
+            var b = new Foo { Bar = "ba" };
+            Assert.True(func(b));
         }
 
         public class Foo

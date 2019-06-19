@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Language;
+using HotChocolate.Types.Filters.Expressions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -10,7 +11,7 @@ namespace HotChocolate.Types.Filters
         : FilterVisitorBase
     {
         private readonly Type _source;
-        private readonly IExpressionOperationHandler[] _opHandlers;
+        private readonly IReadOnlyList<IExpressionOperationHandler> _opHandlers;
         private readonly Expression _instance;
         private readonly ParameterExpression _parameter;
 
@@ -19,6 +20,12 @@ namespace HotChocolate.Types.Filters
             Type source)
             : base(initialType)
         {
+            _source = source ?? throw new ArgumentNullException(nameof(source));
+            _instance = _parameter = Expression.Parameter(source);
+            _opHandlers = ExpressionOperationHandlers.All;
+
+            Level.Push(new Queue<Expression>());
+            Instance.Push(_instance);
         }
 
         public QueryableFilterVisitor(
@@ -104,7 +111,7 @@ namespace HotChocolate.Types.Filters
                 //     Instance.Peek(),
                 //     field.Operation.Property));
 
-                for (int i = _opHandlers.Length; i >= 0; i--)
+                for (int i = _opHandlers.Count - 1; i >= 0; i--)
                 {
                     if (_opHandlers[i].TryHandle(
                         field.Operation,
@@ -113,6 +120,7 @@ namespace HotChocolate.Types.Filters
                         out Expression expression))
                     {
                         Level.Peek().Enqueue(expression);
+                        break;
                     }
                 }
 
@@ -141,7 +149,7 @@ namespace HotChocolate.Types.Filters
             Func<Expression, Expression, Expression> combine,
             out Expression combined)
         {
-            if (operations.Count != 1)
+            if (operations.Count != 0)
             {
                 combined = operations.Dequeue();
 
