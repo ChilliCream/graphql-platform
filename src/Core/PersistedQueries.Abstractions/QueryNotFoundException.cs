@@ -14,6 +14,12 @@ namespace HotChocolate.PersistedQueries
         public QueryNotFoundException(string queryIdentifier) :
             base($"Unable to find query with identifier '{queryIdentifier}'.")
         {
+            QueryIdentifier = queryIdentifier;
         }
+        
+        /// <summary>
+        /// The query identifier that could not be found.
+        /// </summary>
+        public string QueryIdentifier { get; }
     }
 }
