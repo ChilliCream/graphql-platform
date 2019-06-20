@@ -26,55 +26,55 @@ namespace HotChocolate.Types.Filters.Expressions
                 switch (operation.Kind)
                 {
                     case FilterOperationKind.Equals:
-                        expression = FilterExpressionBuilder.CreateEqualsExpression(property, parsedValue);
+                        expression = FilterExpressionBuilder.Equals(property, parsedValue);
                         return true;
 
                     case FilterOperationKind.NotEquals:
                         expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.CreateEqualsExpression(property, parsedValue)
+                            FilterExpressionBuilder.Equals(property, parsedValue)
                          );
                         return true;
 
                     case FilterOperationKind.GreaterThan:
-                        expression = FilterExpressionBuilder.CreateGreaterThanExpression(property, parsedValue);
+                        expression = FilterExpressionBuilder.GreaterThan(property, parsedValue);
                         return true;
 
                     case FilterOperationKind.NotGreaterThan:
                         expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.CreateGreaterThanExpression(property, parsedValue)
+                            FilterExpressionBuilder.GreaterThan(property, parsedValue)
                          );
                         return true;
 
 
                     case FilterOperationKind.GreaterThanOrEqual:
-                        expression = FilterExpressionBuilder.CreateGreaterThanOrEqualExpression(property, parsedValue);
+                        expression = FilterExpressionBuilder.GreaterThanOrEqual(property, parsedValue);
                         return true;
 
                     case FilterOperationKind.NotGreaterThanOrEqual:
                         expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.CreateGreaterThanOrEqualExpression(property, parsedValue)
+                            FilterExpressionBuilder.GreaterThanOrEqual(property, parsedValue)
                          );
                         return true;
 
 
                     case FilterOperationKind.LowerThan:
-                        expression = FilterExpressionBuilder.CreateLowerThanExpression(property, parsedValue);
+                        expression = FilterExpressionBuilder.LowerThan(property, parsedValue);
                         return true;
 
                     case FilterOperationKind.NotLowerThan:
                         expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.CreateLowerThanExpression(property, parsedValue)
+                            FilterExpressionBuilder.LowerThan(property, parsedValue)
                          );
                         return true;
 
 
                     case FilterOperationKind.LowerThanOrEqual:
-                        expression = FilterExpressionBuilder.CreateLowerThanOrEqualExpression(property, parsedValue);
+                        expression = FilterExpressionBuilder.LowerThanOrEqual(property, parsedValue);
                         return true;
 
                     case FilterOperationKind.NotLowerThanOrEqual:
                         expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.CreateLowerThanOrEqualExpression(property, parsedValue)
+                            FilterExpressionBuilder.LowerThanOrEqual(property, parsedValue)
                          );
                         return true;
 
@@ -90,10 +90,12 @@ namespace HotChocolate.Types.Filters.Expressions
                 switch (operation.Kind)
                 {
                     case FilterOperationKind.In:
-                        expression = FilterExpressionBuilder.CreateInExpression(property, operation.Property.PropertyType, parsedValue);
+                        expression = FilterExpressionBuilder.In(property, operation.Property.PropertyType, parsedValue);
                         return true;
                     case FilterOperationKind.NotIn:
-                        expression = FilterExpressionBuilder.Not(FilterExpressionBuilder.CreateInExpression(property, operation.Property.PropertyType, parsedValue));
+                        expression = FilterExpressionBuilder.Not(
+                            FilterExpressionBuilder.In(property, operation.Property.PropertyType, parsedValue)
+                        );
                         return true;
                 }
             }

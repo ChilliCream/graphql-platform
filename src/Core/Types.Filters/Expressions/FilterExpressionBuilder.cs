@@ -34,12 +34,12 @@ namespace HotChocolate.Types.Filters.Expressions
             return Expression.Equal(expression, Expression.Constant(false));
         }
 
-        public static Expression CreateEqualExpression(MemberExpression property, object value)
+        public static Expression Equals(MemberExpression property, object value)
         {
             return Expression.Equal(property, Expression.Constant(value));
         }
 
-        public static Expression CreateInExpression(MemberExpression property, Type genericType, object parsedValue)
+        public static Expression In(MemberExpression property, Type genericType, object parsedValue)
         {
             return Expression.Call(
                     typeof(Enumerable),
@@ -50,41 +50,36 @@ namespace HotChocolate.Types.Filters.Expressions
                 );
         }
 
-        public static Expression CreateEqualsExpression(MemberExpression property, object value)
-        {
-            return Expression.Equal(property, Expression.Constant(value));
-        }
-
-        public static Expression CreateGreaterThanExpression(MemberExpression property, object value)
+        public static Expression GreaterThan(MemberExpression property, object value)
         {
             return Expression.GreaterThan(property, Expression.Constant(value));
         }
 
-        public static Expression CreateGreaterThanOrEqualExpression(MemberExpression property, object value)
+        public static Expression GreaterThanOrEqual(MemberExpression property, object value)
         {
             return Expression.GreaterThanOrEqual(property, Expression.Constant(value));
         }
 
-        public static Expression CreateLowerThanExpression(MemberExpression property, object value)
+        public static Expression LowerThan(MemberExpression property, object value)
         {
             return Expression.LessThan(property, Expression.Constant(value));
         }
 
-        public static Expression CreateLowerThanOrEqualExpression(MemberExpression property, object value)
+        public static Expression LowerThanOrEqual(MemberExpression property, object value)
         {
             return Expression.LessThanOrEqual(property, Expression.Constant(value));
         }
 
-        public static Expression CreateStartsWithExpression(MemberExpression property, object value)
+        public static Expression StartsWith(MemberExpression property, object value)
         {
             return Expression.Call(property, _startsWith, new[] { Expression.Constant(value) });
         }
 
-        public static Expression CreateEndsWithExpression(MemberExpression property, object value)
+        public static Expression EndsWith(MemberExpression property, object value)
         {
             return Expression.Call(property, _endsWith, new[] { Expression.Constant(value) });
         }
-        public static Expression CreateContainsExpression(MemberExpression property, object value)
+        public static Expression Contains(MemberExpression property, object value)
         {
             return Expression.Call(property, _contains, new[] { Expression.Constant(value) });
         }

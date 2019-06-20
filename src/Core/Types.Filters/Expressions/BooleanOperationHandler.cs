@@ -26,12 +26,12 @@ namespace HotChocolate.Types.Filters.Expressions
                 switch (operation.Kind)
                 {
                     case FilterOperationKind.Equals:
-                        expression = FilterExpressionBuilder.CreateEqualExpression(property, s.Value);
+                        expression = FilterExpressionBuilder.Equals(property, s.Value);
                         return true;
 
                     case FilterOperationKind.NotEquals:
                         expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.CreateEqualExpression(property, s.Value)
+                            FilterExpressionBuilder.Equals(property, s.Value)
                         );
                         return true;
 
