@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -18,6 +19,13 @@ namespace HotChocolate.Types.Filters.Expressions
         private static readonly MethodInfo _endsWith =
             typeof(string).GetMethods().Single(m =>
                 m.Name.Equals("EndsWith")
+                && m.GetParameters().Length == 1
+                && m.GetParameters().Single().ParameterType == typeof(string));
+
+
+        private static readonly MethodInfo _contains =
+            typeof(string).GetMethods().Single(m =>
+                m.Name.Equals("Contains")
                 && m.GetParameters().Length == 1
                 && m.GetParameters().Single().ParameterType == typeof(string));
 
@@ -80,6 +88,53 @@ namespace HotChocolate.Types.Filters.Expressions
                                 _endsWith,
                                 new[] { Expression.Constant(s.Value) }),
                             Expression.Constant(false));
+                        return true;
+
+                    case FilterOperationKind.Contains:
+                        expression = Expression.Call(
+                                property,
+                                _contains,
+                                new[] { Expression.Constant(s.Value) });
+                        return true;
+
+                    case FilterOperationKind.NotContains:
+                        expression = Expression.Equal(
+                            Expression.Call(
+                                property,
+                                _contains,
+                                new[] { Expression.Constant(s.Value) }),
+                            Expression.Constant(false));
+                        return true;
+                }
+            }
+
+            if (operation.Type == typeof(string) && value is ListValueNode li)
+            {
+                MemberExpression property =
+                    Expression.Property(instance, operation.Property);
+                var parsedValue = type.ParseLiteral(value);
+                switch (operation.Kind)
+                {
+                    case FilterOperationKind.In:
+                        expression = Expression.Call(
+                            typeof(Enumerable),
+                            "Contains",
+                            new Type[] { operation.Property.PropertyType },
+                            Expression.Constant(parsedValue),
+                            property
+                        );
+                        return true;
+                    case FilterOperationKind.NotIn:
+                        expression = Expression.Equal(
+                            Expression.Call(
+                                typeof(Enumerable),
+                                "Contains",
+                                new Type[] { operation.Property.PropertyType },
+                                Expression.Constant(parsedValue),
+                            property
+                            ),
+                            Expression.Constant(false)
+                        );
                         return true;
                 }
             }
