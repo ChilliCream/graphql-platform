@@ -47,6 +47,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Tests.Documentation",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.Abstractions", "PersistedQueries.Abstractions\PersistedQueries.Abstractions.csproj", "{3FD40641-8E94-4B75-9CFC-847BFC4E2F57}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.FileSystem", "PersistedQueries.FileSystem\PersistedQueries.FileSystem.csproj", "{BC4DAE10-B145-4F9F-9504-BF5EA4C42A60}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -321,6 +323,18 @@ Global
 		{3FD40641-8E94-4B75-9CFC-847BFC4E2F57}.Release|x64.Build.0 = Release|Any CPU
 		{3FD40641-8E94-4B75-9CFC-847BFC4E2F57}.Release|x86.ActiveCfg = Release|Any CPU
 		{3FD40641-8E94-4B75-9CFC-847BFC4E2F57}.Release|x86.Build.0 = Release|Any CPU
+		{BC4DAE10-B145-4F9F-9504-BF5EA4C42A60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC4DAE10-B145-4F9F-9504-BF5EA4C42A60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC4DAE10-B145-4F9F-9504-BF5EA4C42A60}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{BC4DAE10-B145-4F9F-9504-BF5EA4C42A60}.Debug|x64.Build.0 = Debug|Any CPU
+		{BC4DAE10-B145-4F9F-9504-BF5EA4C42A60}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{BC4DAE10-B145-4F9F-9504-BF5EA4C42A60}.Debug|x86.Build.0 = Debug|Any CPU
+		{BC4DAE10-B145-4F9F-9504-BF5EA4C42A60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC4DAE10-B145-4F9F-9504-BF5EA4C42A60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC4DAE10-B145-4F9F-9504-BF5EA4C42A60}.Release|x64.ActiveCfg = Release|Any CPU
+		{BC4DAE10-B145-4F9F-9504-BF5EA4C42A60}.Release|x64.Build.0 = Release|Any CPU
+		{BC4DAE10-B145-4F9F-9504-BF5EA4C42A60}.Release|x86.ActiveCfg = Release|Any CPU
+		{BC4DAE10-B145-4F9F-9504-BF5EA4C42A60}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
