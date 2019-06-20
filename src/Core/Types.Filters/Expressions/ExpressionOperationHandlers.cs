@@ -7,7 +7,9 @@ namespace HotChocolate.Types.Filters.Expressions
         public static IReadOnlyList<IExpressionOperationHandler> All { get; } =
             new IExpressionOperationHandler[]
             {
-                new StringOperationHandler()
+                new StringOperationHandler(),
+
+                new BooleanOperationHandler()
             };
     }
 }
