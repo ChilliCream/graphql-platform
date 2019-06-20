@@ -6,8 +6,8 @@ type Query {
   foo: String
 }
 
-input FooInput {
-  AND: [FooInput!]
+input FooFilter {
+  AND: [FooFilter!]
   barShort: Short!
   barShort_gt: Short!
   barShort_gte: Short!
@@ -20,7 +20,7 @@ input FooInput {
   barShort_not_in: [Short!]
   barShort_not_lt: Short!
   barShort_not_lte: Short!
-  OR: [FooInput!]
+  OR: [FooFilter!]
 }
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
