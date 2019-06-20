@@ -17,6 +17,7 @@ namespace HotChocolate.Types.Filters
         public FilterMiddleware(FieldDelegate next, ITypeConversion converter)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
+            _converter = converter ?? TypeConversion.Default;
         }
 
         public async Task InvokeAsync(IMiddlewareContext context)
