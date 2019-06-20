@@ -8,8 +8,8 @@ namespace HotChocolate.Types.Filters.Expressions
             new IExpressionOperationHandler[]
             {
                 new StringOperationHandler(),
-
-                new BooleanOperationHandler()
+                new BooleanOperationHandler(),
+                new ComparableOperationHandler()
             };
     }
 }
