@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Types.Filters.Expressions;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
@@ -14,10 +15,12 @@ namespace HotChocolate.Types.Filters
         private readonly IReadOnlyList<IExpressionOperationHandler> _opHandlers;
         private readonly Expression _instance;
         private readonly ParameterExpression _parameter;
+        private readonly ITypeConversion _converter;
 
         public QueryableFilterVisitor(
             InputObjectType initialType,
-            Type source)
+            Type source,
+            ITypeConversion converter)
             : base(initialType)
         {
             _source = source ?? throw new ArgumentNullException(nameof(source));
@@ -115,8 +118,10 @@ namespace HotChocolate.Types.Filters
                 {
                     if (_opHandlers[i].TryHandle(
                         field.Operation,
+                        field.Type,
                         node.Value,
                         Instance.Peek(),
+                        _converter,
                         out Expression expression))
                     {
                         Level.Peek().Enqueue(expression);

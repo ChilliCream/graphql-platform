@@ -5,15 +5,16 @@ using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Relay;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
     public class FilterMiddleware<T>
     {
         private readonly FieldDelegate _next;
+        private readonly ITypeConversion _converter;
 
-        public FilterMiddleware(
-            FieldDelegate next)
+        public FilterMiddleware(FieldDelegate next, ITypeConversion converter)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }
@@ -54,7 +55,10 @@ namespace HotChocolate.Types.Filters
                 && context.Field.Arguments["where"].Type is InputObjectType iot
                 && iot is IFilterInputType fit)
             {
-                var visitor = new QueryableFilterVisitor(iot, fit.EntityType);
+                var visitor = new QueryableFilterVisitor(
+                    iot,
+                    fit.EntityType,
+                    _converter);
                 filter.Accept(visitor);
 
                 source = source.Where(visitor.CreateFilter<T>());
