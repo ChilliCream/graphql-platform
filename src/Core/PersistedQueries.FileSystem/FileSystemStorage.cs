@@ -20,7 +20,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
         /// <param name="queryMap">The query identifier mapping.</param>
         public FileSystemStorage(IQueryFileMap queryMap)
         {
-            _queryMap = queryMap;
+            _queryMap = queryMap ?? throw new ArgumentNullException(nameof(queryMap));
         }
         
         /// <inheritdoc />

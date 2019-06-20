@@ -3,7 +3,7 @@ using System;
 namespace HotChocolate.PersistedQueries
 {
     /// <summary>
-    /// Represents a query that could not be found.
+    /// Represents an error in finding a stored query.
     /// </summary>
     public class QueryNotFoundException : Exception
     {
