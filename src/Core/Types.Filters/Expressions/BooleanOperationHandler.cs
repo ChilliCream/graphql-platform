@@ -15,7 +15,7 @@ namespace HotChocolate.Types.Filters.Expressions
             Expression instance,
             out Expression expression)
         {
-            if (operation.Type == typeof(string) && value is BooleanValueNode s)
+            if (operation.Type == typeof(bool) && value is BooleanValueNode s)
             {
                 MemberExpression property =
                     Expression.Property(instance, operation.Property);

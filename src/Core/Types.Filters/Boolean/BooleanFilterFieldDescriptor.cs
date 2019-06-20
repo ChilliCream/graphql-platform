@@ -59,7 +59,7 @@ namespace HotChocolate.Types.Filters
             FilterOperationKind operationKind)
         {
             var operation = new FilterOperation(
-                typeof(string),
+                typeof(bool),
                 operationKind,
                 Definition.Property);
 
