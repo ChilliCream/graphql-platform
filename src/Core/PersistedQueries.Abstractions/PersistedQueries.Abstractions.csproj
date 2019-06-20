@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
-        <RootNamespace>HotChocolate.PersistedQueries.Abstractions</RootNamespace>
+        <RootNamespace>HotChocolate.PersistedQueries</RootNamespace>
         <AssemblyName>HotChocolate.PersistedQueries.Abstractions</AssemblyName>
         <PackageId>HotChocolate.PersistedQueries.Abstractions</PackageId>
         <Description>Contains abstractions for persisted queries in Hot Chocolate.</Description>

@@ -1,7 +1,7 @@
 using HotChocolate.Execution;
 using System.Threading.Tasks;
 
-namespace HotChocolate.PersistedQueries.Abstractions
+namespace HotChocolate.PersistedQueries
 {
     /// <summary>
     /// A tool for reading queries from some persistence medium.
