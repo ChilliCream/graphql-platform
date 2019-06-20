@@ -82,7 +82,7 @@ namespace HotChocolate.Types
                     typeof(PaginationAmountType), TypeContext.None) },
            };
 
-        public static bool TryGetScalar(
+        internal static bool TryGetScalar(
             Type clrType,
             out IClrTypeReference schemaType)
         {
