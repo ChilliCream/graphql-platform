@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 using Xunit;
 
 namespace HotChocolate.Types.Filters
@@ -18,7 +19,7 @@ namespace HotChocolate.Types.Filters
             var fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(fooType, typeof(Foo));
+            var filter = new QueryableFilterVisitor(fooType, typeof(Foo), TypeConversion.Default);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
@@ -42,7 +43,7 @@ namespace HotChocolate.Types.Filters
             var fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(fooType, typeof(Foo));
+            var filter = new QueryableFilterVisitor(fooType, typeof(Foo), TypeConversion.Default);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
