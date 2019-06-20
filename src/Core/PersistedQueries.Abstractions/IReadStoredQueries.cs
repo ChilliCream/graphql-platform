@@ -1,7 +1,7 @@
 using HotChocolate.Execution;
 using System.Threading.Tasks;
 
-namespace HotChocolate.PersistedQueries.Abstractions
+namespace HotChocolate.PersistedQueries
 {
     /// <summary>
     /// A tool for reading queries from some persistence medium.
@@ -9,7 +9,7 @@ namespace HotChocolate.PersistedQueries.Abstractions
     public interface IReadStoredQueries
     {
         /// <summary>
-        /// Retrieves a query with some identifier.
+        /// Retrieves the query associated with the given identifier.
         /// </summary>
         /// <param name="queryIdentifier">The query identifier.</param>
         /// <returns>The desired query.</returns>
