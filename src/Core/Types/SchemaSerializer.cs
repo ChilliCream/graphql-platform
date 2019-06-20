@@ -118,7 +118,7 @@ namespace HotChocolate
                .ToList();
 
             var locations = directiveType.Locations
-                .Select(l => new NameNode(l.ToString()))
+                .Select(l => new NameNode(l.MapDirectiveLocation().ToString()))
                 .ToList();
 
             return new DirectiveDefinitionNode
