@@ -4,7 +4,7 @@ using Xunit;
 
 namespace HotChocolate.Types.Filters
 {
-    public class QueryableFilterVisitorTests
+    public class QueryableFilterVisitorStringTests
         : TypeTestBase
     {
         [Fact]
@@ -157,9 +157,7 @@ namespace HotChocolate.Types.Filters
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Filter(t => t.Bar)
-                    .BindExplicitly()
-                    .AllowContains().And()
-                    .AllowEquals();
+                    .BindImplicitly();
             }
         }
     }
