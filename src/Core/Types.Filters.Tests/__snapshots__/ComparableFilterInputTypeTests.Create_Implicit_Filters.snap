@@ -1,4 +1,4 @@
-schema {
+﻿schema {
   query: Query
 }
 
@@ -6,8 +6,8 @@ type Query {
   foo: String
 }
 
-input FooInput {
-  AND: [FooInput!]
+input FooFilter {
+  AND: [FooFilter!]
   barDecimal: Decimal!
   barDecimal_gt: Decimal!
   barDecimal_gte: Decimal!
@@ -92,7 +92,7 @@ input FooInput {
   fooBar_not_in: [FooBar!]
   fooBar_not_lt: FooBar!
   fooBar_not_lte: FooBar!
-  OR: [FooInput!]
+  OR: [FooFilter!]
 }
 
 enum FooBar {
