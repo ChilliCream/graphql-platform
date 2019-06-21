@@ -2,4 +2,4 @@
   BAZ @bar
 }
 
-directive @bar on EnumValue
+directive @bar on ENUM_VALUE
