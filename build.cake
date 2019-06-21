@@ -128,8 +128,8 @@ Task("PublishTemplates")
         OutputDirectory = "src/Templates"
     };
 
-    ReplaceTextInFiles("src/Templates/StarWars/content/StarWars/StarWars.csproj", "9.0.0", packageVersion);
-    ReplaceTextInFiles("src/Templates/Server/content/HotChocolate.Server.csproj", "9.0.0", packageVersion);
+    ReplaceTextInFiles("src/Templates/StarWars/content/StarWars/StarWars.csproj", "9.0.4", packageVersion);
+    ReplaceTextInFiles("src/Templates/Server/content/HotChocolate.Server.csproj", "9.0.4", packageVersion);
     NuGetPack("src/Templates/StarWars/HotChocolate.Templates.StarWars.nuspec", nuGetPackSettings);
     NuGetPack("src/Templates/Server/HotChocolate.Templates.Server.nuspec", nuGetPackSettings);
 });

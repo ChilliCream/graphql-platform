@@ -7,7 +7,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal static class FieldDescriptorUtilities
+    public static class FieldDescriptorUtilities
     {
         public static void AddExplicitFields<TMember, TField>(
             IEnumerable<TField> fieldDefinitions,
