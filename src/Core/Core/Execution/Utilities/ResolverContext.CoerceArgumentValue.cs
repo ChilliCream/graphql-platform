@@ -31,11 +31,24 @@ namespace HotChocolate.Execution
             return default;
         }
 
+        // TODO : simplify
         private T CoerceArgumentValue<T>(
             string name,
             ArgumentValue argumentValue)
         {
             object value = argumentValue.Value;
+
+            if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
+            {
+                if (argumentValue.Literal == null)
+                {
+                    return (T)argumentValue.Type.ParseValue(value);
+                }
+                else
+                {
+                    return (T)argumentValue.Literal;
+                }
+            }
 
             if (argumentValue.Literal != null)
             {

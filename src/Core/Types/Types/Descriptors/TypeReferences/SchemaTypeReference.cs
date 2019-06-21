@@ -29,6 +29,15 @@ namespace HotChocolate.Types.Descriptors
 
         public ITypeSystemMember Type { get; }
 
+        public ISchemaTypeReference WithType(ITypeSystemMember type)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+            return new SchemaTypeReference(type);
+        }
+
         public bool Equals(SchemaTypeReference other)
         {
             if (other is null)
@@ -46,7 +55,8 @@ namespace HotChocolate.Types.Descriptors
             {
                 return Context == other.Context
                     && IsTypeNullable.Equals(other.IsTypeNullable)
-                    && IsElementTypeNullable.Equals(other.IsElementTypeNullable);
+                    && IsElementTypeNullable.Equals(
+                        other.IsElementTypeNullable);
             }
 
             return false;

@@ -10,5 +10,7 @@ namespace HotChocolate.Types.Descriptors
         IClrTypeReference Compile();
 
         IClrTypeReference WithoutContext();
+
+        IClrTypeReference WithType(Type type);
     }
 }
