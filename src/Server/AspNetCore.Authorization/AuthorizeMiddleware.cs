@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
@@ -42,7 +43,7 @@ namespace HotChocolate.AspNetCore.Authorization
                 allowed = p.Identity.IsAuthenticated;
             }
 
-            allowed = allowed && IsInRoles(principal, directive.Roles);
+            allowed = allowed && IsInAnyRoles(principal, directive.Roles);
 
 #if !ASPNETCLASSIC
             if (allowed && NeedsPolicyValidation(directive))
@@ -68,22 +69,11 @@ namespace HotChocolate.AspNetCore.Authorization
             }
         }
 
-        private static bool IsInRoles(
+        private static bool IsInAnyRoles(
             IPrincipal principal,
             IReadOnlyCollection<string> roles)
         {
-            if (roles != null)
-            {
-                foreach (var role in roles)
-                {
-                    if (!principal.IsInRole(role))
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
+            return roles == null ? true : roles.Any(role => principal.IsInRole(role));
         }
 #if !ASPNETCLASSIC
 
