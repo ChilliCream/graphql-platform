@@ -73,7 +73,7 @@ namespace HotChocolate.AspNetCore.Authorization
             IPrincipal principal,
             IReadOnlyCollection<string> roles)
         {
-            return roles == null ? true : roles.Any(role => principal.IsInRole(role));
+            return (roles == null || roles.Count == 0) ? true : roles.Any(role => principal.IsInRole(role));
         }
 #if !ASPNETCLASSIC
 
