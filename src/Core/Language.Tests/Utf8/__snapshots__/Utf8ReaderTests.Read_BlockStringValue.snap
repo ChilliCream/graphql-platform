@@ -45,14 +45,14 @@
     "Kind": "RightParenthesis",
     "Start": 27,
     "End": 28,
-    "Line": 2,
+    "Line": 3,
     "Column": 1
   },
   {
     "Kind": "RightBrace",
     "Start": 29,
     "End": 30,
-    "Line": 2,
+    "Line": 3,
     "Column": 3
   }
 ]

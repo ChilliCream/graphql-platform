@@ -2,7 +2,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types
 {
-    internal interface IHasDescriptorContext
+    public interface IHasDescriptorContext
     {
         IDescriptorContext Context { get; }
     }

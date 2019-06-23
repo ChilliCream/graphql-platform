@@ -9,7 +9,40 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- nothing yet ;)
+- Added support to infer if a field or enum value is deprecated. [#826](https://github.com/ChilliCream/hotchocolate/pull/826)
+
+### Changed
+
+- Subscription now uses pipeline API to abstract sockets. [#807](https://github.com/ChilliCream/hotchocolate/pull/807)
+- Improved parser performance. [#806](https://github.com/ChilliCream/hotchocolate/pull/806)
+
+## [9.0.4] - 2019-06-16
+
+### Fixed
+
+- Fixed paging flaws that in some cases lead to the connection type being registered twice. [#842](https://github.com/ChilliCream/hotchocolate/pull/842)
+
+## [9.0.3] - 2019-06-13
+
+### Fixed
+
+- Fixed issues where the type initializer would swallow schema errors.
+
+## [9.0.2] - 2019-06-12
+
+### Fixed
+
+- Fixed issues with list input types.
+
+## [9.0.1] - 2019-06-09
+
+### Changed
+
+- Better error message when failing TypeConvertion enhancement [#819](https://github.com/ChilliCream/hotchocolate/issues/819)
+
+### Fixed
+
+- Fixed list argument conversion issue. [#823](https://github.com/ChilliCream/hotchocolate/issues/823)
 
 ## [9.0.0] - 2019-06-04
 

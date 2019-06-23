@@ -43,7 +43,7 @@ namespace HotChocolate.Types.Relay
                 },
                 t =>
                 {
-                    Assert.Equal("items", t.Name);
+                    Assert.Equal("nodes", t.Name);
                     Assert.IsType<StringType>(
                         Assert.IsType<ListType>(t.Type).ElementType);
                 },
@@ -104,7 +104,7 @@ namespace HotChocolate.Types.Relay
                         cursor
                         node
                     }
-                    items
+                    nodes
                     pageInfo
                     {
                         hasNextPage
@@ -117,6 +117,43 @@ namespace HotChocolate.Types.Relay
             // act
             IExecutionResult result = await executor
                 .ExecuteAsync(new QueryRequest(query));
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task UsePaging_WithComplexType()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddType<FooType>()
+                .AddQueryType<QueryType3>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            string query = @"
+            {
+                s
+                {
+                    bar {
+                        edges {
+                            cursor
+                            node
+                        }
+                        pageInfo
+                        {
+                            hasNextPage
+                        }
+                        totalCount
+                    }
+                }
+            }
+            ";
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
 
             // assert
             result.MatchSnapshot();
@@ -152,9 +189,49 @@ namespace HotChocolate.Types.Relay
             }
         }
 
+        public class QueryType3
+            : ObjectType
+        {
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name("Query");
+                descriptor.Field("s")
+                    .Resolver(ctx => new Foo());
+            }
+        }
+
         public class Query
         {
             public ICollection<string> Strings { get; } =
+                new List<string> { "a", "b", "c", "d", "e", "f", "g" };
+        }
+
+        public class FooType
+            : ObjectType<Foo>
+        {
+            protected override void Configure(
+                IObjectTypeDescriptor<Foo> descriptor)
+            {
+                descriptor.Interface<FooInterfaceType>();
+                descriptor.Field(t => t.Bar).UsePaging<StringType>();
+            }
+        }
+
+        public class FooInterfaceType
+            : InterfaceType
+        {
+            protected override void Configure(
+                IInterfaceTypeDescriptor descriptor)
+            {
+                descriptor.Name("IFoo");
+                descriptor.Field("bar")
+                    .UsePaging<StringType>();
+            }
+        }
+
+        public class Foo
+        {
+            public ICollection<string> Bar { get; } =
                 new List<string> { "a", "b", "c", "d", "e", "f", "g" };
         }
     }

@@ -146,7 +146,7 @@ namespace HotChocolate.Types.Descriptors
             return name;
         }
 
-        public string GetTypeDescription(Type type, TypeKind kind)
+        public virtual string GetTypeDescription(Type type, TypeKind kind)
         {
             if (type == null)
             {
@@ -160,6 +160,35 @@ namespace HotChocolate.Types.Descriptors
             }
 
             return description;
+        }
+
+        public virtual string GetDeprecationReason(MemberInfo member)
+        {
+            if (member == null)
+            {
+                throw new ArgumentNullException(nameof(member));
+            }
+
+            return member.GetGraphQLDeprecationReason();
+        }
+
+        public virtual string GetDeprecationReason(object value)
+        {
+            Type enumType = value.GetType();
+
+            if (enumType.IsEnum)
+            {
+                MemberInfo enumMember = enumType
+                    .GetMember(value.ToString())
+                    .FirstOrDefault();
+
+                if (enumMember != null)
+                {
+                    return enumMember.GetGraphQLDeprecationReason();
+                }
+            }
+
+            return null;
         }
     }
 }

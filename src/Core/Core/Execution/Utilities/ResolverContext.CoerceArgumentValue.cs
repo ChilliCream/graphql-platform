@@ -31,11 +31,24 @@ namespace HotChocolate.Execution
             return default;
         }
 
+        // TODO : simplify
         private T CoerceArgumentValue<T>(
             string name,
             ArgumentValue argumentValue)
         {
             object value = argumentValue.Value;
+
+            if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
+            {
+                if (argumentValue.Literal == null)
+                {
+                    return (T)argumentValue.Type.ParseValue(value);
+                }
+                else
+                {
+                    return (T)argumentValue.Literal;
+                }
+            }
 
             if (argumentValue.Literal != null)
             {
@@ -52,7 +65,9 @@ namespace HotChocolate.Execution
                 return resolved;
             }
 
-            if (TryConvertValue(argumentValue, out resolved))
+            if (TryConvertValue(
+                argumentValue.Type.ClrType,
+                value, out resolved))
             {
                 return resolved;
             }
@@ -72,18 +87,19 @@ namespace HotChocolate.Execution
         }
 
         private bool TryConvertValue<T>(
-            ArgumentValue argumentValue,
-            out T value)
+            Type type,
+            object value,
+            out T converted)
         {
             if (Converter.TryConvert(
-                argumentValue.Type.ClrType, typeof(T),
-                argumentValue.Value, out object converted))
+                type, typeof(T),
+                value, out object c))
             {
-                value = (T)converted;
+                converted = (T)c;
                 return true;
             }
 
-            value = default;
+            converted = default;
             return false;
         }
     }

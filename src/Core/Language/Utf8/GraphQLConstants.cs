@@ -1,4 +1,6 @@
-﻿namespace HotChocolate.Language
+using System.Runtime.CompilerServices;
+
+namespace HotChocolate.Language
 {
     /// <summary>
     /// This class provides internal char utilities
@@ -8,17 +10,25 @@
     internal static partial class GraphQLConstants
     {
         private static readonly bool[] _isLetterOrUnderscore =
-            new bool[char.MaxValue + 1];
-        private static readonly bool[] _isControlCharacter =
-            new bool[char.MaxValue + 1];
+            new bool[256];
+        private static readonly bool[] _isLetterOrDigitOrUnderscore =
+            new bool[256];
         private static readonly bool[] _isEscapeCharacter =
-            new bool[char.MaxValue + 1];
-        private static readonly bool[] _isWhitespace =
-            new bool[char.MaxValue + 1];
+            new bool[256];
         private static readonly bool[] _isPunctuator =
-            new bool[char.MaxValue + 1];
+            new bool[256];
         private static readonly bool[] _isDigitOrMinus =
-            new bool[char.MaxValue + 1];
+            new bool[256];
+        private static readonly bool[] _isDigit =
+            new bool[256];
+        private static readonly byte[] _escapeCharacters =
+            new byte[256];
+        private static readonly bool[] _trimComment =
+            new bool[256];
+        private static readonly TokenKind[] _punctuatorKind =
+            new TokenKind[256];
+        private static readonly bool[] _isControlCharacterNoNewLine =
+            new bool[256];
 
         public const int StackallocThreshold = 256;
 
@@ -29,6 +39,7 @@
         public const byte Plus = (byte)'+';
         public const byte Minus = (byte)'-';
         public const byte Backslash = (byte)'\\';
+        public const byte Forwardslash = (byte)'/';
         public const byte B = (byte)'b';
         public const byte Backspace = (byte)'\b';
         public const byte F = (byte)'f';
@@ -60,70 +71,66 @@
         public const byte NewLine = (byte)'\n';
         public const byte Return = (byte)'\r';
         public const byte Quote = (byte)'"';
+        public const byte Comma = (byte)',';
 
-        public static bool IsLetterOrDigitOrUnderscore(in this byte c)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsLetterOrDigitOrUnderscore(this byte c)
         {
-            return IsLetterOrUnderscore(in c) || IsDigit(in c);
+            return _isLetterOrDigitOrUnderscore[c];
         }
 
-        public static bool IsLetter(in this byte c)
-        {
-            byte normalized = (byte)(c | 0x20);
-            return (normalized >= A && normalized <= Z);
-        }
-
-        public static bool IsLetterOrUnderscore(in this byte c)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsLetterOrUnderscore(this byte c)
         {
             return _isLetterOrUnderscore[c];
         }
 
-        public static bool IsDigit(in this byte c)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsDigit(this byte c)
         {
-            return c >= 48 && c <= 57;
+            return _isDigit[c];
         }
 
-        public static bool IsDigitOrMinus(in this byte c)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsDigitOrMinus(this byte c)
         {
             return _isDigitOrMinus[c];
         }
 
-        public static bool IsPunctuator(in this byte c)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsPunctuator(this byte c)
         {
             return _isPunctuator[c];
         }
 
-        public static bool IsWhitespace(in this byte c)
-        {
-            return _isWhitespace[c];
-        }
-
-        public static bool IsValidEscapeCharacter(in this byte c)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsValidEscapeCharacter(this byte c)
         {
             return _isEscapeCharacter[c];
         }
 
-        public static byte EscapeCharacter(in this byte c)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte EscapeCharacter(this byte c)
         {
-            switch (c)
-            {
-                case B:
-                    return Backspace;
-                case F:
-                    return Formfeed;
-                case N:
-                    return NewLine;
-                case R:
-                    return Return;
-                case T:
-                    return Tab;
-                default:
-                    return c;
-            }
+            return _escapeCharacters[c];
         }
 
-        public static bool IsControlCharacter(in this byte c)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsControlCharacterNoNewLine(this byte c)
         {
-            return _isControlCharacter[c];
+            return _isControlCharacterNoNewLine[c];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool TrimComment(this byte c)
+        {
+            return _trimComment[c];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TokenKind PunctuatorKind(this byte c)
+        {
+            return _punctuatorKind[c];
         }
     }
 }

@@ -20,11 +20,11 @@ namespace HotChocolate.Language
 
             do
             {
-                ref readonly byte code = ref escapedString[++readPosition];
+                byte code = escapedString[++readPosition];
 
                 if (code == GraphQLConstants.Backslash)
                 {
-                    code = ref escapedString[++readPosition];
+                    code = escapedString[++readPosition];
 
                     if (isBlockString
                          && code == GraphQLConstants.Quote)
@@ -46,15 +46,15 @@ namespace HotChocolate.Language
                     else if (GraphQLConstants.IsValidEscapeCharacter(code))
                     {
                         unescapedString[writePosition++] =
-                            GraphQLConstants.EscapeCharacter(in code);
+                            GraphQLConstants.EscapeCharacter(code);
                     }
                     else if (code == GraphQLConstants.U)
                     {
                         UnescapeUtf8Hex(
-                            in escapedString[++readPosition],
-                            in escapedString[++readPosition],
-                            in escapedString[++readPosition],
-                            in escapedString[++readPosition],
+                            escapedString[++readPosition],
+                            escapedString[++readPosition],
+                            escapedString[++readPosition],
+                            escapedString[++readPosition],
                             ref writePosition,
                             ref unescapedString);
                     }
@@ -79,7 +79,7 @@ namespace HotChocolate.Language
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void UnescapeUtf8Hex(
-            in byte a, in byte b, in byte c, in byte d,
+            byte a, byte b, byte c, byte d,
             ref int writePosition,
             ref Span<byte> unescapedString)
         {

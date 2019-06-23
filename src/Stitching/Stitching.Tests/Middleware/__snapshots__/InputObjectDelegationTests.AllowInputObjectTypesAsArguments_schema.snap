@@ -11,10 +11,10 @@ input Bar @source(name: "Bar", schema: "server_1") {
   a: String
 }
 
-directive @delegate(path: String "The name of the schema to which this field shall be delegated to." schema: Name!) on FieldDefinition
+directive @delegate(path: String "The name of the schema to which this field shall be delegated to." schema: Name!) on FIELD_DEFINITION
 
 "Annotates the original name of a type."
-directive @source("The original name of the annotated type." name: Name! "The name of the schema to which this type belongs to." schema: Name!) repeatable on Enum | Object | Interface | Union | InputObject | FieldDefinition | InputFieldDefinition | ArgumentDefinition | EnumValue
+directive @source("The original name of the annotated type." name: Name! "The name of the schema to which this type belongs to." schema: Name!) repeatable on ENUM | OBJECT | INTERFACE | UNION | INPUT_OBJECT | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | ARGUMENT_DEFINITION | ENUM_VALUE
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
 scalar String

@@ -262,7 +262,7 @@ namespace HotChocolate
     public static class NameStringExtensions
     {
         public static NameString EnsureNotEmpty(
-            this NameString name,
+            in this NameString name,
             string argumentName)
         {
             if (name.IsEmpty)

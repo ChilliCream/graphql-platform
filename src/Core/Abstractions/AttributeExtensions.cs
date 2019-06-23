@@ -104,12 +104,43 @@ namespace HotChocolate
                 false))
             {
                 GraphQLDescriptionAttribute attribute =
-                    attributeProvider.GetCustomAttributes(
-                        typeof(GraphQLDescriptionAttribute),
-                        false)
-                        .OfType<GraphQLDescriptionAttribute>()
-                        .FirstOrDefault();
+                    (GraphQLDescriptionAttribute)
+                        attributeProvider.GetCustomAttributes(
+                            typeof(GraphQLDescriptionAttribute),
+                            false)[0];
                 return attribute.Description;
+            }
+
+            return null;
+        }
+
+        public static string GetGraphQLDeprecationReason(
+            this ICustomAttributeProvider attributeProvider)
+        {
+            var deprecatedAttribute = GetAttributeIfDefined<GraphQLDeprecatedAttribute>(
+                attributeProvider
+            );
+
+            if (deprecatedAttribute != null)
+            {
+                return deprecatedAttribute.DeprecationReason;
+            }
+
+            var obsoleteAttribute = GetAttributeIfDefined<ObsoleteAttribute>(
+                attributeProvider
+            );
+
+            if (obsoleteAttribute != null)
+            {
+                if (string.IsNullOrEmpty(obsoleteAttribute.Message))
+                {
+                    // TODO : resources
+                    return "This field is no longer supported.";
+                }
+                else
+                {
+                    return obsoleteAttribute.Message;
+                }
             }
 
             return null;
@@ -142,6 +173,20 @@ namespace HotChocolate
                     name.Substring(1);
             }
             return name.ToLowerInvariant();
+        }
+
+        private static TAttribute GetAttributeIfDefined<TAttribute>(ICustomAttributeProvider attributeProvider)
+            where TAttribute : Attribute
+        {
+            Type attributeType = typeof(TAttribute);
+            
+            if (attributeProvider.IsDefined(attributeType, false))
+            {
+                return (TAttribute)attributeProvider
+                    .GetCustomAttributes(attributeType, false)[0];
+            }
+
+            return null;
         }
     }
 }

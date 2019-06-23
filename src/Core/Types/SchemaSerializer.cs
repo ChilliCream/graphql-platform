@@ -118,7 +118,7 @@ namespace HotChocolate
                .ToList();
 
             var locations = directiveType.Locations
-                .Select(l => new NameNode(l.ToString()))
+                .Select(l => new NameNode(l.MapDirectiveLocation().ToString()))
                 .ToList();
 
             return new DirectiveDefinitionNode
@@ -339,6 +339,15 @@ namespace HotChocolate
                 .Select(t => SerializeDirective(t, referenced))
                 .ToList();
 
+            if(enumValue.IsDeprecated)
+            {
+                directives.Add(new DirectiveNode(
+                    WellKnownDirectives.Deprecated,
+                    new ArgumentNode(
+                        WellKnownDirectives.DeprecationReasonArgument,
+                        enumValue.DeprecationReason)));
+            }
+
             return new EnumValueDefinitionNode
             (
                 null,
@@ -371,6 +380,15 @@ namespace HotChocolate
             var directives = field.Directives
                 .Select(t => SerializeDirective(t, referenced))
                 .ToList();
+
+            if(field.IsDeprecated)
+            {
+                directives.Add(new DirectiveNode(
+                    WellKnownDirectives.Deprecated,
+                    new ArgumentNode(
+                        WellKnownDirectives.DeprecationReasonArgument,
+                        field.DeprecationReason)));
+            }
 
             return new FieldDefinitionNode
             (

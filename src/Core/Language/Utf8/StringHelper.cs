@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace HotChocolate.Language
@@ -6,20 +7,6 @@ namespace HotChocolate.Language
     internal static class StringHelper
     {
         public static readonly UTF8Encoding UTF8Encoding = new UTF8Encoding();
-
-        public static int CountLines(in ReadOnlySpan<byte> data)
-        {
-            int lines = 0;
-            int position = 0;
-
-            while (position < data.Length)
-            {
-                GoToNextLine(in data, ref position);
-                lines++;
-            }
-
-            return lines;
-        }
 
         public static void TrimStringToken(
             ref ReadOnlySpan<byte> data)
@@ -164,8 +151,8 @@ namespace HotChocolate.Language
         }
 
         private static ReadOnlySpan<byte> GetNextLine(
-            in ReadOnlySpan<byte> data,
-            ref int position)
+                    in ReadOnlySpan<byte> data,
+                    ref int position)
         {
             int start = position;
             int length = GoToNextLine(in data, ref position);
@@ -198,12 +185,6 @@ namespace HotChocolate.Language
             {
                 if (data[position] == GraphQLConstants.NewLine)
                 {
-                    int next = position + 1;
-                    if (next < data.Length
-                        && data[next] == GraphQLConstants.Return)
-                    {
-                        position = next;
-                    }
                     position++;
                     break;
                 }
@@ -234,17 +215,10 @@ namespace HotChocolate.Language
             {
                 if (data[position] == GraphQLConstants.NewLine)
                 {
-                    int next = position + 1;
-                    if (next < data.Length
-                        && data[next] == GraphQLConstants.Return)
-                    {
-                        position = next;
-                    }
                     position++;
                     break;
                 }
-
-                if (data[position] == GraphQLConstants.Return)
+                else if (data[position] == GraphQLConstants.Return)
                 {
                     int next = position + 1;
                     if (next < data.Length
@@ -271,17 +245,10 @@ namespace HotChocolate.Language
             {
                 if (data[position] == GraphQLConstants.NewLine)
                 {
-                    int next = position - 1;
-                    if (next > 0
-                        && data[next] == GraphQLConstants.Return)
-                    {
-                        position = next;
-                    }
                     position--;
                     break;
                 }
-
-                if (data[position] == GraphQLConstants.Return)
+                else if (data[position] == GraphQLConstants.Return)
                 {
                     int next = position - 1;
                     if (next > 0

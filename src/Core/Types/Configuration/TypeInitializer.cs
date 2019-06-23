@@ -89,6 +89,20 @@ namespace HotChocolate.Configuration
         public IDictionary<FieldReference, RegisteredResolver> Resolvers =>
             _res;
 
+        public bool TryGetType(NameString typeName, out IType type)
+        {
+            if (_named.TryGetValue(typeName, out ITypeReference reference)
+                && Types.TryGetValue(reference, out RegisteredType registered)
+                && registered.Type is IType t)
+            {
+                type = t;
+                return true;
+            }
+
+            type = null;
+            return false;
+        }
+
         public void Initialize(Func<ISchema> schemaResolver)
         {
             if (schemaResolver == null)
@@ -648,7 +662,7 @@ namespace HotChocolate.Configuration
 
         private void ThrowOnErrors()
         {
-            var errors = new List<ISchemaError>();
+            var errors = new List<ISchemaError>(_errors);
 
             foreach (InitializationContext context in _initContexts)
             {
