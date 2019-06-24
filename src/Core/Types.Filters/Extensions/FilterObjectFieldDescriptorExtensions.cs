@@ -54,7 +54,7 @@ namespace HotChocolate.Types.Filters
         {
             FieldMiddleware placeholder =
                 next => context => Task.CompletedTask;
-            Type middlewareDefinition = typeof(FilterMiddleware<>);
+            Type middlewareDefinition = typeof(QueryableFilterMiddleware<>);
 
             descriptor
                 .AddFilterArguments(filterType)
