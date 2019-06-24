@@ -43,7 +43,7 @@ namespace HotChocolate.AspNetCore.Authorization
                 allowed = p.Identity.IsAuthenticated;
             }
 
-            allowed = allowed && IsInAnyRoles(principal, directive.Roles);
+            allowed = allowed && IsInAnyRole(principal, directive.Roles);
 
 #if !ASPNETCLASSIC
             if (allowed && NeedsPolicyValidation(directive))
@@ -69,11 +69,22 @@ namespace HotChocolate.AspNetCore.Authorization
             }
         }
 
-        private static bool IsInAnyRoles(
+        private static bool IsInAnyRole(
             IPrincipal principal,
-            IReadOnlyCollection<string> roles)
+            IReadOnlyList<string> roles)
         {
-            return (roles == null || roles.Count == 0) ? true : roles.Any(role => principal.IsInRole(role));
+            if (roles == null || roles.Count == 0)
+            {
+                for (int i = 0; i < roles.Count; i++)
+                {
+                    if (principal.IsInRole(roles[i]))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 #if !ASPNETCLASSIC
 
