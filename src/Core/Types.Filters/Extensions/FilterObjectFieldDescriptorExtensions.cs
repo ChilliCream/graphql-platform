@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
@@ -15,8 +16,17 @@ namespace HotChocolate.Types.Filters
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
+            if (!TypeInspector.Default.TryCreate(
+                typeof(T), out TypeInfo typeInfo))
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "Cannot handle the specified type.",
+                    nameof(descriptor));
+            }
+
             Type filterType =
-                typeof(FilterInputType<>).MakeGenericType(typeof(T));
+                typeof(FilterInputType<>).MakeGenericType(typeInfo.ClrType);
 
             return UseFilter(descriptor, filterType);
         }
