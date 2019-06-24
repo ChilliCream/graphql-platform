@@ -8,7 +8,18 @@ namespace HotChocolate.Types.Filters
         : TypeTestBase
     {
         [Fact]
-        public void Create_Implicit_Filters()
+        public void Create_Filter_Discover_Everything_Implicitly()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FooFilterTypeDefaults());
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Filter_Discover_Operators_Implicitly()
         {
             // arrange
             // act
@@ -22,14 +33,17 @@ namespace HotChocolate.Types.Filters
         /// This test checks if the binding of all allow methods are correct
         /// </summary>
         [Fact]
-        public void Create_Explitcit_Filters()
+        public void Create_Filter_Declare_Operators_Explicitly()
         {
             // arrange
             // act
             var schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
             {
-                descriptor.Filter(x => x.BarShort)
-                .BindExplicitly().AllowEquals()
+                descriptor
+                .BindExplicitly()
+                .Filter(x => x.BarShort)
+                .BindExplicitly()
+                .AllowEquals()
                 .And().AllowNotEquals()
                 .And().AllowIn()
                 .And().AllowNotIn()
@@ -41,7 +55,6 @@ namespace HotChocolate.Types.Filters
                 .And().AllowNotLowerThan()
                 .And().AllowLowerThanOrEquals()
                 .And().AllowNotLowerThanOrEquals();
-
             }));
 
             // assert
@@ -69,6 +82,7 @@ namespace HotChocolate.Types.Filters
             protected override void Configure(
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
+                descriptor.BindExplicitly();
                 descriptor.Filter(x => x.BarShort);
                 descriptor.Filter(x => x.BarInt);
                 descriptor.Filter(x => x.BarLong);
@@ -76,7 +90,15 @@ namespace HotChocolate.Types.Filters
                 descriptor.Filter(x => x.BarDouble);
                 descriptor.Filter(x => x.BarDecimal);
                 descriptor.Filter(x => x.FooBar);
+            }
+        }
 
+        public class FooFilterTypeDefaults
+            : FilterInputType<Foo>
+        {
+            protected override void Configure(
+                IFilterInputTypeDescriptor<Foo> descriptor)
+            {
             }
         }
     }

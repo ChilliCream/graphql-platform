@@ -8,7 +8,18 @@ namespace HotChocolate.Types.Filters
         : TypeTestBase
     {
         [Fact]
-        public void Create_Implicit_Filters()
+        public void Create_Filter_Discover_Everything_Implicitly()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FooFilterTypeDefaults());
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Filter_Discover_Operators_Implicitly()
         {
             // arrange
             // act
@@ -22,7 +33,7 @@ namespace HotChocolate.Types.Filters
         /// This test checks if the binding of all allow methods are correct
         /// </summary>
         [Fact]
-        public void Create_Explitcit_Filters()
+        public void Create_Filter_Declare_Operators_Explicitly()
         {
             // arrange
             // act
@@ -50,8 +61,12 @@ namespace HotChocolate.Types.Filters
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Filter(x => x.Bar);
-
             }
+        }
+
+        public class FooFilterTypeDefaults
+            : FilterInputType<Foo>
+        {
         }
     }
 }
