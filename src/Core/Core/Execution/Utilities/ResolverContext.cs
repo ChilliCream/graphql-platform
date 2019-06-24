@@ -1,3 +1,4 @@
+using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -100,7 +101,23 @@ namespace HotChocolate.Execution
 
         public T Parent<T>()
         {
-            return (T)SourceObject;
+            if (SourceObject is T parent)
+            {
+                return parent;
+            }
+
+            if (_executionContext.Converter
+                .TryConvert<object, T>(SourceObject, out parent))
+            {
+                return parent;
+            }
+
+            // TODO : resources
+            throw new InvalidCastException(
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    "Could not cast the source object to `{0}`.",
+                    typeof(T).FullName));
         }
 
         public T CustomProperty<T>(string key)
