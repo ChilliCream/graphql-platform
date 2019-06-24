@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -28,6 +26,10 @@ namespace HotChocolate.Types.Filters
         /// </param>
         IFilterInputTypeDescriptor<T> BindFields(
             BindingBehavior bindingBehavior);
+
+        IFilterInputTypeDescriptor<T> BindExplicitly();
+
+        IFilterInputTypeDescriptor<T> BindImplicitly();
 
         IStringFilterFieldDescriptor Filter(
             Expression<Func<T, string>> propertyOrMethod);

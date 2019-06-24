@@ -34,7 +34,6 @@ namespace HotChocolate.Types.Filters
 
                 FilterOperationKind.LowerThanOrEqual,
                 FilterOperationKind.NotLowerThanOrEqual
-
             };
         }
 
@@ -108,7 +107,6 @@ namespace HotChocolate.Types.Filters
             Filters.Add(field);
             return field;
         }
-
 
         public IComparableFilterOperationDescriptor AllowNotLowerThan()
         {
