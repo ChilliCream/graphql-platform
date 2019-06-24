@@ -75,12 +75,14 @@ namespace HotChocolate.AspNetCore.Authorization
         {
             if (roles == null || roles.Count == 0)
             {
-                for (int i = 0; i < roles.Count; i++)
+                return true;
+            }
+
+            for (int i = 0; i < roles.Count; i++)
+            {
+                if (principal.IsInRole(roles[i]))
                 {
-                    if (principal.IsInRole(roles[i]))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
 
