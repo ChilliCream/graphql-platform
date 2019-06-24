@@ -356,8 +356,27 @@ namespace HotChocolate.Configuration
             return false;
         }
 
-        private TypeSystemObjectBase CreateInstance(Type type) =>
-            (TypeSystemObjectBase)_serviceFactory.CreateInstance(type);
+        private TypeSystemObjectBase CreateInstance(Type type)
+        {
+            try
+            {
+                return
+                    (TypeSystemObjectBase)_serviceFactory.CreateInstance(type);
+            }
+            catch (Exception ex)
+            {
+                // todo : resources
+                throw new SchemaException(
+                    SchemaErrorBuilder.New()
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            "Unable to create instance of type `{0}`.",
+                            type.FullName))
+                        .SetException(ex)
+                        .SetExtension(nameof(type), type)
+                        .Build());
+            }
+        }
 
         private static bool IsTypeSystemObject(Type type) =>
             typeof(TypeSystemObjectBase).IsAssignableFrom(type);
