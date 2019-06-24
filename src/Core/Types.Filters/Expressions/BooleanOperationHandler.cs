@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Filters.Expressions
 {
     public class BooleanOperationHandler
         : IExpressionOperationHandler
-    { 
+    {
 
         public bool TryHandle(
             FilterOperation operation,
@@ -26,24 +26,21 @@ namespace HotChocolate.Types.Filters.Expressions
                 switch (operation.Kind)
                 {
                     case FilterOperationKind.Equals:
-                        expression = Expression.Equal(
-                            property,
-                            Expression.Constant(s.Value));
+                        expression = FilterExpressionBuilder.Equals(property, s.Value);
                         return true;
 
                     case FilterOperationKind.NotEquals:
-                        expression = Expression.Equal(
-                            Expression.Equal(
-                                property,
-                                Expression.Constant(s.Value)),
-                            Expression.Constant(false));
+                        expression = FilterExpressionBuilder.Not(
+                            FilterExpressionBuilder.Equals(property, s.Value)
+                        );
                         return true;
-                        
+
                 }
             }
 
             expression = null;
             return false;
         }
+
     }
 }
