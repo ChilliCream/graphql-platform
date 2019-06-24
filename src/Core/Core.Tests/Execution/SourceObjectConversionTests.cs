@@ -48,6 +48,29 @@ namespace HotChocolate.Execution
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task NoConverter_Specified()
+        {
+            // arrange
+            ISchema schema =
+                SchemaBuilder.New()
+                    .AddQueryType<QueryType>()
+                    .Create();
+
+            // act
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ foo { qux } }")
+                    .Create();
+
+            IExecutionResult result =
+                await schema.MakeExecutable().ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot(options =>
+                options.IgnoreField("Errors[0].Exception"));
+        }
+
         public class Query
         {
             public Foo Foo { get; } = new Foo { Bar = "bar" };
