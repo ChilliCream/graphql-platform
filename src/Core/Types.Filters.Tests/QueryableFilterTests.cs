@@ -38,6 +38,24 @@ namespace HotChocolate.Types.Filters
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public void Infer_Filter_From_Field()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFilter())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos(where: { bar_starts_with: \"a\" }) { bar } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
 
         public class QueryType
             : ObjectType<Query>

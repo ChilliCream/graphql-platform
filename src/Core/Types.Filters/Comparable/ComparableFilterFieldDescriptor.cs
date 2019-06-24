@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
@@ -154,7 +155,7 @@ namespace HotChocolate.Types.Filters
             FilterOperationKind operationKind)
         {
             var operation = new FilterOperation(
-                typeof(string),
+                typeof(IComparable),
                 operationKind,
                 Definition.Property);
 

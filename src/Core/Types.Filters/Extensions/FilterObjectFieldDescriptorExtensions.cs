@@ -2,22 +2,59 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
     public static class FilterObjectFieldDescriptorExtensions
     {
+        public static IObjectFieldDescriptor<T> UseFilter<T>(
+            this IObjectFieldDescriptor<T> descriptor)
+        {
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            if (!TypeInspector.Default.TryCreate(
+                typeof(T), out TypeInfo typeInfo))
+            {
+                // TODO : resources
+                throw new ArgumentException(
+                    "Cannot handle the specified type.",
+                    nameof(descriptor));
+            }
+
+            Type filterType =
+                typeof(FilterInputType<>).MakeGenericType(typeInfo.ClrType);
+
+            return UseFilter(descriptor, filterType);
+        }
+
         public static IObjectFieldDescriptor UseFilter<T>(
             this IObjectFieldDescriptor descriptor)
         {
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
-            Type middlewareDefinition = typeof(FilterMiddleware<>);
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
 
             Type filterType =
                 typeof(IFilterInputType).IsAssignableFrom(typeof(T))
                     ? typeof(T)
                     : typeof(FilterInputType<>).MakeGenericType(typeof(T));
+
+            return UseFilter(descriptor, filterType);
+        }
+
+        private static TDescriptor UseFilter<TDescriptor>(
+            TDescriptor descriptor,
+            Type filterType)
+            where TDescriptor : IObjectFieldDescriptor
+        {
+            FieldMiddleware placeholder =
+                next => context => Task.CompletedTask;
+            Type middlewareDefinition = typeof(QueryableFilterMiddleware<>);
 
             descriptor
                 .AddFilterArguments(filterType)

@@ -108,7 +108,7 @@ namespace HotChocolate.Types.Descriptors
             return base.Field(propertyOrMethod);
         }
 
-        public IObjectFieldDescriptor Field<TValue>(
+        public IObjectFieldDescriptor<TValue> Field<TValue>(
             Expression<Func<T, TValue>> propertyOrMethod)
         {
             return base.Field(propertyOrMethod);

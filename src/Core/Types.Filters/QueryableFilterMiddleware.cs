@@ -9,12 +9,14 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
-    public class FilterMiddleware<T>
+    public class QueryableFilterMiddleware<T>
     {
         private readonly FieldDelegate _next;
         private readonly ITypeConversion _converter;
 
-        public FilterMiddleware(FieldDelegate next, ITypeConversion converter)
+        public QueryableFilterMiddleware(
+            FieldDelegate next,
+            ITypeConversion converter)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
             _converter = converter ?? TypeConversion.Default;
