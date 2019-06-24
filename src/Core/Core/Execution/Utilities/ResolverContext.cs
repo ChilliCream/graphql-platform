@@ -101,6 +101,11 @@ namespace HotChocolate.Execution
 
         public T Parent<T>()
         {
+            if (SourceObject is null)
+            {
+                return default;
+            }
+
             if (SourceObject is T parent)
             {
                 return parent;
