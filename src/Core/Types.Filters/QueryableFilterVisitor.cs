@@ -26,6 +26,7 @@ namespace HotChocolate.Types.Filters
             _source = source ?? throw new ArgumentNullException(nameof(source));
             _instance = _parameter = Expression.Parameter(source);
             _opHandlers = ExpressionOperationHandlers.All;
+            _converter = converter;
 
             Level.Push(new Queue<Expression>());
             Instance.Push(_instance);

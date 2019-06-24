@@ -7,17 +7,44 @@ namespace HotChocolate.Types.Filters
 {
     public static class FilterObjectFieldDescriptorExtensions
     {
+        public static IObjectFieldDescriptor<T> UseFilter<T>(
+            this IObjectFieldDescriptor<T> descriptor)
+        {
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            Type filterType =
+                typeof(FilterInputType<>).MakeGenericType(typeof(T));
+
+            return UseFilter(descriptor, filterType);
+        }
+
         public static IObjectFieldDescriptor UseFilter<T>(
             this IObjectFieldDescriptor descriptor)
         {
-            FieldMiddleware placeholder =
-                next => context => Task.CompletedTask;
-            Type middlewareDefinition = typeof(FilterMiddleware<>);
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
 
             Type filterType =
                 typeof(IFilterInputType).IsAssignableFrom(typeof(T))
                     ? typeof(T)
                     : typeof(FilterInputType<>).MakeGenericType(typeof(T));
+
+            return UseFilter(descriptor, filterType);
+        }
+
+        private static TDescriptor UseFilter<TDescriptor>(
+            TDescriptor descriptor,
+            Type filterType)
+            where TDescriptor : IObjectFieldDescriptor
+        {
+            FieldMiddleware placeholder =
+                next => context => Task.CompletedTask;
+            Type middlewareDefinition = typeof(FilterMiddleware<>);
 
             descriptor
                 .AddFilterArguments(filterType)

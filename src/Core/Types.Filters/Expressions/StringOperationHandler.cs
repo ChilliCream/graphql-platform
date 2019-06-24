@@ -1,7 +1,4 @@
-using System;
-using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
@@ -27,7 +24,8 @@ namespace HotChocolate.Types.Filters.Expressions
                 switch (operation.Kind)
                 {
                     case FilterOperationKind.Equals:
-                        expression = FilterExpressionBuilder.Equals(property, s.Value);
+                        expression = FilterExpressionBuilder.Equals(
+                            property, s.Value);
                         return true;
 
                     case FilterOperationKind.NotEquals:
@@ -37,16 +35,19 @@ namespace HotChocolate.Types.Filters.Expressions
                         return true;
 
                     case FilterOperationKind.StartsWith:
-                        expression = FilterExpressionBuilder.StartsWith(property, s.Value);
+                        expression = FilterExpressionBuilder.StartsWith(
+                            property, s.Value);
                         return true;
 
                     case FilterOperationKind.EndsWith:
-                        expression = FilterExpressionBuilder.EndsWith(property, s.Value);
+                        expression = FilterExpressionBuilder.EndsWith(
+                            property, s.Value);
                         return true;
 
                     case FilterOperationKind.NotStartsWith:
                         expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.StartsWith(property, s.Value)
+                            FilterExpressionBuilder.StartsWith(
+                                property, s.Value)
                         );
                         return true;
 
@@ -57,7 +58,8 @@ namespace HotChocolate.Types.Filters.Expressions
                         return true;
 
                     case FilterOperationKind.Contains:
-                        expression = FilterExpressionBuilder.Contains(property, s.Value);
+                        expression = FilterExpressionBuilder.Contains(
+                            property, s.Value);
                         return true;
 
                     case FilterOperationKind.NotContains:
@@ -73,13 +75,22 @@ namespace HotChocolate.Types.Filters.Expressions
                 MemberExpression property =
                     Expression.Property(instance, operation.Property);
                 var parsedValue = type.ParseLiteral(value);
+
                 switch (operation.Kind)
                 {
                     case FilterOperationKind.In:
-                        expression = FilterExpressionBuilder.In(property, operation.Property.PropertyType, parsedValue);
+                        expression = FilterExpressionBuilder.In(
+                            property,
+                            operation.Property.PropertyType,
+                            parsedValue);
                         return true;
+
                     case FilterOperationKind.NotIn:
-                        expression = FilterExpressionBuilder.Not(FilterExpressionBuilder.In(property, operation.Property.PropertyType, parsedValue));
+                        expression = FilterExpressionBuilder.Not(
+                            FilterExpressionBuilder.In(
+                                property,
+                                operation.Property.PropertyType,
+                                parsedValue));
                         return true;
                 }
             }

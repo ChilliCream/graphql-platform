@@ -130,7 +130,7 @@ namespace HotChocolate.Types
         /// An expression selecting a property or method of
         /// <typeparamref name="T"/>.
         /// </param>
-        IObjectFieldDescriptor Field<TValue>(
+        IObjectFieldDescriptor<TValue> Field<TValue>(
             Expression<Func<T, TValue>> propertyOrMethod);
 
         /// <summary>
