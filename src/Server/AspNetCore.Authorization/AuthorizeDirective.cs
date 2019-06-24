@@ -76,13 +76,13 @@ namespace HotChocolate.AspNetCore.Authorization
             : this(policy, null)
         { }
 
-        public AuthorizeDirective(IReadOnlyCollection<string> roles)
+        public AuthorizeDirective(IReadOnlyList<string> roles)
             : this(null, roles)
         { }
 
         public AuthorizeDirective(
             string policy,
-            IReadOnlyCollection<string> roles)
+            IReadOnlyList<string> roles)
         {
             Policy = policy;
             Roles = roles ?? Array.Empty<string>();
@@ -143,7 +143,7 @@ namespace HotChocolate.AspNetCore.Authorization
         /// <summary>
         /// Gets or sets of roles that are allowed to access the resource.
         /// </summary>
-        public IReadOnlyCollection<string> Roles { get; }
+        public IReadOnlyList<string> Roles { get; }
 
 
         public void GetObjectData(
