@@ -28,7 +28,8 @@ namespace HotChocolate.Types.Filters
             // act
             var schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
             {
-                descriptor.Filter(x => x.BarShort).BindExplicitly().AllowEquals()
+                descriptor.Filter(x => x.BarShort)
+                .BindExplicitly().AllowEquals()
                 .And().AllowNotEquals()
                 .And().AllowIn()
                 .And().AllowNotIn()

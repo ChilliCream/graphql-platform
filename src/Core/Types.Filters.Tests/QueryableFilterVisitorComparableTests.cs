@@ -20,7 +20,8 @@ namespace HotChocolate.Types.Filters
             var fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(fooType, typeof(Foo), TypeConversion.Default);
+            var filter = new QueryableFilterVisitor(
+                fooType, typeof(Foo), TypeConversion.Default);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
@@ -43,7 +44,8 @@ namespace HotChocolate.Types.Filters
             var fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(fooType, typeof(Foo), TypeConversion.Default);
+            var filter = new QueryableFilterVisitor(
+                fooType, typeof(Foo), TypeConversion.Default);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
@@ -67,7 +69,8 @@ namespace HotChocolate.Types.Filters
             var fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(fooType, typeof(Foo), TypeConversion.Default);
+            var filter = new QueryableFilterVisitor(
+                fooType, typeof(Foo), TypeConversion.Default);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
@@ -93,7 +96,8 @@ namespace HotChocolate.Types.Filters
             var fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(fooType, typeof(Foo), TypeConversion.Default);
+            var filter = new QueryableFilterVisitor(
+                fooType, typeof(Foo), TypeConversion.Default);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
@@ -120,7 +124,8 @@ namespace HotChocolate.Types.Filters
             var fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(fooType, typeof(Foo), TypeConversion.Default);
+            var filter = new QueryableFilterVisitor(
+                fooType, typeof(Foo), TypeConversion.Default);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
@@ -146,7 +151,8 @@ namespace HotChocolate.Types.Filters
             var fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(fooType, typeof(Foo), TypeConversion.Default);
+            var filter = new QueryableFilterVisitor(
+                fooType, typeof(Foo), TypeConversion.Default);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
@@ -174,7 +180,8 @@ namespace HotChocolate.Types.Filters
             var fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(fooType, typeof(Foo), TypeConversion.Default);
+            var filter = new QueryableFilterVisitor(
+                fooType, typeof(Foo), TypeConversion.Default);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
@@ -200,7 +207,8 @@ namespace HotChocolate.Types.Filters
             var fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(fooType, typeof(Foo), TypeConversion.Default);
+            var filter = new QueryableFilterVisitor(
+                fooType, typeof(Foo), TypeConversion.Default);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
@@ -227,7 +235,8 @@ namespace HotChocolate.Types.Filters
             var fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(fooType, typeof(Foo), TypeConversion.Default);
+            var filter = new QueryableFilterVisitor(
+                fooType, typeof(Foo), TypeConversion.Default);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
@@ -253,7 +262,8 @@ namespace HotChocolate.Types.Filters
             var fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(fooType, typeof(Foo), TypeConversion.Default);
+            var filter = new QueryableFilterVisitor(
+                fooType, typeof(Foo), TypeConversion.Default);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 
@@ -274,14 +284,18 @@ namespace HotChocolate.Types.Filters
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("barShort_in",
-                new ListValueNode(new[] { new IntValueNode("13"), new IntValueNode("14") }
-                ))
+                new ListValueNode(new[]
+                {
+                    new IntValueNode("13"),
+                    new IntValueNode("14")
+                }))
             );
 
             var fooType = CreateType(new FooFilterType());
 
             // act
-            var filter = new QueryableFilterVisitor(fooType, typeof(Foo), TypeConversion.Default);
+            var filter = new QueryableFilterVisitor(
+                fooType, typeof(Foo), TypeConversion.Default);
             value.Accept(filter);
             Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
 

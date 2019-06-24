@@ -66,7 +66,11 @@ namespace HotChocolate.Types.Filters
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar_in",
-                    new ListValueNode(new[] { new StringValueNode("a"), new StringValueNode("c") })));
+                    new ListValueNode(new[]
+                    {
+                        new StringValueNode("a"),
+                        new StringValueNode("c")
+                    })));
 
             var fooType = CreateType(new FooFilterType());
 
@@ -92,7 +96,11 @@ namespace HotChocolate.Types.Filters
             // arrange
             var value = new ObjectValueNode(
                 new ObjectFieldNode("bar_not_in",
-                    new ListValueNode(new[] { new StringValueNode("a"), new StringValueNode("c") })));
+                    new ListValueNode(new[]
+                    {
+                        new StringValueNode("a"),
+                        new StringValueNode("c")
+                    })));
 
             var fooType = CreateType(new FooFilterType());
 
