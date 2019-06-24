@@ -422,6 +422,43 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
+        public async Task Roles_UserHasOneOfTheRoles_Authorized(
+            IQueryExecutor executor)
+        {
+            // arrange
+            TestServer server = CreateTestServer(
+                services =>
+                {
+                    services.AddGraphQL(executor);
+                },
+                context =>
+                {
+                    var identity = new ClaimsIdentity("testauth");
+                    identity.AddClaim(new Claim(
+                        ClaimTypes.Role,
+                        "a"));
+                    context.User = new ClaimsPrincipal(identity);
+                });
+
+            var request = "{ roles_ab }";
+            var contentType = "application/graphql";
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request, contentType, null);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            var json = await message.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert
+                .DeserializeObject<ClientQueryResult>(json);
+            Assert.Null(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Theory]
+        [ClassData(typeof(AuthorizationTestData))]
         public async Task Roles_Authorized(IQueryExecutor executor)
         {
             // arrange
