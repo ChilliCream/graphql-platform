@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Descriptors
     {
         private bool _argumentsInitialized;
 
-        public ObjectFieldDescriptor(
+        protected ObjectFieldDescriptor(
             IDescriptorContext context,
             NameString fieldName)
             : base(context)
@@ -21,14 +21,14 @@ namespace HotChocolate.Types.Descriptors
             Definition.Name = fieldName.EnsureNotEmpty(nameof(fieldName));
         }
 
-        public ObjectFieldDescriptor(
+        protected ObjectFieldDescriptor(
             IDescriptorContext context,
             MemberInfo member)
             : this(context, member, null)
         {
         }
 
-        public ObjectFieldDescriptor(
+        protected ObjectFieldDescriptor(
             IDescriptorContext context,
             MemberInfo member,
             Type resolverType)
@@ -214,5 +214,21 @@ namespace HotChocolate.Types.Descriptors
             MemberInfo member,
             Type resolverType) =>
             new ObjectFieldDescriptor(context, member, resolverType);
+
+        public static ObjectFieldDescriptor<T> New<T>(
+            IDescriptorContext context,
+            NameString fieldName) =>
+            new ObjectFieldDescriptor<T>(context, fieldName);
+
+        public static ObjectFieldDescriptor<T> New<T>(
+            IDescriptorContext context,
+            MemberInfo member) =>
+            new ObjectFieldDescriptor<T>(context, member);
+
+        public static ObjectFieldDescriptor<T> New<T>(
+            IDescriptorContext context,
+            MemberInfo member,
+            Type resolverType) =>
+            new ObjectFieldDescriptor<T>(context, member, resolverType);
     }
 }

@@ -39,7 +39,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Defines the field binding behavior.
         ///
-        /// The default binding behaviour is set to
+        /// The default binding behavior is set to
         /// <see cref="BindingBehavior.Implicit"/>.
         /// </summary>
         /// <param name="behavior">

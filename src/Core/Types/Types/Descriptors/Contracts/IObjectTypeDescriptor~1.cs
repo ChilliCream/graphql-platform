@@ -29,7 +29,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Defines the field binding behavior.
         ///
-        /// The default binding behaviour is set to
+        /// The default binding behavior is set to
         /// <see cref="BindingBehavior.Implicit"/>.
         /// </summary>
         /// <param name="behavior">
@@ -130,7 +130,7 @@ namespace HotChocolate.Types
         /// An expression selecting a property or method of
         /// <typeparamref name="T"/>.
         /// </param>
-        IObjectFieldDescriptor Field<TValue>(
+        IObjectFieldDescriptor<TValue> Field<TValue>(
             Expression<Func<T, TValue>> propertyOrMethod);
 
         /// <summary>

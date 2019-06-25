@@ -27,28 +27,34 @@ namespace HotChocolate.Types.Filters
                 ?? throw new ArgumentNullException(nameof(descriptor));
         }
 
+        /// <inheritdoc/>
         public IBooleanFilterFieldDescriptor And() => _descriptor;
 
+        /// <inheritdoc/>
         public new IBooleanFilterOperationDescriptor Name(NameString value)
         {
             base.Name(value);
             return this;
         }
 
+        /// <inheritdoc/>
         public new IBooleanFilterOperationDescriptor Description(
-            string description)
+            string value)
         {
-            base.Description(description);
+            base.Description(value);
             return this;
         }
 
-        public new IBooleanFilterOperationDescriptor Directive<T>(T directive)
+        /// <inheritdoc/>
+        public new IBooleanFilterOperationDescriptor Directive<T>(
+            T directiveInstance)
            where T : class
         {
-            base.Directive(directive);
+            base.Directive(directiveInstance);
             return this;
         }
 
+        /// <inheritdoc/>
         public new IBooleanFilterOperationDescriptor Directive<T>()
             where T : class, new()
         {
@@ -56,6 +62,7 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
+        /// <inheritdoc/>
         public new IBooleanFilterOperationDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
@@ -64,6 +71,25 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
+        /// <summary>
+        /// Create a new boolean filter operation descriptor.
+        /// </summary>
+        /// <param name="context">
+        /// The descriptor context.
+        /// </param>
+        /// <param name="descriptor">
+        /// The field descriptor on which this
+        /// filter operation shall be applied.
+        /// </param>
+        /// <param name="name">
+        /// The default name of the filter operation field.
+        /// </param>
+        /// <param name="type">
+        /// The field type of this filter operation field.
+        /// </param>
+        /// <param name="operation">
+        /// The filter operation info.
+        /// </param>
         public static BooleanFilterOperationDescriptor New(
             IDescriptorContext context,
             BooleanFilterFieldDescriptor descriptor,

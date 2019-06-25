@@ -4,7 +4,6 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Filters
 {
-    // TODO : we also need not equals
     public class StringFilterFieldDescriptor
         : FilterFieldDescriptorBase
         , IStringFilterFieldDescriptor
@@ -35,6 +34,23 @@ namespace HotChocolate.Types.Filters
 
         protected override ISet<FilterOperationKind> AllowedOperations { get; }
 
+        /// <inheritdoc/>
+        public new IStringFilterFieldDescriptor BindFilters(
+            BindingBehavior bindingBehavior)
+        {
+            base.BindFilters(bindingBehavior);
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public IStringFilterFieldDescriptor BindExplicitly() =>
+            BindFilters(BindingBehavior.Explicit);
+
+        /// <inheritdoc/>
+        public IStringFilterFieldDescriptor BindImplicitly() =>
+            BindFilters(BindingBehavior.Implicit);
+
+        /// <inheritdoc/>
         public IStringFilterOperationDescriptor AllowEquals()
         {
             StringFilterOperationDescriptor field =
@@ -42,6 +58,8 @@ namespace HotChocolate.Types.Filters
             Filters.Add(field);
             return field;
         }
+
+        /// <inheritdoc/>
         public IStringFilterOperationDescriptor AllowNotEquals()
         {
             StringFilterOperationDescriptor field =
@@ -50,6 +68,7 @@ namespace HotChocolate.Types.Filters
             return field;
         }
 
+        /// <inheritdoc/>
         public IStringFilterOperationDescriptor AllowContains()
         {
             StringFilterOperationDescriptor field =
@@ -57,6 +76,8 @@ namespace HotChocolate.Types.Filters
             Filters.Add(field);
             return field;
         }
+
+        /// <inheritdoc/>
         public IStringFilterOperationDescriptor AllowNotContains()
         {
             StringFilterOperationDescriptor field =
@@ -65,6 +86,7 @@ namespace HotChocolate.Types.Filters
             return field;
         }
 
+        /// <inheritdoc/>
         public IStringFilterOperationDescriptor AllowIn()
         {
             StringFilterOperationDescriptor field =
@@ -72,6 +94,8 @@ namespace HotChocolate.Types.Filters
             Filters.Add(field);
             return field;
         }
+
+        /// <inheritdoc/>
         public IStringFilterOperationDescriptor AllowNotIn()
         {
             StringFilterOperationDescriptor field =
@@ -80,6 +104,7 @@ namespace HotChocolate.Types.Filters
             return field;
         }
 
+        /// <inheritdoc/>
         public IStringFilterOperationDescriptor AllowStartsWith()
         {
             StringFilterOperationDescriptor field =
@@ -88,6 +113,7 @@ namespace HotChocolate.Types.Filters
             return field;
         }
 
+        /// <inheritdoc/>
         public IStringFilterOperationDescriptor AllowNotStartsWith()
         {
             StringFilterOperationDescriptor field =
@@ -96,6 +122,7 @@ namespace HotChocolate.Types.Filters
             return field;
         }
 
+        /// <inheritdoc/>
         public IStringFilterOperationDescriptor AllowEndsWith()
         {
             StringFilterOperationDescriptor field =
@@ -103,6 +130,8 @@ namespace HotChocolate.Types.Filters
             Filters.Add(field);
             return field;
         }
+
+        /// <inheritdoc/>
         public IStringFilterOperationDescriptor AllowNotEndsWith()
         {
             StringFilterOperationDescriptor field =
@@ -110,19 +139,6 @@ namespace HotChocolate.Types.Filters
             Filters.Add(field);
             return field;
         }
-
-        public new IStringFilterFieldDescriptor BindFilters(
-            BindingBehavior bindingBehavior)
-        {
-            base.BindFilters(bindingBehavior);
-            return this;
-        }
-
-        public IStringFilterFieldDescriptor BindExplicitly() =>
-            BindFilters(BindingBehavior.Explicit);
-
-        public IStringFilterFieldDescriptor BindImplicitly() =>
-            BindFilters(BindingBehavior.Explicit);
 
         protected override FilterOperationDefintion CreateOperationDefinition(
             FilterOperationKind operationKind) =>
@@ -142,6 +158,6 @@ namespace HotChocolate.Types.Filters
                 CreateFieldName(operationKind),
                 RewriteType(operationKind),
                 operation);
-        } 
+        }
     }
 }
