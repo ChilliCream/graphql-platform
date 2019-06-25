@@ -27,28 +27,34 @@ namespace HotChocolate.Types.Filters
                 ?? throw new ArgumentNullException(nameof(descriptor));
         }
 
+        /// <inheritdoc/>
         public IComparableFilterFieldDescriptor And() => _descriptor;
 
+        /// <inheritdoc/>
         public new IComparableFilterOperationDescriptor Name(NameString value)
         {
             base.Name(value);
             return this;
         }
 
+        /// <inheritdoc/>
         public new IComparableFilterOperationDescriptor Description(
-            string description)
+            string value)
         {
-            base.Description(description);
+            base.Description(value);
             return this;
         }
 
-        public new IComparableFilterOperationDescriptor Directive<T>(T directive)
+        /// <inheritdoc/>
+        public new IComparableFilterOperationDescriptor Directive<T>(
+            T directiveInstance)
            where T : class
         {
-            base.Directive(directive);
+            base.Directive(directiveInstance);
             return this;
         }
 
+        /// <inheritdoc/>
         public new IComparableFilterOperationDescriptor Directive<T>()
             where T : class, new()
         {
@@ -56,6 +62,7 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
+        /// <inheritdoc/>
         public new IComparableFilterOperationDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
