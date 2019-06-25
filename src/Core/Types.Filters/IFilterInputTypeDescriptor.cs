@@ -27,16 +27,41 @@ namespace HotChocolate.Types.Filters
         IFilterInputTypeDescriptor<T> BindFields(
             BindingBehavior bindingBehavior);
 
+        /// <summary>
+        /// Defines that all filters have to be specified explicitly.
+        /// </summary>
         IFilterInputTypeDescriptor<T> BindExplicitly();
 
+        /// <summary>
+        /// The filter type will will add
+        /// filters for all compatible fields.
+        /// </summary>
         IFilterInputTypeDescriptor<T> BindImplicitly();
 
+        /// <summary>
+        /// Define a string filter for the selected property.
+        /// </summary>
+        /// <param name="property">
+        /// The property for which a filter shall be applied.
+        /// </param>
         IStringFilterFieldDescriptor Filter(
-            Expression<Func<T, string>> propertyOrMethod);
+            Expression<Func<T, string>> property);
 
+        /// <summary>
+        /// Define a boolean filter for the selected property.
+        /// </summary>
+        /// <param name="property">
+        /// The property for which a filter shall be applied.
+        /// </param>
         IBooleanFilterFieldDescriptor Filter(
             Expression<Func<T, bool>> propertyOrMethod);
 
+        /// <summary>
+        /// Define a comparable filter for the selected property.
+        /// </summary>
+        /// <param name="property">
+        /// The property for which a filter shall be applied.
+        /// </param>
         IComparableFilterFieldDescriptor Filter(
             Expression<Func<T, IComparable>> propertyOrMethod);
     }
