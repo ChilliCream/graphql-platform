@@ -170,27 +170,6 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-        [Fact]
-        public void Declare_Directive_With_Clr_Instance()
-        {
-            // arrange
-            // act
-            var schema = CreateSchema(builder =>
-                builder.AddType(new FilterInputType<Foo>(d =>
-                {
-                    d.Filter(x => x.Bar)
-                        .BindExplicitly()
-                        .AllowEquals()
-                        .Directive(new Bar());
-                }))
-                .AddDirectiveType(new DirectiveType<Bar>(d => d
-                    .Location(DirectiveLocation.InputFieldDefinition))));
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-
         public class Foo
         {
             public bool Bar { get; set; }
