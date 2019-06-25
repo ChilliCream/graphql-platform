@@ -108,9 +108,9 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
-        protected ITypeReference RewriteTypeToNullableListType()
+        protected ITypeReference RewriteTypeListType()
         {
-            ITypeReference reference = RewriteTypeToNullableType();
+            ITypeReference reference = Definition.Type;
 
             if (reference is IClrTypeReference clrRef)
             {
@@ -251,7 +251,7 @@ namespace HotChocolate.Types.Filters
         {
             if (ListOperations.Contains(operationKind))
             {
-                return RewriteTypeToNullableListType();
+                return RewriteTypeListType();
             }
             return RewriteTypeToNullableType();
         }
