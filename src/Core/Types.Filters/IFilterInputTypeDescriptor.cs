@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Linq.Expressions;
-using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -12,7 +10,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Defines the filter binding behavior.
         ///
-        /// The default binding behaviour is set to
+        /// The default binding behavior is set to
         /// <see cref="BindingBehavior.Implicit"/>.
         /// </summary>
         /// <param name="behavior">
@@ -29,34 +27,42 @@ namespace HotChocolate.Types.Filters
         IFilterInputTypeDescriptor<T> BindFields(
             BindingBehavior bindingBehavior);
 
-        IStringFilterFieldDescriptor Filter(
-            Expression<Func<T, string>> propertyOrMethod);
+        /// <summary>
+        /// Defines that all filters have to be specified explicitly.
+        /// </summary>
+        IFilterInputTypeDescriptor<T> BindExplicitly();
 
+        /// <summary>
+        /// The filter type will will add
+        /// filters for all compatible fields.
+        /// </summary>
+        IFilterInputTypeDescriptor<T> BindImplicitly();
+
+        /// <summary>
+        /// Define a string filter for the selected property.
+        /// </summary>
+        /// <param name="property">
+        /// The property for which a filter shall be applied.
+        /// </param>
+        IStringFilterFieldDescriptor Filter(
+            Expression<Func<T, string>> property);
+
+        /// <summary>
+        /// Define a boolean filter for the selected property.
+        /// </summary>
+        /// <param name="property">
+        /// The property for which a filter shall be applied.
+        /// </param>
         IBooleanFilterFieldDescriptor Filter(
             Expression<Func<T, bool>> propertyOrMethod);
 
+        /// <summary>
+        /// Define a comparable filter for the selected property.
+        /// </summary>
+        /// <param name="property">
+        /// The property for which a filter shall be applied.
+        /// </param>
         IComparableFilterFieldDescriptor Filter(
             Expression<Func<T, IComparable>> propertyOrMethod);
-
-        /*
-
-        IObjectFilterFieldDescriptor Filter<TFilter>(
-            Expression<Func<T, object>> propertyOrMethod)
-            where TFilter : IFilterInputType;
-
-        IEnumerableFilterFieldDescriptor Filter(
-            Expression<Func<T, IEnumerable<string>>> propertyOrMethod,
-            Action<IStringFilterFieldDescriptor> descriptor);
-
-        IEnumerableFilterFieldDescriptor Filter<TComparable>(
-            Expression<Func<T, IEnumerable<TComparable>>> propertyOrMethod,
-            Action<IComparableFilterFieldDescriptor> descriptor)
-            where TComparable : IComparable;
-
-
-        IEnumerableFilterFieldDescriptor Filter<TFilter>(
-            Expression<Func<T, IEnumerable<object>>> propertyOrMethod)
-            where TFilter : IFilterInputType;
-             */
     }
 }

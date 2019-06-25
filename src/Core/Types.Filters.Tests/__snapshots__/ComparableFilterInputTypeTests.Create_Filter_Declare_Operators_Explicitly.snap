@@ -8,18 +8,18 @@ type Query {
 
 input FooFilter {
   AND: [FooFilter!]
-  barShort: Short!
-  barShort_gt: Short!
-  barShort_gte: Short!
+  barShort: Short
+  barShort_gt: Short
+  barShort_gte: Short
   barShort_in: [Short!]
-  barShort_lt: Short!
-  barShort_lte: Short!
-  barShort_not: Short!
-  barShort_not_gt: Short!
-  barShort_not_gte: Short!
+  barShort_lt: Short
+  barShort_lte: Short
+  barShort_not: Short
+  barShort_not_gt: Short
+  barShort_not_gte: Short
   barShort_not_in: [Short!]
-  barShort_not_lt: Short!
-  barShort_not_lte: Short!
+  barShort_not_lt: Short
+  barShort_not_lte: Short
   OR: [FooFilter!]
 }
 

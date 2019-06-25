@@ -51,8 +51,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.Voyager", "As
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Filters", "..\Core\Types.Filters\Types.Filters.csproj", "{F3FD6777-B22A-436B-95C8-A6DA74503A99}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Filters", "AspNetCore.Filters\AspNetCore.Filters.csproj", "{1F399867-EB87-4449-B049-12F8DAEFB2CE}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -151,10 +149,6 @@ Global
 		{F3FD6777-B22A-436B-95C8-A6DA74503A99}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3FD6777-B22A-436B-95C8-A6DA74503A99}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3FD6777-B22A-436B-95C8-A6DA74503A99}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1F399867-EB87-4449-B049-12F8DAEFB2CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1F399867-EB87-4449-B049-12F8DAEFB2CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1F399867-EB87-4449-B049-12F8DAEFB2CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1F399867-EB87-4449-B049-12F8DAEFB2CE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

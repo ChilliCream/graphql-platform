@@ -1,4 +1,5 @@
 using System;
+using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -8,7 +9,18 @@ namespace HotChocolate.Types.Filters
         : TypeTestBase
     {
         [Fact]
-        public void Create_Implicit_Filters()
+        public void Create_Filter_Discover_Everything_Implicitly()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FooFilterTypeDefaults());
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Filter_Discover_Operators_Implicitly()
         {
             // arrange
             // act
@@ -22,13 +34,17 @@ namespace HotChocolate.Types.Filters
         /// This test checks if the binding of all allow methods are correct
         /// </summary>
         [Fact]
-        public void Create_Explitcit_Filters()
+        public void Create_Filter_Declare_Operators_Explicitly()
         {
             // arrange
             // act
             var schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
             {
-                descriptor.Filter(x => x.BarShort).BindExplicitly().AllowEquals()
+                descriptor
+                .BindExplicitly()
+                .Filter(x => x.BarShort)
+                .BindExplicitly()
+                .AllowEquals()
                 .And().AllowNotEquals()
                 .And().AllowIn()
                 .And().AllowNotIn()
@@ -40,15 +56,155 @@ namespace HotChocolate.Types.Filters
                 .And().AllowNotLowerThan()
                 .And().AllowLowerThanOrEquals()
                 .And().AllowNotLowerThanOrEquals();
-
             }));
 
             // assert
             schema.ToString().MatchSnapshot();
         }
+
+        [Fact]
+        public void Declare_Name_Explicitly()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
+            {
+                descriptor.Filter(x => x.BarInt)
+                    .BindExplicitly()
+                    .AllowEquals()
+                    .Name("custom_equals");
+            }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Declare_Description_Explicitly()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
+            {
+                descriptor.Filter(x => x.BarInt)
+                    .BindExplicitly()
+                    .AllowEquals()
+                    .Description("custom_equals_description");
+            }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Declare_Directive_By_Name()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(builder =>
+                builder.AddType(new FilterInputType<Foo>(d =>
+                {
+                    d.Filter(x => x.BarInt)
+                        .BindExplicitly()
+                        .AllowEquals()
+                        .Directive("bar");
+                }))
+                .AddDirectiveType(new DirectiveType(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.InputFieldDefinition))));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Declare_Directive_By_Name_With_Argument()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(builder =>
+                builder.AddType(new FilterInputType<Foo>(d =>
+                {
+                    d.Filter(x => x.BarInt)
+                        .BindExplicitly()
+                        .AllowEquals()
+                        .Directive("bar",
+                            new ArgumentNode("qux",
+                                new StringValueNode("foo")));
+                }))
+                .AddDirectiveType(new DirectiveType(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.InputFieldDefinition)
+                    .Argument("qux")
+                    .Type<StringType>())));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Declare_Directive_With_Clr_Type()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(builder =>
+                builder.AddType(new FilterInputType<Foo>(d =>
+                {
+                    d.Filter(x => x.BarInt)
+                        .BindExplicitly()
+                        .AllowEquals()
+                        .Directive<Bar>();
+                }))
+                .AddDirectiveType(new DirectiveType<Bar>(d => d
+                    .Location(DirectiveLocation.InputFieldDefinition))));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Declare_Directive_With_Clr_Instance()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(builder =>
+                builder.AddType(new FilterInputType<Foo>(d =>
+                {
+                    d.Filter(x => x.BarInt)
+                        .BindExplicitly()
+                        .AllowEquals()
+                        .Directive(new Bar());
+                }))
+                .AddDirectiveType(new DirectiveType<Bar>(d => d
+                    .Location(DirectiveLocation.InputFieldDefinition))));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Bind_Filter_Implicitly()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    descriptor
+                        .BindExplicitly()
+                        .Filter(x => x.BarInt)
+                        .BindExplicitly()
+                        .BindImplicitly();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public enum FooBar
         {
-            FOO, BAR
+            Foo,
+            Bar
         }
 
         public class Foo
@@ -62,12 +218,18 @@ namespace HotChocolate.Types.Filters
             public FooBar FooBar { get; set; }
         }
 
+        public class Bar
+        {
+            public string Baz { get; set; }
+        }
+
         public class FooFilterType
             : FilterInputType<Foo>
         {
             protected override void Configure(
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
+                descriptor.BindExplicitly();
                 descriptor.Filter(x => x.BarShort);
                 descriptor.Filter(x => x.BarInt);
                 descriptor.Filter(x => x.BarLong);
@@ -75,7 +237,15 @@ namespace HotChocolate.Types.Filters
                 descriptor.Filter(x => x.BarDouble);
                 descriptor.Filter(x => x.BarDecimal);
                 descriptor.Filter(x => x.FooBar);
+            }
+        }
 
+        public class FooFilterTypeDefaults
+            : FilterInputType<Foo>
+        {
+            protected override void Configure(
+                IFilterInputTypeDescriptor<Foo> descriptor)
+            {
             }
         }
     }

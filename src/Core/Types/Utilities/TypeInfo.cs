@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Utilities
 {
-    internal sealed class TypeInfo
+    public sealed class TypeInfo
     {
         public TypeInfo(Type clrType,
             IReadOnlyList<Type> components,
