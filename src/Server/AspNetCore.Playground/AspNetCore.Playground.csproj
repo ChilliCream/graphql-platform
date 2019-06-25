@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netcoreapp3.0;netstandard2.0</TargetFrameworks>
     <AssemblyName>HotChocolate.AspNetCore.Playground</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Playground</RootNamespace>
     <PackageId>HotChocolate.AspNetCore.Playground</PackageId>

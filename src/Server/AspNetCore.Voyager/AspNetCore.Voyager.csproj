@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netcoreapp3.0;netstandard2.0</TargetFrameworks>
     <AssemblyName>HotChocolate.AspNetCore.Voyager</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Voyager</RootNamespace>
     <PackageId>HotChocolate.AspNetCore.Voyager</PackageId>
