@@ -39,17 +39,18 @@ namespace HotChocolate.Types.Filters
 
         /// <inheritdoc/>
         public new IStringFilterOperationDescriptor Description(
-            string description)
+            string value)
         {
-            base.Description(description);
+            base.Description(value);
             return this;
         }
 
         /// <inheritdoc/>
-        public new IStringFilterOperationDescriptor Directive<T>(T directive)
+        public new IStringFilterOperationDescriptor Directive<T>(
+            T directiveInstance)
             where T : class
         {
-            base.Directive(directive);
+            base.Directive(directiveInstance);
             return this;
         }
 
