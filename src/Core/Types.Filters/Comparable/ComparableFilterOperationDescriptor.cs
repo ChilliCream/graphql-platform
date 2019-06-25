@@ -64,6 +64,25 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
+        /// <summary>
+        /// Create a new comparable filter operation descriptor.
+        /// </summary>
+        /// <param name="context">
+        /// The descriptor context.
+        /// </param>
+        /// <param name="descriptor">
+        /// The field descriptor on which this
+        /// filter operation shall be applied.
+        /// </param>
+        /// <param name="name">
+        /// The default name of the filter operation field.
+        /// </param>
+        /// <param name="type">
+        /// The field type of this filter operation field.
+        /// </param>
+        /// <param name="operation">
+        /// The filter operation info.
+        /// </param>
         public static ComparableFilterOperationDescriptor New(
             IDescriptorContext context,
             ComparableFilterFieldDescriptor descriptor,

@@ -27,14 +27,17 @@ namespace HotChocolate.Types.Filters
                 ?? throw new ArgumentNullException(nameof(descriptor));
         }
 
+        /// <inheritdoc/>
         public IStringFilterFieldDescriptor And() => _descriptor;
 
+        /// <inheritdoc/>
         public new IStringFilterOperationDescriptor Name(NameString value)
         {
             base.Name(value);
             return this;
         }
 
+        /// <inheritdoc/>
         public new IStringFilterOperationDescriptor Description(
             string description)
         {
@@ -42,13 +45,15 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
+        /// <inheritdoc/>
         public new IStringFilterOperationDescriptor Directive<T>(T directive)
-           where T : class
+            where T : class
         {
             base.Directive(directive);
             return this;
         }
 
+        /// <inheritdoc/>
         public new IStringFilterOperationDescriptor Directive<T>()
             where T : class, new()
         {
@@ -56,6 +61,7 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
+        /// <inheritdoc/>
         public new IStringFilterOperationDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
@@ -64,6 +70,25 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
+        /// <summary>
+        /// Create a new string filter operation descriptor.
+        /// </summary>
+        /// <param name="context">
+        /// The descriptor context.
+        /// </param>
+        /// <param name="descriptor">
+        /// The field descriptor on which this
+        /// filter operation shall be applied.
+        /// </param>
+        /// <param name="name">
+        /// The default name of the filter operation field.
+        /// </param>
+        /// <param name="type">
+        /// The field type of this filter operation field.
+        /// </param>
+        /// <param name="operation">
+        /// The filter operation info.
+        /// </param>
         public static StringFilterOperationDescriptor New(
             IDescriptorContext context,
             StringFilterFieldDescriptor descriptor,
