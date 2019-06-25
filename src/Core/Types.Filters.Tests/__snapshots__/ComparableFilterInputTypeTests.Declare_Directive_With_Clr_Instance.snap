@@ -44,18 +44,7 @@ input FooFilter {
   barFloat_not_in: [Float!]
   barFloat_not_lt: Float
   barFloat_not_lte: Float
-  barInt: Int
-  barInt_gt: Int
-  barInt_gte: Int
-  barInt_in: [Int!]
-  barInt_lt: Int
-  barInt_lte: Int
-  barInt_not: Int
-  barInt_not_gt: Int
-  barInt_not_gte: Int
-  barInt_not_in: [Int!]
-  barInt_not_lt: Int
-  barInt_not_lte: Int
+  barInt: Int @Bar(baz: null)
   barLong: Long
   barLong_gt: Long
   barLong_gte: Long
@@ -99,6 +88,8 @@ enum FooBar {
   FOO
   BAR
 }
+
+directive @Bar(baz: String) on INPUT_FIELD_DEFINITION
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
 scalar String
