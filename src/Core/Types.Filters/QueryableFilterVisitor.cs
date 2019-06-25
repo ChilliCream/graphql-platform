@@ -213,6 +213,4 @@ namespace HotChocolate.Types.Filters
 
         #endregion
     }
-
-
 }
