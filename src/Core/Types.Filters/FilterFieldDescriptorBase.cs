@@ -141,8 +141,55 @@ namespace HotChocolate.Types.Filters
 
         protected ITypeReference RewriteTypeToNullableType()
         {
-            // TODO : michae: implement this one
-            return Definition.Type;
+            ITypeReference reference = Definition.Type;
+
+            if (reference is IClrTypeReference clrRef
+                && TypeInspector.Default.TryCreate(
+                    clrRef.Type,
+                    out Utilities.TypeInfo typeInfo))
+            {
+                if (BaseTypes.IsSchemaType(typeInfo.ClrType))
+                {
+                    if (clrRef.Type.IsGenericType
+                        && clrRef.Type.GetGenericTypeDefinition() ==
+                            typeof(NonNullType<>))
+                    {
+                        return clrRef.WithType(typeInfo.Components[1]);
+                    }
+                    return clrRef;
+                }
+                else
+                {
+                    if (clrRef.Type.IsValueType)
+                    {
+                        return clrRef.WithType(
+                            typeof(Nullable<>).MakeGenericType(clrRef.Type));
+                    }
+                    else if (clrRef.Type.IsGenericType
+                        && clrRef.Type.GetGenericTypeDefinition() ==
+                            typeof(NonNullType<>))
+                    {
+                        return clrRef.WithType(typeInfo.Components[1]);
+                    }
+                    return clrRef;
+                }
+            }
+
+            if (reference is ISchemaTypeReference schemaRef)
+            {
+                return schemaRef.Type is NonNullType nnt
+                    ? schemaRef.WithType(nnt)
+                    : schemaRef;
+            }
+
+            if (reference is ISyntaxTypeReference syntaxRef)
+            {
+                return syntaxRef.Type is NonNullTypeNode nnt
+                    ? syntaxRef.WithType(nnt)
+                    : syntaxRef;
+            }
+
+            throw new NotSupportedException();
         }
 
         protected NameString CreateFieldName(FilterOperationKind kind)
@@ -152,7 +199,7 @@ namespace HotChocolate.Types.Filters
                 case FilterOperationKind.Equals:
                     return Definition.Name;
                 case FilterOperationKind.NotEquals:
-                    return Definition.Name +"_not";
+                    return Definition.Name + "_not";
 
                 case FilterOperationKind.Contains:
                     return Definition.Name + "_contains";

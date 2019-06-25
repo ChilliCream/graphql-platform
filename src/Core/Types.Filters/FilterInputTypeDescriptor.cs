@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Filters
         : DescriptorBase<FilterInputTypeDefinition>
         , IFilterInputTypeDescriptor<T>
     {
-        public FilterInputTypeDescriptor(
+        protected FilterInputTypeDescriptor(
             IDescriptorContext context,
             Type entityType)
             : base(context)
