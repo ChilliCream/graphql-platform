@@ -36,16 +36,17 @@ namespace HotChocolate.Types.Filters
         }
 
         public new IBooleanFilterOperationDescriptor Description(
-            string description)
+            string value)
         {
-            base.Description(description);
+            base.Description(value);
             return this;
         }
 
-        public new IBooleanFilterOperationDescriptor Directive<T>(T directive)
+        public new IBooleanFilterOperationDescriptor Directive<T>(
+            T directiveInstance)
            where T : class
         {
-            base.Directive(directive);
+            base.Directive(directiveInstance);
             return this;
         }
 
