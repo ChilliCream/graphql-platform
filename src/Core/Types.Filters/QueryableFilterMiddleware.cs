@@ -9,12 +9,14 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
-    public class FilterMiddleware<T>
+    public class QueryableFilterMiddleware<T>
     {
         private readonly FieldDelegate _next;
         private readonly ITypeConversion _converter;
 
-        public FilterMiddleware(FieldDelegate next, ITypeConversion converter)
+        public QueryableFilterMiddleware(
+            FieldDelegate next,
+            ITypeConversion converter)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
             _converter = converter ?? TypeConversion.Default;
@@ -24,9 +26,9 @@ namespace HotChocolate.Types.Filters
         {
             await _next(context).ConfigureAwait(false);
 
-            var filter = context.Argument<ObjectValueNode>("where");
+            var filter = context.Argument<IValueNode>("where");
 
-            if (filter is null)
+            if (filter is null || filter is NullValueNode)
             {
                 return;
             }

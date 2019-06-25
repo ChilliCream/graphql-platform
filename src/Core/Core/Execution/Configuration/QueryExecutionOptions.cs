@@ -4,7 +4,7 @@ using System.Diagnostics;
 namespace HotChocolate.Execution.Configuration
 {
     /// <summary>
-    /// Represents the entirety of settings to configure the behaviour of the
+    /// Represents the entirety of settings to configure the behavior of the
     /// query execution engine.
     /// </summary>
     public class QueryExecutionOptions

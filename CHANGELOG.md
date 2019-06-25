@@ -10,11 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Added support to infer if a field or enum value is deprecated. [#826](https://github.com/ChilliCream/hotchocolate/pull/826)
+- Added prisma filter types. [#861](https://github.com/ChilliCream/hotchocolate/pull/861)
 
 ### Changed
 
 - Subscription now uses pipeline API to abstract sockets. [#807](https://github.com/ChilliCream/hotchocolate/pull/807)
 - Improved parser performance. [#806](https://github.com/ChilliCream/hotchocolate/pull/806)
+- Roles collection on authorization directive is now interpreted as OR.
+
+### Fixed
+
+- The parent method on the resolver context now uses the converters if the source object type does not align with the requested type.
 
 ## [9.0.4] - 2019-06-16
 

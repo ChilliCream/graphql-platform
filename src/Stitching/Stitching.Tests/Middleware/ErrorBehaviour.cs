@@ -12,10 +12,10 @@ using Snapshooter.Xunit;
 
 namespace HotChocolate.Stitching
 {
-    public class ErrorBehaviour
+    public class Errorbehavior
         : StitchingTestBase
     {
-        public ErrorBehaviour(TestServerFactory testServerFactory)
+        public Errorbehavior(TestServerFactory testServerFactory)
             : base(testServerFactory)
         {
         }

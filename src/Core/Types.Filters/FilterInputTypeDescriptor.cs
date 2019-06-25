@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Filters
         : DescriptorBase<FilterInputTypeDefinition>
         , IFilterInputTypeDescriptor<T>
     {
-        public FilterInputTypeDescriptor(
+        protected FilterInputTypeDescriptor(
             IDescriptorContext context,
             Type entityType)
             : base(context)
@@ -99,6 +99,23 @@ namespace HotChocolate.Types.Filters
                 return true;
             }
 
+            if (property.PropertyType == typeof(bool)
+                || property.PropertyType == typeof(bool?))
+            {
+                var field = new BooleanFilterFieldDescriptor(
+                    Context, property);
+                definition = field.CreateDefinition();
+                return true;
+            }
+
+            if (typeof(IComparable).IsAssignableFrom(property.PropertyType))
+            {
+                var field = new ComparableFilterFieldDescriptor(
+                    Context, property);
+                definition = field.CreateDefinition();
+                return true;
+            }
+
             definition = null;
             return false;
         }
@@ -109,6 +126,12 @@ namespace HotChocolate.Types.Filters
             Definition.Fields.BindingBehavior = bindingBehavior;
             return this;
         }
+
+        public IFilterInputTypeDescriptor<T> BindExplicitly() =>
+            BindFields(BindingBehavior.Explicit);
+
+        public IFilterInputTypeDescriptor<T> BindImplicitly() =>
+            BindFields(BindingBehavior.Implicit);
 
         public IStringFilterFieldDescriptor Filter(
             Expression<Func<T, string>> propertyOrMethod)

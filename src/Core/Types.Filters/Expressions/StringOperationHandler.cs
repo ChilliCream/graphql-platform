@@ -1,6 +1,4 @@
-using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
@@ -9,17 +7,6 @@ namespace HotChocolate.Types.Filters.Expressions
     public class StringOperationHandler
         : IExpressionOperationHandler
     {
-        private static readonly MethodInfo _startsWith =
-            typeof(string).GetMethods().Single(m =>
-                m.Name.Equals("StartsWith")
-                && m.GetParameters().Length == 1
-                && m.GetParameters().Single().ParameterType == typeof(string));
-
-        private static readonly MethodInfo _endsWith =
-            typeof(string).GetMethods().Single(m =>
-                m.Name.Equals("EndsWith")
-                && m.GetParameters().Length == 1
-                && m.GetParameters().Single().ParameterType == typeof(string));
 
         public bool TryHandle(
             FilterOperation operation,
@@ -37,49 +24,73 @@ namespace HotChocolate.Types.Filters.Expressions
                 switch (operation.Kind)
                 {
                     case FilterOperationKind.Equals:
-                        expression = Expression.Equal(
-                            property,
-                            Expression.Constant(s.Value));
+                        expression = FilterExpressionBuilder.Equals(
+                            property, s.Value);
                         return true;
 
                     case FilterOperationKind.NotEquals:
-                        expression = Expression.Equal(
-                            Expression.Equal(
-                                property,
-                                Expression.Constant(s.Value)),
-                            Expression.Constant(false));
+                        expression = FilterExpressionBuilder.Not(
+                            FilterExpressionBuilder.Equals(property, s.Value)
+                        );
                         return true;
 
                     case FilterOperationKind.StartsWith:
-                        expression = Expression.Call(
-                            property,
-                            _startsWith,
-                            new[] { Expression.Constant(s.Value) });
+                        expression = FilterExpressionBuilder.StartsWith(
+                            property, s.Value);
                         return true;
 
                     case FilterOperationKind.EndsWith:
-                        expression = Expression.Call(
-                            property,
-                            _endsWith,
-                            new[] { Expression.Constant(s.Value) });
+                        expression = FilterExpressionBuilder.EndsWith(
+                            property, s.Value);
                         return true;
 
                     case FilterOperationKind.NotStartsWith:
-                        expression = Expression.Equal(
-                            Expression.Call(
-                                property,
-                                _startsWith,
-                                new[] { Expression.Constant(s.Value) }),
-                            Expression.Constant(false));
+                        expression = FilterExpressionBuilder.Not(
+                            FilterExpressionBuilder.StartsWith(
+                                property, s.Value)
+                        );
                         return true;
 
                     case FilterOperationKind.NotEndsWith:
-                        expression = Expression.Equal(
-                            Expression.Call(
+                        expression = FilterExpressionBuilder.Not(
+                            FilterExpressionBuilder.EndsWith(property, s.Value)
+                        );
+                        return true;
+
+                    case FilterOperationKind.Contains:
+                        expression = FilterExpressionBuilder.Contains(
+                            property, s.Value);
+                        return true;
+
+                    case FilterOperationKind.NotContains:
+                        expression = FilterExpressionBuilder.Not(
+                            FilterExpressionBuilder.Contains(property, s.Value)
+                        );
+                        return true;
+                }
+            }
+
+            if (operation.Type == typeof(string) && value is ListValueNode li)
+            {
+                MemberExpression property =
+                    Expression.Property(instance, operation.Property);
+                var parsedValue = type.ParseLiteral(value);
+
+                switch (operation.Kind)
+                {
+                    case FilterOperationKind.In:
+                        expression = FilterExpressionBuilder.In(
+                            property,
+                            operation.Property.PropertyType,
+                            parsedValue);
+                        return true;
+
+                    case FilterOperationKind.NotIn:
+                        expression = FilterExpressionBuilder.Not(
+                            FilterExpressionBuilder.In(
                                 property,
-                                _endsWith,
-                                new[] { Expression.Constant(s.Value) }),
-                            Expression.Constant(false));
+                                operation.Property.PropertyType,
+                                parsedValue));
                         return true;
                 }
             }
