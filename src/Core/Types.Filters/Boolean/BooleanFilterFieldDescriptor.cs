@@ -4,7 +4,6 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Filters
 {
-    // TODO : we also need not equals
     public class BooleanFilterFieldDescriptor
         : FilterFieldDescriptorBase
         , IBooleanFilterFieldDescriptor
@@ -23,21 +22,7 @@ namespace HotChocolate.Types.Filters
 
         protected override ISet<FilterOperationKind> AllowedOperations { get; }
 
-        public IBooleanFilterOperationDescriptor AllowEquals()
-        {
-            BooleanFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.Equals);
-            Filters.Add(field);
-            return field;
-        }
-        public IBooleanFilterOperationDescriptor AllowNotEquals()
-        {
-            BooleanFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.NotEquals);
-            Filters.Add(field);
-            return field;
-        }
-
+        /// <inheritdoc/>
         public new IBooleanFilterFieldDescriptor BindFilters(
             BindingBehavior bindingBehavior)
         {
@@ -45,11 +30,31 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
+        /// <inheritdoc/>
         public IBooleanFilterFieldDescriptor BindExplicitly() =>
             BindFilters(BindingBehavior.Explicit);
 
+        /// <inheritdoc/>
         public IBooleanFilterFieldDescriptor BindImplicitly() =>
-            BindFilters(BindingBehavior.Explicit);
+            BindFilters(BindingBehavior.Implicit);
+
+        /// <inheritdoc/>
+        public IBooleanFilterOperationDescriptor AllowEquals()
+        {
+            BooleanFilterOperationDescriptor field =
+                CreateOperation(FilterOperationKind.Equals);
+            Filters.Add(field);
+            return field;
+        }
+
+        /// <inheritdoc/>
+        public IBooleanFilterOperationDescriptor AllowNotEquals()
+        {
+            BooleanFilterOperationDescriptor field =
+                CreateOperation(FilterOperationKind.NotEquals);
+            Filters.Add(field);
+            return field;
+        }
 
         protected override FilterOperationDefintion CreateOperationDefinition(
             FilterOperationKind operationKind) =>

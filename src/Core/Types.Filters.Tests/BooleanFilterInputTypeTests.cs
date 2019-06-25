@@ -170,6 +170,25 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Bind_Filter_Implicitly()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor =>
+                {
+                    descriptor
+                        .BindExplicitly()
+                        .Filter(x => x.Bar)
+                        .BindExplicitly()
+                        .BindImplicitly();
+                }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class Foo
         {
             public bool Bar { get; set; }
