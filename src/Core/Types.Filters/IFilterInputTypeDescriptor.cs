@@ -10,7 +10,7 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Defines the filter binding behavior.
         ///
-        /// The default binding behaviour is set to
+        /// The default binding behavior is set to
         /// <see cref="BindingBehavior.Implicit"/>.
         /// </summary>
         /// <param name="behavior">
