@@ -8,8 +8,8 @@ type Query {
 
 input FooFilter {
   AND: [FooFilter!]
+  "custom_equals_description"
   bar: Boolean
-  bar_not: Boolean
   OR: [FooFilter!]
 }
 

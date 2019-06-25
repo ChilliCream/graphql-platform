@@ -39,6 +39,24 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void Execute_Filter_Is_Null()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos { bar } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public void Infer_Filter_From_Field()
         {
             // arrange

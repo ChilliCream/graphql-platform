@@ -11,9 +11,7 @@ namespace HotChocolate.Types.Filters
     public class QueryableFilterVisitor
         : FilterVisitorBase
     {
-        private readonly Type _source;
         private readonly IReadOnlyList<IExpressionOperationHandler> _opHandlers;
-        private readonly Expression _instance;
         private readonly ParameterExpression _parameter;
         private readonly ITypeConversion _converter;
 
@@ -23,13 +21,12 @@ namespace HotChocolate.Types.Filters
             ITypeConversion converter)
             : base(initialType)
         {
-            _source = source ?? throw new ArgumentNullException(nameof(source));
-            _instance = _parameter = Expression.Parameter(source);
+            _parameter = Expression.Parameter(source);
             _opHandlers = ExpressionOperationHandlers.All;
             _converter = converter;
 
             Level.Push(new Queue<Expression>());
-            Instance.Push(_instance);
+            Instance.Push(_parameter);
         }
 
         public QueryableFilterVisitor(
@@ -43,15 +40,13 @@ namespace HotChocolate.Types.Filters
                 throw new ArgumentNullException(nameof(operationHandlers));
             }
 
-            _source = source ?? throw new ArgumentNullException(nameof(source));
             _opHandlers = operationHandlers.ToArray();
-            _instance = _parameter = Expression.Parameter(source);
+            _parameter = Expression.Parameter(source);
 
             Level.Push(new Queue<Expression>());
-            Instance.Push(_instance);
+            Instance.Push(_parameter);
         }
 
-        // TODO : get rid of the generic type parameter
         public Expression<Func<TSource, bool>> CreateFilter<TSource>()
         {
             return Expression.Lambda<Func<TSource, bool>>(
@@ -181,12 +176,11 @@ namespace HotChocolate.Types.Filters
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            switch (Operations.Peek())
+            IInputField operationField = Operations.Peek();
+
+            if (operationField is AndField || operationField is OrField)
             {
-                case AndField and:
-                case OrField or:
-                    Level.Push(new Queue<Expression>());
-                    break;
+                Level.Push(new Queue<Expression>());
             }
 
             return VisitorAction.Continue;
@@ -219,6 +213,4 @@ namespace HotChocolate.Types.Filters
 
         #endregion
     }
-
-
 }
