@@ -149,8 +149,9 @@ namespace HotChocolate.Types
             Assert.Equal("BAZ", resolverContext.Object.Result);
         }
 
+        [Obsolete]
         [Fact]
-        public void FieldIsDepricated()
+        public void DeprecationReasion_Obsolete()
         {
             // arrange
             var resolverContext = new Mock<IMiddlewareContext>();
@@ -166,6 +167,82 @@ namespace HotChocolate.Types
             // assert
             Assert.Equal("fooBar", fooType.Fields["bar"].DeprecationReason);
             Assert.True(fooType.Fields["bar"].IsDeprecated);
+        }
+
+        [Fact]
+        public void Deprecated_Field_With_Reason()
+        {
+            // arrange
+            var resolverContext = new Mock<IMiddlewareContext>();
+            resolverContext.SetupAllProperties();
+
+            // act
+            ObjectType fooType = CreateType(new ObjectType(c => c
+                .Name("Foo")
+                .Field("bar")
+                .Deprecated("fooBar")
+                .Resolver(() => "baz")));
+
+            // assert
+            Assert.Equal("fooBar", fooType.Fields["bar"].DeprecationReason);
+            Assert.True(fooType.Fields["bar"].IsDeprecated);
+        }
+
+        [Fact]
+        public void Deprecated_Field_With_Reason_Is_Serialized()
+        {
+            // arrange
+            var resolverContext = new Mock<IMiddlewareContext>();
+            resolverContext.SetupAllProperties();
+
+            // act
+            ISchema schema = CreateSchema(new ObjectType(c => c
+                .Name("Foo")
+                .Field("bar")
+                .Deprecated("fooBar")
+                .Resolver(() => "baz")));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Deprecated_Field_Without_Reason()
+        {
+            // arrange
+            var resolverContext = new Mock<IMiddlewareContext>();
+            resolverContext.SetupAllProperties();
+
+            // act
+            ObjectType fooType = CreateType(new ObjectType(c => c
+                .Name("Foo")
+                .Field("bar")
+                .Deprecated()
+                .Resolver(() => "baz")));
+
+            // assert
+            Assert.Equal(
+                WellKnownDirectives.DeprecationDefaultReason,
+                fooType.Fields["bar"].DeprecationReason);
+            Assert.True(fooType.Fields["bar"].IsDeprecated);
+        }
+
+        [Fact]
+        public void Deprecated_Field_Without_Reason_Is_Serialized()
+        {
+            // arrange
+            var resolverContext = new Mock<IMiddlewareContext>();
+            resolverContext.SetupAllProperties();
+
+            // act
+            ISchema schema = CreateSchema(new ObjectType(c => c
+                .Name("Foo")
+                .Field("bar")
+                .Deprecated()
+                .Resolver(() => "baz")));
+
+            // assert
+            schema.ToString().MatchSnapshot();
         }
 
         [Fact]
