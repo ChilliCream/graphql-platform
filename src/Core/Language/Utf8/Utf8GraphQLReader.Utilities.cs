@@ -144,6 +144,8 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal ReadOnlySpan<byte> Expect(TokenKind kind)
         {
+            ReadOnlySpan<byte> value = Value;
+
             if (!Skip(kind))
             {
                 throw new SyntaxException(this,
@@ -152,7 +154,8 @@ namespace HotChocolate.Language
                         kind,
                         Kind));
             }
-            return Value;
+
+            return value;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

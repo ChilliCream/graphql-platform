@@ -82,7 +82,8 @@ namespace HotChocolate.Language
             (byte)'n'
         };
 
-
+        private readonly IDocumentHashProvider _hashProvider;
+        private readonly IDocumentCache _cache;
         private Utf8GraphQLReader _reader;
         private ParserOptions _options;
 
@@ -123,12 +124,39 @@ namespace HotChocolate.Language
         {
             var request = new Request();
 
+            _reader.Expect(TokenKind.LeftBrace);
+
+
             while (_reader.Kind != TokenKind.RightBrace)
             {
                 ParseProperty(ref request);
+                _reader.MoveNext();
             }
 
-            throw new NotImplementedException();
+            if (request.Query.Length == 0)
+            {
+                throw new SyntaxException(_reader, "RESOURCES");
+            }
+
+            if (request.NamedQuery is null)
+            {
+                request.NamedQuery =
+                    _hashProvider.ComputeHash(request.Query);
+            }
+
+            if(!_cache.TryGet(request.NamedQuery, out DocumentNode document))
+            {
+                document = ParseQuery(in request);
+            }
+
+            return new GraphQLRequest
+            (
+                request.OperationName,
+                request.NamedQuery,
+                document,
+                request.Variables,
+                request.Extensions
+            );
         }
 
         private void ParseProperty(ref Request request)
@@ -194,30 +222,26 @@ namespace HotChocolate.Language
 
         private object ParseValue()
         {
-            if (_reader.Kind == TokenKind.LeftBracket)
+            switch (_reader.Kind)
             {
-                return ParseList();
-            }
+                case TokenKind.LeftBracket:
+                    return ParseList();
 
-            if (_reader.Kind == TokenKind.LeftBrace)
-            {
-                return ParseObject();
-            }
+                case TokenKind.LeftBrace:
+                    return ParseObject();
 
-            if (TokenHelper.IsScalarValue(in _reader))
-            {
-                return ParseScalarValue();
-            }
+                case TokenKind.Name:
+                case TokenKind.String:
+                case TokenKind.Integer:
+                case TokenKind.Float:
+                    return ParseScalarValue();
 
-            if (_reader.Kind == TokenKind.Name)
-            {
-                return ParseEnumValue();
+                default:
+                    throw new SyntaxException(_reader, "RESOURCES");
             }
-
-            throw new SyntaxException(_reader, "RESOURCES");
         }
 
-        private IDictionary<string, object> ParseObject()
+        private IReadOnlyDictionary<string, object> ParseObject()
         {
             if (_reader.Kind != TokenKind.LeftBrace)
             {
@@ -323,9 +347,9 @@ namespace HotChocolate.Language
             throw new SyntaxException(_reader, "RESOURCES");
         }
 
-        private DocumentNode ParseQuery()
+        private DocumentNode ParseQuery(in Request request)
         {
-            int length = checked(_reader.Value.Length);
+            int length = checked(request.Query.Length);
             bool useStackalloc =
                 length <= GraphQLConstants.StackallocThreshold;
 
@@ -338,7 +362,7 @@ namespace HotChocolate.Language
             try
             {
                 Utf8Helper.Unescape(
-                    _reader.Value,
+                    request.Query,
                     ref unescapedSpan,
                     false);
 
@@ -362,14 +386,32 @@ namespace HotChocolate.Language
 
             public ReadOnlySpan<byte> Query { get; set; }
 
-            public IDictionary<string, object> Variables { get; set; }
+            public IReadOnlyDictionary<string, object> Variables { get; set; }
 
-            public IDictionary<string, object> Extensions { get; set; }
+            public IReadOnlyDictionary<string, object> Extensions { get; set; }
         }
     }
 
     public class GraphQLRequest
     {
+        public GraphQLRequest(
+            string operationName,
+            string namedQuery,
+            DocumentNode query,
+            IReadOnlyDictionary<string, object> variables,
+            IReadOnlyDictionary<string, object> extensions)
+        {
+            if (string.IsNullOrEmpty(namedQuery))
+            {
+                throw new ArgumentException("message", nameof(namedQuery));
+            }
+
+            if (query is null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+        }
+
         public string OperationName { get; set; }
 
         public string NamedQuery { get; set; }
@@ -377,5 +419,15 @@ namespace HotChocolate.Language
         public DocumentNode Query { get; set; }
 
         public object Variables { get; set; }
+    }
+
+    public interface IDocumentCache
+    {
+        bool TryGet(string key, out DocumentNode document);
+    }
+
+    public interface IDocumentHashProvider
+    {
+        string ComputeHash(ReadOnlySpan<byte> document);
     }
 }
