@@ -59,7 +59,7 @@ namespace HotChocolate.Types.Factories
                 string deprecactionReason = value.DeprecationReason();
                 if (!string.IsNullOrEmpty(deprecactionReason))
                 {
-                    valueDescriptor.DeprecationReason(deprecactionReason);
+                    valueDescriptor.Deprecated(deprecactionReason);
                 }
             }
         }

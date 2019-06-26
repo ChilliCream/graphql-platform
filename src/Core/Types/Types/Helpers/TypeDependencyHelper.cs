@@ -79,6 +79,7 @@ namespace HotChocolate.Types
 
             RegisterAdditionalDependencies(context, definition);
             RegisterDirectiveDependencies(context, definition);
+            RegisterEnumValueDependencies(context, definition.Values);
         }
 
         public static void RegisterDependencies(
@@ -171,6 +172,20 @@ namespace HotChocolate.Types
 
                 context.RegisterDependencyRange(
                     field.Directives.Select(t => t.TypeReference),
+                    TypeDependencyKind.Completed);
+            }
+        }
+
+        private static void RegisterEnumValueDependencies(
+            this IInitializationContext context,
+            IEnumerable<EnumValueDefinition> enumValues)
+        {
+            foreach (EnumValueDefinition enumValue in enumValues)
+            {
+                RegisterAdditionalDependencies(context, enumValue);
+
+                context.RegisterDependencyRange(
+                    enumValue.Directives.Select(t => t.TypeReference),
                     TypeDependencyKind.Completed);
             }
         }

@@ -8,7 +8,7 @@ type Query {
 
 enum FooObsolete {
   BAR1
-  BAR2 @deprecated(reason: "This field is no longer supported.")
+  BAR2 @deprecated(reason: "No longer supported")
 }
 
 "The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
