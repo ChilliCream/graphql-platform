@@ -23,6 +23,12 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public IDictionary<string, object> ContextData { get; } =
             new Dictionary<string, object>();
 
+        /// <summary>
+        /// Gets access to additional type dependencies.
+        /// </summary>
+        public ICollection<TypeDependency> Dependencies { get; } =
+            new List<TypeDependency>();
+
         internal ICollection<ITypeConfigration> Configurations { get; } =
             new List<ITypeConfigration>();
 

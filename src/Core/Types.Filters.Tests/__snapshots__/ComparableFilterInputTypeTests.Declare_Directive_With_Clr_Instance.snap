@@ -44,7 +44,7 @@ input FooFilter {
   barFloat_not_in: [Float!]
   barFloat_not_lt: Float
   barFloat_not_lte: Float
-  barInt: Int @Bar(baz: null)
+  barInt: Int @Bar
   barLong: Long
   barLong_gt: Long
   barLong_gte: Long

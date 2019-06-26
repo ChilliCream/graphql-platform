@@ -2,7 +2,7 @@
   query: Query
 }
 
-type Query @authorize(policy: null, roles: [  ]) {
+type Query @authorize(roles: [  ]) {
   foo: String
 }
 
