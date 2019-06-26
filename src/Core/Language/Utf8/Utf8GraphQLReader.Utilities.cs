@@ -8,16 +8,26 @@ namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLReader
     {
-        public unsafe string GetString()
+        public string GetString()
         {
             if (_value.Length == 0)
             {
                 return string.Empty;
             }
 
-            bool isBlockString = _kind == TokenKind.BlockString;
+            return GetString(_value, _kind == TokenKind.BlockString);
+        }
 
-            int length = checked(_value.Length);
+        public static string GetString(
+            ReadOnlySpan<byte> escapedValue,
+            bool isBlockString)
+        {
+            if (escapedValue.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            int length = checked(escapedValue.Length);
             bool useStackalloc =
                 length <= GraphQLConstants.StackallocThreshold;
 
@@ -29,14 +39,8 @@ namespace HotChocolate.Language
 
             try
             {
-                UnescapeValue(_value, ref unescapedSpan, isBlockString);
-
-                fixed (byte* bytePtr = unescapedSpan)
-                {
-                    return StringHelper.UTF8Encoding.GetString(
-                        bytePtr,
-                        unescapedSpan.Length);
-                }
+                UnescapeValue(escapedValue, ref unescapedSpan, isBlockString);
+                return GetString(unescapedArray);
             }
             finally
             {
@@ -124,6 +128,48 @@ namespace HotChocolate.Language
                 return true;
             }
             return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal bool SkipKeyword(ReadOnlySpan<byte> keyword)
+        {
+            if (Kind == TokenKind.Name && Value.SequenceEqual(keyword))
+            {
+                MoveNext();
+                return true;
+            }
+            return false;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal ReadOnlySpan<byte> Expect(TokenKind kind)
+        {
+            if (!Skip(kind))
+            {
+                throw new SyntaxException(this,
+                    string.Format(CultureInfo.InvariantCulture,
+                        LangResources.Parser_InvalidToken,
+                        kind,
+                        Kind));
+            }
+            return Value;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal void ExpectKeyword(ReadOnlySpan<byte> keyword)
+        {
+            if (!SkipKeyword(keyword))
+            {
+                string found = Kind == TokenKind.Name
+                    ? GetName()
+                    : Kind.ToString();
+
+                throw new SyntaxException(this,
+                    string.Format(CultureInfo.InvariantCulture,
+                        LangResources.Parser_InvalidToken,
+                        Utf8GraphQLReader.GetString(keyword),
+                        found));
+            }
         }
     }
 }
