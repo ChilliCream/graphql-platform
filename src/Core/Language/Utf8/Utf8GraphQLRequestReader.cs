@@ -5,6 +5,8 @@ using System.Globalization;
 using HotChocolate.Language.Properties;
 using System.Buffers;
 using System.Runtime.CompilerServices;
+using System.Threading;
+using System.Security.Cryptography;
 
 namespace HotChocolate.Language
 {
@@ -90,10 +92,18 @@ namespace HotChocolate.Language
 
         public Utf8GraphQLRequestReader(
             ReadOnlySpan<byte> requestData,
-            ParserOptions options)
+            ParserOptions options,
+            IDocumentCache cache,
+            IDocumentHashProvider hashProvider)
         {
+            _options = options
+                ?? throw new ArgumentNullException(nameof(options));
+            _cache = cache
+                ?? throw new ArgumentNullException(nameof(cache));
+            _hashProvider = hashProvider
+                ?? throw new ArgumentNullException(nameof(hashProvider));
+
             _reader = new Utf8GraphQLReader(requestData);
-            _options = options;
         }
 
         public IReadOnlyList<GraphQLRequest> Parse()
@@ -144,7 +154,7 @@ namespace HotChocolate.Language
                     _hashProvider.ComputeHash(request.Query);
             }
 
-            if(!_cache.TryGet(request.NamedQuery, out DocumentNode document))
+            if (!_cache.TryGet(request.NamedQuery, out DocumentNode document))
             {
                 document = ParseQuery(in request);
             }
@@ -429,5 +439,321 @@ namespace HotChocolate.Language
     public interface IDocumentHashProvider
     {
         string ComputeHash(ReadOnlySpan<byte> document);
+    }
+
+    public class Sha1DocumentHashProvider
+        : IDocumentHashProvider
+    {
+        private ThreadLocal<SHA1> _sha =
+            new ThreadLocal<SHA1>(() => SHA1.Create());
+        public string ComputeHash(ReadOnlySpan<byte> document)
+        {
+            HashAlgorithm s;
+            s.Try
+        }
+    }
+
+    /// <summary>
+    /// Defines a configuration for a <see cref="IxxHash"/> implementation.
+    /// </summary>
+    public class xxHashConfig
+    {
+        /// <summary>
+        /// Gets the desired hash size, in bits.
+        /// </summary>
+        /// <value>
+        /// The desired hash size, in bits.
+        /// </value>
+        public int HashSizeInBits { get; set; } = 32;
+
+        /// <summary>
+        /// Gets the seed.
+        /// </summary>
+        /// <value>
+        /// The seed.
+        /// </value>
+        public UInt64 Seed { get; set; } = 0UL;
+
+        /// <summary>
+        /// Makes a deep clone of current instance.
+        /// </summary>
+        /// <returns>A deep clone of the current instance.</returns>
+        public xxHashConfig Clone() =>
+            new xxHashConfig()
+            {
+                HashSizeInBits = HashSizeInBits,
+                Seed = Seed
+            };
+    }
+
+    /// <summary>
+    /// Implements xxHash as specified at https://github.com/Cyan4973/xxHash/blob/dev/xxhash.c and
+    ///   https://github.com/Cyan4973/xxHash.
+    /// </summary>
+    internal ref struct xxHash_Implementation
+    {
+        /// <summary>
+        /// Gets the seed.
+        /// </summary>
+        /// <value>
+        /// The seed.
+        /// </value>
+        public UInt64 Seed { get; set; } = 0UL;
+
+        public override int HashSizeInBits => _config.HashSizeInBits;
+
+
+
+        private readonly IxxHashConfig _config;
+
+
+        private static readonly IReadOnlyList<UInt32> _primes32 =
+            new[] {
+                2654435761U,
+                2246822519U,
+                3266489917U,
+                 668265263U,
+                 374761393U
+            };
+
+        private static readonly IReadOnlyList<UInt64> _primes64 =
+            new[] {
+                11400714785074694791UL,
+                14029467366897019727UL,
+                 1609587929392839161UL,
+                 9650029242287828579UL,
+                 2870177450012600261UL
+            };
+
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="xxHash_Implementation" /> class.
+        /// </summary>
+        /// <param name="config">The configuration to use for this instance.</param>
+        /// <exception cref="ArgumentNullException"><paramref name="config"/></exception>
+        /// <exception cref="ArgumentOutOfRangeException"><paramref name="config"/>.<see cref="IxxHashConfig.HashSizeInBits"/>;<paramref name="config"/>.<see cref="IxxHashConfig.HashSizeInBits"/> must be contained within xxHash.ValidHashSizes</exception>
+        public xxHash_Implementation(IxxHashConfig config)
+        {
+            if (config == null)
+                throw new ArgumentNullException(nameof(config));
+
+            _config = config.Clone();
+
+
+            if (!_validHashSizes.Contains(_config.HashSizeInBits))
+                throw new ArgumentOutOfRangeException($"{nameof(config)}.{nameof(config.HashSizeInBits)}", _config.HashSizeInBits, $"{nameof(config)}.{nameof(config.HashSizeInBits)} must be contained within xxHash.ValidHashSizes");
+        }
+
+
+
+        /// <exception cref="System.InvalidOperationException">HashSize set to an invalid value.</exception>
+        /// <inheritdoc />
+        public void ComputeHash(ReadOnlySpan<byte> data, Span<byte> hash)
+        {
+            var h = Seed + _primes64[4];
+
+            ulong dataCount = 0;
+            byte[] remainder = null;
+
+            var initValues = new[]
+            {
+                Seed + _primes64[0] + _primes64[1],
+                Seed + _primes64[1],
+                Seed,
+                Seed - _primes64[0]
+            };
+
+
+            ForEachGroup(32,
+                (dataGroup, position, length) =>
+                {
+                    for (var x = position; x < position + length; x += 32)
+                    {
+                        for (var y = 0; y < 4; ++y)
+                        {
+                            initValues[y] += BitConverter.ToUInt64(dataGroup, x + (y * 8)) * _primes64[1];
+                            initValues[y] = RotateLeft(initValues[y], 31);
+                            initValues[y] *= _primes64[0];
+                        }
+                    }
+
+                    dataCount += (ulong)length;
+                },
+
+                (remainderData, position, length) =>
+                {
+                    remainder = new byte[length];
+                    Array.Copy(remainderData, position, remainder, 0, length);
+
+                    dataCount += (ulong)length;
+                },
+                cancellationToken);
+
+
+            PostProcess(ref h, initValues, dataCount, remainder);
+
+            hash = BitConverter.GetBytes(h);
+
+
+            return hash;
+        }
+
+        public void ForEachGroup(
+            int groupSize,
+            Action<byte[], int, int> action,
+            Action<byte[], int, int> remainderAction)
+        {
+            if (groupSize <= 0)
+                throw new ArgumentOutOfRangeException(nameof(groupSize), $"{nameof(groupSize)} must be greater than 0.");
+
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
+
+
+
+
+            var remainderLength = _data.Length % groupSize;
+
+            if (_data.Length - remainderLength > 0)
+                action(_data, 0, _data.Length - remainderLength);
+
+
+            if (remainderAction != null && remainderLength > 0)
+            {
+                remainderAction(_data, _data.Length - remainderLength, remainderLength);
+            }
+        }
+
+        private void ComputeGroup(ReadOnlySpan<byte> data, ulong[] initValues)
+        {
+            for (int x = 0; x < data.Length; x += 32)
+            {
+                for (var y = 0; y < 4; ++y)
+                {
+                    initValues[y] += BitConverter.ToUInt64(data, x + (y * 8)) * _primes64[1];
+                    initValues[y] = RotateLeft(initValues[y], 31);
+                    initValues[y] *= _primes64[0];
+                }
+            }
+
+            dataCount += (ulong)length;
+        }
+
+        private void ComputeGroupRemainder()
+        {
+
+        }
+
+        private void PostProcess(ref UInt32 h, UInt32[] initValues, ulong dataCount, byte[] remainder)
+        {
+            if (dataCount >= 16)
+            {
+                h = RotateLeft(initValues[0], 1) +
+                    RotateLeft(initValues[1], 7) +
+                    RotateLeft(initValues[2], 12) +
+                    RotateLeft(initValues[3], 18);
+            }
+
+
+            h += (UInt32)dataCount;
+
+            if (remainder != null)
+            {
+                // In 4-byte chunks, process all process all full chunks
+                for (int x = 0; x < remainder.Length / 4; ++x)
+                {
+                    h += BitConverter.ToUInt32(remainder, x * 4) * _primes32[2];
+                    h = RotateLeft(h, 17) * _primes32[3];
+                }
+
+
+                // Process last 4 bytes in 1-byte chunks (only runs if data.Length % 4 != 0)
+                for (int x = remainder.Length - (remainder.Length % 4); x < remainder.Length; ++x)
+                {
+                    h += (UInt32)remainder[x] * _primes32[4];
+                    h = RotateLeft(h, 11) * _primes32[0];
+                }
+            }
+
+            h ^= h >> 15;
+            h *= _primes32[1];
+            h ^= h >> 13;
+            h *= _primes32[2];
+            h ^= h >> 16;
+        }
+
+        private void PostProcess(ref UInt64 h, UInt64[] initValues, ulong dataCount, byte[] remainder)
+        {
+            if (dataCount >= 32)
+            {
+                h = RotateLeft(initValues[0], 1) +
+                    RotateLeft(initValues[1], 7) +
+                    RotateLeft(initValues[2], 12) +
+                    RotateLeft(initValues[3], 18);
+
+
+                for (var x = 0; x < initValues.Length; ++x)
+                {
+                    initValues[x] *= _primes64[1];
+                    initValues[x] = RotateLeft(initValues[x], 31);
+                    initValues[x] *= _primes64[0];
+
+                    h ^= initValues[x];
+                    h = (h * _primes64[0]) + _primes64[3];
+                }
+            }
+
+            h += (UInt64)dataCount;
+
+            if (remainder != null)
+            {
+                // In 8-byte chunks, process all full chunks
+                for (int x = 0; x < remainder.Length / 8; ++x)
+                {
+                    h ^= RotateLeft(BitConverter.ToUInt64(remainder, x * 8) * _primes64[1], 31) * _primes64[0];
+                    h = (RotateLeft(h, 27) * _primes64[0]) + _primes64[3];
+                }
+
+
+                // Process a 4-byte chunk if it exists
+                if ((remainder.Length % 8) >= 4)
+                {
+                    h ^= ((UInt64)BitConverter.ToUInt32(remainder, remainder.Length - (remainder.Length % 8))) * _primes64[0];
+                    h = (RotateLeft(h, 23) * _primes64[1]) + _primes64[2];
+                }
+
+                // Process last 4 bytes in 1-byte chunks (only runs if data.Length % 4 != 0)
+                for (int x = remainder.Length - (remainder.Length % 4); x < remainder.Length; ++x)
+                {
+                    h ^= (UInt64)remainder[x] * _primes64[4];
+                    h = RotateLeft(h, 11) * _primes64[0];
+                }
+            }
+
+
+            h ^= h >> 33;
+            h *= _primes64[1];
+            h ^= h >> 29;
+            h *= _primes64[2];
+            h ^= h >> 32;
+        }
+
+        private static UInt32 RotateLeft(UInt32 operand, int shiftCount)
+        {
+            shiftCount &= 0x1f;
+
+            return
+                (operand << shiftCount) |
+                (operand >> (32 - shiftCount));
+        }
+
+        private static UInt64 RotateLeft(UInt64 operand, int shiftCount)
+        {
+            shiftCount &= 0x3f;
+
+            return
+                (operand << shiftCount) |
+                (operand >> (64 - shiftCount));
+        }
     }
 }
