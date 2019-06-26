@@ -71,13 +71,15 @@ namespace HotChocolate
                     SerializeSchemaTypeDefinition(schema, referenced));
             }
 
-            IEnumerable<DirectiveDefinitionNode> directiveTypeDefinitions = schema.DirectiveTypes
+            IEnumerable<DirectiveDefinitionNode> directiveTypeDefinitions =
+                schema.DirectiveTypes
                 .Where(t => referenced.DirectiveNames.Contains(t.Name))
                 .Select(t => SerializeDirectiveTypeDefinition(t, referenced));
 
             typeDefinitions.AddRange(directiveTypeDefinitions);
 
-            IEnumerable<ScalarTypeDefinitionNode> scalarTypeDefinitions = schema.Types
+            IEnumerable<ScalarTypeDefinitionNode> scalarTypeDefinitions =
+                schema.Types
                 .OfType<ScalarType>()
                 .Where(t => referenced.TypeNames.Contains(t.Name))
                 .Select(t => SerializeScalarType(t));
