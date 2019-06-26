@@ -3,7 +3,7 @@
 }
 
 interface Simple {
-  a: String @deprecated(reason: "reason123") @deprecated(reason: "reason123")
+  a: String @deprecated(reason: "reason123")
 }
 
 type DummyQuery {

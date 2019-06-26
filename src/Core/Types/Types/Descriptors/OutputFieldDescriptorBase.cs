@@ -121,7 +121,7 @@ namespace HotChocolate.Types.Descriptors
         {
             Definition.DeprecationReason =
                 WellKnownDirectives.DeprecationDefaultReason;
-            AddDeprectedDirective(Definition.DeprecationReason);
+            AddDeprectedDirective(null);
         }
 
         private void AddDeprectedDirective(string reason)

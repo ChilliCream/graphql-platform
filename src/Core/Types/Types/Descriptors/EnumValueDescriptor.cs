@@ -23,8 +23,11 @@ namespace HotChocolate.Types.Descriptors
             Definition.Value = value;
             Definition.Description =
                 context.Naming.GetEnumValueDescription(value);
-            Definition.DeprecationReason =
-                context.Naming.GetDeprecationReason(value);
+
+            if (context.Naming.IsDeprecated(value, out string reason))
+            {
+                Deprecated(reason);
+            }
         }
 
         protected override EnumValueDefinition Definition { get; } =
@@ -71,7 +74,7 @@ namespace HotChocolate.Types.Descriptors
         {
             Definition.DeprecationReason =
                 WellKnownDirectives.DeprecationDefaultReason;
-            AddDeprectedDirective(Definition.DeprecationReason);
+            AddDeprectedDirective(null);
             return this;
         }
 

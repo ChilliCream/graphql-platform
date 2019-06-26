@@ -114,16 +114,18 @@ namespace HotChocolate
             return null;
         }
 
-        public static string GetGraphQLDeprecationReason(
-            this ICustomAttributeProvider attributeProvider)
+        public static bool IsDeprecated(
+            this ICustomAttributeProvider attributeProvider,
+            out string reason)
         {
-            var deprecatedAttribute = GetAttributeIfDefined<GraphQLDeprecatedAttribute>(
-                attributeProvider
-            );
+            var deprecatedAttribute =
+                GetAttributeIfDefined<GraphQLDeprecatedAttribute>(
+                    attributeProvider);
 
             if (deprecatedAttribute != null)
             {
-                return deprecatedAttribute.DeprecationReason;
+                reason = deprecatedAttribute.DeprecationReason;
+                return true;
             }
 
             var obsoleteAttribute = GetAttributeIfDefined<ObsoleteAttribute>(
@@ -131,12 +133,12 @@ namespace HotChocolate
 
             if (obsoleteAttribute != null)
             {
-                return string.IsNullOrEmpty(obsoleteAttribute.Message)
-                    ? WellKnownDirectives.DeprecationDefaultReason
-                    : obsoleteAttribute.Message;
+                reason = obsoleteAttribute.Message;
+                return true;
             }
 
-            return null;
+            reason = null;
+            return false;
         }
 
         private static string GetFromType(Type type)

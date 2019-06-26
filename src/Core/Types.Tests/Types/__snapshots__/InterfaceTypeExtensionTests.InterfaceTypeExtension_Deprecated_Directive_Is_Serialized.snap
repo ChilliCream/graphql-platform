@@ -3,7 +3,7 @@
 }
 
 interface Foo {
-  description: String @deprecated(reason: "No longer supported") @deprecated(reason: "No longer supported")
+  description: String @deprecated
   name(a: String): String
 }
 

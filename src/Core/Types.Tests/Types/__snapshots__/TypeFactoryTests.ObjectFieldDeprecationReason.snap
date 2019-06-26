@@ -3,7 +3,7 @@
 }
 
 type Simple {
-  a: String @deprecated(reason: "reason123") @deprecated(reason: "reason123")
+  a: String @deprecated(reason: "reason123")
 }
 
 "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values."

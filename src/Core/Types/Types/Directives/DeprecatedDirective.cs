@@ -7,19 +7,10 @@ namespace HotChocolate.Types
     {
         public DeprecatedDirective()
         {
-            Reason = WellKnownDirectives.DeprecationDefaultReason;
         }
 
         public DeprecatedDirective(string reason)
         {
-            // TODO : resources
-            if (string.IsNullOrEmpty(reason))
-            {
-                throw new ArgumentException(
-                    "The deprecation reason cannot be null or empty.",
-                    nameof(reason));
-            }
-
             Reason = reason;
         }
 

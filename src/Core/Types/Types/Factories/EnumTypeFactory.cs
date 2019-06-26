@@ -39,7 +39,10 @@ namespace HotChocolate.Types.Factories
 
                 foreach (DirectiveNode directive in node.Directives)
                 {
-                    d.Directive(directive);
+                    if (!directive.IsDeprecationReason())
+                    {
+                        d.Directive(directive);
+                    }
                 }
 
                 DeclareValues(d, node.Values);
