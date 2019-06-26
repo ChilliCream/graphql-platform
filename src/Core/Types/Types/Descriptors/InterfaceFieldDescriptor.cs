@@ -85,10 +85,19 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public new IInterfaceFieldDescriptor DeprecationReason(
-            string deprecationReason)
+        [Obsolete("Use `Deprecated`.")]
+        public IInterfaceFieldDescriptor DeprecationReason(string reason) =>
+            Deprecated(reason);
+
+        public new IInterfaceFieldDescriptor Deprecated(string reason)
         {
-            base.DeprecationReason(deprecationReason);
+            base.Deprecated(reason);
+            return this;
+        }
+
+        public new IInterfaceFieldDescriptor Deprecated()
+        {
+            base.Deprecated();
             return this;
         }
 

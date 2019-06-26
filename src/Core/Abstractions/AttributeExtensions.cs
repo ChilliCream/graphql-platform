@@ -127,20 +127,13 @@ namespace HotChocolate
             }
 
             var obsoleteAttribute = GetAttributeIfDefined<ObsoleteAttribute>(
-                attributeProvider
-            );
+                attributeProvider);
 
             if (obsoleteAttribute != null)
             {
-                if (string.IsNullOrEmpty(obsoleteAttribute.Message))
-                {
-                    // TODO : resources
-                    return "This field is no longer supported.";
-                }
-                else
-                {
-                    return obsoleteAttribute.Message;
-                }
+                return string.IsNullOrEmpty(obsoleteAttribute.Message)
+                    ? WellKnownDirectives.DeprecationDefaultReason
+                    : obsoleteAttribute.Message;
             }
 
             return null;
@@ -179,7 +172,7 @@ namespace HotChocolate
             where TAttribute : Attribute
         {
             Type attributeType = typeof(TAttribute);
-            
+
             if (attributeProvider.IsDefined(attributeType, false))
             {
                 return (TAttribute)attributeProvider

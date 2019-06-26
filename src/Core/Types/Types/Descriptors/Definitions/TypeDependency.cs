@@ -1,10 +1,8 @@
 using System;
 using HotChocolate.Properties;
-using HotChocolate.Types;
-using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Configuration
+namespace HotChocolate.Types.Descriptors.Definitions
 {
     public sealed class TypeDependency
     {

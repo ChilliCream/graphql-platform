@@ -27,6 +27,7 @@ namespace HotChocolate.Types
                 definition.Interfaces,
                 TypeDependencyKind.Default);
 
+            RegisterAdditionalDependencies(context, definition);
             RegisterDirectiveDependencies(context, definition);
             RegisterFieldDependencies(context, definition.Fields);
 
@@ -57,6 +58,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(definition));
             }
 
+            RegisterAdditionalDependencies(context, definition);
             RegisterDirectiveDependencies(context, definition);
             RegisterFieldDependencies(context, definition.Fields);
         }
@@ -75,6 +77,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(definition));
             }
 
+            RegisterAdditionalDependencies(context, definition);
             RegisterDirectiveDependencies(context, definition);
         }
 
@@ -92,10 +95,13 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(definition));
             }
 
+            RegisterAdditionalDependencies(context, definition);
             RegisterDirectiveDependencies(context, definition);
 
             foreach (InputFieldDefinition field in definition.Fields)
             {
+                RegisterAdditionalDependencies(context, field);
+
                 if (field.Type != null)
                 {
                     context.RegisterDependency(field.Type,
@@ -118,12 +124,22 @@ namespace HotChocolate.Types
                 TypeDependencyKind.Completed);
         }
 
+        private static void RegisterAdditionalDependencies(
+            this IInitializationContext context,
+            DefinitionBase definition)
+        {
+            context.RegisterDependencyRange(
+                definition.Dependencies);
+        }
+
         private static void RegisterFieldDependencies(
             this IInitializationContext context,
             IEnumerable<OutputFieldDefinitionBase> fields)
         {
             foreach (OutputFieldDefinitionBase field in fields)
             {
+                RegisterAdditionalDependencies(context, field);
+
                 if (field.Type != null)
                 {
                     context.RegisterDependency(field.Type,
@@ -145,6 +161,8 @@ namespace HotChocolate.Types
         {
             foreach (ArgumentDefinition field in fields)
             {
+                RegisterAdditionalDependencies(context, field);
+
                 if (field.Type != null)
                 {
                     context.RegisterDependency(field.Type,
