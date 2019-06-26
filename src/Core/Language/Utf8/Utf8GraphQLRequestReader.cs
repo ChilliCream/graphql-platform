@@ -144,6 +144,7 @@ namespace HotChocolate.Language
                         if (fieldName.SequenceEqual(_operationName))
                         {
                             request.OperationName = _reader.GetString();
+                            return;
                         }
                         break;
 
@@ -151,30 +152,69 @@ namespace HotChocolate.Language
                         if (fieldName.SequenceEqual(_queryName))
                         {
                             request.NamedQuery = _reader.GetString();
+                            return;
                         }
                         break;
 
                     case _q:
                         if (fieldName.SequenceEqual(_query))
                         {
-                            request.Query = ParseQuery();
+                            request.Query = _reader.Value;
+                            return;
                         }
                         break;
                 }
+                throw new SyntaxException(_reader, "RESOURCES");
             }
 
             if (_reader.Kind == TokenKind.LeftBrace)
             {
                 switch (fieldName[0])
                 {
+                    case _v:
+                        if (fieldName.SequenceEqual(_query))
+                        {
+                            request.Variables = ParseObject();
+                            return;
+                        }
+                        break;
 
+                    case _e:
+                        if (fieldName.SequenceEqual(_query))
+                        {
+                            request.Extensions = ParseObject();
+                            return;
+                        }
+                        break;
                 }
             }
+
+            throw new SyntaxException(_reader, "RESOURCES");
         }
 
-        private IDictionary<string, object> ParseValue()
+        private object ParseValue()
         {
+            if (_reader.Kind == TokenKind.LeftBracket)
+            {
+                return ParseList();
+            }
 
+            if (_reader.Kind == TokenKind.LeftBrace)
+            {
+                return ParseObject();
+            }
+
+            if (TokenHelper.IsScalarValue(in _reader))
+            {
+                return ParseScalarValue();
+            }
+
+            if (_reader.Kind == TokenKind.Name)
+            {
+                return ParseEnumValue();
+            }
+
+            throw new SyntaxException(_reader, "RESOURCES");
         }
 
         private IDictionary<string, object> ParseObject()
@@ -191,35 +231,96 @@ namespace HotChocolate.Language
 
             _reader.Expect(TokenKind.LeftBrace);
 
-            var fields = new List<ObjectFieldNode>();
+            var obj = new Dictionary<string, object>();
 
             while (_reader.Kind != TokenKind.RightBrace)
             {
-                fields.Add(ParseObjectField(isConstant));
+                ParseObjectField(obj);
             }
 
             // skip closing token
-            Expect(TokenKind.RightBrace);
+            _reader.Expect(TokenKind.RightBrace);
 
-
+            return obj;
         }
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void ParseObjectField(IDictionary<string, object> obj)
         {
-            NameNode name = ParseName();
-            ExpectColon();
-            IValueNode value = ParseValueLiteral(isConstant);
+            if (_reader.Kind != TokenKind.String)
+            {
+                throw new SyntaxException(_reader, "RESOURCES");
+            }
 
-            Location location = CreateLocation(in start);
+            string name = _reader.GetString();
+            _reader.Expect(TokenKind.Colon);
+            object value = ParseValue();
+            obj.Add(name, value);
+        }
 
-            return new ObjectFieldNode
-            (
-                location,
-                name,
-                value
-            );
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private IReadOnlyList<object> ParseList()
+        {
+            if (_reader.Kind != TokenKind.LeftBracket)
+            {
+                throw new SyntaxException(_reader,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        LangResources.ParseMany_InvalidOpenToken,
+                        TokenKind.LeftBracket,
+                        TokenVisualizer.Visualize(in _reader)));
+            }
+
+            var list = new List<object>();
+
+            // skip opening token
+            _reader.MoveNext();
+
+            while (_reader.Kind != TokenKind.RightBracket)
+            {
+                list.Add(ParseValue());
+            }
+
+            // skip closing token
+            _reader.Expect(TokenKind.RightBracket);
+
+            return list;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private object ParseScalarValue()
+        {
+            switch (_reader.Kind)
+            {
+                case TokenKind.String:
+                    return _reader.GetString();
+
+                case TokenKind.Integer:
+                    return long.Parse(_reader.GetScalarValue());
+
+                case TokenKind.Float:
+                    return decimal.Parse(_reader.GetScalarValue());
+
+                case TokenKind.Name:
+                    if (_reader.Value.SequenceEqual(GraphQLKeywords.True))
+                    {
+                        return true;
+                    }
+
+                    if (_reader.Value.SequenceEqual(GraphQLKeywords.False))
+                    {
+                        return false;
+                    }
+
+                    if (_reader.Value.SequenceEqual(GraphQLKeywords.Null))
+                    {
+                        return null;
+                    }
+                    break;
+            }
+
+            throw new SyntaxException(_reader, "RESOURCES");
         }
 
         private DocumentNode ParseQuery()
@@ -259,7 +360,7 @@ namespace HotChocolate.Language
 
             public string NamedQuery { get; set; }
 
-            public DocumentNode Query { get; set; }
+            public ReadOnlySpan<byte> Query { get; set; }
 
             public IDictionary<string, object> Variables { get; set; }
 
