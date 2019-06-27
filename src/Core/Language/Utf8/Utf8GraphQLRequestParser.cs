@@ -70,7 +70,7 @@ namespace HotChocolate.Language
             (byte)'s'
         };
 
-        private static readonly byte[] _extension = new[]
+        private static readonly byte[] _extensions = new[]
         {
             (byte)'e',
             (byte)'x',
@@ -80,7 +80,8 @@ namespace HotChocolate.Language
             (byte)'s',
             (byte)'i',
             (byte)'o',
-            (byte)'n'
+            (byte)'n',
+            (byte)'s'
         };
 
         private readonly IDocumentHashProvider _hashProvider;
@@ -196,58 +197,51 @@ namespace HotChocolate.Language
             ReadOnlySpan<byte> fieldName = _reader.Expect(TokenKind.String);
             _reader.Expect(TokenKind.Colon);
 
-            if (_reader.Kind == TokenKind.String)
+
+            switch (fieldName[0])
             {
-                switch (fieldName[0])
-                {
-                    case _o:
-                        if (fieldName.SequenceEqual(_operationName))
-                        {
-                            request.OperationName = _reader.GetString();
-                            return;
-                        }
-                        break;
+                case _o:
+                    if (fieldName.SequenceEqual(_operationName))
+                    {
+                        request.OperationName = ExpectStringValue();
+                        return;
+                    }
+                    break;
 
-                    case _n:
-                        if (fieldName.SequenceEqual(_queryName))
-                        {
-                            request.NamedQuery = _reader.GetString();
-                            return;
-                        }
-                        break;
+                case _n:
+                    if (fieldName.SequenceEqual(_queryName))
+                    {
+                        request.NamedQuery = ExpectStringValue();
+                        return;
+                    }
+                    break;
 
-                    case _q:
-                        if (fieldName.SequenceEqual(_query))
-                        {
-                            request.Query = _reader.Value;
-                            return;
-                        }
-                        break;
-                }
-                throw new SyntaxException(_reader, "RESOURCES");
+                case _q:
+                    // TODO : must not be null
+                    if (fieldName.SequenceEqual(_query))
+                    {
+                        request.Query = _reader.Value;
+                        return;
+                    }
+                    break;
+
+                case _v:
+                    if (fieldName.SequenceEqual(_variables))
+                    {
+                        request.Variables = ExpectObjectValue();
+                        return;
+                    }
+                    break;
+
+                case _e:
+                    if (fieldName.SequenceEqual(_extensions))
+                    {
+                        request.Extensions = ExpectObjectValue();
+                        return;
+                    }
+                    break;
             }
 
-            if (_reader.Kind == TokenKind.LeftBrace)
-            {
-                switch (fieldName[0])
-                {
-                    case _v:
-                        if (fieldName.SequenceEqual(_query))
-                        {
-                            request.Variables = ParseObject();
-                            return;
-                        }
-                        break;
-
-                    case _e:
-                        if (fieldName.SequenceEqual(_query))
-                        {
-                            request.Extensions = ParseObject();
-                            return;
-                        }
-                        break;
-                }
-            }
 
             throw new SyntaxException(_reader, "RESOURCES");
         }
@@ -408,6 +402,38 @@ namespace HotChocolate.Language
                     ArrayPool<byte>.Shared.Return(unescapedArray);
                 }
             }
+        }
+
+        private string ExpectStringValue()
+        {
+            if (_reader.Kind == TokenKind.String)
+            {
+                return _reader.GetString();
+            }
+
+            if (_reader.Kind == TokenKind.Name
+                && _reader.Value.SequenceEqual(GraphQLKeywords.Null))
+            {
+                return null;
+            }
+
+            throw new SyntaxException(_reader, "RESOURCES");
+        }
+
+        private IReadOnlyDictionary<string, object> ExpectObjectValue()
+        {
+            if (_reader.Kind == TokenKind.LeftBrace)
+            {
+                return ParseObject();
+            }
+
+            if (_reader.Kind == TokenKind.Name
+                && _reader.Value.SequenceEqual(GraphQLKeywords.Null))
+            {
+                return null;
+            }
+
+            throw new SyntaxException(_reader, "RESOURCES");
         }
 
         private ref struct Request

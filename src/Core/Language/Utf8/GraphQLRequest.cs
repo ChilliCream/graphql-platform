@@ -12,11 +12,6 @@ namespace HotChocolate.Language
             IReadOnlyDictionary<string, object> variables,
             IReadOnlyDictionary<string, object> extensions)
         {
-            if (string.IsNullOrEmpty(namedQuery))
-            {
-                throw new ArgumentException("message", nameof(namedQuery));
-            }
-
             if (query is null)
             {
                 throw new ArgumentNullException(nameof(query));
