@@ -74,6 +74,41 @@ namespace HotChocolate.Types.Filters
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public void Execute_Filter_Equals_Null()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFilter())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos(where: { bar: null }) { bar } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Execute_Filter_Not_Equals_Null()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFilter())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos(where: { bar_not: null }) { bar } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
 
         public class QueryType
             : ObjectType<Query>
@@ -95,6 +130,7 @@ namespace HotChocolate.Types.Filters
                 new Foo { Bar = "ab" },
                 new Foo { Bar = "ac" },
                 new Foo { Bar = "ad" },
+                new Foo { Bar = null }
             };
         }
 
