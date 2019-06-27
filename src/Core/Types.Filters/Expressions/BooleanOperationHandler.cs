@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 MemberExpression property =
                     Expression.Property(instance, operation.Property);
 
-                object parserValue = type.ParseValue(value);
+                object parserValue = type.ParseLiteral(value);
 
                 switch (operation.Kind)
                 {
