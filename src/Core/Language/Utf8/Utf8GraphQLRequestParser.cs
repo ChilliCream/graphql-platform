@@ -172,7 +172,7 @@ namespace HotChocolate.Language
                         _hashProvider.ComputeHash(request.Query);
                 }
 
-                if (!_cache.TryGet(request.NamedQuery, out document))
+                if (!_cache.TryGetDocument(request.NamedQuery, out document))
                 {
                     document = ParseQuery(in request);
                 }
@@ -196,7 +196,6 @@ namespace HotChocolate.Language
         {
             ReadOnlySpan<byte> fieldName = _reader.Expect(TokenKind.String);
             _reader.Expect(TokenKind.Colon);
-
 
             switch (fieldName[0])
             {
@@ -241,7 +240,6 @@ namespace HotChocolate.Language
                     }
                     break;
             }
-
 
             throw new SyntaxException(_reader, "RESOURCES");
         }

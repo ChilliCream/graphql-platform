@@ -39,23 +39,87 @@ namespace HotChocolate.Language
                         .MatchSnapshot();
                 });
         }
-    }
 
-    public class GraphQLRequestDto
-    {
-        [JsonProperty("operationName")]
-        public string OperationName { get; set; }
+        [Fact]
+        public void Parse_Kitchen_Sink_Query_With_Cache()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes(
+                JsonConvert.SerializeObject(
+                    new GraphQLRequestDto
+                    {
+                        Query = FileResource.Open("kitchen-sink.graphql")
+                    }));
 
-        [JsonProperty("namedQuery")]
-        public string NamedQuery { get; set; }
+            var cache = new DocumentCache();
 
-        [JsonProperty("query")]
-        public string Query { get; set; }
+            var requestParser = new Utf8GraphQLRequestParser(
+                source,
+                new ParserOptions(),
+                cache,
+                new Sha1DocumentHashProvider());
 
-        [JsonProperty("variables")]
-        public IReadOnlyDictionary<string, object> Variables { get; set; }
+            IReadOnlyList<GraphQLRequest> first = requestParser.Parse();
 
-        [JsonProperty("extensions")]
-        public IReadOnlyDictionary<string, object> Extensions { get; set; }
+            cache.Add(first[0].NamedQuery, first[0].Query);
+
+            // act
+            requestParser = new Utf8GraphQLRequestParser(
+                source,
+                new ParserOptions(),
+                cache,
+                new Sha1DocumentHashProvider());
+
+            IReadOnlyList<GraphQLRequest> second = requestParser.Parse();
+
+            // assert
+            Assert.Equal(first[0].Query, second[0].Query);
+            Assert.Collection(second,
+                r =>
+                {
+                    Assert.Null(r.OperationName);
+                    Assert.Null(r.Variables);
+                    Assert.Null(r.Extensions);
+
+                    Assert.Equal(r.NamedQuery, "alinKTeX5KKqWsMutgMimKqxU94=");
+                    QuerySyntaxSerializer.Serialize(r.Query, true)
+                        .MatchSnapshot();
+                });
+        }
+
+        private class GraphQLRequestDto
+        {
+            [JsonProperty("operationName")]
+            public string OperationName { get; set; }
+
+            [JsonProperty("namedQuery")]
+            public string NamedQuery { get; set; }
+
+            [JsonProperty("query")]
+            public string Query { get; set; }
+
+            [JsonProperty("variables")]
+            public IReadOnlyDictionary<string, object> Variables { get; set; }
+
+            [JsonProperty("extensions")]
+            public IReadOnlyDictionary<string, object> Extensions { get; set; }
+        }
+
+        private class DocumentCache
+            : IDocumentCache
+        {
+            private readonly Dictionary<string, DocumentNode> _cache =
+                new Dictionary<string, DocumentNode>();
+
+            public void Add(string key, DocumentNode document)
+            {
+                _cache.Add(key, document);
+            }
+
+            public bool TryGetDocument(string key, out DocumentNode document)
+            {
+                return _cache.TryGetValue(key, out document);
+            }
+        }
     }
 }
