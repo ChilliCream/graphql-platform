@@ -1,29 +1,15 @@
-using System.Text;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Net.Cache;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Runtime.CompilerServices;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Snapshooter.Xunit;
 using Xunit;
 using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
-using HotChocolate.Stitching.Schemas.Contracts;
-using HotChocolate.Stitching.Schemas.Customers;
 using HotChocolate.Types;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Delegation;
 using FileResource = ChilliCream.Testing.FileResource;
-using HotChocolate.Language;
-using HotChocolate.Stitching.Utilities;
-using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Stitching
 {

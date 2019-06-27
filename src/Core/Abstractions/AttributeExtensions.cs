@@ -114,36 +114,31 @@ namespace HotChocolate
             return null;
         }
 
-        public static string GetGraphQLDeprecationReason(
-            this ICustomAttributeProvider attributeProvider)
+        public static bool IsDeprecated(
+            this ICustomAttributeProvider attributeProvider,
+            out string reason)
         {
-            var deprecatedAttribute = GetAttributeIfDefined<GraphQLDeprecatedAttribute>(
-                attributeProvider
-            );
+            var deprecatedAttribute =
+                GetAttributeIfDefined<GraphQLDeprecatedAttribute>(
+                    attributeProvider);
 
             if (deprecatedAttribute != null)
             {
-                return deprecatedAttribute.DeprecationReason;
+                reason = deprecatedAttribute.DeprecationReason;
+                return true;
             }
 
             var obsoleteAttribute = GetAttributeIfDefined<ObsoleteAttribute>(
-                attributeProvider
-            );
+                attributeProvider);
 
             if (obsoleteAttribute != null)
             {
-                if (string.IsNullOrEmpty(obsoleteAttribute.Message))
-                {
-                    // TODO : resources
-                    return "This field is no longer supported.";
-                }
-                else
-                {
-                    return obsoleteAttribute.Message;
-                }
+                reason = obsoleteAttribute.Message;
+                return true;
             }
 
-            return null;
+            reason = null;
+            return false;
         }
 
         private static string GetFromType(Type type)
@@ -179,7 +174,7 @@ namespace HotChocolate
             where TAttribute : Attribute
         {
             Type attributeType = typeof(TAttribute);
-            
+
             if (attributeProvider.IsDefined(attributeType, false))
             {
                 return (TAttribute)attributeProvider

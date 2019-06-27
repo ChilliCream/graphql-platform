@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -29,6 +30,7 @@ namespace HotChocolate.Types
             Assert.True(type.Fields.ContainsField("test"));
         }
 
+        [Obsolete]
         [Fact]
         public void InterfaceTypeExtension_DepricateField()
         {
@@ -51,6 +53,78 @@ namespace HotChocolate.Types
             InterfaceType type = schema.GetType<InterfaceType>("Foo");
             Assert.True(type.Fields["description"].IsDeprecated);
             Assert.Equal("Foo", type.Fields["description"].DeprecationReason);
+        }
+
+        [Fact]
+        public void InterfaceTypeExtension_Deprecate_With_Reason()
+        {
+            // arrange
+            FieldResolverDelegate resolver =
+                ctx => Task.FromResult<object>(null);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<DummyQuery>()
+                .AddType<FooType>()
+                .AddType(new InterfaceTypeExtension(d => d
+                    .Name("Foo")
+                    .Field("description")
+                    .Type<StringType>()
+                    .Deprecated("Foo")))
+                .Create();
+
+            // assert
+            InterfaceType type = schema.GetType<InterfaceType>("Foo");
+            Assert.True(type.Fields["description"].IsDeprecated);
+            Assert.Equal("Foo", type.Fields["description"].DeprecationReason);
+        }
+
+        [Fact]
+        public void InterfaceTypeExtension_Deprecate_Without_Reason()
+        {
+            // arrange
+            FieldResolverDelegate resolver =
+                ctx => Task.FromResult<object>(null);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<DummyQuery>()
+                .AddType<FooType>()
+                .AddType(new InterfaceTypeExtension(d => d
+                    .Name("Foo")
+                    .Field("description")
+                    .Type<StringType>()
+                    .Deprecated()))
+                .Create();
+
+            // assert
+            InterfaceType type = schema.GetType<InterfaceType>("Foo");
+            Assert.True(type.Fields["description"].IsDeprecated);
+            Assert.Equal(
+                WellKnownDirectives.DeprecationDefaultReason,
+                type.Fields["description"].DeprecationReason);
+        }
+
+        [Fact]
+        public void InterfaceTypeExtension_Deprecated_Directive_Is_Serialized()
+        {
+            // arrange
+            FieldResolverDelegate resolver =
+                ctx => Task.FromResult<object>(null);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<DummyQuery>()
+                .AddType<FooType>()
+                .AddType(new InterfaceTypeExtension(d => d
+                    .Name("Foo")
+                    .Field("description")
+                    .Type<StringType>()
+                    .Deprecated()))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
         }
 
         [Fact]

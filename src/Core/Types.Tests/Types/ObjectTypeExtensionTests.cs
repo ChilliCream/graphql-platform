@@ -99,8 +99,9 @@ namespace HotChocolate.Types
             executor.Execute("{ description }").MatchSnapshot();
         }
 
+        [Obsolete]
         [Fact]
-        public void ObjectTypeExtension_DepricateField()
+        public void ObjectTypeExtension_DeprecateField_Obsolete()
         {
             // arrange
             FieldResolverDelegate resolver =
@@ -120,6 +121,56 @@ namespace HotChocolate.Types
             ObjectType type = schema.GetType<ObjectType>("Foo");
             Assert.True(type.Fields["description"].IsDeprecated);
             Assert.Equal("Foo", type.Fields["description"].DeprecationReason);
+        }
+
+        [Fact]
+        public void ObjectTypeExtension_DepricateField_With_Reason()
+        {
+            // arrange
+            FieldResolverDelegate resolver =
+                ctx => Task.FromResult<object>(null);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<FooType>()
+                .AddType(new ObjectTypeExtension(d => d
+                    .Name("Foo")
+                    .Field("description")
+                    .Type<StringType>()
+                    .Deprecated("Foo")))
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            Assert.True(type.Fields["description"].IsDeprecated);
+            Assert.Equal("Foo", type.Fields["description"].DeprecationReason);
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectTypeExtension_DepricateField_Without_Reason()
+        {
+            // arrange
+            FieldResolverDelegate resolver =
+                ctx => Task.FromResult<object>(null);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<FooType>()
+                .AddType(new ObjectTypeExtension(d => d
+                    .Name("Foo")
+                    .Field("description")
+                    .Type<StringType>()
+                    .Deprecated()))
+                .Create();
+
+            // assert
+            ObjectType type = schema.GetType<ObjectType>("Foo");
+            Assert.True(type.Fields["description"].IsDeprecated);
+            Assert.Equal(
+                WellKnownDirectives.DeprecationDefaultReason,
+                type.Fields["description"].DeprecationReason);
+            schema.ToString().MatchSnapshot();
         }
 
         [Fact]

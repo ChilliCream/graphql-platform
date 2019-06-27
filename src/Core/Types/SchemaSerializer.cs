@@ -71,13 +71,15 @@ namespace HotChocolate
                     SerializeSchemaTypeDefinition(schema, referenced));
             }
 
-            IEnumerable<DirectiveDefinitionNode> directiveTypeDefinitions = schema.DirectiveTypes
+            IEnumerable<DirectiveDefinitionNode> directiveTypeDefinitions =
+                schema.DirectiveTypes
                 .Where(t => referenced.DirectiveNames.Contains(t.Name))
                 .Select(t => SerializeDirectiveTypeDefinition(t, referenced));
 
             typeDefinitions.AddRange(directiveTypeDefinitions);
 
-            IEnumerable<ScalarTypeDefinitionNode> scalarTypeDefinitions = schema.Types
+            IEnumerable<ScalarTypeDefinitionNode> scalarTypeDefinitions =
+                schema.Types
                 .OfType<ScalarType>()
                 .Where(t => referenced.TypeNames.Contains(t.Name))
                 .Select(t => SerializeScalarType(t));
@@ -339,15 +341,6 @@ namespace HotChocolate
                 .Select(t => SerializeDirective(t, referenced))
                 .ToList();
 
-            if(enumValue.IsDeprecated)
-            {
-                directives.Add(new DirectiveNode(
-                    WellKnownDirectives.Deprecated,
-                    new ArgumentNode(
-                        WellKnownDirectives.DeprecationReasonArgument,
-                        enumValue.DeprecationReason)));
-            }
-
             return new EnumValueDefinitionNode
             (
                 null,
@@ -380,15 +373,6 @@ namespace HotChocolate
             var directives = field.Directives
                 .Select(t => SerializeDirective(t, referenced))
                 .ToList();
-
-            if(field.IsDeprecated)
-            {
-                directives.Add(new DirectiveNode(
-                    WellKnownDirectives.Deprecated,
-                    new ArgumentNode(
-                        WellKnownDirectives.DeprecationReasonArgument,
-                        field.DeprecationReason)));
-            }
 
             return new FieldDefinitionNode
             (
@@ -455,7 +439,7 @@ namespace HotChocolate
             ReferencedTypes referenced)
         {
             referenced.DirectiveNames.Add(directiveType.Name);
-            return directiveType.ToNode();
+            return directiveType.ToNode(true);
         }
 
         private static StringValueNode SerializeDescription(string description)

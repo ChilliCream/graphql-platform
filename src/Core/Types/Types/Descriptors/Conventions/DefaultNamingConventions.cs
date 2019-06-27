@@ -162,17 +162,17 @@ namespace HotChocolate.Types.Descriptors
             return description;
         }
 
-        public virtual string GetDeprecationReason(MemberInfo member)
+        public virtual bool IsDeprecated(MemberInfo member, out string reason)
         {
             if (member == null)
             {
                 throw new ArgumentNullException(nameof(member));
             }
 
-            return member.GetGraphQLDeprecationReason();
+            return member.IsDeprecated(out reason);
         }
 
-        public virtual string GetDeprecationReason(object value)
+        public virtual bool IsDeprecated(object value, out string reason)
         {
             Type enumType = value.GetType();
 
@@ -184,11 +184,12 @@ namespace HotChocolate.Types.Descriptors
 
                 if (enumMember != null)
                 {
-                    return enumMember.GetGraphQLDeprecationReason();
+                    return enumMember.IsDeprecated(out reason);
                 }
             }
 
-            return null;
+            reason = null;
+            return false;
         }
     }
 }

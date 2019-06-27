@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Types.Descriptors.Definitions
 {
     internal interface ITypeConfigration
     {

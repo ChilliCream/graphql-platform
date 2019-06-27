@@ -16,8 +16,11 @@ namespace HotChocolate.Types.Filters.Expressions
             ITypeConversion converter,
             out Expression expression)
         {
-            if (operation.Type == typeof(string) && value is StringValueNode s)
+            if (operation.Type == typeof(string)
+                && (value is StringValueNode || value.IsNull()))
             {
+                object parsedValue = type.ParseLiteral(value);
+
                 MemberExpression property =
                     Expression.Property(instance, operation.Property);
 
@@ -25,52 +28,54 @@ namespace HotChocolate.Types.Filters.Expressions
                 {
                     case FilterOperationKind.Equals:
                         expression = FilterExpressionBuilder.Equals(
-                            property, s.Value);
+                            property, parsedValue);
                         return true;
 
                     case FilterOperationKind.NotEquals:
-                        expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.Equals(property, s.Value)
-                        );
+                        expression = FilterExpressionBuilder.NotEquals(
+                            property, parsedValue);
                         return true;
 
                     case FilterOperationKind.StartsWith:
                         expression = FilterExpressionBuilder.StartsWith(
-                            property, s.Value);
+                            property, parsedValue);
                         return true;
 
                     case FilterOperationKind.EndsWith:
                         expression = FilterExpressionBuilder.EndsWith(
-                            property, s.Value);
+                            property, parsedValue);
                         return true;
 
                     case FilterOperationKind.NotStartsWith:
                         expression = FilterExpressionBuilder.Not(
                             FilterExpressionBuilder.StartsWith(
-                                property, s.Value)
+                                property, parsedValue)
                         );
                         return true;
 
                     case FilterOperationKind.NotEndsWith:
                         expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.EndsWith(property, s.Value)
+                            FilterExpressionBuilder.EndsWith(
+                                property, parsedValue)
                         );
                         return true;
 
                     case FilterOperationKind.Contains:
                         expression = FilterExpressionBuilder.Contains(
-                            property, s.Value);
+                            property, parsedValue);
                         return true;
 
                     case FilterOperationKind.NotContains:
                         expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.Contains(property, s.Value)
+                            FilterExpressionBuilder.Contains(
+                                property, parsedValue)
                         );
                         return true;
                 }
             }
 
-            if (operation.Type == typeof(string) && value is ListValueNode li)
+            if (operation.Type == typeof(string)
+                && value is ListValueNode li)
             {
                 MemberExpression property =
                     Expression.Property(instance, operation.Property);

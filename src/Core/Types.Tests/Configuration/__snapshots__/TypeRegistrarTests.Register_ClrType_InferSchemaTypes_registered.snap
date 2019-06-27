@@ -12,6 +12,7 @@
   "HotChocolate.Types.CostDirectiveType": "HotChocolate.Types.CostDirective",
   "HotChocolate.Types.StringType": "System.String",
   "HotChocolate.Types.BooleanType": "System.Boolean",
+  "HotChocolate.Types.DeprecatedDirectiveType": "HotChocolate.Types.DeprecatedDirective",
   "HotChocolate.Types.IntType": "System.Int32",
   "HotChocolate.Types.MultiplierPathType": "HotChocolate.Types.MultiplierPathString",
   "HotChocolate.Types.ObjectType<HotChocolate.TypeRegistrarTests.Foo>": "HotChocolate.TypeRegistrarTests.Foo",

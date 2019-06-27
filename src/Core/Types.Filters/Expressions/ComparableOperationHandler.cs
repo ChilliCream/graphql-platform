@@ -17,7 +17,10 @@ namespace HotChocolate.Types.Filters.Expressions
             out Expression expression)
         {
             if (operation.Type == typeof(IComparable)
-                && value is IValueNode<IComparable> s)
+                && (value is IntValueNode
+                    || value is FloatValueNode
+                    || value is EnumValueNode
+                    || value.IsNull()))
             {
                 MemberExpression property =
                     Expression.Property(instance, operation.Property);
@@ -94,7 +97,8 @@ namespace HotChocolate.Types.Filters.Expressions
                 }
             }
 
-            if (operation.Type == typeof(IComparable) && value is ListValueNode li)
+            if (operation.Type == typeof(IComparable)
+                && value is ListValueNode li)
             {
                 MemberExpression property =
                     Expression.Property(instance, operation.Property);

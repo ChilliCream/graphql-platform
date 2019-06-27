@@ -10,6 +10,7 @@ using HotChocolate.Configuration.Validation;
 using System.Reflection;
 using System.Globalization;
 using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {

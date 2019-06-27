@@ -135,6 +135,32 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void InterfaceFieldDeprecationWithoutReason()
+        {
+            // arrange
+            string source = @"
+                interface Simple {
+                    a: String @deprecated
+                }";
+
+            // act
+            var schema = Schema.Create(source, c =>
+            {
+                c.RegisterQueryType<DummyQuery>();
+            });
+
+            // assert
+            InterfaceType type = schema.GetType<InterfaceType>("Simple");
+
+            Assert.True(type.Fields["a"].IsDeprecated);
+            Assert.Equal(
+                WellKnownDirectives.DeprecationDefaultReason,
+                type.Fields["a"].DeprecationReason);
+
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void CreateUnion()
         {
             // arrange
