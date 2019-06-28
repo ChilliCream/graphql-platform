@@ -40,5 +40,11 @@ namespace HotChocolate.Language
 
             throw new SyntaxException(_reader, "RESOURCES");
         }
+
+        private bool IsNullToken()
+        {
+            return _reader.Kind == TokenKind.Name
+                && _reader.Value.SequenceEqual(GraphQLKeywords.Null);
+        }
     }
 }

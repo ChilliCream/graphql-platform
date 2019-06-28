@@ -1,3 +1,4 @@
+using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Buffers;
@@ -58,7 +59,9 @@ namespace HotChocolate.Language
             }
 
             // TODO : resources
-            throw new SyntaxException(_reader, "Unexpected request structure.");
+            throw new SyntaxException(
+                _reader,
+                "Expected `{` or `[` as first syntax token.");
         }
 
         private IReadOnlyList<GraphQLRequest> ParseBatchRequest()
@@ -83,12 +86,16 @@ namespace HotChocolate.Language
 
             while (_reader.Kind != TokenKind.RightBrace)
             {
-                ParseProperty(ref request);
+                ParseRequestProperty(ref request);
             }
 
-            if (request.Query.Length == 0)
+            if (request.IsQueryNull
+                && request.NamedQuery == null)
             {
-                throw new SyntaxException(_reader, "RESOURCES");
+                throw new SyntaxException(
+                    _reader,
+                    "Either the query `property` or the `namedQuery` " +
+                    "property have to have a value.");
             }
 
             DocumentNode document;
@@ -121,7 +128,7 @@ namespace HotChocolate.Language
             );
         }
 
-        private void ParseProperty(ref Request request)
+        private void ParseRequestProperty(ref Request request)
         {
             ReadOnlySpan<byte> fieldName = _reader.Expect(TokenKind.String);
             _reader.Expect(TokenKind.Colon);
@@ -145,10 +152,10 @@ namespace HotChocolate.Language
                     break;
 
                 case _q:
-                    // TODO : must not be null
                     if (fieldName.SequenceEqual(_query))
                     {
                         request.Query = _reader.Value;
+                        request.IsQueryNull = IsNullToken();
                         _reader.MoveNext();
                         return;
                     }
@@ -171,7 +178,13 @@ namespace HotChocolate.Language
                     break;
             }
 
-            throw new SyntaxException(_reader, "RESOURCES");
+            // TODO : resources
+            throw new SyntaxException(
+                _reader,
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    "Unexpected request property name `{0}`found.",
+                    Utf8GraphQLReader.GetString(fieldName, false)));
         }
 
         private DocumentNode ParseQuery(in Request request)
@@ -188,11 +201,7 @@ namespace HotChocolate.Language
 
             try
             {
-                Utf8Helper.Unescape(
-                    request.Query,
-                    ref unescapedSpan,
-                    false);
-
+                Utf8Helper.Unescape(request.Query, ref unescapedSpan, false);
                 return Utf8GraphQLParser.Parse(unescapedSpan, _options);
             }
             finally

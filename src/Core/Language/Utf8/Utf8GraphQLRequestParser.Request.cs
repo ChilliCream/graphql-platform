@@ -13,6 +13,8 @@ namespace HotChocolate.Language
 
             public ReadOnlySpan<byte> Query { get; set; }
 
+            public bool IsQueryNull { get; set; }
+
             public IReadOnlyDictionary<string, object> Variables { get; set; }
 
             public IReadOnlyDictionary<string, object> Extensions { get; set; }
