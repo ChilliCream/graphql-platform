@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
+using HotChocolate.Language;
+using System.Collections.Generic;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -49,34 +51,29 @@ namespace HotChocolate.AspNetCore
         protected override Task<IQueryRequestBuilder>
             CreateQueryRequestAsync(HttpContext context)
         {
-            QueryRequestDto request = ReadRequest(context);
-            return Task.FromResult(
-                QueryRequestBuilder.New()
-                    .SetQuery(request.Query)
-                    .SetOperation(request.OperationName)
-                    .SetVariableValues(QueryMiddlewareUtilities
-                        .ToDictionary(request.Variables)));
-        }
 
-        private static QueryRequestDto ReadRequest(HttpContext context)
-        {
 #if ASPNETCLASSIC
             IReadableStringCollection requestQuery = context.Request.Query;
 #else
             IQueryCollection requestQuery = context.Request.Query;
 #endif
-            string variables = requestQuery[_variablesIdentifier];
 
-            return new QueryRequestDto
+            IQueryRequestBuilder builder =
+                QueryRequestBuilder.New()
+                    .SetQuery(requestQuery[_queryIdentifier])
+                    .SetQueryName(requestQuery[_namedQueryIdentifier])
+                    .SetOperation(requestQuery[_operationNameIdentifier]);
+
+            string variables = requestQuery[_variablesIdentifier];
+            if (variables != null
+                && variables.Any()
+                && Utf8GraphQLRequestParser.ParseJson(variables)
+                    is IReadOnlyDictionary<string, object> v)
             {
-                Query = requestQuery[_queryIdentifier],
-                NamedQuery = requestQuery[_namedQueryIdentifier],
-                OperationName = requestQuery[_operationNameIdentifier],
-                Variables = (variables != null && variables.Any())
-                    ? JsonConvert.DeserializeObject<JObject>(
-                        variables, QueryMiddlewareUtilities.JsonSettings)
-                    : null
-            };
+                builder.SetVariableValues(v);
+            }
+            
+            return Task.FromResult(builder);
         }
 
         private static bool HasQueryParameter(HttpContext context)

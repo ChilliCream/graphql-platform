@@ -2,6 +2,7 @@ using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Buffers;
+using HotChocolate.Language.Properties;
 
 namespace HotChocolate.Language
 {
@@ -21,13 +22,11 @@ namespace HotChocolate.Language
         {
             _options = options
                 ?? throw new ArgumentNullException(nameof(options));
-            _cache = cache
-                ?? throw new ArgumentNullException(nameof(cache));
-            _hashProvider = hashProvider
-                ?? throw new ArgumentNullException(nameof(hashProvider));
+            _cache = cache;
+            _hashProvider = hashProvider;
 
             _reader = new Utf8GraphQLReader(requestData);
-            _useCache = true;
+            _useCache = cache != null;
         }
 
         public Utf8GraphQLRequestParser(
@@ -36,6 +35,16 @@ namespace HotChocolate.Language
         {
             _options = options
                 ?? throw new ArgumentNullException(nameof(options));
+
+            _reader = new Utf8GraphQLReader(requestData);
+            _cache = null;
+            _hashProvider = null;
+            _useCache = false;
+        }
+
+        public Utf8GraphQLRequestParser(ReadOnlySpan<byte> requestData)
+        {
+            _options = ParserOptions.Default;
 
             _reader = new Utf8GraphQLReader(requestData);
             _cache = null;
@@ -62,6 +71,12 @@ namespace HotChocolate.Language
             throw new SyntaxException(
                 _reader,
                 "Expected `{` or `[` as first syntax token.");
+        }
+
+        public object ParseJson()
+        {
+            _reader.MoveNext();
+            return ParseJson();
         }
 
         private IReadOnlyList<GraphQLRequest> ParseBatchRequest()
@@ -210,6 +225,115 @@ namespace HotChocolate.Language
                 {
                     unescapedSpan.Clear();
                     ArrayPool<byte>.Shared.Return(unescapedArray);
+                }
+            }
+        }
+
+         public static IReadOnlyList<GraphQLRequest> Parse(
+            ReadOnlySpan<byte> graphQLData) =>
+            new Utf8GraphQLRequestParser(graphQLData).Parse();
+
+        public static IReadOnlyList<GraphQLRequest> Parse(
+            ReadOnlySpan<byte> graphQLData,
+            ParserOptions options) =>
+            new Utf8GraphQLRequestParser(graphQLData, options).Parse();
+
+        public static IReadOnlyList<GraphQLRequest> Parse(
+            string sourceText) =>
+            Parse(sourceText, ParserOptions.Default);
+
+        public static unsafe IReadOnlyList<GraphQLRequest> Parse(
+            string sourceText,
+            ParserOptions options)
+        {
+            if (string.IsNullOrEmpty(sourceText))
+            {
+                throw new ArgumentException(
+                    LangResources.SourceText_Empty,
+                    nameof(sourceText));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            int length = checked(sourceText.Length * 4);
+            bool useStackalloc =
+                length <= GraphQLConstants.StackallocThreshold;
+
+            byte[] source = null;
+
+            Span<byte> sourceSpan = useStackalloc
+                ? stackalloc byte[length]
+                : (source = ArrayPool<byte>.Shared.Rent(length));
+
+            try
+            {
+                Utf8GraphQLParser.ConvertToBytes(sourceText, ref sourceSpan);
+                var parser = new Utf8GraphQLRequestParser(sourceSpan, options);
+                return parser.Parse();
+            }
+            finally
+            {
+                if (source != null)
+                {
+                    sourceSpan.Clear();
+                    ArrayPool<byte>.Shared.Return(source);
+                }
+            }
+        }
+
+        public static object ParseJson(
+            ReadOnlySpan<byte> graphQLData) =>
+            new Utf8GraphQLRequestParser(graphQLData).ParseJson();
+
+        public static object ParseJson(
+            ReadOnlySpan<byte> graphQLData,
+            ParserOptions options) =>
+            new Utf8GraphQLRequestParser(graphQLData, options).ParseJson();
+
+        public static object ParseJson(string sourceText) =>
+            ParseJson(sourceText, ParserOptions.Default);
+
+        public static unsafe object ParseJson(
+            string sourceText,
+            ParserOptions options)
+        {
+            if (string.IsNullOrEmpty(sourceText))
+            {
+                throw new ArgumentException(
+                    LangResources.SourceText_Empty,
+                    nameof(sourceText));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            int length = checked(sourceText.Length * 4);
+            bool useStackalloc =
+                length <= GraphQLConstants.StackallocThreshold;
+
+            byte[] source = null;
+
+            Span<byte> sourceSpan = useStackalloc
+                ? stackalloc byte[length]
+                : (source = ArrayPool<byte>.Shared.Rent(length));
+
+            try
+            {
+                Utf8GraphQLParser.ConvertToBytes(sourceText, ref sourceSpan);
+                var parser = new Utf8GraphQLRequestParser(sourceSpan, options);
+                return parser.ParseJson();
+            }
+            finally
+            {
+                if (source != null)
+                {
+                    sourceSpan.Clear();
+                    ArrayPool<byte>.Shared.Return(source);
                 }
             }
         }

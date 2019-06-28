@@ -25,6 +25,19 @@ namespace HotChocolate.Runtime
         public int Size { get; }
         public int Usage => _cache.Count;
 
+        public bool TryGet(string key, out TValue value)
+        {
+            if (_cache.TryGetValue(key, out CacheEntry entry))
+            {
+                TouchEntry(entry.Rank);
+                value = entry.Value;
+                return true;
+            }
+
+            value = default;
+            return false;
+        }
+
         public TValue GetOrCreate(string key, Func<TValue> create)
         {
             if (_cache.TryGetValue(key, out CacheEntry entry))

@@ -1,11 +1,8 @@
 using System.Collections.Generic;
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using Newtonsoft.Json;
-using Microsoft.Extensions.DependencyInjection;
 using System.Buffers;
 using HotChocolate.Language;
 
@@ -26,13 +23,22 @@ namespace HotChocolate.AspNetCore
     public class PostQueryMiddleware
         : QueryMiddlewareBase
     {
+        private readonly IDocumentCache _documentCache;
+        private readonly IDocumentHashProvider _documentHashProvider;
+
         public PostQueryMiddleware(
             RequestDelegate next,
             IQueryExecutor queryExecutor,
             IQueryResultSerializer resultSerializer,
+            IDocumentCache documentCache,
+            IDocumentHashProvider documentHashProvider,
             QueryMiddlewareOptions options)
                 : base(next, queryExecutor, resultSerializer, options)
-        { }
+        {
+            _documentCache = documentCache;
+            _documentHashProvider = documentHashProvider
+                ?? new MD5DocumentHashProvider();
+        }
 
         protected override bool CanHandleRequest(HttpContext context)
         {
@@ -138,7 +144,10 @@ namespace HotChocolate.AspNetCore
             graphQLData = graphQLData.Slice(0, bytesBuffered);
 
             var requestParser = new Utf8GraphQLRequestParser(
-                graphQLData, Options.ParserOptions);
+                graphQLData,
+                Options.ParserOptions,
+                _documentCache,
+                _documentHashProvider);
 
             return requestParser.Parse();
         }
@@ -152,8 +161,10 @@ namespace HotChocolate.AspNetCore
             var requestParser = new Utf8GraphQLParser(
                 graphQLData, Options.ParserOptions);
 
+            string queryHash = _documentHashProvider.ComputeHash(graphQLData);
             DocumentNode document = requestParser.Parse();
-            return new[] { new GraphQLRequest(document) };
+
+            return new[] { new GraphQLRequest(document, queryHash) };
         }
     }
 }

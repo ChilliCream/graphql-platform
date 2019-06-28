@@ -10,6 +10,11 @@ namespace HotChocolate.Language
         {
         }
 
+        public GraphQLRequest(DocumentNode query, string queryName)
+            : this(query, queryName, null, null, null)
+        {
+        }
+
         public GraphQLRequest(
             DocumentNode query,
             string queryName,
