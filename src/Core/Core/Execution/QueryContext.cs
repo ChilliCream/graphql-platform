@@ -52,6 +52,8 @@ namespace HotChocolate.Execution
             }
         }
 
+        public string QueryKey => Request.QueryHash;
+
         public IRequestServiceScope ServiceScope { get; }
 
         public IServiceProvider Services => ServiceScope.ServiceProvider;
@@ -86,6 +88,5 @@ namespace HotChocolate.Execution
                 _middlewareResolver = value;
             }
         }
-
     }
 }

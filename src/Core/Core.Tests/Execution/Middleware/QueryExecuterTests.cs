@@ -26,7 +26,10 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             IQueryExecutor executor = QueryExecutionBuilder
                 .BuildDefault(schema);
-            var request = new QueryRequest("{ a }");
+            var request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ a }")
+                    .Create();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);
@@ -45,11 +48,11 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             IQueryExecutor executor = QueryExecutionBuilder
                 .BuildDefault(schema);
-            var request = new QueryRequest(
-                "query x($a: String!) { b(a: $a) }")
-            {
-                VariableValues = variableValues
-            };
+            var request =
+                QueryRequestBuilder.New()
+                    .SetQuery("query x($a: String!) { b(a: $a) }")
+                    .SetVariableValues(variableValues)
+                    .Create();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);
@@ -71,11 +74,11 @@ namespace HotChocolate.Execution
 
             Schema schema = CreateSchema();
             IQueryExecutor executor = QueryExecutionBuilder.BuildDefault(schema);
-            var request = new QueryRequest(
-                "query x($a: String!) { b(a: $a) }")
-            {
-                VariableValues = variableValues
-            };
+            var request =
+                QueryRequestBuilder.New()
+                    .SetQuery("query x($a: String!) { b(a: $a) }")
+                    .SetVariableValues(variableValues)
+                    .Create();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);
@@ -96,11 +99,11 @@ namespace HotChocolate.Execution
 
             Schema schema = CreateSchema();
             IQueryExecutor executor = QueryExecutionBuilder.BuildDefault(schema);
-            var request = new QueryRequest(
-                "query x($a: String!) { b(a: $a) }")
-            {
-                VariableValues = variableValues
-            };
+            var request =
+                QueryRequestBuilder.New()
+                    .SetQuery("query x($a: String!) { b(a: $a) }")
+                    .SetVariableValues(variableValues)
+                    .Create();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);
@@ -122,11 +125,11 @@ namespace HotChocolate.Execution
 
             Schema schema = CreateSchema();
             IQueryExecutor executor = QueryExecutionBuilder.BuildDefault(schema);
-            var request = new QueryRequest(
-                "query x($a: String!) { b(a: $a) }")
-            {
-                VariableValues = variableValues
-            };
+            var request =
+                QueryRequestBuilder.New()
+                    .SetQuery("query x($a: String!) { b(a: $a) }")
+                    .SetVariableValues(variableValues)
+                    .Create();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);
@@ -142,8 +145,10 @@ namespace HotChocolate.Execution
             // arrange
             Schema schema = CreateSchema();
             IQueryExecutor executor = QueryExecutionBuilder.BuildDefault(schema);
-            var request = new QueryRequest(
-                "query a { a } query b { a }");
+            var request =
+                QueryRequestBuilder.New()
+                    .SetQuery("query a { a } query b { a }")
+                    .Create();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);
@@ -159,8 +164,11 @@ namespace HotChocolate.Execution
             // arrange
             Schema schema = CreateSchema();
             IQueryExecutor executor = QueryExecutionBuilder.BuildDefault(schema);
-            var request = new QueryRequest(
-                "query a { a } query b { a }", "a");
+            var request =
+                QueryRequestBuilder.New()
+                    .SetQuery("query a { a } query b { a }")
+                    .SetOperation("a")
+                    .Create();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);
@@ -176,8 +184,11 @@ namespace HotChocolate.Execution
             // arrange
             Schema schema = CreateSchema();
             IQueryExecutor executor = QueryExecutionBuilder.BuildDefault(schema);
-            var request = new QueryRequest(
-                "query a { a } query b { a }", "c");
+            var request =
+                QueryRequestBuilder.New()
+                    .SetQuery("query a { a } query b { a }")
+                    .SetOperation("c")
+                    .Create();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);
@@ -195,8 +206,12 @@ namespace HotChocolate.Execution
                 new Dictionary<string, IValueNode>();
 
             Schema schema = CreateSchema();
-            IQueryExecutor executor = QueryExecutionBuilder.BuildDefault(schema);
-            var request = new QueryRequest("{ x xasync }");
+            IQueryExecutor executor =
+                QueryExecutionBuilder.BuildDefault(schema);
+            var request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ x xasync }")
+                    .Create();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);
@@ -215,7 +230,10 @@ namespace HotChocolate.Execution
 
             Schema schema = CreateSchema();
             IQueryExecutor executor = QueryExecutionBuilder.BuildDefault(schema);
-            var request = new QueryRequest("{ y yasync }");
+            var request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ y yasync }")
+                    .Create();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);

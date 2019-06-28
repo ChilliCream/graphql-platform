@@ -54,7 +54,10 @@ namespace HotChocolate.Execution
                      null
             );
 
-            IReadOnlyQueryRequest request = new QueryRequest("{ a }");
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ a }")
+                    .Create();
 
             var observable = new DiagnosticListener("Foo");
 
@@ -74,7 +77,7 @@ namespace HotChocolate.Execution
                 schema,
                 services.CreateRequestServiceScope(),
                 request,
-                (f,s) => f.Middleware
+                (f, s) => f.Middleware
             )
             {
                 CachedQuery = new CachedQuery("{ a }", query),

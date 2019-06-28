@@ -5,30 +5,35 @@ namespace HotChocolate.Language
 {
     public readonly struct GraphQLRequest
     {
+        public GraphQLRequest(DocumentNode query)
+            : this(query, null, null, null, null)
+        {
+        }
+
         public GraphQLRequest(
-            string operationName,
-            string namedQuery,
             DocumentNode query,
+            string queryName,
+            string operationName,
             IReadOnlyDictionary<string, object> variables,
             IReadOnlyDictionary<string, object> extensions)
         {
-            if (query is null)
+            if (query is null && queryName is null)
             {
                 throw new ArgumentNullException(nameof(query));
             }
 
             OperationName = operationName;
-            NamedQuery = namedQuery;
+            QueryName = queryName;
             Query = query;
             Variables = variables;
             Extensions = extensions;
         }
 
-        public string OperationName { get; }
-
-        public string NamedQuery { get; }
-
         public DocumentNode Query { get; }
+
+        public string QueryName { get; }
+
+        public string OperationName { get; }
 
         public IReadOnlyDictionary<string, object> Variables { get; }
 

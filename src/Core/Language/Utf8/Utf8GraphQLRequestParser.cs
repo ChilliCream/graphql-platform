@@ -120,9 +120,9 @@ namespace HotChocolate.Language
 
             return new GraphQLRequest
             (
-                request.OperationName,
-                request.NamedQuery,
                 document,
+                request.NamedQuery,
+                request.OperationName,
                 request.Variables,
                 request.Extensions
             );

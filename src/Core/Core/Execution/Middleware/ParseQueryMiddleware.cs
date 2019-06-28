@@ -50,15 +50,13 @@ namespace HotChocolate.Execution
                     bool documentRetrievedFromCache = true;
 
                     context.CachedQuery = _queryCache.GetOrCreate(
-                        context.Request.Query,
+                        context.QueryKey,
                         () =>
                         {
                             documentRetrievedFromCache = false;
                             DocumentNode document =
                                 ParseDocument(context.Request.Query);
-                            return new CachedQuery(
-                                context.Request.Query,
-                                document);
+                            return new CachedQuery(context.QueryKey, document);
                         });
                     context.Document = context.CachedQuery.Document;
                     context.ContextData[ContextDataKeys.DocumentCached] =
@@ -73,9 +71,21 @@ namespace HotChocolate.Execution
             await _next(context).ConfigureAwait(false);
         }
 
-        private DocumentNode ParseDocument(string queryText)
+        private DocumentNode ParseDocument(IQuery query)
         {
-            return _parser.Parse(queryText);
+            if (query is QueryDocument parsed)
+            {
+                return parsed.Document;
+            }
+
+            if (query is QuerySourceText source)
+            {
+                return _parser.Parse(source.Text);
+            }
+
+            // TODO : resources
+            throw new NotSupportedException(
+                "The specified query type is not supported.");
         }
 
         private static bool IsContextIncomplete(IQueryContext context)

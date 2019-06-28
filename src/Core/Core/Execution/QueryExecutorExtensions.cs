@@ -44,7 +44,7 @@ namespace HotChocolate.Execution
             }
 
             return executor.ExecuteAsync(
-                new QueryRequest(query),
+                QueryRequestBuilder.New().SetQuery(query).Create(),
                 CancellationToken.None);
         }
 
@@ -66,7 +66,7 @@ namespace HotChocolate.Execution
             }
 
             return executor.ExecuteAsync(
-                new QueryRequest(query),
+                QueryRequestBuilder.New().SetQuery(query).Create(),
                 cancellationToken);
         }
 
@@ -93,10 +93,10 @@ namespace HotChocolate.Execution
             }
 
             return executor.ExecuteAsync(
-                new QueryRequest(query)
-                {
-                    VariableValues = variableValues
-                },
+                QueryRequestBuilder.New()
+                    .SetQuery(query)
+                    .SetVariableValues(variableValues)
+                    .Create(),
                 CancellationToken.None);
         }
 
@@ -124,10 +124,10 @@ namespace HotChocolate.Execution
             }
 
             return executor.ExecuteAsync(
-                new QueryRequest(query)
-                {
-                    VariableValues = variableValues
-                },
+                QueryRequestBuilder.New()
+                    .SetQuery(query)
+                    .SetVariableValues(variableValues)
+                    .Create(),
                 cancellationToken);
         }
 
@@ -168,7 +168,10 @@ namespace HotChocolate.Execution
                     nameof(query));
             }
 
-            return executor.Execute(new QueryRequest(query));
+            return executor.Execute(
+                QueryRequestBuilder.New()
+                    .SetQuery(query)
+                    .Create());
         }
 
         public static IExecutionResult Execute(
@@ -194,10 +197,10 @@ namespace HotChocolate.Execution
             }
 
             return executor.Execute(
-                new QueryRequest(query)
-                {
-                    VariableValues = variableValues
-                });
+                QueryRequestBuilder.New()
+                    .SetQuery(query)
+                    .SetVariableValues(variableValues)
+                    .Create());
         }
 
         public static Task<IExecutionResult> ExecuteAsync(
