@@ -26,7 +26,11 @@
     </ItemGroup>
     
     <ItemGroup>
-      <Folder Include="FileSystem\StoredQueries" />
+      <None Remove="FileSystem\StoredQueries\SimpleQuery.graphql" />
     </ItemGroup>
-    
+    <ItemGroup>
+      <Content Include="FileSystem\StoredQueries\SimpleQuery.graphql">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
 </Project>

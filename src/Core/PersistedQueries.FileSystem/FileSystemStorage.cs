@@ -22,14 +22,14 @@ namespace HotChocolate.PersistedQueries.FileSystem
         {
             _queryMap = queryMap ?? throw new ArgumentNullException(nameof(queryMap));
         }
-        
+
         /// <inheritdoc />
         /// <exception cref="ArgumentNullException">
         /// Thrown when <see cref="queryId"/> is null or white space.
         /// </exception>
         /// <exception cref="QueryNotFoundException">
-        /// Thrown when <see cref="queryId"/> does not map to a file
-        /// that exists.
+        /// Thrown when query Id maps to a file that does not exist, or maps
+        /// to null or white space.
         /// </exception>
         public async Task<IQuery> ReadQueryAsync(string queryId)
         {
@@ -50,12 +50,15 @@ namespace HotChocolate.PersistedQueries.FileSystem
                 using (var s = new StreamReader(fs))
                 {
                     var fileContent = await s.ReadToEndAsync();
-                    
+
                     // TODO: Parse into IQuery and return.
                     // TODO: Possible optimization of storing in memory for faster access.
+                    var exception = new NotImplementedException("Waiting for IQuery things");
+                    exception.Data.Add("FilePath", fileContent);
+                    throw exception;
                 }
             }
-            
+
             throw new NotImplementedException();
         }
     }
