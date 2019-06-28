@@ -25,9 +25,13 @@ namespace HotChocolate.Language
                     return ParseScalar();
 
                 default:
-                    throw new SyntaxException(_reader, "RESOURCES");
+                    throw new SyntaxException(_reader,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            "Unexpected token found `{0}` " +
+                            "while expecting a value.",
+                            _reader.Kind));
             }
-
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -64,7 +68,12 @@ namespace HotChocolate.Language
         {
             if (_reader.Kind != TokenKind.String)
             {
-                throw new SyntaxException(_reader, "RESOURCES");
+                throw new SyntaxException(_reader,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        LangResources.ParseMany_InvalidOpenToken,
+                        TokenKind.String,
+                        TokenVisualizer.Visualize(in _reader)));
             }
 
             string name = _reader.GetString();
@@ -146,7 +155,12 @@ namespace HotChocolate.Language
                     break;
             }
 
-            throw new SyntaxException(_reader, "RESOURCES");
+            throw new SyntaxException(_reader,
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    "Unexpected token found `{0}` " +
+                    "while expecting a scalar value.",
+                    _reader.Kind));
         }
     }
 }

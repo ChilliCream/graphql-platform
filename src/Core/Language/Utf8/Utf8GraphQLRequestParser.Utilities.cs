@@ -1,3 +1,4 @@
+using System.Globalization;
 using System;
 using System.Collections.Generic;
 
@@ -21,7 +22,15 @@ namespace HotChocolate.Language
                 return null;
             }
 
-            throw new SyntaxException(_reader, "RESOURCES");
+            // TODO : resources
+            throw new SyntaxException(
+                _reader,
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    "Exprected a string-token or a null-token, " +
+                    "but found a {0}-token with value `{1}`.",
+                    _reader.Kind.ToString(),
+                    _reader.GetString()));
         }
 
         private IReadOnlyDictionary<string, object> ParseObjectOrNull()
@@ -38,7 +47,15 @@ namespace HotChocolate.Language
                 return null;
             }
 
-            throw new SyntaxException(_reader, "RESOURCES");
+            // TODO : resources
+            throw new SyntaxException(
+                _reader,
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    "Exprected an object or a null-token, " +
+                    "but found a {0}-token with value `{1}`.",
+                    _reader.Kind.ToString(),
+                    _reader.GetString()));
         }
 
         private bool IsNullToken()
