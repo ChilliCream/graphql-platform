@@ -14,6 +14,7 @@ namespace HotChocolate.Execution
     {
         private Func<ObjectField, FieldNode, FieldDelegate> _middlewareResolver;
         private IReadOnlyQueryRequest _request;
+        private string _queryKey;
 
         public QueryContext(
             ISchema schema,
@@ -52,7 +53,20 @@ namespace HotChocolate.Execution
             }
         }
 
-        public string QueryKey => Request.QueryHash;
+        public string QueryKey
+        {
+            get => _queryKey;
+            set
+            {
+                if (_queryKey != null)
+                {
+                    throw new ArgumentException(
+                        "The query key can only be set once.",
+                        nameof(value));
+                }
+                _queryKey = value;
+            }
+        }
 
         public IRequestServiceScope ServiceScope { get; }
 

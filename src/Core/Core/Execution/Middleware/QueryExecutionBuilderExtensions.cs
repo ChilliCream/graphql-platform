@@ -571,6 +571,24 @@ namespace HotChocolate.Execution
             return builder;
         }
 
+        public static IQueryExecutionBuilder AddSha1DocumentHashProvider(
+            this IQueryExecutionBuilder builder)
+        {
+            builder.Services.AddSingleton<
+                IDocumentHashProvider,
+                Sha1DocumentHashProvider>();
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddMD5DocumentHashProvider(
+            this IQueryExecutionBuilder builder)
+        {
+            builder.Services.AddSingleton<
+                IDocumentHashProvider,
+                MD5DocumentHashProvider>();
+            return builder;
+        }
+
         private static IQueryExecutionBuilder RemoveService<TService>(
             this IQueryExecutionBuilder builder)
         {

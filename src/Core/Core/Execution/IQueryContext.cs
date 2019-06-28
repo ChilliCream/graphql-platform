@@ -21,10 +21,10 @@ namespace HotChocolate.Execution
         IReadOnlyQueryRequest Request { get; set; }
 
         /// <summary>
-        /// Gets an query hash that can used as a cache key.
+        /// Gets or sets a unique query key that can be used for caching.
         /// </summary>
         /// <returns></returns>
-        string QueryKey { get; }
+        string QueryKey { get; set; }
 
         /// <summary>
         /// Gets the request service scope.

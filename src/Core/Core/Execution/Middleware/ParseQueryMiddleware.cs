@@ -14,12 +14,14 @@ namespace HotChocolate.Execution
         private readonly IQueryParser _parser;
         private readonly Cache<ICachedQuery> _queryCache;
         private readonly QueryExecutionDiagnostics _diagnosticEvents;
+        private readonly IDocumentHashProvider _documentHashProvider;
 
         public ParseQueryMiddleware(
             QueryDelegate next,
             IQueryParser parser,
             Cache<ICachedQuery> queryCache,
-            QueryExecutionDiagnostics diagnosticEvents)
+            QueryExecutionDiagnostics diagnosticEvents,
+            IDocumentHashProvider documentHashProvider)
         {
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
@@ -29,6 +31,8 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(queryCache));
             _diagnosticEvents = diagnosticEvents
                 ?? throw new ArgumentNullException(nameof(diagnosticEvents));
+            _documentHashProvider = documentHashProvider
+                ?? new MD5DocumentHashProvider();
         }
 
         public async Task InvokeAsync(IQueryContext context)
@@ -49,14 +53,24 @@ namespace HotChocolate.Execution
                 {
                     bool documentRetrievedFromCache = true;
 
+                    string queryKey = context.Request.QueryHash
+                        ?? context.Request.QueryName;
+
+                    if (queryKey is null)
+                    {
+                        queryKey = _documentHashProvider.ComputeHash(
+                            context.Request.Query.ToSource());
+                    }
+
+                    context.QueryKey = queryKey;
                     context.CachedQuery = _queryCache.GetOrCreate(
-                        context.QueryKey,
+                        queryKey,
                         () =>
                         {
                             documentRetrievedFromCache = false;
                             DocumentNode document =
                                 ParseDocument(context.Request.Query);
-                            return new CachedQuery(context.QueryKey, document);
+                            return new CachedQuery(queryKey, document);
                         });
                     context.Document = context.CachedQuery.Document;
                     context.ContextData[ContextDataKeys.DocumentCached] =
@@ -80,7 +94,7 @@ namespace HotChocolate.Execution
 
             if (query is QuerySourceText source)
             {
-                return _parser.Parse(source.Text);
+                return _parser.Parse(source.ToSource());
             }
 
             // TODO : resources
@@ -90,8 +104,8 @@ namespace HotChocolate.Execution
 
         private static bool IsContextIncomplete(IQueryContext context)
         {
-            return context.Request == null ||
-                context.Request.Query == null;
+            return context.Request == null
+                || context.Request.Query == null;
         }
     }
 }

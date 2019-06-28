@@ -38,7 +38,8 @@ namespace HotChocolate.Execution
                 c => Task.CompletedTask,
                 new DefaultQueryParser(),
                 new Cache<ICachedQuery>(10),
-                diagnostics);
+                diagnostics,
+                null);
 
             // act
             await middleware.InvokeAsync(context);
@@ -75,7 +76,8 @@ namespace HotChocolate.Execution
                 c => Task.CompletedTask,
                 new DefaultQueryParser(),
                 new Cache<ICachedQuery>(10),
-                diagnostics);
+                diagnostics,
+                null);
 
             // act
             Func<Task> invoke = () => middleware.InvokeAsync(context);
