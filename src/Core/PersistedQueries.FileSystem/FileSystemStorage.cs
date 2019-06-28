@@ -25,24 +25,24 @@ namespace HotChocolate.PersistedQueries.FileSystem
         
         /// <inheritdoc />
         /// <exception cref="ArgumentNullException">
-        /// Thrown when <see cref="queryIdentifier"/> is null or white space.
+        /// Thrown when <see cref="queryId"/> is null or white space.
         /// </exception>
         /// <exception cref="QueryNotFoundException">
-        /// Thrown when <see cref="queryIdentifier"/> does not map to a file
+        /// Thrown when <see cref="queryId"/> does not map to a file
         /// that exists.
         /// </exception>
-        public async Task<IQuery> ReadQueryAsync(string queryIdentifier)
+        public async Task<IQuery> ReadQueryAsync(string queryId)
         {
-            if (string.IsNullOrWhiteSpace(queryIdentifier))
+            if (string.IsNullOrWhiteSpace(queryId))
             {
-                throw new ArgumentNullException(queryIdentifier);
+                throw new ArgumentNullException(queryId);
             }
 
-            var filePath = _queryMap.MapToFilePath(queryIdentifier);
+            var filePath = _queryMap.MapToFilePath(queryId);
 
             if (!File.Exists(filePath))
             {
-                throw new QueryNotFoundException(queryIdentifier);
+                throw new QueryNotFoundException(queryId);
             }
 
             using (var fs = new FileStream(filePath, FileMode.Open))

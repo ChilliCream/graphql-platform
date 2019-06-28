@@ -11,8 +11,8 @@ namespace HotChocolate.PersistedQueries
         /// <summary>
         /// Retrieves the query associated with the given identifier.
         /// </summary>
-        /// <param name="queryIdentifier">The query identifier.</param>
+        /// <param name="queryId">The query identifier.</param>
         /// <returns>The desired query.</returns>
-        Task<IQuery> ReadQueryAsync(string queryIdentifier);
+        Task<IQuery> ReadQueryAsync(string queryId);
     }
 }
