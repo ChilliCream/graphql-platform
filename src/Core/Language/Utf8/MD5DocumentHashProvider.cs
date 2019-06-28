@@ -15,6 +15,7 @@ namespace HotChocolate.Language
         {
             // TODO : with netcoreapp 3.0 we do not need that anymore.
             byte[] rented = ArrayPool<byte>.Shared.Rent(document.Length);
+            document.CopyTo(rented);
 
             try
             {

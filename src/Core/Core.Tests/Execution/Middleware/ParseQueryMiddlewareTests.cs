@@ -57,7 +57,7 @@ namespace HotChocolate.Execution
 
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
-                    .SetQuery("{ a }")
+                    .SetQuery("{")
                     .Create();
 
             var context = new QueryContext

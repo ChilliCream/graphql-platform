@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -36,6 +35,7 @@ namespace HotChocolate.Execution
             );
 
             context.Document = Utf8GraphQLParser.Parse(sourceText);
+            context.QueryKey = "foo";
 
             var middleware = new ResolveOperationMiddleware(
                 c => Task.CompletedTask, null);
@@ -72,6 +72,7 @@ namespace HotChocolate.Execution
             );
 
             context.Document = Utf8GraphQLParser.Parse(sourceText);
+            context.QueryKey = "foo";
 
             var middleware = new ResolveOperationMiddleware(
                 c => Task.CompletedTask, null);
@@ -112,6 +113,7 @@ namespace HotChocolate.Execution
             );
 
             context.Document = Utf8GraphQLParser.Parse(sourceText);
+            context.QueryKey = "foo";
 
             var middleware = new ResolveOperationMiddleware(
                 c => Task.CompletedTask, null);
@@ -151,6 +153,7 @@ namespace HotChocolate.Execution
             );
 
             context.Document = Utf8GraphQLParser.Parse(sourceText);
+            context.QueryKey = "foo";
 
             var middleware = new ResolveOperationMiddleware(
                 c => Task.CompletedTask, null);
@@ -194,6 +197,7 @@ namespace HotChocolate.Execution
             );
 
             context.Document = Utf8GraphQLParser.Parse(sourceText);
+            context.QueryKey = "foo";
 
             var middleware = new ResolveOperationMiddleware(
                 c => Task.CompletedTask, null);
@@ -233,6 +237,7 @@ namespace HotChocolate.Execution
             );
 
             context.Document = Utf8GraphQLParser.Parse(sourceText);
+            context.QueryKey = "foo";
 
             var middleware = new ResolveOperationMiddleware(
                 c => Task.CompletedTask, null);
@@ -271,6 +276,7 @@ namespace HotChocolate.Execution
             );
 
             context.Document = Utf8GraphQLParser.Parse(sourceText);
+            context.QueryKey = "foo";
 
             var middleware = new ResolveOperationMiddleware(
                 c => Task.CompletedTask, null);
@@ -363,6 +369,7 @@ namespace HotChocolate.Execution
                 (f, s) => f.Middleware
             );
 
+            context.QueryKey = "foo";
 
             context.Document = Utf8GraphQLParser.Parse(sourceText);
             var middleware = new ResolveOperationMiddleware(
@@ -401,6 +408,7 @@ namespace HotChocolate.Execution
                 request,
                 (f, s) => f.Middleware
             );
+            context.QueryKey = "Foo";
 
             context.Document = Utf8GraphQLParser.Parse(sourceText);
 

@@ -82,6 +82,7 @@ namespace HotChocolate.Execution
             {
                 CachedQuery = new CachedQuery("{ a }", query),
                 Document = query,
+                QueryKey = "foo",
                 Operation = operation
             };
 
