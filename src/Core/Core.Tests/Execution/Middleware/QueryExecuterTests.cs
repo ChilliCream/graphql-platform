@@ -13,7 +13,17 @@ namespace HotChocolate.Execution
         public void SchemaIsNull_ShouldThrow()
         {
             // act
-            Action a = () => QueryExecutionBuilder.New().Build(null);
+            Action a = () => QueryExecutionBuilder.New().Build((ISchema)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(a);
+        }
+
+        [Fact]
+        public void ServicesIsNull_ShouldThrow()
+        {
+            // act
+            Action a = () => QueryExecutionBuilder.New().Build((ISchema)null);
 
             // assert
             Assert.Throws<ArgumentNullException>(a);
