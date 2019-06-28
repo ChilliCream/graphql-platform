@@ -6,7 +6,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 {
     public interface IHttpContext
     {
-        object User { get; set; }
+        ClaimsPrincipal User { get; set; }
 
         CancellationToken RequestAborted { get; }
 

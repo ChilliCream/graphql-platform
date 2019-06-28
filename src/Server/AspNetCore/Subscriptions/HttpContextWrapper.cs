@@ -21,7 +21,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             _context = context;
         }
 
-        public object User
+        public ClaimsPrincipal User
         {
             get
             {
