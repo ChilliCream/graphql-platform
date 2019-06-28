@@ -136,7 +136,11 @@ namespace HotChocolate.Execution
                 c.RegisterQueryType<DisposableQuery>();
             });
 
-            var request = new QueryRequest("{ isDisposable }");
+            var sourceText = "{ isDisposable }";
+
+            var request = QueryRequestBuilder.New()
+                .SetQuery(sourceText)
+                .Create();
 
             var context = new QueryContext
             (
@@ -146,7 +150,7 @@ namespace HotChocolate.Execution
                 (f, s) => f.Middleware
             );
 
-            context.Document = Parser.Default.Parse(request.Query);
+            context.Document = Utf8GraphQLParser.Parse(sourceText);
 
             var middleware = new ResolveOperationMiddleware(
                 c => Task.CompletedTask, null);
@@ -174,10 +178,12 @@ namespace HotChocolate.Execution
 
             var rootValue = new DisposableQuery();
 
-            var request = new QueryRequest("{ isDisposable }")
-            {
-                InitialValue = rootValue
-            };
+            var sourceText = "{ isDisposable }";
+
+            var request = QueryRequestBuilder.New()
+                .SetQuery(sourceText)
+                .SetInitialValue(rootValue)
+                .Create();
 
             var context = new QueryContext
             (
@@ -187,7 +193,7 @@ namespace HotChocolate.Execution
                 (f, s) => f.Middleware
             );
 
-            context.Document = Parser.Default.Parse(request.Query);
+            context.Document = Utf8GraphQLParser.Parse(sourceText);
 
             var middleware = new ResolveOperationMiddleware(
                 c => Task.CompletedTask, null);
@@ -212,7 +218,11 @@ namespace HotChocolate.Execution
                     .To("Query", "a");
             });
 
-            var request = new QueryRequest("query a { a }");
+            var sourceText = "query a { a }";
+
+            var request = QueryRequestBuilder.New()
+                .SetQuery(sourceText)
+                .Create();
 
             var context = new QueryContext
             (
@@ -222,7 +232,7 @@ namespace HotChocolate.Execution
                 (f, s) => f.Middleware
             );
 
-            context.Document = Parser.Default.Parse(request.Query);
+            context.Document = Utf8GraphQLParser.Parse(sourceText);
 
             var middleware = new ResolveOperationMiddleware(
                 c => Task.CompletedTask, null);
@@ -246,7 +256,11 @@ namespace HotChocolate.Execution
                     .To("Query", "a");
             });
 
-            var request = new QueryRequest("{ a } query a { a }");
+            var sourceText = "{ a } query a { a }";
+
+            var request = QueryRequestBuilder.New()
+                .SetQuery(sourceText)
+                .Create();
 
             var context = new QueryContext
             (
@@ -256,7 +270,7 @@ namespace HotChocolate.Execution
                 (f, s) => f.Middleware
             );
 
-            context.Document = Parser.Default.Parse(request.Query);
+            context.Document = Utf8GraphQLParser.Parse(sourceText);
 
             var middleware = new ResolveOperationMiddleware(
                 c => Task.CompletedTask, null);
@@ -285,8 +299,12 @@ namespace HotChocolate.Execution
                     .To("Query", "a");
             });
 
-            var request = new QueryRequest(
-                "query a { a } query b { a }", "c");
+            var sourceText = "query a { a } query b { a }";
+
+            var request = QueryRequestBuilder.New()
+                .SetQuery(sourceText)
+                .SetOperation("c")
+                .Create();
 
             var context = new QueryContext
             (
@@ -296,7 +314,7 @@ namespace HotChocolate.Execution
                 (f, s) => f.Middleware
             );
 
-            context.Document = Parser.Default.Parse(request.Query);
+            context.Document = Utf8GraphQLParser.Parse(sourceText);
 
             var middleware = new ResolveOperationMiddleware(
                 c => Task.CompletedTask, null);
@@ -331,7 +349,11 @@ namespace HotChocolate.Execution
                 c.Use(n => ctx => Task.CompletedTask);
             });
 
-            var request = new QueryRequest("query a { a }");
+            var sourceText = "query a { a }";
+
+            var request = QueryRequestBuilder.New()
+                .SetQuery(sourceText)
+                .Create();
 
             var context = new QueryContext
             (
@@ -341,8 +363,8 @@ namespace HotChocolate.Execution
                 (f, s) => f.Middleware
             );
 
-            context.Document = Parser.Default.Parse(request.Query);
 
+            context.Document = Utf8GraphQLParser.Parse(sourceText);
             var middleware = new ResolveOperationMiddleware(
                 c => Task.CompletedTask, null);
 
@@ -365,13 +387,12 @@ namespace HotChocolate.Execution
                     .To("Query", "a");
             });
 
-            var request = new QueryRequest("query foo($a: String) { a }")
-            {
-                VariableValues = new Dictionary<string, object>
-                {
-                    { "a", "abc" }
-                }
-            };
+            var sourceText = "query foo($a: String) { a }";
+
+            var request = QueryRequestBuilder.New()
+                .SetQuery(sourceText)
+                .SetVariableValue("a", "abc")
+                .Create();
 
             var context = new QueryContext
             (
@@ -381,7 +402,7 @@ namespace HotChocolate.Execution
                 (f, s) => f.Middleware
             );
 
-            context.Document = Parser.Default.Parse(request.Query);
+            context.Document = Utf8GraphQLParser.Parse(sourceText);
 
             var middleware = new ResolveOperationMiddleware(
                 c => Task.CompletedTask, null);
