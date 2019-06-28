@@ -1,89 +1,11 @@
-using System.Threading.Tasks;
-using System.Xml.Linq;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using HotChocolate.Language.Properties;
 using System.Buffers;
-using System.Runtime.CompilerServices;
 
 namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLRequestParser
     {
-        private const byte _o = (byte)'o';
-        private const byte _n = (byte)'n';
-        private const byte _q = (byte)'q';
-        private const byte _v = (byte)'v';
-        private const byte _e = (byte)'e';
-
-        private static readonly byte[] _operationName = new[]
-        {
-            (byte)'o',
-            (byte)'p',
-            (byte)'e',
-            (byte)'r',
-            (byte)'a',
-            (byte)'t',
-            (byte)'i',
-            (byte)'o',
-            (byte)'n',
-            (byte)'N',
-            (byte)'a',
-            (byte)'m',
-            (byte)'e'
-        };
-
-        private static readonly byte[] _queryName = new[]
-        {
-            (byte)'n',
-            (byte)'a',
-            (byte)'m',
-            (byte)'e',
-            (byte)'d',
-            (byte)'Q',
-            (byte)'u',
-            (byte)'e',
-            (byte)'r',
-            (byte)'y'
-        };
-
-        private static readonly byte[] _query = new[]
-        {
-            (byte)'q',
-            (byte)'u',
-            (byte)'e',
-            (byte)'r',
-            (byte)'y'
-        };
-
-        private static readonly byte[] _variables = new[]
-        {
-            (byte)'v',
-            (byte)'a',
-            (byte)'r',
-            (byte)'i',
-            (byte)'a',
-            (byte)'b',
-            (byte)'l',
-            (byte)'e',
-            (byte)'s'
-        };
-
-        private static readonly byte[] _extensions = new[]
-        {
-            (byte)'e',
-            (byte)'x',
-            (byte)'t',
-            (byte)'e',
-            (byte)'n',
-            (byte)'s',
-            (byte)'i',
-            (byte)'o',
-            (byte)'n',
-            (byte)'s'
-        };
-
         private readonly IDocumentHashProvider _hashProvider;
         private readonly IDocumentCache _cache;
         private readonly bool _useCache;
@@ -141,7 +63,16 @@ namespace HotChocolate.Language
 
         private IReadOnlyList<GraphQLRequest> ParseBatchRequest()
         {
-            throw new NotImplementedException();
+            var batch = new List<GraphQLRequest>();
+
+            _reader.Expect(TokenKind.LeftBracket);
+
+            while (_reader.Kind != TokenKind.RightBracket)
+            {
+                ParseRequest();
+            }
+
+            return batch;
         }
 
         private GraphQLRequest ParseRequest()
@@ -150,11 +81,9 @@ namespace HotChocolate.Language
 
             _reader.Expect(TokenKind.LeftBrace);
 
-
             while (_reader.Kind != TokenKind.RightBrace)
             {
                 ParseProperty(ref request);
-                _reader.MoveNext();
             }
 
             if (request.Query.Length == 0)
@@ -202,7 +131,7 @@ namespace HotChocolate.Language
                 case _o:
                     if (fieldName.SequenceEqual(_operationName))
                     {
-                        request.OperationName = ExpectStringValue();
+                        request.OperationName = ParseStringOrNull();
                         return;
                     }
                     break;
@@ -210,7 +139,7 @@ namespace HotChocolate.Language
                 case _n:
                     if (fieldName.SequenceEqual(_queryName))
                     {
-                        request.NamedQuery = ExpectStringValue();
+                        request.NamedQuery = ParseStringOrNull();
                         return;
                     }
                     break;
@@ -220,6 +149,7 @@ namespace HotChocolate.Language
                     if (fieldName.SequenceEqual(_query))
                     {
                         request.Query = _reader.Value;
+                        _reader.MoveNext();
                         return;
                     }
                     break;
@@ -227,7 +157,7 @@ namespace HotChocolate.Language
                 case _v:
                     if (fieldName.SequenceEqual(_variables))
                     {
-                        request.Variables = ExpectObjectValue();
+                        request.Variables = ParseObjectOrNull();
                         return;
                     }
                     break;
@@ -235,135 +165,8 @@ namespace HotChocolate.Language
                 case _e:
                     if (fieldName.SequenceEqual(_extensions))
                     {
-                        request.Extensions = ExpectObjectValue();
+                        request.Extensions = ParseObjectOrNull();
                         return;
-                    }
-                    break;
-            }
-
-            throw new SyntaxException(_reader, "RESOURCES");
-        }
-
-        private object ParseValue()
-        {
-            switch (_reader.Kind)
-            {
-                case TokenKind.LeftBracket:
-                    return ParseList();
-
-                case TokenKind.LeftBrace:
-                    return ParseObject();
-
-                case TokenKind.Name:
-                case TokenKind.String:
-                case TokenKind.Integer:
-                case TokenKind.Float:
-                    return ParseScalarValue();
-
-                default:
-                    throw new SyntaxException(_reader, "RESOURCES");
-            }
-        }
-
-        private IReadOnlyDictionary<string, object> ParseObject()
-        {
-            if (_reader.Kind != TokenKind.LeftBrace)
-            {
-                throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.LeftBrace,
-                        TokenVisualizer.Visualize(in _reader)));
-            }
-
-            _reader.Expect(TokenKind.LeftBrace);
-
-            var obj = new Dictionary<string, object>();
-
-            while (_reader.Kind != TokenKind.RightBrace)
-            {
-                ParseObjectField(obj);
-            }
-
-            // skip closing token
-            _reader.Expect(TokenKind.RightBrace);
-
-            return obj;
-        }
-
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ParseObjectField(IDictionary<string, object> obj)
-        {
-            if (_reader.Kind != TokenKind.String)
-            {
-                throw new SyntaxException(_reader, "RESOURCES");
-            }
-
-            string name = _reader.GetString();
-            _reader.Expect(TokenKind.Colon);
-            object value = ParseValue();
-            obj.Add(name, value);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IReadOnlyList<object> ParseList()
-        {
-            if (_reader.Kind != TokenKind.LeftBracket)
-            {
-                throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.LeftBracket,
-                        TokenVisualizer.Visualize(in _reader)));
-            }
-
-            var list = new List<object>();
-
-            // skip opening token
-            _reader.MoveNext();
-
-            while (_reader.Kind != TokenKind.RightBracket)
-            {
-                list.Add(ParseValue());
-            }
-
-            // skip closing token
-            _reader.Expect(TokenKind.RightBracket);
-
-            return list;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private object ParseScalarValue()
-        {
-            switch (_reader.Kind)
-            {
-                case TokenKind.String:
-                    return _reader.GetString();
-
-                case TokenKind.Integer:
-                    return long.Parse(_reader.GetScalarValue());
-
-                case TokenKind.Float:
-                    return decimal.Parse(_reader.GetScalarValue());
-
-                case TokenKind.Name:
-                    if (_reader.Value.SequenceEqual(GraphQLKeywords.True))
-                    {
-                        return true;
-                    }
-
-                    if (_reader.Value.SequenceEqual(GraphQLKeywords.False))
-                    {
-                        return false;
-                    }
-
-                    if (_reader.Value.SequenceEqual(GraphQLKeywords.Null))
-                    {
-                        return null;
                     }
                     break;
             }
@@ -400,51 +203,6 @@ namespace HotChocolate.Language
                     ArrayPool<byte>.Shared.Return(unescapedArray);
                 }
             }
-        }
-
-        private string ExpectStringValue()
-        {
-            if (_reader.Kind == TokenKind.String)
-            {
-                return _reader.GetString();
-            }
-
-            if (_reader.Kind == TokenKind.Name
-                && _reader.Value.SequenceEqual(GraphQLKeywords.Null))
-            {
-                return null;
-            }
-
-            throw new SyntaxException(_reader, "RESOURCES");
-        }
-
-        private IReadOnlyDictionary<string, object> ExpectObjectValue()
-        {
-            if (_reader.Kind == TokenKind.LeftBrace)
-            {
-                return ParseObject();
-            }
-
-            if (_reader.Kind == TokenKind.Name
-                && _reader.Value.SequenceEqual(GraphQLKeywords.Null))
-            {
-                return null;
-            }
-
-            throw new SyntaxException(_reader, "RESOURCES");
-        }
-
-        private ref struct Request
-        {
-            public string OperationName { get; set; }
-
-            public string NamedQuery { get; set; }
-
-            public ReadOnlySpan<byte> Query { get; set; }
-
-            public IReadOnlyDictionary<string, object> Variables { get; set; }
-
-            public IReadOnlyDictionary<string, object> Extensions { get; set; }
         }
     }
 }

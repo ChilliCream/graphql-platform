@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using ChilliCream.Testing;
 using Newtonsoft.Json;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -84,6 +85,77 @@ namespace HotChocolate.Language
                     Assert.Equal(r.NamedQuery, "alinKTeX5KKqWsMutgMimKqxU94=");
                     QuerySyntaxSerializer.Serialize(r.Query, true)
                         .MatchSnapshot();
+                });
+        }
+
+        [Fact]
+        public void Parse_Kitchen_Sink_Query_AllProps_No_Cache()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes(
+                JsonConvert.SerializeObject(
+                    new GraphQLRequestDto
+                    {
+                        Query = FileResource.Open("kitchen-sink.graphql"),
+                        NamedQuery = "ABC",
+                        OperationName = "DEF",
+                        Variables = new Dictionary<string, object>
+                        {
+                            { "a" , "b"},
+                            { "b" , new Dictionary<string, object>
+                                {
+                                    { "a" , "b"},
+                                    { "b" , true},
+                                    { "c" , 1},
+                                    { "d" , 1.1},
+                                }},
+                            { "c" , new List<object>
+                                {
+                                    new Dictionary<string, object>
+                                    {
+                                        { "a" , "b"},
+                                    }
+                                }},
+                        },
+                        Extensions = new Dictionary<string, object>
+                        {
+                            { "aa" , "bb"},
+                            { "bb" , new Dictionary<string, object>
+                                {
+                                    { "aa" , "bb"},
+                                    { "bb" , true},
+                                    { "cc" , 1},
+                                    { "df" , 1.1},
+                                }},
+                            { "cc" , new List<object>
+                                {
+                                    new Dictionary<string, object>
+                                    {
+                                        { "aa" , "bb"},
+                                    }
+                                }},
+                        }
+                    }));
+
+            // act
+            var parserOptions = new ParserOptions();
+            var requestParser = new Utf8GraphQLRequestParser(
+                source, parserOptions);
+            IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+
+            // assert
+            Assert.Collection(batch,
+                r =>
+                {
+                    Assert.Equal("ABC", r.NamedQuery);
+                    Assert.Equal("DEF", r.OperationName);
+
+                    r.Variables.MatchSnapshot(
+                        new SnapshotNameExtension("Variables"));
+                    r.Extensions.MatchSnapshot(
+                        new SnapshotNameExtension("Extensions"));
+                    QuerySyntaxSerializer.Serialize(r.Query, true)
+                        .MatchSnapshot(new SnapshotNameExtension("Query"));
                 });
         }
 

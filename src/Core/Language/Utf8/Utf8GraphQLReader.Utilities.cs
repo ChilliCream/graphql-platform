@@ -40,7 +40,7 @@ namespace HotChocolate.Language
             try
             {
                 UnescapeValue(escapedValue, ref unescapedSpan, isBlockString);
-                return GetString(unescapedArray);
+                return GetString(unescapedSpan);
             }
             finally
             {
@@ -68,7 +68,7 @@ namespace HotChocolate.Language
 
         public string GetComment()
         {
-            if (_value.Length > 0)
+            if (_value.Length != 0)
             {
                 StringHelper.TrimStringToken(ref _value);
             }
