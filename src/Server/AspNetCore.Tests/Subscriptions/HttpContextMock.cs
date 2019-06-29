@@ -1,5 +1,6 @@
 using System;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Threading;
 
 namespace HotChocolate.AspNetCore.Subscriptions
@@ -7,7 +8,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
     internal class HttpContextMock
         : IHttpContext
     {
-        public object User { get; set; }
+        public IPrincipal User { get; set; }
 
         public CancellationToken RequestAborted { get; }
 
