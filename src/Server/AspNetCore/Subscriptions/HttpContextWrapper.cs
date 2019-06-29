@@ -1,5 +1,6 @@
 using System;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Threading;
 #if ASPNETCLASSIC
 using HotChocolate.AspNetClassic;
@@ -13,7 +14,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         : IHttpContext
     {
         private readonly HttpContext _context;
-        private object _user;
+        private IPrincipal _user;
 
         public HttpContextWrapper(
             HttpContext context)
@@ -21,7 +22,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             _context = context;
         }
 
-        public ClaimsPrincipal User
+        public IPrincipal User
         {
             get
             {
