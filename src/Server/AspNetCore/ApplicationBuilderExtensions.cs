@@ -1,7 +1,9 @@
-﻿using System;
+using System;
 
 #if ASPNETCLASSIC
 using HotChocolate.Execution;
+using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Owin;
 using Owin;
 using IApplicationBuilder = Owin.IAppBuilder;
@@ -86,15 +88,21 @@ namespace HotChocolate.AspNetCore
                 throw new ArgumentNullException(nameof(options));
             }
 
-            var executor = (IQueryExecutor)serviceProvider
-                .GetService(typeof(IQueryExecutor));
+            IQueryExecutor executor = serviceProvider
+                .GetService<IQueryExecutor>();
 
-            var serializer = (IQueryResultSerializer)serviceProvider
-                .GetService(typeof(IQueryResultSerializer))
+            IQueryResultSerializer serializer = serviceProvider
+                .GetService<IQueryResultSerializer>()
                 ?? new JsonQueryResultSerializer();
 
+            IDocumentCache cache = serviceProvider
+                .GetRequiredService<IDocumentCache>();
+
+            IDocumentHashProvider hashProvider = serviceProvider
+                .GetRequiredService<IDocumentHashProvider>();
+
             return applicationBuilder
-                .Use<PostQueryMiddleware>(executor, serializer, options)
+                .Use<PostQueryMiddleware>(executor, serializer, cache, hashProvider, options)
                 .Use<GetQueryMiddleware>(executor, serializer, options)
                 //.Use<SubscriptionMiddleware>(executor, options)
                 .Use<SchemaMiddleware>(executor, options);
