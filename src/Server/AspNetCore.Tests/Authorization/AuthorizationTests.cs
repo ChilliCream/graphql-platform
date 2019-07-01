@@ -26,11 +26,9 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
-        public void AuthorizeDirective_Defined(IQueryExecutor executor)
+        public void AuthorizeDirective_Defined(ISchema schema)
         {
-            // arrange
-            ISchema schema = executor.Schema;
-
+            // arrange            
             // assert
             Assert.Contains(
                 schema.DirectiveTypes,
@@ -39,7 +37,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
-        public async Task DefaultPolicy_NotFound(IQueryExecutor executor)
+        public async Task DefaultPolicy_NotFound(ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -50,7 +48,7 @@ namespace HotChocolate.AspNetCore.Authorization
                         options.DefaultPolicy = null;
                     });
 
-                    services.AddGraphQL(executor);
+                    services.AddGraphQL(schema);
                 },
                 context =>
                 {
@@ -78,13 +76,13 @@ namespace HotChocolate.AspNetCore.Authorization
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
         public async Task NoAuthServices_Autheticated_True(
-            IQueryExecutor executor)
+            ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
                 services =>
                 {
-                    services.AddGraphQL(executor);
+                    services.AddGraphQL(schema);
                 },
                 context =>
                 {
@@ -112,13 +110,13 @@ namespace HotChocolate.AspNetCore.Authorization
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
         public async Task NoAuthServices_Autheticated_False(
-            IQueryExecutor executor)
+            ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
                 services =>
                 {
-                    services.AddGraphQL(executor);
+                    services.AddGraphQL(schema);
                 },
                 context =>
                 {
@@ -145,7 +143,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
-        public async Task Policy_NotFound(IQueryExecutor executor)
+        public async Task Policy_NotFound(ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -159,7 +157,7 @@ namespace HotChocolate.AspNetCore.Authorization
                                     c.Type == ClaimTypes.DateOfBirth)));
                     });
 
-                    services.AddGraphQL(executor);
+                    services.AddGraphQL(schema);
                 },
                 context =>
                 {
@@ -186,7 +184,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
-        public async Task Policy_NotAuthorized(IQueryExecutor executor)
+        public async Task Policy_NotAuthorized(ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -200,7 +198,7 @@ namespace HotChocolate.AspNetCore.Authorization
                                     c.Type == ClaimTypes.DateOfBirth)));
                     });
 
-                    services.AddGraphQL(executor);
+                    services.AddGraphQL(schema);
                 },
                 context =>
                 {
@@ -227,7 +225,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
-        public async Task Policy_Authorized(IQueryExecutor executor)
+        public async Task Policy_Authorized(ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -241,7 +239,7 @@ namespace HotChocolate.AspNetCore.Authorization
                                     c.Type == ClaimTypes.DateOfBirth)));
                     });
 
-                    services.AddGraphQL(executor);
+                    services.AddGraphQL(schema);
                 },
                 context =>
                 {
@@ -272,13 +270,13 @@ namespace HotChocolate.AspNetCore.Authorization
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
         public async Task Roles_UserHasNoRoles_NotAuthorized(
-            IQueryExecutor executor)
+            ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
                 services =>
                 {
-                    services.AddGraphQL(executor);
+                    services.AddGraphQL(schema);
                 },
                 context =>
                 {
@@ -306,13 +304,13 @@ namespace HotChocolate.AspNetCore.Authorization
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
         public async Task Roles_UserHasDifferentRoles_NotAuthorized(
-            IQueryExecutor executor)
+            ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
                 services =>
                 {
-                    services.AddGraphQL(executor);
+                    services.AddGraphQL(schema);
                 },
                 context =>
                 {
@@ -343,13 +341,13 @@ namespace HotChocolate.AspNetCore.Authorization
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
         public async Task Roles_UserHasOneOfTheRoles_NotAuthorized(
-            IQueryExecutor executor)
+            ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
                 services =>
                 {
-                    services.AddGraphQL(executor);
+                    services.AddGraphQL(schema);
                 },
                 context =>
                 {
@@ -383,13 +381,13 @@ namespace HotChocolate.AspNetCore.Authorization
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
         public async Task Roles_UserHasAllOfTheRoles_Authorized(
-            IQueryExecutor executor)
+            ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
                 services =>
                 {
-                    services.AddGraphQL(executor);
+                    services.AddGraphQL(schema);
                 },
                 context =>
                 {
@@ -423,13 +421,13 @@ namespace HotChocolate.AspNetCore.Authorization
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
         public async Task Roles_UserHasOneOfTheRoles_Authorized(
-            IQueryExecutor executor)
+            ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
                 services =>
                 {
-                    services.AddGraphQL(executor);
+                    services.AddGraphQL(schema);
                 },
                 context =>
                 {
@@ -459,13 +457,13 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
-        public async Task Roles_Authorized(IQueryExecutor executor)
+        public async Task Roles_Authorized(ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
                 services =>
                 {
-                    services.AddGraphQL(executor);
+                    services.AddGraphQL(schema);
                 },
                 context =>
                 {
@@ -496,7 +494,7 @@ namespace HotChocolate.AspNetCore.Authorization
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
         public async Task PipedAuthorizeDirectives_Authorized(
-            IQueryExecutor executor)
+            ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -515,7 +513,7 @@ namespace HotChocolate.AspNetCore.Authorization
                                     c.Type == ClaimTypes.Country)));
                     });
 
-                    services.AddGraphQL(executor);
+                    services.AddGraphQL(schema);
                 },
                 context =>
                 {
@@ -549,7 +547,7 @@ namespace HotChocolate.AspNetCore.Authorization
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
         public async Task PipedAuthorizeDirectives_SecondFails_NotAuthorized(
-            IQueryExecutor executor)
+            ISchema schema)
         {
             // arrange
             TestServer server = CreateTestServer(
@@ -568,7 +566,7 @@ namespace HotChocolate.AspNetCore.Authorization
                                     c.Type == ClaimTypes.Country)));
                     });
 
-                    services.AddGraphQL(executor);
+                    services.AddGraphQL(schema);
                 },
                 context =>
                 {
