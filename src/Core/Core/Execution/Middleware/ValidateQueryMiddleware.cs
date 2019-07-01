@@ -49,7 +49,7 @@ namespace HotChocolate.Execution
                 try
                 {
                     context.ValidationResult = _validatorCache.GetOrCreate(
-                        context.Request.Query,
+                        context.QueryKey,
                         () => Validate(context.Schema, context.Document));
                 }
                 finally

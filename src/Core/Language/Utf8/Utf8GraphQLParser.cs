@@ -189,7 +189,7 @@ namespace HotChocolate.Language
             }
         }
 
-        private unsafe static void ConvertToBytes(
+        internal unsafe static void ConvertToBytes(
             string text,
             ref Span<byte> buffer)
         {

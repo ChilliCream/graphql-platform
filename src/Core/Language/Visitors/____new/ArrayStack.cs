@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -12,7 +12,7 @@ namespace HotChocolate.Language
     // so Push can be O(n).  Pop is O(1).
     [DebuggerDisplay("Count = {Count}")]
     [Serializable]
-    public class IndexStack<T>
+    public class ArrayStack<T>
         : IEnumerable<T>
         , ICollection
         , IReadOnlyList<T>
@@ -24,14 +24,14 @@ namespace HotChocolate.Language
 
         private const int DefaultCapacity = 4;
 
-        public IndexStack()
+        public ArrayStack()
         {
             _array = Array.Empty<T>();
         }
 
         // Create a stack with a specific initial capacity.  The initial capacity
         // must be a non-negative number.
-        public IndexStack(int capacity)
+        public ArrayStack(int capacity)
         {
             if (capacity < 0)
             {
@@ -45,7 +45,7 @@ namespace HotChocolate.Language
 
         // Fills a Stack with the contents of a particular collection.  The items are
         // pushed onto the stack in the same order they are read by the enumerator.
-        public IndexStack(IEnumerable<T> collection)
+        public ArrayStack(IEnumerable<T> collection)
         {
             if (collection == null)
             {
@@ -345,12 +345,12 @@ namespace HotChocolate.Language
             : IEnumerator<T>
             , IEnumerator
         {
-            private readonly IndexStack<T> _stack;
+            private readonly ArrayStack<T> _stack;
             private readonly int _version;
             private int _index;
             private T _currentElement;
 
-            internal Enumerator(IndexStack<T> stack)
+            internal Enumerator(ArrayStack<T> stack)
             {
                 _stack = stack;
                 _version = stack._version;

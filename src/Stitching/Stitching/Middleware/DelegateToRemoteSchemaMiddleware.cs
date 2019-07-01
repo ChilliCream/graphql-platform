@@ -42,7 +42,7 @@ namespace HotChocolate.Stitching
                     ? ImmutableStack<SelectionPathComponent>.Empty
                     : SelectionPathParser.Parse(delegateDirective.Path);
 
-                IRemoteQueryRequest request =
+                IReadOnlyQueryRequest request =
                     CreateQuery(context, delegateDirective.Schema, path);
 
                 IReadOnlyQueryResult result = await ExecuteQueryAsync(
@@ -82,7 +82,7 @@ namespace HotChocolate.Stitching
             }
         }
 
-        private static IRemoteQueryRequest CreateQuery(
+        private static IReadOnlyQueryRequest CreateQuery(
             IMiddlewareContext context,
             NameString schemaName,
             IImmutableStack<SelectionPathComponent> path)
@@ -116,7 +116,7 @@ namespace HotChocolate.Stitching
                 .AddFragmentDefinitions(extractedField.Fragments)
                 .Build();
 
-            var requestBuilder = new RemoteQueryRequestBuilder();
+            var requestBuilder = QueryRequestBuilder.New();
 
             AddVariables(context, schemaName,
                 requestBuilder, query, variableValues);
@@ -395,7 +395,7 @@ namespace HotChocolate.Stitching
         private static void AddVariables(
             IResolverContext context,
             NameString schemaName,
-            IRemoteQueryRequestBuilder builder,
+            IQueryRequestBuilder builder,
             DocumentNode query,
             IEnumerable<VariableValue> variableValues)
         {

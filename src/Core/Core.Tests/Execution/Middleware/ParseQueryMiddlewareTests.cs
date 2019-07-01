@@ -17,7 +17,10 @@ namespace HotChocolate.Execution
             // arrange
             Schema schema = CreateSchema();
 
-            IReadOnlyQueryRequest request = new QueryRequest("{ a }");
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ a }")
+                    .Create();
 
             var context = new QueryContext
             (
@@ -35,7 +38,8 @@ namespace HotChocolate.Execution
                 c => Task.CompletedTask,
                 new DefaultQueryParser(),
                 new Cache<ICachedQuery>(10),
-                diagnostics);
+                diagnostics,
+                null);
 
             // act
             await middleware.InvokeAsync(context);
@@ -51,7 +55,10 @@ namespace HotChocolate.Execution
             // arrange
             Schema schema = CreateSchema();
 
-            IReadOnlyQueryRequest request = new QueryRequest("{");
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{")
+                    .Create();
 
             var context = new QueryContext
             (
@@ -69,7 +76,8 @@ namespace HotChocolate.Execution
                 c => Task.CompletedTask,
                 new DefaultQueryParser(),
                 new Cache<ICachedQuery>(10),
-                diagnostics);
+                diagnostics,
+                null);
 
             // act
             Func<Task> invoke = () => middleware.InvokeAsync(context);

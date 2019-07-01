@@ -40,10 +40,10 @@ namespace HotChocolate.Integration.DataLoader
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                new QueryRequest("{ fetchItem }")
-                {
-                    Services = scope.ServiceProvider
-                }); ;
+                QueryRequestBuilder.New()
+                    .SetQuery("{ fetchItem }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create());
 
             // assert
             result.MatchSnapshot();
@@ -76,10 +76,10 @@ namespace HotChocolate.Integration.DataLoader
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                new QueryRequest("{ fetchItem }")
-                {
-                    Services = scope.ServiceProvider
-                }); ;
+                QueryRequestBuilder.New()
+                    .SetQuery("{ fetchItem }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create());
 
             // assert
             result.MatchSnapshot();
@@ -115,10 +115,10 @@ namespace HotChocolate.Integration.DataLoader
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                new QueryRequest("{ fetchItem }")
-                {
-                    Services = scope.ServiceProvider
-                }); ;
+                QueryRequestBuilder.New()
+                    .SetQuery("{ fetchItem }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create());
 
             // assert
             result.MatchSnapshot();
@@ -152,10 +152,10 @@ namespace HotChocolate.Integration.DataLoader
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                new QueryRequest("{ fetchItem }")
-                {
-                    Services = scope.ServiceProvider
-                }); ;
+                QueryRequestBuilder.New()
+                    .SetQuery("{ fetchItem }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create());
 
             // assert
             result.MatchSnapshot();
@@ -177,36 +177,39 @@ namespace HotChocolate.Integration.DataLoader
             // act
             var results = new List<IExecutionResult>();
 
-            results.Add(await executor.ExecuteAsync(new QueryRequest(
-                @"{
-                    a: withDataLoader(key: ""a"")
-                    b: withDataLoader(key: ""b"")
-                }")
-            {
-                Services = scope.ServiceProvider
-            }));
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            a: withDataLoader(key: ""a"")
+                            b: withDataLoader(key: ""b"")
+                        }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create()));
 
-            results.Add(await executor.ExecuteAsync(new QueryRequest(
-                @"{
-                    a: withDataLoader(key: ""a"")
-                }")
-            {
-                Services = scope.ServiceProvider
-            }));
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            a: withDataLoader(key: ""a"")
+                        }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create()));
 
-            results.Add(await executor.ExecuteAsync(new QueryRequest(
-                @"{
-                    c: withDataLoader(key: ""c"")
-                }")
-            {
-                Services = scope.ServiceProvider
-            }));
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            c: withDataLoader(key: ""c"")
+                        }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create()));
 
-            results.Add(await executor.ExecuteAsync(new QueryRequest(
-                "{ loads }")
-            {
-                Services = scope.ServiceProvider
-            }));
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ loads }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create()));
 
             // assert
             Assert.Collection(results,
@@ -233,36 +236,39 @@ namespace HotChocolate.Integration.DataLoader
             // act
             var results = new List<IExecutionResult>();
 
-            results.Add(await executor.ExecuteAsync(new QueryRequest(
-                @"{
-                    a: withDataLoader2(key: ""a"")
-                    b: withDataLoader2(key: ""b"")
-                }")
-            {
-                Services = scope.ServiceProvider
-            }));
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            a: withDataLoader2(key: ""a"")
+                            b: withDataLoader2(key: ""b"")
+                        }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create()));
 
-            results.Add(await executor.ExecuteAsync(new QueryRequest(
-                @"{
-                    a: withDataLoader2(key: ""a"")
-                }")
-            {
-                Services = scope.ServiceProvider
-            }));
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            a: withDataLoader2(key: ""a"")
+                        }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create()));
 
-            results.Add(await executor.ExecuteAsync(new QueryRequest(
-                @"{
-                    c: withDataLoader2(key: ""c"")
-                }")
-            {
-                Services = scope.ServiceProvider
-            }));
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            c: withDataLoader2(key: ""c"")
+                        }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create()));
 
-            results.Add(await executor.ExecuteAsync(new QueryRequest(
-                "{ loads loads2 }")
-            {
-                Services = scope.ServiceProvider
-            }));
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ loads loads2 }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create()));
 
             // assert
             Assert.Collection(results,
@@ -289,30 +295,33 @@ namespace HotChocolate.Integration.DataLoader
             // act
             var results = new List<IExecutionResult>();
 
-            results.Add(await executor.ExecuteAsync(new QueryRequest(
-                @"{
-                    a: withStackedDataLoader(key: ""a"")
-                    b: withStackedDataLoader(key: ""b"")
-                }")
-            {
-                Services = scope.ServiceProvider
-            }));
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            a: withStackedDataLoader(key: ""a"")
+                            b: withStackedDataLoader(key: ""b"")
+                        }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create()));
 
-            results.Add(await executor.ExecuteAsync(new QueryRequest(
-                @"{
-                    a: withStackedDataLoader(key: ""a"")
-                }")
-            {
-                Services = scope.ServiceProvider
-            }));
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            a: withStackedDataLoader(key: ""a"")
+                        }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create()));
 
-            results.Add(await executor.ExecuteAsync(new QueryRequest(
-                @"{
-                    c: withStackedDataLoader(key: ""c"")
-                }")
-            {
-                Services = scope.ServiceProvider
-            }));
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            c: withStackedDataLoader(key: ""c"")
+                        }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create()));
 
             // assert
             Assert.Collection(results,

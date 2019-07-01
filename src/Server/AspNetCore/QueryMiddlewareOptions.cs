@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -34,6 +35,10 @@ namespace HotChocolate.AspNetCore
         private PathString _subscriptionPath = new PathString("/ws");
 
         public int QueryCacheSize { get; set; } = 100;
+
+        public int MaxRequestSize { get; set; } = 20 * 1000 * 1000;
+
+        public ParserOptions ParserOptions { get; set; } = new ParserOptions();
 
         public PathString Path
         {

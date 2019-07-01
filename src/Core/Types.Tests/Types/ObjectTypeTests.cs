@@ -1151,10 +1151,10 @@ namespace HotChocolate.Types
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                new QueryRequest("{ desc }")
-                {
-                    InitialValue = new Foo()
-                });
+                QueryRequestBuilder.New()
+                    .SetQuery("{ desc }")
+                    .SetInitialValue(new Foo())
+                    .Create());
 
             // assert
             result.MatchSnapshot();

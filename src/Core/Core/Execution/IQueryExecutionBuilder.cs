@@ -17,5 +17,7 @@ namespace HotChocolate.Execution
         IQueryExecutionBuilder UseField(FieldMiddleware middleware);
 
         IQueryExecutor Build(ISchema schema);
+
+        void Build(IServiceCollection services);
     }
 }

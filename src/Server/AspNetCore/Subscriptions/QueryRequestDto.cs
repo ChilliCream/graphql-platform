@@ -1,10 +1,8 @@
-﻿using Newtonsoft.Json.Linq;
+#if !ASPNETCLASSIC
 
-#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic
-#else
-namespace HotChocolate.AspNetCore
-#endif
+using Newtonsoft.Json.Linq;
+
+namespace HotChocolate.AspNetCore.Subscriptions
 {
     internal class QueryRequestDto
     {
@@ -17,3 +15,5 @@ namespace HotChocolate.AspNetCore
         public JObject Variables { get; set; }
     }
 }
+
+#endif

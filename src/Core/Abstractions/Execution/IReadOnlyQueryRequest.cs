@@ -5,7 +5,11 @@ namespace HotChocolate.Execution
 {
     public interface IReadOnlyQueryRequest
     {
-        string Query { get; }
+        IQuery Query { get; }
+
+        string QueryName { get; }
+
+        string QueryHash { get; }
 
         string OperationName { get; }
 

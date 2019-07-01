@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
@@ -30,20 +28,6 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(applicationServices));
             _queryDelegate = queryDelegate
                 ?? throw new ArgumentNullException(nameof(queryDelegate));
-
-            if (Schema.Services != null)
-            {
-                IEnumerable<IDiagnosticObserver> observers = Schema.Services
-                    .GetService<IEnumerable<IDiagnosticObserver>>();
-
-                if (observers != null)
-                {
-                    QueryExecutionDiagnostics diagnosticEvents =
-                        _applicationServices
-                            .GetService<QueryExecutionDiagnostics>();
-                    diagnosticEvents.Subscribe(observers);
-                }
-            }
 
             _fieldMiddlewareCompiler = new FieldMiddlewareCompiler(
                 schema, fieldMiddleware);

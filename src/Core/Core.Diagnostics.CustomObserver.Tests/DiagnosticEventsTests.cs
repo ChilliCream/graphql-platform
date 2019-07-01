@@ -1,9 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Instrumentation;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DiagnosticAdapter;
 using Xunit;
 
@@ -15,18 +13,13 @@ namespace HotChocolate
         public async Task VerifyCustomDignosticObserverIsWorkingProper()
         {
             // arrange
-            var eventsa = new List<string>();
-            var eventsb = new List<string>();
+            var events = new List<string>();
 
-            var services = new ServiceCollection();
-            services.AddDiagnosticObserver(
-                new CustomDiagnosticsObserver(eventsa));
-
-            Schema schema = CreateSchema(services.BuildServiceProvider());
+            Schema schema = CreateSchema();
 
             IQueryExecutor executor = QueryExecutionBuilder.New()
                 .UseDefaultPipeline()
-                .AddDiagnosticObserver(new CustomDiagnosticsObserver(eventsb))
+                .AddDiagnosticObserver(new CustomDiagnosticsObserver(events))
                 .Build(schema);
 
             IReadOnlyQueryRequest request =
@@ -39,15 +32,12 @@ namespace HotChocolate
 
             // assert
             Assert.Empty(result.Extensions);
-            Assert.Collection(eventsa,
-                i => Assert.Equal("foo", i),
-                i => Assert.Equal("bar", i));
-            Assert.Collection(eventsb,
+            Assert.Collection(events,
                 i => Assert.Equal("foo", i),
                 i => Assert.Equal("bar", i));
         }
 
-        private Schema CreateSchema(IServiceProvider services)
+        private Schema CreateSchema()
         {
             return Schema.Create(@"
                 type Query {
@@ -60,8 +50,6 @@ namespace HotChocolate
                 }
                 ", c =>
             {
-                c.RegisterServiceProvider(services);
-
                 c.BindResolver(() => "hello world a")
                     .To("Query", "a");
                 c.BindResolver(

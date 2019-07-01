@@ -33,12 +33,12 @@ namespace HotChocolate.Language
                 throw new ArgumentNullException(nameof(visitationMap));
             }
 
-            var path = new IndexStack<object>();
-            var ancestors = new IndexStack<SyntaxNodeInfo>();
-            var ancestorNodes = new IndexStack<ISyntaxNode>();
-            var level = new IndexStack<IndexStack<SyntaxNodeInfo>>();
+            var path = new ArrayStack<object>();
+            var ancestors = new ArrayStack<SyntaxNodeInfo>();
+            var ancestorNodes = new ArrayStack<ISyntaxNode>();
+            var level = new ArrayStack<ArrayStack<SyntaxNodeInfo>>();
 
-            var root = new IndexStack<SyntaxNodeInfo>();
+            var root = new ArrayStack<SyntaxNodeInfo>();
             root.Push(new SyntaxNodeInfo(node, null));
             level.Push(root);
 
@@ -112,7 +112,7 @@ namespace HotChocolate.Language
                     else if (action == VisitorAction.Skip)
                     {
                         // TODO : replace with empty
-                        level.Push(new IndexStack<SyntaxNodeInfo>());
+                        level.Push(new ArrayStack<SyntaxNodeInfo>());
                     }
 
                     parent = current;
@@ -130,11 +130,11 @@ namespace HotChocolate.Language
             level.Clear();
         }
 
-        private static IndexStack<SyntaxNodeInfo> GetChildren(
+        private static ArrayStack<SyntaxNodeInfo> GetChildren(
             ISyntaxNode node,
             IVisitationMap visitationMap)
         {
-            var children = new IndexStack<SyntaxNodeInfo>();
+            var children = new ArrayStack<SyntaxNodeInfo>();
             visitationMap.ResolveChildren(node, children);
             return children;
         }
