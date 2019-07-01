@@ -58,13 +58,16 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                    {
-                        customer(id: ""Q3VzdG9tZXIteDE="") {
-                            inter
-                        }
-                    }");
-                request.Services = scope.ServiceProvider;
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                        {
+                            customer(id: ""Q3VzdG9tZXIteDE="") {
+                                inter
+                            }
+                        }")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }

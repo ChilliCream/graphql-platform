@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ChilliCream.Testing;
 using HotChocolate.Execution;
-using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Client;
 using HotChocolate.Utilities;
 using Moq;
@@ -28,7 +26,7 @@ namespace HotChocolate.Stitching
                 .Returns(new Func<IReadOnlyQueryRequest,
                     CancellationToken, Task<IExecutionResult>>((r, ct) =>
                 {
-                    query = r.Query;
+                    query = r.Query.ToString();
                     return Task.FromResult<IExecutionResult>(null);
                 }));
 
@@ -38,7 +36,9 @@ namespace HotChocolate.Stitching
 
             // act
             Task result = client.ExecuteAsync(
-                new QueryRequest("{ a }"));
+                QueryRequestBuilder.New()
+                    .SetQuery("{ a }")
+                    .Create());
             await client.DispatchAsync(CancellationToken.None);
             await result;
 
@@ -66,12 +66,12 @@ namespace HotChocolate.Stitching
                     CancellationToken, Task<IExecutionResult>>((r, ct) =>
                 {
                     count++;
-                    query = r.Query;
+                    query = r.Query.ToString();
                     return Task.FromResult<IExecutionResult>(result);
                 }));
 
-            var request_a = new QueryRequest("query a { a }");
-            var request_b = new QueryRequest("query b { a b }");
+            var request_a = QueryRequestBuilder.Create("query a { a }");
+            var request_b = QueryRequestBuilder.Create("query b { a b }");
 
             var client = new RemoteQueryClient(
                 new EmptyServiceProvider(),
@@ -117,12 +117,12 @@ namespace HotChocolate.Stitching
                     CancellationToken, Task<IExecutionResult>>((r, ct) =>
                 {
                     count++;
-                    query = r.Query;
+                    query = r.Query.ToString();
                     return Task.FromResult<IExecutionResult>(result);
                 }));
 
-            var request_a = new QueryRequest("query a { a }");
-            var request_b = new QueryRequest("query b { a b }");
+            var request_a = QueryRequestBuilder.Create("query a { a }");
+            var request_b = QueryRequestBuilder.Create("query b { a b }");
 
             var client = new RemoteQueryClient(
                 new EmptyServiceProvider(),
@@ -166,12 +166,12 @@ namespace HotChocolate.Stitching
                     CancellationToken, Task<IExecutionResult>>((r, ct) =>
                 {
                     count++;
-                    query = r.Query;
+                    query = r.Query.ToString();
                     return Task.FromResult<IExecutionResult>(result);
                 }));
 
-            var request_a = new QueryRequest("query a { a }");
-            var request_b = new QueryRequest("query b { a b }");
+            var request_a = QueryRequestBuilder.Create("query a { a }");
+            var request_b = QueryRequestBuilder.Create("query b { a b }");
 
             var client = new RemoteQueryClient(
                 new EmptyServiceProvider(),
@@ -207,8 +207,8 @@ namespace HotChocolate.Stitching
                         new Exception("foo"));
                 }));
 
-            var request_a = new QueryRequest("query a { a }");
-            var request_b = new QueryRequest("query b { a b }");
+            var request_a = QueryRequestBuilder.Create("query a { a }");
+            var request_b = QueryRequestBuilder.Create("query b { a b }");
 
             var client = new RemoteQueryClient(
                 new EmptyServiceProvider(),
@@ -250,16 +250,12 @@ namespace HotChocolate.Stitching
                     return Task.FromResult<IExecutionResult>(result);
                 }));
 
-            var request_a = new QueryRequest(
-                "query a($a: String) { a(b: $a) }")
-            {
-                VariableValues = new Dictionary<string, object>
-                {
-                    { "a", "foo" }
-                }
-            };
+            var request_a = QueryRequestBuilder.New()
+                .SetQuery("query a($a: String) { a(b: $a) }")
+                .SetVariableValue("a", "foo")
+                .Create();
 
-            var request_b = new QueryRequest(
+            var request_b = QueryRequestBuilder.Create(
                 "query b { a b }");
 
             var client = new RemoteQueryClient(

@@ -58,10 +58,16 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                new QueryRequest(@"{ contracts(customerId: ""Q3VzdG9tZXIteDE="") { id } }")
-                {
-                    Services = services.BuildServiceProvider()
-                });
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            contracts(customerId: ""Q3VzdG9tZXIteDE="")
+                            {
+                                id
+                            }
+                        }")
+                    .SetServices(services.BuildServiceProvider())
+                    .Create());
 
             // assert
             result.MatchSnapshot();

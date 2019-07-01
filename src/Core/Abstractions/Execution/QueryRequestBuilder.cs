@@ -216,7 +216,31 @@ namespace HotChocolate.Execution
             return _readOnlyProperties;
         }
 
+        public static IReadOnlyQueryRequest Create(string query) =>
+            QueryRequestBuilder.New().SetQuery(query).Create();
+
         public static QueryRequestBuilder New() =>
             new QueryRequestBuilder();
+
+        public static QueryRequestBuilder From(IReadOnlyQueryRequest request)
+        {
+            var builder = new QueryRequestBuilder();
+            builder._query = request.Query;
+            builder._queryName = request.QueryName;
+            builder._queryHash = request.QueryHash;
+            builder._operationName = request.OperationName;
+            builder._readOnlyVariableValues = request.VariableValues;
+            builder._initialValue = request.InitialValue;
+            builder._readOnlyProperties = request.Properties;
+            builder._services = request.Services;
+
+            if (builder._query is null && builder._queryName is null)
+            {
+                throw new QueryRequestBuilderException(
+                    AbstractionResources.QueryRequestBuilder_QueryIsNull);
+            }
+
+            return builder;
+        }
     }
 }
