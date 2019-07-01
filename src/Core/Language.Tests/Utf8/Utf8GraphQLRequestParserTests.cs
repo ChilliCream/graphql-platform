@@ -82,7 +82,7 @@ namespace HotChocolate.Language
                     Assert.Null(r.Variables);
                     Assert.Null(r.Extensions);
 
-                    Assert.Equal(r.QueryName, "alinKTeX5KKqWsMutgMimKqxU94=");
+                    Assert.Equal(r.QueryName, "KwPz8bJWrVDRrtFPjW2sh5CUQwE=");
                     QuerySyntaxSerializer.Serialize(r.Query, true)
                         .MatchSnapshot();
                 });
