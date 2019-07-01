@@ -228,8 +228,8 @@ namespace HotChocolate.Stitching
                 serviceCollection.BuildServiceProvider();
 
             var request = QueryRequestBuilder.New()
-                .SetQuery(FileResource.Open(
-                    FileResource.Open("StitchingQueryComputedField.graphql")))
+                .SetQuery(
+                    FileResource.Open("StitchingQueryComputedField.graphql"))
                 .SetServices(services)
                 .Create();
 
