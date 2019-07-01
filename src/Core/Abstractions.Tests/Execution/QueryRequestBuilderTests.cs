@@ -66,7 +66,7 @@ namespace HotChocolate.Execution.Tests
                     .Create();
 
             // assert
-            Assert.Equal("query",
+            Assert.Equal("querySource",
                 Assert.Throws<ArgumentException>(action).ParamName);
         }
 
