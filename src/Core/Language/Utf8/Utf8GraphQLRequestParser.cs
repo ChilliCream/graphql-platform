@@ -76,7 +76,7 @@ namespace HotChocolate.Language
         public object ParseJson()
         {
             _reader.MoveNext();
-            return ParseJson();
+            return ParseObject();
         }
 
         private IReadOnlyList<GraphQLRequest> ParseBatchRequest()
@@ -229,9 +229,9 @@ namespace HotChocolate.Language
             }
         }
 
-         public static IReadOnlyList<GraphQLRequest> Parse(
-            ReadOnlySpan<byte> graphQLData) =>
-            new Utf8GraphQLRequestParser(graphQLData).Parse();
+        public static IReadOnlyList<GraphQLRequest> Parse(
+           ReadOnlySpan<byte> graphQLData) =>
+           new Utf8GraphQLRequestParser(graphQLData).Parse();
 
         public static IReadOnlyList<GraphQLRequest> Parse(
             ReadOnlySpan<byte> graphQLData,
