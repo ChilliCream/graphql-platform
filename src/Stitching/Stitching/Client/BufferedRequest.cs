@@ -12,9 +12,9 @@ namespace HotChocolate.Stitching.Client
             Promise = new TaskCompletionSource<IExecutionResult>(
                 TaskCreationOptions.RunContinuationsAsynchronously);
             Request = request;
-            Document = request is IRemoteQueryRequest remoteRequest
-                ? remoteRequest.Query
-                : Utf8GraphQLParser.Parse(request.Query);
+            Document = request.Query is QueryDocument document
+                ? document.Document
+                : Utf8GraphQLParser.Parse(request.Query.ToSource());
         }
 
         public IReadOnlyQueryRequest Request { get; }

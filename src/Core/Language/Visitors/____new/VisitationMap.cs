@@ -1,62 +1,54 @@
-using System.Diagnostics.Tracing;
 using System.Collections.Generic;
-using HotChocolate.Language;
 
 namespace HotChocolate.Language
 {
 
     /*
-    export const QueryDocumentKeys = {
-      Name: [],
+        export const QueryDocumentKeys = {
+          Name: [],
 
-      SchemaDefinition: ['directives', 'operationTypes'],
-      OperationTypeDefinition: ['type'],
+          SchemaDefinition: ['directives', 'operationTypes'],
+          OperationTypeDefinition: ['type'],
 
-      ScalarTypeDefinition: ['description', 'name', 'directives'],
-      ObjectTypeDefinition: [
-        'description',
-        'name',
-        'interfaces',
-        'directives',
-        'fields',
-      ],
-      FieldDefinition: ['description', 'name', 'arguments', 'type', 'directives'],
-      InputValueDefinition: [
-        'description',
-        'name',
-        'type',
-        'defaultValue',
-        'directives',
-      ],
-      InterfaceTypeDefinition: ['description', 'name', 'directives', 'fields'],
-      UnionTypeDefinition: ['description', 'name', 'directives', 'types'],
-      EnumTypeDefinition: ['description', 'name', 'directives', 'values'],
-      EnumValueDefinition: ['description', 'name', 'directives'],
-      InputObjectTypeDefinition: ['description', 'name', 'directives', 'fields'],
+          ScalarTypeDefinition: ['description', 'name', 'directives'],
+          ObjectTypeDefinition: [
+            'description',
+            'name',
+            'interfaces',
+            'directives',
+            'fields',
+          ],
+          FieldDefinition: ['description', 'name', 'arguments', 'type', 'directives'],
+          InputValueDefinition: [
+            'description',
+            'name',
+            'type',
+            'defaultValue',
+            'directives',
+          ],
+          InterfaceTypeDefinition: ['description', 'name', 'directives', 'fields'],
+          UnionTypeDefinition: ['description', 'name', 'directives', 'types'],
+          EnumTypeDefinition: ['description', 'name', 'directives', 'values'],
+          EnumValueDefinition: ['description', 'name', 'directives'],
+          InputObjectTypeDefinition: ['description', 'name', 'directives', 'fields'],
 
-      DirectiveDefinition: ['description', 'name', 'arguments', 'locations'],
+          DirectiveDefinition: ['description', 'name', 'arguments', 'locations'],
 
-      SchemaExtension: ['directives', 'operationTypes'],
+          SchemaExtension: ['directives', 'operationTypes'],
 
-      ScalarTypeExtension: ['name', 'directives'],
-      ObjectTypeExtension: ['name', 'interfaces', 'directives', 'fields'],
-      InterfaceTypeExtension: ['name', 'directives', 'fields'],
-      UnionTypeExtension: ['name', 'directives', 'types'],
-      EnumTypeExtension: ['name', 'directives', 'values'],
-      InputObjectTypeExtension: ['name', 'directives', 'fields'],
-    };
+          ScalarTypeExtension: ['name', 'directives'],
+          ObjectTypeExtension: ['name', 'interfaces', 'directives', 'fields'],
+          InterfaceTypeExtension: ['name', 'directives', 'fields'],
+          UnionTypeExtension: ['name', 'directives', 'types'],
+          EnumTypeExtension: ['name', 'directives', 'values'],
+          InputObjectTypeExtension: ['name', 'directives', 'fields'],
+        };
 
-     */
-
-    public interface IVisitationMap
-    {
-        void ResolveChildren(ISyntaxNode node, IStack<SyntaxNodeInfo> children);
-    }
+         */
 
     public class VisitationMap
         : IVisitationMap
     {
-
         public virtual void ResolveChildren(
             ISyntaxNode node,
             IStack<SyntaxNodeInfo> children)

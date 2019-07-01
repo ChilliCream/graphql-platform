@@ -20,7 +20,7 @@ namespace HotChocolate.Stitching
         {
         }
 
-         [Fact]
+        [Fact]
         public async Task ConnectionLost()
         {
             // arrange
@@ -62,19 +62,22 @@ namespace HotChocolate.Stitching
 
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                    mutation {
-                        createCustomer(input: { name: ""a"" })
-                        {
-                            customer {
-                                name
-                                contracts {
-                                    id
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                            mutation {
+                                createCustomer(input: { name: ""a"" })
+                                {
+                                    customer {
+                                        name
+                                        contracts {
+                                            id
+                                        }
+                                    }
                                 }
-                            }
-                        }
-                    }");
-                request.Services = scope.ServiceProvider;
+                            }")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }
@@ -89,19 +92,22 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                    mutation {
-                        createCustomer(input: { name: ""a"" })
-                        {
-                            customer {
-                                name
-                                contracts {
-                                    id
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                            mutation {
+                                createCustomer(input: { name: ""a"" })
+                                {
+                                    customer {
+                                        name
+                                        contracts {
+                                            id
+                                        }
+                                    }
                                 }
-                            }
-                        }
-                    }");
-                request.Services = scope.ServiceProvider;
+                            }")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }

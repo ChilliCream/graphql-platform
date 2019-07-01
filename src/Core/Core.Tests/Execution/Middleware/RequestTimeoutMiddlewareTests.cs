@@ -26,14 +26,17 @@ namespace HotChocolate.Execution
                 c.BindResolver(() => "hello world")
                     .To("Query", "a");
             });
-            IReadOnlyQueryRequest request = new QueryRequest("{ a }");
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ a }")
+                    .Create();
 
             var context = new QueryContext
             (
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
                 request,
-                (f,s) => f.Middleware
+                (f, s) => f.Middleware
             );
 
             var middleware = new RequestTimeoutMiddleware(

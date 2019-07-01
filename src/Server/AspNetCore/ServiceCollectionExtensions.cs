@@ -22,9 +22,10 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(schema));
             }
 
+            QueryExecutionBuilder.BuildDefault(serviceCollection);
+
             return serviceCollection
                 .AddSingleton(schema)
-                .AddSingleton(schema.MakeExecutable())
                 .AddJsonSerializer();
         }
 
@@ -48,9 +49,10 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
+            configure(QueryExecutionBuilder.New()).Build(serviceCollection);
+
             return serviceCollection
                 .AddSingleton(schema)
-                .AddSingleton(schema.MakeExecutable(configure))
                 .AddJsonSerializer();
         }
 
@@ -68,10 +70,10 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(schemaFactory));
             }
 
+            QueryExecutionBuilder.BuildDefault(serviceCollection);
+
             return serviceCollection
                 .AddSingleton(schemaFactory)
-                .AddSingleton(sp => sp.GetRequiredService<ISchema>()
-                    .MakeExecutable())
                 .AddJsonSerializer();
         }
 
@@ -95,10 +97,10 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
+            configure(QueryExecutionBuilder.New()).Build(serviceCollection);
+
             return serviceCollection
                 .AddSingleton(schemaFactory)
-                .AddSingleton(sp => sp.GetRequiredService<ISchema>()
-                    .MakeExecutable(configure))
                 .AddJsonSerializer();
         }
 
@@ -116,14 +118,14 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
+            QueryExecutionBuilder.BuildDefault(serviceCollection);
+
             return serviceCollection
                 .AddSingleton<ISchema>(s => Schema.Create(c =>
                 {
                     c.RegisterServiceProvider(s);
                     configure(c);
                 }))
-                .AddSingleton(sp => sp.GetRequiredService<ISchema>()
-                    .MakeExecutable())
                 .AddJsonSerializer();
         }
 
@@ -148,14 +150,15 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configureBuilder));
             }
 
+            configureBuilder(QueryExecutionBuilder.New())
+                .Build(serviceCollection);
+
             return serviceCollection
                 .AddSingleton<ISchema>(s => Schema.Create(c =>
                 {
                     c.RegisterServiceProvider(s);
                     configure(c);
                 }))
-                .AddSingleton(sp => sp.GetRequiredService<ISchema>()
-                    .MakeExecutable(configureBuilder))
                 .AddJsonSerializer();
         }
 
@@ -179,6 +182,8 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
+            QueryExecutionBuilder.BuildDefault(serviceCollection);
+
             return serviceCollection
                 .AddSingleton<ISchema>(s => Schema.Create(
                     schemaSource, c =>
@@ -186,8 +191,6 @@ namespace HotChocolate
                         c.RegisterServiceProvider(s);
                         configure(c);
                     }))
-                .AddSingleton(sp => sp.GetRequiredService<ISchema>()
-                    .MakeExecutable())
                 .AddJsonSerializer();
         }
 
@@ -218,6 +221,9 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configureBuilder));
             }
 
+            configureBuilder(QueryExecutionBuilder.New())
+                .Build(serviceCollection);
+
             return serviceCollection
                 .AddSingleton<ISchema>(s => Schema.Create(
                     schemaSource, c =>
@@ -225,8 +231,6 @@ namespace HotChocolate
                         c.RegisterServiceProvider(s);
                         configure(c);
                     }))
-                .AddSingleton(sp => sp.GetRequiredService<ISchema>()
-                    .MakeExecutable(configureBuilder))
                 .AddJsonSerializer();
         }
 
@@ -250,9 +254,10 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(options));
             }
 
+            QueryExecutionBuilder.BuildDefault(serviceCollection, options);
+
             return serviceCollection
                 .AddSingleton(schema)
-                .AddSingleton(schema.MakeExecutable(options))
                 .AddJsonSerializer();
         }
 
@@ -276,10 +281,10 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(options));
             }
 
+            QueryExecutionBuilder.BuildDefault(serviceCollection, options);
+
             return serviceCollection
                 .AddSingleton(schemaFactory)
-                .AddSingleton(sp => sp.GetRequiredService<ISchema>()
-                    .MakeExecutable(options))
                 .AddJsonSerializer();
         }
 
@@ -303,14 +308,14 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(options));
             }
 
+            QueryExecutionBuilder.BuildDefault(serviceCollection, options);
+
             return serviceCollection
                 .AddSingleton<ISchema>(s => Schema.Create(c =>
                 {
                     c.RegisterServiceProvider(s);
                     configure(c);
                 }))
-                .AddSingleton(sp => sp.GetRequiredService<ISchema>()
-                    .MakeExecutable(options))
                 .AddJsonSerializer();
         }
 
@@ -340,6 +345,8 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(options));
             }
 
+            QueryExecutionBuilder.BuildDefault(serviceCollection, options);
+
             return serviceCollection
                 .AddSingleton<ISchema>(s => Schema.Create(
                     schemaSource, c =>
@@ -347,8 +354,6 @@ namespace HotChocolate
                         c.RegisterServiceProvider(s);
                         configure(c);
                     }))
-                .AddSingleton(sp => sp.GetRequiredService<ISchema>()
-                    .MakeExecutable(options))
                 .AddJsonSerializer();
         }
 

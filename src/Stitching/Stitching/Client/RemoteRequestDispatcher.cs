@@ -64,11 +64,11 @@ namespace HotChocolate.Stitching.Client
         {
             try
             {
-                var request = new QueryRequest(requests[0].Request);
-                request.Services = _services;
+                var builder = QueryRequestBuilder.From(requests[0].Request);
+                builder.SetServices(_services);
 
                 var result = (IReadOnlyQueryResult)await _queryExecutor
-                    .ExecuteAsync(request, cancellationToken)
+                    .ExecuteAsync(builder.Create(), cancellationToken)
                     .ConfigureAwait(false);
 
                 requests[0].Promise.SetResult(result);
@@ -88,12 +88,12 @@ namespace HotChocolate.Stitching.Client
             int index = 0;
             try
             {
-                var mergedRequest = new QueryRequest(
-                    QuerySyntaxSerializer.Serialize(mergedQuery, false))
-                {
-                    VariableValues = variableValues,
-                    Services = _services
-                };
+                IReadOnlyQueryRequest mergedRequest =
+                    QueryRequestBuilder.New()
+                        .SetQuery(mergedQuery)
+                        .SetVariableValues(variableValues)
+                        .SetServices(_services)
+                        .Create();
 
                 var mergedResult = (IReadOnlyQueryResult)await _queryExecutor
                     .ExecuteAsync(mergedRequest, cancellationToken)
