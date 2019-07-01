@@ -72,7 +72,7 @@ namespace HotChocolate.AspNetCore
             {
                 builder.SetVariableValues(v);
             }
-            
+
             return Task.FromResult(builder);
         }
 

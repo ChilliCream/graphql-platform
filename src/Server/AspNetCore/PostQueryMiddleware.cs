@@ -36,8 +36,7 @@ namespace HotChocolate.AspNetCore
                 : base(next, queryExecutor, resultSerializer, options)
         {
             _documentCache = documentCache;
-            _documentHashProvider = documentHashProvider
-                ?? new MD5DocumentHashProvider();
+            _documentHashProvider = documentHashProvider;
         }
 
         protected override bool CanHandleRequest(HttpContext context)
