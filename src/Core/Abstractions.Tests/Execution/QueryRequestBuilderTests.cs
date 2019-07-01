@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
@@ -16,6 +17,22 @@ namespace HotChocolate.Execution.Tests
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
+                    .Create();
+
+            // assert
+            request.MatchSnapshot();
+        }
+
+        [Fact]
+        public void BuildRequest_OnlyQueryDocIsSet_RequestHasOnlyQuery()
+        {
+            // arrange
+            DocumentNode query = Utf8GraphQLParser.Parse("{ foo }");
+
+            // act
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery(query)
                     .Create();
 
             // assert
