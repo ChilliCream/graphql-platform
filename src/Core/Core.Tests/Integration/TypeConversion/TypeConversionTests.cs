@@ -1,6 +1,4 @@
-﻿using System.ComponentModel;
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -141,14 +139,14 @@ namespace HotChocolate.Integration.TypeConversion
         public void Register_TypeConverter_As_Service()
         {
             // arrange
-            var service = new ServiceCollection();
+            var services = new ServiceCollection();
 
             // act
-            service.AddTypeConverter<IntToStringConverter>();
+            services.AddTypeConverter<IntToStringConverter>();
 
             // assert
             ITypeConversion conversion =
-                service.BuildServiceProvider().GetService<ITypeConversion>();
+                services.BuildServiceProvider().GetService<ITypeConversion>();
             Assert.Equal("123_123", conversion.Convert<int, string>(123));
         }
 
@@ -156,15 +154,15 @@ namespace HotChocolate.Integration.TypeConversion
         public void Register_DelegateTypeConverter_As_Service()
         {
             // arrange
-            var service = new ServiceCollection();
+            var services = new ServiceCollection();
 
             // act
-            service.AddTypeConverter<int, string>(
+            services.AddTypeConverter<int, string>(
                 from => from.ToString() + "_123");
 
             // assert
             ITypeConversion conversion =
-                service.BuildServiceProvider().GetService<ITypeConversion>();
+                services.BuildServiceProvider().GetService<ITypeConversion>();
             Assert.Equal("123_123", conversion.Convert<int, string>(123));
         }
 
@@ -172,19 +170,64 @@ namespace HotChocolate.Integration.TypeConversion
         public void Register_Multiple_TypeConverters_As_Service()
         {
             // arrange
-            var service = new ServiceCollection();
+            var services = new ServiceCollection();
 
             // act
-            service.AddTypeConverter<int, string>(
+            services.AddTypeConverter<int, string>(
                 from => from.ToString() + "_123");
-            service.AddTypeConverter<char, string>(
+            services.AddTypeConverter<char, string>(
                 from => from + "_123");
 
             // assert
             ITypeConversion conversion =
-                service.BuildServiceProvider().GetService<ITypeConversion>();
+                services.BuildServiceProvider().GetService<ITypeConversion>();
             Assert.Equal("123_123", conversion.Convert<int, string>(123));
             Assert.Equal("a_123", conversion.Convert<char, string>('a'));
+        }
+
+        [Fact]
+        public void Register_TypeConverter_Services_Is_Null()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                TypeConverterServiceCollectionExtensions
+                    .AddTypeConverter<IntToStringConverter>(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Register_DelegateTypeConverter_Services_Is_Null()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                TypeConverterServiceCollectionExtensions
+                    .AddTypeConverter<int, string>(
+                        null,
+                        from => from.ToString() + "_123");
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Register_DelegateTypeConverter_Delegate_Is_Null()
+        {
+            // arrange
+            var services = new ServiceCollection();
+
+            // act
+            Action action = () =>
+                TypeConverterServiceCollectionExtensions
+                    .AddTypeConverter<int, string>(
+                        services,
+                        null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
         }
 
         public class QueryType
