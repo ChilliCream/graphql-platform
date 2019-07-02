@@ -4,7 +4,9 @@ namespace HotChocolate.Utilities
 {
     public delegate bool ChangeTypeFactory(Type from, Type to,
         out ChangeType converter);
+
     public delegate object ChangeType(object source);
+
     public delegate TTo ChangeType<TFrom, TTo>(TFrom source);
 
     public interface ITypeConverterRegistry

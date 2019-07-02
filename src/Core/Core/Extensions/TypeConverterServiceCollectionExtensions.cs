@@ -14,5 +14,15 @@ namespace HotChocolate
                 new TypeConversion(sp.GetServices<ITypeConverter>()));
             return serviceCollection.AddSingleton<ITypeConverter, T>();
         }
+
+        public static IServiceCollection AddTypeConverter<TFrom, TTo>(
+            IServiceCollection serviceCollection,
+            ChangeType<TFrom, TTo> changeType)
+        {
+            serviceCollection.TryAddSingleton<ITypeConversion>(sp =>
+                new TypeConversion(sp.GetServices<ITypeConverter>()));
+            return serviceCollection.AddSingleton<ITypeConverter>(
+                new DelegateTypeConverter<TFrom, TTo>(changeType));
+        }
     }
 }
