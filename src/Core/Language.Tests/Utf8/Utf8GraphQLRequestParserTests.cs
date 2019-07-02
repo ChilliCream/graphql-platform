@@ -42,6 +42,37 @@ namespace HotChocolate.Language
         }
 
         [Fact]
+        public void Parse_Kitchen_Sink_Query_With_Russion_Characters()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes(
+                JsonConvert.SerializeObject(
+                    new GraphQLRequestDto
+                    {
+                        Query = FileResource.Open("russion-literals.graphql")
+                    }));
+
+            // act
+            var parserOptions = new ParserOptions();
+            var requestParser = new Utf8GraphQLRequestParser(
+                source, parserOptions);
+            IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+
+            // assert
+            Assert.Collection(batch,
+                r =>
+                {
+                    Assert.Null(r.OperationName);
+                    Assert.Null(r.QueryName);
+                    Assert.Null(r.Variables);
+                    Assert.Null(r.Extensions);
+
+                    QuerySyntaxSerializer.Serialize(r.Query, true)
+                        .MatchSnapshot();
+                });
+        }
+
+        [Fact]
         public void Parse_Kitchen_Sink_Query_With_Cache()
         {
             // arrange
