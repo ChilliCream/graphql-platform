@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using HotChocolate.Execution;
 using HotChocolate.PersistedQueries.FileSystem;
 using Moq;
 using Xunit;
@@ -11,13 +12,23 @@ namespace HotChocolate.PersistedQueries.Tests.FileSystem
     public class FileSystemStorageTests
     {
         private readonly Mock<IQueryFileMap> _queryFileMapMock;
+        private readonly Mock<IQueryRequestBuilder> _queryRequestBuilderMock;
+        private readonly Mock<IReadOnlyQueryRequest> _queryRequestMock;
         private readonly FileSystemStorage _systemUnderTest;
 
         public FileSystemStorageTests()
         {
             _queryFileMapMock = new Mock<IQueryFileMap>();
+
+            _queryRequestMock = new Mock<IReadOnlyQueryRequest>();
+            
+            _queryRequestBuilderMock = new Mock<IQueryRequestBuilder>();
+            _queryRequestBuilderMock.Setup(q => q.Create())
+                .Returns(_queryRequestMock.Object);
+            
             _systemUnderTest = new FileSystemStorage(
-                _queryFileMapMock.Object
+                _queryFileMapMock.Object,
+                _queryRequestBuilderMock.Object
             );
         }
 
@@ -25,7 +36,15 @@ namespace HotChocolate.PersistedQueries.Tests.FileSystem
         public void When_FileSystemStorage_Is_Constructed_If_Query_File_Map_Is_Null_Then_Argument_Null_Exception_Is_Thrown()
         {
             Assert.Throws<ArgumentNullException>(
-                () => new FileSystemStorage(null)
+                () => new FileSystemStorage(null, _queryRequestBuilderMock.Object)
+            );
+        }
+
+        [Fact]
+        public void When_FileSystemStorage_Is_Constructed_If_Query_Request_Builder_Is_Null_Then_Argument_Null_Exception_Is_Thrown()
+        {
+            Assert.Throws<ArgumentNullException>(
+                () => new FileSystemStorage(_queryFileMapMock.Object, null)
             );
         }
 
@@ -77,22 +96,34 @@ namespace HotChocolate.PersistedQueries.Tests.FileSystem
         }
 
         [Fact]
-        public async Task When_ReadQueryAsync_Is_Called_Then_TODO()
+        public async Task When_ReadQueryAsync_Is_Called_Then_Query_Builder_Source_Is_Set_From_File_Content()
         {
             // Arrange
-            var simpleQueryFile = SysPath.Combine(Directory.GetCurrentDirectory(), "FileSystem/StoredQueries/SimpleQuery.graphql");
+            const string queryFileRelativePath = "FileSystem/StoredQueries/SimpleQuery.graphql";
+            var simpleQueryFile = SysPath.Combine(Directory.GetCurrentDirectory(), queryFileRelativePath);
 
             _queryFileMapMock.Setup(f => f.MapToFilePath(It.IsAny<string>()))
                 .Returns(simpleQueryFile);
 
             // Act
-            var exception = await Assert.ThrowsAsync<NotImplementedException>(() => _systemUnderTest.ReadQueryAsync("query"));
+            var query = await _systemUnderTest.ReadQueryAsync("query");
 
             // Assert
-            Assert.Equal("Waiting for IQuery things", exception.Message);
-            Assert.Equal(@"query {
-    foo
-}", exception.Data["FilePath"]);
+            using (var fileStream = new FileStream(simpleQueryFile, FileMode.Open))
+            {
+                using (var reader = new StreamReader(fileStream))
+                {
+                    var expectedContent = await reader.ReadToEndAsync();
+                    
+                    _queryRequestBuilderMock.Verify(q => q.SetQuery(expectedContent));
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_ReadQueryAsync_Is_Called_Then_Create_Response_Is_Returnd()
+        {
+            throw new NotImplementedException();
         }
     }
 }

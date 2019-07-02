@@ -1,8 +1,8 @@
 using HotChocolate.Execution;
 using System;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-
 
 namespace HotChocolate.PersistedQueries.FileSystem
 {
@@ -13,14 +13,18 @@ namespace HotChocolate.PersistedQueries.FileSystem
     public class FileSystemStorage : IReadStoredQueries
     {
         private readonly IQueryFileMap _queryMap;
+        private readonly IQueryRequestBuilder _requestBuilder;
 
         /// <summary>
         /// Initializes a new instance of the class.
         /// </summary>
         /// <param name="queryMap">The query identifier mapping.</param>
-        public FileSystemStorage(IQueryFileMap queryMap)
+        /// <param name="requestBuilder">The request builder.</param>
+        public FileSystemStorage(IQueryFileMap queryMap,
+            IQueryRequestBuilder requestBuilder)
         {
             _queryMap = queryMap ?? throw new ArgumentNullException(nameof(queryMap));
+            _requestBuilder = requestBuilder ?? throw new ArgumentNullException(nameof(requestBuilder));
         }
 
         /// <inheritdoc />
@@ -50,12 +54,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
                 using (var s = new StreamReader(fs))
                 {
                     var fileContent = await s.ReadToEndAsync();
-
-                    // TODO: Parse into IQuery and return.
-                    // TODO: Possible optimization of storing in memory for faster access.
-                    var exception = new NotImplementedException("Waiting for IQuery things");
-                    exception.Data.Add("FilePath", fileContent);
-                    throw exception;
+                    
                 }
             }
 
