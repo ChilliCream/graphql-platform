@@ -110,6 +110,62 @@ namespace HotChocolate.Types.Filters
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public void Execute_Filter_In()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFilter())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos(where: { bar_in: [ \"aa\" \"ab\" ] }) { bar } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Execute_Filter_Equals_And()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFilter())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos(where: { AND: [ { bar: \"aa\" } { bar: \"ba\" } ] })" +
+                " { bar } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Execute_Filter_Equals_Or()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFilter())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos(where: { OR: [ { bar: \"aa\" } { bar: \"ba\" } ] })" +
+                " { bar } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
         public class QueryType
             : ObjectType<Query>
         {
