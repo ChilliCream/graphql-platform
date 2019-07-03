@@ -120,5 +120,48 @@ namespace HotChocolate.Language
             Assert.Equal("hello_123_" + unescaped,
                 Encoding.UTF8.GetString(output.ToArray()));
         }
+
+        [Fact]
+        public void Foo()
+        {
+            const int initial_a = 0b1010_1111_1111_1111;
+            const int initial_b = 0b0001_1111_1111_1111;
+            const int initial_c = 0b0010_1111_1111_1111;
+
+            const int mask = 0b1111_0000_0000_0000;
+
+            int a = initial_b & mask;
+            a = a >> 12;
+            a = a << 12;
+
+            int b = initial_b - a;
+
+
+
+
+
+
+
+            /*
+                    const int mask = 0b1_1111_0000_0000_0000;
+                    const int mask2 = 0b1_0000_0000_0000_0000;
+                    const int mask3 = 0b0000_1111_1111_1111;
+
+
+                    int a = (initial ^ mask);
+                    a = a >> 12;
+                    a = a << 12;
+                    a = (a ^ mask2);
+
+                    string binary = Convert.ToString(a, 2);
+                    a = a | mask3;
+
+
+
+
+                    binary = Convert.ToString(a, 2);
+
+         */
+        }
     }
 }
