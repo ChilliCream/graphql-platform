@@ -176,7 +176,6 @@ namespace HotChocolate.Types.Filters
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            IInputField operationField = Operations.Peek();
             Level.Push(new Queue<Expression>());
             return VisitorAction.Continue;
         }
