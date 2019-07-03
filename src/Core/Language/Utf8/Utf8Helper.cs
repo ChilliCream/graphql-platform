@@ -7,6 +7,7 @@ namespace HotChocolate.Language
     internal static class Utf8Helper
     {
         private const int _utf8TwoByteMask = 0b1100_0000_1000_0000;
+        private const int _utf8ThreeByteMask = 0b1110_0000_1100_0000_1000_0000;
         private const int _shiftBytesMask = 0b1111_1111_1100_0000;
 
         public static void Unescape(
@@ -29,13 +30,18 @@ namespace HotChocolate.Language
                     if (isBlockString
                          && code == GraphQLConstants.Quote)
                     {
-                        if (escapedString[readPosition + 1] == GraphQLConstants.Quote
-                            && escapedString[readPosition + 2] == GraphQLConstants.Quote)
+                        if (escapedString[readPosition + 1] ==
+                            GraphQLConstants.Quote
+                            && escapedString[readPosition + 2] ==
+                            GraphQLConstants.Quote)
                         {
                             readPosition += 2;
-                            unescapedString[writePosition++] = GraphQLConstants.Quote;
-                            unescapedString[writePosition++] = GraphQLConstants.Quote;
-                            unescapedString[writePosition++] = GraphQLConstants.Quote;
+                            unescapedString[writePosition++] =
+                                GraphQLConstants.Quote;
+                            unescapedString[writePosition++] =
+                                GraphQLConstants.Quote;
+                            unescapedString[writePosition++] =
+                                GraphQLConstants.Quote;
                         }
                         else
                         {
@@ -92,7 +98,7 @@ namespace HotChocolate.Language
             {
                 unescapedString[writePosition++] = (byte)unicodeDecimal;
             }
-            else if (unicodeDecimal >= 128 && unicodeDecimal <= 4063)
+            else if (unicodeDecimal >= 128 && unicodeDecimal <= 2047)
             {
                 int bytesToShift = unicodeDecimal & _shiftBytesMask;
                 unicodeDecimal -= bytesToShift;
@@ -101,6 +107,21 @@ namespace HotChocolate.Language
 
                 unescapedString[writePosition++] = (byte)(unicodeDecimal >> 8);
                 unescapedString[writePosition++] = (byte)unicodeDecimal;
+            }
+            else if (unicodeDecimal >= 2048 && unicodeDecimal <= 4095)
+            {
+                int bytesToShift = unicodeDecimal & _shiftBytesMask;
+                unicodeDecimal -= bytesToShift;
+                bytesToShift = bytesToShift << 2;
+                unicodeDecimal += _utf8TwoByteMask + bytesToShift;
+
+                unescapedString[writePosition++] = (byte)(unicodeDecimal >> 8);
+                unescapedString[writePosition++] = (byte)unicodeDecimal;
+            }
+            else
+            {
+                throw new NotSupportedException(
+                    "UTF-8 characters with four bytes are not supported.");
             }
         }
 
