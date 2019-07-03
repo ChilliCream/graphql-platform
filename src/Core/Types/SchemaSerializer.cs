@@ -74,6 +74,7 @@ namespace HotChocolate
             IEnumerable<DirectiveDefinitionNode> directiveTypeDefinitions =
                 schema.DirectiveTypes
                 .Where(t => referenced.DirectiveNames.Contains(t.Name))
+                .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
                 .Select(t => SerializeDirectiveTypeDefinition(t, referenced));
 
             typeDefinitions.AddRange(directiveTypeDefinitions);
@@ -82,6 +83,7 @@ namespace HotChocolate
                 schema.Types
                 .OfType<ScalarType>()
                 .Where(t => referenced.TypeNames.Contains(t.Name))
+                .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
                 .Select(t => SerializeScalarType(t));
 
             typeDefinitions.AddRange(scalarTypeDefinitions);
@@ -94,7 +96,7 @@ namespace HotChocolate
         {
             return schema.Types
                .Where(t => IsPublicAndNoScalar(t))
-               .OrderBy(t => t.Name.ToString())
+               .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
                .GroupBy(t => (int)t.Kind)
                .OrderBy(t => t.Key)
                .SelectMany(t => t);
