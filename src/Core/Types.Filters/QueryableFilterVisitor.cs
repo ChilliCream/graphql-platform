@@ -176,13 +176,7 @@ namespace HotChocolate.Types.Filters
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            IInputField operationField = Operations.Peek();
-
-            if (operationField is AndField || operationField is OrField)
-            {
-                Level.Push(new Queue<Expression>());
-            }
-
+            Level.Push(new Queue<Expression>());
             return VisitorAction.Continue;
         }
 
@@ -194,9 +188,9 @@ namespace HotChocolate.Types.Filters
         {
             var combine = Operations.Peek() is OrField
                 ? new Func<Expression, Expression, Expression>(
-                    (a, b) => Expression.AndAlso(a, b))
+                    (a, b) => Expression.OrElse(a, b))
                 : new Func<Expression, Expression, Expression>(
-                    (a, b) => Expression.OrElse(a, b));
+                    (a, b) => Expression.AndAlso(a, b));
 
             Queue<Expression> operations = Level.Pop();
 
