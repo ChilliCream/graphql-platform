@@ -2,50 +2,6 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Language
 {
-
-    /*
-        export const QueryDocumentKeys = {
-          Name: [],
-
-          SchemaDefinition: ['directives', 'operationTypes'],
-          OperationTypeDefinition: ['type'],
-
-          ScalarTypeDefinition: ['description', 'name', 'directives'],
-          ObjectTypeDefinition: [
-            'description',
-            'name',
-            'interfaces',
-            'directives',
-            'fields',
-          ],
-          FieldDefinition: ['description', 'name', 'arguments', 'type', 'directives'],
-          InputValueDefinition: [
-            'description',
-            'name',
-            'type',
-            'defaultValue',
-            'directives',
-          ],
-          InterfaceTypeDefinition: ['description', 'name', 'directives', 'fields'],
-          UnionTypeDefinition: ['description', 'name', 'directives', 'types'],
-          EnumTypeDefinition: ['description', 'name', 'directives', 'values'],
-          EnumValueDefinition: ['description', 'name', 'directives'],
-          InputObjectTypeDefinition: ['description', 'name', 'directives', 'fields'],
-
-          DirectiveDefinition: ['description', 'name', 'arguments', 'locations'],
-
-          SchemaExtension: ['directives', 'operationTypes'],
-
-          ScalarTypeExtension: ['name', 'directives'],
-          ObjectTypeExtension: ['name', 'interfaces', 'directives', 'fields'],
-          InterfaceTypeExtension: ['name', 'directives', 'fields'],
-          UnionTypeExtension: ['name', 'directives', 'types'],
-          EnumTypeExtension: ['name', 'directives', 'values'],
-          InputObjectTypeExtension: ['name', 'directives', 'fields'],
-        };
-
-         */
-
     public class VisitationMap
         : IVisitationMap
     {
@@ -121,6 +77,82 @@ namespace HotChocolate.Language
 
                 case ObjectFieldNode objectField:
                     ResolveChildren(objectField, children);
+                    break;
+
+                case SchemaDefinitionNode schemaDefinition:
+                    ResolveChildren(schemaDefinition, children);
+                    break;
+
+                case OperationTypeDefinitionNode operationTypeDefinition:
+                    ResolveChildren(operationTypeDefinition, children);
+                    break;
+
+                case ScalarTypeDefinitionNode scalarTypeDefinition:
+                    ResolveChildren(scalarTypeDefinition, children);
+                    break;
+
+                case ObjectTypeDefinitionNode objectTypeDefinition:
+                    ResolveChildren(objectTypeDefinition, children);
+                    break;
+
+                case FieldDefinitionNode fieldDefinition:
+                    ResolveChildren(fieldDefinition, children);
+                    break;
+
+                case InputValueDefinitionNode inputValueDefinition:
+                    ResolveChildren(inputValueDefinition, children);
+                    break;
+
+                case InterfaceTypeDefinitionNode interfaceTypeDefinition:
+                    ResolveChildren(interfaceTypeDefinition, children);
+                    break;
+
+                case UnionTypeDefinitionNode unionTypeDefinitionNode:
+                    ResolveChildren(unionTypeDefinitionNode, children);
+                    break;
+
+                case EnumTypeDefinitionNode enumTypeDefinition:
+                    ResolveChildren(enumTypeDefinition, children);
+                    break;
+
+                case EnumValueDefinitionNode enumValueDefinition:
+                    ResolveChildren(enumValueDefinition, children);
+                    break;
+
+                case InputObjectTypeDefinitionNode inputObjectTypeDefinition:
+                    ResolveChildren(inputObjectTypeDefinition, children);
+                    break;
+
+                case DirectiveDefinitionNode directiveDefinition:
+                    ResolveChildren(directiveDefinition, children);
+                    break;
+
+                case SchemaExtensionNode schemaExtension:
+                    ResolveChildren(schemaExtension, children);
+                    break;
+
+                case ScalarTypeExtensionNode scalarTypeExtension:
+                    ResolveChildren(scalarTypeExtension, children);
+                    break;
+
+                case ObjectTypeExtensionNode objectTypeExtension:
+                    ResolveChildren(objectTypeExtension, children);
+                    break;
+
+                case InterfaceTypeExtensionNode interfaceTypeExtension:
+                    ResolveChildren(interfaceTypeExtension, children);
+                    break;
+
+                case UnionTypeExtensionNode unionTypeExtension:
+                    ResolveChildren(unionTypeExtension, children);
+                    break;
+
+                case EnumTypeExtensionNode enumTypeExtension:
+                    ResolveChildren(enumTypeExtension, children);
+                    break;
+
+                case InputObjectTypeExtensionNode inputObjectTypeExtension:
+                    ResolveChildren(inputObjectTypeExtension, children);
                     break;
             }
         }
@@ -354,6 +386,421 @@ namespace HotChocolate.Language
             ResolveChildren(
                 nameof(node.SelectionSet),
                 node.SelectionSet,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            SchemaDefinitionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+
+            ResolveChildren(
+                nameof(node.OperationTypes),
+                node.OperationTypes,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            OperationTypeDefinitionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Type),
+                node.Type,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            ScalarTypeDefinitionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Description),
+                node.Description,
+                children);
+
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            ObjectTypeDefinitionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Description),
+                node.Description,
+                children);
+
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Interfaces),
+                node.Interfaces,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+
+            ResolveChildren(
+                nameof(node.Fields),
+                node.Fields,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            FieldDefinitionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Description),
+                node.Description,
+                children);
+
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Arguments),
+                node.Arguments,
+                children);
+
+            ResolveChildren(
+                nameof(node.Type),
+                node.Type,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            InputValueDefinitionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Description),
+                node.Description,
+                children);
+
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Type),
+                node.Type,
+                children);
+
+            ResolveChildren(
+                nameof(node.DefaultValue),
+                node.DefaultValue,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            InterfaceTypeDefinitionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Description),
+                node.Description,
+                children);
+
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+
+            ResolveChildren(
+                nameof(node.Fields),
+                node.Fields,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            UnionTypeDefinitionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Description),
+                node.Description,
+                children);
+
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+
+            ResolveChildren(
+                nameof(node.Types),
+                node.Types,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            EnumTypeDefinitionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Description),
+                node.Description,
+                children);
+
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+
+            ResolveChildren(
+                nameof(node.Values),
+                node.Values,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+           EnumValueDefinitionNode node,
+           IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Description),
+                node.Description,
+                children);
+
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            InputObjectTypeDefinitionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Description),
+                node.Description,
+                children);
+
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+
+            ResolveChildren(
+                nameof(node.Fields),
+                node.Fields,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            DirectiveDefinitionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Description),
+                node.Description,
+                children);
+
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Arguments),
+                node.Arguments,
+                children);
+
+            ResolveChildren(
+                nameof(node.Locations),
+                node.Locations,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            SchemaExtensionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+
+            ResolveChildren(
+                nameof(node.OperationTypes),
+                node.OperationTypes,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            ScalarTypeExtensionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            ObjectTypeExtensionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Interfaces),
+                node.Interfaces,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+
+            ResolveChildren(
+                nameof(node.Fields),
+                node.Fields,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            InterfaceTypeExtensionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+
+            ResolveChildren(
+                nameof(node.Fields),
+                node.Fields,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            UnionTypeExtensionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+
+            ResolveChildren(
+                nameof(node.Types),
+                node.Types,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            EnumTypeExtensionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+
+            ResolveChildren(
+                nameof(node.Values),
+                node.Values,
+                children);
+        }
+
+        protected virtual void ResolveChildren(
+            InputObjectTypeExtensionNode node,
+            IStack<SyntaxNodeInfo> children)
+        {
+            ResolveChildren(
+                nameof(node.Name),
+                node.Name,
+                children);
+
+            ResolveChildren(
+                nameof(node.Directives),
+                node.Directives,
+                children);
+
+            ResolveChildren(
+                nameof(node.Fields),
+                node.Fields,
                 children);
         }
 
