@@ -7,7 +7,7 @@ namespace HotChocolate.Language
     internal static class Utf8Helper
     {
         private const int _utf8TwoByteMask = 0b1100_0000_1000_0000;
-        private const int _utf8ThreeByteMask = 0b1110_0000_1100_0000_1000_0000;
+        private const int _utf8ThreeByteMask = 0b1110_0000_1000_0000_1000_0000;
         private const int _shiftBytesMask = 0b1111_1111_1100_0000;
 
         public static void Unescape(
@@ -84,7 +84,7 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static void UnescapeUtf8Hex(
+        public static void UnescapeUtf8Hex(
             byte a, byte b, byte c, byte d,
             ref int writePosition,
             ref Span<byte> unescapedString)
@@ -102,19 +102,26 @@ namespace HotChocolate.Language
             {
                 int bytesToShift = unicodeDecimal & _shiftBytesMask;
                 unicodeDecimal -= bytesToShift;
-                bytesToShift = bytesToShift << 2;
+                bytesToShift <<= 2;
                 unicodeDecimal += _utf8TwoByteMask + bytesToShift;
 
                 unescapedString[writePosition++] = (byte)(unicodeDecimal >> 8);
                 unescapedString[writePosition++] = (byte)unicodeDecimal;
             }
-            else if (unicodeDecimal >= 2048 && unicodeDecimal <= 4095)
+            else if (unicodeDecimal >= 2048 && unicodeDecimal <= 65535)
             {
                 int bytesToShift = unicodeDecimal & _shiftBytesMask;
                 unicodeDecimal -= bytesToShift;
-                bytesToShift = bytesToShift << 2;
-                unicodeDecimal += _utf8TwoByteMask + bytesToShift;
 
+                int third = (bytesToShift >> 12) << 12;
+                int second = bytesToShift -= third;
+
+                second <<= 2;
+                third <<= 4;
+
+                unicodeDecimal += _utf8ThreeByteMask + second + third;
+
+                unescapedString[writePosition++] = (byte)(unicodeDecimal >> 16);
                 unescapedString[writePosition++] = (byte)(unicodeDecimal >> 8);
                 unescapedString[writePosition++] = (byte)unicodeDecimal;
             }
