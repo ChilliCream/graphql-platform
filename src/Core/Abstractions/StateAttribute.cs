@@ -20,5 +20,9 @@ namespace HotChocolate
         }
 
         public string Key { get; }
+
+        public bool IsScoped { get; set; }
+
+        public bool DefaultIfNotExists { get; set; }
     }
 }

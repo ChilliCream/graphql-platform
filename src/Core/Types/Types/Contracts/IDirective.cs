@@ -22,6 +22,8 @@ namespace HotChocolate.Types
 
         DirectiveNode ToNode();
 
+        DirectiveNode ToNode(bool removeNullArguments);
+
         T GetArgument<T>(string argumentName);
     }
 }

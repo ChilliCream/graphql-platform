@@ -1,14 +1,12 @@
-﻿using System;
+#if !ASPNETCLASSIC
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic
-#else
-namespace HotChocolate.AspNetCore
-#endif
+namespace HotChocolate.AspNetCore.Subscriptions
 {
     internal static class QueryMiddlewareUtilities
     {
@@ -118,3 +116,5 @@ namespace HotChocolate.AspNetCore
         }
     }
 }
+
+#endif

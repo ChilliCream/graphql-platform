@@ -47,6 +47,7 @@ namespace HotChocolate.Execution
                 .AddQueryCache(options.QueryCacheSize)
                 .AddExecutionStrategyResolver()
                 .AddDefaultParser()
+                .AddDefaultDocumentHashProvider()
                 .UseInstrumentation(options.TracingPreference)
                 .UseRequestTimeout()
                 .UseExceptionHandling()
@@ -562,12 +563,46 @@ namespace HotChocolate.Execution
             builder
                 .RemoveService<Cache<DirectiveMiddlewareCompiler>>()
                 .RemoveService<Cache<ICachedQuery>>()
-                .RemoveService<Cache<OperationDefinitionNode>>();
+                .RemoveService<Cache<OperationDefinitionNode>>()
+                .RemoveService<IDocumentCache>();
+
             builder.Services
                 .AddSingleton(new Cache<DirectiveMiddlewareCompiler>(cacheSize))
                 .AddSingleton(new Cache<ICachedQuery>(cacheSize))
-                .AddSingleton(new Cache<OperationDefinitionNode>(cacheSize));
+                .AddSingleton(new Cache<OperationDefinitionNode>(cacheSize))
+                .AddSingleton<IDocumentCache, DefaultDocumentCache>();
 
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddDefaultDocumentHashProvider(
+            this IQueryExecutionBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.AddMD5DocumentHashProvider();
+        }
+
+        public static IQueryExecutionBuilder AddSha1DocumentHashProvider(
+            this IQueryExecutionBuilder builder)
+        {
+            builder.RemoveService<IDocumentHashProvider>();
+            builder.Services.AddSingleton<
+                IDocumentHashProvider,
+                Sha1DocumentHashProvider>();
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddMD5DocumentHashProvider(
+            this IQueryExecutionBuilder builder)
+        {
+            builder.RemoveService<IDocumentHashProvider>();
+            builder.Services.AddSingleton<
+                IDocumentHashProvider,
+                MD5DocumentHashProvider>();
             return builder;
         }
 

@@ -62,6 +62,32 @@ namespace HotChocolate.Execution
             );
         }
 
+        public void Build(IServiceCollection services)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            var list = (IList<ServiceDescriptor>)services;
+
+            foreach (ServiceDescriptor descriptor in Services)
+            {
+                list.Add(descriptor);
+            }
+
+            services.AddSingleton<IQueryExecutor>(sp =>
+            {
+                return new QueryExecutor
+                (
+                    sp.GetRequiredService<ISchema>(),
+                    sp,
+                    Compile(_middlewareComponents),
+                    Compile(_fieldMiddlewareComponents)
+                );
+            });
+        }
+
         private ServiceCollection CopyServiceCollection()
         {
             var copy = new ServiceCollection();
@@ -112,5 +138,14 @@ namespace HotChocolate.Execution
         public static IQueryExecutor BuildDefault(ISchema schema,
             IQueryExecutionOptionsAccessor options) =>
                 New().UseDefaultPipeline(options).Build(schema);
+
+        public static void BuildDefault(
+            IServiceCollection services) =>
+            New().UseDefaultPipeline().Build(services);
+
+        public static void BuildDefault(
+            IServiceCollection services,
+            IQueryExecutionOptionsAccessor options) =>
+                New().UseDefaultPipeline(options).Build(services);
     }
 }

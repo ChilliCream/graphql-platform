@@ -1,12 +1,13 @@
 using System;
 using System.Security.Claims;
+using System.Security.Principal;
 using System.Threading;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
     public interface IHttpContext
     {
-        object User { get; set; }
+        IPrincipal User { get; set; }
 
         CancellationToken RequestAborted { get; }
 

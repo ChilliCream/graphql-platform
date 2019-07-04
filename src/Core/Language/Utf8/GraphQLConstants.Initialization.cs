@@ -36,14 +36,15 @@ namespace HotChocolate.Language
 
         private static void InitializeIsEscapeCharacterCache()
         {
-            _isEscapeCharacter['"'] = true;
-            _isEscapeCharacter['/'] = true;
-            _isEscapeCharacter['\\'] = true;
-            _isEscapeCharacter['b'] = true;
-            _isEscapeCharacter['f'] = true;
-            _isEscapeCharacter['n'] = true;
-            _isEscapeCharacter['r'] = true;
-            _isEscapeCharacter['t'] = true;
+            _isEscapeCharacter[Quote] = true;
+            _isEscapeCharacter[Forwardslash] = true;
+            _isEscapeCharacter[Backslash] = true;
+            _isEscapeCharacter[B] = true;
+            _isEscapeCharacter[F] = true;
+            _isEscapeCharacter[N] = true;
+            _isEscapeCharacter[R] = true;
+            _isEscapeCharacter[T] = true;
+            _isEscapeCharacter[U] = true;
         }
 
         private static void InitializeEscapeCharacterCache()

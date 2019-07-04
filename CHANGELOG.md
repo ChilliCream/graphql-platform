@@ -21,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - The parent method on the resolver context now uses the converters if the source object type does not align with the requested type.
+- Aligned the deprecation handling with the GraphQL spec. [#876](https://github.com/ChilliCream/hotchocolate/pull/876)
 
 ## [9.0.4] - 2019-06-16
 

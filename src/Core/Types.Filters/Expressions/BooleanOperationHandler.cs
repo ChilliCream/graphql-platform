@@ -9,7 +9,6 @@ namespace HotChocolate.Types.Filters.Expressions
     public class BooleanOperationHandler
         : IExpressionOperationHandler
     {
-
         public bool TryHandle(
             FilterOperation operation,
             IInputType type,
@@ -18,20 +17,25 @@ namespace HotChocolate.Types.Filters.Expressions
             ITypeConversion converter,
             out Expression expression)
         {
-            if (operation.Type == typeof(bool) && value is BooleanValueNode s)
+            if (operation.Type == typeof(bool)
+                && (value is BooleanValueNode || value.IsNull()))
             {
                 MemberExpression property =
                     Expression.Property(instance, operation.Property);
 
+                object parserValue = type.ParseLiteral(value);
+
                 switch (operation.Kind)
                 {
                     case FilterOperationKind.Equals:
-                        expression = FilterExpressionBuilder.Equals(property, s.Value);
+                        expression = FilterExpressionBuilder.Equals(
+                            property, parserValue);
                         return true;
 
                     case FilterOperationKind.NotEquals:
                         expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.Equals(property, s.Value)
+                            FilterExpressionBuilder.Equals(
+                                property, parserValue)
                         );
                         return true;
 

@@ -3,7 +3,7 @@
 }
 
 type Query {
-  foo: String @authorize(policy: null, roles: [  ])
+  foo: String @authorize(roles: [  ])
 }
 
 directive @authorize(policy: String roles: [String]) repeatable on OBJECT | FIELD_DEFINITION

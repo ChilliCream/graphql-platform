@@ -1,29 +1,16 @@
-using System.Text;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Net.Cache;
+using System.Runtime.CompilerServices;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading.Tasks;
-using System.Runtime.CompilerServices;
-using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using Snapshooter.Xunit;
 using Xunit;
 using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
-using HotChocolate.Stitching.Schemas.Contracts;
-using HotChocolate.Stitching.Schemas.Customers;
 using HotChocolate.Types;
 using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Delegation;
 using FileResource = ChilliCream.Testing.FileResource;
-using HotChocolate.Language;
-using HotChocolate.Stitching.Utilities;
-using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Stitching
 {
@@ -41,8 +28,10 @@ namespace HotChocolate.Stitching
         public async Task ExecuteStitchingQueryWithInlineFragment()
         {
             // arrange
-            var request = new QueryRequest(FileResource.Open(
-                "StitchingQueryWithInlineFragment.graphql"));
+            var request = QueryRequestBuilder.New()
+                .SetQuery(FileResource.Open(
+                    "StitchingQueryWithInlineFragment.graphql"))
+                .Create();
 
             // act
             IExecutionResult result = await ExecuteStitchedQuery(request);
@@ -55,8 +44,10 @@ namespace HotChocolate.Stitching
         public async Task ExecuteStitchingQueryWithFragmentDefinition()
         {
             // arrange
-            var request = new QueryRequest(FileResource.Open(
-                "StitchingQueryWithFragmentDefs.graphql"));
+            var request = QueryRequestBuilder.New()
+                .SetQuery(FileResource.Open(
+                    "StitchingQueryWithFragmentDefs.graphql"))
+                .Create();
 
             // act
             IExecutionResult result = await ExecuteStitchedQuery(request);
@@ -69,14 +60,11 @@ namespace HotChocolate.Stitching
         public async Task ExecuteStitchingQueryWithVariables()
         {
             // arrange
-            var request = new QueryRequest(FileResource.Open(
-                "StitchingQueryWithVariables.graphql"))
-            {
-                VariableValues = new Dictionary<string, object>
-                {
-                    {"customerId", "Q3VzdG9tZXIteDE="}
-                }
-            };
+            var request = QueryRequestBuilder.New()
+                .SetQuery(FileResource.Open(
+                    "StitchingQueryWithVariables.graphql"))
+                .SetVariableValue("customerId", "Q3VzdG9tZXIteDE=")
+                .Create();
 
             // act
             IExecutionResult result = await ExecuteStitchedQuery(request);
@@ -89,8 +77,10 @@ namespace HotChocolate.Stitching
         public async Task ExecuteStitchingQueryWithUnion()
         {
             // arrange
-            var request = new QueryRequest(FileResource.Open(
-                "StitchingQueryWithUnion.graphql"));
+            var request = QueryRequestBuilder.New()
+                .SetQuery(FileResource.Open(
+                    "StitchingQueryWithUnion.graphql"))
+                .Create();
 
             // act
             IExecutionResult result = await ExecuteStitchedQuery(request);
@@ -103,8 +93,10 @@ namespace HotChocolate.Stitching
         public async Task ExecuteStitchingQueryWithArguments()
         {
             // arrange
-            var request = new QueryRequest(FileResource.Open(
-                "StitchingQueryWithArguments.graphql"));
+            var request = QueryRequestBuilder.New()
+                .SetQuery(FileResource.Open(
+                    "StitchingQueryWithArguments.graphql"))
+                .Create();
 
             // act
             IExecutionResult result = await ExecuteStitchedQuery(request);
@@ -117,8 +109,10 @@ namespace HotChocolate.Stitching
         public async Task ExecuteStitchingQueryDeepArrayPath()
         {
             // arrange
-            var request = new QueryRequest(FileResource.Open(
-                "StitchingQueryDeepArrayPath.graphql"));
+            var request = QueryRequestBuilder.New()
+                .SetQuery(FileResource.Open(
+                    "StitchingQueryDeepArrayPath.graphql"))
+                .Create();
 
             // act
             IExecutionResult result = await ExecuteStitchedQuery(request);
@@ -131,8 +125,10 @@ namespace HotChocolate.Stitching
         public async Task ExecuteStitchingQueryDeepObjectPath()
         {
             // arrange
-            var request = new QueryRequest(FileResource.Open(
-                "StitchingQueryDeepObjectPath.graphql"));
+            var request = QueryRequestBuilder.New()
+                .SetQuery(FileResource.Open(
+                    "StitchingQueryDeepObjectPath.graphql"))
+                .Create();
 
             // act
             IExecutionResult result = await ExecuteStitchedQuery(request);
@@ -145,8 +141,10 @@ namespace HotChocolate.Stitching
         public async Task ExecuteStitchingQueryDeepScalarPath()
         {
             // arrange
-            var request = new QueryRequest(FileResource.Open(
-                "StitchingQueryDeepScalarPath.graphql"));
+            var request = QueryRequestBuilder.New()
+                .SetQuery(FileResource.Open(
+                    "StitchingQueryDeepScalarPath.graphql"))
+                .Create();
 
             // act
             IExecutionResult result = await ExecuteStitchedQuery(request);
@@ -156,7 +154,7 @@ namespace HotChocolate.Stitching
         }
 
         private Task<IExecutionResult> ExecuteStitchedQuery(
-            QueryRequest request)
+            IReadOnlyQueryRequest request)
         {
             // arrange
             IHttpClientFactory clientFactory = CreateRemoteSchemas();
@@ -179,8 +177,11 @@ namespace HotChocolate.Stitching
                 c => c.RegisterType<DateTimeType>());
 
             IServiceProvider services =
-                request.Services =
                 serviceCollection.BuildServiceProvider();
+
+            request = QueryRequestBuilder.From(request)
+                .SetServices(services)
+                .Create();
 
             IQueryExecutor executor = services
                 .GetRequiredService<IQueryExecutor>();
@@ -223,12 +224,14 @@ namespace HotChocolate.Stitching
                     c.RegisterType<DateTimeType>();
                 });
 
-            var request = new QueryRequest(
-                FileResource.Open("StitchingQueryComputedField.graphql"));
-
             IServiceProvider services =
-                request.Services =
                 serviceCollection.BuildServiceProvider();
+
+            var request = QueryRequestBuilder.New()
+                .SetQuery(
+                    FileResource.Open("StitchingQueryComputedField.graphql"))
+                .SetServices(services)
+                .Create();
 
             IQueryExecutor executor = services
                 .GetRequiredService<IQueryExecutor>();
@@ -266,13 +269,16 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                {
-                    customer(id: ""Q3VzdG9tZXIteDE="") {
-                        int
-                    }
-                }");
-                request.Services = scope.ServiceProvider;
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                        {
+                            customer(id: ""Q3VzdG9tZXIteDE="") {
+                                int
+                            }
+                        }")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }
@@ -310,13 +316,16 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                {
-                    customer(id: ""Q3VzdG9tZXIteDE="") {
-                        guid
-                    }
-                }");
-                request.Services = scope.ServiceProvider;
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                        {
+                            customer(id: ""Q3VzdG9tZXIteDE="") {
+                                guid
+                            }
+                        }")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }
@@ -353,23 +362,26 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                {
-                    a: customer(id: ""Q3VzdG9tZXIteDE="") {
-                        bar: foo
-                        contracts {
-                            id
-                        }
-                    }
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                        {
+                            a: customer(id: ""Q3VzdG9tZXIteDE="") {
+                                bar: foo
+                                contracts {
+                                    id
+                                }
+                            }
 
-                    b: customer(id: ""Q3VzdG9tZXIteDE="") {
-                        foo
-                        contracts {
-                            id
-                        }
-                    }
-                }");
-                request.Services = scope.ServiceProvider;
+                            b: customer(id: ""Q3VzdG9tZXIteDE="") {
+                                foo
+                                contracts {
+                                    id
+                                }
+                            }
+                        }")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }
@@ -406,27 +418,27 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                    query a($id: ID! $bar: String) {
-                        contracts(customerId: $id)
-                        {
-                            id
-                            customerId
-                            ... foo
-                        }
-                    }
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                            query a($id: ID! $bar: String) {
+                                contracts(customerId: $id)
+                                {
+                                    id
+                                    customerId
+                                    ... foo
+                                }
+                            }
 
-                    fragment foo on LifeInsuranceContract
-                    {
-                        foo(bar: $bar)
-                    }
-                ");
-                request.VariableValues = new Dictionary<string, object>
-                {
-                    {"id", "Q3VzdG9tZXIteDE="},
-                    {"bar", "this variable is passed to remote query!"}
-                };
-                request.Services = scope.ServiceProvider;
+                            fragment foo on LifeInsuranceContract
+                            {
+                                foo(bar: $bar)
+                            }
+                        ")
+                        .SetVariableValue("id", "Q3VzdG9tZXIteDE=")
+                        .SetVariableValue("bar", "this variable is passed to remote query!")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }
@@ -465,30 +477,29 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                query a($id: ID!) {
-                    a: customer2(customerId: $id) {
-                        bar: foo
-                        contracts {
-                            id
-                            ... life
-                            ... on Other {
-                                expiryDate
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                            query a($id: ID!) {
+                                a: customer2(customerId: $id) {
+                                    bar: foo
+                                    contracts {
+                                        id
+                                        ... life
+                                        ... on Other {
+                                            expiryDate
+                                        }
+                                    }
+                                }
                             }
-                        }
-                    }
-                }
 
-                fragment life on Life
-                {
-                    premium
-                }");
-
-                request.VariableValues = new Dictionary<string, object>
-                {
-                    {"id", "Q3VzdG9tZXIteDE="}
-                };
-                request.Services = scope.ServiceProvider;
+                            fragment life on Life
+                            {
+                                premium
+                            }")
+                        .SetVariableValue("id", "Q3VzdG9tZXIteDE=")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }
@@ -532,32 +543,32 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                query a($id: ID!) {
-                    a: customer2(customerId: $id) {
-                        bar: foo
-                        contracts {
-                            id
-                            ... life
-                            ... on Other {
-                                expiryDate
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                            query a($id: ID!) {
+                                a: customer2(customerId: $id) {
+                                    bar: foo
+                                    contracts {
+                                        id
+                                        ... life
+                                        ... on Other {
+                                            expiryDate
+                                        }
+                                    }
+                                }
+                                hello
                             }
-                        }
-                    }
-                    hello
-                }
 
-                fragment life on Life
-                {
-                    premium
-                }
+                            fragment life on Life
+                            {
+                                premium
+                            }
 
-                ");
-                request.VariableValues = new Dictionary<string, object>
-                {
-                    {"id", "Q3VzdG9tZXIteDE="}
-                };
-                request.Services = scope.ServiceProvider;
+                            ")
+                        .SetVariableValue("id", "Q3VzdG9tZXIteDE=")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }
@@ -594,17 +605,17 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                query a($id: ID!) {
-                    a: customer(id: $id) {
-                        name
-                    }
-                }");
-                request.VariableValues = new Dictionary<string, object>
-                {
-                    {"id", "Q3VzdG9tZXIteDE="}
-                };
-                request.Services = scope.ServiceProvider;
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                            query a($id: ID!) {
+                                a: customer(id: $id) {
+                                    name
+                                }
+                            }")
+                        .SetVariableValue("id", "Q3VzdG9tZXIteDE=")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }
@@ -641,16 +652,16 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                query a($d: DateTime!) {
-                    a: extendedScalar(d: ""2018-01-01T01:00:00.000Z"")
-                    b: extendedScalar(d: $d)
-                }");
-                request.VariableValues = new Dictionary<string, object>
-                {
-                    {"d", "2019-01-01T01:00:00.000Z"}
-                };
-                request.Services = scope.ServiceProvider;
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                            query a($d: DateTime!) {
+                                a: extendedScalar(d: ""2018-01-01T01:00:00.000Z"")
+                                b: extendedScalar(d: $d)
+                            }")
+                        .SetVariableValue("d", "2019-01-01T01:00:00.000Z")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }
@@ -689,17 +700,17 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                query a($d: DateTime!) {
-                    a: extendedScalar(d: ""2018-01-01T01:00:00.000Z"")
-                    b: extendedScalar(d: $d)
-                        @custom(d: ""2020-09-01T01:00:00.000Z"")
-                }");
-                request.VariableValues = new Dictionary<string, object>
-                {
-                    {"d", "2019-01-01T01:00:00.000Z"}
-                };
-                request.Services = scope.ServiceProvider;
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                            query a($d: DateTime!) {
+                                a: extendedScalar(d: ""2018-01-01T01:00:00.000Z"")
+                                b: extendedScalar(d: $d)
+                                    @custom(d: ""2020-09-01T01:00:00.000Z"")
+                            }")
+                        .SetVariableValue("d", "2019-01-01T01:00:00.000Z")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }
@@ -738,18 +749,18 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                query a($d: DateTime!) {
-                    a: extendedScalar(d: ""2018-01-01T01:00:00.000Z"")
-                    b: extendedScalar(d: $d)
-                    c: extendedScalar(d: $d)
-                        @custom(d: ""2020-09-01T01:00:00.000Z"")
-                }");
-                request.VariableValues = new Dictionary<string, object>
-                {
-                    {"d", "2019-01-01T01:00:00.000Z"}
-                };
-                request.Services = scope.ServiceProvider;
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                        query a($d: DateTime!) {
+                            a: extendedScalar(d: ""2018-01-01T01:00:00.000Z"")
+                            b: extendedScalar(d: $d)
+                            c: extendedScalar(d: $d)
+                                @custom(d: ""2020-09-01T01:00:00.000Z"")
+                        }")
+                        .SetVariableValue("d", "2019-01-01T01:00:00.000Z")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }
@@ -784,19 +795,22 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                    mutation {
-                        createCustomer(input: { name: ""a"" })
-                        {
-                            customer {
-                                name
-                                contracts {
-                                    id
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                        mutation {
+                            createCustomer(input: { name: ""a"" })
+                            {
+                                customer {
+                                    name
+                                    contracts {
+                                        id
+                                    }
                                 }
                             }
-                        }
-                    }");
-                request.Services = scope.ServiceProvider;
+                        }")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }
@@ -832,19 +846,22 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                    mutation {
-                        createCustomer(input: { name: ""a"" })
-                        {
-                            customer {
-                                name
-                                contracts {
-                                    id
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                        mutation {
+                            createCustomer(input: { name: ""a"" })
+                            {
+                                customer {
+                                    name
+                                    contracts {
+                                        id
+                                    }
                                 }
                             }
-                        }
-                    }");
-                request.Services = scope.ServiceProvider;
+                        }")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }
@@ -881,19 +898,22 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                    mutation {
-                        createCustomer(input2: { name: ""a"" })
-                        {
-                            customer {
-                                name
-                                contracts {
-                                    id
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                        mutation {
+                            createCustomer(input2: { name: ""a"" })
+                            {
+                                customer {
+                                    name
+                                    contracts {
+                                        id
+                                    }
                                 }
                             }
-                        }
-                    }");
-                request.Services = scope.ServiceProvider;
+                        }")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }
@@ -1051,21 +1071,24 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                    {
-                        standard: customerByKind(kind: STANDARD)
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
                         {
-                            id
-                            kind
-                        }
+                            standard: customerByKind(kind: STANDARD)
+                            {
+                                id
+                                kind
+                            }
 
-                        premium: customerByKind(kind: PREMIUM)
-                        {
-                            id
-                            kind
-                        }
-                    }");
-                request.Services = scope.ServiceProvider;
+                            premium: customerByKind(kind: PREMIUM)
+                            {
+                                id
+                                kind
+                            }
+                        }")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }
@@ -1105,18 +1128,21 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                {
-                    customer(id: ""Q3VzdG9tZXIteDE="") {
-                        contracts {
-                            id
-                            ... on LifeInsuranceContract {
-                                error
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                        {
+                            customer(id: ""Q3VzdG9tZXIteDE="") {
+                                contracts {
+                                    id
+                                    ... on LifeInsuranceContract {
+                                        error
+                                    }
+                                }
                             }
-                        }
-                    }
-                }");
-                request.Services = scope.ServiceProvider;
+                        }")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }

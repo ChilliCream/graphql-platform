@@ -95,6 +95,8 @@ namespace HotChocolate.AspNetCore
         /// </summary>
         protected IQueryExecutor Executor { get; }
 
+        protected IQueryResultSerializer Serializer => _resultSerializer;
+
 #if !ASPNETCLASSIC
         protected RequestDelegate Next { get; }
 #endif
@@ -196,7 +198,10 @@ namespace HotChocolate.AspNetCore
                 CancellationToken requestAborted =
                     context.GetCancellationToken();
 
-                await onCreateRequest(new HttpContextWrapper(context), builder, requestAborted)
+                await onCreateRequest(
+                    new HttpContextWrapper(context),
+                    builder,
+                    requestAborted)
                     .ConfigureAwait(false);
             }
 
@@ -223,9 +228,9 @@ namespace HotChocolate.AspNetCore
             IServiceProvider serviceProvider = context.RequestServices;
 #endif
 
-            IReadOnlyQueryRequest request =
-                await CreateQueryRequestInternalAsync(context, serviceProvider)
-                    .ConfigureAwait(false);
+                IReadOnlyQueryRequest request =
+                    await CreateQueryRequestInternalAsync(context, serviceProvider)
+                        .ConfigureAwait(false);
 
                 IExecutionResult result = await queryExecutor
                     .ExecuteAsync(request, context.GetCancellationToken())

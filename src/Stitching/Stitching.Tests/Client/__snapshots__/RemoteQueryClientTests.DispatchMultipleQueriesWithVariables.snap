@@ -1,5 +1,194 @@
-{
-  "Query": "query exec_batch($__0__a: String) { __0__a: a(b: $__0__a) __1__a: a __1__b: b }",
+﻿{
+  "Query": {
+    "Document": {
+      "Kind": "Document",
+      "Location": null,
+      "Definitions": [
+        {
+          "Kind": "OperationDefinition",
+          "Location": null,
+          "Name": {
+            "Kind": "Name",
+            "Location": null,
+            "Value": "exec_batch"
+          },
+          "Operation": "Query",
+          "VariableDefinitions": [
+            {
+              "Kind": "VariableDefinition",
+              "Location": {
+                "Start": 8,
+                "End": 19,
+                "Line": 1,
+                "Column": 9
+              },
+              "Variable": {
+                "Kind": "Variable",
+                "Location": {
+                  "Start": 8,
+                  "End": 11,
+                  "Line": 1,
+                  "Column": 9
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "__0__a"
+                },
+                "Value": "__0__a"
+              },
+              "Type": {
+                "Kind": "NamedType",
+                "Location": {
+                  "Start": 12,
+                  "End": 19,
+                  "Line": 1,
+                  "Column": 13
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 12,
+                    "End": 19,
+                    "Line": 1,
+                    "Column": 13
+                  },
+                  "Value": "String"
+                }
+              },
+              "DefaultValue": null,
+              "Directives": []
+            }
+          ],
+          "Directives": [],
+          "SelectionSet": {
+            "Kind": "SelectionSet",
+            "Location": null,
+            "Selections": [
+              {
+                "Kind": "Field",
+                "Alias": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "__0__a"
+                },
+                "Arguments": [
+                  {
+                    "Kind": "Argument",
+                    "Location": {
+                      "Start": 24,
+                      "End": 30,
+                      "Line": 1,
+                      "Column": 25
+                    },
+                    "Name": {
+                      "Kind": "Name",
+                      "Location": {
+                        "Start": 24,
+                        "End": 26,
+                        "Line": 1,
+                        "Column": 25
+                      },
+                      "Value": "b"
+                    },
+                    "Value": {
+                      "Kind": "Variable",
+                      "Location": {
+                        "Start": 27,
+                        "End": 30,
+                        "Line": 1,
+                        "Column": 28
+                      },
+                      "Name": {
+                        "Kind": "Name",
+                        "Location": null,
+                        "Value": "__0__a"
+                      },
+                      "Value": "__0__a"
+                    }
+                  }
+                ],
+                "SelectionSet": null,
+                "Location": {
+                  "Start": 22,
+                  "End": 32,
+                  "Line": 1,
+                  "Column": 23
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 22,
+                    "End": 24,
+                    "Line": 1,
+                    "Column": 23
+                  },
+                  "Value": "a"
+                },
+                "Directives": []
+              },
+              {
+                "Kind": "Field",
+                "Alias": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "__1__a"
+                },
+                "Arguments": [],
+                "SelectionSet": null,
+                "Location": {
+                  "Start": 10,
+                  "End": 13,
+                  "Line": 1,
+                  "Column": 11
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 10,
+                    "End": 13,
+                    "Line": 1,
+                    "Column": 11
+                  },
+                  "Value": "a"
+                },
+                "Directives": []
+              },
+              {
+                "Kind": "Field",
+                "Alias": {
+                  "Kind": "Name",
+                  "Location": null,
+                  "Value": "__1__b"
+                },
+                "Arguments": [],
+                "SelectionSet": null,
+                "Location": {
+                  "Start": 12,
+                  "End": 15,
+                  "Line": 1,
+                  "Column": 13
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 12,
+                    "End": 15,
+                    "Line": 1,
+                    "Column": 13
+                  },
+                  "Value": "b"
+                },
+                "Directives": []
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "QueryName": null,
+  "QueryHash": null,
   "OperationName": null,
   "VariableValues": {
     "__0__a": "foo"

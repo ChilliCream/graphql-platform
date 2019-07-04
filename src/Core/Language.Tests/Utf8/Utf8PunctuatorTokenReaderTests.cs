@@ -105,7 +105,7 @@ namespace HotChocolate.Language
 
             // assert
             Assert.Equal(kind, reader.Kind);
-           Assert.Equal(1, reader.Line);
+            Assert.Equal(1, reader.Line);
             Assert.Equal(1, reader.Column);
             Assert.Equal(0, reader.Start);
             Assert.Equal(sourceBody.Length, reader.End);

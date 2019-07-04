@@ -28,7 +28,7 @@ namespace HotChocolate.Execution
         public Task InvokeAsync(IQueryContext context)
         {
             string operationName = context.Request.OperationName;
-            string cacheKey = CreateKey(operationName, context.Request.Query);
+            string cacheKey = CreateKey(operationName, context.QueryKey);
 
             OperationDefinitionNode node = _queryCache.GetOrCreate(cacheKey,
                 () => GetOperation(context.Document, operationName));

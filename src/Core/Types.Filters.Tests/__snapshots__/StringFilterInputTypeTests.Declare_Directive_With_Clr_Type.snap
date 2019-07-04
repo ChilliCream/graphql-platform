@@ -8,7 +8,7 @@ type Query {
 
 input FooFilter {
   AND: [FooFilter!]
-  bar: String @Bar(baz: null)
+  bar: String @Bar
   OR: [FooFilter!]
 }
 
