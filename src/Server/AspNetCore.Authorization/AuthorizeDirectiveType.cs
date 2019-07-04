@@ -27,6 +27,20 @@ namespace HotChocolate.AspNetCore.Authorization
             descriptor.Location(DirectiveLocation.Object)
                 .Location(DirectiveLocation.FieldDefinition);
 
+            // TODO :resources
+            descriptor.Argument(t => t.Policy)
+                .Description(
+                    "The name of the authorzation policy that determines " +
+                    "access to the annotated resource.")
+                .Type<StringType>();
+
+            // TODO :resources
+            descriptor.Argument(t => t.Roles)
+                .Description(
+                    "Roles that are allowed to access to the " +
+                    "annotated resource.")
+                .Type<ListType<NonNullType<StringType>>>();
+
             descriptor.Repeatable();
 
             descriptor.Use<AuthorizeMiddleware>();
