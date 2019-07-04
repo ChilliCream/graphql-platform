@@ -51,18 +51,22 @@ namespace HotChocolate.Language
                     }
                     else if (GraphQLConstants.IsValidEscapeCharacter(code))
                     {
-                        unescapedString[writePosition++] =
-                            GraphQLConstants.EscapeCharacter(code);
-                    }
-                    else if (code == GraphQLConstants.U)
-                    {
-                        UnescapeUtf8Hex(
-                            escapedString[++readPosition],
-                            escapedString[++readPosition],
-                            escapedString[++readPosition],
-                            escapedString[++readPosition],
-                            ref writePosition,
-                            ref unescapedString);
+                        if (code == GraphQLConstants.U)
+                        {
+                            UnescapeUtf8Hex(
+                                escapedString[++readPosition],
+                                escapedString[++readPosition],
+                                escapedString[++readPosition],
+                                escapedString[++readPosition],
+                                ref writePosition,
+                                ref unescapedString);
+
+                        }
+                        else
+                        {
+                            unescapedString[writePosition++] =
+                                GraphQLConstants.EscapeCharacter(code);
+                        }
                     }
                     else
                     {
