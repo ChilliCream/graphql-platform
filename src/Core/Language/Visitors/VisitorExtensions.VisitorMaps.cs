@@ -51,6 +51,11 @@ namespace HotChocolate.Language
             AddEnterVisitor<UnionTypeExtensionNode>(dict);
             AddEnterVisitor<EnumTypeExtensionNode>(dict);
             AddEnterVisitor<InputObjectTypeExtensionNode>(dict);
+            AddEnterVisitor<NameNode>(dict);
+            AddEnterVisitor<StringValueNode>(dict);
+            AddEnterVisitor<IntValueNode>(dict);
+            AddEnterVisitor<FloatValueNode>(dict);
+            AddEnterVisitor<EnumValueNode>(dict);
 
             return dict;
         }
@@ -95,6 +100,11 @@ namespace HotChocolate.Language
             AddLeaveVisitor<UnionTypeExtensionNode>(dict);
             AddLeaveVisitor<EnumTypeExtensionNode>(dict);
             AddLeaveVisitor<InputObjectTypeExtensionNode>(dict);
+            AddLeaveVisitor<NameNode>(dict);
+            AddLeaveVisitor<StringValueNode>(dict);
+            AddLeaveVisitor<IntValueNode>(dict);
+            AddLeaveVisitor<FloatValueNode>(dict);
+            AddLeaveVisitor<EnumValueNode>(dict);
 
             return dict;
         }

@@ -3513,6 +3513,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 190,
+      "End": 210,
+      "Line": 7,
+      "Column": 10
+    },
+    "Value": "QueryType"
+  },
+  {
     "Kind": "OperationTypeDefinition",
     "Location": {
       "Start": 202,
@@ -3559,6 +3569,16 @@
       },
       "Value": "MutationType"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 212,
+      "End": 226,
+      "Line": 8,
+      "Column": 13
+    },
+    "Value": "MutationType"
   },
   {
     "Kind": "ObjectTypeDefinition",
@@ -4403,6 +4423,26 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 316,
+      "End": 375,
+      "Line": 16,
+      "Column": 8
+    },
+    "Value": "Type"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 311,
+      "End": 315,
+      "Line": 16,
+      "Column": 3
+    },
+    "Value": "one"
+  },
+  {
     "Kind": "FieldDefinition",
     "Description": {
       "Kind": "StringValue",
@@ -4534,6 +4574,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 484,
+      "End": 496,
+      "Line": 25,
+      "Column": 6
+    },
+    "Value": "Type"
+  },
+  {
     "Kind": "InputValueDefinition",
     "Description": {
       "Kind": "StringValue",
@@ -4639,6 +4689,58 @@
       },
       "Value": "InputType"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 468,
+      "End": 478,
+      "Line": 24,
+      "Column": 15
+    },
+    "Value": "InputType"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 458,
+      "End": 467,
+      "Line": 24,
+      "Column": 5
+    },
+    "Value": "argument"
+  },
+  {
+    "Kind": "StringValue",
+    "Location": {
+      "Start": 388,
+      "End": 466,
+      "Line": 21,
+      "Column": 5
+    },
+    "Value": "This is a description of the `argument` argument.",
+    "Block": true
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 379,
+      "End": 383,
+      "Line": 20,
+      "Column": 3
+    },
+    "Value": "two"
+  },
+  {
+    "Kind": "StringValue",
+    "Location": {
+      "Start": 323,
+      "End": 382,
+      "Line": 17,
+      "Column": 3
+    },
+    "Value": "This is a description of the `two` field.",
+    "Block": true
   },
   {
     "Kind": "FieldDefinition",
@@ -4784,6 +4886,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 534,
+      "End": 544,
+      "Line": 26,
+      "Column": 46
+    },
+    "Value": "Int"
+  },
+  {
     "Kind": "InputValueDefinition",
     "Description": null,
     "Type": {
@@ -4844,6 +4956,26 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 507,
+      "End": 523,
+      "Line": 26,
+      "Column": 19
+    },
+    "Value": "InputType"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 497,
+      "End": 506,
+      "Line": 26,
+      "Column": 9
+    },
+    "Value": "argument"
+  },
+  {
     "Kind": "InputValueDefinition",
     "Description": null,
     "Type": {
@@ -4902,6 +5034,36 @@
       },
       "Value": "String"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 525,
+      "End": 532,
+      "Line": 26,
+      "Column": 37
+    },
+    "Value": "String"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 518,
+      "End": 524,
+      "Line": 26,
+      "Column": 30
+    },
+    "Value": "other"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 491,
+      "End": 497,
+      "Line": 26,
+      "Column": 3
+    },
+    "Value": "three"
   },
   {
     "Kind": "FieldDefinition",
@@ -5016,6 +5178,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 575,
+      "End": 588,
+      "Line": 27,
+      "Column": 38
+    },
+    "Value": "String"
+  },
+  {
     "Kind": "InputValueDefinition",
     "Description": null,
     "Type": {
@@ -5067,6 +5239,17 @@
     "Directives": []
   },
   {
+    "Kind": "StringValue",
+    "Location": {
+      "Start": 564,
+      "End": 573,
+      "Line": 27,
+      "Column": 27
+    },
+    "Value": "string",
+    "Block": false
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 555,
@@ -5084,6 +5267,36 @@
       },
       "Value": "String"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 555,
+      "End": 563,
+      "Line": 27,
+      "Column": 18
+    },
+    "Value": "String"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 545,
+      "End": 554,
+      "Line": 27,
+      "Column": 8
+    },
+    "Value": "argument"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 540,
+      "End": 545,
+      "Line": 27,
+      "Column": 3
+    },
+    "Value": "four"
   },
   {
     "Kind": "FieldDefinition",
@@ -5229,6 +5442,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 633,
+      "End": 645,
+      "Line": 28,
+      "Column": 52
+    },
+    "Value": "String"
+  },
+  {
     "Kind": "InputValueDefinition",
     "Description": null,
     "Type": {
@@ -5344,6 +5567,28 @@
     ]
   },
   {
+    "Kind": "StringValue",
+    "Location": {
+      "Start": 611,
+      "End": 628,
+      "Line": 28,
+      "Column": 30
+    },
+    "Value": "string",
+    "Block": false
+  },
+  {
+    "Kind": "StringValue",
+    "Location": {
+      "Start": 621,
+      "End": 630,
+      "Line": 28,
+      "Column": 40
+    },
+    "Value": "string",
+    "Block": false
+  },
+  {
     "Kind": "ListType",
     "Location": {
       "Start": 599,
@@ -5389,6 +5634,36 @@
       },
       "Value": "String"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 600,
+      "End": 607,
+      "Line": 28,
+      "Column": 19
+    },
+    "Value": "String"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 589,
+      "End": 598,
+      "Line": 28,
+      "Column": 8
+    },
+    "Value": "argument"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 584,
+      "End": 589,
+      "Line": 28,
+      "Column": 3
+    },
+    "Value": "five"
   },
   {
     "Kind": "FieldDefinition",
@@ -5531,6 +5806,16 @@
       },
       "Value": "Type"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 685,
+      "End": 697,
+      "Line": 29,
+      "Column": 46
+    },
+    "Value": "Type"
   },
   {
     "Kind": "InputValueDefinition",
@@ -5685,6 +5970,27 @@
     }
   },
   {
+    "Kind": "StringValue",
+    "Location": {
+      "Start": 674,
+      "End": 682,
+      "Line": 29,
+      "Column": 35
+    },
+    "Value": "value",
+    "Block": false
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 669,
+      "End": 673,
+      "Line": 29,
+      "Column": 30
+    },
+    "Value": "key"
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 656,
@@ -5702,6 +6008,36 @@
       },
       "Value": "InputType"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 656,
+      "End": 667,
+      "Line": 29,
+      "Column": 17
+    },
+    "Value": "InputType"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 646,
+      "End": 655,
+      "Line": 29,
+      "Column": 7
+    },
+    "Value": "argument"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 642,
+      "End": 646,
+      "Line": 29,
+      "Column": 3
+    },
+    "Value": "six"
   },
   {
     "Kind": "FieldDefinition",
@@ -5815,6 +6151,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 721,
+      "End": 727,
+      "Line": 30,
+      "Column": 32
+    },
+    "Value": "Type"
+  },
+  {
     "Kind": "InputValueDefinition",
     "Description": null,
     "Type": {
@@ -5884,6 +6230,36 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 708,
+      "End": 713,
+      "Line": 30,
+      "Column": 19
+    },
+    "Value": "Int"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 698,
+      "End": 707,
+      "Line": 30,
+      "Column": 9
+    },
+    "Value": "argument"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 692,
+      "End": 698,
+      "Line": 30,
+      "Column": 3
+    },
+    "Value": "seven"
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 297,
@@ -5903,6 +6279,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 297,
+      "End": 302,
+      "Line": 15,
+      "Column": 21
+    },
+    "Value": "Bar"
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 303,
@@ -5920,6 +6306,37 @@
       },
       "Value": "Baz"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 303,
+      "End": 308,
+      "Line": 15,
+      "Column": 27
+    },
+    "Value": "Baz"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 282,
+      "End": 296,
+      "Line": 15,
+      "Column": 6
+    },
+    "Value": "Foo"
+  },
+  {
+    "Kind": "StringValue",
+    "Location": {
+      "Start": 228,
+      "End": 281,
+      "Line": 11,
+      "Column": 1
+    },
+    "Value": "This is a description\nof the `Foo` type.",
+    "Block": true
   },
   {
     "Kind": "ObjectTypeDefinition",
@@ -6288,6 +6705,16 @@
     "Arguments": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 830,
+      "End": 839,
+      "Line": 34,
+      "Column": 55
+    },
+    "Value": "onField"
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 824,
@@ -6305,6 +6732,16 @@
       },
       "Value": "Type"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 824,
+      "End": 830,
+      "Line": 34,
+      "Column": 49
+    },
+    "Value": "Type"
   },
   {
     "Kind": "InputValueDefinition",
@@ -6399,6 +6836,27 @@
     "Arguments": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 816,
+      "End": 822,
+      "Line": 34,
+      "Column": 41
+    },
+    "Value": "onArg"
+  },
+  {
+    "Kind": "StringValue",
+    "Location": {
+      "Start": 805,
+      "End": 816,
+      "Line": 34,
+      "Column": 30
+    },
+    "Value": "default",
+    "Block": false
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 798,
@@ -6416,6 +6874,36 @@
       },
       "Value": "Type"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 798,
+      "End": 804,
+      "Line": 34,
+      "Column": 23
+    },
+    "Value": "Type"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 793,
+      "End": 797,
+      "Line": 34,
+      "Column": 18
+    },
+    "Value": "arg"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 778,
+      "End": 793,
+      "Line": 34,
+      "Column": 3
+    },
+    "Value": "annotatedField"
   },
   {
     "Kind": "Directive",
@@ -6499,6 +6987,47 @@
     }
   },
   {
+    "Kind": "StringValue",
+    "Location": {
+      "Start": 765,
+      "End": 773,
+      "Line": 33,
+      "Column": 37
+    },
+    "Value": "value",
+    "Block": false
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 760,
+      "End": 764,
+      "Line": 33,
+      "Column": 32
+    },
+    "Value": "arg"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 751,
+      "End": 760,
+      "Line": 33,
+      "Column": 23
+    },
+    "Value": "onObject"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 734,
+      "End": 751,
+      "Line": 33,
+      "Column": 6
+    },
+    "Value": "AnnotatedObject"
+  },
+  {
     "Kind": "ObjectTypeDefinition",
     "Description": null,
     "Interfaces": [],
@@ -6520,6 +7049,16 @@
       "Value": "UndefinedType"
     },
     "Directives": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 846,
+      "End": 867,
+      "Line": 37,
+      "Column": 6
+    },
+    "Value": "UndefinedType"
   },
   {
     "Kind": "ObjectTypeExtension",
@@ -6748,6 +7287,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 908,
+      "End": 914,
+      "Line": 40,
+      "Column": 30
+    },
+    "Value": "Type"
+  },
+  {
     "Kind": "InputValueDefinition",
     "Description": null,
     "Type": {
@@ -6845,6 +7394,46 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 898,
+      "End": 905,
+      "Line": 40,
+      "Column": 20
+    },
+    "Value": "String"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 887,
+      "End": 896,
+      "Line": 40,
+      "Column": 9
+    },
+    "Value": "argument"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 881,
+      "End": 887,
+      "Line": 40,
+      "Column": 3
+    },
+    "Value": "seven"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 873,
+      "End": 878,
+      "Line": 39,
+      "Column": 13
+    },
+    "Value": "Foo"
+  },
+  {
     "Kind": "ObjectTypeExtension",
     "Interfaces": [],
     "Fields": [],
@@ -6906,6 +7495,26 @@
       "Value": "onType"
     },
     "Arguments": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 933,
+      "End": 950,
+      "Line": 43,
+      "Column": 18
+    },
+    "Value": "onType"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 928,
+      "End": 933,
+      "Line": 43,
+      "Column": 13
+    },
+    "Value": "Foo"
   },
   {
     "Kind": "InterfaceTypeDefinition",
@@ -7125,6 +7734,26 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 964,
+      "End": 975,
+      "Line": 46,
+      "Column": 8
+    },
+    "Value": "Type"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 959,
+      "End": 963,
+      "Line": 46,
+      "Column": 3
+    },
+    "Value": "one"
+  },
+  {
     "Kind": "FieldDefinition",
     "Description": null,
     "Arguments": [
@@ -7237,6 +7866,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1006,
+      "End": 1014,
+      "Line": 47,
+      "Column": 38
+    },
+    "Value": "String"
+  },
+  {
     "Kind": "InputValueDefinition",
     "Description": null,
     "Type": {
@@ -7288,6 +7927,17 @@
     "Directives": []
   },
   {
+    "Kind": "StringValue",
+    "Location": {
+      "Start": 995,
+      "End": 1004,
+      "Line": 47,
+      "Column": 27
+    },
+    "Value": "string",
+    "Block": false
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 986,
@@ -7305,6 +7955,46 @@
       },
       "Value": "String"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 986,
+      "End": 994,
+      "Line": 47,
+      "Column": 18
+    },
+    "Value": "String"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 976,
+      "End": 985,
+      "Line": 47,
+      "Column": 8
+    },
+    "Value": "argument"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 971,
+      "End": 976,
+      "Line": 47,
+      "Column": 3
+    },
+    "Value": "four"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 951,
+      "End": 956,
+      "Line": 45,
+      "Column": 11
+    },
+    "Value": "Bar"
   },
   {
     "Kind": "InterfaceTypeDefinition",
@@ -7621,6 +8311,16 @@
     "Arguments": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1102,
+      "End": 1111,
+      "Line": 51,
+      "Column": 43
+    },
+    "Value": "onField"
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 1096,
@@ -7638,6 +8338,16 @@
       },
       "Value": "Type"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1096,
+      "End": 1102,
+      "Line": 51,
+      "Column": 37
+    },
+    "Value": "Type"
   },
   {
     "Kind": "InputValueDefinition",
@@ -7722,6 +8432,16 @@
     "Arguments": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1088,
+      "End": 1094,
+      "Line": 51,
+      "Column": 29
+    },
+    "Value": "onArg"
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 1082,
@@ -7739,6 +8459,36 @@
       },
       "Value": "Type"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1082,
+      "End": 1088,
+      "Line": 51,
+      "Column": 23
+    },
+    "Value": "Type"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1077,
+      "End": 1081,
+      "Line": 51,
+      "Column": 18
+    },
+    "Value": "arg"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1062,
+      "End": 1077,
+      "Line": 51,
+      "Column": 3
+    },
+    "Value": "annotatedField"
   },
   {
     "Kind": "Directive",
@@ -7761,6 +8511,26 @@
     "Arguments": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1046,
+      "End": 1059,
+      "Line": 50,
+      "Column": 31
+    },
+    "Value": "onInterface"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1026,
+      "End": 1046,
+      "Line": 50,
+      "Column": 11
+    },
+    "Value": "AnnotatedInterface"
+  },
+  {
     "Kind": "InterfaceTypeDefinition",
     "Description": null,
     "Fields": [],
@@ -7781,6 +8551,16 @@
       "Value": "UndefinedInterface"
     },
     "Directives": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1123,
+      "End": 1149,
+      "Line": 54,
+      "Column": 11
+    },
+    "Value": "UndefinedInterface"
   },
   {
     "Kind": "InterfaceTypeExtension",
@@ -8008,6 +8788,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1195,
+      "End": 1201,
+      "Line": 57,
+      "Column": 30
+    },
+    "Value": "Type"
+  },
+  {
     "Kind": "InputValueDefinition",
     "Description": null,
     "Type": {
@@ -8105,6 +8895,46 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1182,
+      "End": 1192,
+      "Line": 57,
+      "Column": 17
+    },
+    "Value": "InputType"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1172,
+      "End": 1181,
+      "Line": 57,
+      "Column": 7
+    },
+    "Value": "argument"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1168,
+      "End": 1172,
+      "Line": 57,
+      "Column": 3
+    },
+    "Value": "two"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1160,
+      "End": 1165,
+      "Line": 56,
+      "Column": 18
+    },
+    "Value": "Bar"
+  },
+  {
     "Kind": "InterfaceTypeExtension",
     "Fields": [],
     "Location": {
@@ -8165,6 +8995,26 @@
       "Value": "onInterface"
     },
     "Arguments": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1225,
+      "End": 1243,
+      "Line": 60,
+      "Column": 23
+    },
+    "Value": "onInterface"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1220,
+      "End": 1225,
+      "Line": 60,
+      "Column": 18
+    },
+    "Value": "Bar"
   },
   {
     "Kind": "UnionTypeDefinition",
@@ -8266,6 +9116,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1251,
+      "End": 1258,
+      "Line": 62,
+      "Column": 14
+    },
+    "Value": "Story"
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 1259,
@@ -8285,6 +9145,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1259,
+      "End": 1268,
+      "Line": 62,
+      "Column": 22
+    },
+    "Value": "Article"
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 1269,
@@ -8302,6 +9172,26 @@
       },
       "Value": "Advert"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1269,
+      "End": 1282,
+      "Line": 62,
+      "Column": 32
+    },
+    "Value": "Advert"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1244,
+      "End": 1250,
+      "Line": 62,
+      "Column": 7
+    },
+    "Value": "Feed"
   },
   {
     "Kind": "UnionTypeDefinition",
@@ -8405,6 +9295,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1309,
+      "End": 1312,
+      "Line": 64,
+      "Column": 33
+    },
+    "Value": "A"
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 1313,
@@ -8422,6 +9322,16 @@
       },
       "Value": "B"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1313,
+      "End": 1321,
+      "Line": 64,
+      "Column": 37
+    },
+    "Value": "B"
   },
   {
     "Kind": "Directive",
@@ -8442,6 +9352,26 @@
       "Value": "onUnion"
     },
     "Arguments": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1299,
+      "End": 1308,
+      "Line": 64,
+      "Column": 23
+    },
+    "Value": "onUnion"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1283,
+      "End": 1299,
+      "Line": 64,
+      "Column": 7
+    },
+    "Value": "AnnotatedUnion"
   },
   {
     "Kind": "UnionTypeDefinition",
@@ -8545,6 +9475,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1353,
+      "End": 1356,
+      "Line": 66,
+      "Column": 38
+    },
+    "Value": "A"
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 1357,
@@ -8562,6 +9502,16 @@
       },
       "Value": "B"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1357,
+      "End": 1365,
+      "Line": 66,
+      "Column": 42
+    },
+    "Value": "B"
   },
   {
     "Kind": "Directive",
@@ -8584,6 +9534,26 @@
     "Arguments": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1341,
+      "End": 1350,
+      "Line": 66,
+      "Column": 26
+    },
+    "Value": "onUnion"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1322,
+      "End": 1341,
+      "Line": 66,
+      "Column": 7
+    },
+    "Value": "AnnotatedUnionTwo"
+  },
+  {
     "Kind": "UnionTypeDefinition",
     "Description": null,
     "Types": [],
@@ -8604,6 +9574,16 @@
       "Value": "UndefinedUnion"
     },
     "Directives": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1366,
+      "End": 1388,
+      "Line": 68,
+      "Column": 7
+    },
+    "Value": "UndefinedUnion"
   },
   {
     "Kind": "UnionTypeExtension",
@@ -8685,6 +9665,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1402,
+      "End": 1409,
+      "Line": 70,
+      "Column": 21
+    },
+    "Value": "Photo"
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 1410,
@@ -8702,6 +9692,26 @@
       },
       "Value": "Video"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1410,
+      "End": 1423,
+      "Line": 70,
+      "Column": 29
+    },
+    "Value": "Video"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1395,
+      "End": 1401,
+      "Line": 70,
+      "Column": 14
+    },
+    "Value": "Feed"
   },
   {
     "Kind": "UnionTypeExtension",
@@ -8766,6 +9776,26 @@
     "Arguments": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1436,
+      "End": 1451,
+      "Line": 72,
+      "Column": 20
+    },
+    "Value": "onUnion"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1430,
+      "End": 1436,
+      "Line": 72,
+      "Column": 14
+    },
+    "Value": "Feed"
+  },
+  {
     "Kind": "ScalarTypeDefinition",
     "Description": null,
     "Location": {
@@ -8785,6 +9815,16 @@
       "Value": "CustomScalar"
     },
     "Directives": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1452,
+      "End": 1472,
+      "Line": 74,
+      "Column": 8
+    },
+    "Value": "CustomScalar"
   },
   {
     "Kind": "ScalarTypeDefinition",
@@ -8849,6 +9889,26 @@
     "Arguments": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1490,
+      "End": 1506,
+      "Line": 76,
+      "Column": 25
+    },
+    "Value": "onScalar"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1473,
+      "End": 1490,
+      "Line": 76,
+      "Column": 8
+    },
+    "Value": "AnnotatedScalar"
+  },
+  {
     "Kind": "ScalarTypeExtension",
     "Location": {
       "Start": 1500,
@@ -8908,6 +9968,26 @@
       "Value": "onScalar"
     },
     "Arguments": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1528,
+      "End": 1542,
+      "Line": 78,
+      "Column": 29
+    },
+    "Value": "onScalar"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1514,
+      "End": 1528,
+      "Line": 78,
+      "Column": 15
+    },
+    "Value": "CustomScalar"
   },
   {
     "Kind": "EnumTypeDefinition",
@@ -8996,6 +10076,16 @@
     "Directives": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1552,
+      "End": 1568,
+      "Line": 81,
+      "Column": 3
+    },
+    "Value": "DESKTOP"
+  },
+  {
     "Kind": "EnumValueDefinition",
     "Description": null,
     "Location": {
@@ -9015,6 +10105,26 @@
       "Value": "MOBILE"
     },
     "Directives": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1562,
+      "End": 1570,
+      "Line": 82,
+      "Column": 3
+    },
+    "Value": "MOBILE"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1543,
+      "End": 1549,
+      "Line": 80,
+      "Column": 6
+    },
+    "Value": "Site"
   },
   {
     "Kind": "EnumTypeDefinition",
@@ -9186,6 +10296,26 @@
     "Arguments": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1620,
+      "End": 1645,
+      "Line": 86,
+      "Column": 20
+    },
+    "Value": "onEnumValue"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1603,
+      "End": 1620,
+      "Line": 86,
+      "Column": 3
+    },
+    "Value": "ANNOTATED_VALUE"
+  },
+  {
     "Kind": "EnumValueDefinition",
     "Description": null,
     "Location": {
@@ -9205,6 +10335,16 @@
       "Value": "OTHER_VALUE"
     },
     "Directives": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1634,
+      "End": 1647,
+      "Line": 87,
+      "Column": 3
+    },
+    "Value": "OTHER_VALUE"
   },
   {
     "Kind": "Directive",
@@ -9227,6 +10367,26 @@
     "Arguments": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1592,
+      "End": 1600,
+      "Line": 85,
+      "Column": 21
+    },
+    "Value": "onEnum"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1577,
+      "End": 1592,
+      "Line": 85,
+      "Column": 6
+    },
+    "Value": "AnnotatedEnum"
+  },
+  {
     "Kind": "EnumTypeDefinition",
     "Description": null,
     "Values": [],
@@ -9247,6 +10407,16 @@
       "Value": "UndefinedEnum"
     },
     "Directives": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1654,
+      "End": 1675,
+      "Line": 90,
+      "Column": 6
+    },
+    "Value": "UndefinedEnum"
   },
   {
     "Kind": "EnumTypeExtension",
@@ -9313,6 +10483,26 @@
     "Directives": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1690,
+      "End": 1694,
+      "Line": 93,
+      "Column": 3
+    },
+    "Value": "VR"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1681,
+      "End": 1687,
+      "Line": 92,
+      "Column": 13
+    },
+    "Value": "Site"
+  },
+  {
     "Kind": "EnumTypeExtension",
     "Values": [],
     "Location": {
@@ -9373,6 +10563,26 @@
       "Value": "onEnum"
     },
     "Arguments": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1714,
+      "End": 1727,
+      "Line": 96,
+      "Column": 19
+    },
+    "Value": "onEnum"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1708,
+      "End": 1714,
+      "Line": 96,
+      "Column": 13
+    },
+    "Value": "Site"
   },
   {
     "Kind": "InputObjectTypeDefinition",
@@ -9595,6 +10805,26 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1747,
+      "End": 1754,
+      "Line": 99,
+      "Column": 8
+    },
+    "Value": "String"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1742,
+      "End": 1746,
+      "Line": 99,
+      "Column": 3
+    },
+    "Value": "key"
+  },
+  {
     "Kind": "InputValueDefinition",
     "Description": null,
     "Type": {
@@ -9645,6 +10875,16 @@
     "Directives": []
   },
   {
+    "Kind": "IntValue",
+    "Location": {
+      "Start": 1771,
+      "End": 1775,
+      "Line": 100,
+      "Column": 17
+    },
+    "Value": "42"
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 1765,
@@ -9662,6 +10902,36 @@
       },
       "Value": "Int"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1765,
+      "End": 1770,
+      "Line": 100,
+      "Column": 11
+    },
+    "Value": "Int"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1757,
+      "End": 1764,
+      "Line": 100,
+      "Column": 3
+    },
+    "Value": "answer"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1728,
+      "End": 1739,
+      "Line": 98,
+      "Column": 7
+    },
+    "Value": "InputType"
   },
   {
     "Kind": "InputObjectTypeDefinition",
@@ -9852,6 +11122,16 @@
     "Arguments": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1839,
+      "End": 1848,
+      "Line": 104,
+      "Column": 25
+    },
+    "Value": "onField"
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 1833,
@@ -9869,6 +11149,26 @@
       },
       "Value": "Type"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1833,
+      "End": 1839,
+      "Line": 104,
+      "Column": 19
+    },
+    "Value": "Type"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1817,
+      "End": 1832,
+      "Line": 104,
+      "Column": 3
+    },
+    "Value": "annotatedField"
   },
   {
     "Kind": "Directive",
@@ -9891,6 +11191,26 @@
     "Arguments": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1799,
+      "End": 1814,
+      "Line": 103,
+      "Column": 23
+    },
+    "Value": "onInputObject"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1783,
+      "End": 1799,
+      "Line": 103,
+      "Column": 7
+    },
+    "Value": "AnnotatedInput"
+  },
+  {
     "Kind": "InputObjectTypeDefinition",
     "Description": null,
     "Fields": [],
@@ -9911,6 +11231,16 @@
       "Value": "UndefinedInput"
     },
     "Directives": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1856,
+      "End": 1878,
+      "Line": 107,
+      "Column": 7
+    },
+    "Value": "UndefinedInput"
   },
   {
     "Kind": "InputObjectTypeExtension",
@@ -10035,6 +11365,16 @@
     "Directives": []
   },
   {
+    "Kind": "FloatValue",
+    "Location": {
+      "Start": 1914,
+      "End": 1922,
+      "Line": 110,
+      "Column": 18
+    },
+    "Value": "1.23e4"
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 1906,
@@ -10052,6 +11392,36 @@
       },
       "Value": "Float"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1906,
+      "End": 1913,
+      "Line": 110,
+      "Column": 10
+    },
+    "Value": "Float"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1899,
+      "End": 1905,
+      "Line": 110,
+      "Column": 3
+    },
+    "Value": "other"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1885,
+      "End": 1896,
+      "Line": 109,
+      "Column": 14
+    },
+    "Value": "InputType"
   },
   {
     "Kind": "InputObjectTypeExtension",
@@ -10114,6 +11484,26 @@
       "Value": "onInputObject"
     },
     "Arguments": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1948,
+      "End": 1972,
+      "Line": 113,
+      "Column": 25
+    },
+    "Value": "onInputObject"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1937,
+      "End": 1948,
+      "Line": 113,
+      "Column": 14
+    },
+    "Value": "InputType"
   },
   {
     "Kind": "DirectiveDefinition",
@@ -10222,6 +11612,36 @@
     ]
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1996,
+      "End": 2003,
+      "Line": 115,
+      "Column": 34
+    },
+    "Value": "FIELD"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2004,
+      "End": 2021,
+      "Line": 115,
+      "Column": 42
+    },
+    "Value": "FRAGMENT_SPREAD"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2022,
+      "End": 2048,
+      "Line": 115,
+      "Column": 60
+    },
+    "Value": "INLINE_FRAGMENT"
+  },
+  {
     "Kind": "InputValueDefinition",
     "Description": null,
     "Type": {
@@ -10317,6 +11737,36 @@
       },
       "Value": "Boolean"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1983,
+      "End": 1991,
+      "Line": 115,
+      "Column": 21
+    },
+    "Value": "Boolean"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1979,
+      "End": 1982,
+      "Line": 115,
+      "Column": 17
+    },
+    "Value": "if"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1974,
+      "End": 1979,
+      "Line": 115,
+      "Column": 12
+    },
+    "Value": "skip"
   },
   {
     "Kind": "DirectiveDefinition",
@@ -10425,6 +11875,36 @@
     ]
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2084,
+      "End": 2091,
+      "Line": 117,
+      "Column": 46
+    },
+    "Value": "FIELD"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2092,
+      "End": 2109,
+      "Line": 117,
+      "Column": 54
+    },
+    "Value": "FRAGMENT_SPREAD"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2110,
+      "End": 2136,
+      "Line": 117,
+      "Column": 72
+    },
+    "Value": "INLINE_FRAGMENT"
+  },
+  {
     "Kind": "InputValueDefinition",
     "Description": null,
     "Type": {
@@ -10520,6 +12000,36 @@
       },
       "Value": "Boolean"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2060,
+      "End": 2068,
+      "Line": 117,
+      "Column": 22
+    },
+    "Value": "Boolean"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2056,
+      "End": 2059,
+      "Line": 117,
+      "Column": 18
+    },
+    "Value": "if"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2050,
+      "End": 2056,
+      "Line": 117,
+      "Column": 12
+    },
+    "Value": "skip2"
   },
   {
     "Kind": "DirectiveDefinition",
@@ -10628,6 +12138,36 @@
     ]
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2165,
+      "End": 2175,
+      "Line": 120,
+      "Column": 6
+    },
+    "Value": "FIELD"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2176,
+      "End": 2196,
+      "Line": 121,
+      "Column": 6
+    },
+    "Value": "FRAGMENT_SPREAD"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2197,
+      "End": 2223,
+      "Line": 122,
+      "Column": 6
+    },
+    "Value": "INLINE_FRAGMENT"
+  },
+  {
     "Kind": "InputValueDefinition",
     "Description": null,
     "Type": {
@@ -10723,6 +12263,36 @@
       },
       "Value": "Boolean"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2150,
+      "End": 2158,
+      "Line": 119,
+      "Column": 24
+    },
+    "Value": "Boolean"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2146,
+      "End": 2149,
+      "Line": 119,
+      "Column": 20
+    },
+    "Value": "if"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2138,
+      "End": 2146,
+      "Line": 119,
+      "Column": 12
+    },
+    "Value": "include"
   },
   {
     "Kind": "DirectiveDefinition",
@@ -10831,6 +12401,36 @@
     ]
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2255,
+      "End": 2264,
+      "Line": 125,
+      "Column": 5
+    },
+    "Value": "FIELD"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2265,
+      "End": 2284,
+      "Line": 126,
+      "Column": 5
+    },
+    "Value": "FRAGMENT_SPREAD"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2285,
+      "End": 2308,
+      "Line": 127,
+      "Column": 5
+    },
+    "Value": "INLINE_FRAGMENT"
+  },
+  {
     "Kind": "InputValueDefinition",
     "Description": null,
     "Type": {
@@ -10928,6 +12528,36 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2238,
+      "End": 2246,
+      "Line": 124,
+      "Column": 25
+    },
+    "Value": "Boolean"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2234,
+      "End": 2237,
+      "Line": 124,
+      "Column": 21
+    },
+    "Value": "if"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2225,
+      "End": 2234,
+      "Line": 124,
+      "Column": 12
+    },
+    "Value": "include2"
+  },
+  {
     "Kind": "SchemaExtension",
     "Location": {
       "Start": 2302,
@@ -10978,6 +12608,16 @@
       "Value": "onSchema"
     },
     "Arguments": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2317,
+      "End": 2333,
+      "Line": 129,
+      "Column": 16
+    },
+    "Value": "onSchema"
   },
   {
     "Kind": "SchemaExtension",
@@ -11090,6 +12730,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2369,
+      "End": 2387,
+      "Line": 132,
+      "Column": 17
+    },
+    "Value": "SubscriptionType"
+  },
+  {
     "Kind": "Directive",
     "Location": {
       "Start": 2341,
@@ -11108,5 +12758,15 @@
       "Value": "onSchema"
     },
     "Arguments": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 2342,
+      "End": 2352,
+      "Line": 131,
+      "Column": 16
+    },
+    "Value": "onSchema"
   }
 ]

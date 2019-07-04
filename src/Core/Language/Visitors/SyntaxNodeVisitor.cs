@@ -45,6 +45,7 @@ namespace HotChocolate.Language
         , ISyntaxNodeVisitor<UnionTypeExtensionNode>
         , ISyntaxNodeVisitor<EnumTypeExtensionNode>
         , ISyntaxNodeVisitor<InputObjectTypeExtensionNode>
+        , ISyntaxNodeVisitor<NameNode>
     {
         private readonly IReadOnlyDictionary<NodeKind, VisitorAction> _actions;
         private readonly VisitorAction _defaultAction;
@@ -864,6 +865,24 @@ namespace HotChocolate.Language
 
         public virtual VisitorAction Leave(
             ObjectTypeExtensionNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return GetDefaultAction(node.Kind);
+        }
+
+        public VisitorAction Enter(
+            NameNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return GetDefaultAction(node.Kind);
+        }
+
+        public VisitorAction Leave(
+            NameNode node,
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)

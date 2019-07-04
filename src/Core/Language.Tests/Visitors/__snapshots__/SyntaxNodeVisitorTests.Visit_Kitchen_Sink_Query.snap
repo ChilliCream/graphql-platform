@@ -4120,6 +4120,16 @@
     "Directives": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 274,
+      "End": 286,
+      "Line": 8,
+      "Column": 5
+    },
+    "Value": "id"
+  },
+  {
     "Kind": "InlineFragment",
     "Location": {
       "Start": 283,
@@ -5277,6 +5287,16 @@
     "Directives": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 327,
+      "End": 345,
+      "Line": 11,
+      "Column": 9
+    },
+    "Value": "id"
+  },
+  {
     "Kind": "Field",
     "Alias": {
       "Kind": "Name",
@@ -5569,6 +5589,16 @@
     "Directives": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 408,
+      "End": 425,
+      "Line": 13,
+      "Column": 11
+    },
+    "Value": "id"
+  },
+  {
     "Kind": "FragmentSpread",
     "Location": {
       "Start": 422,
@@ -5587,6 +5617,16 @@
       "Value": "frag"
     },
     "Directives": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 425,
+      "End": 439,
+      "Line": 14,
+      "Column": 14
+    },
+    "Value": "frag"
   },
   {
     "Kind": "Directive",
@@ -5708,6 +5748,36 @@
     "Value": "foo"
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 391,
+      "End": 395,
+      "Line": 12,
+      "Column": 60
+    },
+    "Value": "foo"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 386,
+      "End": 389,
+      "Line": 12,
+      "Column": 55
+    },
+    "Value": "if"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 378,
+      "End": 386,
+      "Line": 12,
+      "Column": 47
+    },
+    "Value": "include"
+  },
+  {
     "Kind": "Argument",
     "Location": {
       "Start": 354,
@@ -5735,6 +5805,26 @@
       },
       "Value": "10"
     }
+  },
+  {
+    "Kind": "IntValue",
+    "Location": {
+      "Start": 360,
+      "End": 369,
+      "Line": 12,
+      "Column": 29
+    },
+    "Value": "10"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 354,
+      "End": 360,
+      "Line": 12,
+      "Column": 23
+    },
+    "Value": "first"
   },
   {
     "Kind": "Argument",
@@ -5796,6 +5886,56 @@
     "Value": "foo"
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 371,
+      "End": 376,
+      "Line": 12,
+      "Column": 40
+    },
+    "Value": "foo"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 364,
+      "End": 370,
+      "Line": 12,
+      "Column": 33
+    },
+    "Value": "after"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 347,
+      "End": 354,
+      "Line": 12,
+      "Column": 16
+    },
+    "Value": "field1"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 340,
+      "End": 346,
+      "Line": 12,
+      "Column": 9
+    },
+    "Value": "alias"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 310,
+      "End": 318,
+      "Line": 10,
+      "Column": 7
+    },
+    "Value": "field2"
+  },
+  {
     "Kind": "Directive",
     "Location": {
       "Start": 295,
@@ -5816,6 +5956,16 @@
     "Arguments": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 296,
+      "End": 303,
+      "Line": 9,
+      "Column": 18
+    },
+    "Value": "defer"
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 290,
@@ -5833,6 +5983,16 @@
       },
       "Value": "User"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 290,
+      "End": 296,
+      "Line": 9,
+      "Column": 12
+    },
+    "Value": "User"
   },
   {
     "Kind": "InlineFragment",
@@ -5998,6 +6158,16 @@
     "Directives": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 490,
+      "End": 498,
+      "Line": 19,
+      "Column": 7
+    },
+    "Value": "id"
+  },
+  {
     "Kind": "Directive",
     "Location": {
       "Start": 462,
@@ -6117,6 +6287,36 @@
     "Value": "foo"
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 477,
+      "End": 481,
+      "Line": 18,
+      "Column": 24
+    },
+    "Value": "foo"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 468,
+      "End": 475,
+      "Line": 18,
+      "Column": 15
+    },
+    "Value": "unless"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 463,
+      "End": 468,
+      "Line": 18,
+      "Column": 10
+    },
+    "Value": "skip"
+  },
+  {
     "Kind": "InlineFragment",
     "Location": {
       "Start": 503,
@@ -6219,6 +6419,16 @@
     "Directives": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 515,
+      "End": 523,
+      "Line": 22,
+      "Column": 7
+    },
+    "Value": "id"
+  },
+  {
     "Kind": "Argument",
     "Location": {
       "Start": 252,
@@ -6300,6 +6510,56 @@
     ]
   },
   {
+    "Kind": "IntValue",
+    "Location": {
+      "Start": 257,
+      "End": 265,
+      "Line": 7,
+      "Column": 27
+    },
+    "Value": "123"
+  },
+  {
+    "Kind": "IntValue",
+    "Location": {
+      "Start": 262,
+      "End": 266,
+      "Line": 7,
+      "Column": 32
+    },
+    "Value": "456"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 252,
+      "End": 255,
+      "Line": 7,
+      "Column": 22
+    },
+    "Value": "id"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 247,
+      "End": 252,
+      "Line": 7,
+      "Column": 17
+    },
+    "Value": "node"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 233,
+      "End": 246,
+      "Line": 7,
+      "Column": 3
+    },
+    "Value": "whoever123is"
+  },
+  {
     "Kind": "VariableDefinition",
     "Location": {
       "Start": 188,
@@ -6369,6 +6629,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 194,
+      "End": 208,
+      "Line": 6,
+      "Column": 23
+    },
+    "Value": "ComplexType"
+  },
+  {
     "Kind": "Variable",
     "Location": {
       "Start": 188,
@@ -6385,6 +6655,16 @@
         "Column": 18
       },
       "Value": "foo"
+    },
+    "Value": "foo"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 189,
+      "End": 193,
+      "Line": 6,
+      "Column": 18
     },
     "Value": "foo"
   },
@@ -6448,6 +6728,16 @@
     "Directives": []
   },
   {
+    "Kind": "EnumValue",
+    "Location": {
+      "Start": 221,
+      "End": 228,
+      "Line": 6,
+      "Column": 50
+    },
+    "Value": "MOBILE"
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 214,
@@ -6465,6 +6755,16 @@
       },
       "Value": "Site"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 214,
+      "End": 220,
+      "Line": 6,
+      "Column": 43
+    },
+    "Value": "Site"
   },
   {
     "Kind": "Variable",
@@ -6485,6 +6785,26 @@
       "Value": "site"
     },
     "Value": "site"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 208,
+      "End": 213,
+      "Line": 6,
+      "Column": 37
+    },
+    "Value": "site"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 178,
+      "End": 188,
+      "Line": 6,
+      "Column": 7
+    },
+    "Value": "queryName"
   },
   {
     "Kind": "OperationDefinition",
@@ -7131,6 +7451,26 @@
     "Directives": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 598,
+      "End": 606,
+      "Line": 30,
+      "Column": 7
+    },
+    "Value": "id"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 584,
+      "End": 591,
+      "Line": 29,
+      "Column": 5
+    },
+    "Value": "story"
+  },
+  {
     "Kind": "Directive",
     "Location": {
       "Start": 571,
@@ -7149,6 +7489,16 @@
       "Value": "defer"
     },
     "Arguments": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 572,
+      "End": 579,
+      "Line": 28,
+      "Column": 21
+    },
+    "Value": "defer"
   },
   {
     "Kind": "Argument",
@@ -7178,6 +7528,46 @@
       },
       "Value": "123"
     }
+  },
+  {
+    "Kind": "IntValue",
+    "Location": {
+      "Start": 566,
+      "End": 570,
+      "Line": 28,
+      "Column": 15
+    },
+    "Value": "123"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 559,
+      "End": 565,
+      "Line": 28,
+      "Column": 8
+    },
+    "Value": "story"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 554,
+      "End": 559,
+      "Line": 28,
+      "Column": 3
+    },
+    "Value": "like"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 540,
+      "End": 551,
+      "Line": 27,
+      "Column": 10
+    },
+    "Value": "likeStory"
   },
   {
     "Kind": "OperationDefinition",
@@ -8466,6 +8856,26 @@
     "Directives": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 757,
+      "End": 770,
+      "Line": 39,
+      "Column": 9
+    },
+    "Value": "count"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 740,
+      "End": 748,
+      "Line": 38,
+      "Column": 7
+    },
+    "Value": "likers"
+  },
+  {
     "Kind": "Field",
     "Alias": null,
     "Arguments": [],
@@ -8579,6 +8989,36 @@
     "Directives": []
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 800,
+      "End": 812,
+      "Line": 42,
+      "Column": 9
+    },
+    "Value": "text"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 777,
+      "End": 791,
+      "Line": 41,
+      "Column": 7
+    },
+    "Value": "likeSentence"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 726,
+      "End": 733,
+      "Line": 37,
+      "Column": 5
+    },
+    "Value": "story"
+  },
+  {
     "Kind": "Argument",
     "Location": {
       "Start": 705,
@@ -8636,6 +9076,36 @@
       "Value": "input"
     },
     "Value": "input"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 713,
+      "End": 719,
+      "Line": 36,
+      "Column": 30
+    },
+    "Value": "input"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 705,
+      "End": 711,
+      "Line": 36,
+      "Column": 22
+    },
+    "Value": "input"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 686,
+      "End": 705,
+      "Line": 36,
+      "Column": 3
+    },
+    "Value": "storyLikeSubscribe"
   },
   {
     "Kind": "VariableDefinition",
@@ -8707,6 +9177,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 657,
+      "End": 681,
+      "Line": 35,
+      "Column": 44
+    },
+    "Value": "StoryLikeSubscribeInput"
+  },
+  {
     "Kind": "Variable",
     "Location": {
       "Start": 649,
@@ -8725,6 +9205,26 @@
       "Value": "input"
     },
     "Value": "input"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 650,
+      "End": 656,
+      "Line": 35,
+      "Column": 37
+    },
+    "Value": "input"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 627,
+      "End": 649,
+      "Line": 35,
+      "Column": 14
+    },
+    "Value": "StoryLikeSubscription"
   },
   {
     "Kind": "FragmentDefinition",
@@ -9424,6 +9924,26 @@
     "Value": "size"
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 865,
+      "End": 874,
+      "Line": 49,
+      "Column": 14
+    },
+    "Value": "size"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 858,
+      "End": 863,
+      "Line": 49,
+      "Column": 7
+    },
+    "Value": "size"
+  },
+  {
     "Kind": "Argument",
     "Location": {
       "Start": 871,
@@ -9481,6 +10001,26 @@
       "Value": "b"
     },
     "Value": "b"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 877,
+      "End": 883,
+      "Line": 49,
+      "Column": 26
+    },
+    "Value": "b"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 871,
+      "End": 875,
+      "Line": 49,
+      "Column": 20
+    },
+    "Value": "bar"
   },
   {
     "Kind": "Argument",
@@ -9674,6 +10214,27 @@
     }
   },
   {
+    "Kind": "StringValue",
+    "Location": {
+      "Start": 891,
+      "End": 905,
+      "Line": 49,
+      "Column": 40
+    },
+    "Value": "value",
+    "Block": false
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 886,
+      "End": 890,
+      "Line": 49,
+      "Column": 35
+    },
+    "Value": "key"
+  },
+  {
     "Kind": "ObjectField",
     "Location": {
       "Start": 900,
@@ -9704,6 +10265,47 @@
     }
   },
   {
+    "Kind": "StringValue",
+    "Location": {
+      "Start": 907,
+      "End": 948,
+      "Line": 49,
+      "Column": 56
+    },
+    "Value": "    block string uses \"\"\"",
+    "Block": true
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 900,
+      "End": 906,
+      "Line": 49,
+      "Column": 49
+    },
+    "Value": "block"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 880,
+      "End": 884,
+      "Line": 49,
+      "Column": 29
+    },
+    "Value": "obj"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 854,
+      "End": 858,
+      "Line": 49,
+      "Column": 3
+    },
+    "Value": "foo"
+  },
+  {
     "Kind": "NamedType",
     "Location": {
       "Start": 843,
@@ -9721,6 +10323,26 @@
       },
       "Value": "Friend"
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 843,
+      "End": 851,
+      "Line": 48,
+      "Column": 18
+    },
+    "Value": "Friend"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 835,
+      "End": 842,
+      "Line": 48,
+      "Column": 10
+    },
+    "Value": "frag"
   },
   {
     "Kind": "OperationDefinition",
@@ -10166,6 +10788,16 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 965,
+      "End": 972,
+      "Line": 57,
+      "Column": 11
+    },
+    "Value": "truthy"
+  },
+  {
     "Kind": "Argument",
     "Location": {
       "Start": 979,
@@ -10193,6 +10825,16 @@
       },
       "Value": false
     }
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 979,
+      "End": 986,
+      "Line": 57,
+      "Column": 25
+    },
+    "Value": "falsey"
   },
   {
     "Kind": "Argument",
@@ -10224,6 +10866,26 @@
     }
   },
   {
+    "Kind": "Name",
+    "Location": {
+      "Start": 994,
+      "End": 1002,
+      "Line": 57,
+      "Column": 40
+    },
+    "Value": "nullish"
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 957,
+      "End": 965,
+      "Line": 57,
+      "Column": 3
+    },
+    "Value": "unnamed"
+  },
+  {
     "Kind": "Field",
     "Alias": null,
     "Arguments": [],
@@ -10245,5 +10907,15 @@
       "Value": "query"
     },
     "Directives": []
+  },
+  {
+    "Kind": "Name",
+    "Location": {
+      "Start": 1012,
+      "End": 1019,
+      "Line": 58,
+      "Column": 3
+    },
+    "Value": "query"
   }
 ]
