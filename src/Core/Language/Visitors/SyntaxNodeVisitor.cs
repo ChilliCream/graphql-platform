@@ -42,6 +42,7 @@ namespace HotChocolate.Language
         , ISyntaxNodeVisitor<ScalarTypeExtensionNode>
         , ISyntaxNodeVisitor<ObjectTypeExtensionNode>
         , ISyntaxNodeVisitor<InterfaceTypeExtensionNode>
+        , ISyntaxNodeVisitor<UnionTypeExtensionNode>
         , ISyntaxNodeVisitor<EnumTypeExtensionNode>
         , ISyntaxNodeVisitor<InputObjectTypeExtensionNode>
     {
@@ -575,6 +576,24 @@ namespace HotChocolate.Language
 
         public virtual VisitorAction Leave(
             InterfaceTypeExtensionNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return GetDefaultAction(node.Kind);
+        }
+
+        public virtual VisitorAction Enter(
+            UnionTypeExtensionNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return GetDefaultAction(node.Kind);
+        }
+
+        public virtual VisitorAction Leave(
+            UnionTypeExtensionNode node,
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)

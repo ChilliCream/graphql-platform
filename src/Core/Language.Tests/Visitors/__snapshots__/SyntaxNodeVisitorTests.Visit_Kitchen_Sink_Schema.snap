@@ -8606,6 +8606,166 @@
     "Directives": []
   },
   {
+    "Kind": "UnionTypeExtension",
+    "Types": [
+      {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 1402,
+          "End": 1409,
+          "Line": 70,
+          "Column": 21
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 1402,
+            "End": 1409,
+            "Line": 70,
+            "Column": 21
+          },
+          "Value": "Photo"
+        }
+      },
+      {
+        "Kind": "NamedType",
+        "Location": {
+          "Start": 1410,
+          "End": 1423,
+          "Line": 70,
+          "Column": 29
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 1410,
+            "End": 1423,
+            "Line": 70,
+            "Column": 29
+          },
+          "Value": "Video"
+        }
+      }
+    ],
+    "Location": {
+      "Start": 1382,
+      "End": 1423,
+      "Line": 70,
+      "Column": 1
+    },
+    "Name": {
+      "Kind": "Name",
+      "Location": {
+        "Start": 1395,
+        "End": 1401,
+        "Line": 70,
+        "Column": 14
+      },
+      "Value": "Feed"
+    },
+    "Directives": []
+  },
+  {
+    "Kind": "NamedType",
+    "Location": {
+      "Start": 1402,
+      "End": 1409,
+      "Line": 70,
+      "Column": 21
+    },
+    "Name": {
+      "Kind": "Name",
+      "Location": {
+        "Start": 1402,
+        "End": 1409,
+        "Line": 70,
+        "Column": 21
+      },
+      "Value": "Photo"
+    }
+  },
+  {
+    "Kind": "NamedType",
+    "Location": {
+      "Start": 1410,
+      "End": 1423,
+      "Line": 70,
+      "Column": 29
+    },
+    "Name": {
+      "Kind": "Name",
+      "Location": {
+        "Start": 1410,
+        "End": 1423,
+        "Line": 70,
+        "Column": 29
+      },
+      "Value": "Video"
+    }
+  },
+  {
+    "Kind": "UnionTypeExtension",
+    "Types": [],
+    "Location": {
+      "Start": 1417,
+      "End": 1451,
+      "Line": 72,
+      "Column": 1
+    },
+    "Name": {
+      "Kind": "Name",
+      "Location": {
+        "Start": 1430,
+        "End": 1436,
+        "Line": 72,
+        "Column": 14
+      },
+      "Value": "Feed"
+    },
+    "Directives": [
+      {
+        "Kind": "Directive",
+        "Location": {
+          "Start": 1435,
+          "End": 1451,
+          "Line": 72,
+          "Column": 19
+        },
+        "Name": {
+          "Kind": "Name",
+          "Location": {
+            "Start": 1436,
+            "End": 1451,
+            "Line": 72,
+            "Column": 20
+          },
+          "Value": "onUnion"
+        },
+        "Arguments": []
+      }
+    ]
+  },
+  {
+    "Kind": "Directive",
+    "Location": {
+      "Start": 1435,
+      "End": 1451,
+      "Line": 72,
+      "Column": 19
+    },
+    "Name": {
+      "Kind": "Name",
+      "Location": {
+        "Start": 1436,
+        "End": 1451,
+        "Line": 72,
+        "Column": 20
+      },
+      "Value": "onUnion"
+    },
+    "Arguments": []
+  },
+  {
     "Kind": "ScalarTypeDefinition",
     "Description": null,
     "Location": {

@@ -362,7 +362,7 @@ namespace HotChocolate.Language
                 node.Name,
                 children);
 
-            if (node.Directives.Count != 0)
+            if (node.VariableDefinitions.Count != 0)
             {
                 ResolveChildren(
                     nameof(node.VariableDefinitions),
