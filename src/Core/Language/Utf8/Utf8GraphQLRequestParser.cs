@@ -76,7 +76,7 @@ namespace HotChocolate.Language
         public object ParseJson()
         {
             _reader.MoveNext();
-            return ParseObject();
+            return ParseValue();
         }
 
         private IReadOnlyList<GraphQLRequest> ParseBatchRequest()

@@ -1,0 +1,122 @@
+﻿{
+  "Kind": "Document",
+  "Location": {
+    "Start": 0,
+    "End": 64,
+    "Line": 1,
+    "Column": 1
+  },
+  "Definitions": [
+    {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 0,
+        "End": 64,
+        "Line": 1,
+        "Column": 1
+      },
+      "Name": null,
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 6,
+          "End": 64,
+          "Line": 1,
+          "Column": 7
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [
+              {
+                "Kind": "Argument",
+                "Location": {
+                  "Start": 16,
+                  "End": 42,
+                  "Line": 2,
+                  "Column": 9
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 16,
+                    "End": 26,
+                    "Line": 2,
+                    "Column": 9
+                  },
+                  "Value": "parameter"
+                },
+                "Value": {
+                  "Kind": "StringValue",
+                  "Location": {
+                    "Start": 27,
+                    "End": 42,
+                    "Line": 2,
+                    "Column": 20
+                  },
+                  "Value": "привет",
+                  "Block": false
+                }
+              }
+            ],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 43,
+                "End": 63,
+                "Line": 2,
+                "Column": 36
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": {
+                    "Start": 49,
+                    "End": 61,
+                    "Line": 3,
+                    "Column": 5
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 49,
+                      "End": 61,
+                      "Line": 3,
+                      "Column": 5
+                    },
+                    "Value": "subField"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 10,
+              "End": 63,
+              "Line": 2,
+              "Column": 3
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 10,
+                "End": 16,
+                "Line": 2,
+                "Column": 3
+              },
+              "Value": "field"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
+  ]
+}

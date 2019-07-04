@@ -4,7 +4,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 {
     internal static class ParameterCompilerFactory
     {
-        public static IEnumerable<IResolverParameterCompiler> CreateForResolverContext()
+        public static IEnumerable<IResolverParameterCompiler> Create()
         {
             return CreateFor<IResolverContext>();
         }
@@ -14,6 +14,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         {
             yield return new GetCancellationTokenCompiler<T>();
             yield return new GetContextCompiler<T, IResolverContext>();
+            yield return new GetCustomContextCompiler<T>();
             yield return new GetDataLoaderCompiler<T>();
             yield return new GetEventMessageCompiler<T>();
             yield return new GetFieldSelectionCompiler<T>();
