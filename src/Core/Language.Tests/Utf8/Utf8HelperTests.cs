@@ -102,6 +102,8 @@ namespace HotChocolate.Language
 
         [InlineData("\\u0024", "$")]
         [InlineData("\\u00A2", "¢")]
+        [InlineData("\\u0939", "ह")]
+        [InlineData("\\u20AC", "€")]
         [Theory]
         public void Unescape_UnicodeEscapeChars_OutputIsUnescaped(
            string escaped, string unescaped)

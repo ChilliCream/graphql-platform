@@ -456,5 +456,21 @@ namespace HotChocolate.Language
             Assert.Equal(s,
                 Assert.IsType<StringValueNode>(value).Value);
         }
+
+        [Fact]
+        public void RussionLiterals()
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                FileResource.Open("russion-literals.graphql"));
+
+            // act
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
+
+            // assert
+            document.MatchSnapshot();
+        }
     }
 }
