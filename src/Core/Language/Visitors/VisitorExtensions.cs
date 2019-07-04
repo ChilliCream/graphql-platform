@@ -8,15 +8,60 @@ namespace HotChocolate.Language
         private static readonly VisitationMap _defaultVisitationMap =
             new VisitationMap();
 
+        public static void Accept<T>(
+            this ISyntaxNode node,
+            VisitorFn<T> enter,
+            VisitorFn<T> leave)
+            where T : ISyntaxNode =>
+            Accept<T>(node, enter, leave, _defaultVisitationMap);
+
+        public static void Accept<T>(
+            this ISyntaxNode node,
+            VisitorFn<T> enter,
+            VisitorFn<T> leave,
+            IVisitationMap visitationMap)
+            where T : ISyntaxNode =>
+            Accept(
+                node,
+                new VisitorFnWrapper<T>(enter, leave),
+                visitationMap,
+                null);
+
+        public static void Accept<T>(
+            this ISyntaxNode node,
+            VisitorFn<T> enter,
+            VisitorFn<T> leave,
+            IVisitationMap visitationMap,
+            Func<ISyntaxNode, VisitorAction> defaultAction)
+            where T : ISyntaxNode =>
+            Accept(
+                node,
+                new VisitorFnWrapper<T>(enter, leave),
+                visitationMap,
+                defaultAction);
+
         public static void Accept(
             this ISyntaxNode node,
             ISyntaxNodeVisitor visitor) =>
-            Accept(node, visitor, _defaultVisitationMap);
+            Accept(node, visitor, _defaultVisitationMap, null);
 
         public static void Accept(
             this ISyntaxNode node,
             ISyntaxNodeVisitor visitor,
-            IVisitationMap visitationMap)
+            IVisitationMap visitationMap) =>
+            Accept(node, visitor, visitationMap, null);
+
+        public static void Accept(
+            this ISyntaxNode node,
+            ISyntaxNodeVisitor visitor,
+            Func<ISyntaxNode, VisitorAction> defaultAction) =>
+            Accept(node, visitor, _defaultVisitationMap, defaultAction);
+
+        public static void Accept(
+            this ISyntaxNode node,
+            ISyntaxNodeVisitor visitor,
+            IVisitationMap visitationMap,
+            Func<ISyntaxNode, VisitorAction> defaultAction)
         {
             if (node is null)
             {
@@ -72,6 +117,12 @@ namespace HotChocolate.Language
                         path,
                         ancestorNodes);
 
+                    if (action == VisitorAction.Default)
+                    {
+                        action = defaultAction?.Invoke(current.Node)
+                            ?? VisitorAction.Skip;
+                    }
+
                     if (current.Name != null)
                     {
                         path.Pop();
@@ -104,6 +155,12 @@ namespace HotChocolate.Language
                         parent.Node,
                         path,
                         ancestorNodes);
+
+                    if (action == VisitorAction.Default)
+                    {
+                        action = defaultAction?.Invoke(current.Node)
+                            ?? VisitorAction.Skip;
+                    }
 
                     if (action == VisitorAction.Continue)
                     {
@@ -150,7 +207,7 @@ namespace HotChocolate.Language
             {
                 return v.Invoke(visitor, node, parent, path, ancestors);
             }
-            return VisitorAction.Skip;
+            return VisitorAction.Default;
         }
 
         private static VisitorAction Leave(
@@ -164,7 +221,7 @@ namespace HotChocolate.Language
             {
                 return v.Invoke(visitor, node, parent, path, ancestors);
             }
-            return VisitorAction.Skip;
+            return VisitorAction.Default;
         }
 
         private delegate VisitorAction IntVisitorFn(

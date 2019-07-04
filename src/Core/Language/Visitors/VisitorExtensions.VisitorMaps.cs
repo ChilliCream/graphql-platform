@@ -125,7 +125,7 @@ namespace HotChocolate.Language
                         return typedVisitor.Enter(
                             (T)node, parent, path, ancestors);
                     }
-                    return VisitorAction.Skip;
+                    return VisitorAction.Default;
                 };
             }
             else
@@ -137,7 +137,7 @@ namespace HotChocolate.Language
                         return typedVisitor.Leave(
                             (T)node, parent, path, ancestors);
                     }
-                    return VisitorAction.Skip;
+                    return VisitorAction.Default;
                 };
             }
         }
