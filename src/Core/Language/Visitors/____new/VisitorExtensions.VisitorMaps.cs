@@ -1,70 +1,145 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Language;
 
 namespace HotChocolate.Language
 {
     public static partial class VisitorExtensions
     {
         private static readonly Dictionary<Type, IntVisitorFn> _enterVisitors =
-            new Dictionary<Type, IntVisitorFn>()
-            {
-                { typeof(IValueNode), EnterVisitor<IValueNode>() },
-                { typeof(ObjectValueNode), EnterVisitor<ObjectValueNode>() },
-                { typeof(ObjectFieldNode), EnterVisitor<ObjectFieldNode>() },
-                { typeof(ListValueNode), EnterVisitor<ListValueNode>() },
-                { typeof(StringValueNode), EnterVisitor<StringValueNode>() },
-                { typeof(IntValueNode), EnterVisitor<IntValueNode>() },
-                { typeof(FloatValueNode), EnterVisitor<FloatValueNode>() },
-                { typeof(BooleanValueNode), EnterVisitor<BooleanValueNode>() },
-                { typeof(EnumValueNode), EnterVisitor<EnumValueNode>() },
-                { typeof(VariableNode), EnterVisitor<VariableNode>() },
-            };
+            CreateEnterVisitors();
 
         private static readonly Dictionary<Type, IntVisitorFn> _leaveVisitors =
-            new Dictionary<Type, IntVisitorFn>()
-            {
-                { typeof(IValueNode), LeaveVisitor<IValueNode>() },
-                { typeof(ObjectValueNode), LeaveVisitor<ObjectValueNode>() },
-                { typeof(ObjectFieldNode), LeaveVisitor<ObjectFieldNode>() },
-                { typeof(ListValueNode), LeaveVisitor<ListValueNode>() },
-                { typeof(StringValueNode), LeaveVisitor<StringValueNode>() },
-                { typeof(IntValueNode), LeaveVisitor<IntValueNode>() },
-                { typeof(FloatValueNode), LeaveVisitor<FloatValueNode>() },
-                { typeof(BooleanValueNode), LeaveVisitor<BooleanValueNode>() },
-                { typeof(EnumValueNode), LeaveVisitor<EnumValueNode>() },
-                { typeof(VariableNode), LeaveVisitor<VariableNode>() },
-            };
+            CreateLeaveVisitors();
 
-        private static IntVisitorFn EnterVisitor<T>()
-            where T : ISyntaxNode =>
-            CreateVisitor<T>(true);
+        private static Dictionary<Type, IntVisitorFn> CreateEnterVisitors()
+        {
+            var dict = new Dictionary<Type, IntVisitorFn>();
 
-        private static IntVisitorFn LeaveVisitor<T>()
-            where T : ISyntaxNode =>
-            CreateVisitor<T>(false);
+            AddEnterVisitor<DocumentNode>(dict);
+            AddEnterVisitor<OperationDefinitionNode>(dict);
+            AddEnterVisitor<VariableDefinitionNode>(dict);
+            AddEnterVisitor<VariableNode>(dict);
+            AddEnterVisitor<SelectionSetNode>(dict);
+            AddEnterVisitor<FieldNode>(dict);
+            AddEnterVisitor<ArgumentNode>(dict);
+            AddEnterVisitor<FragmentSpreadNode>(dict);
+            AddEnterVisitor<InlineFragmentNode>(dict);
+            AddEnterVisitor<FragmentDefinitionNode>(dict);
+            AddEnterVisitor<DirectiveNode>(dict);
+            AddEnterVisitor<NamedTypeNode>(dict);
+            AddEnterVisitor<ListTypeNode>(dict);
+            AddEnterVisitor<NonNullTypeNode>(dict);
+            AddEnterVisitor<ListValueNode>(dict);
+            AddEnterVisitor<ObjectValueNode>(dict);
+            AddEnterVisitor<ObjectFieldNode>(dict);
+            AddEnterVisitor<SchemaDefinitionNode>(dict);
+            AddEnterVisitor<OperationTypeDefinitionNode>(dict);
+            AddEnterVisitor<ScalarTypeDefinitionNode>(dict);
+            AddEnterVisitor<ObjectTypeDefinitionNode>(dict);
+            AddEnterVisitor<FieldDefinitionNode>(dict);
+            AddEnterVisitor<InputValueDefinitionNode>(dict);
+            AddEnterVisitor<InterfaceTypeDefinitionNode>(dict);
+            AddEnterVisitor<UnionTypeDefinitionNode>(dict);
+            AddEnterVisitor<EnumTypeDefinitionNode>(dict);
+            AddEnterVisitor<EnumValueDefinitionNode>(dict);
+            AddEnterVisitor<InputObjectTypeDefinitionNode>(dict);
+            AddEnterVisitor<DirectiveDefinitionNode>(dict);
+            AddEnterVisitor<SchemaExtensionNode>(dict);
+            AddEnterVisitor<ScalarTypeExtensionNode>(dict);
+            AddEnterVisitor<ObjectTypeExtensionNode>(dict);
+            AddEnterVisitor<InterfaceTypeExtensionNode>(dict);
+            AddEnterVisitor<UnionTypeExtensionNode>(dict);
+            AddEnterVisitor<EnumTypeExtensionNode>(dict);
+            AddEnterVisitor<InputObjectTypeExtensionNode>(dict);
+
+            return dict;
+        }
+
+        private static Dictionary<Type, IntVisitorFn> CreateLeaveVisitors()
+        {
+            var dict = new Dictionary<Type, IntVisitorFn>();
+
+            AddLeaveVisitor<DocumentNode>(dict);
+            AddLeaveVisitor<OperationDefinitionNode>(dict);
+            AddLeaveVisitor<VariableDefinitionNode>(dict);
+            AddLeaveVisitor<VariableNode>(dict);
+            AddLeaveVisitor<SelectionSetNode>(dict);
+            AddLeaveVisitor<FieldNode>(dict);
+            AddLeaveVisitor<ArgumentNode>(dict);
+            AddLeaveVisitor<FragmentSpreadNode>(dict);
+            AddLeaveVisitor<InlineFragmentNode>(dict);
+            AddLeaveVisitor<FragmentDefinitionNode>(dict);
+            AddLeaveVisitor<DirectiveNode>(dict);
+            AddLeaveVisitor<NamedTypeNode>(dict);
+            AddLeaveVisitor<ListTypeNode>(dict);
+            AddLeaveVisitor<NonNullTypeNode>(dict);
+            AddLeaveVisitor<ListValueNode>(dict);
+            AddLeaveVisitor<ObjectValueNode>(dict);
+            AddLeaveVisitor<ObjectFieldNode>(dict);
+            AddLeaveVisitor<SchemaDefinitionNode>(dict);
+            AddLeaveVisitor<OperationTypeDefinitionNode>(dict);
+            AddLeaveVisitor<ScalarTypeDefinitionNode>(dict);
+            AddLeaveVisitor<ObjectTypeDefinitionNode>(dict);
+            AddLeaveVisitor<FieldDefinitionNode>(dict);
+            AddLeaveVisitor<InputValueDefinitionNode>(dict);
+            AddLeaveVisitor<InterfaceTypeDefinitionNode>(dict);
+            AddLeaveVisitor<UnionTypeDefinitionNode>(dict);
+            AddLeaveVisitor<EnumTypeDefinitionNode>(dict);
+            AddLeaveVisitor<EnumValueDefinitionNode>(dict);
+            AddLeaveVisitor<InputObjectTypeDefinitionNode>(dict);
+            AddLeaveVisitor<DirectiveDefinitionNode>(dict);
+            AddLeaveVisitor<SchemaExtensionNode>(dict);
+            AddLeaveVisitor<ScalarTypeExtensionNode>(dict);
+            AddLeaveVisitor<ObjectTypeExtensionNode>(dict);
+            AddLeaveVisitor<InterfaceTypeExtensionNode>(dict);
+            AddLeaveVisitor<UnionTypeExtensionNode>(dict);
+            AddLeaveVisitor<EnumTypeExtensionNode>(dict);
+            AddLeaveVisitor<InputObjectTypeExtensionNode>(dict);
+
+            return dict;
+        }
+
+        private static void AddEnterVisitor<T>(
+            IDictionary<Type, IntVisitorFn> dict)
+            where T : ISyntaxNode
+        {
+            dict.Add(typeof(T), CreateVisitor<T>(true));
+        }
+
+        private static void AddLeaveVisitor<T>(
+           IDictionary<Type, IntVisitorFn> dict)
+           where T : ISyntaxNode
+        {
+            dict.Add(typeof(T), CreateVisitor<T>(false));
+        }
 
         private static IntVisitorFn CreateVisitor<T>(bool enter)
             where T : ISyntaxNode
         {
-
-            return (visitor, node, parent, path, ancestors) =>
+            if (enter)
             {
-                if (visitor is ISyntaxNodeVisitor<T> typedVisitor)
+                return (visitor, node, parent, path, ancestors) =>
                 {
-                    if (enter)
+                    if (visitor is ISyntaxNodeVisitor<T> typedVisitor)
                     {
                         return typedVisitor.Enter(
                             (T)node, parent, path, ancestors);
                     }
-                    else
+                    return VisitorAction.Skip;
+                };
+            }
+            else
+            {
+                return (visitor, node, parent, path, ancestors) =>
+                {
+                    if (visitor is ISyntaxNodeVisitor<T> typedVisitor)
                     {
                         return typedVisitor.Leave(
                             (T)node, parent, path, ancestors);
                     }
-                }
-                return VisitorAction.Skip;
-            };
+                    return VisitorAction.Skip;
+                };
+            }
         }
     }
 }

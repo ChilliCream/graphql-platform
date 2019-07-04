@@ -19,11 +19,26 @@ namespace HotChocolate.Language
         }
 
         [Fact]
-        public void AutoSkip1()
+        public void Visit_Kitchen_Sink_Query()
         {
             // arrange
             DocumentNode document = Utf8GraphQLParser.Parse(
                 FileResource.Open("kitchen-sink.graphql"));
+            var visitationMap = new BarVisitationMap();
+
+            // act
+            document.Accept(new Bar(), visitationMap);
+
+            // assert
+            visitationMap.VisitedNodes.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Visit_Kitchen_Sink_Schema()
+        {
+            // arrange
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                FileResource.Open("schema-kitchen-sink.graphql"));
             var visitationMap = new BarVisitationMap();
 
             // act
