@@ -118,7 +118,7 @@ namespace HotChocolate.Language
                 unicodeDecimal -= bytesToShift;
 
                 int third = (bytesToShift >> 12) << 12;
-                int second = bytesToShift -= third;
+                int second = bytesToShift - third;
 
                 second <<= 2;
                 third <<= 4;
