@@ -1,6 +1,8 @@
 using System.Threading.Tasks.Dataflow;
 using System.Collections.Generic;
 using Xunit;
+using ChilliCream.Testing;
+using Snapshooter.Xunit;
 
 namespace HotChocolate.Language
 {
@@ -14,9 +16,22 @@ namespace HotChocolate.Language
                     new StringValueNode("bar")));
 
             obj.Accept(new Foo());
-
         }
 
+        [Fact]
+        public void AutoSkip1()
+        {
+            // arrange
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                FileResource.Open("kitchen-sink.graphql"));
+            var visitationMap = new BarVisitationMap();
+
+            // act
+            document.Accept(new Bar(), visitationMap);
+
+            // assert
+            visitationMap.VisitedNodes.MatchSnapshot();
+        }
 
         private class Foo
             : SyntaxNodeVisitor
@@ -46,6 +61,31 @@ namespace HotChocolate.Language
                 IReadOnlyList<ISyntaxNode> ancestors)
             {
                 return VisitorAction.Skip;
+            }
+        }
+
+        private class Bar
+           : SyntaxNodeVisitor
+        {
+            public Bar()
+                : base(VisitorAction.Continue)
+            {
+
+            }
+        }
+
+        private class BarVisitationMap
+            : VisitationMap
+        {
+            public List<ISyntaxNode> VisitedNodes { get; } =
+                new List<ISyntaxNode>();
+
+            public override void ResolveChildren(
+                ISyntaxNode node,
+                IStack<SyntaxNodeInfo> children)
+            {
+                VisitedNodes.Add(node);
+                base.ResolveChildren(node, children);
             }
         }
     }
