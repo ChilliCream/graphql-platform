@@ -27,12 +27,14 @@ namespace HotChocolate.AspNetCore.Authorization
             descriptor.Location(DirectiveLocation.Object)
                 .Location(DirectiveLocation.FieldDefinition);
 
+#if !ASPNETCLASSIC
             // TODO :resources
             descriptor.Argument(t => t.Policy)
                 .Description(
                     "The name of the authorzation policy that determines " +
                     "access to the annotated resource.")
                 .Type<StringType>();
+#endif
 
             // TODO :resources
             descriptor.Argument(t => t.Roles)
