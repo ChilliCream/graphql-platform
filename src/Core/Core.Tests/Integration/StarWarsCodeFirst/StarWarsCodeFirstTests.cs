@@ -387,6 +387,39 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         }
 
         [Fact]
+        public void GraphQLOrgMutationExample_With_ValueVariables()
+        {
+            // arrange
+            var query = @"
+            mutation CreateReviewForEpisode(
+                $ep: Episode!
+                $stars: Int!
+                $commentary: String!) {
+                createReview(
+                    episode: $ep
+                    review: { stars: $stars commentary: $commentary }) {
+                    stars
+                    commentary
+                }
+            }";
+
+            var variables = new Dictionary<string, object>
+            {
+                { "ep", new EnumValueNode("JEDI") },
+                { "stars", new IntValueNode(5) },
+                { "commentary", new StringValueNode("This is a great movie!") }
+            };
+
+            IQueryExecutor executor = CreateSchema().MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(query, variables);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public void GraphQLOrgInlineFragmentExample1()
         {
             // arrange
