@@ -69,7 +69,6 @@ namespace HotChocolate.Language
                     leaveNames.Add(node.Value);
                     return VisitorAction.Continue;
                 },
-                new VisitationMap(),
                 node => VisitorAction.Continue);
 
             // assert
@@ -99,12 +98,57 @@ namespace HotChocolate.Language
                     leaveNames.Add(node.Value);
                     return VisitorAction.Continue;
                 },
-                new VisitationMap(),
                 node => VisitorAction.Continue);
 
             // assert
             Assert.Equal(enterNames, leaveNames);
             new { enterNames, leaveNames }.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Visit_Kitchen_Sink_Query_Names_With_Delegate_OnlyEnter()
+        {
+            // arrange
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                FileResource.Open("kitchen-sink.graphql"));
+            var visitationMap = new BarVisitationMap();
+            var visitedNames = new List<string>();
+
+            // act
+            document.Accept<NameNode>(
+                (node, parent, path, ancestors) =>
+                {
+                    visitedNames.Add(node.Value);
+                    return VisitorAction.Continue;
+                },
+                null,
+                node => VisitorAction.Continue);
+
+            // assert
+            visitedNames.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Visit_Kitchen_Sink_Query_Names_With_Delegate_OnlyLeave()
+        {
+            // arrange
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                FileResource.Open("kitchen-sink.graphql"));
+            var visitationMap = new BarVisitationMap();
+            var visitedNames = new List<string>();
+
+            // act
+            document.Accept<NameNode>(
+                null,
+                (node, parent, path, ancestors) =>
+                {
+                    visitedNames.Add(node.Value);
+                    return VisitorAction.Continue;
+                },
+                node => VisitorAction.Continue);
+
+            // assert
+            visitedNames.MatchSnapshot();
         }
 
         private class Foo

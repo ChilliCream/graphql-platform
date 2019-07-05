@@ -31,6 +31,18 @@ namespace HotChocolate.Language
             this ISyntaxNode node,
             VisitorFn<T> enter,
             VisitorFn<T> leave,
+            Func<ISyntaxNode, VisitorAction> defaultAction)
+            where T : ISyntaxNode =>
+            Accept(
+                node,
+                new VisitorFnWrapper<T>(enter, leave),
+                _defaultVisitationMap,
+                defaultAction);
+
+        public static void Accept<T>(
+            this ISyntaxNode node,
+            VisitorFn<T> enter,
+            VisitorFn<T> leave,
             IVisitationMap visitationMap,
             Func<ISyntaxNode, VisitorAction> defaultAction)
             where T : ISyntaxNode =>
