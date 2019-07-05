@@ -12,7 +12,6 @@ namespace HotChocolate.Language
             return node;
         }
 
-
         protected virtual VariableNode RewriteVariable(
             VariableNode node,
             TContext context)
@@ -24,7 +23,6 @@ namespace HotChocolate.Language
 
             return current;
         }
-
 
         protected virtual ArgumentNode RewriteArgument(
             ArgumentNode node,

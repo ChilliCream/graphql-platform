@@ -236,8 +236,6 @@ namespace HotChocolate.Language
             return VisitorAction.Default;
         }
 
-
-
         private delegate VisitorAction IntVisitorFn(
             ISyntaxNodeVisitor visitor,
             ISyntaxNode node,
