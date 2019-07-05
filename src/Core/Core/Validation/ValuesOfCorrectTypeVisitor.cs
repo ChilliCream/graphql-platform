@@ -30,9 +30,8 @@ namespace HotChocolate.Validation
             foreach (VariableDefinitionNode variableDefinition in
                 operation.VariableDefinitions)
             {
-                _variables.Add(
-                    variableDefinition.Variable.Name.Value,
-                    variableDefinition.Type);
+                _variables[variableDefinition.Variable.Name.Value] =
+                    variableDefinition.Type;
 
                 if (!variableDefinition.DefaultValue.IsNull())
                 {
