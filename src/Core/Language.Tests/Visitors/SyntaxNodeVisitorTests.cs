@@ -47,6 +47,66 @@ namespace HotChocolate.Language
             visitationMap.VisitedNodes.MatchSnapshot();
         }
 
+        [Fact]
+        public void Visit_Kitchen_Sink_Schema_Names_With_Delegate()
+        {
+            // arrange
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                FileResource.Open("schema-kitchen-sink.graphql"));
+            var visitationMap = new BarVisitationMap();
+            var enterNames = new List<string>();
+            var leaveNames = new List<string>();
+
+            // act
+            document.Accept<NameNode>(
+                (node, parent, path, ancestors) =>
+                {
+                    enterNames.Add(node.Value);
+                    return VisitorAction.Continue;
+                },
+                (node, parent, path, ancestors) =>
+                {
+                    leaveNames.Add(node.Value);
+                    return VisitorAction.Continue;
+                },
+                new VisitationMap(),
+                node => VisitorAction.Continue);
+
+            // assert
+            Assert.Equal(enterNames, leaveNames);
+            new { enterNames, leaveNames }.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Visit_Kitchen_Sink_Query_Names_With_Delegate()
+        {
+            // arrange
+            DocumentNode document = Utf8GraphQLParser.Parse(
+                FileResource.Open("kitchen-sink.graphql"));
+            var visitationMap = new BarVisitationMap();
+            var enterNames = new List<string>();
+            var leaveNames = new List<string>();
+
+            // act
+            document.Accept<NameNode>(
+                (node, parent, path, ancestors) =>
+                {
+                    enterNames.Add(node.Value);
+                    return VisitorAction.Continue;
+                },
+                (node, parent, path, ancestors) =>
+                {
+                    leaveNames.Add(node.Value);
+                    return VisitorAction.Continue;
+                },
+                new VisitationMap(),
+                node => VisitorAction.Continue);
+
+            // assert
+            Assert.Equal(enterNames, leaveNames);
+            new { enterNames, leaveNames }.MatchSnapshot();
+        }
+
         private class Foo
             : SyntaxNodeVisitor
         {
