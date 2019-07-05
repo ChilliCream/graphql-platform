@@ -16,7 +16,6 @@ namespace HotChocolate.Language
         , ISyntaxNodeVisitor<NamedTypeNode>
         , ISyntaxNodeVisitor<ListTypeNode>
         , ISyntaxNodeVisitor<NonNullTypeNode>
-        , ISyntaxNodeVisitor<IValueNode>
         , ISyntaxNodeVisitor<ObjectValueNode>
         , ISyntaxNodeVisitor<ObjectFieldNode>
         , ISyntaxNodeVisitor<ListValueNode>
@@ -312,64 +311,6 @@ namespace HotChocolate.Language
         }
 
         public virtual VisitorAction Enter(
-            IValueNode node,
-            ISyntaxNode parent,
-            IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors)
-        {
-            switch (node)
-            {
-                case ObjectValueNode ov:
-                    return Enter(ov, parent, path, ancestors);
-                case ListValueNode lv:
-                    return Enter(lv, parent, path, ancestors);
-                case StringValueNode sv:
-                    return Enter(sv, parent, path, ancestors);
-                case IntValueNode iv:
-                    return Enter(iv, parent, path, ancestors);
-                case FloatValueNode fv:
-                    return Enter(fv, parent, path, ancestors);
-                case BooleanValueNode fv:
-                    return Enter(fv, parent, path, ancestors);
-                case EnumValueNode ev:
-                    return Enter(ev, parent, path, ancestors);
-                case VariableNode vv:
-                    return Enter(vv, parent, path, ancestors);
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
-        public virtual VisitorAction Leave(
-            IValueNode node,
-            ISyntaxNode parent,
-            IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors)
-        {
-            switch (node)
-            {
-                case ObjectValueNode ov:
-                    return Leave(ov, parent, path, ancestors);
-                case ListValueNode lv:
-                    return Leave(lv, parent, path, ancestors);
-                case StringValueNode sv:
-                    return Leave(sv, parent, path, ancestors);
-                case IntValueNode iv:
-                    return Leave(iv, parent, path, ancestors);
-                case FloatValueNode fv:
-                    return Leave(fv, parent, path, ancestors);
-                case BooleanValueNode fv:
-                    return Leave(fv, parent, path, ancestors);
-                case EnumValueNode ev:
-                    return Leave(ev, parent, path, ancestors);
-                case VariableNode vv:
-                    return Leave(vv, parent, path, ancestors);
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
-        public virtual VisitorAction Enter(
             ObjectValueNode node,
             ISyntaxNode parent,
             IReadOnlyList<object> path,
@@ -422,11 +363,11 @@ namespace HotChocolate.Language
             return GetDefaultAction(node.Kind);
         }
 
-         public virtual VisitorAction Enter(
-            StringValueNode node,
-            ISyntaxNode parent,
-            IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors)
+        public virtual VisitorAction Enter(
+           StringValueNode node,
+           ISyntaxNode parent,
+           IReadOnlyList<object> path,
+           IReadOnlyList<ISyntaxNode> ancestors)
         {
             return GetDefaultAction(node.Kind);
         }
@@ -458,11 +399,11 @@ namespace HotChocolate.Language
             return GetDefaultAction(node.Kind);
         }
 
-         public virtual VisitorAction Enter(
-            FloatValueNode node,
-            ISyntaxNode parent,
-            IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors)
+        public virtual VisitorAction Enter(
+           FloatValueNode node,
+           ISyntaxNode parent,
+           IReadOnlyList<object> path,
+           IReadOnlyList<ISyntaxNode> ancestors)
         {
             return GetDefaultAction(node.Kind);
         }
@@ -476,11 +417,11 @@ namespace HotChocolate.Language
             return GetDefaultAction(node.Kind);
         }
 
-         public virtual VisitorAction Enter(
-            BooleanValueNode node,
-            ISyntaxNode parent,
-            IReadOnlyList<object> path,
-            IReadOnlyList<ISyntaxNode> ancestors)
+        public virtual VisitorAction Enter(
+           BooleanValueNode node,
+           ISyntaxNode parent,
+           IReadOnlyList<object> path,
+           IReadOnlyList<ISyntaxNode> ancestors)
         {
             return GetDefaultAction(node.Kind);
         }
