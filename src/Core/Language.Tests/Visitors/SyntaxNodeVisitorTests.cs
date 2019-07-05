@@ -200,7 +200,7 @@ namespace HotChocolate.Language
 
             public override void ResolveChildren(
                 ISyntaxNode node,
-                IStack<SyntaxNodeInfo> children)
+                IList<SyntaxNodeInfo> children)
             {
                 VisitedNodes.Add(node);
                 base.ResolveChildren(node, children);

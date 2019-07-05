@@ -90,12 +90,12 @@ namespace HotChocolate.Language
                 throw new ArgumentNullException(nameof(visitationMap));
             }
 
-            var path = new ArrayStack<object>();
-            var ancestors = new ArrayStack<SyntaxNodeInfo>();
-            var ancestorNodes = new ArrayStack<ISyntaxNode>();
-            var level = new ArrayStack<ArrayStack<SyntaxNodeInfo>>();
+            var path = new List<object>();
+            var ancestors = new List<SyntaxNodeInfo>();
+            var ancestorNodes = new List<ISyntaxNode>();
+            var level = new List<List<SyntaxNodeInfo>>();
 
-            var root = new ArrayStack<SyntaxNodeInfo>();
+            var root = new List<SyntaxNodeInfo>();
             root.Push(new SyntaxNodeInfo(node, null));
             level.Push(root);
 
@@ -181,7 +181,7 @@ namespace HotChocolate.Language
                     else if (action == VisitorAction.Skip)
                     {
                         // TODO : replace with empty
-                        level.Push(new ArrayStack<SyntaxNodeInfo>());
+                        level.Push(new List<SyntaxNodeInfo>());
                     }
 
                     parent = current;
@@ -199,11 +199,11 @@ namespace HotChocolate.Language
             level.Clear();
         }
 
-        private static ArrayStack<SyntaxNodeInfo> GetChildren(
+        private static List<SyntaxNodeInfo> GetChildren(
             ISyntaxNode node,
             IVisitationMap visitationMap)
         {
-            var children = new ArrayStack<SyntaxNodeInfo>();
+            var children = new List<SyntaxNodeInfo>();
             visitationMap.ResolveChildren(node, children);
             return children;
         }
@@ -236,11 +236,35 @@ namespace HotChocolate.Language
             return VisitorAction.Default;
         }
 
+
+
         private delegate VisitorAction IntVisitorFn(
             ISyntaxNodeVisitor visitor,
             ISyntaxNode node,
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors);
+    }
+
+    internal static class ListExtensions
+    {
+        public static T Pop<T>(this IList<T> list)
+        {
+            int lastIndex = list.Count - 1;
+            T p = list[lastIndex];
+            list.RemoveAt(lastIndex);
+            return p;
+        }
+
+        public static T Peek<T>(this IList<T> list)
+        {
+            int lastIndex = list.Count - 1;
+            return list[lastIndex];
+        }
+
+        public static void Push<T>(this IList<T> list, T item)
+        {
+            list.Add(item);
+        }
     }
 }

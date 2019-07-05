@@ -7,7 +7,7 @@ namespace HotChocolate.Language
     {
         public virtual void ResolveChildren(
             ISyntaxNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             switch (node)
             {
@@ -159,7 +159,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             DocumentNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             if (node.Definitions.Count != 0)
             {
@@ -172,7 +172,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             OperationDefinitionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             if (node.Name != null)
             {
@@ -206,7 +206,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             VariableDefinitionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Variable),
@@ -234,7 +234,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             VariableNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Name),
@@ -244,7 +244,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             SelectionSetNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Selections),
@@ -254,7 +254,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             FieldNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             if (node.Alias != null)
             {
@@ -296,7 +296,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             ArgumentNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Name),
@@ -311,7 +311,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             FragmentSpreadNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Name),
@@ -329,7 +329,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             InlineFragmentNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             if (node.TypeCondition != null)
             {
@@ -355,7 +355,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             FragmentDefinitionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Name),
@@ -391,7 +391,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             SchemaDefinitionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Directives),
@@ -406,7 +406,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             OperationTypeDefinitionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Type),
@@ -416,7 +416,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             ScalarTypeDefinitionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Description),
@@ -436,7 +436,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             ObjectTypeDefinitionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Description),
@@ -466,7 +466,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             FieldDefinitionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Description),
@@ -496,7 +496,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             InputValueDefinitionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Description),
@@ -526,7 +526,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             InterfaceTypeDefinitionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Description),
@@ -551,7 +551,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             UnionTypeDefinitionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Description),
@@ -576,7 +576,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             EnumTypeDefinitionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Description),
@@ -601,7 +601,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
            EnumValueDefinitionNode node,
-           IStack<SyntaxNodeInfo> children)
+           IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Description),
@@ -621,7 +621,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             InputObjectTypeDefinitionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Description),
@@ -646,7 +646,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             DirectiveDefinitionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Description),
@@ -671,7 +671,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             SchemaExtensionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Directives),
@@ -686,7 +686,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             ScalarTypeExtensionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Name),
@@ -701,7 +701,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             ObjectTypeExtensionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Name),
@@ -726,7 +726,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             InterfaceTypeExtensionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Name),
@@ -746,7 +746,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             UnionTypeExtensionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Name),
@@ -766,7 +766,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             EnumTypeExtensionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Name),
@@ -786,7 +786,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             InputObjectTypeExtensionNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Name),
@@ -806,7 +806,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             DirectiveNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Name),
@@ -824,7 +824,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             NamedTypeNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Name),
@@ -834,7 +834,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             ListTypeNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Type),
@@ -844,7 +844,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             NonNullTypeNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(
                 nameof(node.Type),
@@ -854,7 +854,7 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             ListValueNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             if (node.Items.Count != 0)
             {
@@ -864,14 +864,14 @@ namespace HotChocolate.Language
 
         protected virtual void ResolveChildren(
             ObjectValueNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(nameof(node.Fields), node.Fields, children);
         }
 
         protected virtual void ResolveChildren(
             ObjectFieldNode node,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             ResolveChildren(nameof(node.Name), node.Name, children);
             ResolveChildren(nameof(node.Value), node.Value, children);
@@ -880,7 +880,7 @@ namespace HotChocolate.Language
         protected void ResolveChildren(
             string name,
             ISyntaxNode child,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             if (child != null)
             {
@@ -891,7 +891,7 @@ namespace HotChocolate.Language
         protected void ResolveChildren(
             string name,
             IReadOnlyList<ISyntaxNode> items,
-            IStack<SyntaxNodeInfo> children)
+            IList<SyntaxNodeInfo> children)
         {
             if (items.Count == 0)
             {
