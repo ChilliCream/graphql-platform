@@ -42,7 +42,7 @@ namespace HotChocolate.Execution
 
                 return (T)VariableToValueRewriter.Rewrite(
                     literal,
-                    Field.Type,
+                    argumentValue.Type,
                     _executionContext.Variables,
                     _executionContext.Converter);
             }
@@ -51,7 +51,7 @@ namespace HotChocolate.Execution
             {
                 IValueNode literal = VariableToValueRewriter.Rewrite(
                     argumentValue.Literal,
-                    Field.Type,
+                    argumentValue.Type,
                     _executionContext.Variables,
                     _executionContext.Converter);
 
