@@ -139,7 +139,6 @@ namespace HotChocolate
             return AddStitchedSchema(services, schema, c => { });
         }
 
-
         public static IServiceCollection AddStitchedSchema(
             this IServiceCollection services,
             string schema,
@@ -184,19 +183,21 @@ namespace HotChocolate
                 IQueryResultSerializer,
                 JsonQueryResultSerializer>();
 
-            return services.AddSingleton(sp =>
-            {
-                return Schema.Create(
+            QueryExecutionBuilder.New()
+                .UseStitchingPipeline(options)
+                .Build(services);
+
+            services.AddSingleton(sp =>
+                Schema.Create(
                     schema,
                     c =>
                     {
                         configure(c);
                         c.UseSchemaStitching();
                         c.RegisterServiceProvider(sp);
-                    })
-                    .MakeExecutable(b => b.UseStitchingPipeline(options));
-            })
-            .AddSingleton(sp => sp.GetRequiredService<IQueryExecutor>().Schema);
+                    }));
+
+            return services;
         }
 
         public static IServiceCollection AddStitchedSchema(

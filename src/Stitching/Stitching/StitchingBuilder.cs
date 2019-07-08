@@ -211,8 +211,8 @@ namespace HotChocolate.Stitching
             {
                 serviceCollection.AddSingleton<IRemoteExecutorAccessor>(
                     services => new RemoteExecutorAccessor(
-                            factory.Key,
-                            factory.Value.Invoke(services)));
+                        factory.Key,
+                        factory.Value.Invoke(services)));
             }
 
             serviceCollection.TryAddSingleton(services =>
