@@ -3,18 +3,22 @@
   "Extensions": {},
   "Errors": [
     {
-      "Message": "Variable `a` of type `String!` must not be null.",
+      "Message": "Detected non-null violation in variable `foo`.",
       "Code": null,
       "Path": null,
       "Locations": [
         {
-          "line": 1,
-          "column": 9
+          "line": 2,
+          "column": 35
         }
       ],
       "Exception": null,
       "Extensions": {
-        "variableName": "a"
+        "variableName": "foo",
+        "variablePath": [
+          "bar",
+          "baz"
+        ]
       }
     }
   ],

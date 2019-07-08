@@ -3,18 +3,18 @@
   "Extensions": {},
   "Errors": [
     {
-      "Message": "Variable `a` of type `String!` must not be null.",
+      "Message": "Variable `baz` of type `String!` must not be null.",
       "Code": null,
       "Path": null,
       "Locations": [
         {
-          "line": 1,
-          "column": 9
+          "line": 2,
+          "column": 35
         }
       ],
       "Exception": null,
       "Extensions": {
-        "variableName": "a"
+        "variableName": "baz"
       }
     }
   ],
