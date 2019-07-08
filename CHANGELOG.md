@@ -86,7 +86,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Changed how the server caches queries.
 - `DiagnosticNames` is now public.
 - Reworked how input object arguments are cached [#805](https://github.com/ChilliCream/hotchocolate/pull/805)
-  
 
 ### Removed
 
