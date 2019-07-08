@@ -11,17 +11,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Added support to infer if a field or enum value is deprecated. [#826](https://github.com/ChilliCream/hotchocolate/pull/826)
 - Added prisma filter types. [#861](https://github.com/ChilliCream/hotchocolate/pull/861)
+- Added UTF-8 request parser. [#869](https://github.com/ChilliCream/hotchocolate/pull/869)
+- Added new syntax visitor API.
 
 ### Changed
 
 - Subscription now uses pipeline API to abstract sockets. [#807](https://github.com/ChilliCream/hotchocolate/pull/807)
 - Improved parser performance. [#806](https://github.com/ChilliCream/hotchocolate/pull/806)
 - Roles collection on authorization directive is now interpreted as OR.
+- The type conversion API is now better integreated with dependency injection.
 
 ### Fixed
 
 - The parent method on the resolver context now uses the converters if the source object type does not align with the requested type.
 - Aligned the deprecation handling with the GraphQL spec. [#876](https://github.com/ChilliCream/hotchocolate/pull/876)
+- Fixed the StateAttribute for resolvers. [#887](https://github.com/ChilliCream/hotchocolate/pull/887)
+- Order of types in a serialized schema is now consistent. [#891](https://github.com/ChilliCream/hotchocolate/pull/891)
+- Respect UseXmlDocumentation with Schema.Create [#897](https://github.com/ChilliCream/hotchocolate/pull/897)
+- Variables now work in lists and input objects [#896](https://github.com/ChilliCream/hotchocolate/pull/896)
 
 ## [9.0.4] - 2019-06-16
 
