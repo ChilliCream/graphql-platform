@@ -406,6 +406,85 @@ namespace HotChocolate.Execution
             await Assert.ThrowsAsync<ArgumentNullException>(action);
         }
 
+        [Fact]
+        public async Task ExecuteAsync_ExecutorQueryVariablesCT_Execute()
+        {
+            // arrange
+            IQueryExecutor executor = Create();
+
+            var request = "query a($a : String) { foo(a: $a) }";
+
+            var variables = new Dictionary<string, object>
+            {
+                { "a", "_baz" }
+            };
+
+            // act
+            IExecutionResult result =
+                await QueryExecutorExtensions.ExecuteAsync(
+                    executor, request, variables, CancellationToken.None);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_ExecutorQueryVariablesCT_ExecutorNull()
+        {
+            // arrange
+            var request = "query a($a : String) { foo(a: $a) }";
+
+            var variables = new Dictionary<string, object>
+            {
+                { "a", "_baz" }
+            };
+
+            // act
+            Func<Task> action = () =>
+                QueryExecutorExtensions.ExecuteAsync(
+                    null, request, variables, CancellationToken.None);
+
+            // assert
+            await Assert.ThrowsAsync<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_ExecutorQueryVariablesCT_RequestNull()
+        {
+            // arrange
+            IQueryExecutor executor = Create();
+
+            var variables = new Dictionary<string, object>
+            {
+                { "a", "_baz" }
+            };
+
+            // act
+            Func<Task> action = () =>
+                QueryExecutorExtensions.ExecuteAsync(
+                    executor, (string)null, variables, CancellationToken.None);
+
+            // assert
+            await Assert.ThrowsAsync<ArgumentException>(action);
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_ExecutorQueryVariablesCT_VariablesNull()
+        {
+            // arrange
+            IQueryExecutor executor = Create();
+
+            var request = "query a($a : String) { foo(a: $a) }";
+
+            // act
+            Func<Task> action = () =>
+                QueryExecutorExtensions.ExecuteAsync(
+                    executor, request, null, CancellationToken.None);
+
+            // assert
+            await Assert.ThrowsAsync<ArgumentNullException>(action);
+        }
+
         private IQueryExecutor Create()
         {
             return SchemaBuilder.New()
