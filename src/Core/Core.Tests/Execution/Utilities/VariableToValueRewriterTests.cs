@@ -195,6 +195,59 @@ namespace HotChocolate.Execution
             QuerySyntaxSerializer.Serialize(rewritten).MatchSnapshot();
         }
 
+        [Fact]
+        public void Cannot_Convert_Variable()
+        {
+            // arrange
+            ISchema schema = CreateSchemaBuilder()
+                .AddType(new InputObjectType(d => d
+                    .Name("Foo")
+                    .Field("bar").Type<StringType>()))
+                .Create();
+
+            var value = new ObjectValueNode(
+                new ObjectFieldNode(
+                    "bar",
+                    new VariableNode("abc")));
+            var type = schema.GetType<InputObjectType>("Foo");
+            var variables = new VariableCollectionMock("abc", new Foo());
+            var typeConversion = new TypeConversion();
+
+            // act
+            Action action = () => VariableToValueRewriter.Rewrite(
+                value, type, variables, typeConversion);
+
+            // assert
+            Assert.Throws<QueryException>(action).Errors.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Convert_Variable()
+        {
+            // arrange
+            ISchema schema = CreateSchemaBuilder()
+                .AddType(new InputObjectType(d => d
+                    .Name("Foo")
+                    .Field("bar").Type<StringType>()))
+                .Create();
+
+            var value = new ObjectValueNode(
+                new ObjectFieldNode(
+                    "bar",
+                    new VariableNode("abc")));
+            var type = schema.GetType<InputObjectType>("Foo");
+            var variables = new VariableCollectionMock("abc", 123);
+            var typeConversion = new TypeConversion();
+
+            // act
+            IValueNode rewritten = VariableToValueRewriter.Rewrite(
+                value, type, variables, typeConversion);
+
+            // assert
+            QuerySyntaxSerializer.Serialize(rewritten).MatchSnapshot();
+        }
+
+
         private ISchemaBuilder CreateSchemaBuilder()
         {
             return SchemaBuilder.New()
@@ -234,5 +287,7 @@ namespace HotChocolate.Execution
                 return false;
             }
         }
+
+        private class Foo { }
     }
 }

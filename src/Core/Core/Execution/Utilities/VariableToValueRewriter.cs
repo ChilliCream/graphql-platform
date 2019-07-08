@@ -172,6 +172,7 @@ namespace HotChocolate.Execution
                         out v))
                 {
                     // TODO : resource
+                    // TODO : path?
                     throw new QueryException(
                         ErrorBuilder.New()
                             .SetMessage(
