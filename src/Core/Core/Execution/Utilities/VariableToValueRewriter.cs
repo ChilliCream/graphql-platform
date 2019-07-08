@@ -1,3 +1,4 @@
+using System.Buffers;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -7,15 +8,15 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    public sealed class VariableToValueRewriter
+    internal sealed class VariableToValueRewriter
         : SyntaxRewriter<object>
     {
         private static readonly ThreadLocal<VariableToValueRewriter> _current =
             new ThreadLocal<VariableToValueRewriter>(
                 () => new VariableToValueRewriter());
         private readonly Stack<IType> _type = new Stack<IType>();
-        public IVariableCollection _variables;
-        public ITypeConversion _typeConversion;
+        private IVariableCollection _variables;
+        private ITypeConversion _typeConversion;
 
         public IValueNode RewriteValue(
             IValueNode value,
@@ -75,7 +76,7 @@ namespace HotChocolate.Execution
                         break;
 
                     case VariableNode value:
-                        rewritten = ReplaceVariable(value, field);
+                        rewritten = ReplaceVariable(value, field.Type);
                         break;
 
                     default:
@@ -104,30 +105,69 @@ namespace HotChocolate.Execution
             ListValueNode node,
             object context)
         {
-            _type.Push(_type.Peek().ListType().ElementType);
-
             ListValueNode current = node;
 
-            current = RewriteMany(current, current.Items, context,
-                RewriteValue, current.WithItems);
+            if (_type.Peek().ListType().ElementType is IInputType elementType)
+            {
+                _type.Push(_type.Peek().ListType().ElementType);
 
-            _type.Pop();
+                if (current.Items.Count > 0)
+                {
+                    IValueNode[] rented = ArrayPool<IValueNode>.Shared.Rent(
+                        current.Items.Count);
+                    Span<IValueNode> copy = rented;
+                    copy = copy.Slice(0, current.Items.Count);
+                    bool rewrite = false;
+
+                    for (int i = 0; i < current.Items.Count; i++)
+                    {
+                        IValueNode value = current.Items[i];
+
+                        if (value is VariableNode variable)
+                        {
+                            rewrite = true;
+                            copy[i] = ReplaceVariable(variable, elementType);
+                        }
+                        else
+                        {
+                            copy[i] = value;
+                        }
+                    }
+
+                    if (rewrite)
+                    {
+                        var rewritten = new IValueNode[current.Items.Count];
+
+                        for (int i = 0; i < current.Items.Count; i++)
+                        {
+                            rewritten[i] = copy[i];
+                        }
+
+                        current = current.WithItems(rewritten);
+                    }
+
+                    copy.Clear();
+                    ArrayPool<IValueNode>.Shared.Return(rented);
+                }
+
+                _type.Pop();
+            }
 
             return current;
         }
 
         private IValueNode ReplaceVariable(
             VariableNode variable,
-            IInputField field)
+            IInputType type)
         {
             if (_variables.TryGetVariable(
                 variable.Name.Value,
                 out object v))
             {
-                if (!field.Type.ClrType.IsInstanceOfType(v)
+                if (!type.ClrType.IsInstanceOfType(v)
                     && !_typeConversion.TryConvert(
                         typeof(object),
-                        field.Type.ClrType,
+                        type.ClrType,
                         v,
                         out v))
                 {
@@ -140,10 +180,10 @@ namespace HotChocolate.Execution
                             .Build());
                 }
 
-                return field.Type.ParseValue(v);
+                return type.ParseValue(v);
             }
 
-            return field.Type.ParseValue(null);
+            return type.ParseValue(null);
         }
 
         public static IValueNode Rewrite(
