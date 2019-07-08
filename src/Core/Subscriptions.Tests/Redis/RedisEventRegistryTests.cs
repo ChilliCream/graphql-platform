@@ -1,26 +1,27 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
+using Subscriptions.Redis;
 using Xunit;
 
-namespace HotChocolate.Subscriptions.InMemory
+namespace HotChocolate.Subscriptions.Redis
 {
-    public class InMemoryEventRegistryTests
+    public class RedisEventRegistryTests
     {
-        [Fact]
+        [Fact(Skip = "Add underlining service")]
         public async Task Subscribe_Send_MessageReceived()
         {
             // arrange
             var eventDescription = new EventDescription("foo");
-            var eventRegistry = new InMemoryEventRegistry();
+            var eventRegistry = new RedisEventRegistry();
 
             // act
             IEventStream stream =
                 await eventRegistry.SubscribeAsync(eventDescription);
 
             // assert
-            var incoming = new EventMessage("foo");
+            var incoming = new EventMessage("foo", "bar");
             await eventRegistry.SendAsync(incoming);
             IEventMessage outgoing = await stream.ReadAsync();
-            Assert.Equal(incoming, outgoing);
+            Assert.Equal(incoming.Payload, outgoing.Payload);
         }
     }
 }
