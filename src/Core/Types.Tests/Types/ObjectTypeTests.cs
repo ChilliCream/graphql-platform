@@ -1323,6 +1323,21 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void CreateObjectTypeWithXmlDocumentation_IgnoreXmlDocs_SchemaCreate()
+        {
+            // arrange
+            // act
+            ISchema schema = Schema.Create(c =>
+            {
+                c.RegisterQueryType<QueryWithDocumentation>();
+                c.Options.UseXmlDocumentation = false;
+            });
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Field_Is_Missing_Type_Throws_SchemaException()
         {
             // arrange
