@@ -8,7 +8,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         {
         }
 
-        public KeepConnectionAliveMessage Default { get; } =
+        public static KeepConnectionAliveMessage Default { get; } =
             new KeepConnectionAliveMessage();
     }
 }

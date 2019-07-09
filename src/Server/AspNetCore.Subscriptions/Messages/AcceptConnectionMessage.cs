@@ -8,7 +8,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         {
         }
 
-        public AcceptConnectionMessage Default { get; } =
+        public static AcceptConnectionMessage Default { get; } =
             new AcceptConnectionMessage();
     }
 }

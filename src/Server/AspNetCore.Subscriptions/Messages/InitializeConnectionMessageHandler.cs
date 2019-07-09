@@ -7,30 +7,61 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
     public sealed class InitializeConnectionMessageHandler
         : MessageHandler<InitializeConnectionMessage>
     {
-        protected override Task HandleAsync(
+        private readonly IConnectMessageInterceptor _connectMessageInterceptor;
+
+        public InitializeConnectionMessageHandler(
+            IConnectMessageInterceptor connectMessageInterceptor)
+        {
+            _connectMessageInterceptor = connectMessageInterceptor;
+        }
+
+        protected override async Task HandleAsync(
             ISocketConnection connection,
             InitializeConnectionMessage message,
             CancellationToken cancellationToken)
         {
-            ConnectionStatus connectionStatus =
-               await context.OpenAsync(message.Payload.ToDictionary())
-                   .ConfigureAwait(false);
+            ConnectionStatus connectionStatus;
 
-            if (connectionStatus.Accepted)
+            if (_connectMessageInterceptor == null)
             {
-                await context.SendConnectionAcceptMessageAsync(
-                    cancellationToken).ConfigureAwait(false);
-
-                await context.SendConnectionKeepAliveMessageAsync(
-                    cancellationToken).ConfigureAwait(false);
+                connectionStatus = ConnectionStatus.Accept();
             }
             else
             {
-                await context.SendConnectionErrorMessageAsync(
-                    connectionStatus.Response, cancellationToken)
+                connectionStatus = await _connectMessageInterceptor
+                    .OnReceiveAsync(connection, message, cancellationToken);
+            }
+
+            if (connectionStatus.Accepted)
+            {
+                await connection.SendAsync(
+                    AcceptConnectionMessage.Default.Serialize(),
+                    cancellationToken)
                     .ConfigureAwait(false);
 
-                await context.CloseAsync().ConfigureAwait(false);
+                await connection.SendAsync(
+                    KeepConnectionAliveMessage.Default.Serialize(),
+                    cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                var rejectMessage = connectionStatus.Extensions == null
+                    ? new RejectConnectionMessage(
+                        connectionStatus.Message)
+                    : new RejectConnectionMessage(
+                        connectionStatus.Message,
+                        connectionStatus.Extensions);
+
+                await connection.SendAsync(
+                    rejectMessage.Serialize(),
+                    cancellationToken)
+                    .ConfigureAwait(false);
+
+                // TODO : resources
+                await connection.CloseAsync(
+                    "Connection was rejected.")
+                    .ConfigureAwait(false);
             }
         }
     }

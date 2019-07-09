@@ -1,6 +1,5 @@
 using System;
 using System.Buffers;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,7 +13,7 @@ namespace HotChocolate.Server
         Task OpenAsync();
 
         Task SendAsync(
-            Stream responseStream,
+            ReadOnlySpan<byte> message,
             CancellationToken cancellationToken);
 
         Task ReceiveAsync(
