@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,71 +9,25 @@ namespace HotChocolate.Execution
     public sealed class JsonQueryResultSerializer
         : IQueryResultSerializer
     {
-        private const string _data = "data";
-        private const string _errors = "errors";
-        private const string _extensions = "extensions";
-        private const string _message = "message";
-        private const string _locations = "locations";
-        private const string _path = "path";
-
-
         public async Task SerializeAsync(
             IReadOnlyQueryResult result,
             Stream stream)
         {
-            var formatted = new OrderedDictionary();
-
-            if (result.Errors.Count > 0)
+            if (result is null)
             {
-                formatted[_errors] = SerializeErrors(result.Errors);
+                throw new ArgumentNullException(nameof(result));
             }
 
-            if (result.Data.Count > 0)
+            if (stream is null)
             {
-                formatted[_data] = result.Data;
-            }
-
-            if (result.Extensions.Count > 0)
-            {
-                formatted[_extensions] = result.Extensions;
+                throw new ArgumentNullException(nameof(stream));
             }
 
             byte[] buffer = Encoding.UTF8.GetBytes(
-                JsonConvert.SerializeObject(formatted));
+                JsonConvert.SerializeObject(result.ToDictionary()));
 
             await stream.WriteAsync(buffer, 0, buffer.Length)
                 .ConfigureAwait(false);
-        }
-
-        private static ICollection<object> SerializeErrors(
-            IReadOnlyCollection<IError> errors)
-        {
-            var formattedErrors = new List<object>();
-
-            foreach (IError error in errors)
-            {
-                var formattedError = new OrderedDictionary();
-                formattedError[_message] = error.Message;
-
-                if (error.Locations != null && error.Locations.Count > 0)
-                {
-                    formattedError[_locations] = error.Locations;
-                }
-
-                if (error.Path != null && error.Path.Count > 0)
-                {
-                    formattedError[_path] = error.Path;
-                }
-
-                if (error.Extensions != null && error.Extensions.Count > 0)
-                {
-                    formattedError[_extensions] = error.Extensions;
-                }
-
-                formattedErrors.Add(formattedError);
-            }
-
-            return formattedErrors;
         }
     }
 }

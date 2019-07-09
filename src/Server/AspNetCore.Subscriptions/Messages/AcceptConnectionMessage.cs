@@ -1,6 +1,6 @@
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
-    public class AcceptConnectionMessage
+    public sealed class AcceptConnectionMessage
         : OperationMessage
     {
         public AcceptConnectionMessage()

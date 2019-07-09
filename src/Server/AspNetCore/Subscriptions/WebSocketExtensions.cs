@@ -80,7 +80,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         private static IReadOnlyDictionary<string, object> ToDictionary(
             IReadOnlyQueryResult result)
         {
-            var internalResult = new Dictionary<string, object>();
+            var internalResult = new OrderedDictionary<string, object>();
 
             if ( result.Errors.Count > 0)
             {

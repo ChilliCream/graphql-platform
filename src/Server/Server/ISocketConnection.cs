@@ -10,6 +10,8 @@ namespace HotChocolate.Server
     {
         bool Closed { get; }
 
+        ISubscriptionManager Subscriptions { get; }
+
         Task OpenAsync();
 
         Task SendAsync(

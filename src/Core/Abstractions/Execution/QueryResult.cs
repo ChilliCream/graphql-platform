@@ -63,5 +63,10 @@ namespace HotChocolate.Execution
             result._errors.AddRange(error);
             return result;
         }
+
+        public IReadOnlyDictionary<string, object> ToDictionary()
+        {
+            return QueryResultHelper.ToDictionary(this);
+        }
     }
 }

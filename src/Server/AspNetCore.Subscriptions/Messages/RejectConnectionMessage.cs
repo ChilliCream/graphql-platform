@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
-    public class RejectConnectionMessage
+    public sealed class RejectConnectionMessage
         : OperationMessage<IReadOnlyDictionary<string, object>>
     {
         public RejectConnectionMessage(

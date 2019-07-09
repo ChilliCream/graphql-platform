@@ -1,35 +1,11 @@
 using System;
-using System.Collections.Generic;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Server;
+using HotChocolate.AspNetCore.Subscriptions.Messages;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
-namespace HotChocolate.AspNetCore.Subscriptions.Messages
+namespace HotChocolate.AspNetCore.Subscriptions
 {
-    public class SocketConnectionMessageExtensions
-    {
-
-
-
-
-
-
-
-    }
-
-    public interface IConnectMessageInterceptor
-    {
-        Task<ConnectionStatus> OnReceiveAsync(
-            ISocketConnection connection,
-            InitializeConnectionMessage message,
-            CancellationToken cancellationToken);
-    }
-
-
-
     internal static class MessageSerialization
     {
         public static readonly JsonSerializerSettings JsonSettings =

@@ -2,7 +2,7 @@
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
-    public class InitializeConnectionMessage
+    public sealed class InitializeConnectionMessage
         : OperationMessage<IReadOnlyDictionary<string, object>>
     {
         public InitializeConnectionMessage(
