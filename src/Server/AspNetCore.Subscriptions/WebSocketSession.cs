@@ -20,17 +20,17 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         private readonly Pipe _pipe = new Pipe();
         private readonly WebSocketKeepAlive _keepAlive;
-        private readonly SubscriptionReceiver _subscriptionReceiver;
-        private readonly SubscriptionReplier _subscriptionReplier;
+        private readonly MessageReceiver _subscriptionReceiver;
+        private readonly MessageReplier _subscriptionReplier;
 
         public WebSocketSession(WebSocketConnection connection)
         {
             _connection = connection
                 ?? throw new ArgumentNullException(nameof(connection));
             _keepAlive = new WebSocketKeepAlive(context, KeepAliveTimeout, _cts);
-            _subscriptionReplier = new SubscriptionReplier(
-                _pipe.Reader, new WebSocketPipeline(context, _cts), _cts);
-            _subscriptionReceiver = new SubscriptionReceiver(
+            _subscriptionReplier = new MessageReplier(
+                _pipe.Reader, new MessagePipeline(context, _cts), _cts);
+            _subscriptionReceiver = new MessageReceiver(
                 context, _pipe.Writer, _cts);
         }
 

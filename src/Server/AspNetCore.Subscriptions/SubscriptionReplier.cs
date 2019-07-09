@@ -1,22 +1,20 @@
-#if !ASPNETCLASSIC
-using System;   
+using System;
 using System.Buffers;
-using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
-    internal sealed class SubscriptionReplier
+    internal sealed class MessageReplier
     {
         private readonly PipeReader _reader;
-        private readonly WebSocketPipeline _pipeline;
+        private readonly MessagePipeline _pipeline;
         private readonly CancellationTokenSource _cts;
 
-        public SubscriptionReplier(
+        public MessageReplier(
             PipeReader reader,
-            WebSocketPipeline pipeline,
+            MessagePipeline pipeline,
             CancellationTokenSource cts)
         {
             _reader = reader;
@@ -51,7 +49,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
                     if (position != null)
                     {
-                        await _pipeline.ProcessMessageAsync(
+                        await _pipeline.ProcessAsync(
+
                                 buffer.Slice(0, position.Value),
                                 cancellationToken)
                             .ConfigureAwait(false);
@@ -75,5 +74,3 @@ namespace HotChocolate.AspNetCore.Subscriptions
         }
     }
 }
-
-#endif

@@ -1,4 +1,3 @@
-#if !ASPNETCLASSIC
 using System;
 using System.IO.Pipelines;
 using System.Threading;
@@ -6,31 +5,31 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
-    internal sealed class SubscriptionReceiver
+    internal sealed class MessageReceiver
     {
-        private readonly IWebSocketContext _webSocket;
+        private readonly WebSocketConnection _connection;
         private readonly PipeWriter _writer;
-        private readonly CancellationTokenSource _cts;
+        private readonly CancellationToken _sessionAborted;
 
-        public SubscriptionReceiver(
-            IWebSocketContext webSocket,
+        public MessageReceiver(
+            WebSocketConnection connection,
             PipeWriter writer,
-            CancellationTokenSource cts)
+            CancellationToken sessionAborted)
         {
-            _webSocket = webSocket;
+            _connection = connection;
             _writer = writer;
-            _cts = cts;
+            _sessionAborted = sessionAborted;
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
             using (var combined = CancellationTokenSource
-                .CreateLinkedTokenSource(cancellationToken, _cts.Token))
+                .CreateLinkedTokenSource(cancellationToken, _sessionAborted))
             {
-                while (!_webSocket.Closed || !combined.IsCancellationRequested)
+                while (!_connection.Closed || !combined.IsCancellationRequested)
                 {
-                    await _webSocket
-                        .ReceiveMessageAsync(_writer, combined.Token)
+                    await _connection
+                        .ReceiveAsync(_writer, combined.Token)
                         .ConfigureAwait(false);
 
                     await WriteMessageDelimiterAsync(combined.Token)
@@ -57,5 +56,3 @@ namespace HotChocolate.AspNetCore.Subscriptions
         }
     }
 }
-
-#endif
