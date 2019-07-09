@@ -23,7 +23,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         private static readonly byte[] _acceptConnectionMessage =
            SerializeInternal(AcceptConnectionMessage.Default);
 
-        public static ReadOnlySpan<byte> Serialize(
+        public static byte[] Serialize(
             this OperationMessage message)
         {
             if (message is KeepConnectionAliveMessage)

@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,14 +13,16 @@ namespace HotChocolate.Server
 
         ISubscriptionManager Subscriptions { get; }
 
-        Task OpenAsync();
+        IServiceProvider RequestServices { get; }
+
+        Task<bool> TryOpenAsync();
 
         Task SendAsync(
-            ReadOnlySpan<byte> message,
+            byte[] message,
             CancellationToken cancellationToken);
 
         Task ReceiveAsync(
-            IBufferWriter<byte> writer,
+            PipeWriter writer,
             CancellationToken cancellationToken);
 
         Task CloseAsync(

@@ -37,39 +37,59 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         private async Task SendResultsAsync()
         {
-            while (!_responseStream.IsCompleted
-                && !_cts.IsCancellationRequested)
+            try
             {
-                IReadOnlyQueryResult result =
-                    await _responseStream.ReadAsync(_cts.Token)
-                        .ConfigureAwait(false);
+                while (!_responseStream.IsCompleted
+                    && !_cts.IsCancellationRequested)
+                {
+                    IReadOnlyQueryResult result =
+                        await _responseStream.ReadAsync(_cts.Token)
+                            .ConfigureAwait(false);
 
-                if (result != null)
+                    if (result != null)
+                    {
+                        await _connection.SendAsync(
+                            new DataResultMessage(Id, result).Serialize(),
+                            _cts.Token)
+                            .ConfigureAwait(false);
+                    }
+                }
+
+                if (_responseStream.IsCompleted && !_cts.IsCancellationRequested)
                 {
                     await _connection.SendAsync(
-                        new QueryResultMessage(Id, result).Serialize(),
-                        _cts.Token)
-                        .ConfigureAwait(false);
+                        new DataCompleteMessage(Id).Serialize(),
+                        _cts.Token).ConfigureAwait(false);
+
+                    Completed?.Invoke(this, EventArgs.Empty);
                 }
             }
-
-            if (_responseStream.IsCompleted && !_cts.IsCancellationRequested)
+            finally
             {
-                await _connection.SendSubscriptionCompleteMessageAsync(
-                    Id, _cts.Token).ConfigureAwait(false);
-
-                Completed?.Invoke(this, EventArgs.Empty);
+                Dispose();
             }
         }
 
         public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
             if (!_disposed)
             {
+                if (disposing)
+                {
+                    if (!_cts.IsCancellationRequested)
+                    {
+                        _cts.Cancel();
+                    }
+                    _responseStream.Dispose();
+                    _cts.Dispose();
+                }
                 _disposed = true;
-                _cts.Cancel();
-                _responseStream.Dispose();
-                _cts.Dispose();
             }
         }
     }

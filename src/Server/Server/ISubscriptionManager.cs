@@ -1,8 +1,10 @@
+using System;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Server
 {
     public interface ISubscriptionManager
+        : IDisposable
     {
         void Register(string subscriptionId, IResponseStream responseStream);
 
