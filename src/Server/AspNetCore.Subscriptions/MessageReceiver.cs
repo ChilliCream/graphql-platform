@@ -21,7 +21,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             _sessionAborted = sessionAborted;
         }
 
-        public async Task StartAsync(CancellationToken cancellationToken)
+        public async Task ReceiveAsync(CancellationToken cancellationToken)
         {
             using (var combined = CancellationTokenSource
                 .CreateLinkedTokenSource(cancellationToken, _sessionAborted))

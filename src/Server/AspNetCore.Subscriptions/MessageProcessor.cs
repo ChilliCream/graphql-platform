@@ -6,32 +6,33 @@ using System.Threading.Tasks;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
-    internal sealed class MessageReplier
+    internal sealed class MessageProcessor
     {
+        private readonly WebSocketConnection _connection;
         private readonly PipeReader _reader;
-        private readonly MessagePipeline _pipeline;
+        private readonly IMessagePipeline _pipeline;
         private readonly CancellationTokenSource _cts;
 
-        public MessageReplier(
+        public MessageProcessor(
+            WebSocketConnection connection,
             PipeReader reader,
-            MessagePipeline pipeline,
-            CancellationTokenSource cts)
+            IMessagePipeline pipeline)
         {
+            _connection = connection;
             _reader = reader;
             _pipeline = pipeline;
-            _cts = cts;
         }
 
-        public void Start(CancellationToken cancellationToken)
+        public void Begin(CancellationToken cancellationToken)
         {
             Task.Factory.StartNew(
-                () => StartReplyAsync(cancellationToken),
-                _cts.Token,
+                () => ProcessMessagesAsync(cancellationToken),
+                cancellationToken,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
         }
 
-        private async Task StartReplyAsync(
+        private async Task ProcessMessagesAsync(
             CancellationToken cancellationToken)
         {
             while (true)
@@ -50,7 +51,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     if (position != null)
                     {
                         await _pipeline.ProcessAsync(
-
+                                _connection,
                                 buffer.Slice(0, position.Value),
                                 cancellationToken)
                             .ConfigureAwait(false);

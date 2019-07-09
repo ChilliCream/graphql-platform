@@ -10,6 +10,7 @@ using HotChocolate.Server;
 namespace HotChocolate.AspNetCore.Subscriptions
 {
     internal class MessagePipeline
+        : IMessagePipeline
     {
         private readonly IMessageHandler[] _messageHandlers;
 
@@ -23,7 +24,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             _messageHandlers = messageHandlers.ToArray();
         }
 
-        internal async Task ProcessAsync(
+        public async Task ProcessAsync(
             ISocketConnection connection,
             ReadOnlySequence<byte> slice,
             CancellationToken cancellationToken)

@@ -2,6 +2,7 @@ using System;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Server;
 using Microsoft.AspNetCore.Http;
 
@@ -20,17 +21,26 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         private readonly Pipe _pipe = new Pipe();
         private readonly WebSocketKeepAlive _keepAlive;
-        private readonly MessageReceiver _subscriptionReceiver;
-        private readonly MessageReplier _subscriptionReplier;
+        private readonly MessageProcessor _messageProcessor;
+        private readonly MessageReceiver _messageReciver;
 
-        public WebSocketSession(WebSocketConnection connection)
+        public WebSocketSession(
+            WebSocketConnection connection,
+            IMessagePipeline messagePipeline)
         {
-            _connection = connection
-                ?? throw new ArgumentNullException(nameof(connection));
-            _keepAlive = new WebSocketKeepAlive(context, KeepAliveTimeout, _cts);
-            _subscriptionReplier = new MessageReplier(
-                _pipe.Reader, new MessagePipeline(context, _cts), _cts);
-            _subscriptionReceiver = new MessageReceiver(
+            _connection = connection;
+
+            _keepAlive = new WebSocketKeepAlive(
+                context,
+                KeepAliveTimeout,
+                _cts);
+
+            _messageProcessor = new MessageProcessor(
+                connection,
+                _pipe.Reader,
+                messagePipeline);
+
+            _messageReciver = new MessageReceiver(
                 context, _pipe.Writer, _cts);
         }
 
@@ -40,8 +50,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
             {
                 try
                 {
-                    // _connection.
-                    _subscriptionReplier.Start(cancellationToken);
+                    _messageProcessor.Begin(cancellationToken);
+                    await _messageReciver.ReceiveAsync(cancellationToken)
+                        .ConfigureAwait(false);
                 }
                 finally
                 {
