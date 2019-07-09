@@ -51,6 +51,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.Voyager", "As
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Filters", "..\Core\Types.Filters\Types.Filters.csproj", "{F3FD6777-B22A-436B-95C8-A6DA74503A99}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.Subscriptions", "AspNetCore.Subscriptions\AspNetCore.Subscriptions.csproj", "{09D37648-3F81-40C3-9BAC-6439D0D2F4AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{1E147006-83E2-4E63-BF37-F8150A573464}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -149,6 +153,14 @@ Global
 		{F3FD6777-B22A-436B-95C8-A6DA74503A99}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3FD6777-B22A-436B-95C8-A6DA74503A99}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3FD6777-B22A-436B-95C8-A6DA74503A99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09D37648-3F81-40C3-9BAC-6439D0D2F4AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09D37648-3F81-40C3-9BAC-6439D0D2F4AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09D37648-3F81-40C3-9BAC-6439D0D2F4AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09D37648-3F81-40C3-9BAC-6439D0D2F4AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1E147006-83E2-4E63-BF37-F8150A573464}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1E147006-83E2-4E63-BF37-F8150A573464}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1E147006-83E2-4E63-BF37-F8150A573464}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1E147006-83E2-4E63-BF37-F8150A573464}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
