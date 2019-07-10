@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Server;
 
-namespace HotChocolate.AspNetCore.Subscriptions
+namespace HotChocolate.AspNetCore.Subscriptions.Interceptors
 {
     public interface IConnectMessageInterceptor
     {

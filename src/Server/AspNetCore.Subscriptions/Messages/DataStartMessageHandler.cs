@@ -10,16 +10,16 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         : MessageHandler<DataStartMessage>
     {
         private readonly IQueryExecutor _queryExecutor;
-        private readonly ICreateRequestInterceptor _createRequestInterceptor;
+        private readonly ISocketQueryRequestInterceptor _requestInterceptor;
 
 
         public DataStartMessageHandler(
             IQueryExecutor queryExecutor,
-            ICreateRequestInterceptor createRequestInterceptor)
+            ISocketQueryRequestInterceptor queryRequestInterceptor)
         {
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
-            _createRequestInterceptor = createRequestInterceptor;
+            _requestInterceptor = queryRequestInterceptor;
         }
 
         protected override async Task HandleAsync(
@@ -37,9 +37,9 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                     .SetProperties(message.Payload.Extensions)
                     .SetServices(connection.RequestServices);
 
-            if (_createRequestInterceptor == null)
+            if (_requestInterceptor == null)
             {
-                await _createRequestInterceptor.OnCreateAsync(
+                await _requestInterceptor.OnCreateAsync(
                     connection,
                     requestBuilder,
                     cancellationToken)

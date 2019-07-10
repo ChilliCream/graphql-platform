@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Interceptors;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Server;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -18,21 +20,14 @@ namespace HotChocolate.AspNetClassic
 namespace HotChocolate.AspNetCore
 #endif
 {
-    public delegate Task<ConnectionStatus> OnConnectWebSocketAsync(
-        HttpContext context,
-        IDictionary<string, object> properties,
-        CancellationToken cancellationToken);
-
-    public delegate Task OnCreateRequestAsync(
-        HttpContext context,
-        IQueryRequestBuilder requestBuilder,
-        CancellationToken cancellationToken);
-
     public class QueryMiddlewareOptions
     {
         private PathString _path = new PathString("/");
         private PathString _subscriptionPath = new PathString("/ws");
 
+        [Obsolete(
+            "Use query execution options.",
+            true)]
         public int QueryCacheSize { get; set; } = 100;
 
         public int MaxRequestSize { get; set; } = 20 * 1000 * 1000;
@@ -70,8 +65,14 @@ namespace HotChocolate.AspNetCore
             }
         }
 
+        [Obsolete(
+            "Use serviceCollection.AddSocketConnectionInterceptor()",
+            true)]
         public OnConnectWebSocketAsync OnConnectWebSocket { get; set; }
 
+        [Obsolete(
+            "Use serviceCollection.AddQueryRequestInterceptor()",
+            true)]
         public OnCreateRequestAsync OnCreateRequest { get; set; }
     }
 }

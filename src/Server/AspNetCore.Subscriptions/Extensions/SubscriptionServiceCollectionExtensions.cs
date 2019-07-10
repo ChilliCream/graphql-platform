@@ -1,5 +1,8 @@
+using HotChocolate.AspNetCore.Subscriptions.Interceptors;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using HotChocolate.Execution;
+using HotChocolate.Server;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.AspNetCore.Subscriptions
@@ -10,23 +13,42 @@ namespace HotChocolate.AspNetCore.Subscriptions
             this IServiceCollection serviceCollection)
         {
             serviceCollection.AddMessageHandlers();
+            serviceCollection.AddQueryRequestInterceptor();
+            serviceCollection.AddConnectionInterceptor();
             return serviceCollection;
         }
 
-        internal static void AddMessageHandlers(
+        private static void AddQueryRequestInterceptor(
+            this IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddSingleton<ISocketQueryRequestInterceptor>(sp =>
+                new WebSocketQueryRequestInterceptor(
+                    sp.GetService<IQueryRequestInterceptor<HttpContext>>()));
+        }
+
+        private static void AddConnectionInterceptor(
+            this IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddSingleton<IConnectMessageInterceptor>(sp =>
+                new ConnectMessageInterceptor(
+                    sp.GetService<ISocketConnectionInterceptor<HttpContext>>())
+                    );
+        }
+
+        private static void AddMessageHandlers(
             this IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<IMessageHandler>(sp =>
                 new DataStartMessageHandler(
                     sp.GetRequiredService<IQueryExecutor>(),
-                    sp.GetService<ICreateRequestInterceptor>()));
+                    sp.GetRequiredService<ISocketQueryRequestInterceptor>()));
 
             serviceCollection.AddSingleton<IMessageHandler>(sp =>
                 new DataStopMessageHandler());
 
             serviceCollection.AddSingleton<IMessageHandler>(sp =>
                 new InitializeConnectionMessageHandler(
-                    sp.GetService<IConnectMessageInterceptor>()));
+                    sp.GetRequiredService<IConnectMessageInterceptor>()));
 
             serviceCollection.AddSingleton<IMessageHandler>(sp =>
                 new TerminateConnectionMessageHandler());

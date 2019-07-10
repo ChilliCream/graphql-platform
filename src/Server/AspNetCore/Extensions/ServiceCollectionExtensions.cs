@@ -3,6 +3,10 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Configuration;
+using HotChocolate.AspNetCore.Subscriptions;
+using HotChocolate.AspNetCore.Interceptors;
+using HotChocolate.Server;
+using Microsoft.AspNetCore.Http;
 
 namespace HotChocolate
 {
@@ -23,10 +27,7 @@ namespace HotChocolate
             }
 
             QueryExecutionBuilder.BuildDefault(serviceCollection);
-
-            return serviceCollection
-                .AddSingleton(schema)
-                .AddJsonSerializer();
+            return serviceCollection.AddSchema(schema);
         }
 
         public static IServiceCollection AddGraphQL(
@@ -50,10 +51,7 @@ namespace HotChocolate
             }
 
             configure(QueryExecutionBuilder.New()).Build(serviceCollection);
-
-            return serviceCollection
-                .AddSingleton(schema)
-                .AddJsonSerializer();
+            return serviceCollection.AddSchema(schema);
         }
 
         public static IServiceCollection AddGraphQL(
@@ -71,10 +69,7 @@ namespace HotChocolate
             }
 
             QueryExecutionBuilder.BuildDefault(serviceCollection);
-
-            return serviceCollection
-                .AddSingleton(schemaFactory)
-                .AddJsonSerializer();
+            return serviceCollection.AddSchema(schemaFactory);
         }
 
         public static IServiceCollection AddGraphQL(
@@ -98,10 +93,7 @@ namespace HotChocolate
             }
 
             configure(QueryExecutionBuilder.New()).Build(serviceCollection);
-
-            return serviceCollection
-                .AddSingleton(schemaFactory)
-                .AddJsonSerializer();
+            return serviceCollection.AddSchema(schemaFactory);
         }
 
         public static IServiceCollection AddGraphQL(
@@ -119,14 +111,11 @@ namespace HotChocolate
             }
 
             QueryExecutionBuilder.BuildDefault(serviceCollection);
-
-            return serviceCollection
-                .AddSingleton<ISchema>(s => Schema.Create(c =>
+            return serviceCollection.AddSchema(s => Schema.Create(c =>
                 {
                     c.RegisterServiceProvider(s);
                     configure(c);
-                }))
-                .AddJsonSerializer();
+                }));
         }
 
         public static IServiceCollection AddGraphQL(
@@ -152,14 +141,11 @@ namespace HotChocolate
 
             configureBuilder(QueryExecutionBuilder.New())
                 .Build(serviceCollection);
-
-            return serviceCollection
-                .AddSingleton<ISchema>(s => Schema.Create(c =>
+            return serviceCollection.AddSchema(s => Schema.Create(c =>
                 {
                     c.RegisterServiceProvider(s);
                     configure(c);
-                }))
-                .AddJsonSerializer();
+                }));
         }
 
         public static IServiceCollection AddGraphQL(
@@ -184,14 +170,12 @@ namespace HotChocolate
 
             QueryExecutionBuilder.BuildDefault(serviceCollection);
 
-            return serviceCollection
-                .AddSingleton<ISchema>(s => Schema.Create(
-                    schemaSource, c =>
-                    {
-                        c.RegisterServiceProvider(s);
-                        configure(c);
-                    }))
-                .AddJsonSerializer();
+            return serviceCollection.AddSchema(s =>
+                Schema.Create(schemaSource, c =>
+                {
+                    c.RegisterServiceProvider(s);
+                    configure(c);
+                }));
         }
 
         public static IServiceCollection AddGraphQL(
@@ -224,14 +208,12 @@ namespace HotChocolate
             configureBuilder(QueryExecutionBuilder.New())
                 .Build(serviceCollection);
 
-            return serviceCollection
-                .AddSingleton<ISchema>(s => Schema.Create(
-                    schemaSource, c =>
-                    {
-                        c.RegisterServiceProvider(s);
-                        configure(c);
-                    }))
-                .AddJsonSerializer();
+            return serviceCollection.AddSchema(s =>
+                Schema.Create(schemaSource, c =>
+                {
+                    c.RegisterServiceProvider(s);
+                    configure(c);
+                }));
         }
 
         public static IServiceCollection AddGraphQL(
@@ -255,10 +237,7 @@ namespace HotChocolate
             }
 
             QueryExecutionBuilder.BuildDefault(serviceCollection, options);
-
-            return serviceCollection
-                .AddSingleton(schema)
-                .AddJsonSerializer();
+            return serviceCollection.AddSchema(schema);
         }
 
         public static IServiceCollection AddGraphQL(
@@ -282,10 +261,7 @@ namespace HotChocolate
             }
 
             QueryExecutionBuilder.BuildDefault(serviceCollection, options);
-
-            return serviceCollection
-                .AddSingleton(schemaFactory)
-                .AddJsonSerializer();
+            return serviceCollection.AddSchema(schemaFactory);
         }
 
         public static IServiceCollection AddGraphQL(
@@ -310,13 +286,12 @@ namespace HotChocolate
 
             QueryExecutionBuilder.BuildDefault(serviceCollection, options);
 
-            return serviceCollection
-                .AddSingleton<ISchema>(s => Schema.Create(c =>
+            return serviceCollection.AddSchema(s =>
+                Schema.Create(c =>
                 {
                     c.RegisterServiceProvider(s);
                     configure(c);
-                }))
-                .AddJsonSerializer();
+                }));
         }
 
         public static IServiceCollection AddGraphQL(
@@ -347,16 +322,15 @@ namespace HotChocolate
 
             QueryExecutionBuilder.BuildDefault(serviceCollection, options);
 
-            return serviceCollection
-                .AddSingleton<ISchema>(s => Schema.Create(
-                    schemaSource, c =>
-                    {
-                        c.RegisterServiceProvider(s);
-                        configure(c);
-                    }))
-                .AddJsonSerializer();
+            return serviceCollection.AddSchema(s =>
+                Schema.Create(schemaSource, c =>
+                {
+                    c.RegisterServiceProvider(s);
+                    configure(c);
+                }));
         }
 
+        [Obsolete("Use different overload.", true)]
         public static IServiceCollection AddGraphQL(
             this IServiceCollection serviceCollection,
             IQueryExecutor executor)
@@ -376,6 +350,41 @@ namespace HotChocolate
                 .AddSingleton(s =>
                     s.GetRequiredService<IQueryExecutor>().Schema)
                 .AddJsonSerializer();
+        }
+
+        public static IServiceCollection AddWebSocketConnectionInterceptor(
+            this IServiceCollection serviceCollection,
+            OnConnectWebSocketAsync interceptor)
+        {
+            return serviceCollection
+                .AddSingleton<ISocketConnectionInterceptor<HttpContext>>(
+                    new SocketConnectionDelegateInterceptor(interceptor));
+        }
+
+        public static IServiceCollection AddQueryRequestInterceptor(
+            this IServiceCollection serviceCollection,
+            OnCreateRequestAsync interceptor)
+        {
+            return serviceCollection
+                .AddSingleton<IQueryRequestInterceptor<HttpContext>>(
+                    new QueryRequestDelegateInterceptor(interceptor));
+        }
+
+        private static IServiceCollection AddSchema(
+            this IServiceCollection serviceCollection,
+            ISchema schema)
+        {
+            return AddSchema(serviceCollection, sp => schema);
+        }
+
+        private static IServiceCollection AddSchema(
+            this IServiceCollection serviceCollection,
+            Func<IServiceProvider, ISchema> factory)
+        {
+            serviceCollection.AddSingleton(factory);
+            serviceCollection.AddJsonSerializer();
+            serviceCollection.AddGraphQLSubscriptions();
+            return serviceCollection;
         }
 
         private static IServiceCollection AddJsonSerializer(

@@ -1,14 +1,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using HotChocolate.Server;
 
-namespace HotChocolate.AspNetCore.Subscriptions
+namespace HotChocolate.Server
 {
-    public interface ICreateRequestInterceptor
+    public interface IQueryRequestInterceptor<TContext>
     {
         Task OnCreateAsync(
-            ISocketConnection connection,
+            TContext context,
             IQueryRequestBuilder requestBuilder,
             CancellationToken cancellationToken);
     }
