@@ -14,7 +14,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
     {
         private readonly IMessageHandler[] _messageHandlers;
 
-        internal MessagePipeline(IEnumerable<IMessageHandler> messageHandlers)
+        public MessagePipeline(IEnumerable<IMessageHandler> messageHandlers)
         {
             if (messageHandlers is null)
             {

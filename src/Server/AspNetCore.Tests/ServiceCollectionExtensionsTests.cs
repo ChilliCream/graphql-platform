@@ -463,6 +463,7 @@ namespace HotChocolate.AspNetCore
             Assert.Throws<ArgumentNullException>(action);
         }
 
+        [Obsolete("Use different overload.", true)]
         [Fact]
         public void AddGraphQL_ServicesQueryExecutor_ServiceNull()
         {
@@ -478,6 +479,7 @@ namespace HotChocolate.AspNetCore
             Assert.Throws<ArgumentNullException>(action);
         }
 
+        [Obsolete("Use different overload.", true)]
         [Fact]
         public void AddGraphQL_ServicesQueryExecutor_ExecutorNull()
         {

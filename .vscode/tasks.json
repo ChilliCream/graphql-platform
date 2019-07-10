@@ -42,8 +42,8 @@
       }
     },
     {
-      "label": "build sub",
-      "command": "dotnet build src/Server/AspNetCore.Subscriptions /property:GenerateFullPaths=true",
+      "label": "build all core projects",
+      "command": "dotnet build tools/Build.Core.sln /property:GenerateFullPaths=true",
       "type": "shell",
       "presentation": {
         "reveal": "silent"

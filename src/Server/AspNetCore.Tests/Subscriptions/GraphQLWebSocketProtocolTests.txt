@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using HotChocolate.Subscriptions;
 using Microsoft.AspNetCore.TestHost;
 using Xunit;
+using HotChocolate.AspNetCore.Subscriptions.Messages;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {

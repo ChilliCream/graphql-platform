@@ -38,6 +38,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
         private static void AddMessageHandlers(
             this IServiceCollection serviceCollection)
         {
+            serviceCollection.AddSingleton<IMessagePipeline, MessagePipeline>();
+
             serviceCollection.AddSingleton<IMessageHandler>(sp =>
                 new DataStartMessageHandler(
                     sp.GetRequiredService<IQueryExecutor>(),

@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.Execution;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -28,7 +29,7 @@ namespace HotChocolate.AspNetCore.Authorization
         [ClassData(typeof(AuthorizationTestData))]
         public void AuthorizeDirective_Defined(ISchema schema)
         {
-            // arrange            
+            // arrange
             // assert
             Assert.Contains(
                 schema.DirectiveTypes,
@@ -318,7 +319,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     identity.AddClaim(new Claim(
                         ClaimTypes.Role,
                         "b"));
-                    context.AddIdentity(identity);
+                    context.User.AddIdentity(identity);
                 });
 
             var request = "{ roles }";
@@ -358,7 +359,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     identity.AddClaim(new Claim(
                         ClaimTypes.Role,
                         "c"));
-                    context.AddIdentity(identity);
+                    context.User.AddIdentity(identity);
                 });
 
             var request = "{ roles_ab }";
@@ -574,7 +575,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     identity.AddClaim(new Claim(
                         ClaimTypes.DateOfBirth,
                         "2013-05-30"));
-                    context.AddIdentity(identity);
+                    context.User.AddIdentity(identity);
                 });
 
             var request = "{ piped }";
@@ -610,28 +611,27 @@ namespace HotChocolate.AspNetCore.Authorization
 
         private TestServer CreateTestServer(
             Action<IServiceCollection> configureServices,
-            Action<IHttpContext> configureUser)
+            Action<HttpContext> configureUser)
         {
             return TestServerFactory.Create(
-                builder =>
-                {
-                    return builder
-                        .ConfigureServices(configureServices)
-                        .Configure(app =>
-                        {
-                            app.UseGraphQL(new QueryMiddlewareOptions
+                builder => builder
+                    .ConfigureServices(services =>
+                    {
+                        configureServices(services);
+                        services.AddQueryRequestInterceptor(
+                            (ctx, r, ct) =>
                             {
-                                OnCreateRequest = (ctx, r, ct) =>
-                                {
-                                    configureUser(ctx);
-                                    r.SetProperty(
-                                        nameof(ClaimsPrincipal),
-                                        ctx.User);
-                                    return Task.CompletedTask;
-                                }
+                                configureUser(ctx);
+                                r.SetProperty(
+                                    nameof(ClaimsPrincipal),
+                                    ctx.User);
+                                return Task.CompletedTask;
                             });
-                        });
-                });
+                    })
+                    .Configure(app =>
+                    {
+                        app.UseGraphQL(new QueryMiddlewareOptions());
+                    }));
         }
     }
 }

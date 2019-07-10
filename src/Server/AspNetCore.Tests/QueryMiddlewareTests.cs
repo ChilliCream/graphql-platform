@@ -412,14 +412,15 @@ namespace HotChocolate.AspNetCore
                     c.RegisterQueryType<QueryType>();
                     c.RegisterType<InputObjectType<Bar>>();
                 },
-                new QueryMiddlewareOptions
-                {
-                    Path = path ?? "/",
-                    OnCreateRequest = (context, request, ct) =>
+                services => services.AddQueryRequestInterceptor(
+                    (context, request, ct) =>
                     {
                         request.AddProperty("foo", "bar");
                         return Task.CompletedTask;
-                    }
+                    }),
+                new QueryMiddlewareOptions
+                {
+                    Path = path ?? "/",
                 });
         }
     }
