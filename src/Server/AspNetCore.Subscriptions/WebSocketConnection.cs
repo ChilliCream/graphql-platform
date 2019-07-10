@@ -147,7 +147,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
         }
 
-        public WebSocketConnection New(HttpContext httpContext) =>
+        public static WebSocketConnection New(HttpContext httpContext) =>
             new WebSocketConnection(httpContext);
     }
 }

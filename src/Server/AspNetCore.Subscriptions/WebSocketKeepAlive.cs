@@ -6,12 +6,20 @@ using HotChocolate.Server;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
-    internal sealed class KeepConnectionAlive
+    internal sealed class KeepConnectionAliveJob
     {
+        private static readonly TimeSpan _defaultTimeout =
+            TimeSpan.FromSeconds(5);
         private readonly ISocketConnection _connection;
         private readonly TimeSpan _timeout;
 
-        public KeepConnectionAlive(
+        public KeepConnectionAliveJob(
+            ISocketConnection connection)
+            : this(connection, _defaultTimeout)
+        {
+        }
+
+        public KeepConnectionAliveJob(
             ISocketConnection connection,
             TimeSpan timeout)
         {

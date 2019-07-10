@@ -3,24 +3,24 @@ using System.Buffers;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Server;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
     internal sealed class MessageProcessor
     {
-        private readonly WebSocketConnection _connection;
+        private readonly ISocketConnection _connection;
         private readonly PipeReader _reader;
         private readonly IMessagePipeline _pipeline;
-        private readonly CancellationTokenSource _cts;
 
         public MessageProcessor(
-            WebSocketConnection connection,
-            PipeReader reader,
-            IMessagePipeline pipeline)
+            ISocketConnection connection,
+            IMessagePipeline pipeline,
+            PipeReader reader)
         {
             _connection = connection;
-            _reader = reader;
             _pipeline = pipeline;
+            _reader = reader;
         }
 
         public void Begin(CancellationToken cancellationToken)
