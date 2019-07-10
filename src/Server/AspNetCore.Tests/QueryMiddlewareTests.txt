@@ -125,45 +125,6 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
-        public async Task HttpPost_WithObjectVariables()
-        {
-            // arrange
-            TestServer server = CreateTestServer();
-            var request = new ClientQueryRequest
-            {
-                Query = @"
-                query test($a: FooInput!) {
-                    withObjectArgument(b: $a) {
-                        a
-                        b
-                        c
-                    }
-                }",
-                Variables = JObject.FromObject(new Dictionary<string, object>
-                {
-                    { "a", new Dictionary<string, object> {
-                        {"a", "44"},
-                        {"b", "55"},
-                        {"c", 66}
-                    } }
-                })
-            };
-
-            // act
-            HttpResponseMessage message =
-                await server.SendRequestAsync(request);
-
-            // assert
-            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
-
-            string json = await message.Content.ReadAsStringAsync();
-            ClientQueryResult result = JsonConvert
-                .DeserializeObject<ClientQueryResult>(json);
-            Assert.Null(result.Errors);
-            result.MatchSnapshot();
-        }
-
-        [Fact]
         public async Task HttpPost_WithScopedService()
         {
             // arrange

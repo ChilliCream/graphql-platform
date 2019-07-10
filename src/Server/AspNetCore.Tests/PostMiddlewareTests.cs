@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.TestHost;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -358,6 +359,76 @@ namespace HotChocolate.AspNetCore
             // act
             HttpResponseMessage message =
                 await server.SendRequestAsync(request);
+
+            // assert
+            ClientQueryResult result = await DeserializeAsync(message);
+            result.MatchSnapshot();
+        }
+
+        [InlineData("a")]
+        [InlineData("b")]
+        [Theory]
+        public async Task HttpPost_Json_QueryAndOperationName(
+            string operationName)
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var request = new ClientQueryRequest
+            {
+                Query =
+                @"
+                    query a {
+                        a: hero {
+                            name
+                        }
+                    }
+
+                    query b {
+                        b: hero {
+                            name
+                        }
+                    }
+                ",
+                OperationName = operationName
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendRequestAsync(request);
+
+            // assert
+            ClientQueryResult result = await DeserializeAsync(message);
+            result.MatchSnapshot(new SnapshotNameExtension(operationName));
+        }
+
+        [Fact]
+        public async Task HttpPost_Json_CachedQuery()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var request = new ClientQueryRequest
+            {
+                Query =
+                @"
+                    query a {
+                        hero {
+                            name
+                        }
+                    }
+                ",
+                NamedQuery = "abc"
+            };
+
+            HttpResponseMessage message =
+                await server.SendRequestAsync(request);
+
+            // act
+            request = new ClientQueryRequest
+            {
+                NamedQuery = "abc"
+            };
+
+            message = await server.SendRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
