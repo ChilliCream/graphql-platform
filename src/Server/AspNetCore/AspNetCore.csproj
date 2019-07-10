@@ -33,6 +33,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Core\Core.csproj" />
     <ProjectReference Include="..\AspNetCore.Authorization\AspNetCore.Authorization.csproj" />
+    <ProjectReference Include="..\AspNetCore.Subscriptions\AspNetCore.Subscriptions.csproj" />
   </ItemGroup>
 
 </Project>

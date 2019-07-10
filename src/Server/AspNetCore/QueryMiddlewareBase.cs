@@ -2,7 +2,6 @@ using System;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -199,7 +198,7 @@ namespace HotChocolate.AspNetCore
                     context.GetCancellationToken();
 
                 await onCreateRequest(
-                    new HttpContextWrapper(context),
+                    context,
                     builder,
                     requestAborted)
                     .ConfigureAwait(false);

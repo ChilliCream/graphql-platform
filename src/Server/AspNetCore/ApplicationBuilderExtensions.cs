@@ -10,6 +10,7 @@ using IApplicationBuilder = Owin.IAppBuilder;
 #else
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using HotChocolate.AspNetCore.Subscriptions;
 #endif
 
 #if ASPNETCLASSIC
@@ -29,7 +30,7 @@ namespace HotChocolate.AspNetCore
                 .UseGraphQL(serviceProvider, new QueryMiddlewareOptions());
         }
 #else
-        
+
         public static IApplicationBuilder UseGraphQL(
             this IApplicationBuilder applicationBuilder)
         {
@@ -104,7 +105,6 @@ namespace HotChocolate.AspNetCore
             return applicationBuilder
                 .Use<PostQueryMiddleware>(executor, serializer, cache, hashProvider, options)
                 .Use<GetQueryMiddleware>(executor, serializer, options)
-                //.Use<SubscriptionMiddleware>(executor, options)
                 .Use<SchemaMiddleware>(executor, options);
         }
 #else
@@ -125,7 +125,11 @@ namespace HotChocolate.AspNetCore
             return applicationBuilder
                 .UseMiddleware<PostQueryMiddleware>(options)
                 .UseMiddleware<GetQueryMiddleware>(options)
-                .UseMiddleware<SubscriptionMiddleware>(options)
+                .UseGraphQLSubscriptions(new SubscriptionMiddlewareOptions
+                {
+                    ParserOptions = options.ParserOptions,
+                    SubscriptionPath = options.SubscriptionPath
+                })
                 .UseMiddleware<SchemaMiddleware>(options);
         }
 #endif

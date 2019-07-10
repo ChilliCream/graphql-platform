@@ -65,7 +65,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             throw new System.NotImplementedException();
         }
 
-        public WebSocketSession New(
+        public static WebSocketSession New(
             HttpContext httpContext,
             IMessagePipeline messagePipeline)
         {

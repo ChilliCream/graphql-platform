@@ -6,6 +6,13 @@ namespace HotChocolate.AspNetCore.Subscriptions
 {
     public static class SubscriptionServiceCollectionExtensions
     {
+        public static IServiceCollection AddGraphQLSubscriptions(
+            this IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddMessageHandlers();
+            return serviceCollection;
+        }
+
         internal static void AddMessageHandlers(
             this IServiceCollection serviceCollection)
         {
