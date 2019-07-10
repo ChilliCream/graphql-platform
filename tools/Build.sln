@@ -1,75 +1,79 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29020.237
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Abstractions", "..\src\Core\Abstractions\Abstractions.csproj", "{9136F988-3709-4FC0-8BEE-5CF1498CB2E8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Abstractions", "..\src\Core\Abstractions\Abstractions.csproj", "{9136F988-3709-4FC0-8BEE-5CF1498CB2E8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Abstractions.Tests", "..\src\Core\Abstractions.Tests\Abstractions.Tests.csproj", "{144419B1-47E3-486C-93D1-6E874D74DB66}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Abstractions.Tests", "..\src\Core\Abstractions.Tests\Abstractions.Tests.csproj", "{144419B1-47E3-486C-93D1-6E874D74DB66}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "..\src\Core\Core\Core.csproj", "{96700D82-F5B7-45EB-818A-1782AABD684B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "..\src\Core\Core\Core.csproj", "{96700D82-F5B7-45EB-818A-1782AABD684B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Tests", "..\src\Core\Core.Tests\Core.Tests.csproj", "{8796B24B-A287-42A3-87B3-8BA6FEADD309}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Tests", "..\src\Core\Core.Tests\Core.Tests.csproj", "{8796B24B-A287-42A3-87B3-8BA6FEADD309}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Language", "..\src\Core\Language\Language.csproj", "{A3F4CA6F-D851-46CF-85AB-944F6BE4A6D9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Language", "..\src\Core\Language\Language.csproj", "{A3F4CA6F-D851-46CF-85AB-944F6BE4A6D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Language.Tests", "..\src\Core\Language.Tests\Language.Tests.csproj", "{2D425F11-34C0-43B5-BA32-9AB77204675A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Language.Tests", "..\src\Core\Language.Tests\Language.Tests.csproj", "{2D425F11-34C0-43B5-BA32-9AB77204675A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runtime", "..\src\Core\Runtime\Runtime.csproj", "{05818E65-4B2C-4C25-97AE-23A867C1C633}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runtime", "..\src\Core\Runtime\Runtime.csproj", "{05818E65-4B2C-4C25-97AE-23A867C1C633}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Runtime.Tests", "..\src\Core\Runtime.Tests\Runtime.Tests.csproj", "{9F9AE843-0661-42A8-A639-89901615B4B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runtime.Tests", "..\src\Core\Runtime.Tests\Runtime.Tests.csproj", "{9F9AE843-0661-42A8-A639-89901615B4B9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriptions", "..\src\Core\Subscriptions\Subscriptions.csproj", "{3B391F66-9BBE-4B47-912D-F8AFA2EA460B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriptions", "..\src\Core\Subscriptions\Subscriptions.csproj", "{3B391F66-9BBE-4B47-912D-F8AFA2EA460B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriptions.InMemory", "..\src\Core\Subscriptions.InMemory\Subscriptions.InMemory.csproj", "{E384CEB5-737C-4E90-8465-B864C024739C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriptions.InMemory", "..\src\Core\Subscriptions.InMemory\Subscriptions.InMemory.csproj", "{E384CEB5-737C-4E90-8465-B864C024739C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriptions.Tests", "..\src\Core\Subscriptions.Tests\Subscriptions.Tests.csproj", "{65DC5571-4F06-4645-B5CF-B8C6EE1D58B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriptions.Tests", "..\src\Core\Subscriptions.Tests\Subscriptions.Tests.csproj", "{65DC5571-4F06-4645-B5CF-B8C6EE1D58B9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types", "..\src\Core\Types\Types.csproj", "{E38491CE-5DA5-473E-BB5A-54056F0D0B2F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types", "..\src\Core\Types\Types.csproj", "{E38491CE-5DA5-473E-BB5A-54056F0D0B2F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Tests", "..\src\Core\Types.Tests\Types.Tests.csproj", "{6B1E1557-578E-44A2-B42E-0C646008D5D5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Tests", "..\src\Core\Types.Tests\Types.Tests.csproj", "{6B1E1557-578E-44A2-B42E-0C646008D5D5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities", "..\src\Core\Utilities\Utilities.csproj", "{D49C0660-8080-418E-A1FE-F90383F3E8E9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utilities", "..\src\Core\Utilities\Utilities.csproj", "{D49C0660-8080-418E-A1FE-F90383F3E8E9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities.Tests", "..\src\Core\Utilities.Tests\Utilities.Tests.csproj", "{5131C7F4-0BB5-4260-A79B-87A7DF72944D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utilities.Tests", "..\src\Core\Utilities.Tests\Utilities.Tests.csproj", "{5131C7F4-0BB5-4260-A79B-87A7DF72944D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Validation.Tests", "..\src\Core\Validation.Tests\Validation.Tests.csproj", "{13D65EC0-5B97-4E3E-9196-4CB764CA53FB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Validation.Tests", "..\src\Core\Validation.Tests\Validation.Tests.csproj", "{13D65EC0-5B97-4E3E-9196-4CB764CA53FB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetClassic", "..\src\Server\AspNetClassic\AspNetClassic.csproj", "{BD364DCB-4321-4FEE-85F8-B0B9356BB668}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic", "..\src\Server\AspNetClassic\AspNetClassic.csproj", "{BD364DCB-4321-4FEE-85F8-B0B9356BB668}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetClassic.Authorization", "..\src\Server\AspNetClassic.Authorization\AspNetClassic.Authorization.csproj", "{4F9E007B-4583-4181-AD6A-86B4F38E5394}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.Authorization", "..\src\Server\AspNetClassic.Authorization\AspNetClassic.Authorization.csproj", "{4F9E007B-4583-4181-AD6A-86B4F38E5394}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetClassic.GraphiQL", "..\src\Server\AspNetClassic.GraphiQL\AspNetClassic.GraphiQL.csproj", "{D6A58CB7-DEA4-48F3-8D3F-6408807271A8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.GraphiQL", "..\src\Server\AspNetClassic.GraphiQL\AspNetClassic.GraphiQL.csproj", "{D6A58CB7-DEA4-48F3-8D3F-6408807271A8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetClassic.Playground", "..\src\Server\AspNetClassic.Playground\AspNetClassic.Playground.csproj", "{9861C1E8-357E-4E81-9CC6-0FF0968C1806}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.Playground", "..\src\Server\AspNetClassic.Playground\AspNetClassic.Playground.csproj", "{9861C1E8-357E-4E81-9CC6-0FF0968C1806}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetClassic.Tests", "..\src\Server\AspNetClassic.Tests\AspNetClassic.Tests.csproj", "{5897D79A-8D61-4C14-A9BB-BAC73ED277F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.Tests", "..\src\Server\AspNetClassic.Tests\AspNetClassic.Tests.csproj", "{5897D79A-8D61-4C14-A9BB-BAC73ED277F2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore", "..\src\Server\AspNetCore\AspNetCore.csproj", "{B962DAF4-3D47-496B-AF35-E738AF81E495}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore", "..\src\Server\AspNetCore\AspNetCore.csproj", "{B962DAF4-3D47-496B-AF35-E738AF81E495}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.Authorization", "..\src\Server\AspNetCore.Authorization\AspNetCore.Authorization.csproj", "{471AFBA9-B581-408B-BFBD-E2856BE477CC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Authorization", "..\src\Server\AspNetCore.Authorization\AspNetCore.Authorization.csproj", "{471AFBA9-B581-408B-BFBD-E2856BE477CC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.GraphiQL", "..\src\Server\AspNetCore.GraphiQL\AspNetCore.GraphiQL.csproj", "{BFE345F2-C2C3-4E36-9DA0-5258D04E9B41}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.GraphiQL", "..\src\Server\AspNetCore.GraphiQL\AspNetCore.GraphiQL.csproj", "{BFE345F2-C2C3-4E36-9DA0-5258D04E9B41}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.Playground", "..\src\Server\AspNetCore.Playground\AspNetCore.Playground.csproj", "{960934BB-73CC-40AE-AA02-53ED08A0E2D3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Playground", "..\src\Server\AspNetCore.Playground\AspNetCore.Playground.csproj", "{960934BB-73CC-40AE-AA02-53ED08A0E2D3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.Tests", "..\src\Server\AspNetCore.Tests\AspNetCore.Tests.csproj", "{8FF4B6EB-BED9-453C-B0FD-7B4CECF2B595}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Tests", "..\src\Server\AspNetCore.Tests\AspNetCore.Tests.csproj", "{8FF4B6EB-BED9-453C-B0FD-7B4CECF2B595}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stitching", "..\src\Stitching\Stitching\Stitching.csproj", "{344804F7-945C-4AD2-BCE4-1DBBAB316DFD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stitching", "..\src\Stitching\Stitching\Stitching.csproj", "{344804F7-945C-4AD2-BCE4-1DBBAB316DFD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Stitching.Tests", "..\src\Stitching\Stitching.Tests\Stitching.Tests.csproj", "{0D9BA1B0-5D36-4EF0-92E8-7B27DD47B9A0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Stitching.Tests", "..\src\Stitching\Stitching.Tests\Stitching.Tests.csproj", "{0D9BA1B0-5D36-4EF0-92E8-7B27DD47B9A0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetClassic.Voyager", "..\src\Server\AspNetClassic.Voyager\AspNetClassic.Voyager.csproj", "{4372D7D0-4B87-4864-B92F-ED73C1D9FF63}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.Voyager", "..\src\Server\AspNetClassic.Voyager\AspNetClassic.Voyager.csproj", "{4372D7D0-4B87-4864-B92F-ED73C1D9FF63}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.Voyager", "..\src\Server\AspNetCore.Voyager\AspNetCore.Voyager.csproj", "{46B64A6D-0B1C-4F37-9188-3FCE6F991BD3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Voyager", "..\src\Server\AspNetCore.Voyager\AspNetCore.Voyager.csproj", "{46B64A6D-0B1C-4F37-9188-3FCE6F991BD3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Diagnostics.ApolloTracing.Tests", "..\src\Core\Core.Diagnostics.ApolloTracing.Tests\Core.Diagnostics.ApolloTracing.Tests.csproj", "{9F601310-3EC8-4B03-B542-5AA0BF249A72}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Diagnostics.ApolloTracing.Tests", "..\src\Core\Core.Diagnostics.ApolloTracing.Tests\Core.Diagnostics.ApolloTracing.Tests.csproj", "{9F601310-3EC8-4B03-B542-5AA0BF249A72}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core.Diagnostics.CustomObserver.Tests", "..\src\Core\Core.Diagnostics.CustomObserver.Tests\Core.Diagnostics.CustomObserver.Tests.csproj", "{1C934C18-0DAE-4CC4-A425-26397394301A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Diagnostics.CustomObserver.Tests", "..\src\Core\Core.Diagnostics.CustomObserver.Tests\Core.Diagnostics.CustomObserver.Tests.csproj", "{1C934C18-0DAE-4CC4-A425-26397394301A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Filters", "..\src\Core\Types.Filters\Types.Filters.csproj", "{31C17F86-750F-4A1B-BBF5-0CCF0C679107}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Filters", "..\src\Core\Types.Filters\Types.Filters.csproj", "{31C17F86-750F-4A1B-BBF5-0CCF0C679107}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Filters.Tests", "..\src\Core\Types.Filters.Tests\Types.Filters.Tests.csproj", "{EDA2C3AA-2DAE-4E2E-BE05-67F0F065671D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Filters.Tests", "..\src\Core\Types.Filters.Tests\Types.Filters.Tests.csproj", "{EDA2C3AA-2DAE-4E2E-BE05-67F0F065671D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "..\src\Server\Server\Server.csproj", "{D040FB81-FF67-4E7D-8A38-86C9CDF69207}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Subscriptions", "..\src\Server\AspNetCore.Subscriptions\AspNetCore.Subscriptions.csproj", "{2B5FB48E-60C8-43C5-938E-33C56CBB253B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -79,9 +83,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{9136F988-3709-4FC0-8BEE-5CF1498CB2E8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -492,5 +493,35 @@ Global
 		{EDA2C3AA-2DAE-4E2E-BE05-67F0F065671D}.Release|x64.Build.0 = Release|Any CPU
 		{EDA2C3AA-2DAE-4E2E-BE05-67F0F065671D}.Release|x86.ActiveCfg = Release|Any CPU
 		{EDA2C3AA-2DAE-4E2E-BE05-67F0F065671D}.Release|x86.Build.0 = Release|Any CPU
+		{D040FB81-FF67-4E7D-8A38-86C9CDF69207}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D040FB81-FF67-4E7D-8A38-86C9CDF69207}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D040FB81-FF67-4E7D-8A38-86C9CDF69207}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{D040FB81-FF67-4E7D-8A38-86C9CDF69207}.Debug|x64.Build.0 = Debug|Any CPU
+		{D040FB81-FF67-4E7D-8A38-86C9CDF69207}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D040FB81-FF67-4E7D-8A38-86C9CDF69207}.Debug|x86.Build.0 = Debug|Any CPU
+		{D040FB81-FF67-4E7D-8A38-86C9CDF69207}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D040FB81-FF67-4E7D-8A38-86C9CDF69207}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D040FB81-FF67-4E7D-8A38-86C9CDF69207}.Release|x64.ActiveCfg = Release|Any CPU
+		{D040FB81-FF67-4E7D-8A38-86C9CDF69207}.Release|x64.Build.0 = Release|Any CPU
+		{D040FB81-FF67-4E7D-8A38-86C9CDF69207}.Release|x86.ActiveCfg = Release|Any CPU
+		{D040FB81-FF67-4E7D-8A38-86C9CDF69207}.Release|x86.Build.0 = Release|Any CPU
+		{2B5FB48E-60C8-43C5-938E-33C56CBB253B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B5FB48E-60C8-43C5-938E-33C56CBB253B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B5FB48E-60C8-43C5-938E-33C56CBB253B}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2B5FB48E-60C8-43C5-938E-33C56CBB253B}.Debug|x64.Build.0 = Debug|Any CPU
+		{2B5FB48E-60C8-43C5-938E-33C56CBB253B}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2B5FB48E-60C8-43C5-938E-33C56CBB253B}.Debug|x86.Build.0 = Debug|Any CPU
+		{2B5FB48E-60C8-43C5-938E-33C56CBB253B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B5FB48E-60C8-43C5-938E-33C56CBB253B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B5FB48E-60C8-43C5-938E-33C56CBB253B}.Release|x64.ActiveCfg = Release|Any CPU
+		{2B5FB48E-60C8-43C5-938E-33C56CBB253B}.Release|x64.Build.0 = Release|Any CPU
+		{2B5FB48E-60C8-43C5-938E-33C56CBB253B}.Release|x86.ActiveCfg = Release|Any CPU
+		{2B5FB48E-60C8-43C5-938E-33C56CBB253B}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {F23A1798-E370-498A-9B66-0487CC6D0F66}
 	EndGlobalSection
 EndGlobal
