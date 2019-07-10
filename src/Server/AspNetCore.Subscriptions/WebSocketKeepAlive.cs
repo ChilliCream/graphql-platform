@@ -1,48 +1,46 @@
-#if !ASPNETCLASSIC
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Subscriptions.Messages;
+using HotChocolate.Server;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
-    internal sealed class WebSocketKeepAlive
+    internal sealed class KeepConnectionAlive
     {
-        private readonly IWebSocketContext _context;
+        private readonly ISocketConnection _connection;
         private readonly TimeSpan _timeout;
-        private readonly CancellationTokenSource _cts;
 
-        public WebSocketKeepAlive(
-            IWebSocketContext context,
-            TimeSpan timeout,
-            CancellationTokenSource cts)
+        public KeepConnectionAlive(
+            ISocketConnection connection,
+            TimeSpan timeout)
         {
-            _context = context;
+            _connection = connection;
             _timeout = timeout;
-            _cts = cts;
         }
 
-        public void Start()
+        public void Start(CancellationToken cancellationToken)
         {
             Task.Factory.StartNew(
-                KeepConnectionAliveAsync,
-                _cts.Token,
+                () => KeepConnectionAliveAsync(cancellationToken),
+                cancellationToken,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
         }
 
-        private async Task KeepConnectionAliveAsync()
+        private async Task KeepConnectionAliveAsync(
+            CancellationToken cancellationToken)
         {
-            while (!_context.Closed || !_cts.IsCancellationRequested)
+            while (!_connection.Closed || !cancellationToken.IsCancellationRequested)
             {
-                await Task.Delay(_timeout, _cts.Token)
+                await Task.Delay(_timeout, cancellationToken)
                     .ConfigureAwait(false);
 
-                await _context
-                    .SendConnectionKeepAliveMessageAsync(_cts.Token)
+                await _connection.SendAsync(
+                    KeepConnectionAliveMessage.Default.Serialize(),
+                    cancellationToken)
                     .ConfigureAwait(false);
             }
         }
     }
 }
-
-#endif

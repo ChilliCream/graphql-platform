@@ -20,7 +20,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             new CancellationTokenSource();
 
         private readonly Pipe _pipe = new Pipe();
-        private readonly WebSocketKeepAlive _keepAlive;
+        private readonly KeepConnectionAlive _keepAlive;
         private readonly MessageProcessor _messageProcessor;
         private readonly MessageReceiver _messageReciver;
 
@@ -30,7 +30,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             _connection = connection;
 
-            _keepAlive = new WebSocketKeepAlive(
+            _keepAlive = new KeepConnectionAlive(
                 context,
                 KeepAliveTimeout,
                 _cts);
