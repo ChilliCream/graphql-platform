@@ -1,11 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <AssemblyName>HotChocolate.AspNetCore.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
+    <AssemblyName>HotChocolate.AspNetCore.Subscriptions.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.AspNetCore.Subscriptions</RootNamespace>
     <IsPackable>false</IsPackable>
-
   </PropertyGroup>
 
   <PropertyGroup>
@@ -25,9 +24,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AspNetCore.Subscriptions\AspNetCore.Subscriptions.csproj" />
     <ProjectReference Include="..\AspNetCore.Tests.Utilities\AspNetCore.Tests.Utilities.csproj" />
-    <ProjectReference Include="..\AspNetCore.Authorization\AspNetCore.Authorization.csproj" />
-    <ProjectReference Include="..\AspNetCore\AspNetCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>
