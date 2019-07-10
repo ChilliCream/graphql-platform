@@ -11,6 +11,7 @@ using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Resolvers;
 using FileResource = ChilliCream.Testing.FileResource;
+using HotChocolate.AspNetCore.Tests.Utilities;
 
 namespace HotChocolate.Stitching
 {
@@ -22,7 +23,6 @@ namespace HotChocolate.Stitching
             : base(testServerFactory)
         {
         }
-
 
         [Fact]
         public async Task ExecuteStitchingQueryWithInlineFragment()
