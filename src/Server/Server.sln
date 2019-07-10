@@ -61,6 +61,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.Abstractions", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.Tests.Utilities", "AspNetCore.Tests.Utilities\AspNetCore.Tests.Utilities.csproj", "{AF440449-DBE1-40AB-B155-87C3B31E7378}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarWars", "..\Core\StarWars\StarWars.csproj", "{9CA71125-2837-4F92-9822-CB41B64E2E43}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -179,6 +181,10 @@ Global
 		{AF440449-DBE1-40AB-B155-87C3B31E7378}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF440449-DBE1-40AB-B155-87C3B31E7378}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF440449-DBE1-40AB-B155-87C3B31E7378}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9CA71125-2837-4F92-9822-CB41B64E2E43}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9CA71125-2837-4F92-9822-CB41B64E2E43}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9CA71125-2837-4F92-9822-CB41B64E2E43}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9CA71125-2837-4F92-9822-CB41B64E2E43}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

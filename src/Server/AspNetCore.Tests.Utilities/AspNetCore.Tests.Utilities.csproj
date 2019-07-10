@@ -17,7 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Core\Core\Core.csproj" />
     <ProjectReference Include="..\..\Core\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
+    <ProjectReference Include="..\..\Core\StarWars\StarWars.csproj" />
+    <ProjectReference Include="..\AspNetCore\AspNetCore.csproj" />
   </ItemGroup>
 
 </Project>
