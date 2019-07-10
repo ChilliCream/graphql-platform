@@ -55,27 +55,6 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
-        public async Task HttpGet_BasicTest()
-        {
-            // arrange
-            TestServer server = CreateTestServer();
-            var query = "{ basic { a } }";
-
-            // act
-            HttpResponseMessage message =
-                await server.SendGetRequestAsync(query);
-
-            // assert
-            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
-
-            string json = await message.Content.ReadAsStringAsync();
-            ClientQueryResult result = JsonConvert
-                .DeserializeObject<ClientQueryResult>(json);
-            Assert.Null(result.Errors);
-            result.MatchSnapshot();
-        }
-
-        [Fact]
         public async Task HttpGet_ForwardToNextMiddleware()
         {
             // arrange
@@ -87,41 +66,6 @@ namespace HotChocolate.AspNetCore
 
             // assert
             Assert.Equal(HttpStatusCode.NotFound, message.StatusCode);
-        }
-
-        [Fact]
-        public async Task HttpPost_WithScalarVariables()
-        {
-            // arrange
-            TestServer server = CreateTestServer();
-            var request = new ClientQueryRequest
-            {
-                Query = @"
-                query test($a: String!) {
-                    withScalarArgument(a: $a) {
-                        a
-                        b
-                        c
-                    }
-                }",
-                Variables = JObject.FromObject(new Dictionary<string, object>
-                {
-                    { "a", "1234567890"}
-                })
-            };
-
-            // act
-            HttpResponseMessage message =
-                await server.SendRequestAsync(request);
-
-            // assert
-            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
-
-            string json = await message.Content.ReadAsStringAsync();
-            ClientQueryResult result = JsonConvert
-                .DeserializeObject<ClientQueryResult>(json);
-            Assert.Null(result.Errors);
-            result.MatchSnapshot();
         }
 
         [Fact]
@@ -209,7 +153,7 @@ namespace HotChocolate.AspNetCore
 
 
 
-        
+
 
         private TestServer CreateTestServer(string path = null)
         {
