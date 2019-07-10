@@ -434,5 +434,97 @@ namespace HotChocolate.AspNetCore
             ClientQueryResult result = await DeserializeAsync(message);
             result.MatchSnapshot();
         }
+
+        [Fact]
+        public async Task HttpPost_Plain_GraphQL()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var request =
+                @"
+                    {
+                        hero {
+                            name
+                        }
+                    }
+                ";
+            var contentType = "application/graphql";
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request, contentType, null);
+
+            // assert
+            ClientQueryResult result = await DeserializeAsync(message);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpPost_UnknownContentType()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var request =
+                @"
+                    {
+                        hero {
+                            name
+                        }
+                    }
+                ";
+            var contentType = "application/foo";
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request, contentType, null);
+
+            // assert
+            Assert.Equal(HttpStatusCode.BadRequest, message.StatusCode);
+        }
+
+        [InlineData("/", null, HttpStatusCode.OK)]
+        [InlineData("/", "/", HttpStatusCode.OK)]
+        [InlineData("/graphql", "/graphql/", HttpStatusCode.OK)]
+        [InlineData("/graphql", "/graphql", HttpStatusCode.OK)]
+        [InlineData("/graphql/", "/graphql", HttpStatusCode.OK)]
+        [InlineData("/graphql/", "/graphql/", HttpStatusCode.OK)]
+        [InlineData("/graphql", "/graphql/foo", HttpStatusCode.NotFound)]
+        [InlineData("/graphql/foo", "/graphql/foo/", HttpStatusCode.OK)]
+        [InlineData("/graphql/foo", "/graphql/foo", HttpStatusCode.OK)]
+        [Theory]
+        public async Task HttpPost_Path(
+            string path,
+            string requestPath,
+            HttpStatusCode httpStatus)
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer(path);
+            var request = new ClientQueryRequest
+            {
+                Query =
+                @"
+                    query a {
+                        hero {
+                            name
+                        }
+                    }
+                "
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendRequestAsync(request, requestPath);
+
+            // assert
+            Assert.Equal(httpStatus, message.StatusCode);
+
+            if (message.StatusCode == HttpStatusCode.OK)
+            {
+                ClientQueryResult result = await DeserializeAsync(message);
+                result.MatchSnapshot(new SnapshotNameExtension(
+                    path?.Replace("/", "_Slash_"),
+                    requestPath?.Replace("/", "_Slash_")));
+            }
+        }
     }
 }
