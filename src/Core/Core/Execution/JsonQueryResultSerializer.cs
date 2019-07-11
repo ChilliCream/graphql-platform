@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -9,7 +10,9 @@ namespace HotChocolate.Execution
     public sealed class JsonQueryResultSerializer
         : IQueryResultSerializer
     {
-        public async Task SerializeAsync(
+        private readonly UTF8Encoding _encoding = new UTF8Encoding();
+
+        public Task SerializeAsync(
             IReadOnlyQueryResult result,
             Stream stream)
         {
@@ -23,11 +26,10 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(stream));
             }
 
-            byte[] buffer = Encoding.UTF8.GetBytes(
-                JsonConvert.SerializeObject(result.ToDictionary()));
-
-            await stream.WriteAsync(buffer, 0, buffer.Length)
-                .ConfigureAwait(false);
+            IReadOnlyDictionary<string, object> dict = result.ToDictionary();
+            string json = JsonConvert.SerializeObject(dict);
+            byte[] buffer = _encoding.GetBytes(json);
+            return stream.WriteAsync(buffer, 0, buffer.Length);
         }
     }
 }
