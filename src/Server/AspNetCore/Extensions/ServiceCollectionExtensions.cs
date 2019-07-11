@@ -1,12 +1,17 @@
-﻿using System;
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Configuration;
+using HotChocolate.Server;
+#if ASPNETCLASSIC
+using HotChocolate.AspNetClassic.Interceptors;
+using HttpContext = Microsoft.Owin.IOwinContext;
+#else
 using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.AspNetCore.Interceptors;
-using HotChocolate.Server;
 using Microsoft.AspNetCore.Http;
+#endif
 
 namespace HotChocolate
 {
@@ -352,6 +357,8 @@ namespace HotChocolate
                 .AddJsonSerializer();
         }
 
+#if !ASPNETCLASSIC
+
         public static IServiceCollection AddWebSocketConnectionInterceptor(
             this IServiceCollection serviceCollection,
             OnConnectWebSocketAsync interceptor)
@@ -360,6 +367,7 @@ namespace HotChocolate
                 .AddSingleton<ISocketConnectionInterceptor<HttpContext>>(
                     new SocketConnectionDelegateInterceptor(interceptor));
         }
+#endif
 
         public static IServiceCollection AddQueryRequestInterceptor(
             this IServiceCollection serviceCollection,
@@ -383,7 +391,9 @@ namespace HotChocolate
         {
             serviceCollection.AddSingleton(factory);
             serviceCollection.AddJsonSerializer();
+#if !ASPNETCLASSIC
             serviceCollection.AddGraphQLSubscriptions();
+#endif
             return serviceCollection;
         }
 

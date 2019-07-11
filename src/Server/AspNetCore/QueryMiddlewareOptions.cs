@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Interceptors;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Server;
@@ -10,8 +9,10 @@ using HotChocolate.Server;
 #if ASPNETCLASSIC
 using Microsoft.Owin;
 using HttpContext = Microsoft.Owin.IOwinContext;
+using HotChocolate.AspNetClassic.Interceptors;
 #else
 using Microsoft.AspNetCore.Http;
+using HotChocolate.AspNetCore.Interceptors;
 #endif
 
 #if ASPNETCLASSIC
