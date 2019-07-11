@@ -31,16 +31,14 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 new InitializeConnectionMessage(null));
         }
 
-        public static async Task<string> SendSubscriptionStartAsync(
-            this WebSocket webSocket, GraphQLRequest request)
+        public static async Task SendSubscriptionStartAsync(
+            this WebSocket webSocket,
+            string subscriptionId,
+            GraphQLRequest request)
         {
-            string id = Guid.NewGuid().ToString("N");
-
             await SendMessageAsync(
                webSocket,
-               new DataStartMessage(id, request));
-
-            return id;
+               new DataStartMessage(subscriptionId, request));
         }
 
         public static async Task SendMessageAsync(

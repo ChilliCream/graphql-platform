@@ -61,9 +61,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             var request = new GraphQLRequest(document);
 
+            const string subscriptionId = "abc";
+
             // act
-            string subscriptionId =
-                await webSocket.SendSubscriptionStartAsync(request);
+            await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
 
             // assert
             await testServer.SendRequestAsync(new ClientQueryRequest

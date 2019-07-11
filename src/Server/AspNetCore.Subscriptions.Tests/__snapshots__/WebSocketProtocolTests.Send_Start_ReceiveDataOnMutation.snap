@@ -1,17 +1,11 @@
 ﻿{
   "payload": {
-    "errors": [
-      {
-        "message": "The field `onReview` does not exist on the type `Query`.",
-        "locations": [
-          {
-            "line": 2,
-            "column": 3
-          }
-        ]
+    "data": {
+      "onReview": {
+        "stars": 5
       }
-    ]
+    }
   },
-  "id": "42b7bb7851ef44298a0e3d228129697c",
+  "id": "abc",
   "type": "data"
 }
