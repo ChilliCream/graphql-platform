@@ -35,7 +35,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         }
 
         [Fact]
-        public async Task Handle_TerminateMessage_True()
+        public async Task Handle_TerminateMessage_ConnectionClosed()
         {
             // arrange
             var connection = new SocketConnectionMock { Closed = false };

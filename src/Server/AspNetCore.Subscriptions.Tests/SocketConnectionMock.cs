@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Server;
 
-namespace HotChocolate.AspNetCore.Subscriptions.Messages
+namespace HotChocolate.AspNetCore.Subscriptions
 {
     public class SocketConnectionMock
         : ISocketConnection

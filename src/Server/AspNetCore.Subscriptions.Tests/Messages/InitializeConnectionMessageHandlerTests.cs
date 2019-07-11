@@ -10,7 +10,7 @@ using Moq;
 
 namespace HotChocolate.AspNetCore.Subscriptions.Messages
 {
-    public class InitializeConnectionMessageTests
+    public class InitializeConnectionMessageHandlerTests
     {
         [Fact]
         public void CanHandle_InitializeMessage_True()
