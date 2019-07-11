@@ -22,7 +22,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Interceptors
             InitializeConnectionMessage message,
             CancellationToken cancellationToken)
         {
-            if (_interceptor == null
+            if (_interceptor != null
                 && connection is WebSocketConnection con)
             {
                 return _interceptor.OnOpenAsync(

@@ -37,7 +37,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                     .SetProperties(message.Payload.Extensions)
                     .SetServices(connection.RequestServices);
 
-            if (_requestInterceptor == null)
+            if (_requestInterceptor != null)
             {
                 await _requestInterceptor.OnCreateAsync(
                     connection,
