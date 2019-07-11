@@ -1,0 +1,140 @@
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Net.WebSockets;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Subscriptions.Messages;
+using HotChocolate.Language;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+
+namespace HotChocolate.AspNetCore.Subscriptions
+{
+    internal static class WebSocketExtensions
+    {
+        private const int _maxMessageSize = 1024 * 4;
+
+        private static readonly JsonSerializerSettings _settings =
+            new JsonSerializerSettings
+            {
+                ContractResolver = new CamelCasePropertyNamesContractResolver(),
+                NullValueHandling = NullValueHandling.Ignore
+            };
+
+        public static Task SendConnectionInitializeAsync(
+            this WebSocket webSocket)
+        {
+            return SendMessageAsync(
+                webSocket,
+                new InitializeConnectionMessage(null));
+        }
+
+        public static async Task<string> SendSubscriptionStartAsync(
+            this WebSocket webSocket, GraphQLRequest request)
+        {
+            string id = Guid.NewGuid().ToString("N");
+
+            await SendMessageAsync(
+               webSocket,
+               new DataStartMessage(id, request));
+
+            return id;
+        }
+
+        public static async Task SendMessageAsync(
+            this WebSocket webSocket,
+            OperationMessage message)
+        {
+            var buffer = new byte[_maxMessageSize];
+
+            using (Stream stream = message.CreateMessageStream())
+            {
+                var read = 0;
+
+                do
+                {
+                    read = stream.Read(buffer, 0, buffer.Length);
+                    var segment = new ArraySegment<byte>(buffer, 0, read);
+                    var isEndOfMessage = stream.Position == stream.Length;
+
+                    await webSocket.SendAsync(
+                        segment, WebSocketMessageType.Text,
+                        isEndOfMessage, CancellationToken.None);
+                } while (read == _maxMessageSize);
+            }
+        }
+
+        private static Stream CreateMessageStream(this OperationMessage message)
+        {
+            if (message is DataStartMessage dataStart)
+            {
+                string query = QuerySyntaxSerializer.Serialize(
+                    dataStart.Payload.Query);
+
+                var payload = new Dictionary<string, object>
+                {
+                    { "query", query },
+                };
+
+                if (dataStart.Payload.QueryName != null)
+                {
+                    payload["namedQuery"] = dataStart.Payload.QueryName;
+                }
+
+                if (dataStart.Payload.OperationName != null)
+                {
+                    payload["operationName"] = dataStart.Payload.OperationName;
+                }
+
+                if (dataStart.Payload.Variables != null)
+                {
+                    payload["variables"] = dataStart.Payload.Variables;
+                }
+
+                message = new HelperOperationMessage(
+                    dataStart.Type, dataStart.Id, payload);
+            }
+
+            string json = JsonConvert.SerializeObject(message, _settings);
+            return new MemoryStream(Encoding.UTF8.GetBytes(json));
+        }
+
+        public static async Task<IReadOnlyDictionary<string, object>>
+            ReceiveServerMessageAsync(
+                this WebSocket webSocket)
+        {
+            using (var stream = new MemoryStream())
+            {
+                WebSocketReceiveResult result;
+                var buffer = new byte[_maxMessageSize];
+
+                do
+                {
+                    result = await webSocket.ReceiveAsync(
+                        new ArraySegment<byte>(buffer),
+                        CancellationToken.None);
+                    stream.Write(buffer, 0, result.Count);
+                }
+                while (!result.EndOfMessage);
+
+                return (IReadOnlyDictionary<string, object>)
+                    Utf8GraphQLRequestParser.ParseJson(stream.ToArray());
+            }
+        }
+
+        private class HelperOperationMessage
+            : OperationMessage
+        {
+            public HelperOperationMessage(
+                string type, string id, object payload)
+                : base(type, id)
+            {
+                Payload = payload;
+            }
+
+            public object Payload { get; }
+        }
+    }
+}

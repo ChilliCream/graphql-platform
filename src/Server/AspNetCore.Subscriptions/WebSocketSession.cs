@@ -11,11 +11,6 @@ namespace HotChocolate.AspNetCore.Subscriptions
         : ISocketSession
     {
         private readonly ISocketConnection _connection;
-
-
-        private readonly CancellationTokenSource _cts =
-            new CancellationTokenSource();
-
         private readonly Pipe _pipe = new Pipe();
         private readonly KeepConnectionAliveJob _keepAlive;
         private readonly MessageProcessor _messageProcessor;
@@ -46,6 +41,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             {
                 try
                 {
+                    _keepAlive.Begin(cancellationToken);
                     _messageProcessor.Begin(cancellationToken);
                     await _messageReciver.ReceiveAsync(cancellationToken)
                         .ConfigureAwait(false);

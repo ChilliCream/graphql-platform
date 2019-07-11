@@ -4,20 +4,20 @@
     {
         internal static class Connection
         {
-            public static readonly string Initialize = "connection_init";
-            public static readonly string Accept = "connection_ack";
-            public static readonly string Error = "connection_error";
-            public static readonly string KeepAlive = "ka";
-            public static readonly string Terminate = "connection_terminate";
+            public const string Initialize = "connection_init";
+            public const string Accept = "connection_ack";
+            public const string Error = "connection_error";
+            public const string KeepAlive = "ka";
+            public const string Terminate = "connection_terminate";
         }
 
         public static class Subscription
         {
-            public static readonly string Start = "start";
-            public static readonly string Data = "data";
-            public static readonly string Error = "error";
-            public static readonly string Complete = "complete";
-            public static readonly string Stop = "stop";
+            public const string Start = "start";
+            public const string Data = "data";
+            public const string Error = "error";
+            public const string Complete = "complete";
+            public const string Stop = "stop";
         }
     }
 }

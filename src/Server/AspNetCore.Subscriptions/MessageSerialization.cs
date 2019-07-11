@@ -45,6 +45,4 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 JsonConvert.SerializeObject(message, JsonSettings));
         }
     }
-
-
 }

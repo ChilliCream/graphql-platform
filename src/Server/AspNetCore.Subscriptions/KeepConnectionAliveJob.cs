@@ -27,7 +27,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             _timeout = timeout;
         }
 
-        public void Start(CancellationToken cancellationToken)
+        public void Begin(CancellationToken cancellationToken)
         {
             Task.Factory.StartNew(
                 () => KeepConnectionAliveAsync(cancellationToken),
