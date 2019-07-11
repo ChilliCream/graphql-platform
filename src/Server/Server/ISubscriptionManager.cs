@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Execution;
 
 namespace HotChocolate.Server
 {
     public interface ISubscriptionManager
-        : IDisposable
+        : IEnumerable<ISubscription>
+        , IDisposable
     {
         void Register(string subscriptionId, IResponseStream responseStream);
 

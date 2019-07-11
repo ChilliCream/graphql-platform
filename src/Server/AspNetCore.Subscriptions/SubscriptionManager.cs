@@ -3,18 +3,20 @@ using System;
 using System.Collections.Concurrent;
 using HotChocolate.Execution;
 using HotChocolate.Server;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
-    public class WebSocketSubscriptionManager
+    public class SubscriptionManager
         : ISubscriptionManager
     {
         private readonly ConcurrentDictionary<string, ISubscription> _subs =
             new ConcurrentDictionary<string, ISubscription>();
-        private readonly WebSocketConnection _connection;
+        private readonly ISocketConnection _connection;
         private bool _disposed;
 
-        public WebSocketSubscriptionManager(WebSocketConnection connection)
+        public SubscriptionManager(ISocketConnection connection)
         {
             _connection = connection
                 ?? throw new ArgumentNullException(nameof(connection));
@@ -40,7 +42,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             if (_disposed)
             {
                 throw new ObjectDisposedException(
-                    nameof(WebSocketSubscriptionManager));
+                    nameof(SubscriptionManager));
             }
 
             if (_subs.TryAdd(subscription.Id, subscription))
@@ -62,7 +64,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             if (_disposed)
             {
                 throw new ObjectDisposedException(
-                    nameof(WebSocketSubscriptionManager));
+                    nameof(SubscriptionManager));
             }
 
             Unregister(subscription.Id);
@@ -78,7 +80,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             if (_disposed)
             {
                 throw new ObjectDisposedException(
-                    nameof(WebSocketSubscriptionManager));
+                    nameof(SubscriptionManager));
             }
 
             if (_subs.TryRemove(subscriptionId,
@@ -116,5 +118,12 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 _disposed = true;
             }
         }
+
+        public IEnumerator<ISubscription> GetEnumerator()
+        {
+            return _subs.Values.GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
     }
 }

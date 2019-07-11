@@ -23,7 +23,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             HttpContext = httpContext
                 ?? throw new ArgumentNullException(nameof(httpContext));
 
-            Subscriptions = new WebSocketSubscriptionManager(this);
+            Subscriptions = new SubscriptionManager(this);
         }
 
         public bool Closed =>

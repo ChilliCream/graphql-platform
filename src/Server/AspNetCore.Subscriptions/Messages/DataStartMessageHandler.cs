@@ -12,7 +12,6 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         private readonly IQueryExecutor _queryExecutor;
         private readonly ISocketQueryRequestInterceptor _requestInterceptor;
 
-
         public DataStartMessageHandler(
             IQueryExecutor queryExecutor,
             ISocketQueryRequestInterceptor queryRequestInterceptor)

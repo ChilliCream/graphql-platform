@@ -10,6 +10,11 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
     public class SocketConnectionMock
         : ISocketConnection
     {
+        public SocketConnectionMock()
+        {
+            Subscriptions = new SubscriptionManager(this);
+        }
+
         public bool Closed { get; set; }
 
         public ISubscriptionManager Subscriptions { get; set; }
