@@ -34,5 +34,22 @@ namespace HotChocolate.Subscriptions
         /// e.g. "localhost:6379"
         /// </summary>
         public IList<string> Endpoints { get; }
+
+        /// <summary>
+        /// Identification for the connection within redis
+        /// </summary>
+        public string ClientName { get; set; }
+
+        /// <summary>
+        /// Password for the redis server
+        /// </summary>
+        public string Password { get; set; }
+
+        /// <summary>
+        /// Creates a <see cref="RedisOptions"/> from a single endpoint.
+        /// </summary>
+        /// <param name="endpoint"></param>
+        public static implicit operator RedisOptions(string endpoint)
+            => new RedisOptions(new []{ endpoint });
     }
 }

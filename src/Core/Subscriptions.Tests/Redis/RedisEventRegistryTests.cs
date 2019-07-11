@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using StackExchange.Redis;
 using Subscriptions.Redis;
 using Xunit;
 
@@ -13,7 +12,7 @@ namespace HotChocolate.Subscriptions.Redis
             // arrange
             var eventDescription = new EventDescription("foo");
             var eventRegistry = new RedisEventRegistry(
-                CreateConnectionMultiplexer(),
+                RedisConnection.Create("localhost:6379"),
                 new JsonPayloadSerializer());
 
             // act
@@ -25,19 +24,6 @@ namespace HotChocolate.Subscriptions.Redis
             await eventRegistry.SendAsync(incoming);
             IEventMessage outgoing = await stream.ReadAsync();
             Assert.Equal(incoming.Payload, outgoing.Payload);
-        }
-
-        private static IConnectionMultiplexer CreateConnectionMultiplexer()
-        {
-            var configurationOptions = new ConfigurationOptions
-            {
-                AbortOnConnectFail = false,
-                ConnectRetry = 3,
-                EndPoints = { "localhost:6379" }
-            };
-
-            return ConnectionMultiplexer.Connect(
-                configurationOptions);
         }
     }
 }

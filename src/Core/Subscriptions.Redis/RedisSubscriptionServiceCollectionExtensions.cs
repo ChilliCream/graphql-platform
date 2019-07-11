@@ -26,30 +26,12 @@ namespace HotChocolate.Subscriptions
             services
                 .AddSingleton<IPayloadSerializer, TSerializer>()
                 .AddSingleton<IConnectionMultiplexer>(sp =>
-                    CreateConnectionMultiplexer(options))
+                    RedisConnection.Create(options))
                 .AddSingleton<RedisEventRegistry>()
                 .AddSingleton<IEventRegistry>(sp =>
                     sp.GetRequiredService<RedisEventRegistry>())
                 .AddSingleton<IEventSender>(sp =>
                     sp.GetRequiredService<RedisEventRegistry>());
-        }
-
-        private static IConnectionMultiplexer CreateConnectionMultiplexer(
-            RedisOptions options)
-        {
-            var configurationOptions = new ConfigurationOptions
-            {
-                AbortOnConnectFail = false,
-                ConnectRetry = 3
-            };
-
-            foreach (var endpoint in options.Endpoints)
-            {
-                configurationOptions.EndPoints.Add(endpoint);
-            }
-
-            return ConnectionMultiplexer.Connect(
-                configurationOptions);
         }
     }
 }
