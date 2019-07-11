@@ -102,19 +102,19 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
         }
 
-        private bool TryDeserializeMessage(
+        private static bool TryDeserializeMessage(
             GraphQLSocketMessage parsedMessage,
             out OperationMessage message)
         {
             switch (parsedMessage.Type)
             {
                 case MessageTypes.Connection.Initialize:
-                    message = DeserializeInitConnectionMessage(
+                    message = DeserializeInitConnMessage(
                         parsedMessage);
                     return true;
 
                 case MessageTypes.Connection.Terminate:
-                    message = new TerminateConnectionMessage();
+                    message = TerminateConnectionMessage.Default;
                     return true;
 
                 case MessageTypes.Subscription.Start:
@@ -124,13 +124,14 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 case MessageTypes.Subscription.Stop:
                     message = DeserializeDataStopMessage(parsedMessage);
                     return true;
-            }
 
-            message = null;
-            return true;
+                default:
+                    message = null;
+                    return false;
+            }
         }
 
-        private InitializeConnectionMessage DeserializeInitConnectionMessage(
+        private static InitializeConnectionMessage DeserializeInitConnMessage(
             GraphQLSocketMessage parsedMessage)
         {
             if (parsedMessage.HasPayload)
@@ -146,7 +147,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             return new InitializeConnectionMessage(null);
         }
 
-        private bool TryDeserializeDataStartMessage(
+        private static bool TryDeserializeDataStartMessage(
             GraphQLSocketMessage parsedMessage,
             out OperationMessage message)
         {
@@ -163,7 +164,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             return true;
         }
 
-        private DataStopMessage DeserializeDataStopMessage(
+        private static DataStopMessage DeserializeDataStopMessage(
             GraphQLSocketMessage parsedMessage)
         {
             if (!parsedMessage.HasPayload)
