@@ -128,6 +128,7 @@ namespace HotChocolate.Language
             if (request.IsQueryNull
                 && request.NamedQuery == null)
             {
+                // TODO : resources
                 throw new SyntaxException(
                     _reader,
                     "Either the query `property` or the `namedQuery` " +
@@ -190,9 +191,16 @@ namespace HotChocolate.Language
                 case _q:
                     if (fieldName.SequenceEqual(_query))
                     {
-                        // TODO : must be null or string
-                        request.Query = _reader.Value;
                         request.IsQueryNull = IsNullToken();
+                        if (!request.IsQueryNull
+                            && _reader.Kind != TokenKind.String)
+                        {
+                            // TODO : resources
+                            throw new SyntaxException(
+                                _reader,
+                                "The query field must be a string or null.");
+                        }
+                        request.Query = _reader.Value;
                         _reader.MoveNext();
                         return;
                     }

@@ -1,4 +1,3 @@
-using System;
 using System.Text;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
 using Newtonsoft.Json;

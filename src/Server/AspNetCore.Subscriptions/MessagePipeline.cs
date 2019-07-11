@@ -1,10 +1,10 @@
 using System;
 using System.Buffers;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
 using HotChocolate.AspNetCore.Subscriptions.Messages;
-using System.Linq;
 using HotChocolate.Server;
 using HotChocolate.Language;
 
