@@ -12,9 +12,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
     {
         public bool CanHandle(OperationMessage message)
         {
-            return message is T m
-                ? CanHandle(m)
-                : false;
+            return message is T m && CanHandle(m);
         }
 
         protected virtual bool CanHandle(T message) => true;
