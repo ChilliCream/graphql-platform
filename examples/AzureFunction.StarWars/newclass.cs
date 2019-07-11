@@ -1,27 +1,71 @@
 using System;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+using HotChocolate;
+using StarWars.Types;
+using StarWars.Data;
+using HotChocolate.Execution.Configuration;
+using System.Security.Claims;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
-using HotChocolate.Execution;
 
-[assembly: FunctionsStartup(typeof(MyNamespace.Startup))]
+[assembly: FunctionsStartup(typeof(StarWars.Startup))]
 
-namespace MyNamespace
+namespace StarWars
 {
     public class Startup : FunctionsStartup
     {
         public override void Configure(IFunctionsHostBuilder builder)
         {
-            builder.Services.AddHttpClient();
-            builder.Services.AddSingleton((s) =>
+            ConfigureServices(builder.Services);
+        }
+
+        private void ConfigureServices(IServiceCollection services)
+        {
+            // Add the custom services like repositories etc ...
+            services.AddSingleton<CharacterRepository>();
+            services.AddSingleton<ReviewRepository>();
+
+            // Add GraphQL Services
+            services.AddGraphQL(sp => SchemaBuilder.New()
+                .AddServices(sp)
+
+                // Adds the authorize directive and
+                // enable the authorization middleware.
+                .AddAuthorizeDirectiveType()
+
+                .AddQueryType<QueryType>()
+                .AddMutationType<MutationType>()
+                .AddType<HumanType>()
+                .AddType<DroidType>()
+                .AddType<EpisodeType>()
+                .Create(),
+                new QueryExecutionOptions
+                {
+                    TracingPreference = TracingPreference.OnDemand
+                });
+
+            // Add Authorization Policy
+            services.AddAuthorization(options =>
             {
-                return new CosmosClient(Environment.GetEnvironmentVariable("COSMOSDB_CONNECTIONSTRING"));
+                options.AddPolicy("HasCountry", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(c =>
+                            (c.Type == ClaimTypes.Country))));
             });
+        }
+    }
+
+    public static class GraphQLPostFunction
+    {
+        [FunctionName("GraphQLPostFunction")]
+        public static async Task<IActionResult> Run(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)]
+            HttpRequest request)
+        {
 
         }
     }
