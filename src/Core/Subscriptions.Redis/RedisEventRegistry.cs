@@ -8,27 +8,23 @@ namespace Subscriptions.Redis
         : IEventRegistry
         , IEventSender
     {
+        private readonly IConnectionMultiplexer _connection;
         private readonly IPayloadSerializer _serializer;
-        private readonly IConnectionMultiplexer _redis;
 
         public RedisEventRegistry(
+            IConnectionMultiplexer connection,
             IPayloadSerializer serializer)
         {
+            _connection = connection;
             _serializer = serializer;
-            // TODO: Add Options
-            _redis = ConnectionMultiplexer.Connect(
-                new ConfigurationOptions
-                {
-                    AbortOnConnectFail = false,
-                    ConnectRetry = 3,
-                    EndPoints = {"localhost:6379"}
-                });
         }
 
         public async Task<IEventStream> SubscribeAsync(
             IEventDescription eventDescription)
         {
-            ISubscriber subscriber = _redis.GetSubscriber();
+            ISubscriber subscriber = _connection
+                .GetSubscriber();
+
             ChannelMessageQueue channel = await subscriber
                 .SubscribeAsync(eventDescription.ToString());
             
@@ -37,7 +33,8 @@ namespace Subscriptions.Redis
 
         public async Task SendAsync(IEventMessage message)
         {
-            ISubscriber subscriber = _redis.GetSubscriber();
+            ISubscriber subscriber = _connection
+                .GetSubscriber();
 
             byte[] payload = await _serializer
                 .SerializeAsync(message.Payload);
