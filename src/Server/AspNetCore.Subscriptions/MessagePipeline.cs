@@ -44,7 +44,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
         }
 
-        private bool TryParseMessage(
+        private static bool TryParseMessage(
             ReadOnlySequence<byte> slice,
             out OperationMessage message)
         {

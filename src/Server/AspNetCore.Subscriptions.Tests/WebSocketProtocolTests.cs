@@ -90,6 +90,49 @@ namespace HotChocolate.AspNetCore.Subscriptions
             message.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Send_Start_ReceiveDataOnMutation_Large_Message()
+        {
+            // arrange
+            TestServer testServer = CreateStarWarsServer();
+            WebSocketClient client = CreateWebSocketClient(testServer);
+            WebSocket webSocket = await ConnectToServerAsync(client);
+
+            var document = Utf8GraphQLParser.Parse(
+                "subscription { onReview(episode: NEWHOPE) { stars } }");
+
+            var request = new GraphQLRequest(document);
+
+            const string subscriptionId = "abc";
+
+            // act
+            await webSocket.SendSubscriptionStartAsync(
+                subscriptionId, request, true);
+
+            // assert
+            await testServer.SendRequestAsync(new ClientQueryRequest
+            {
+                Query = @"
+                    mutation {
+                        createReview(episode:NEWHOPE review: {
+                            commentary: ""foo""
+                            stars: 5
+                        }) {
+                            stars
+                        }
+                    }
+                "
+            });
+
+            IReadOnlyDictionary<string, object> message =
+                await WaitForMessage(
+                    webSocket,
+                    MessageTypes.Subscription.Data,
+                    TimeSpan.FromSeconds(10));
+
+            message.MatchSnapshot();
+        }
+
         private async Task<IReadOnlyDictionary<string, object>> WaitForMessage(
             WebSocket webSocket, string type, TimeSpan timeout)
         {

@@ -34,20 +34,23 @@ namespace HotChocolate.AspNetCore.Subscriptions
         public static async Task SendSubscriptionStartAsync(
             this WebSocket webSocket,
             string subscriptionId,
-            GraphQLRequest request)
+            GraphQLRequest request,
+            bool largeMessage = false)
         {
             await SendMessageAsync(
                webSocket,
-               new DataStartMessage(subscriptionId, request));
+               new DataStartMessage(subscriptionId, request),
+               largeMessage);
         }
 
         public static async Task SendMessageAsync(
             this WebSocket webSocket,
-            OperationMessage message)
+            OperationMessage message,
+            bool largeMessage = false)
         {
             var buffer = new byte[_maxMessageSize];
 
-            using (Stream stream = message.CreateMessageStream())
+            using (Stream stream = message.CreateMessageStream(largeMessage))
             {
                 var read = 0;
 
@@ -64,7 +67,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
         }
 
-        private static Stream CreateMessageStream(this OperationMessage message)
+        private static Stream CreateMessageStream(
+            this OperationMessage message,
+            bool largeMessage)
         {
             if (message is DataStartMessage dataStart)
             {
@@ -96,6 +101,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
             }
 
             string json = JsonConvert.SerializeObject(message, _settings);
+            if (largeMessage)
+            {
+                json += new string(' ', 1024 * 16);
+            }
             return new MemoryStream(Encoding.UTF8.GetBytes(json));
         }
 
