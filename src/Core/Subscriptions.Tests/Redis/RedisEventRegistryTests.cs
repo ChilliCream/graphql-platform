@@ -11,7 +11,7 @@ namespace HotChocolate.Subscriptions.Redis
         {
             // arrange
             var eventDescription = new EventDescription("foo");
-            var eventRegistry = new RedisEventRegistry();
+            var eventRegistry = new RedisEventRegistry(new JsonPayloadSerializer());
 
             // act
             IEventStream stream =
