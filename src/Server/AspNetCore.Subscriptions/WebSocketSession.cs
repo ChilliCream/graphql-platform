@@ -1,4 +1,3 @@
-using System;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,12 +14,16 @@ namespace HotChocolate.AspNetCore.Subscriptions
         private readonly KeepConnectionAliveJob _keepAlive;
         private readonly MessageProcessor _messageProcessor;
         private readonly MessageReceiver _messageReciver;
+        private readonly bool _disposeConnection;
+        private bool _disposed;
 
         public WebSocketSession(
             ISocketConnection connection,
-            IMessagePipeline messagePipeline)
+            IMessagePipeline messagePipeline,
+            bool disposeConnection)
         {
             _connection = connection;
+            _disposeConnection = disposeConnection;
 
             _keepAlive = new KeepConnectionAliveJob(
                 connection);
@@ -61,14 +64,24 @@ namespace HotChocolate.AspNetCore.Subscriptions
             throw new System.NotImplementedException();
         }
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing && _disposeConnection)
+                {
+                    _connection.Dispose();
+                }
+                _disposed = true;
+            }
+        }
+
         public static WebSocketSession New(
             HttpContext httpContext,
             IMessagePipeline messagePipeline)
         {
             var connection = WebSocketConnection.New(httpContext);
-            return new WebSocketSession(connection, messagePipeline);
+            return new WebSocketSession(connection, messagePipeline, true);
         }
     }
-
-
 }

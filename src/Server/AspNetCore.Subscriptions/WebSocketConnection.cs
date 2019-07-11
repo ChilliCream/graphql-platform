@@ -142,6 +142,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 {
                     Subscriptions.Dispose();
                     _webSocket?.Dispose();
+                    _webSocket = null;
                 }
                 _disposed = true;
             }
