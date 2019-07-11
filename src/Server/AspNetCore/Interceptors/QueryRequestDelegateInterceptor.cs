@@ -30,7 +30,7 @@ namespace HotChocolate.AspNetCore.Interceptors
     public class QueryRequestDelegateInterceptor
         : IQueryRequestInterceptor<HttpContext>
     {
-        private OnCreateRequestAsync _interceptor;
+        private readonly OnCreateRequestAsync _interceptor;
 
         public QueryRequestDelegateInterceptor(
             OnCreateRequestAsync interceptor)

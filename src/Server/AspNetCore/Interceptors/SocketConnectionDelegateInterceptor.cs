@@ -30,7 +30,7 @@ namespace HotChocolate.AspNetCore.Interceptors
     public class SocketConnectionDelegateInterceptor
         : ISocketConnectionInterceptor<HttpContext>
     {
-        private OnConnectWebSocketAsync _interceptor;
+        private readonly OnConnectWebSocketAsync _interceptor;
 
         public SocketConnectionDelegateInterceptor(
             OnConnectWebSocketAsync interceptor)
