@@ -1410,7 +1410,6 @@ namespace HotChocolate.Types
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddQueryType<FooWithDict>()
-                .AddType(new ObjectType<KeyValuePair<string, Bar>>())
                 .Create();
 
             // assert
