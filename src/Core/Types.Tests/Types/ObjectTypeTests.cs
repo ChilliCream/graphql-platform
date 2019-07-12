@@ -1390,6 +1390,33 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void ObjectType_From_Struct()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(new ObjectType<FooStruct>())
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+         [Fact]
+        public void ObjectType_From_Dictionary()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<FooWithDict>()
+                .AddType(new ObjectType<KeyValuePair<string, Bar>>())
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1461,6 +1488,16 @@ namespace HotChocolate.Types
             public string Bar() => "foo";
 
             public string Bar2() => "Foo 2: Electric foo-galoo";
+        }
+
+        public struct FooStruct
+        {
+            public string GetBar() => "Baz";
+        }
+
+        public class FooWithDict
+        {
+            public Dictionary<string, Bar> Map { get; set; }
         }
     }
 }
