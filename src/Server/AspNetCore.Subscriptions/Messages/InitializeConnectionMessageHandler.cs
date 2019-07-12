@@ -61,7 +61,8 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
 
                 // TODO : resources
                 await connection.CloseAsync(
-                    "Connection was rejected.",
+                    connectionStatus.Message,
+                    SocketCloseStatus.PolicyViolation,
                     cancellationToken)
                     .ConfigureAwait(false);
             }

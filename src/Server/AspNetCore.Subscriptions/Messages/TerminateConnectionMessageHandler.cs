@@ -13,7 +13,8 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             CancellationToken cancellationToken)
         {
             return connection.CloseAsync(
-                "Connection terminated.",
+                "Connection terminated by user.",
+                SocketCloseStatus.NormalClosure,
                 cancellationToken);
         }
     }

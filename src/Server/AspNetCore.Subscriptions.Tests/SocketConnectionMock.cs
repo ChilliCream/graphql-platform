@@ -30,6 +30,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public Task CloseAsync(
             string message,
+            SocketCloseStatus closeStatus,
             CancellationToken cancellationToken)
         {
             Closed = true;
