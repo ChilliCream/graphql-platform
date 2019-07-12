@@ -191,6 +191,8 @@ namespace HotChocolate.Language
                                     new Dictionary<string, object>
                                     {
                                         { "aa" , "bb"},
+                                        { "ab" , null},
+                                        { "ac" , false},
                                     }
                                 }},
                         }
@@ -293,6 +295,8 @@ namespace HotChocolate.Language
                                         { "b" , true},
                                         { "c" , 1},
                                         { "d" , 1.1},
+                                        { "e" , false},
+                                        { "f" , null}
                                     }},
                                 { "c" , new List<object>
                                     {
