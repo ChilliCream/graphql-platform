@@ -460,6 +460,8 @@ namespace HotChocolate
             Assert.Throws<ArgumentNullException>(action);
         }
 
+        // TODO : review why this was wrong and check what happens if the parent
+        // of the resolver functions is more specific
         [Fact]
         public void AddType_TypeIsResolverTypeByType_QueryContainsBazField()
         {
