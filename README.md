@@ -103,7 +103,7 @@ Now that the schema is setup and executable we can serve up a query against it.
 // {
 //   data: { hello: "world" }
 // }
-Console.WriteLine(executor.Execute("{ hello }"));
+Console.WriteLine(executor.Execute("{ hello }").ToJson());
 ```
 
 This runs a query fetching the one field defined. The graphql function will first ensure the query is syntactically and semantically valid before executing it, reporting errors otherwise.
@@ -123,7 +123,7 @@ This runs a query fetching the one field defined. The graphql function will firs
 //     }
 //   ]
 // }
-Console.WriteLine(executor.Execute("{ foo }"));
+Console.WriteLine(executor.Execute("{ foo }").ToJson());
 ```
 
 In order to set up a GraphQL HTTP endpoint, Hot Chocolate comes with an ASP.net core middleware.
