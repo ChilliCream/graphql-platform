@@ -208,14 +208,13 @@ namespace HotChocolate.AspNetCore
             // arrange
             var services = new ServiceCollection();
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
-            var schemaCfg = new Func<IServiceProvider, ISchema>(s => schema);
             var cfg = new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
                 c => c.UseDefaultPipeline());
 
             // act
             ServiceCollectionExtensions.AddGraphQL(
                 services,
-                schemaCfg,
+                sp => schema,
                 cfg);
 
             // assert
@@ -756,6 +755,96 @@ namespace HotChocolate.AspNetCore
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaConfigureBuilder_ServiceNull()
+        {
+            // arrange
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                null,
+                "type Query { a: String }",
+                new Action<ISchemaConfiguration>(c => { }),
+                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                    b => b));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaConfigureBuilder_SchemaNull()
+        {
+            // arrange
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                new ServiceCollection(),
+                null,
+                new Action<ISchemaConfiguration>(c => { }),
+                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                    b => b));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaConfigureBuilder_ConfigureNull()
+        {
+            // arrange
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                new ServiceCollection(),
+                "type Query { a: String }",
+                default(Action<ISchemaConfiguration>),
+                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                    b => b));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaConfigureBuilder_BuilderNull()
+        {
+            // arrange
+            var schema = Schema.Create(c => c.Options.StrictValidation = false);
+
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                new ServiceCollection(),
+                "type Query { a: String }",
+                new Action<ISchemaConfiguration>(c => { }),
+                default(Func<IQueryExecutionBuilder, IQueryExecutionBuilder>));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaConfigureBuilder()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            var schema = "type Query { a: String }";
+            var schemaCfg = new Action<ISchemaConfiguration>(
+                c => c.Options.StrictValidation = false);
+            var cfg = new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                c => c.UseDefaultPipeline());
+
+            // act
+            ServiceCollectionExtensions.AddGraphQL(
+                services,
+                schema,
+                schemaCfg,
+                cfg);
+
+            // assert
+            services.Select(t => t.ServiceType.FullName)
+                .OrderBy(t => t, StringComparer.Ordinal)
+                .ToArray()
+                .MatchSnapshot();
         }
     }
 }
