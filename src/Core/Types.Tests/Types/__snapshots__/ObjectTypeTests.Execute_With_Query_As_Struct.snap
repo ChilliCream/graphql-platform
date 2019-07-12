@@ -1,6 +1,7 @@
 ﻿{
   "Data": {
-    "foo": "bar"
+    "bar": "Qux_Value_Bar_Value",
+    "baz": "Baz_Value"
   },
   "Extensions": {},
   "Errors": [],
