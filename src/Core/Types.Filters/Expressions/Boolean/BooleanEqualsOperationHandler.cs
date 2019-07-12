@@ -6,7 +6,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
-    public class BooleanOperationHandler
+    public class BooleanEqualsOperationHandler
         : IExpressionOperationHandler
     {
         public bool TryHandle(

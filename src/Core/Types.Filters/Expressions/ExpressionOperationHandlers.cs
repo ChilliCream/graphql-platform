@@ -18,7 +18,7 @@ namespace HotChocolate.Types.Filters.Expressions
                 new ComparableLowerThanOperationHandler(),
                 new ComparableLowerThanOrEqualsOperationHandler(),
                 new ComparableInOperationHandler(),
-                new BooleanOperationHandler(),
+                new BooleanEqualsOperationHandler(),
             };
     }
 }
