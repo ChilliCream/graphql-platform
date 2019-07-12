@@ -89,9 +89,21 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             try
             {
+                if (messageData.Length == 0
+                    || (messageData.Length == 1 && messageData[0] == default))
+                {
+                    message = null;
+                    return false;
+                }
+
                 GraphQLSocketMessage parsedMessage =
                     Utf8GraphQLRequestParser.ParseMessage(messageData);
                 return TryDeserializeMessage(parsedMessage, out message);
+            }
+            catch (SyntaxException)
+            {
+                message = null;
+                return false;
             }
             finally
             {
@@ -167,7 +179,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         private static DataStopMessage DeserializeDataStopMessage(
             GraphQLSocketMessage parsedMessage)
         {
-            if (!parsedMessage.HasPayload)
+            if (parsedMessage.HasPayload)
             {
                 throw new InvalidOperationException(
                     "Invalid message structure.");

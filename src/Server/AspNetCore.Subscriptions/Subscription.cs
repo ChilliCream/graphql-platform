@@ -31,7 +31,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
             Id = id
                 ?? throw new ArgumentNullException(nameof(id));
 
-            Task.Run(SendResultsAsync);
+            Task.Factory.StartNew(
+                SendResultsAsync,
+                CancellationToken.None,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
         }
 
         public string Id { get; }
@@ -64,6 +68,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
                     Completed?.Invoke(this, EventArgs.Empty);
                 }
+            }
+            catch (TaskCanceledException)
+            {
+                // the subscription was canceled.
             }
             finally
             {

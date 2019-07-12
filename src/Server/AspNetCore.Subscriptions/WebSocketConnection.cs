@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.IO.Pipelines;
 using System.Net.WebSockets;
 using System.Runtime.InteropServices;
@@ -53,7 +52,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 return true;
             }
 
-            await _webSocket.CloseAsync(
+            await _webSocket.CloseOutputAsync(
                 WebSocketCloseStatus.ProtocolError,
                 "Expected graphql-ws protocol.",
                 CancellationToken.None)
@@ -67,12 +66,14 @@ namespace HotChocolate.AspNetCore.Subscriptions
             byte[] message,
             CancellationToken cancellationToken)
         {
-            if (_disposed)
+            WebSocket webSocket = _webSocket;
+
+            if (_disposed || webSocket == null)
             {
-                throw new ObjectDisposedException(nameof(WebSocketConnection));
+                return Task.CompletedTask;
             }
 
-            return _webSocket.SendAsync(
+            return webSocket.SendAsync(
                 new ArraySegment<byte>(message),
                 WebSocketMessageType.Text,
                 true, cancellationToken);
@@ -82,47 +83,56 @@ namespace HotChocolate.AspNetCore.Subscriptions
             PipeWriter writer,
             CancellationToken cancellationToken)
         {
-            if (_disposed)
+            WebSocket webSocket = _webSocket;
+
+            if (_disposed || webSocket == null)
             {
-                throw new ObjectDisposedException(nameof(WebSocketConnection));
+                return;
             }
 
-            WebSocketReceiveResult socketResult = null;
-            do
+            try
             {
-                Memory<byte> memory = writer.GetMemory(_maxMessageSize);
-                bool success = MemoryMarshal.TryGetArray(
-                    memory, out ArraySegment<byte> buffer);
-                if (success)
+                WebSocketReceiveResult socketResult = null;
+                do
                 {
-                    try
+                    Memory<byte> memory = writer.GetMemory(_maxMessageSize);
+                    bool success = MemoryMarshal.TryGetArray(
+                        memory, out ArraySegment<byte> buffer);
+                    if (success)
                     {
-                        socketResult = await _webSocket
-                            .ReceiveAsync(buffer, cancellationToken)
-                            .ConfigureAwait(false);
+                        try
+                        {
+                            socketResult = await webSocket
+                                .ReceiveAsync(buffer, cancellationToken)
+                                .ConfigureAwait(false);
 
-                        if (socketResult.Count == 0)
+                            if (socketResult.Count == 0)
+                            {
+                                break;
+                            }
+
+                            writer.Advance(socketResult.Count);
+                        }
+                        catch
                         {
                             break;
                         }
 
-                        writer.Advance(socketResult.Count);
-                    }
-                    catch (Exception)
-                    {
-                        break;
-                    }
+                        FlushResult result = await writer
+                            .FlushAsync(cancellationToken)
+                            .ConfigureAwait(false);
 
-                    FlushResult result = await writer
-                        .FlushAsync(cancellationToken)
-                        .ConfigureAwait(false);
-
-                    if (result.IsCompleted)
-                    {
-                        break;
+                        if (result.IsCompleted)
+                        {
+                            break;
+                        }
                     }
-                }
-            } while (socketResult == null || !socketResult.EndOfMessage);
+                } while (socketResult == null || !socketResult.EndOfMessage);
+            }
+            catch (ObjectDisposedException)
+            {
+                // we will just stop receiving
+            }
         }
 
         public async Task CloseAsync(
@@ -137,7 +147,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     return;
                 }
 
-                await _webSocket.CloseAsync(
+                await _webSocket.CloseOutputAsync(
                         MapCloseStatus(closeStatus),
                         message,
                         cancellationToken)

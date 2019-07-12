@@ -49,6 +49,55 @@ namespace HotChocolate.AspNetCore.Subscriptions
         }
 
         [Fact]
+        public async Task Send_Terminate()
+        {
+            // arrange
+            TestServer testServer = CreateStarWarsServer();
+            WebSocketClient client = CreateWebSocketClient(testServer);
+            WebSocket webSocket = await ConnectToServerAsync(client);
+
+            // act
+            await webSocket.SendTerminateConnectionAsync();
+
+            // assert
+            byte[] buffer = new byte[1024];
+            await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+
+            Assert.True(webSocket.CloseStatus.HasValue);
+            Assert.Equal(
+                WebSocketCloseStatus.NormalClosure,
+                webSocket.CloseStatus.Value);
+        }
+
+        [Fact]
+        public async Task Connect_With_Invalid_Protocol()
+        {
+            // arrange
+            TestServer testServer = CreateStarWarsServer();
+
+            WebSocketClient client = testServer.CreateWebSocketClient();
+
+            client.ConfigureRequest = r =>
+            {
+                r.Headers.Add("Sec-WebSocket-Protocol", "foo");
+            };
+
+            // act
+            WebSocket socket = await client.ConnectAsync(
+                SubscriptionUri,
+                CancellationToken.None);
+
+            byte[] buffer = new byte[1024];
+            await socket.ReceiveAsync(buffer, CancellationToken.None);
+
+            // assert
+            Assert.True(socket.CloseStatus.HasValue);
+            Assert.Equal(
+                WebSocketCloseStatus.ProtocolError,
+                socket.CloseStatus.Value);
+        }
+
+        [Fact]
         public async Task Send_Start_ReceiveDataOnMutation()
         {
             // arrange
@@ -92,6 +141,69 @@ namespace HotChocolate.AspNetCore.Subscriptions
         }
 
         [Fact]
+        public async Task Send_Start_Stop()
+        {
+            // arrange
+            TestServer testServer = CreateStarWarsServer();
+            WebSocketClient client = CreateWebSocketClient(testServer);
+            WebSocket webSocket = await ConnectToServerAsync(client);
+
+            var document = Utf8GraphQLParser.Parse(
+                "subscription { onReview(episode: NEWHOPE) { stars } }");
+
+            var request = new GraphQLRequest(document);
+
+            const string subscriptionId = "abc";
+
+            await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
+
+            await testServer.SendRequestAsync(new ClientQueryRequest
+            {
+                Query = @"
+                    mutation {
+                        createReview(episode:NEWHOPE review: {
+                            commentary: ""foo""
+                            stars: 5
+                        }) {
+                            stars
+                        }
+                    }
+                "
+            });
+
+            IReadOnlyDictionary<string, object> message =
+                await WaitForMessage(
+                    webSocket,
+                    MessageTypes.Subscription.Data,
+                    TimeSpan.FromSeconds(15));
+
+            // act
+            await webSocket.SendSubscriptionStopAsync(subscriptionId);
+
+            await testServer.SendRequestAsync(new ClientQueryRequest
+            {
+                Query = @"
+                    mutation {
+                        createReview(episode:NEWHOPE review: {
+                            commentary: ""foo""
+                            stars: 5
+                        }) {
+                            stars
+                        }
+                    }
+                "
+            });
+
+            message = await WaitForMessage(
+                webSocket,
+                MessageTypes.Subscription.Data,
+                TimeSpan.FromSeconds(5));
+
+            // assert
+            Assert.Null(message);
+        }
+
+        [Fact]
         public async Task Send_Start_ReceiveDataOnMutation_Large_Message()
         {
             // arrange
@@ -111,6 +223,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 subscriptionId, request, true);
 
             // assert
+            await webSocket.SendEmptyMessageAsync();
+
             await testServer.SendRequestAsync(new ClientQueryRequest
             {
                 Query = @"
@@ -203,6 +317,5 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
             return client;
         }
-
     }
 }

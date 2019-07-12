@@ -31,6 +31,14 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 new InitializeConnectionMessage(null));
         }
 
+        public static Task SendTerminateConnectionAsync(
+            this WebSocket webSocket)
+        {
+            return SendMessageAsync(
+                webSocket,
+                TerminateConnectionMessage.Default);
+        }
+
         public static async Task SendSubscriptionStartAsync(
             this WebSocket webSocket,
             string subscriptionId,
@@ -41,6 +49,27 @@ namespace HotChocolate.AspNetCore.Subscriptions
                webSocket,
                new DataStartMessage(subscriptionId, request),
                largeMessage);
+        }
+
+        public static async Task SendSubscriptionStopAsync(
+            this WebSocket webSocket,
+            string subscriptionId)
+        {
+            await SendMessageAsync(
+               webSocket,
+               new DataStopMessage(subscriptionId));
+        }
+
+        public static async Task SendEmptyMessageAsync(
+            this WebSocket webSocket)
+        {
+            var buffer = new byte[1];
+
+            var segment = new ArraySegment<byte>(buffer, 0, 0);
+
+            await webSocket.SendAsync(
+                segment, WebSocketMessageType.Text,
+                true, CancellationToken.None);
         }
 
         public static async Task SendMessageAsync(
