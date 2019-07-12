@@ -1514,10 +1514,22 @@ namespace HotChocolate.Types
 
         public struct FooStruct
         {
+            // should be ignored by the automatic field
+            // inference.
             public string Qux;
 
+            // should be included by the automatic field
+            // inference.
             public string Baz { get; set; }
 
+            // should be ignored by the automatic field
+            // inference since we cannot determine what object means
+            // in the graphql context.
+            // This field has to be included explicitly.
+            public object Quux{ get; set; }
+
+            // should be included by the automatic field
+            // inference.
             public string GetBar() => Qux + "_Bar_Value";
         }
 
