@@ -37,12 +37,12 @@ namespace HotChocolate.Types.Filters.Expressions
 
                 switch (operation.Kind)
                 {
-                    case FilterOperationKind.LowerThanOrEqual:
+                    case FilterOperationKind.LowerThanOrEquals:
                         expression = FilterExpressionBuilder.LowerThanOrEqual(
                             property, parsedValue);
                         return true;
 
-                    case FilterOperationKind.NotLowerThanOrEqual:
+                    case FilterOperationKind.NotLowerThanOrEquals:
                         expression = FilterExpressionBuilder.Not(
                             FilterExpressionBuilder.LowerThanOrEqual(
                                 property, parsedValue));
