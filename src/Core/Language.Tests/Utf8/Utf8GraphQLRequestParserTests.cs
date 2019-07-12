@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using ChilliCream.Testing;
 using Newtonsoft.Json;
@@ -273,7 +274,7 @@ namespace HotChocolate.Language
             parsed.MatchSnapshot();
         }
 
-        [Fact(Skip = "Fix this")]
+        [Fact]
         public void Parse_Socket_Message()
         {
             // arrange
@@ -319,6 +320,8 @@ namespace HotChocolate.Language
             // assert
             Assert.Equal("foo", message.Type);
             Assert.Equal("bar", message.Id);
+
+            File.WriteAllBytes("Foo.json", message.Payload.ToArray());
 
             Utf8GraphQLRequestParser.ParseJson(message.Payload).MatchSnapshot();
         }

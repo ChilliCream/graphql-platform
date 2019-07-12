@@ -85,8 +85,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 await WaitForMessage(
                     webSocket,
                     MessageTypes.Subscription.Data,
-                    TimeSpan.FromSeconds(10));
+                    TimeSpan.FromSeconds(15));
 
+            Assert.NotNull(message);
             message.MatchSnapshot();
         }
 
@@ -128,8 +129,9 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 await WaitForMessage(
                     webSocket,
                     MessageTypes.Subscription.Data,
-                    TimeSpan.FromSeconds(10));
+                    TimeSpan.FromSeconds(15));
 
+            Assert.NotNull(message);
             message.MatchSnapshot();
         }
 

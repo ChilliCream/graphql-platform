@@ -34,24 +34,21 @@ namespace HotChocolate.Language
             }
         }
 
-        private void SkipValue()
+        private int SkipValue()
         {
             switch (_reader.Kind)
             {
                 case TokenKind.LeftBracket:
-                    SkipList();
-                    break;
+                    return SkipList();
 
                 case TokenKind.LeftBrace:
-                    SkipObject();
-                    break;
+                    return SkipObject();
 
                 case TokenKind.String:
                 case TokenKind.Integer:
                 case TokenKind.Float:
                 case TokenKind.Name:
-                    SkipScalar();
-                    break;
+                    return SkipScalar();
 
                 default:
                     throw new SyntaxException(_reader,
@@ -66,16 +63,6 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private IReadOnlyDictionary<string, object> ParseObject()
         {
-            if (_reader.Kind != TokenKind.LeftBrace)
-            {
-                throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.LeftBrace,
-                        TokenVisualizer.Visualize(in _reader)));
-            }
-
             _reader.Expect(TokenKind.LeftBrace);
 
             var obj = new Dictionary<string, object>();
@@ -92,18 +79,8 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SkipObject()
+        private int SkipObject()
         {
-            if (_reader.Kind != TokenKind.LeftBrace)
-            {
-                throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.LeftBrace,
-                        TokenVisualizer.Visualize(in _reader)));
-            }
-
             _reader.Expect(TokenKind.LeftBrace);
 
             while (_reader.Kind != TokenKind.RightBrace)
@@ -112,7 +89,9 @@ namespace HotChocolate.Language
             }
 
             // skip closing token
+            int end = _reader.End;
             _reader.Expect(TokenKind.RightBrace);
+            return end;
         }
 
 
@@ -184,18 +163,8 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SkipList()
+        private int SkipList()
         {
-            if (_reader.Kind != TokenKind.LeftBracket)
-            {
-                throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.LeftBracket,
-                        TokenVisualizer.Visualize(in _reader)));
-            }
-
             // skip opening token
             _reader.MoveNext();
 
@@ -205,7 +174,9 @@ namespace HotChocolate.Language
             }
 
             // skip closing token
+            int end = _reader.End;
             _reader.Expect(TokenKind.RightBracket);
+            return end;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -260,39 +231,41 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void SkipScalar()
+        private int SkipScalar()
         {
+            int end = _reader.End;
+
             switch (_reader.Kind)
             {
                 case TokenKind.String:
                     _reader.MoveNext();
-                    return;
+                    return end;
 
                 case TokenKind.Integer:
                     _reader.MoveNext();
-                    return;
+                    return end;
 
                 case TokenKind.Float:
                     _reader.MoveNext();
-                    return;
+                    return end;
 
                 case TokenKind.Name:
                     if (_reader.Value.SequenceEqual(GraphQLKeywords.True))
                     {
                         _reader.MoveNext();
-                        return;
+                        return end;
                     }
 
                     if (_reader.Value.SequenceEqual(GraphQLKeywords.False))
                     {
                         _reader.MoveNext();
-                        return;
+                        return end;
                     }
 
                     if (_reader.Value.SequenceEqual(GraphQLKeywords.Null))
                     {
                         _reader.MoveNext();
-                        return;
+                        return end;
                     }
                     break;
             }

@@ -260,9 +260,9 @@ namespace HotChocolate.Language
                     {
                         int start = _reader.Start;
                         message.HasPayload = !IsNullToken();
-                        SkipValue();
+                        int end = SkipValue();
                         message.Payload = _reader.GraphQLData.Slice(
-                            start, _reader.End - start);
+                            start, end - start);
                         return;
                     }
                     break;
