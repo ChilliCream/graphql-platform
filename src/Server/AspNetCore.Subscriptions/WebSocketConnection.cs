@@ -38,6 +38,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public async Task<bool> TryOpenAsync()
         {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(WebSocketConnection));
+            }
+
             _webSocket = await HttpContext.WebSockets
                 .AcceptWebSocketAsync(_protocol)
                 .ConfigureAwait(false);
@@ -62,6 +67,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
             byte[] message,
             CancellationToken cancellationToken)
         {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(WebSocketConnection));
+            }
+
             return _webSocket.SendAsync(
                 new ArraySegment<byte>(message),
                 WebSocketMessageType.Text,
@@ -72,6 +82,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
             PipeWriter writer,
             CancellationToken cancellationToken)
         {
+            if (_disposed)
+            {
+                throw new ObjectDisposedException(nameof(WebSocketConnection));
+            }
+
             WebSocketReceiveResult socketResult = null;
             do
             {
@@ -112,20 +127,56 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public async Task CloseAsync(
            string message,
+           SocketCloseStatus closeStatus,
            CancellationToken cancellationToken)
         {
-            if (_webSocket.CloseStatus.HasValue)
+            try
             {
-                return;
+                if (_disposed || Closed)
+                {
+                    return;
+                }
+
+                await _webSocket.CloseAsync(
+                        MapCloseStatus(closeStatus),
+                        message,
+                        cancellationToken)
+                    .ConfigureAwait(false);
+
+                Dispose();
             }
+            catch
+            {
+                // we do not throw here ...
+            }
+        }
 
-            await _webSocket.CloseAsync(
-                    WebSocketCloseStatus.Empty,
-                    message,
-                    cancellationToken)
-                .ConfigureAwait(false);
-
-            Dispose();
+        private static WebSocketCloseStatus MapCloseStatus(
+            SocketCloseStatus closeStatus)
+        {
+            switch (closeStatus)
+            {
+                case SocketCloseStatus.EndpointUnavailable:
+                    return WebSocketCloseStatus.EndpointUnavailable;
+                case SocketCloseStatus.InternalServerError:
+                    return WebSocketCloseStatus.InternalServerError;
+                case SocketCloseStatus.InvalidMessageType:
+                    return WebSocketCloseStatus.InvalidMessageType;
+                case SocketCloseStatus.InvalidPayloadData:
+                    return WebSocketCloseStatus.InvalidPayloadData;
+                case SocketCloseStatus.MandatoryExtension:
+                    return WebSocketCloseStatus.MandatoryExtension;
+                case SocketCloseStatus.MessageTooBig:
+                    return WebSocketCloseStatus.MessageTooBig;
+                case SocketCloseStatus.NormalClosure:
+                    return WebSocketCloseStatus.NormalClosure;
+                case SocketCloseStatus.PolicyViolation:
+                    return WebSocketCloseStatus.PolicyViolation;
+                case SocketCloseStatus.ProtocolError:
+                    return WebSocketCloseStatus.ProtocolError;
+                default:
+                    return WebSocketCloseStatus.Empty;
+            }
         }
 
         public void Dispose()

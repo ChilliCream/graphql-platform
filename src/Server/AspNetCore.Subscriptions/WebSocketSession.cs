@@ -41,21 +41,28 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public async Task HandleAsync(CancellationToken cancellationToken)
         {
-            if (await _connection.TryOpenAsync().ConfigureAwait(false))
+            using (var cts = CancellationTokenSource
+                .CreateLinkedTokenSource(cancellationToken))
             {
-                try
+
+                if (await _connection.TryOpenAsync().ConfigureAwait(false))
                 {
-                    _keepAlive.Begin(cancellationToken);
-                    _messageProcessor.Begin(cancellationToken);
-                    await _messageReciver.ReceiveAsync(cancellationToken)
-                        .ConfigureAwait(false);
-                }
-                finally
-                {
-                    await _connection.CloseAsync(
-                        "Session ended.",
-                        cancellationToken)
-                        .ConfigureAwait(false);
+                    try
+                    {
+                        _keepAlive.Begin(cts.Token);
+                        _messageProcessor.Begin(cts.Token);
+                        await _messageReciver.ReceiveAsync(cts.Token)
+                            .ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        cts.Cancel();
+                        await _connection.CloseAsync(
+                            "Session ended.",
+                            SocketCloseStatus.NormalClosure,
+                            CancellationToken.None)
+                            .ConfigureAwait(false);
+                    }
                 }
             }
         }

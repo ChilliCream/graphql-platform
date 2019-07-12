@@ -26,6 +26,7 @@ namespace HotChocolate.Server
 
         Task CloseAsync(
             string message,
+            SocketCloseStatus closeStatus,
             CancellationToken cancellationToken);
     }
 }
