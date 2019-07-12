@@ -1403,7 +1403,30 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
-         [Fact]
+        [Fact]
+        public async Task Execute_With_Query_As_Struct()
+        {
+            // arrange
+            IQueryExecutor executor = SchemaBuilder.New()
+                .AddQueryType(new ObjectType<FooStruct>())
+                .Create()
+                .MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ bar baz }")
+                    .SetInitialValue(new FooStruct
+                    {
+                        Qux = "Qux_Value",
+                        Baz = "Baz_Value"
+                    })
+                    .Create());
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public void ObjectType_From_Dictionary()
         {
             // arrange
@@ -1491,7 +1514,11 @@ namespace HotChocolate.Types
 
         public struct FooStruct
         {
-            public string GetBar() => "Baz";
+            public string Qux;
+
+            public string Baz { get; set; }
+
+            public string GetBar() => Qux + "_Bar_Value";
         }
 
         public class FooWithDict
