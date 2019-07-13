@@ -6,7 +6,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 {
     public class SubscriptionMiddlewareOptions
     {
-        private PathString _subscriptionPath = new PathString("/ws");
+        private PathString _subscriptionPath = new PathString("/");
 
         public ParserOptions ParserOptions { get; set; } = new ParserOptions();
 

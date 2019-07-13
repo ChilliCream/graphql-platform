@@ -24,7 +24,7 @@ namespace HotChocolate.AspNetCore
     public class QueryMiddlewareOptions
     {
         private PathString _path = new PathString("/");
-        private PathString _subscriptionPath = new PathString("/ws");
+        private PathString _subscriptionPath = new PathString("/");
 
         [Obsolete(
             "Use query execution options.",
@@ -47,7 +47,7 @@ namespace HotChocolate.AspNetCore
                 }
 
                 _path = value;
-                SubscriptionPath = value + new PathString("/ws");
+                SubscriptionPath = value;
             }
         }
 
