@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
-    public class ComparableLowerThanOperationHandler
+    public sealed class ComparableLowerThanOperationHandler
         : ComparableOperationHandlerBase
     {
         protected override bool TryCreateExpression(
@@ -13,7 +13,6 @@ namespace HotChocolate.Types.Filters.Expressions
         {
             switch (operation.Kind)
             {
-
                 case FilterOperationKind.LowerThan:
                     expression = FilterExpressionBuilder.LowerThan(
                         property, parsedValue);

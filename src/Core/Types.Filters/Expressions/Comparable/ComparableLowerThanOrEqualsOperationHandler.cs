@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
-    public class ComparableLowerThanOrEqualsOperationHandler
+    public sealed class ComparableLowerThanOrEqualsOperationHandler
         : ComparableOperationHandlerBase
     {
         protected override bool TryCreateExpression(

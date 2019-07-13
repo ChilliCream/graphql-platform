@@ -5,7 +5,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
-    public class ComparableInOperationHandler
+    public sealed class ComparableInOperationHandler
         : IExpressionOperationHandler
     {
         public bool TryHandle(
