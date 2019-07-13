@@ -1,47 +1,34 @@
 using System.Linq.Expressions;
-using HotChocolate.Language;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
-    public class StringContainsOperationHandler
-        : IExpressionOperationHandler
+    public sealed class StringContainsOperationHandler
+        : StringOperationHandlerBase
     {
-
-        public bool TryHandle(
+        protected override bool TryCreateExpression(
             FilterOperation operation,
-            IInputType type,
-            IValueNode value,
-            Expression instance,
-            ITypeConversion converter,
-            out Expression expression)
+            MemberExpression property,
+            object parsedValue, out
+            Expression expression)
         {
-            if (operation.Type == typeof(string)
-                && (value is StringValueNode || value.IsNull()))
+            switch (operation.Kind)
             {
-                object parsedValue = type.ParseLiteral(value);
+                case FilterOperationKind.Contains:
+                    expression = FilterExpressionBuilder.Contains(
+                        property, parsedValue);
+                    return true;
 
-                MemberExpression property =
-                    Expression.Property(instance, operation.Property);
+                case FilterOperationKind.NotContains:
+                    expression = FilterExpressionBuilder.Not(
+                        FilterExpressionBuilder.Contains(
+                            property, parsedValue)
+                    );
+                    return true;
 
-                switch (operation.Kind)
-                {
-                    case FilterOperationKind.Contains:
-                        expression = FilterExpressionBuilder.Contains(
-                            property, parsedValue);
-                        return true;
-
-                    case FilterOperationKind.NotContains:
-                        expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.Contains(
-                                property, parsedValue)
-                        );
-                        return true;
-                }
+                default:
+                    expression = null;
+                    return false;
             }
-
-            expression = null;
-            return false;
         }
     }
 }

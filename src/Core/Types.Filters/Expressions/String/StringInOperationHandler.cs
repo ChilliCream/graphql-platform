@@ -7,7 +7,6 @@ namespace HotChocolate.Types.Filters.Expressions
     public class StringInOperationHandler
         : IExpressionOperationHandler
     {
-
         public bool TryHandle(
             FilterOperation operation,
             IInputType type,

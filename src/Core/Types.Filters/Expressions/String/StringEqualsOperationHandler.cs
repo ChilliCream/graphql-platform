@@ -1,45 +1,32 @@
 using System.Linq.Expressions;
-using HotChocolate.Language;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
-    public class StringEqualsOperationHandler
-        : IExpressionOperationHandler
+    public sealed class StringEqualsOperationHandler
+        : StringOperationHandlerBase
     {
-
-        public bool TryHandle(
+        protected override bool TryCreateExpression(
             FilterOperation operation,
-            IInputType type,
-            IValueNode value,
-            Expression instance,
-            ITypeConversion converter,
-            out Expression expression)
+            MemberExpression property,
+            object parsedValue, out
+            Expression expression)
         {
-            if (operation.Type == typeof(string)
-                && (value is StringValueNode || value.IsNull()))
+            switch (operation.Kind)
             {
-                object parsedValue = type.ParseLiteral(value);
+                case FilterOperationKind.Equals:
+                    expression = FilterExpressionBuilder.Equals(
+                        property, parsedValue);
+                    return true;
 
-                MemberExpression property =
-                    Expression.Property(instance, operation.Property);
+                case FilterOperationKind.NotEquals:
+                    expression = FilterExpressionBuilder.NotEquals(
+                        property, parsedValue);
+                    return true;
 
-                switch (operation.Kind)
-                {
-                    case FilterOperationKind.Equals:
-                        expression = FilterExpressionBuilder.Equals(
-                            property, parsedValue);
-                        return true;
-
-                    case FilterOperationKind.NotEquals:
-                        expression = FilterExpressionBuilder.NotEquals(
-                            property, parsedValue);
-                        return true;
-                        
-                }
+                default:
+                    expression = null;
+                    return false;
             }
-            expression = null;
-            return false;
         }
     }
 }
