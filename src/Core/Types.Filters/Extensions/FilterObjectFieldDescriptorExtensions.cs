@@ -8,7 +8,7 @@ namespace HotChocolate.Types.Filters
 {
     public static class FilterObjectFieldDescriptorExtensions
     {
-        public static IObjectFieldDescriptor<T> UseFilter<T>(
+        public static IObjectFieldDescriptor<T> UseFiltering<T>(
             this IObjectFieldDescriptor<T> descriptor)
         {
             if (descriptor is null)
@@ -28,10 +28,10 @@ namespace HotChocolate.Types.Filters
             Type filterType =
                 typeof(FilterInputType<>).MakeGenericType(typeInfo.ClrType);
 
-            return UseFilter(descriptor, filterType);
+            return UseFiltering(descriptor, filterType);
         }
 
-        public static IObjectFieldDescriptor UseFilter<T>(
+        public static IObjectFieldDescriptor UseFiltering<T>(
             this IObjectFieldDescriptor descriptor)
         {
             if (descriptor is null)
@@ -44,10 +44,10 @@ namespace HotChocolate.Types.Filters
                     ? typeof(T)
                     : typeof(FilterInputType<>).MakeGenericType(typeof(T));
 
-            return UseFilter(descriptor, filterType);
+            return UseFiltering(descriptor, filterType);
         }
 
-        private static TDescriptor UseFilter<TDescriptor>(
+        private static TDescriptor UseFiltering<TDescriptor>(
             TDescriptor descriptor,
             Type filterType)
             where TDescriptor : IObjectFieldDescriptor
