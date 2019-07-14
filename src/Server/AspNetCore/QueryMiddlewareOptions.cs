@@ -1,14 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Execution;
 using HotChocolate.Language;
-using HotChocolate.Server;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
-using HttpContext = Microsoft.Owin.IOwinContext;
 using HotChocolate.AspNetClassic.Interceptors;
 #else
 using Microsoft.AspNetCore.Http;
