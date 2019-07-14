@@ -27,7 +27,7 @@ namespace HotChocolate.Server
             _documentHashProvider = documentHashProvider
                 ?? throw new ArgumentNullException(nameof(documentHashProvider));
             _maxRequestSize = maxRequestSize < _minRequestSize
-                ? maxRequestSize
+                ? _minRequestSize
                 : maxRequestSize;
             _parserOptions = parserOptions
                 ?? throw new ArgumentNullException(nameof(parserOptions));
