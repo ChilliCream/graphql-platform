@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using ChilliCream.Testing;
 using Newtonsoft.Json;
@@ -190,6 +191,8 @@ namespace HotChocolate.Language
                                     new Dictionary<string, object>
                                     {
                                         { "aa" , "bb"},
+                                        { "ab" , null},
+                                        { "ac" , false},
                                     }
                                 }},
                         }
@@ -215,6 +218,116 @@ namespace HotChocolate.Language
                     QuerySyntaxSerializer.Serialize(r.Query, true)
                         .MatchSnapshot(new SnapshotNameExtension("Query"));
                 });
+        }
+
+        [Fact]
+        public void Parse_Json()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes(
+                JsonConvert.SerializeObject(
+                    new GraphQLRequestDto
+                    {
+                        Query = FileResource.Open("kitchen-sink.graphql"),
+                        NamedQuery = "ABC",
+                        OperationName = "DEF",
+                        Variables = new Dictionary<string, object>
+                        {
+                            { "a" , "b"},
+                            { "b" , new Dictionary<string, object>
+                                {
+                                    { "a" , "b"},
+                                    { "b" , true},
+                                    { "c" , 1},
+                                    { "d" , 1.1},
+                                }},
+                            { "c" , new List<object>
+                                {
+                                    new Dictionary<string, object>
+                                    {
+                                        { "a" , "b"},
+                                    }
+                                }},
+                        },
+                        Extensions = new Dictionary<string, object>
+                        {
+                            { "aa" , "bb"},
+                            { "bb" , new Dictionary<string, object>
+                                {
+                                    { "aa" , "bb"},
+                                    { "bb" , true},
+                                    { "cc" , 1},
+                                    { "df" , 1.1},
+                                }},
+                            { "cc" , new List<object>
+                                {
+                                    new Dictionary<string, object>
+                                    {
+                                        { "aa" , "bb"},
+                                    }
+                                }},
+                        }
+                    }));
+
+            // act
+            var parsed = Utf8GraphQLRequestParser.ParseJson(source);
+
+            // assert
+            parsed.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Parse_Socket_Message()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes(
+                JsonConvert.SerializeObject(
+                    new Dictionary<string, object>
+                    {
+                        {
+                            "payload",
+                            new Dictionary<string, object>
+                            {
+                                { "a" , "b"},
+                                { "b" , new Dictionary<string, object>
+                                    {
+                                        { "a" , "b"},
+                                        { "b" , true},
+                                        { "c" , 1},
+                                        { "d" , 1.1},
+                                        { "e" , false},
+                                        { "f" , null}
+                                    }},
+                                { "c" , new List<object>
+                                    {
+                                        new Dictionary<string, object>
+                                        {
+                                            { "a" , "b"},
+                                        }
+                                    }},
+                            }
+                        },
+                        {
+                            "type",
+                            "foo"
+                        },
+                        {
+                            "id",
+                            "bar"
+                        }
+                    }));
+
+            // act
+            GraphQLSocketMessage message =
+                Utf8GraphQLRequestParser.ParseMessage(source);
+
+            // assert
+            Assert.Equal("foo", message.Type);
+            Assert.Equal("bar", message.Id);
+
+            File.WriteAllBytes("Foo.json", message.Payload.ToArray());
+
+            Utf8GraphQLRequestParser.ParseJson(message.Payload).MatchSnapshot();
         }
 
         private class GraphQLRequestDto

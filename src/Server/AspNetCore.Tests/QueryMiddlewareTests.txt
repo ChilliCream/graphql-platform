@@ -1,0 +1,178 @@
+using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using HotChocolate.Types;
+using Microsoft.AspNetCore.TestHost;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using Snapshooter;
+using Snapshooter.Xunit;
+using Xunit;
+
+namespace HotChocolate.AspNetCore
+{
+    public class QueryMiddlewareTests
+        : IClassFixture<TestServerFactory>
+    {
+        public QueryMiddlewareTests(TestServerFactory testServerFactory)
+        {
+            TestServerFactory = testServerFactory;
+        }
+
+        private TestServerFactory TestServerFactory { get; set; }
+
+        [Fact]
+        public async Task HttpPost_NestedEnumArgument()
+        {
+            // arrange
+            TestServer server = CreateTestServer();
+            var request = new ClientQueryRequest
+            {
+                Query = "query a($a: BarInput) { withNestedEnum(bar: $a) }",
+                Variables = JObject.FromObject(new Dictionary<string, object>
+                {
+                    { "a",  new Dictionary<string, object>
+                            {
+                                { "a",  "B" }
+                            }
+                    }
+                })
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendRequestAsync(request);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            string json = await message.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert
+                .DeserializeObject<ClientQueryResult>(json);
+            Assert.Null(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpGet_ForwardToNextMiddleware()
+        {
+            // arrange
+            TestServer server = CreateTestServer();
+
+            // act
+            HttpResponseMessage message = await server.CreateClient()
+                .GetAsync($"http://localhost:5000/1234");
+
+            // assert
+            Assert.Equal(HttpStatusCode.NotFound, message.StatusCode);
+        }
+
+        [Fact]
+        public async Task HttpPost_WithScopedService()
+        {
+            // arrange
+            TestServer server = CreateTestServer();
+            var request = new ClientQueryRequest
+            {
+                Query = @"
+                {
+                    sayHello
+                }"
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendRequestAsync(request);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            string json = await message.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert
+                .DeserializeObject<ClientQueryResult>(json);
+            Assert.Null(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpPost_WithHttpContext()
+        {
+            // arrange
+            TestServer server = CreateTestServer();
+            var request = new ClientQueryRequest
+            {
+                Query = @"
+                {
+                    requestPath
+                    requestPath2
+                    requestPath3
+                }"
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendRequestAsync(request);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            string json = await message.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert
+                .DeserializeObject<ClientQueryResult>(json);
+            Assert.Null(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpPost_CustomProperties()
+        {
+            // arrange
+            TestServer server = CreateTestServer();
+            var request = new ClientQueryRequest
+            {
+                Query = @"
+                {
+                    customProperty
+                }"
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendRequestAsync(request);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            string json = await message.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert
+                .DeserializeObject<ClientQueryResult>(json);
+            Assert.Null(result.Errors);
+            result.MatchSnapshot();
+        }
+
+
+
+
+
+        private TestServer CreateTestServer(string path = null)
+        {
+            return TestServerFactory.Create(
+                c =>
+                {
+                    c.RegisterQueryType<QueryType>();
+                    c.RegisterType<InputObjectType<Bar>>();
+                },
+                services => services.AddQueryRequestInterceptor(
+                    (context, request, ct) =>
+                    {
+                        request.AddProperty("foo", "bar");
+                        return Task.CompletedTask;
+                    }),
+                new QueryMiddlewareOptions
+                {
+                    Path = path ?? "/",
+                });
+        }
+    }
+}

@@ -1,8 +1,10 @@
 using System;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.AspNetCore
@@ -33,6 +35,96 @@ namespace HotChocolate.AspNetCore
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchema()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            var schema = Schema.Create(c => c.Options.StrictValidation = false);
+
+            // act
+            ServiceCollectionExtensions.AddGraphQL(
+                services,
+                schema);
+
+            // assert
+            services.Select(t => t.ServiceType.FullName)
+                .OrderBy(t => t, StringComparer.Ordinal)
+                .ToArray()
+                .MatchSnapshot();
+
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaConfigure_ServiceNull()
+        {
+            // arrange
+            var schema = Schema.Create(c => c.Options.StrictValidation = false);
+
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                null,
+                schema,
+                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                    c => c));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaConfigure_SchemaNull()
+        {
+            // arrange
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                new ServiceCollection(),
+                default(Schema),
+                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                    c => c));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaConfigure_ConfigureNull()
+        {
+            // arrange
+            var schema = Schema.Create(c => c.Options.StrictValidation = false);
+
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                new ServiceCollection(),
+                schema,
+                default(Func<IQueryExecutionBuilder, IQueryExecutionBuilder>));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaConfigure()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            var schema = Schema.Create(c => c.Options.StrictValidation = false);
+            var cfg = new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                c => c.UseDefaultPipeline());
+
+            // act
+            ServiceCollectionExtensions.AddGraphQL(
+                services,
+                schema,
+                cfg);
+
+            // assert
+            services.Select(t => t.ServiceType.FullName)
+                .OrderBy(t => t, StringComparer.Ordinal)
+                .ToArray()
+                .MatchSnapshot();
         }
 
         [Fact]
@@ -111,6 +203,28 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public void AddGraphQL_ServicesSchemaFactoryBuilder()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            var schema = Schema.Create(c => c.Options.StrictValidation = false);
+            var cfg = new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                c => c.UseDefaultPipeline());
+
+            // act
+            ServiceCollectionExtensions.AddGraphQL(
+                services,
+                sp => schema,
+                cfg);
+
+            // assert
+            services.Select(t => t.ServiceType.FullName)
+                .OrderBy(t => t, StringComparer.Ordinal)
+                .ToArray()
+                .MatchSnapshot();
+        }
+
+        [Fact]
         public void AddGraphQL_ServicesConfigure_ServiceNull()
         {
             // arrange
@@ -139,11 +253,29 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public void AddGraphQL_ServicesConfigure()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            var schemaCfg = new Action<ISchemaConfiguration>(
+                c => c.Options.StrictValidation = false);
+
+            // act
+            ServiceCollectionExtensions.AddGraphQL(
+                services,
+                schemaCfg);
+
+            // assert
+            services.Select(t => t.ServiceType.FullName)
+                .OrderBy(t => t, StringComparer.Ordinal)
+                .ToArray()
+                .MatchSnapshot();
+        }
+
+        [Fact]
         public void AddGraphQL_ServicesConfigureBuilder_ServiceNull()
         {
             // arrange
-            var schema = Schema.Create(c => c.Options.StrictValidation = false);
-
             // act
             Action action = () => ServiceCollectionExtensions.AddGraphQL(
                 null,
@@ -184,6 +316,29 @@ namespace HotChocolate.AspNetCore
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesConfigureBuilder()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            var schemaCfg = new Action<ISchemaConfiguration>(
+                c => c.Options.StrictValidation = false);
+            var cfg = new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                c => c.UseDefaultPipeline());
+
+            // act
+            ServiceCollectionExtensions.AddGraphQL(
+                services,
+                schemaCfg,
+                cfg);
+
+            // assert
+            services.Select(t => t.ServiceType.FullName)
+                .OrderBy(t => t, StringComparer.Ordinal)
+                .ToArray()
+                .MatchSnapshot();
         }
 
         [Fact]
@@ -242,6 +397,28 @@ namespace HotChocolate.AspNetCore
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaSdlConfigure()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            string schema = "type Query { a: String }";
+            var schemaCfg = new Action<ISchemaConfiguration>(
+                c => c.Options.StrictValidation = false);
+
+            // act
+            ServiceCollectionExtensions.AddGraphQL(
+                services,
+                schema,
+                schemaCfg);
+
+            // assert
+            services.Select(t => t.ServiceType.FullName)
+                .OrderBy(t => t, StringComparer.Ordinal)
+                .ToArray()
+                .MatchSnapshot();
         }
 
         [Fact]
@@ -326,6 +503,31 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public void AddGraphQL_ServicesSchemaSdlConfigureBld()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            string schema = "type Query { a: String }";
+            var schemaCfg = new Action<ISchemaConfiguration>(
+                c => c.Options.StrictValidation = false);
+            var cfg = new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                c => c.UseDefaultPipeline());
+
+            // act
+            ServiceCollectionExtensions.AddGraphQL(
+                services,
+                schema,
+                schemaCfg,
+                cfg);
+
+            // assert
+            services.Select(t => t.ServiceType.FullName)
+                .OrderBy(t => t, StringComparer.Ordinal)
+                .ToArray()
+                .MatchSnapshot();
+        }
+
+        [Fact]
         public void AddGraphQL_ServicesSchemaOptions_ServiceNull()
         {
             // arrange
@@ -369,6 +571,27 @@ namespace HotChocolate.AspNetCore
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaOptions()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            var schema = Schema.Create(c => c.Options.StrictValidation = false);
+            var options = new QueryExecutionOptions();
+
+            // act
+            ServiceCollectionExtensions.AddGraphQL(
+                services,
+                schema,
+                options);
+
+            // assert
+            services.Select(t => t.ServiceType.FullName)
+                .OrderBy(t => t, StringComparer.Ordinal)
+                .ToArray()
+                .MatchSnapshot();
         }
 
         [Fact]
@@ -418,6 +641,27 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public void AddGraphQL_ServicesSchemaFactoryOptions()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            var schema = Schema.Create(c => c.Options.StrictValidation = false);
+            var options = new QueryExecutionOptions();
+
+            // act
+            ServiceCollectionExtensions.AddGraphQL(
+                services,
+                sp => schema,
+                options);
+
+            // assert
+            services.Select(t => t.ServiceType.FullName)
+                .OrderBy(t => t, StringComparer.Ordinal)
+                .ToArray()
+                .MatchSnapshot();
+        }
+
+        [Fact]
         public void AddGraphQL_ServicesSchemaConfigOptions_ServiceNull()
         {
             // arrange
@@ -464,6 +708,27 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public void AddGraphQL_ServicesSchemaConfigOptions()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            var options = new QueryExecutionOptions();
+
+            // act
+            ServiceCollectionExtensions.AddGraphQL(
+                services,
+                c => c.Options.StrictValidation = false,
+                options);
+
+            // assert
+            services.Select(t => t.ServiceType.FullName)
+                .OrderBy(t => t, StringComparer.Ordinal)
+                .ToArray()
+                .MatchSnapshot();
+        }
+
+        [Obsolete("Use different overload.", true)]
+        [Fact]
         public void AddGraphQL_ServicesQueryExecutor_ServiceNull()
         {
             // arrange
@@ -478,6 +743,7 @@ namespace HotChocolate.AspNetCore
             Assert.Throws<ArgumentNullException>(action);
         }
 
+        [Obsolete("Use different overload.", true)]
         [Fact]
         public void AddGraphQL_ServicesQueryExecutor_ExecutorNull()
         {
@@ -489,6 +755,96 @@ namespace HotChocolate.AspNetCore
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaConfigureBuilder_ServiceNull()
+        {
+            // arrange
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                null,
+                "type Query { a: String }",
+                new Action<ISchemaConfiguration>(c => { }),
+                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                    b => b));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaConfigureBuilder_SchemaNull()
+        {
+            // arrange
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                new ServiceCollection(),
+                null,
+                new Action<ISchemaConfiguration>(c => { }),
+                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                    b => b));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaConfigureBuilder_ConfigureNull()
+        {
+            // arrange
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                new ServiceCollection(),
+                "type Query { a: String }",
+                default(Action<ISchemaConfiguration>),
+                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                    b => b));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaConfigureBuilder_BuilderNull()
+        {
+            // arrange
+            var schema = Schema.Create(c => c.Options.StrictValidation = false);
+
+            // act
+            Action action = () => ServiceCollectionExtensions.AddGraphQL(
+                new ServiceCollection(),
+                "type Query { a: String }",
+                new Action<ISchemaConfiguration>(c => { }),
+                default(Func<IQueryExecutionBuilder, IQueryExecutionBuilder>));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddGraphQL_ServicesSchemaConfigureBuilder()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            var schema = "type Query { a: String }";
+            var schemaCfg = new Action<ISchemaConfiguration>(
+                c => c.Options.StrictValidation = false);
+            var cfg = new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+                c => c.UseDefaultPipeline());
+
+            // act
+            ServiceCollectionExtensions.AddGraphQL(
+                services,
+                schema,
+                schemaCfg,
+                cfg);
+
+            // assert
+            services.Select(t => t.ServiceType.FullName)
+                .OrderBy(t => t, StringComparer.Ordinal)
+                .ToArray()
+                .MatchSnapshot();
         }
     }
 }

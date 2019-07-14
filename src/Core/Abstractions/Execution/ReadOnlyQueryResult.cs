@@ -25,5 +25,8 @@ namespace HotChocolate.Execution
 
         public IReadOnlyDictionary<string, object> ContextData =>
             _queryResult.ContextData;
+
+        public IReadOnlyDictionary<string, object> ToDictionary() =>
+            _queryResult.ToDictionary();
     }
 }

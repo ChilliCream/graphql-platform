@@ -73,6 +73,27 @@ namespace HotChocolate.Language
                 "Expected `{` or `[` as first syntax token.");
         }
 
+        public GraphQLSocketMessage ParseMessage()
+        {
+            _reader.MoveNext();
+            _reader.Expect(TokenKind.LeftBrace);
+
+            var message = new Message();
+
+            while (_reader.Kind != TokenKind.RightBrace)
+            {
+                ParseMessageProperty(ref message);
+            }
+
+            return new GraphQLSocketMessage
+            (
+                message.Type,
+                message.Id,
+                message.Payload,
+                message.HasPayload
+            );
+        }
+
         public object ParseJson()
         {
             _reader.MoveNext();
@@ -107,6 +128,7 @@ namespace HotChocolate.Language
             if (request.IsQueryNull
                 && request.NamedQuery == null)
             {
+                // TODO : resources
                 throw new SyntaxException(
                     _reader,
                     "Either the query `property` or the `namedQuery` " +
@@ -169,8 +191,16 @@ namespace HotChocolate.Language
                 case _q:
                     if (fieldName.SequenceEqual(_query))
                     {
-                        request.Query = _reader.Value;
                         request.IsQueryNull = IsNullToken();
+                        if (!request.IsQueryNull
+                            && _reader.Kind != TokenKind.String)
+                        {
+                            // TODO : resources
+                            throw new SyntaxException(
+                                _reader,
+                                "The query field must be a string or null.");
+                        }
+                        request.Query = _reader.Value;
                         _reader.MoveNext();
                         return;
                     }
@@ -198,8 +228,54 @@ namespace HotChocolate.Language
                 _reader,
                 string.Format(
                     CultureInfo.InvariantCulture,
-                    "Unexpected request property name `{0}`found.",
+                    "Unexpected request property name `{0}` found.",
                     Utf8GraphQLReader.GetString(fieldName, false)));
+        }
+
+        private void ParseMessageProperty(ref Message message)
+        {
+            ReadOnlySpan<byte> fieldName = _reader.Expect(TokenKind.String);
+            _reader.Expect(TokenKind.Colon);
+
+            switch (fieldName[0])
+            {
+                case _t:
+                    if (fieldName.SequenceEqual(_type))
+                    {
+                        message.Type = ParseStringOrNull();
+                        return;
+                    }
+                    break;
+
+                case _i:
+                    if (fieldName.SequenceEqual(_id))
+                    {
+                        message.Id = ParseStringOrNull();
+                        return;
+                    }
+                    break;
+
+                case _p:
+                    if (fieldName.SequenceEqual(_payload))
+                    {
+                        int start = _reader.Start;
+                        message.HasPayload = !IsNullToken();
+                        int end = SkipValue();
+                        message.Payload = _reader.GraphQLData.Slice(
+                            start, end - start);
+                        return;
+                    }
+                    break;
+
+                default:
+                    // TODO : resources
+                    throw new SyntaxException(
+                        _reader,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            "Unexpected request property name `{0}` found.",
+                            Utf8GraphQLReader.GetString(fieldName, false)));
+            }
         }
 
         private DocumentNode ParseQuery(in Request request)
@@ -230,13 +306,13 @@ namespace HotChocolate.Language
         }
 
         public static IReadOnlyList<GraphQLRequest> Parse(
-           ReadOnlySpan<byte> graphQLData) =>
-           new Utf8GraphQLRequestParser(graphQLData).Parse();
+           ReadOnlySpan<byte> requestData) =>
+           new Utf8GraphQLRequestParser(requestData).Parse();
 
         public static IReadOnlyList<GraphQLRequest> Parse(
-            ReadOnlySpan<byte> graphQLData,
+            ReadOnlySpan<byte> requestData,
             ParserOptions options) =>
-            new Utf8GraphQLRequestParser(graphQLData, options).Parse();
+            new Utf8GraphQLRequestParser(requestData, options).Parse();
 
         public static IReadOnlyList<GraphQLRequest> Parse(
             string sourceText) =>
@@ -284,14 +360,18 @@ namespace HotChocolate.Language
             }
         }
 
-        public static object ParseJson(
-            ReadOnlySpan<byte> graphQLData) =>
-            new Utf8GraphQLRequestParser(graphQLData).ParseJson();
+        public static GraphQLSocketMessage ParseMessage(
+            ReadOnlySpan<byte> messageData) =>
+            new Utf8GraphQLRequestParser(messageData).ParseMessage();
 
         public static object ParseJson(
-            ReadOnlySpan<byte> graphQLData,
+            ReadOnlySpan<byte> jsonData) =>
+            new Utf8GraphQLRequestParser(jsonData).ParseJson();
+
+        public static object ParseJson(
+            ReadOnlySpan<byte> jsonData,
             ParserOptions options) =>
-            new Utf8GraphQLRequestParser(graphQLData, options).ParseJson();
+            new Utf8GraphQLRequestParser(jsonData, options).ParseJson();
 
         public static object ParseJson(string sourceText) =>
             ParseJson(sourceText, ParserOptions.Default);

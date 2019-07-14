@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -9,71 +10,26 @@ namespace HotChocolate.Execution
     public sealed class JsonQueryResultSerializer
         : IQueryResultSerializer
     {
-        private const string _data = "data";
-        private const string _errors = "errors";
-        private const string _extensions = "extensions";
-        private const string _message = "message";
-        private const string _locations = "locations";
-        private const string _path = "path";
+        private readonly UTF8Encoding _encoding = new UTF8Encoding();
 
-
-        public async Task SerializeAsync(
+        public Task SerializeAsync(
             IReadOnlyQueryResult result,
             Stream stream)
         {
-            var formatted = new OrderedDictionary();
-
-            if (result.Errors.Count > 0)
+            if (result is null)
             {
-                formatted[_errors] = SerializeErrors(result.Errors);
+                throw new ArgumentNullException(nameof(result));
             }
 
-            if (result.Data.Count > 0)
+            if (stream is null)
             {
-                formatted[_data] = result.Data;
+                throw new ArgumentNullException(nameof(stream));
             }
 
-            if (result.Extensions.Count > 0)
-            {
-                formatted[_extensions] = result.Extensions;
-            }
-
-            byte[] buffer = Encoding.UTF8.GetBytes(
-                JsonConvert.SerializeObject(formatted));
-
-            await stream.WriteAsync(buffer, 0, buffer.Length)
-                .ConfigureAwait(false);
-        }
-
-        private static ICollection<object> SerializeErrors(
-            IReadOnlyCollection<IError> errors)
-        {
-            var formattedErrors = new List<object>();
-
-            foreach (IError error in errors)
-            {
-                var formattedError = new OrderedDictionary();
-                formattedError[_message] = error.Message;
-
-                if (error.Locations != null && error.Locations.Count > 0)
-                {
-                    formattedError[_locations] = error.Locations;
-                }
-
-                if (error.Path != null && error.Path.Count > 0)
-                {
-                    formattedError[_path] = error.Path;
-                }
-
-                if (error.Extensions != null && error.Extensions.Count > 0)
-                {
-                    formattedError[_extensions] = error.Extensions;
-                }
-
-                formattedErrors.Add(formattedError);
-            }
-
-            return formattedErrors;
+            IReadOnlyDictionary<string, object> dict = result.ToDictionary();
+            string json = JsonConvert.SerializeObject(dict);
+            byte[] buffer = _encoding.GetBytes(json);
+            return stream.WriteAsync(buffer, 0, buffer.Length);
         }
     }
 }

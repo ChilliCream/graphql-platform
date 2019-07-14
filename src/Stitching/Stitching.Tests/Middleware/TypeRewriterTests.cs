@@ -15,6 +15,7 @@ using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Delegation;
 using System.Linq;
 using Snapshooter;
+using HotChocolate.AspNetCore.Tests.Utilities;
 
 namespace HotChocolate.Stitching
 {
@@ -68,12 +69,13 @@ namespace HotChocolate.Stitching
                Dictionary<string, HttpClient> connections)
         {
             TestServer server = TestServerFactory.Create(
-                SchemaBuilder.New()
-                    .AddDocumentFromString(
-                        "type Query { foo(a: String): String }")
-                    .AddResolver("Query", "foo", c => c.Argument<string>("a"))
-                    .Create(),
-                new QueryMiddlewareOptions());
+                services => services.AddGraphQL(
+                    SchemaBuilder.New()
+                        .AddDocumentFromString(
+                            "type Query { foo(a: String): String }")
+                        .AddResolver("Query", "foo", c => c.Argument<string>("a"))
+                        .Create()),
+                app => app.UseGraphQL());
 
             connections["someSchema"] = server.CreateClient();
 
