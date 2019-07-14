@@ -56,7 +56,7 @@ namespace StarWars
             });
 
             /*
-            Note: comment app.UseGraphQL("/graphql"); and uncomment this
+            Note: uncomment this
             section in order to simulate a user that has a country claim and
             passes the configured authorization rule.
 
