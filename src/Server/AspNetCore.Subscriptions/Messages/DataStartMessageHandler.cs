@@ -75,7 +75,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             }
         }
 
-        private async Task HandleQueryResultAsync(
+        private static async Task HandleQueryResultAsync(
             ISocketConnection connection,
             DataStartMessage message,
             IReadOnlyQueryResult queryResult,

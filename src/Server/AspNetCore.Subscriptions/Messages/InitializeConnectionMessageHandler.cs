@@ -21,17 +21,12 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             InitializeConnectionMessage message,
             CancellationToken cancellationToken)
         {
-            ConnectionStatus connectionStatus;
-
-            if (_connectMessageInterceptor == null)
-            {
-                connectionStatus = ConnectionStatus.Accept();
-            }
-            else
-            {
-                connectionStatus = await _connectMessageInterceptor
-                    .OnReceiveAsync(connection, message, cancellationToken);
-            }
+            ConnectionStatus connectionStatus =
+                _connectMessageInterceptor == null
+                    ? ConnectionStatus.Accept()
+                    : await _connectMessageInterceptor.OnReceiveAsync(
+                        connection, message, cancellationToken)
+                        .ConfigureAwait(false);
 
             if (connectionStatus.Accepted)
             {

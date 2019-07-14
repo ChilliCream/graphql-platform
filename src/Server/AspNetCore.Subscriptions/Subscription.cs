@@ -60,7 +60,8 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     }
                 }
 
-                if (_responseStream.IsCompleted && !_cts.IsCancellationRequested)
+                if (_responseStream.IsCompleted
+                    && !_cts.IsCancellationRequested)
                 {
                     await _connection.SendAsync(
                         new DataCompleteMessage(Id).Serialize(),

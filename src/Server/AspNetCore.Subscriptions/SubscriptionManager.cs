@@ -1,10 +1,9 @@
-using System.Linq;
 using System;
-using System.Collections.Concurrent;
-using HotChocolate.Execution;
-using HotChocolate.Server;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
+using System.Linq;
+using HotChocolate.Server;
 
 namespace HotChocolate.AspNetCore.Subscriptions
 {
@@ -74,20 +73,17 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
             if (!_disposed)
             {
-                if (disposing)
+                if (disposing && _subs.Count > 0)
                 {
-                    if (_subs.Count > 0)
+                    ISubscription[] subs = _subs.Values.ToArray();
+
+                    for (int i = 0; i < subs.Length; i++)
                     {
-                        ISubscription[] subs = _subs.Values.ToArray();
-
-                        for (int i = 0; i < subs.Length; i++)
-                        {
-                            subs[i].Dispose();
-                            subs[i] = null;
-                        }
-
-                        _subs.Clear();
+                        subs[i].Dispose();
+                        subs[i] = null;
                     }
+
+                    _subs.Clear();
                 }
                 _disposed = true;
             }

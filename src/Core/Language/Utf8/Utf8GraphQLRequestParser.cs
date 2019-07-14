@@ -266,15 +266,16 @@ namespace HotChocolate.Language
                         return;
                     }
                     break;
-            }
 
-            // TODO : resources
-            throw new SyntaxException(
-                _reader,
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    "Unexpected request property name `{0}` found.",
-                    Utf8GraphQLReader.GetString(fieldName, false)));
+                default:
+                    // TODO : resources
+                    throw new SyntaxException(
+                        _reader,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            "Unexpected request property name `{0}` found.",
+                            Utf8GraphQLReader.GetString(fieldName, false)));
+            }
         }
 
         private DocumentNode ParseQuery(in Request request)

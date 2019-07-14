@@ -44,7 +44,6 @@ namespace HotChocolate.AspNetCore.Subscriptions
             using (var cts = CancellationTokenSource
                 .CreateLinkedTokenSource(cancellationToken))
             {
-
                 if (await _connection.TryOpenAsync().ConfigureAwait(false))
                 {
                     try
