@@ -3,6 +3,7 @@ using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
@@ -50,7 +51,7 @@ namespace HotChocolate.AspNetCore
                 schema);
 
             // assert
-            services.Select(t => t.ServiceType.FullName)
+            services.Select(t => ReflectionUtils.GetTypeName(t.ServiceType))
                 .OrderBy(t => t, StringComparer.Ordinal)
                 .ToArray()
                 .MatchSnapshot();
@@ -121,7 +122,7 @@ namespace HotChocolate.AspNetCore
                 cfg);
 
             // assert
-            services.Select(t => t.ServiceType.FullName)
+            services.Select(t => ReflectionUtils.GetTypeName(t.ServiceType))
                 .OrderBy(t => t, StringComparer.Ordinal)
                 .ToArray()
                 .MatchSnapshot();
@@ -218,7 +219,7 @@ namespace HotChocolate.AspNetCore
                 cfg);
 
             // assert
-            services.Select(t => t.ServiceType.FullName)
+            services.Select(t => ReflectionUtils.GetTypeName(t.ServiceType))
                 .OrderBy(t => t, StringComparer.Ordinal)
                 .ToArray()
                 .MatchSnapshot();
@@ -266,7 +267,7 @@ namespace HotChocolate.AspNetCore
                 schemaCfg);
 
             // assert
-            services.Select(t => t.ServiceType.FullName)
+            services.Select(t => ReflectionUtils.GetTypeName(t.ServiceType))
                 .OrderBy(t => t, StringComparer.Ordinal)
                 .ToArray()
                 .MatchSnapshot();
@@ -335,7 +336,7 @@ namespace HotChocolate.AspNetCore
                 cfg);
 
             // assert
-            services.Select(t => t.ServiceType.FullName)
+            services.Select(t => ReflectionUtils.GetTypeName(t.ServiceType))
                 .OrderBy(t => t, StringComparer.Ordinal)
                 .ToArray()
                 .MatchSnapshot();
@@ -415,7 +416,7 @@ namespace HotChocolate.AspNetCore
                 schemaCfg);
 
             // assert
-            services.Select(t => t.ServiceType.FullName)
+            services.Select(t => ReflectionUtils.GetTypeName(t.ServiceType))
                 .OrderBy(t => t, StringComparer.Ordinal)
                 .ToArray()
                 .MatchSnapshot();
@@ -521,7 +522,7 @@ namespace HotChocolate.AspNetCore
                 cfg);
 
             // assert
-            services.Select(t => t.ServiceType.FullName)
+            services.Select(t => ReflectionUtils.GetTypeName(t.ServiceType))
                 .OrderBy(t => t, StringComparer.Ordinal)
                 .ToArray()
                 .MatchSnapshot();
@@ -588,7 +589,7 @@ namespace HotChocolate.AspNetCore
                 options);
 
             // assert
-            services.Select(t => t.ServiceType.FullName)
+            services.Select(t => ReflectionUtils.GetTypeName(t.ServiceType))
                 .OrderBy(t => t, StringComparer.Ordinal)
                 .ToArray()
                 .MatchSnapshot();
@@ -655,7 +656,7 @@ namespace HotChocolate.AspNetCore
                 options);
 
             // assert
-            services.Select(t => t.ServiceType.FullName)
+            services.Select(t => ReflectionUtils.GetTypeName(t.ServiceType))
                 .OrderBy(t => t, StringComparer.Ordinal)
                 .ToArray()
                 .MatchSnapshot();
@@ -721,7 +722,7 @@ namespace HotChocolate.AspNetCore
                 options);
 
             // assert
-            services.Select(t => t.ServiceType.FullName)
+            services.Select(t => ReflectionUtils.GetTypeName(t.ServiceType))
                 .OrderBy(t => t, StringComparer.Ordinal)
                 .ToArray()
                 .MatchSnapshot();
@@ -841,7 +842,7 @@ namespace HotChocolate.AspNetCore
                 cfg);
 
             // assert
-            services.Select(t => t.ServiceType.FullName)
+            services.Select(t => ReflectionUtils.GetTypeName(t.ServiceType))
                 .OrderBy(t => t, StringComparer.Ordinal)
                 .ToArray()
                 .MatchSnapshot();
