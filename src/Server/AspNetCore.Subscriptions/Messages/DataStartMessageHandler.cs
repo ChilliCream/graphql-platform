@@ -55,8 +55,10 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
             {
                 case IResponseStream responseStream:
                     connection.Subscriptions.Register(
-                        message.Id,
-                        responseStream);
+                        new Subscription(
+                            connection,
+                            responseStream,
+                            message.Id));
                     break;
 
                 case IReadOnlyQueryResult queryResult:

@@ -22,16 +22,6 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 ?? throw new ArgumentNullException(nameof(connection));
         }
 
-        public void Register(
-            string subscriptionId,
-            IResponseStream responseStream)
-        {
-            Register(new Subscription(
-                _connection,
-                responseStream,
-                subscriptionId));
-        }
-
         public void Register(ISubscription subscription)
         {
             if (subscription == null)
@@ -52,22 +42,6 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     Unregister(subscription.Id);
                 };
             }
-        }
-
-        public void Unregister(ISubscription subscription)
-        {
-            if (subscription is null)
-            {
-                throw new ArgumentNullException(nameof(subscription));
-            }
-
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(
-                    nameof(SubscriptionManager));
-            }
-
-            Unregister(subscription.Id);
         }
 
         public void Unregister(string subscriptionId)

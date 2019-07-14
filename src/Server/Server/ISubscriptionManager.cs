@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using HotChocolate.Execution;
 
 namespace HotChocolate.Server
 {
@@ -8,11 +7,7 @@ namespace HotChocolate.Server
         : IEnumerable<ISubscription>
         , IDisposable
     {
-        void Register(string subscriptionId, IResponseStream responseStream);
-
         void Register(ISubscription subscription);
-
-        void Unregister(ISubscription subscription);
 
         void Unregister(string subscriptionId);
     }
