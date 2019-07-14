@@ -6,11 +6,7 @@ using System.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 
-#if ASPNETCLASSIC
-namespace HotChocolate.AspNetClassic
-#else
-namespace HotChocolate.AspNetCore
-#endif
+namespace HotChocolate.Server
 {
     public class RequestHelper
     {

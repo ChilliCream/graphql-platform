@@ -3,8 +3,8 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using System.Buffers;
 using HotChocolate.Language;
+using HotChocolate.Server;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
