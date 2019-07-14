@@ -1,4 +1,3 @@
-#if ASPNETCLASSIC
 using System;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -19,4 +18,3 @@ namespace HotChocolate.AspNetClassic
         }
     }
 }
-#endif

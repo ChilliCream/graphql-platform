@@ -1,4 +1,3 @@
-#if ASPNETCLASSIC
 using Microsoft.Owin;
 
 namespace HotChocolate.AspNetClassic
@@ -8,4 +7,3 @@ namespace HotChocolate.AspNetClassic
         IOwinContext OwinContext { get; }
     }
 }
-#endif

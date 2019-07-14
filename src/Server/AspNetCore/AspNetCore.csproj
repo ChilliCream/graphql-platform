@@ -27,13 +27,13 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.1.1" />
-    <PackageReference Include="System.IO.Pipelines" Version="4.5.3" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Core\Core.csproj" />
     <ProjectReference Include="..\AspNetCore.Authorization\AspNetCore.Authorization.csproj" />
     <ProjectReference Include="..\AspNetCore.Subscriptions\AspNetCore.Subscriptions.csproj" />
+    <ProjectReference Include="..\AspNetCore.Abstractions\AspNetCore.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

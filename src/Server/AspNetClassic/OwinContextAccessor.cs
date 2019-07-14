@@ -1,4 +1,3 @@
-#if ASPNETCLASSIC
 using System.Threading;
 using Microsoft.Owin;
 
@@ -41,4 +40,3 @@ namespace HotChocolate.AspNetClassic
         }
     }
 }
-#endif

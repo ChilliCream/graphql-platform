@@ -69,8 +69,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.Tests.Utilities"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarWars", "..\src\Core\StarWars\StarWars.csproj", "{720A44F6-5633-49D1-AEF2-16F1635B83A4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetClassic.Abstractions", "..\src\Server\AspNetClassic.Abstractions\AspNetClassic.Abstractions.csproj", "{D6B890AD-A80F-4350-926B-0A5F856E64D1}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -477,18 +475,6 @@ Global
 		{720A44F6-5633-49D1-AEF2-16F1635B83A4}.Release|x64.Build.0 = Release|Any CPU
 		{720A44F6-5633-49D1-AEF2-16F1635B83A4}.Release|x86.ActiveCfg = Release|Any CPU
 		{720A44F6-5633-49D1-AEF2-16F1635B83A4}.Release|x86.Build.0 = Release|Any CPU
-		{D6B890AD-A80F-4350-926B-0A5F856E64D1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D6B890AD-A80F-4350-926B-0A5F856E64D1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D6B890AD-A80F-4350-926B-0A5F856E64D1}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{D6B890AD-A80F-4350-926B-0A5F856E64D1}.Debug|x64.Build.0 = Debug|Any CPU
-		{D6B890AD-A80F-4350-926B-0A5F856E64D1}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{D6B890AD-A80F-4350-926B-0A5F856E64D1}.Debug|x86.Build.0 = Debug|Any CPU
-		{D6B890AD-A80F-4350-926B-0A5F856E64D1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D6B890AD-A80F-4350-926B-0A5F856E64D1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D6B890AD-A80F-4350-926B-0A5F856E64D1}.Release|x64.ActiveCfg = Release|Any CPU
-		{D6B890AD-A80F-4350-926B-0A5F856E64D1}.Release|x64.Build.0 = Release|Any CPU
-		{D6B890AD-A80F-4350-926B-0A5F856E64D1}.Release|x86.ActiveCfg = Release|Any CPU
-		{D6B890AD-A80F-4350-926B-0A5F856E64D1}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
