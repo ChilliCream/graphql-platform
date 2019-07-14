@@ -24,97 +24,103 @@ namespace HotChocolate.AspNetCore.Subscriptions
         [Fact]
         public async Task Send_Connect_AcceptAndKeepAlive()
         {
-            // arrange
-            TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            WebSocket webSocket = await client
-                .ConnectAsync(SubscriptionUri, CancellationToken.None);
+            using (TestServer testServer = CreateStarWarsServer())
+            {
+                // arrange
+                WebSocketClient client = CreateWebSocketClient(testServer);
+                WebSocket webSocket = await client
+                    .ConnectAsync(SubscriptionUri, CancellationToken.None);
 
-            // act
-            await webSocket.SendConnectionInitializeAsync();
+                // act
+                await webSocket.SendConnectionInitializeAsync();
 
-            // assert
-            IReadOnlyDictionary<string, object> message =
-                await webSocket.ReceiveServerMessageAsync();
-            Assert.NotNull(message);
-            Assert.Equal(MessageTypes.Connection.Accept, message["type"]);
+                // assert
+                IReadOnlyDictionary<string, object> message =
+                    await webSocket.ReceiveServerMessageAsync();
+                Assert.NotNull(message);
+                Assert.Equal(MessageTypes.Connection.Accept, message["type"]);
 
-            message = await webSocket.ReceiveServerMessageAsync();
-            Assert.NotNull(message);
-            Assert.Equal(MessageTypes.Connection.KeepAlive, message["type"]);
+                message = await webSocket.ReceiveServerMessageAsync();
+                Assert.NotNull(message);
+                Assert.Equal(MessageTypes.Connection.KeepAlive, message["type"]);
+            }
         }
 
         [Fact]
         public async Task Send_Terminate()
         {
-            // arrange
-            TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            WebSocket webSocket = await ConnectToServerAsync(client);
+            using (TestServer testServer = CreateStarWarsServer())
+            {
+                // arrange
+                WebSocketClient client = CreateWebSocketClient(testServer);
+                WebSocket webSocket = await ConnectToServerAsync(client);
 
-            // act
-            await webSocket.SendTerminateConnectionAsync();
+                // act
+                await webSocket.SendTerminateConnectionAsync();
 
-            // assert
-            byte[] buffer = new byte[1024];
-            await webSocket.ReceiveAsync(buffer, CancellationToken.None);
+                // assert
+                byte[] buffer = new byte[1024];
+                await webSocket.ReceiveAsync(buffer, CancellationToken.None);
 
-            Assert.True(webSocket.CloseStatus.HasValue);
-            Assert.Equal(
-                WebSocketCloseStatus.NormalClosure,
-                webSocket.CloseStatus.Value);
+                Assert.True(webSocket.CloseStatus.HasValue);
+                Assert.Equal(
+                    WebSocketCloseStatus.NormalClosure,
+                    webSocket.CloseStatus.Value);
+            }
         }
 
         [Fact]
         public async Task Connect_With_Invalid_Protocol()
         {
-            // arrange
-            TestServer testServer = CreateStarWarsServer();
-
-            WebSocketClient client = testServer.CreateWebSocketClient();
-
-            client.ConfigureRequest = r =>
+            using (TestServer testServer = CreateStarWarsServer())
             {
-                r.Headers.Add("Sec-WebSocket-Protocol", "foo");
-            };
+                // arrange
+                WebSocketClient client = testServer.CreateWebSocketClient();
 
-            // act
-            WebSocket socket = await client.ConnectAsync(
-                SubscriptionUri,
-                CancellationToken.None);
+                client.ConfigureRequest = r =>
+                {
+                    r.Headers.Add("Sec-WebSocket-Protocol", "foo");
+                };
 
-            byte[] buffer = new byte[1024];
-            await socket.ReceiveAsync(buffer, CancellationToken.None);
+                // act
+                WebSocket socket = await client.ConnectAsync(
+                    SubscriptionUri,
+                    CancellationToken.None);
 
-            // assert
-            Assert.True(socket.CloseStatus.HasValue);
-            Assert.Equal(
-                WebSocketCloseStatus.ProtocolError,
-                socket.CloseStatus.Value);
+                byte[] buffer = new byte[1024];
+                await socket.ReceiveAsync(buffer, CancellationToken.None);
+
+                // assert
+                Assert.True(socket.CloseStatus.HasValue);
+                Assert.Equal(
+                    WebSocketCloseStatus.ProtocolError,
+                    socket.CloseStatus.Value);
+            }
         }
 
         [Fact]
         public async Task Send_Start_ReceiveDataOnMutation()
         {
-            // arrange
-            TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            WebSocket webSocket = await ConnectToServerAsync(client);
-
-            var document = Utf8GraphQLParser.Parse(
-                "subscription { onReview(episode: NEWHOPE) { stars } }");
-
-            var request = new GraphQLRequest(document);
-
-            const string subscriptionId = "abc";
-
-            // act
-            await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
-
-            // assert
-            await testServer.SendRequestAsync(new ClientQueryRequest
+            using (TestServer testServer = CreateStarWarsServer())
             {
-                Query = @"
+                // arrange
+                WebSocketClient client = CreateWebSocketClient(testServer);
+                WebSocket webSocket = await ConnectToServerAsync(client);
+
+                var document = Utf8GraphQLParser.Parse(
+                    "subscription { onReview(episode: NEWHOPE) { stars } }");
+
+                var request = new GraphQLRequest(document);
+
+                const string subscriptionId = "abc";
+
+                // act
+                await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
+
+                // assert
+                await testServer.SendRequestAsync(new ClientQueryRequest
+                {
+                    Query = @"
                     mutation {
                         createReview(episode:NEWHOPE review: {
                             commentary: ""foo""
@@ -124,38 +130,40 @@ namespace HotChocolate.AspNetCore.Subscriptions
                         }
                     }
                 "
-            });
+                });
 
-            IReadOnlyDictionary<string, object> message =
-                await WaitForMessage(
-                    webSocket,
-                    MessageTypes.Subscription.Data,
-                    TimeSpan.FromSeconds(15));
+                IReadOnlyDictionary<string, object> message =
+                    await WaitForMessage(
+                        webSocket,
+                        MessageTypes.Subscription.Data,
+                        TimeSpan.FromSeconds(15));
 
-            Assert.NotNull(message);
-            message.MatchSnapshot();
+                Assert.NotNull(message);
+                message.MatchSnapshot();
+            }
         }
 
         [Fact]
         public async Task Send_Start_Stop()
         {
-            // arrange
-            TestServer testServer = CreateStarWarsServer();
-            WebSocketClient client = CreateWebSocketClient(testServer);
-            WebSocket webSocket = await ConnectToServerAsync(client);
-
-            var document = Utf8GraphQLParser.Parse(
-                "subscription { onReview(episode: NEWHOPE) { stars } }");
-
-            var request = new GraphQLRequest(document);
-
-            const string subscriptionId = "abc";
-
-            await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
-
-            await testServer.SendRequestAsync(new ClientQueryRequest
+            using (TestServer testServer = CreateStarWarsServer())
             {
-                Query = @"
+                // arrange
+                WebSocketClient client = CreateWebSocketClient(testServer);
+                WebSocket webSocket = await ConnectToServerAsync(client);
+
+                var document = Utf8GraphQLParser.Parse(
+                    "subscription { onReview(episode: NEWHOPE) { stars } }");
+
+                var request = new GraphQLRequest(document);
+
+                const string subscriptionId = "abc";
+
+                await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
+
+                await testServer.SendRequestAsync(new ClientQueryRequest
+                {
+                    Query = @"
                     mutation {
                         createReview(episode:NEWHOPE review: {
                             commentary: ""foo""
@@ -165,38 +173,39 @@ namespace HotChocolate.AspNetCore.Subscriptions
                         }
                     }
                 "
-            });
+                });
 
-            IReadOnlyDictionary<string, object> message =
-                await WaitForMessage(
+                IReadOnlyDictionary<string, object> message =
+                    await WaitForMessage(
+                        webSocket,
+                        MessageTypes.Subscription.Data,
+                        TimeSpan.FromSeconds(15));
+
+                // act
+                await webSocket.SendSubscriptionStopAsync(subscriptionId);
+
+                await testServer.SendRequestAsync(new ClientQueryRequest
+                {
+                    Query = @"
+                    mutation {
+                        createReview(episode:NEWHOPE review: {
+                            commentary: ""foo""
+                            stars: 5
+                        }) {
+                            stars
+                        }
+                    }
+                "
+                });
+
+                message = await WaitForMessage(
                     webSocket,
                     MessageTypes.Subscription.Data,
-                    TimeSpan.FromSeconds(15));
+                    TimeSpan.FromSeconds(5));
 
-            // act
-            await webSocket.SendSubscriptionStopAsync(subscriptionId);
-
-            await testServer.SendRequestAsync(new ClientQueryRequest
-            {
-                Query = @"
-                    mutation {
-                        createReview(episode:NEWHOPE review: {
-                            commentary: ""foo""
-                            stars: 5
-                        }) {
-                            stars
-                        }
-                    }
-                "
-            });
-
-            message = await WaitForMessage(
-                webSocket,
-                MessageTypes.Subscription.Data,
-                TimeSpan.FromSeconds(5));
-
-            // assert
-            Assert.Null(message);
+                // assert
+                Assert.Null(message);
+            }
         }
     }
 }
