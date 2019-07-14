@@ -28,4 +28,13 @@
     <PackageReference Include="Microsoft.Owin" Version="4.0.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile
+      Include="..\AspNetCore.Abstractions\**\*.cs"
+      Exclude="
+        ..\AspNetCore.Abstractions\bin\**\*.cs;
+        ..\AspNetCore.Abstractions\obj\**\*.cs" />
+  </ItemGroup>
+
+
 </Project>
