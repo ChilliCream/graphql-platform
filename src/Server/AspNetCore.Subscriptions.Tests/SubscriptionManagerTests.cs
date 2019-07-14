@@ -59,10 +59,11 @@ namespace HotChocolate.AspNetCore.Subscriptions
             subscriptions.Dispose();
 
             // act
-            subscriptions.Register(new SubscriptionMock { Id = "def" });
+            Action action = () =>
+                subscriptions.Register(new SubscriptionMock { Id = "def" });
 
             // assert
-            Assert.Empty(subscriptions);
+            Assert.Throws<ObjectDisposedException>(action);
         }
 
         [Fact]
@@ -113,10 +114,10 @@ namespace HotChocolate.AspNetCore.Subscriptions
             subscriptions.Dispose();
 
             // act
-            subscriptions.Unregister("abc");
+            Action action = () => subscriptions.Unregister("abc");
 
             // assert
-            Assert.Empty(subscriptions);
+            Assert.Throws<ObjectDisposedException>(action);
         }
 
         [Fact]
