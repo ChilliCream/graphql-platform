@@ -7,9 +7,18 @@ namespace HotChocolate.Types.Filters.Expressions
         public static IReadOnlyList<IExpressionOperationHandler> All { get; } =
             new IExpressionOperationHandler[]
             {
-                new StringOperationHandler(),
-                new BooleanOperationHandler(),
-                new ComparableOperationHandler()
+                new StringContainsOperationHandler(),
+                new StringEndsWithOperationHandler(),
+                new StringEqualsOperationHandler(),
+                new StringInOperationHandler(),
+                new StringStartsWithOperationHandler(),
+                new ComparableEqualsOperationHandler(),
+                new ComparableGreaterThanOperationHandler(),
+                new ComparableGreaterThanOrEqualsOperationHandler(),
+                new ComparableLowerThanOperationHandler(),
+                new ComparableLowerThanOrEqualsOperationHandler(),
+                new ComparableInOperationHandler(),
+                new BooleanEqualsOperationHandler(),
             };
     }
 }

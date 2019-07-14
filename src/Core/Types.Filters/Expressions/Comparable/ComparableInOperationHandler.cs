@@ -1,12 +1,11 @@
-using System.Linq;
+using System;
 using System.Linq.Expressions;
-using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
-    public class BooleanOperationHandler
+    public sealed class ComparableInOperationHandler
         : IExpressionOperationHandler
     {
         public bool TryHandle(
@@ -17,34 +16,35 @@ namespace HotChocolate.Types.Filters.Expressions
             ITypeConversion converter,
             out Expression expression)
         {
-            if (operation.Type == typeof(bool)
-                && (value is BooleanValueNode || value.IsNull()))
+            if (operation.Type == typeof(IComparable)
+                && value is ListValueNode li)
             {
                 MemberExpression property =
                     Expression.Property(instance, operation.Property);
-
-                object parserValue = type.ParseLiteral(value);
+                var parsedValue = type.ParseLiteral(value);
 
                 switch (operation.Kind)
                 {
-                    case FilterOperationKind.Equals:
-                        expression = FilterExpressionBuilder.Equals(
-                            property, parserValue);
+                    case FilterOperationKind.In:
+                        expression = FilterExpressionBuilder.In(
+                            property,
+                            operation.Property.PropertyType,
+                            parsedValue);
                         return true;
 
-                    case FilterOperationKind.NotEquals:
+                    case FilterOperationKind.NotIn:
                         expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.Equals(
-                                property, parserValue)
+                            FilterExpressionBuilder.In(
+                                property,
+                                operation.Property.PropertyType,
+                                parsedValue)
                         );
                         return true;
-
                 }
             }
 
             expression = null;
             return false;
         }
-
     }
 }

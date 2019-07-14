@@ -21,13 +21,13 @@ namespace HotChocolate.Types.Filters
         GreaterThan = 0x0016,
         NotGreaterThan = 0x0017,
 
-        GreaterThanOrEqual = 0x0018,
-        NotGreaterThanOrEqual = 0x0019,
+        GreaterThanOrEquals = 0x0018,
+        NotGreaterThanOrEquals = 0x0019,
 
         LowerThan = 0x0020,
         NotLowerThan = 0x0021,
 
-        LowerThanOrEqual = 0x0022,
-        NotLowerThanOrEqual = 0x0023,
+        LowerThanOrEquals = 0x0022,
+        NotLowerThanOrEquals = 0x0023,
     }
 }
