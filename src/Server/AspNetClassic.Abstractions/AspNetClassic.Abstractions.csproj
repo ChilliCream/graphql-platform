@@ -25,9 +25,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-  </ItemGroup>
-
-  <ItemGroup>
+    <PackageReference Include="Microsoft.Owin" Version="4.0.0" />
   </ItemGroup>
 
 </Project>
