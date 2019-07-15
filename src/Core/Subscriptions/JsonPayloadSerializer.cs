@@ -11,7 +11,8 @@ namespace HotChocolate.Subscriptions
         private static readonly JsonSerializerSettings _settings =
             new JsonSerializerSettings
             {
-                TypeNameAssemblyFormatHandling = TypeNameAssemblyFormatHandling.Full,
+                TypeNameAssemblyFormatHandling =
+                    TypeNameAssemblyFormatHandling.Full,
                 TypeNameHandling = TypeNameHandling.All,
                 Culture = CultureInfo.InvariantCulture,
                 DateTimeZoneHandling = DateTimeZoneHandling.RoundtripKind,
