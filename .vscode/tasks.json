@@ -40,6 +40,19 @@
         "kind": "build",
         "isDefault": true
       }
+    },
+    {
+      "label": "build all core projects",
+      "command": "dotnet build tools/Build.Core.sln /property:GenerateFullPaths=true",
+      "type": "shell",
+      "presentation": {
+        "reveal": "silent"
+      },
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
     }
   ]
 }

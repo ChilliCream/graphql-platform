@@ -44,7 +44,7 @@ namespace HotChocolate.Stitching
                 return new StitchingContext(services, _executors);
             }
 
-            public IQueryExecutor CreateStitchedQueryExecuter(
+            public IQueryExecutor CreateStitchedQueryExecutor(
                 IServiceProvider serviceProvider)
             {
                 return Schema.Create(

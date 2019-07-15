@@ -27,7 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Stitching\Stitching.csproj" />
-    <ProjectReference Include="..\..\Server\AspNetCore.Tests\AspNetCore.Tests.csproj" />
+    <ProjectReference Include="..\..\Server\AspNetCore.Tests.Utilities\AspNetCore.Tests.Utilities.csproj" />
   </ItemGroup>
 
   <ItemGroup>

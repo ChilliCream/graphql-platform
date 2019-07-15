@@ -8,24 +8,11 @@ namespace HotChocolate.Stitching.Schemas.Customers
     {
         public static ISchema Create()
         {
-            return Schema.Create(c =>
-            {
-                ConfigureSchema(c);
-            });
-        }
-
-        public static void ConfigureSchema(ISchemaConfiguration configuration)
-        {
-            if (configuration == null)
-            {
-                throw new System.ArgumentNullException(nameof(configuration));
-            }
-
-            configuration.RegisterQueryType<QueryType>();
-            configuration.RegisterMutationType<MutationType>();
-
-            configuration.RegisterExtendedScalarTypes();
-            configuration.UseGlobalObjectIdentifier();
+            return SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddMutationType<MutationType>()
+                .UseGlobalObjectIdentifier()
+                .Create();
         }
 
         public static void ConfigureServices(IServiceCollection services)
@@ -37,6 +24,7 @@ namespace HotChocolate.Stitching.Schemas.Customers
 
             services.AddSingleton<CustomerRepository>();
             services.AddSingleton<Query>();
+            services.AddGraphQL(Create());
         }
     }
 }
