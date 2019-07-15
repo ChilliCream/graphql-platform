@@ -32,10 +32,17 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Core\Core.csproj" />
     <ProjectReference Include="..\AspNetClassic.Authorization\AspNetClassic.Authorization.csproj" />
+    <ProjectReference Include="..\AspNetClassic.Abstractions\AspNetClassic.Abstractions.csproj" />
+    <ProjectReference Include="..\Server\Server.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\AspNetCore\**\*.cs" Exclude="..\AspNetCore\bin\**\*.cs;..\AspNetCore\obj\**\*.cs" />
+    <Compile
+      Include="..\AspNetCore\**\*.cs"
+      Exclude="
+        ..\AspNetCore\**\ApplicationBuilderExtensions.cs;
+        ..\AspNetCore\bin\**\*.cs;
+        ..\AspNetCore\obj\**\*.cs" />
   </ItemGroup>
 
 </Project>
