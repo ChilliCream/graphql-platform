@@ -1,6 +1,7 @@
 using HotChocolate.Execution;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
+using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -22,13 +23,28 @@ namespace HotChocolate.PersistedQueries.AzureBlobStorage
             string containerName,
             IQueryRequestBuilder queryRequestBuilder)
         {
+            if (azureClient == null)
+            {
+                throw new ArgumentNullException(nameof(azureClient));
+            }
+
+            if (string.IsNullOrWhiteSpace(containerName))
+            {
+                throw new ArgumentNullException(nameof(containerName));
+            }
+            
             _container = azureClient.GetContainerReference(containerName);
-            _queryRequestBuilder = queryRequestBuilder;
+            _queryRequestBuilder = queryRequestBuilder ?? throw new ArgumentNullException(nameof(queryRequestBuilder));
         }
         
         /// <inheritdoc />
         public async Task<IQuery> ReadQueryAsync(string queryId)
         {
+            if (string.IsNullOrWhiteSpace(queryId))
+            {
+                throw new ArgumentNullException(nameof(queryId));
+            }
+            
             var queryBlob = await GetBlob(queryId);
             var blobStream = await queryBlob.OpenReadAsync();
             

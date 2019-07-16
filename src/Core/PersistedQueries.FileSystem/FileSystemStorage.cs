@@ -39,7 +39,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
         {
             if (string.IsNullOrWhiteSpace(queryId))
             {
-                throw new ArgumentNullException(queryId);
+                throw new ArgumentNullException(nameof(queryId));
             }
 
             var filePath = _queryMap.MapToFilePath(queryId);
