@@ -111,15 +111,29 @@ namespace HotChocolate.Execution
                         variable.Name,
                         TypeVisualizer.Visualize(variable.Type)))
                     .AddLocation(variableDefinition)
+                    .SetExtension("variableName", variable.Name)
                     .Build());
             }
 
-            InputTypeNonNullCheck.CheckForNullValueViolation(
-                variable.Type, variable.Value, _converter,
-                message => ErrorBuilder.New()
-                    .SetMessage(message)
+            NonNullValidationReport report =
+                NonNullValidator.Validate(
+                    variable.Type,
+                    variable.Value,
+                    _converter);
+
+            if (report.HasError)
+            {
+                throw new QueryException(ErrorBuilder.New()
+                    .SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        TypeResources.VariableValueBuilder_NonNull_In_Graph,
+                        variable.Name))
                     .AddLocation(variableDefinition)
+                    .SetExtension("variableName", variable.Name)
+                    .SetExtension("variablePath", report.InputPath)
                     .Build());
+            }
+
             CheckForInvalidValueType(variableDefinition, variable);
 
             return variable;

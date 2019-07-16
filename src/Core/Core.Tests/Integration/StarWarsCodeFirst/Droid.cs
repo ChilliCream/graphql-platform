@@ -17,5 +17,4 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
 
         public double Height { get; } = 1.72d;
     }
-
 }

@@ -5,7 +5,8 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
     public class QueryType
         : ObjectType<Query>
     {
-        protected override void Configure(IObjectTypeDescriptor<Query> descriptor)
+        protected override void Configure(
+            IObjectTypeDescriptor<Query> descriptor)
         {
             descriptor.Field(t => t.GetHero(default))
                 .Type<CharacterType>()
@@ -13,7 +14,8 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
 
             descriptor.Field(t => t.GetHeroes(default))
                 .Type<NonNullType<ListType<NonNullType<CharacterType>>>>()
-                .Argument("episodes", a => a.Type<NonNullType<ListType<NonNullType<EpisodeType>>>>());
+                .Argument("episodes", a =>
+                    a.Type<NonNullType<ListType<NonNullType<EpisodeType>>>>());
 
             descriptor.Field(t => t.Search(default))
                 .Type<ListType<SearchResultType>>();

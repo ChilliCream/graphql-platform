@@ -34,19 +34,35 @@ namespace HotChocolate.Language
             }
         }
 
+        private int SkipValue()
+        {
+            switch (_reader.Kind)
+            {
+                case TokenKind.LeftBracket:
+                    return SkipList();
+
+                case TokenKind.LeftBrace:
+                    return SkipObject();
+
+                case TokenKind.String:
+                case TokenKind.Integer:
+                case TokenKind.Float:
+                case TokenKind.Name:
+                    return SkipScalar();
+
+                default:
+                    throw new SyntaxException(_reader,
+                        string.Format(
+                            CultureInfo.InvariantCulture,
+                            "Unexpected token found `{0}` " +
+                            "while expecting a value.",
+                            _reader.Kind));
+            }
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private IReadOnlyDictionary<string, object> ParseObject()
         {
-            if (_reader.Kind != TokenKind.LeftBrace)
-            {
-                throw new SyntaxException(_reader,
-                    string.Format(
-                        CultureInfo.InvariantCulture,
-                        LangResources.ParseMany_InvalidOpenToken,
-                        TokenKind.LeftBrace,
-                        TokenVisualizer.Visualize(in _reader)));
-            }
-
             _reader.Expect(TokenKind.LeftBrace);
 
             var obj = new Dictionary<string, object>();
@@ -60,6 +76,22 @@ namespace HotChocolate.Language
             _reader.Expect(TokenKind.RightBrace);
 
             return obj;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int SkipObject()
+        {
+            _reader.Expect(TokenKind.LeftBrace);
+
+            while (_reader.Kind != TokenKind.RightBrace)
+            {
+                SkipObjectField();
+            }
+
+            // skip closing token
+            int end = _reader.End;
+            _reader.Expect(TokenKind.RightBrace);
+            return end;
         }
 
 
@@ -81,6 +113,24 @@ namespace HotChocolate.Language
             _reader.Expect(TokenKind.Colon);
             object value = ParseValue();
             obj.Add(name, value);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void SkipObjectField()
+        {
+            if (_reader.Kind != TokenKind.String)
+            {
+                throw new SyntaxException(_reader,
+                    string.Format(
+                        CultureInfo.InvariantCulture,
+                        LangResources.ParseMany_InvalidOpenToken,
+                        TokenKind.String,
+                        TokenVisualizer.Visualize(in _reader)));
+            }
+
+            _reader.MoveNext();
+            _reader.Expect(TokenKind.Colon);
+            SkipValue();
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -110,6 +160,23 @@ namespace HotChocolate.Language
             _reader.Expect(TokenKind.RightBracket);
 
             return list;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int SkipList()
+        {
+            // skip opening token
+            _reader.MoveNext();
+
+            while (_reader.Kind != TokenKind.RightBracket)
+            {
+                SkipValue();
+            }
+
+            // skip closing token
+            int end = _reader.End;
+            _reader.Expect(TokenKind.RightBracket);
+            return end;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -151,6 +218,54 @@ namespace HotChocolate.Language
                     {
                         _reader.MoveNext();
                         return null;
+                    }
+                    break;
+            }
+
+            throw new SyntaxException(_reader,
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    "Unexpected token found `{0}` " +
+                    "while expecting a scalar value.",
+                    _reader.Kind));
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int SkipScalar()
+        {
+            int end = _reader.End;
+
+            switch (_reader.Kind)
+            {
+                case TokenKind.String:
+                    _reader.MoveNext();
+                    return end;
+
+                case TokenKind.Integer:
+                    _reader.MoveNext();
+                    return end;
+
+                case TokenKind.Float:
+                    _reader.MoveNext();
+                    return end;
+
+                case TokenKind.Name:
+                    if (_reader.Value.SequenceEqual(GraphQLKeywords.True))
+                    {
+                        _reader.MoveNext();
+                        return end;
+                    }
+
+                    if (_reader.Value.SequenceEqual(GraphQLKeywords.False))
+                    {
+                        _reader.MoveNext();
+                        return end;
+                    }
+
+                    if (_reader.Value.SequenceEqual(GraphQLKeywords.Null))
+                    {
+                        _reader.MoveNext();
+                        return end;
                     }
                     break;
             }

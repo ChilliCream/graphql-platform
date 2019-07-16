@@ -236,35 +236,11 @@ namespace HotChocolate.Language
             return VisitorAction.Default;
         }
 
-
-
         private delegate VisitorAction IntVisitorFn(
             ISyntaxNodeVisitor visitor,
             ISyntaxNode node,
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors);
-    }
-
-    internal static class ListExtensions
-    {
-        public static T Pop<T>(this IList<T> list)
-        {
-            int lastIndex = list.Count - 1;
-            T p = list[lastIndex];
-            list.RemoveAt(lastIndex);
-            return p;
-        }
-
-        public static T Peek<T>(this IList<T> list)
-        {
-            int lastIndex = list.Count - 1;
-            return list[lastIndex];
-        }
-
-        public static void Push<T>(this IList<T> list, T item)
-        {
-            list.Add(item);
-        }
     }
 }

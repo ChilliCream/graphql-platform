@@ -1390,6 +1390,55 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void ObjectType_From_Struct()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(new ObjectType<FooStruct>())
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_With_Query_As_Struct()
+        {
+            // arrange
+            IQueryExecutor executor = SchemaBuilder.New()
+                .AddQueryType(new ObjectType<FooStruct>())
+                .Create()
+                .MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ bar baz }")
+                    .SetInitialValue(new FooStruct
+                    {
+                        Qux = "Qux_Value",
+                        Baz = "Baz_Value"
+                    })
+                    .Create());
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_From_Dictionary()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<FooWithDict>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1461,6 +1510,32 @@ namespace HotChocolate.Types
             public string Bar() => "foo";
 
             public string Bar2() => "Foo 2: Electric foo-galoo";
+        }
+
+        public struct FooStruct
+        {
+            // should be ignored by the automatic field
+            // inference.
+            public string Qux;
+
+            // should be included by the automatic field
+            // inference.
+            public string Baz { get; set; }
+
+            // should be ignored by the automatic field
+            // inference since we cannot determine what object means
+            // in the graphql context.
+            // This field has to be included explicitly.
+            public object Quux{ get; set; }
+
+            // should be included by the automatic field
+            // inference.
+            public string GetBar() => Qux + "_Bar_Value";
+        }
+
+        public class FooWithDict
+        {
+            public Dictionary<string, Bar> Map { get; set; }
         }
     }
 }
