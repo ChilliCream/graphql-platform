@@ -54,11 +54,13 @@ namespace HotChocolate.PersistedQueries.FileSystem
                 using (var s = new StreamReader(fs))
                 {
                     var fileContent = await s.ReadToEndAsync();
-                    
+                    var readonlyRequest = _requestBuilder
+                        .SetQuery(fileContent)
+                        .Create();
+
+                    return readonlyRequest.Query;
                 }
             }
-
-            throw new NotImplementedException();
         }
     }
 }

@@ -21,11 +21,13 @@ namespace HotChocolate.PersistedQueries.Tests.FileSystem
             _queryFileMapMock = new Mock<IQueryFileMap>();
 
             _queryRequestMock = new Mock<IReadOnlyQueryRequest>();
-            
+
             _queryRequestBuilderMock = new Mock<IQueryRequestBuilder>();
+            _queryRequestBuilderMock.Setup(q => q.SetQuery(It.IsAny<string>()))
+                .Returns(_queryRequestBuilderMock.Object);
             _queryRequestBuilderMock.Setup(q => q.Create())
                 .Returns(_queryRequestMock.Object);
-            
+
             _systemUnderTest = new FileSystemStorage(
                 _queryFileMapMock.Object,
                 _queryRequestBuilderMock.Object
@@ -106,7 +108,7 @@ namespace HotChocolate.PersistedQueries.Tests.FileSystem
                 .Returns(simpleQueryFile);
 
             // Act
-            var query = await _systemUnderTest.ReadQueryAsync("query");
+            await _systemUnderTest.ReadQueryAsync("query");
 
             // Assert
             using (var fileStream = new FileStream(simpleQueryFile, FileMode.Open))
@@ -114,16 +116,31 @@ namespace HotChocolate.PersistedQueries.Tests.FileSystem
                 using (var reader = new StreamReader(fileStream))
                 {
                     var expectedContent = await reader.ReadToEndAsync();
-                    
+
                     _queryRequestBuilderMock.Verify(q => q.SetQuery(expectedContent));
                 }
             }
         }
 
         [Fact]
-        public async Task When_ReadQueryAsync_Is_Called_Then_Create_Response_Is_Returnd()
+        public async Task When_ReadQueryAsync_Is_Called_Then_Create_Response_Is_Returned()
         {
-            throw new NotImplementedException();
+            // Arrange
+            const string queryFileRelativePath = "FileSystem/StoredQueries/SimpleQuery.graphql";
+            var simpleQueryFile = SysPath.Combine(Directory.GetCurrentDirectory(), queryFileRelativePath);
+
+            _queryFileMapMock.Setup(f => f.MapToFilePath(It.IsAny<string>()))
+                .Returns(simpleQueryFile);
+
+            var mockQuery = new Mock<IQuery>();
+            _queryRequestMock.Setup(q => q.Query).Returns(mockQuery.Object);
+
+            // Act
+            var query = await _systemUnderTest.ReadQueryAsync("query");
+
+            // Assert
+            Assert.NotNull(query);
+            Assert.Same(mockQuery.Object, query);
         }
     }
 }
