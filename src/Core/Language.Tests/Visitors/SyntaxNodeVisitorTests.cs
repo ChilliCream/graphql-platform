@@ -22,7 +22,9 @@ namespace HotChocolate.Language
         {
             // arrange
             DocumentNode document = Utf8GraphQLParser.Parse(
-                FileResource.Open("kitchen-sink.graphql"));
+                FileResource.Open("kitchen-sink.graphql")
+                    .Replace("\r\n", "\n")
+                    .Replace("\r", "\n"));
             var visitationMap = new BarVisitationMap();
 
             // act
@@ -37,7 +39,9 @@ namespace HotChocolate.Language
         {
             // arrange
             DocumentNode document = Utf8GraphQLParser.Parse(
-                FileResource.Open("schema-kitchen-sink.graphql"));
+                FileResource.Open("schema-kitchen-sink.graphql")
+                    .Replace("\r\n", "\n")
+                    .Replace("\r", "\n"));
             var visitationMap = new BarVisitationMap();
 
             // act
