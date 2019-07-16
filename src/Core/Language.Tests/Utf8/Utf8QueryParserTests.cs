@@ -465,7 +465,8 @@ namespace HotChocolate.Language
         {
             // arrange
             byte[] sourceText = Encoding.UTF8.GetBytes(
-                FileResource.Open("russion-literals.graphql"));
+                FileResource.Open("russion-literals.graphql")
+                    .NormalizeLineBreaks());
 
             // act
             var parser = new Utf8GraphQLParser(
