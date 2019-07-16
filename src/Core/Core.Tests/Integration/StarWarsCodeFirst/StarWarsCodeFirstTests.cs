@@ -700,7 +700,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 eventResult = await responseStream.ReadAsync();
             }
 
-            eventResult.Snapshot();
+            eventResult.MatchSnapshot();
         }
 
         [Fact]

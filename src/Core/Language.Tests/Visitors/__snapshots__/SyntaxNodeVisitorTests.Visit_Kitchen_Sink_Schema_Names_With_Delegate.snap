@@ -1,5 +1,5 @@
-﻿{
-  "enterNames": [
+﻿[
+  [
     "QueryType",
     "MutationType",
     "Type",
@@ -154,7 +154,7 @@
     "SubscriptionType",
     "onSchema"
   ],
-  "leaveNames": [
+  [
     "QueryType",
     "MutationType",
     "Type",
@@ -309,4 +309,4 @@
     "SubscriptionType",
     "onSchema"
   ]
-}
+]

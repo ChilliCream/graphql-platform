@@ -1,5 +1,5 @@
-﻿{
-  "enterNames": [
+﻿[
+  [
     "id",
     "id",
     "id",
@@ -61,7 +61,7 @@
     "unnamed",
     "query"
   ],
-  "leaveNames": [
+  [
     "id",
     "id",
     "id",
@@ -123,4 +123,4 @@
     "unnamed",
     "query"
   ]
-}
+]

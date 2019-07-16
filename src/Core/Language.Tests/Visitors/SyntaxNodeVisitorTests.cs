@@ -73,7 +73,7 @@ namespace HotChocolate.Language
 
             // assert
             Assert.Equal(enterNames, leaveNames);
-            new { enterNames, leaveNames }.MatchSnapshot();
+            new List<string>[] { enterNames, leaveNames }.MatchSnapshot();
         }
 
         [Fact]
@@ -102,7 +102,7 @@ namespace HotChocolate.Language
 
             // assert
             Assert.Equal(enterNames, leaveNames);
-            new { enterNames, leaveNames }.MatchSnapshot();
+            new List<string>[] { enterNames, leaveNames }.MatchSnapshot();
         }
 
         [Fact]

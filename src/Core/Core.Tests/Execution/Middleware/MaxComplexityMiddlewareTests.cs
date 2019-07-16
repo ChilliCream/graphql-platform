@@ -7,6 +7,8 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Moq;
+using Snapshooter;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -93,9 +95,8 @@ namespace HotChocolate.Execution
             }
             else
             {
-                context.Result.Snapshot(
-                    "ValidateMaxComplexityWithMiddleware" +
-                    count);
+                context.Result.MatchSnapshot(
+                    new SnapshotNameExtension("complexity", count));
             }
         }
 
@@ -182,9 +183,8 @@ namespace HotChocolate.Execution
             }
             else
             {
-                context.Result.Snapshot(
-                    "ValidateMaxComplexityWithMiddlewareWithVariables" +
-                    count);
+                context.Result.MatchSnapshot(
+                    new SnapshotNameExtension("complexity", count));
             }
         }
 
@@ -272,9 +272,8 @@ namespace HotChocolate.Execution
             }
             else
             {
-                context.Result.Snapshot(
-                    "ValidateMaxComplexityWithMiddlewareWithObjects" +
-                    count);
+                context.Result.MatchSnapshot(
+                    new SnapshotNameExtension("complexity", count));
             }
         }
 
@@ -365,9 +364,8 @@ namespace HotChocolate.Execution
             }
             else
             {
-                context.Result.Snapshot(
-                    "ValidateMaxComplexityWithMiddlewareWithObjectsAndVar" +
-                    count);
+                context.Result.MatchSnapshot(
+                    new SnapshotNameExtension("complexity", count));
             }
         }
     }
