@@ -1,3 +1,0 @@
-type Foo {
-  bar(a: Int = 1 b: Int): String
-}

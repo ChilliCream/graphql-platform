@@ -114,7 +114,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public new IObjectFieldDescriptor Type<TOutputType>()
-            where TOutputType : IOutputType
+            where TOutputType : class, IOutputType
         {
             base.Type<TOutputType>();
             return this;
@@ -136,9 +136,9 @@ namespace HotChocolate.Types.Descriptors
 
         public new IObjectFieldDescriptor Argument(
             NameString name,
-            Action<IArgumentDescriptor> argument)
+            Action<IArgumentDescriptor> argumentDescriptor)
         {
-            base.Argument(name, argument);
+            base.Argument(name, argumentDescriptor);
             return this;
         }
 

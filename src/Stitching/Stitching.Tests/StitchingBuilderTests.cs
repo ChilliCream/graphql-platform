@@ -34,19 +34,20 @@ namespace HotChocolate.Stitching
 
         public TestServerFactory TestServerFactory { get; }
 
-        [Fact(Skip = "Fix this test")]
+        [Fact]
         public void AddSchema()
         {
             // arrange
             StitchingBuilder stitchingBuilder = StitchingBuilder.New();
 
             DocumentNode schema_a = Parser.Default.Parse(
-                "type A { b: String }");
+                "type Query { a: A } type A { b: String }");
             DocumentNode schema_b = Parser.Default.Parse(
-                "type B { c: String }");
+                "type Query { b: B } type B { c: String }");
 
             // act
-            stitchingBuilder.AddSchema("a", s => schema_a)
+            stitchingBuilder
+                .AddSchema("a", s => schema_a)
                 .AddSchema("b", s => schema_b);
 
             // assert
@@ -183,7 +184,7 @@ namespace HotChocolate.Stitching
         public void AddSchema_2_SchemaIsNull_ArgumentNullException()
         {
             // arrange
-            ISchema customerSchema =  CustomerSchemaFactory.Create();
+            ISchema customerSchema = CustomerSchemaFactory.Create();
             var builder = new MockStitchingBuilder();
 
             // act
@@ -200,7 +201,7 @@ namespace HotChocolate.Stitching
         public void AddSchema_2_SchemaNameIsEmpty_ArgumentNullException()
         {
             // arrange
-            ISchema customerSchema =  CustomerSchemaFactory.Create();
+            ISchema customerSchema = CustomerSchemaFactory.Create();
             var builder = new MockStitchingBuilder();
 
             // act

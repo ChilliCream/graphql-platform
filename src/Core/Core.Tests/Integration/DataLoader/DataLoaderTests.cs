@@ -217,7 +217,7 @@ namespace HotChocolate.Integration.DataLoader
                 t => Assert.Empty(t.Errors),
                 t => Assert.Empty(t.Errors),
                 t => Assert.Empty(t.Errors));
-            results.Snapshot();
+            results.MatchSnapshot();
         }
 
         [Fact]
@@ -276,7 +276,7 @@ namespace HotChocolate.Integration.DataLoader
                 t => Assert.Empty(t.Errors),
                 t => Assert.Empty(t.Errors),
                 t => Assert.Empty(t.Errors));
-            results.Snapshot();
+            results.MatchSnapshot();
         }
 
         [Fact]
@@ -328,7 +328,7 @@ namespace HotChocolate.Integration.DataLoader
                 t => Assert.Empty(t.Errors),
                 t => Assert.Empty(t.Errors),
                 t => Assert.Empty(t.Errors));
-            results.Snapshot();
+            results.MatchSnapshot();
         }
     }
 }
