@@ -22,6 +22,18 @@ namespace HotChocolate.Types
             return self.Directive(new AuthorizeDirective(roles));
         }
 
+        public static IObjectFieldDescriptor<T> Authorize<T>(
+            this IObjectFieldDescriptor<T> self,
+            params string[] roles)
+        {
+            if (self == null)
+            {
+                throw new ArgumentNullException(nameof(self));
+            }
+
+            return self.Directive(new AuthorizeDirective(roles));
+        }
+
 #if !ASPNETCLASSIC
         public static IObjectFieldDescriptor Authorize(
             this IObjectFieldDescriptor self)
