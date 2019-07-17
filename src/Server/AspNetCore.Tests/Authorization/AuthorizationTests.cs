@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Resolvers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -218,6 +219,46 @@ namespace HotChocolate.AspNetCore.Authorization
             ClientQueryResult result = JsonConvert
                 .DeserializeObject<ClientQueryResult>(json);
             Assert.NotNull(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Theory]
+        [ClassData(typeof(AuthorizationTestData))]
+        public async Task Policy_Resources_Is_IResolverContext(ISchema schema)
+        {
+            // arrange
+            TestServer server = CreateTestServer(
+                services =>
+                {
+                    services.AddAuthorization(options =>
+                    {
+                        options.AddPolicy("HasAgeDefined", policy =>
+                            policy.RequireAssertion(context =>
+                                context.Resource is IResolverContext));
+                    });
+
+                    services.AddGraphQL(schema);
+                },
+                context =>
+                {
+                    context.User = new ClaimsPrincipal(
+                        new ClaimsIdentity("testauth"));
+                });
+
+            var request = "{ age }";
+            var contentType = "application/graphql";
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request, contentType, null);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            var json = await message.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert
+                .DeserializeObject<ClientQueryResult>(json);
+            Assert.Null(result.Errors);
             result.MatchSnapshot();
         }
 
