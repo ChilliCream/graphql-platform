@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution.Configuration;
 using Moq;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -49,7 +50,7 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(context.Result);
             Assert.IsType<TaskCanceledException>(context.Exception);
-            context.Result.Snapshot();
+            context.Result.MatchSnapshot();
         }
     }
 }

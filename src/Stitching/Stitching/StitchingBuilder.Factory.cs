@@ -10,7 +10,6 @@ using HotChocolate.Stitching.Utilities;
 using HotChocolate.Stitching.Merge.Rewriters;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Stitching.Properties;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Introspection;
 
@@ -40,11 +39,10 @@ namespace HotChocolate.Stitching
             public IStitchingContext CreateStitchingContext(
                 IServiceProvider services)
             {
-
                 return new StitchingContext(services, _executors);
             }
 
-            public IQueryExecutor CreateStitchedQueryExecutor(
+            public ISchema CreateStitchedSchema(
                 IServiceProvider serviceProvider)
             {
                 return Schema.Create(
@@ -59,15 +57,6 @@ namespace HotChocolate.Stitching
                         c.RegisterExtendedScalarTypes();
                         c.UseSchemaStitching();
                         c.RegisterServiceProvider(serviceProvider);
-                    })
-                    .MakeExecutable(b =>
-                    {
-                        foreach (Action<IQueryExecutionBuilder> configure in
-                            _builder._execConfigs)
-                        {
-                            configure(b);
-                        }
-                        return b.UseStitchingPipeline(_options);
                     });
             }
 

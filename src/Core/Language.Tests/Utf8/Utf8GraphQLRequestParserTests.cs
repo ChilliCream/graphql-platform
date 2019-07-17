@@ -20,7 +20,8 @@ namespace HotChocolate.Language
                     new GraphQLRequestDto
                     {
                         Query = FileResource.Open("kitchen-sink.graphql")
-                    }));
+                            .NormalizeLineBreaks()
+                    }).NormalizeLineBreaks());
 
             // act
             var parserOptions = new ParserOptions();
@@ -51,7 +52,8 @@ namespace HotChocolate.Language
                     new GraphQLRequestDto
                     {
                         Query = FileResource.Open("russion-literals.graphql")
-                    }));
+                            .NormalizeLineBreaks()
+                    }).NormalizeLineBreaks());
 
             // act
             var parserOptions = new ParserOptions();
@@ -78,7 +80,8 @@ namespace HotChocolate.Language
         {
             // arrange
             byte[] source = Encoding.UTF8.GetBytes(
-                FileResource.Open("russion_utf8_escape_characters.json"));
+                FileResource.Open("russion_utf8_escape_characters.json")
+                    .NormalizeLineBreaks());
 
             // act
             var parserOptions = new ParserOptions();
@@ -109,7 +112,8 @@ namespace HotChocolate.Language
                     new GraphQLRequestDto
                     {
                         Query = FileResource.Open("kitchen-sink.graphql")
-                    }));
+                            .NormalizeLineBreaks()
+                    }).NormalizeLineBreaks());
 
             var cache = new DocumentCache();
 
@@ -155,7 +159,8 @@ namespace HotChocolate.Language
                 JsonConvert.SerializeObject(
                     new GraphQLRequestDto
                     {
-                        Query = FileResource.Open("kitchen-sink.graphql"),
+                        Query = FileResource.Open("kitchen-sink.graphql")
+                            .NormalizeLineBreaks(),
                         NamedQuery = "ABC",
                         OperationName = "DEF",
                         Variables = new Dictionary<string, object>
@@ -196,7 +201,7 @@ namespace HotChocolate.Language
                                     }
                                 }},
                         }
-                    }));
+                    }).NormalizeLineBreaks());
 
             // act
             var parserOptions = new ParserOptions();
@@ -228,7 +233,8 @@ namespace HotChocolate.Language
                 JsonConvert.SerializeObject(
                     new GraphQLRequestDto
                     {
-                        Query = FileResource.Open("kitchen-sink.graphql"),
+                        Query = FileResource.Open("kitchen-sink.graphql")
+                            .NormalizeLineBreaks(),
                         NamedQuery = "ABC",
                         OperationName = "DEF",
                         Variables = new Dictionary<string, object>
@@ -267,7 +273,7 @@ namespace HotChocolate.Language
                                     }
                                 }},
                         }
-                    }));
+                    }).NormalizeLineBreaks());
 
             // act
             var parsed = Utf8GraphQLRequestParser.ParseJson(source);
@@ -315,7 +321,7 @@ namespace HotChocolate.Language
                             "id",
                             "bar"
                         }
-                    }));
+                    }).NormalizeLineBreaks());
 
             // act
             GraphQLSocketMessage message =

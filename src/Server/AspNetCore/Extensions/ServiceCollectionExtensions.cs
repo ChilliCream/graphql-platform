@@ -55,7 +55,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            configure(QueryExecutionBuilder.New()).Build(serviceCollection);
+            configure(QueryExecutionBuilder.New()).Populate(serviceCollection);
             return serviceCollection.AddSchema(schema);
         }
 
@@ -97,7 +97,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(configure));
             }
 
-            configure(QueryExecutionBuilder.New()).Build(serviceCollection);
+            configure(QueryExecutionBuilder.New()).Populate(serviceCollection);
             return serviceCollection.AddSchema(schemaFactory);
         }
 
@@ -145,7 +145,7 @@ namespace HotChocolate
             }
 
             configureBuilder(QueryExecutionBuilder.New())
-                .Build(serviceCollection);
+                .Populate(serviceCollection);
             return serviceCollection.AddSchema(s => Schema.Create(c =>
                 {
                     c.RegisterServiceProvider(s);
@@ -211,7 +211,7 @@ namespace HotChocolate
             }
 
             configureBuilder(QueryExecutionBuilder.New())
-                .Build(serviceCollection);
+                .Populate(serviceCollection);
 
             return serviceCollection.AddSchema(s =>
                 Schema.Create(schemaSource, c =>

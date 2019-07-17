@@ -5,6 +5,7 @@ using ChilliCream.Testing;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -46,7 +47,7 @@ namespace HotChocolate.Execution
 
             // assert
             Assert.NotNull(context.Document);
-            context.Document.Snapshot();
+            context.Document.MatchSnapshot();
         }
 
         [Fact]

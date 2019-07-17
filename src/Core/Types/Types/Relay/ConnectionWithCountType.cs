@@ -5,7 +5,7 @@ namespace HotChocolate.Types.Relay
 {
     public class ConnectionWithCountType<T>
         : ConnectionType<T>
-        where T : IOutputType
+        where T : class, IOutputType
     {
         public ConnectionWithCountType()
             : base(descriptor => Configure(descriptor))
