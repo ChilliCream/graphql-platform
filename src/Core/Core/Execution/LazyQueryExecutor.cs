@@ -1,9 +1,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 
-namespace HotChocolate.Stitching.Utilities
+namespace HotChocolate.Execution
 {
     internal class LazyQueryExecutor
         : IQueryExecutor

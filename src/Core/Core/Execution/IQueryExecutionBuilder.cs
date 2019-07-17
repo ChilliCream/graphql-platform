@@ -18,6 +18,8 @@ namespace HotChocolate.Execution
 
         IQueryExecutor Build(ISchema schema);
 
-        void Build(IServiceCollection services);
+        void Populate(IServiceCollection services);
+
+        void Populate(IServiceCollection services, bool lazyExecutor);
     }
 }
