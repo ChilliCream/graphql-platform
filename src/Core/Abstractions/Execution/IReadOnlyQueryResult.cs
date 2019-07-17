@@ -6,5 +6,7 @@ namespace HotChocolate.Execution
         : IExecutionResult
     {
         IReadOnlyDictionary<string, object> Data { get; }
+
+        IReadOnlyDictionary<string, object> ToDictionary();
     }
 }

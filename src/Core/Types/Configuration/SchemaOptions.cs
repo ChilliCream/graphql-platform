@@ -20,7 +20,8 @@ namespace HotChocolate.Configuration
                 QueryTypeName = options.QueryTypeName,
                 MutationTypeName = options.MutationTypeName,
                 SubscriptionTypeName = options.SubscriptionTypeName,
-                StrictValidation = options.StrictValidation
+                StrictValidation = options.StrictValidation,
+                UseXmlDocumentation = options.UseXmlDocumentation
             };
         }
     }

@@ -61,7 +61,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFilter())
+                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
@@ -79,7 +79,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFilter())
+                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
@@ -97,7 +97,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFilter())
+                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
@@ -115,7 +115,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFilter())
+                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
@@ -133,7 +133,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFilter())
+                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
@@ -152,7 +152,7 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFilter())
+                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
@@ -172,7 +172,7 @@ namespace HotChocolate.Types.Filters
             protected override void Configure(
                 IObjectTypeDescriptor<Query> descriptor)
             {
-                descriptor.Field(t => t.Foos).UseFilter<Foo>();
+                descriptor.Field(t => t.Foos).UseFiltering<Foo>();
             }
         }
 

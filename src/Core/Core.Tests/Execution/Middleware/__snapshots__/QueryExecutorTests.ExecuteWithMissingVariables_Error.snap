@@ -3,7 +3,7 @@
   "Extensions": {},
   "Errors": [
     {
-      "Message": "Variable `a` of non-null type `String!` must not be null.",
+      "Message": "Variable `a` of type `String!` must not be null.",
       "Code": null,
       "Path": null,
       "Locations": [
@@ -13,7 +13,9 @@
         }
       ],
       "Exception": null,
-      "Extensions": {}
+      "Extensions": {
+        "variableName": "a"
+      }
     }
   ],
   "ContextData": {}

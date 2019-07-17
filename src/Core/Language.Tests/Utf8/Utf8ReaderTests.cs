@@ -116,7 +116,8 @@ namespace HotChocolate.Language
         {
             // arrange
             byte[] sourceText = Encoding.UTF8.GetBytes(
-                FileResource.Open("kitchen-sink.graphql"));
+                FileResource.Open("kitchen-sink.graphql")
+                    .NormalizeLineBreaks());
 
             // act
             var tokens = new List<SyntaxTokenInfo>();

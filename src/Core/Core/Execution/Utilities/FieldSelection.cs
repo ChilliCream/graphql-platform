@@ -1,12 +1,11 @@
-using System.Linq;
+using System.Collections.Immutable;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using System;
-using System.Collections.Immutable;
 using HotChocolate.Utilities;
-using System.Globalization;
 using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
@@ -89,30 +88,16 @@ namespace HotChocolate.Execution
                     if (var.Value.Type.IsNonNullType() && value is null)
                     {
                         error = ErrorBuilder.New()
-                            .SetMessage(string.Format(string.Format(
+                            .SetMessage(string.Format(
                                 CultureInfo.InvariantCulture,
                                 TypeResources.ArgumentValueBuilder_NonNull,
                                 var.Key,
-                                TypeVisualizer.Visualize(var.Value.Type))))
+                                TypeVisualizer.Visualize(var.Value.Type)))
                             .AddLocation(Selection)
                             .SetExtension(_argumentProperty, Path.New(var.Key))
                             .SetPath(_path)
                             .Build();
                     }
-                }
-                else
-                {
-                    error = InputTypeNonNullCheck.CheckForNullValueViolation(
-                        var.Key,
-                        var.Value.Type,
-                        value,
-                        converter,
-                        message => ErrorBuilder.New()
-                            .SetMessage(message)
-                            .SetPath(_path.AppendOrCreate(ResponseName))
-                            .AddLocation(Selection)
-                            .SetExtension("argument", var.Key)
-                            .Build());
                 }
 
                 if (error is null)

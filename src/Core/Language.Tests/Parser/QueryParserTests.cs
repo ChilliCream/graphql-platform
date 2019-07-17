@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using ChilliCream.Testing;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language
@@ -194,7 +195,7 @@ namespace HotChocolate.Language
                 new ParserOptions(noLocations: true));
 
             // assert
-            document.Snapshot();
+            document.MatchSnapshot();
         }
 
         [Fact]

@@ -1,0 +1,22 @@
+﻿{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "Variable `baz` of type `String!` must not be null.",
+      "Code": null,
+      "Path": null,
+      "Locations": [
+        {
+          "line": 2,
+          "column": 35
+        }
+      ],
+      "Exception": null,
+      "Extensions": {
+        "variableName": "baz"
+      }
+    }
+  ],
+  "ContextData": {}
+}
