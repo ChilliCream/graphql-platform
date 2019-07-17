@@ -22,6 +22,18 @@ namespace HotChocolate.Types
             return self.Directive(new AuthorizeDirective(roles));
         }
 
+        public static IObjectTypeDescriptor<T> Authorize<T>(
+            this IObjectTypeDescriptor<T> self,
+            params string[] roles)
+        {
+            if (self == null)
+            {
+                throw new ArgumentNullException(nameof(self));
+            }
+
+            return self.Directive(new AuthorizeDirective(roles));
+        }
+
 #if !ASPNETCLASSIC
         public static IObjectTypeDescriptor Authorize(
             this IObjectTypeDescriptor self)
@@ -48,6 +60,42 @@ namespace HotChocolate.Types
 
         public static IObjectTypeDescriptor Authorize(
             this IObjectTypeDescriptor self,
+            string policy,
+            params string[] roles)
+        {
+            if (self == null)
+            {
+                throw new ArgumentNullException(nameof(self));
+            }
+
+            return self.Directive(new AuthorizeDirective(policy, roles));
+        }
+
+        public static IObjectTypeDescriptor<T> Authorize<T>(
+            this IObjectTypeDescriptor<T> self)
+        {
+            if (self == null)
+            {
+                throw new ArgumentNullException(nameof(self));
+            }
+
+            return self.Directive(new AuthorizeDirective());
+        }
+
+        public static IObjectTypeDescriptor<T> Authorize<T>(
+            this IObjectTypeDescriptor<T> self,
+            string policy)
+        {
+            if (self == null)
+            {
+                throw new ArgumentNullException(nameof(self));
+            }
+
+            return self.Directive(new AuthorizeDirective(policy));
+        }
+
+        public static IObjectTypeDescriptor<T> Authorize<T>(
+            this IObjectTypeDescriptor<T> self,
             string policy,
             params string[] roles)
         {

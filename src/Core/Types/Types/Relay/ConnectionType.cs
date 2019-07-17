@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Relay
     public class ConnectionType<T>
         : ObjectType<IConnection>
         , IConnectionType
-        where T : IOutputType
+        where T : class, IOutputType
     {
         public ConnectionType()
             : base(descriptor => Configure(descriptor))

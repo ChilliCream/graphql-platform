@@ -4,6 +4,8 @@ namespace HotChocolate.Types
 {
     public static class TypeVisualizer
     {
+        private const int _maxTypeDepth = 6;
+
         public static string Visualize(this IType type)
         {
             return Visualize(type, 0);
@@ -11,7 +13,7 @@ namespace HotChocolate.Types
 
         private static string Visualize(IType type, int count)
         {
-            if (count > 3)
+            if (count > _maxTypeDepth)
             {
                 throw new InvalidOperationException(
                     "A type can only consist of four components.");

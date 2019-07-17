@@ -2,5 +2,6 @@
   "Data": {
     "roles_ab": "foo"
   },
-  "Errors": null
+  "Errors": null,
+  "Extensions": null
 }

@@ -1,15 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -40,19 +33,26 @@ namespace HotChocolate.Execution
 
             if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
             {
-                if (argumentValue.Literal == null)
-                {
-                    return (T)argumentValue.Type.ParseValue(value);
-                }
-                else
-                {
-                    return (T)argumentValue.Literal;
-                }
+                IValueNode literal =  (argumentValue.Literal == null)
+                    ? argumentValue.Type.ParseValue(value)
+                    : argumentValue.Literal;
+
+                return (T)VariableToValueRewriter.Rewrite(
+                    literal,
+                    argumentValue.Type,
+                    _executionContext.Variables,
+                    _executionContext.Converter);
             }
 
             if (argumentValue.Literal != null)
             {
-                value = argumentValue.Type.ParseLiteral(argumentValue.Literal);
+                IValueNode literal = VariableToValueRewriter.Rewrite(
+                    argumentValue.Literal,
+                    argumentValue.Type,
+                    _executionContext.Variables,
+                    _executionContext.Converter);
+
+                value = argumentValue.Type.ParseLiteral(literal);
             }
 
             if (value is null)

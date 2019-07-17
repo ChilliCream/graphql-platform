@@ -38,17 +38,17 @@ namespace HotChocolate.Types.Introspection
             descriptor.Field("onOperation")
                 .Type<NonNullType<BooleanType>>()
                 .Resolver(c => GetOnOperation(c))
-                .DeprecationReason(TypeResources.Directive_UseLocation);
+                .Deprecated(TypeResources.Directive_UseLocation);
 
             descriptor.Field("onFragment")
                 .Type<NonNullType<BooleanType>>()
                 .Resolver(c => GetOnFragment(c))
-                .DeprecationReason(TypeResources.Directive_UseLocation);
+                .Deprecated(TypeResources.Directive_UseLocation);
 
             descriptor.Field("onField")
                 .Type<NonNullType<BooleanType>>()
                 .Resolver(c => GetOnField(c))
-                .DeprecationReason(TypeResources.Directive_UseLocation);
+                .Deprecated(TypeResources.Directive_UseLocation);
         }
 
         private static bool GetOnOperation(IResolverContext context)

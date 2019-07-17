@@ -69,7 +69,7 @@ namespace HotChocolate.Execution
         {
             DirectiveMiddlewareCompiler directives =
                 GetOrCreateDirectiveLookup(
-                    context.Request.Query,
+                    context.QueryKey,
                     context.Schema);
 
             var requestContext = new RequestContext
@@ -93,9 +93,9 @@ namespace HotChocolate.Execution
         }
 
         private DirectiveMiddlewareCompiler GetOrCreateDirectiveLookup(
-            string query, ISchema schema)
+            string queryKey, ISchema schema)
         {
-            return _cache.GetOrCreate(query,
+            return _cache.GetOrCreate(queryKey,
                 () => new DirectiveMiddlewareCompiler(schema));
         }
 

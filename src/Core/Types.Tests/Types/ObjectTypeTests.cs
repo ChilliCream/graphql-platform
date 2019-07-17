@@ -149,8 +149,9 @@ namespace HotChocolate.Types
             Assert.Equal("BAZ", resolverContext.Object.Result);
         }
 
+        [Obsolete]
         [Fact]
-        public void FieldIsDepricated()
+        public void DeprecationReasion_Obsolete()
         {
             // arrange
             var resolverContext = new Mock<IMiddlewareContext>();
@@ -166,6 +167,82 @@ namespace HotChocolate.Types
             // assert
             Assert.Equal("fooBar", fooType.Fields["bar"].DeprecationReason);
             Assert.True(fooType.Fields["bar"].IsDeprecated);
+        }
+
+        [Fact]
+        public void Deprecated_Field_With_Reason()
+        {
+            // arrange
+            var resolverContext = new Mock<IMiddlewareContext>();
+            resolverContext.SetupAllProperties();
+
+            // act
+            ObjectType fooType = CreateType(new ObjectType(c => c
+                .Name("Foo")
+                .Field("bar")
+                .Deprecated("fooBar")
+                .Resolver(() => "baz")));
+
+            // assert
+            Assert.Equal("fooBar", fooType.Fields["bar"].DeprecationReason);
+            Assert.True(fooType.Fields["bar"].IsDeprecated);
+        }
+
+        [Fact]
+        public void Deprecated_Field_With_Reason_Is_Serialized()
+        {
+            // arrange
+            var resolverContext = new Mock<IMiddlewareContext>();
+            resolverContext.SetupAllProperties();
+
+            // act
+            ISchema schema = CreateSchema(new ObjectType(c => c
+                .Name("Foo")
+                .Field("bar")
+                .Deprecated("fooBar")
+                .Resolver(() => "baz")));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Deprecated_Field_Without_Reason()
+        {
+            // arrange
+            var resolverContext = new Mock<IMiddlewareContext>();
+            resolverContext.SetupAllProperties();
+
+            // act
+            ObjectType fooType = CreateType(new ObjectType(c => c
+                .Name("Foo")
+                .Field("bar")
+                .Deprecated()
+                .Resolver(() => "baz")));
+
+            // assert
+            Assert.Equal(
+                WellKnownDirectives.DeprecationDefaultReason,
+                fooType.Fields["bar"].DeprecationReason);
+            Assert.True(fooType.Fields["bar"].IsDeprecated);
+        }
+
+        [Fact]
+        public void Deprecated_Field_Without_Reason_Is_Serialized()
+        {
+            // arrange
+            var resolverContext = new Mock<IMiddlewareContext>();
+            resolverContext.SetupAllProperties();
+
+            // act
+            ISchema schema = CreateSchema(new ObjectType(c => c
+                .Name("Foo")
+                .Field("bar")
+                .Deprecated()
+                .Resolver(() => "baz")));
+
+            // assert
+            schema.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -1074,10 +1151,10 @@ namespace HotChocolate.Types
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                new QueryRequest("{ desc }")
-                {
-                    InitialValue = new Foo()
-                });
+                QueryRequestBuilder.New()
+                    .SetQuery("{ desc }")
+                    .SetInitialValue(new Foo())
+                    .Create());
 
             // assert
             result.MatchSnapshot();
@@ -1246,6 +1323,21 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void CreateObjectTypeWithXmlDocumentation_IgnoreXmlDocs_SchemaCreate()
+        {
+            // arrange
+            // act
+            ISchema schema = Schema.Create(c =>
+            {
+                c.RegisterQueryType<QueryWithDocumentation>();
+                c.Options.UseXmlDocumentation = false;
+            });
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Field_Is_Missing_Type_Throws_SchemaException()
         {
             // arrange
@@ -1292,6 +1384,55 @@ namespace HotChocolate.Types
                     .Type<StringType>()
                     .Resolver("bar"))
                 .AddType(new ObjectType<FooDeprecated>())
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_From_Struct()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(new ObjectType<FooStruct>())
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Execute_With_Query_As_Struct()
+        {
+            // arrange
+            IQueryExecutor executor = SchemaBuilder.New()
+                .AddQueryType(new ObjectType<FooStruct>())
+                .Create()
+                .MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ bar baz }")
+                    .SetInitialValue(new FooStruct
+                    {
+                        Qux = "Qux_Value",
+                        Baz = "Baz_Value"
+                    })
+                    .Create());
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void ObjectType_From_Dictionary()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<FooWithDict>()
                 .Create();
 
             // assert
@@ -1369,6 +1510,32 @@ namespace HotChocolate.Types
             public string Bar() => "foo";
 
             public string Bar2() => "Foo 2: Electric foo-galoo";
+        }
+
+        public struct FooStruct
+        {
+            // should be ignored by the automatic field
+            // inference.
+            public string Qux;
+
+            // should be included by the automatic field
+            // inference.
+            public string Baz { get; set; }
+
+            // should be ignored by the automatic field
+            // inference since we cannot determine what object means
+            // in the graphql context.
+            // This field has to be included explicitly.
+            public object Quux{ get; set; }
+
+            // should be included by the automatic field
+            // inference.
+            public string GetBar() => Qux + "_Bar_Value";
+        }
+
+        public class FooWithDict
+        {
+            public Dictionary<string, Bar> Map { get; set; }
         }
     }
 }

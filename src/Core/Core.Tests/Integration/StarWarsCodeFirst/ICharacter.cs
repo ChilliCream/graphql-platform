@@ -10,5 +10,4 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         IReadOnlyList<Episode> AppearsIn { get; }
         double Height { get; }
     }
-
 }

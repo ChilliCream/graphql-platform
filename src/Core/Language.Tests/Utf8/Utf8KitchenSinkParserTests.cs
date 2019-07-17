@@ -13,7 +13,8 @@ namespace HotChocolate.Language
         {
             // arrange
             string schemaSource = FileResource.Open(
-                "schema-kitchen-sink.graphql");
+                "schema-kitchen-sink.graphql")
+                .NormalizeLineBreaks();
             var parser = new Utf8GraphQLParser(
                 Encoding.UTF8.GetBytes(schemaSource));
 
@@ -30,7 +31,9 @@ namespace HotChocolate.Language
         public void ParseFacebookKitchenSinkQuery()
         {
             // arrange
-            string querySource = FileResource.Open("kitchen-sink.graphql");
+            string querySource =
+                FileResource.Open("kitchen-sink.graphql")
+                    .NormalizeLineBreaks();
             var parser = new Utf8GraphQLParser(
                 Encoding.UTF8.GetBytes(querySource));
 

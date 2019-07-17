@@ -82,7 +82,9 @@ namespace HotChocolate.Types.Relay
 
             // act
             IExecutionResult result = await executor
-                .ExecuteAsync(new QueryRequest(query));
+                .ExecuteAsync(QueryRequestBuilder.New()
+                    .SetQuery(query)
+                    .Create());
 
             // assert
             result.MatchSnapshot();
@@ -116,7 +118,9 @@ namespace HotChocolate.Types.Relay
 
             // act
             IExecutionResult result = await executor
-                .ExecuteAsync(new QueryRequest(query));
+                .ExecuteAsync(QueryRequestBuilder.New()
+                    .SetQuery(query)
+                    .Create());
 
             // assert
             result.MatchSnapshot();

@@ -1,14 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
 using Xunit;
-using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
+using HotChocolate.AspNetCore.Tests.Utilities;
 
 namespace HotChocolate.Stitching
 {
@@ -58,13 +57,16 @@ namespace HotChocolate.Stitching
             // act
             using (IServiceScope scope = services.CreateScope())
             {
-                var request = new QueryRequest(@"
-                    {
-                        customer(id: ""Q3VzdG9tZXIteDE="") {
-                            inter
-                        }
-                    }");
-                request.Services = scope.ServiceProvider;
+                IReadOnlyQueryRequest request =
+                    QueryRequestBuilder.New()
+                        .SetQuery(@"
+                        {
+                            customer(id: ""Q3VzdG9tZXIteDE="") {
+                                inter
+                            }
+                        }")
+                        .SetServices(scope.ServiceProvider)
+                        .Create();
 
                 result = await executor.ExecuteAsync(request);
             }

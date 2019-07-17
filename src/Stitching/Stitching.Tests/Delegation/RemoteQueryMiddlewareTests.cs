@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Stitching.Schemas.Contracts;
@@ -34,9 +35,8 @@ namespace HotChocolate.Stitching.Delegation
         {
             // arrange
             TestServer server = TestServerFactory.Create(
-                ContractSchemaFactory.ConfigureSchema,
                 ContractSchemaFactory.ConfigureServices,
-                new QueryMiddlewareOptions());
+                app => app.UseGraphQL());
 
             var httpClientFactory = new Mock<IHttpClientFactory>();
             httpClientFactory.Setup(t => t.CreateClient(It.IsAny<string>()))
@@ -58,10 +58,16 @@ namespace HotChocolate.Stitching.Delegation
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                new QueryRequest(@"{ contracts(customerId: ""Q3VzdG9tZXIteDE="") { id } }")
-                {
-                    Services = services.BuildServiceProvider()
-                });
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            contracts(customerId: ""Q3VzdG9tZXIteDE="")
+                            {
+                                id
+                            }
+                        }")
+                    .SetServices(services.BuildServiceProvider())
+                    .Create());
 
             // assert
             result.MatchSnapshot();

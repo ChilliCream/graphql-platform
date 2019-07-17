@@ -11,24 +11,22 @@ namespace HotChocolate.Types.Factories
         {
             DirectiveNode directive = syntaxNode.Directives.FirstOrDefault(t =>
                 t.Name.Value == WellKnownDirectives.Deprecated);
+
             if (directive == null)
             {
                 return null;
             }
 
-            ArgumentNode argument = directive.Arguments.FirstOrDefault(t =>
-                t.Name.Value == WellKnownDirectives.DeprecationReasonArgument);
-            if (argument == null)
-            {
-                return null;
-            }
-
-            if (argument.Value is StringValueNode s)
+            if (directive.Arguments.Count != 0
+                && directive.Arguments[0].Name.Value ==
+                    WellKnownDirectives.DeprecationReasonArgument
+                && directive.Arguments[0].Value is StringValueNode s
+                && !string.IsNullOrEmpty(s.Value))
             {
                 return s.Value;
             }
 
-            return null;
+            return WellKnownDirectives.DeprecationDefaultReason;
         }
 
         public static bool IsDeprecationReason(this DirectiveNode directiveNode)

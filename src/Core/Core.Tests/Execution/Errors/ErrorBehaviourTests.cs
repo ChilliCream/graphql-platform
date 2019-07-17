@@ -7,7 +7,7 @@ using Xunit;
 
 namespace HotChocolate.Execution
 {
-    public class ErrorbehaviorTests
+    public class ErrorBehaviourTests
     {
         [Fact]
         public async Task SyntaxError()

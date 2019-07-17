@@ -62,6 +62,51 @@ namespace HotChocolate.Execution
             );
         }
 
+        public void Populate(IServiceCollection services) =>
+            Populate(services, false);
+
+        public void Populate(IServiceCollection services, bool lazyExecutor)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            var list = (IList<ServiceDescriptor>)services;
+
+            foreach (ServiceDescriptor descriptor in Services)
+            {
+                list.Add(descriptor);
+            }
+
+            services.AddSingleton<IQueryExecutor>(sp =>
+            {
+                if (lazyExecutor)
+                {
+                    return new LazyQueryExecutor
+                    (
+                        () => new QueryExecutor
+                        (
+                            sp.GetRequiredService<ISchema>(),
+                            sp,
+                            Compile(_middlewareComponents),
+                            Compile(_fieldMiddlewareComponents)
+                        )
+                    );
+                }
+                else
+                {
+                    return new QueryExecutor
+                    (
+                        sp.GetRequiredService<ISchema>(),
+                        sp,
+                        Compile(_middlewareComponents),
+                        Compile(_fieldMiddlewareComponents)
+                    );
+                }
+            });
+        }
+
         private ServiceCollection CopyServiceCollection()
         {
             var copy = new ServiceCollection();
@@ -112,5 +157,14 @@ namespace HotChocolate.Execution
         public static IQueryExecutor BuildDefault(ISchema schema,
             IQueryExecutionOptionsAccessor options) =>
                 New().UseDefaultPipeline(options).Build(schema);
+
+        public static void BuildDefault(
+            IServiceCollection services) =>
+            New().UseDefaultPipeline().Populate(services);
+
+        public static void BuildDefault(
+            IServiceCollection services,
+            IQueryExecutionOptionsAccessor options) =>
+                New().UseDefaultPipeline(options).Populate(services);
     }
 }

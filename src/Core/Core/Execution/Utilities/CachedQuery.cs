@@ -13,13 +13,14 @@ namespace HotChocolate.Execution
         private ConcurrentDictionary<Key, IReadOnlyList<FieldSelection>> _flds =
             new ConcurrentDictionary<Key, IReadOnlyList<FieldSelection>>();
 
-        public CachedQuery(string query, DocumentNode document)
+        public CachedQuery(string queryKey, DocumentNode document)
         {
-            if (string.IsNullOrEmpty(query))
+            if (string.IsNullOrEmpty(queryKey))
             {
+                // TODO : resources
                 throw new ArgumentException(
-                    "The query mustn't be null or empty.",
-                    nameof(query));
+                    "The query key mustn't be null or empty.",
+                    nameof(queryKey));
             }
 
             if (document == null)
@@ -27,11 +28,11 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(document));
             }
 
-            Query = query;
+            QueryKey = queryKey;
             Document = document;
         }
 
-        public string Query { get; }
+        public string QueryKey { get; }
 
         public DocumentNode Document { get; }
 

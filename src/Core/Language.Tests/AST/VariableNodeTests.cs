@@ -51,7 +51,7 @@ namespace HotChocolate.Language
         {
             // arrange
             // act
-            Action action = () => new VariableNode(null);
+            Action action = () => new VariableNode((NameNode)null);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
