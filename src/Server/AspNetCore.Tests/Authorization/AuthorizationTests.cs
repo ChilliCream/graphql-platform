@@ -3,9 +3,7 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Subscriptions;
-using HotChocolate.Execution;
-using Microsoft.AspNetCore.Hosting;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,14 +14,13 @@ using Xunit;
 namespace HotChocolate.AspNetCore.Authorization
 {
     public class AuthorizationTests
-        : IClassFixture<TestServerFactory>
+        : ServerTestBase
     {
-        public AuthorizationTests(TestServerFactory testServerFactory)
+        public AuthorizationTests(TestServerFactory serverFactory)
+            : base(serverFactory)
         {
-            TestServerFactory = testServerFactory;
         }
 
-        private TestServerFactory TestServerFactory { get; }
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
@@ -613,25 +610,22 @@ namespace HotChocolate.AspNetCore.Authorization
             Action<IServiceCollection> configureServices,
             Action<HttpContext> configureUser)
         {
-            return TestServerFactory.Create(
-                builder => builder
-                    .ConfigureServices(services =>
-                    {
-                        configureServices(services);
-                        services.AddQueryRequestInterceptor(
-                            (ctx, r, ct) =>
-                            {
-                                configureUser(ctx);
-                                r.SetProperty(
-                                    nameof(ClaimsPrincipal),
-                                    ctx.User);
-                                return Task.CompletedTask;
-                            });
-                    })
-                    .Configure(app =>
-                    {
-                        app.UseGraphQL(new QueryMiddlewareOptions());
-                    }));
+            return ServerFactory.Create(
+                services =>
+                {
+                    configureServices(services);
+                    services.AddQueryRequestInterceptor(
+                        (ctx, r, ct) =>
+                        {
+                            configureUser(ctx);
+                            r.SetProperty(
+                                nameof(ClaimsPrincipal),
+                                ctx.User);
+                            return Task.CompletedTask;
+                        });
+                },
+                app =>
+                    app.UseGraphQL());
         }
     }
 }
