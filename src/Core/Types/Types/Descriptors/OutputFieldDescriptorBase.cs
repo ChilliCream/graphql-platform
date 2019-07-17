@@ -12,6 +12,9 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<TDefinition>
         where TDefinition : OutputFieldDefinitionBase
     {
+        private bool _deprecatedDependecySet;
+        private DirectiveDefinition _deprecatedDirective;
+
         protected OutputFieldDescriptorBase(IDescriptorContext context)
             : base(context)
         {
@@ -101,9 +104,46 @@ namespace HotChocolate.Types.Descriptors
             Definition.Arguments.Add(definition);
         }
 
-        protected void DeprecationReason(string reason)
+        public void Deprecated(string reason)
         {
-            Definition.DeprecationReason = reason;
+            if (string.IsNullOrEmpty(reason))
+            {
+                Deprecated();
+            }
+            else
+            {
+                Definition.DeprecationReason = reason;
+                AddDeprectedDirective(reason);
+            }
+        }
+
+        public void Deprecated()
+        {
+            Definition.DeprecationReason =
+                WellKnownDirectives.DeprecationDefaultReason;
+            AddDeprectedDirective(null);
+        }
+
+        private void AddDeprectedDirective(string reason)
+        {
+            if (_deprecatedDirective != null)
+            {
+                Definition.Directives.Remove(_deprecatedDirective);
+            }
+
+            _deprecatedDirective = new DirectiveDefinition(
+                new DeprecatedDirective(reason));
+            Definition.Directives.Add(_deprecatedDirective);
+
+            if (!_deprecatedDependecySet)
+            {
+                Definition.Dependencies.Add(new TypeDependency(
+                    new ClrTypeReference(
+                        typeof(DeprecatedDirectiveType),
+                        TypeContext.None),
+                    TypeDependencyKind.Completed));
+                _deprecatedDependecySet = true;
+            }
         }
 
         protected void Ignore()

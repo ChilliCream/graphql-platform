@@ -1,15 +1,7 @@
 using System;
-using System.Diagnostics;
-using System.Linq;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Language;
-using HotChocolate.Resolvers;
-using HotChocolate.Runtime;
 using HotChocolate.Stitching;
 using HotChocolate.Stitching.Delegation;
-using HotChocolate.Validation;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {

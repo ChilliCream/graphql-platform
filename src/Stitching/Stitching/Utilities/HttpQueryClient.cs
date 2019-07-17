@@ -97,7 +97,7 @@ namespace HotChocolate.Stitching.Utilities
         {
             return new HttpQueryRequest
             {
-                Query = request.Query,
+                Query = request.Query.ToString(),
                 OperationName = request.OperationName,
                 Variables = request.VariableValues
             };

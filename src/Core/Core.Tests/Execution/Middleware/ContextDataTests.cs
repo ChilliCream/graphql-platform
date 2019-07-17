@@ -36,13 +36,10 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                new QueryRequest("{ foo }")
-                {
-                    Properties = new Dictionary<string, object>
-                    {
-                        { "request", "123" }
-                    }
-                });
+                QueryRequestBuilder.New()
+                    .SetQuery("{ foo }")
+                    .SetProperty("request", "123")
+                    .Create());
 
             // assert
             Assert.True(allDataIsPassedAlong);

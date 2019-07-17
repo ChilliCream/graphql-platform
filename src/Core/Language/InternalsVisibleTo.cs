@@ -2,3 +2,4 @@
 
 [assembly: InternalsVisibleTo("HotChocolate.Language.Tests")]
 [assembly: InternalsVisibleTo("HotChocolate.Stitching")]
+[assembly: InternalsVisibleTo("HotChocolate.Core")]

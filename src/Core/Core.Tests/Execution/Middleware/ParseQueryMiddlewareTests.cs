@@ -5,6 +5,7 @@ using ChilliCream.Testing;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Runtime;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -17,7 +18,10 @@ namespace HotChocolate.Execution
             // arrange
             Schema schema = CreateSchema();
 
-            IReadOnlyQueryRequest request = new QueryRequest("{ a }");
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ a }")
+                    .Create();
 
             var context = new QueryContext
             (
@@ -35,14 +39,15 @@ namespace HotChocolate.Execution
                 c => Task.CompletedTask,
                 new DefaultQueryParser(),
                 new Cache<ICachedQuery>(10),
-                diagnostics);
+                diagnostics,
+                null);
 
             // act
             await middleware.InvokeAsync(context);
 
             // assert
             Assert.NotNull(context.Document);
-            context.Document.Snapshot();
+            context.Document.MatchSnapshot();
         }
 
         [Fact]
@@ -51,7 +56,10 @@ namespace HotChocolate.Execution
             // arrange
             Schema schema = CreateSchema();
 
-            IReadOnlyQueryRequest request = new QueryRequest("{");
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{")
+                    .Create();
 
             var context = new QueryContext
             (
@@ -69,7 +77,8 @@ namespace HotChocolate.Execution
                 c => Task.CompletedTask,
                 new DefaultQueryParser(),
                 new Cache<ICachedQuery>(10),
-                diagnostics);
+                diagnostics,
+                null);
 
             // act
             Func<Task> invoke = () => middleware.InvokeAsync(context);

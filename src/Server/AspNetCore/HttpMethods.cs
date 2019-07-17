@@ -9,5 +9,4 @@ namespace HotChocolate.AspNetCore
         public const string Post = "POST";
         public const string Get = "GET";
     }
-
 }

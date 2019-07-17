@@ -94,7 +94,7 @@ namespace HotChocolate.Types.Factories
                 string deprecactionReason = fieldDefinition.DeprecationReason();
                 if (!string.IsNullOrEmpty(deprecactionReason))
                 {
-                    fieldDescriptor.DeprecationReason(deprecactionReason);
+                    fieldDescriptor.Deprecated(deprecactionReason);
                 }
 
                 DeclareFieldArguments(fieldDescriptor, fieldDefinition);

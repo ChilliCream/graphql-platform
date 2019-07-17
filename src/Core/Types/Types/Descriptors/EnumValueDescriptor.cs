@@ -8,6 +8,9 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<EnumValueDefinition>
         , IEnumValueDescriptor
     {
+        private bool _deprecatedDependecySet;
+        private DirectiveDefinition _deprecatedDirective;
+
         public EnumValueDescriptor(IDescriptorContext context, object value)
             : base(context)
         {
@@ -20,8 +23,11 @@ namespace HotChocolate.Types.Descriptors
             Definition.Value = value;
             Definition.Description =
                 context.Naming.GetEnumValueDescription(value);
-            Definition.DeprecationReason =
-                context.Naming.GetDeprecationReason(value);
+
+            if (context.Naming.IsDeprecated(value, out string reason))
+            {
+                Deprecated(reason);
+            }
         }
 
         protected override EnumValueDefinition Definition { get; } =
@@ -46,10 +52,52 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IEnumValueDescriptor DeprecationReason(string reason)
+        [Obsolete("Use `Deprecated`.")]
+        public IEnumValueDescriptor DeprecationReason(string reason) =>
+            Deprecated(reason);
+
+        public IEnumValueDescriptor Deprecated(string reason)
         {
-            Definition.DeprecationReason = reason;
+            if (string.IsNullOrEmpty(reason))
+            {
+                return Deprecated();
+            }
+            else
+            {
+                Definition.DeprecationReason = reason;
+                AddDeprectedDirective(reason);
+                return this;
+            }
+        }
+
+        public IEnumValueDescriptor Deprecated()
+        {
+            Definition.DeprecationReason =
+                WellKnownDirectives.DeprecationDefaultReason;
+            AddDeprectedDirective(null);
             return this;
+        }
+
+        private void AddDeprectedDirective(string reason)
+        {
+            if (_deprecatedDirective != null)
+            {
+                Definition.Directives.Remove(_deprecatedDirective);
+            }
+
+            _deprecatedDirective = new DirectiveDefinition(
+                new DeprecatedDirective(reason));
+            Definition.Directives.Add(_deprecatedDirective);
+
+            if (!_deprecatedDependecySet)
+            {
+                Definition.Dependencies.Add(new TypeDependency(
+                    new ClrTypeReference(
+                        typeof(DeprecatedDirectiveType),
+                        TypeContext.None),
+                    TypeDependencyKind.Completed));
+                _deprecatedDependecySet = true;
+            }
         }
 
         public IEnumValueDescriptor Directive<T>(T directiveInstance)

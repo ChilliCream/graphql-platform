@@ -327,11 +327,11 @@ namespace HotChocolate.Execution
             if (report.HasErrors)
             {
                 IError error = ErrorBuilder.New()
-                    .SetMessage(string.Format(string.Format(
+                    .SetMessage(string.Format(
                         CultureInfo.InvariantCulture,
                         TypeResources.ArgumentValueBuilder_NonNull,
                         argument.Name,
-                        TypeVisualizer.Visualize(report.Type))))
+                        TypeVisualizer.Visualize(report.Type)))
                     .AddLocation(fieldInfo.Selection)
                     .SetExtension(_argumentProperty, report.Path.ToCollection())
                     .SetPath(fieldInfo.Path.AppendOrCreate(

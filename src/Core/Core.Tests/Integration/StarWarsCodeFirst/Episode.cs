@@ -6,5 +6,4 @@
         Empire,
         Jedi
     }
-
 }

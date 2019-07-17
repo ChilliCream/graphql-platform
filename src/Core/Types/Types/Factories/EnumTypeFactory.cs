@@ -39,7 +39,10 @@ namespace HotChocolate.Types.Factories
 
                 foreach (DirectiveNode directive in node.Directives)
                 {
-                    d.Directive(directive);
+                    if (!directive.IsDeprecationReason())
+                    {
+                        d.Directive(directive);
+                    }
                 }
 
                 DeclareValues(d, node.Values);
@@ -59,7 +62,7 @@ namespace HotChocolate.Types.Factories
                 string deprecactionReason = value.DeprecationReason();
                 if (!string.IsNullOrEmpty(deprecactionReason))
                 {
-                    valueDescriptor.DeprecationReason(deprecactionReason);
+                    valueDescriptor.Deprecated(deprecactionReason);
                 }
 
                 foreach (DirectiveNode directive in value.Directives)

@@ -33,8 +33,11 @@ namespace HotChocolate.Types.Descriptors
             Definition.Description = context.Naming.GetMemberDescription(
                 member, MemberKind.InputObjectField);
             Definition.Type = context.Inspector.GetOutputReturnType(member);
-            Definition.DeprecationReason =
-                context.Naming.GetDeprecationReason(member);
+
+            if (context.Naming.IsDeprecated(member, out string reason))
+            {
+                Deprecated(reason);
+            }
 
             if (member is MethodInfo m)
             {
@@ -85,10 +88,19 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public new IInterfaceFieldDescriptor DeprecationReason(
-            string deprecationReason)
+        [Obsolete("Use `Deprecated`.")]
+        public IInterfaceFieldDescriptor DeprecationReason(string reason) =>
+            Deprecated(reason);
+
+        public new IInterfaceFieldDescriptor Deprecated(string reason)
         {
-            base.DeprecationReason(deprecationReason);
+            base.Deprecated(reason);
+            return this;
+        }
+
+        public new IInterfaceFieldDescriptor Deprecated()
+        {
+            base.Deprecated();
             return this;
         }
 

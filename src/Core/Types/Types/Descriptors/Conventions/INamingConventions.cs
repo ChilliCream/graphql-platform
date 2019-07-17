@@ -23,8 +23,8 @@ namespace HotChocolate.Types.Descriptors
 
         string GetEnumValueDescription(object value);
 
-        string GetDeprecationReason(MemberInfo member);
+        bool IsDeprecated(MemberInfo member, out string reason);
 
-        string GetDeprecationReason(object value);
+        bool IsDeprecated(object value, out string reason);
     }
 }

@@ -1,4 +1,5 @@
 ﻿using ChilliCream.Testing;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language
@@ -17,7 +18,7 @@ namespace HotChocolate.Language
                 schemaSource, new ParserOptions(noLocations: true));
 
             // assert
-            document.Snapshot();
+            document.MatchSnapshot();
         }
 
         [Fact]
@@ -33,7 +34,7 @@ namespace HotChocolate.Language
                     noLocations: true, allowFragmentVariables: true));
 
             // assert
-            document.Snapshot();
+            document.MatchSnapshot();
         }
     }
 }

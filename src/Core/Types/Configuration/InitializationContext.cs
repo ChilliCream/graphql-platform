@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {
@@ -84,6 +85,16 @@ namespace HotChocolate.Configuration
             _typeDependencies.Add(new TypeDependency(reference, kind));
         }
 
+        public void RegisterDependency(TypeDependency dependency)
+        {
+            if (dependency is null)
+            {
+                throw new ArgumentNullException(nameof(dependency));
+            }
+
+            _typeDependencies.Add(dependency);
+        }
+
         public void RegisterDependencyRange(
             IEnumerable<ITypeReference> references,
             TypeDependencyKind kind)
@@ -97,6 +108,12 @@ namespace HotChocolate.Configuration
             {
                 _typeDependencies.Add(new TypeDependency(reference, kind));
             }
+        }
+
+        public void RegisterDependencyRange(
+            IEnumerable<TypeDependency> dependencies)
+        {
+            _typeDependencies.AddRange(dependencies);
         }
 
         public void RegisterDependency(IDirectiveReference reference)

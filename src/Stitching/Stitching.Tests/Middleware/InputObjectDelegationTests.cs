@@ -9,12 +9,8 @@ using HotChocolate.Execution;
 using Snapshooter.Xunit;
 using Moq;
 using Microsoft.AspNetCore.TestHost;
-using HotChocolate.Stitching.Merge.Rewriters;
-using HotChocolate.Language;
-using HotChocolate.Stitching.Merge;
-using HotChocolate.Stitching.Delegation;
-using System.Linq;
 using Snapshooter;
+using HotChocolate.AspNetCore.Tests.Utilities;
 
 namespace HotChocolate.Stitching
 {
@@ -75,18 +71,19 @@ namespace HotChocolate.Stitching
                Dictionary<string, HttpClient> connections)
         {
             TestServer server_1 = TestServerFactory.Create(
-                SchemaBuilder.New()
-                    .AddDocumentFromString
-                    (
-                        @"
-                        type Query { foo(a: Bar): String }
-                        input Bar { a: String }
-                        "
-                    )
-                    .BindComplexType<Query1>(t => t.To("Query"))
-                    .BindComplexType<Bar>()
-                    .Create(),
-                new QueryMiddlewareOptions());
+                services => services.AddGraphQL(
+                    SchemaBuilder.New()
+                        .AddDocumentFromString
+                        (
+                            @"
+                            type Query { foo(a: Bar): String }
+                            input Bar { a: String }
+                            "
+                        )
+                        .BindComplexType<Query1>(t => t.To("Query"))
+                        .BindComplexType<Bar>()
+                        .Create()),
+                app => app.UseGraphQL());
 
             connections["server_1"] = server_1.CreateClient();
 

@@ -2,9 +2,9 @@ using System;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Server;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -34,6 +34,9 @@ namespace HotChocolate.AspNetCore
 
         private readonly IQueryResultSerializer _resultSerializer;
         private readonly Func<HttpContext, bool> _isPathValid;
+
+        private IQueryRequestInterceptor<HttpContext> _interceptor;
+        private bool _interceptorInitialized = false;
 
 #if ASPNETCLASSIC
         private OwinContextAccessor _accessor;
@@ -94,6 +97,8 @@ namespace HotChocolate.AspNetCore
         /// Gets the GraphQL query executor resolver.
         /// </summary>
         protected IQueryExecutor Executor { get; }
+
+        protected IQueryResultSerializer Serializer => _resultSerializer;
 
 #if !ASPNETCLASSIC
         protected RequestDelegate Next { get; }
@@ -179,8 +184,12 @@ namespace HotChocolate.AspNetCore
                 await CreateQueryRequestAsync(context)
                     .ConfigureAwait(false);
 
-            OnCreateRequestAsync onCreateRequest = Options.OnCreateRequest
-                ?? GetService<OnCreateRequestAsync>(context);
+            if (!_interceptorInitialized)
+            {
+                _interceptor =
+                    GetService<IQueryRequestInterceptor<HttpContext>>(context);
+                _interceptorInitialized = true;
+            }
 
             builder.AddProperty(nameof(HttpContext), context);
             builder.AddProperty(nameof(ClaimsPrincipal), context.GetUser());
@@ -191,12 +200,12 @@ namespace HotChocolate.AspNetCore
                 builder.AddProperty(ContextDataKeys.EnableTracing, true);
             }
 
-            if (onCreateRequest != null)
+            if (_interceptor != null)
             {
-                CancellationToken requestAborted =
-                    context.GetCancellationToken();
-
-                await onCreateRequest(new HttpContextWrapper(context), builder, requestAborted)
+                await _interceptor.OnCreateAsync(
+                    context,
+                    builder,
+                    context.GetCancellationToken())
                     .ConfigureAwait(false);
             }
 
@@ -227,12 +236,12 @@ namespace HotChocolate.AspNetCore
                 await CreateQueryRequestInternalAsync(context, serviceProvider)
                     .ConfigureAwait(false);
 
-                IExecutionResult result = await queryExecutor
-                    .ExecuteAsync(request, context.GetCancellationToken())
-                    .ConfigureAwait(false);
+            IExecutionResult result = await queryExecutor
+                .ExecuteAsync(request, context.GetCancellationToken())
+                .ConfigureAwait(false);
 
-                await WriteResponseAsync(context.Response, result)
-                    .ConfigureAwait(false);
+            await WriteResponseAsync(context.Response, result)
+                .ConfigureAwait(false);
 #if ASPNETCLASSIC
             }
 #endif

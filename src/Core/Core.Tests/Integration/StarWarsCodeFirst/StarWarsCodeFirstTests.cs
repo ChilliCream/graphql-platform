@@ -360,7 +360,8 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         {
             // arrange
             var query = @"
-            mutation CreateReviewForEpisode($ep: Episode!, $review: ReviewInput!) {
+            mutation CreateReviewForEpisode(
+                $ep: Episode!, $review: ReviewInput!) {
                 createReview(episode: $ep, review: $review) {
                     stars
                     commentary
@@ -374,6 +375,39 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                         new ObjectFieldNode("stars", new IntValueNode(5)),
                         new ObjectFieldNode("commentary",
                             new StringValueNode("This is a great movie!"))) }
+            };
+
+            IQueryExecutor executor = CreateSchema().MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(query, variables);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void GraphQLOrgMutationExample_With_ValueVariables()
+        {
+            // arrange
+            var query = @"
+            mutation CreateReviewForEpisode(
+                $ep: Episode!
+                $stars: Int!
+                $commentary: String!) {
+                createReview(
+                    episode: $ep
+                    review: { stars: $stars commentary: $commentary }) {
+                    stars
+                    commentary
+                }
+            }";
+
+            var variables = new Dictionary<string, object>
+            {
+                { "ep", new EnumValueNode("JEDI") },
+                { "stars", new IntValueNode(5) },
+                { "commentary", new StringValueNode("This is a great movie!") }
             };
 
             IQueryExecutor executor = CreateSchema().MakeExecutable();
@@ -666,7 +700,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 eventResult = await responseStream.ReadAsync();
             }
 
-            eventResult.Snapshot();
+            eventResult.MatchSnapshot();
         }
 
         [Fact]
