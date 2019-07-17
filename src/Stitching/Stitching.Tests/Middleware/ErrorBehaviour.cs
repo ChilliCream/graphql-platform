@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using Xunit;
-using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
+using HotChocolate.AspNetCore.Tests.Utilities;
 
 namespace HotChocolate.Stitching
 {

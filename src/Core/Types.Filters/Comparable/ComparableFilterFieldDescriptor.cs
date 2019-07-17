@@ -25,14 +25,14 @@ namespace HotChocolate.Types.Filters
                 FilterOperationKind.GreaterThan,
                 FilterOperationKind.NotGreaterThan,
 
-                FilterOperationKind.GreaterThanOrEqual,
-                FilterOperationKind.NotGreaterThanOrEqual,
+                FilterOperationKind.GreaterThanOrEquals,
+                FilterOperationKind.NotGreaterThanOrEquals,
 
                 FilterOperationKind.LowerThan,
                 FilterOperationKind.NotLowerThan,
 
-                FilterOperationKind.LowerThanOrEqual,
-                FilterOperationKind.NotLowerThanOrEqual
+                FilterOperationKind.LowerThanOrEquals,
+                FilterOperationKind.NotLowerThanOrEquals
             };
         }
 
@@ -112,7 +112,7 @@ namespace HotChocolate.Types.Filters
         public IComparableFilterOperationDescriptor AllowGreaterThanOrEquals()
         {
             ComparableFilterOperationDescriptor field =
-                 CreateOperation(FilterOperationKind.GreaterThanOrEqual);
+                 CreateOperation(FilterOperationKind.GreaterThanOrEquals);
             Filters.Add(field);
             return field;
         }
@@ -121,7 +121,7 @@ namespace HotChocolate.Types.Filters
         public IComparableFilterOperationDescriptor AllowNotGreaterThanOrEquals()
         {
             ComparableFilterOperationDescriptor field =
-                 CreateOperation(FilterOperationKind.NotGreaterThanOrEqual);
+                 CreateOperation(FilterOperationKind.NotGreaterThanOrEquals);
             Filters.Add(field);
             return field;
         }
@@ -148,7 +148,7 @@ namespace HotChocolate.Types.Filters
         public IComparableFilterOperationDescriptor AllowLowerThanOrEquals()
         {
             ComparableFilterOperationDescriptor field =
-                 CreateOperation(FilterOperationKind.LowerThanOrEqual);
+                 CreateOperation(FilterOperationKind.LowerThanOrEquals);
             Filters.Add(field);
             return field;
         }
@@ -157,7 +157,7 @@ namespace HotChocolate.Types.Filters
         public IComparableFilterOperationDescriptor AllowNotLowerThanOrEquals()
         {
             ComparableFilterOperationDescriptor field =
-                 CreateOperation(FilterOperationKind.NotLowerThanOrEqual);
+                 CreateOperation(FilterOperationKind.NotLowerThanOrEquals);
             Filters.Add(field);
             return field;
         }

@@ -11,6 +11,9 @@ namespace HotChocolate.Types.Descriptors
     public class DefaultTypeInspector
         : ITypeInspector
     {
+        private const string _toString = "ToString";
+        private const string _getHashCode = "GetHashCode";
+
         private readonly TypeInspector _typeInspector =
             new TypeInspector();
 
@@ -32,7 +35,11 @@ namespace HotChocolate.Types.Descriptors
                         && !m.IsSpecialName
                         && m.DeclaringType != typeof(object)
                         && m.ReturnType != typeof(void)
-                        && m.ReturnType != typeof(Task)))
+                        && m.ReturnType != typeof(Task)
+                        && m.ReturnType != typeof(object)
+                        && m.ReturnType != typeof(Task<object>)
+                        && m.GetParameters().All(t =>
+                            t.ParameterType != typeof(object))))
             {
                 yield return method;
             }
@@ -41,7 +48,8 @@ namespace HotChocolate.Types.Descriptors
                 BindingFlags.Instance | BindingFlags.Public)
                 .Where(p => !IsIgnored(p)
                     && p.CanRead
-                    && p.DeclaringType != typeof(object)))
+                    && p.DeclaringType != typeof(object)
+                    && p.PropertyType != typeof(object)))
             {
                 yield return property;
             }
@@ -170,8 +178,21 @@ namespace HotChocolate.Types.Descriptors
 
         private static bool IsIgnored(MemberInfo member)
         {
+            if(IsToString(member) || IsGetHashCode(member))
+            {
+                return true;
+            }
             return member.IsDefined(typeof(GraphQLIgnoreAttribute));
         }
+
+        private static bool IsToString(MemberInfo member) =>
+            member is MethodInfo m
+            && m.Name.Equals(_toString);
+
+        private static bool IsGetHashCode(MemberInfo member) =>
+            member is MethodInfo m
+            && m.Name.Equals(_getHashCode)
+            && m.GetParameters().Length == 0;
 
         public Type ExtractType(Type type)
         {

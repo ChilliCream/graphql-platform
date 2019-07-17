@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using ChilliCream.Testing;
 using Newtonsoft.Json;
@@ -19,7 +20,8 @@ namespace HotChocolate.Language
                     new GraphQLRequestDto
                     {
                         Query = FileResource.Open("kitchen-sink.graphql")
-                    }));
+                            .NormalizeLineBreaks()
+                    }).NormalizeLineBreaks());
 
             // act
             var parserOptions = new ParserOptions();
@@ -50,7 +52,8 @@ namespace HotChocolate.Language
                     new GraphQLRequestDto
                     {
                         Query = FileResource.Open("russion-literals.graphql")
-                    }));
+                            .NormalizeLineBreaks()
+                    }).NormalizeLineBreaks());
 
             // act
             var parserOptions = new ParserOptions();
@@ -77,7 +80,8 @@ namespace HotChocolate.Language
         {
             // arrange
             byte[] source = Encoding.UTF8.GetBytes(
-                FileResource.Open("russion_utf8_escape_characters.json"));
+                FileResource.Open("russion_utf8_escape_characters.json")
+                    .NormalizeLineBreaks());
 
             // act
             var parserOptions = new ParserOptions();
@@ -108,7 +112,8 @@ namespace HotChocolate.Language
                     new GraphQLRequestDto
                     {
                         Query = FileResource.Open("kitchen-sink.graphql")
-                    }));
+                            .NormalizeLineBreaks()
+                    }).NormalizeLineBreaks());
 
             var cache = new DocumentCache();
 
@@ -154,7 +159,82 @@ namespace HotChocolate.Language
                 JsonConvert.SerializeObject(
                     new GraphQLRequestDto
                     {
-                        Query = FileResource.Open("kitchen-sink.graphql"),
+                        Query = FileResource.Open("kitchen-sink.graphql")
+                            .NormalizeLineBreaks(),
+                        NamedQuery = "ABC",
+                        OperationName = "DEF",
+                        Variables = new Dictionary<string, object>
+                        {
+                            { "a" , "b"},
+                            { "b" , new Dictionary<string, object>
+                                {
+                                    { "a" , "b"},
+                                    { "b" , true},
+                                    { "c" , 1},
+                                    { "d" , 1.1},
+                                }},
+                            { "c" , new List<object>
+                                {
+                                    new Dictionary<string, object>
+                                    {
+                                        { "a" , "b"},
+                                    }
+                                }},
+                        },
+                        Extensions = new Dictionary<string, object>
+                        {
+                            { "aa" , "bb"},
+                            { "bb" , new Dictionary<string, object>
+                                {
+                                    { "aa" , "bb"},
+                                    { "bb" , true},
+                                    { "cc" , 1},
+                                    { "df" , 1.1},
+                                }},
+                            { "cc" , new List<object>
+                                {
+                                    new Dictionary<string, object>
+                                    {
+                                        { "aa" , "bb"},
+                                        { "ab" , null},
+                                        { "ac" , false},
+                                    }
+                                }},
+                        }
+                    }).NormalizeLineBreaks());
+
+            // act
+            var parserOptions = new ParserOptions();
+            var requestParser = new Utf8GraphQLRequestParser(
+                source, parserOptions);
+            IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+
+            // assert
+            Assert.Collection(batch,
+                r =>
+                {
+                    Assert.Equal("ABC", r.QueryName);
+                    Assert.Equal("DEF", r.OperationName);
+
+                    r.Variables.MatchSnapshot(
+                        new SnapshotNameExtension("Variables"));
+                    r.Extensions.MatchSnapshot(
+                        new SnapshotNameExtension("Extensions"));
+                    QuerySyntaxSerializer.Serialize(r.Query, true)
+                        .MatchSnapshot(new SnapshotNameExtension("Query"));
+                });
+        }
+
+        [Fact]
+        public void Parse_Json()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes(
+                JsonConvert.SerializeObject(
+                    new GraphQLRequestDto
+                    {
+                        Query = FileResource.Open("kitchen-sink.graphql")
+                            .NormalizeLineBreaks(),
                         NamedQuery = "ABC",
                         OperationName = "DEF",
                         Variables = new Dictionary<string, object>
@@ -193,28 +273,67 @@ namespace HotChocolate.Language
                                     }
                                 }},
                         }
-                    }));
+                    }).NormalizeLineBreaks());
 
             // act
-            var parserOptions = new ParserOptions();
-            var requestParser = new Utf8GraphQLRequestParser(
-                source, parserOptions);
-            IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+            var parsed = Utf8GraphQLRequestParser.ParseJson(source);
 
             // assert
-            Assert.Collection(batch,
-                r =>
-                {
-                    Assert.Equal("ABC", r.QueryName);
-                    Assert.Equal("DEF", r.OperationName);
+            parsed.MatchSnapshot();
+        }
 
-                    r.Variables.MatchSnapshot(
-                        new SnapshotNameExtension("Variables"));
-                    r.Extensions.MatchSnapshot(
-                        new SnapshotNameExtension("Extensions"));
-                    QuerySyntaxSerializer.Serialize(r.Query, true)
-                        .MatchSnapshot(new SnapshotNameExtension("Query"));
-                });
+        [Fact]
+        public void Parse_Socket_Message()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes(
+                JsonConvert.SerializeObject(
+                    new Dictionary<string, object>
+                    {
+                        {
+                            "payload",
+                            new Dictionary<string, object>
+                            {
+                                { "a" , "b"},
+                                { "b" , new Dictionary<string, object>
+                                    {
+                                        { "a" , "b"},
+                                        { "b" , true},
+                                        { "c" , 1},
+                                        { "d" , 1.1},
+                                        { "e" , false},
+                                        { "f" , null}
+                                    }},
+                                { "c" , new List<object>
+                                    {
+                                        new Dictionary<string, object>
+                                        {
+                                            { "a" , "b"},
+                                        }
+                                    }},
+                            }
+                        },
+                        {
+                            "type",
+                            "foo"
+                        },
+                        {
+                            "id",
+                            "bar"
+                        }
+                    }).NormalizeLineBreaks());
+
+            // act
+            GraphQLSocketMessage message =
+                Utf8GraphQLRequestParser.ParseMessage(source);
+
+            // assert
+            Assert.Equal("foo", message.Type);
+            Assert.Equal("bar", message.Id);
+
+            File.WriteAllBytes("Foo.json", message.Payload.ToArray());
+
+            Utf8GraphQLRequestParser.ParseJson(message.Payload).MatchSnapshot();
         }
 
         private class GraphQLRequestDto

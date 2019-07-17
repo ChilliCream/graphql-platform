@@ -3,9 +3,9 @@ using System.Net;
 using System.Net.Http;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Subscriptions;
-using HotChocolate.Execution;
-using Microsoft.AspNetCore.Hosting;
+using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Resolvers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -15,20 +15,19 @@ using Xunit;
 namespace HotChocolate.AspNetCore.Authorization
 {
     public class AuthorizationTests
-        : IClassFixture<TestServerFactory>
+        : ServerTestBase
     {
-        public AuthorizationTests(TestServerFactory testServerFactory)
+        public AuthorizationTests(TestServerFactory serverFactory)
+            : base(serverFactory)
         {
-            TestServerFactory = testServerFactory;
         }
 
-        private TestServerFactory TestServerFactory { get; }
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
         public void AuthorizeDirective_Defined(ISchema schema)
         {
-            // arrange            
+            // arrange
             // assert
             Assert.Contains(
                 schema.DirectiveTypes,
@@ -225,6 +224,46 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
+        public async Task Policy_Resources_Is_IResolverContext(ISchema schema)
+        {
+            // arrange
+            TestServer server = CreateTestServer(
+                services =>
+                {
+                    services.AddAuthorization(options =>
+                    {
+                        options.AddPolicy("HasAgeDefined", policy =>
+                            policy.RequireAssertion(context =>
+                                context.Resource is IResolverContext));
+                    });
+
+                    services.AddGraphQL(schema);
+                },
+                context =>
+                {
+                    context.User = new ClaimsPrincipal(
+                        new ClaimsIdentity("testauth"));
+                });
+
+            var request = "{ age }";
+            var contentType = "application/graphql";
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request, contentType, null);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+
+            var json = await message.Content.ReadAsStringAsync();
+            ClientQueryResult result = JsonConvert
+                .DeserializeObject<ClientQueryResult>(json);
+            Assert.Null(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Theory]
+        [ClassData(typeof(AuthorizationTestData))]
         public async Task Policy_Authorized(ISchema schema)
         {
             // arrange
@@ -318,7 +357,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     identity.AddClaim(new Claim(
                         ClaimTypes.Role,
                         "b"));
-                    context.AddIdentity(identity);
+                    context.User.AddIdentity(identity);
                 });
 
             var request = "{ roles }";
@@ -358,7 +397,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     identity.AddClaim(new Claim(
                         ClaimTypes.Role,
                         "c"));
-                    context.AddIdentity(identity);
+                    context.User.AddIdentity(identity);
                 });
 
             var request = "{ roles_ab }";
@@ -574,7 +613,7 @@ namespace HotChocolate.AspNetCore.Authorization
                     identity.AddClaim(new Claim(
                         ClaimTypes.DateOfBirth,
                         "2013-05-30"));
-                    context.AddIdentity(identity);
+                    context.User.AddIdentity(identity);
                 });
 
             var request = "{ piped }";
@@ -610,28 +649,24 @@ namespace HotChocolate.AspNetCore.Authorization
 
         private TestServer CreateTestServer(
             Action<IServiceCollection> configureServices,
-            Action<IHttpContext> configureUser)
+            Action<HttpContext> configureUser)
         {
-            return TestServerFactory.Create(
-                builder =>
+            return ServerFactory.Create(
+                services =>
                 {
-                    return builder
-                        .ConfigureServices(configureServices)
-                        .Configure(app =>
+                    configureServices(services);
+                    services.AddQueryRequestInterceptor(
+                        (ctx, r, ct) =>
                         {
-                            app.UseGraphQL(new QueryMiddlewareOptions
-                            {
-                                OnCreateRequest = (ctx, r, ct) =>
-                                {
-                                    configureUser(ctx);
-                                    r.SetProperty(
-                                        nameof(ClaimsPrincipal),
-                                        ctx.User);
-                                    return Task.CompletedTask;
-                                }
-                            });
+                            configureUser(ctx);
+                            r.SetProperty(
+                                nameof(ClaimsPrincipal),
+                                ctx.User);
+                            return Task.CompletedTask;
                         });
-                });
+                },
+                app =>
+                    app.UseGraphQL());
         }
     }
 }

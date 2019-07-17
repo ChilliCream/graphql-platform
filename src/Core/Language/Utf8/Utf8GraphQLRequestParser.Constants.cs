@@ -7,6 +7,9 @@ namespace HotChocolate.Language
         private const byte _q = (byte)'q';
         private const byte _v = (byte)'v';
         private const byte _e = (byte)'e';
+        private const byte _t = (byte)'t';
+        private const byte _i = (byte)'i';
+        private const byte _p = (byte)'p';
 
         private static readonly byte[] _operationName = new[]
         {
@@ -73,6 +76,31 @@ namespace HotChocolate.Language
             (byte)'o',
             (byte)'n',
             (byte)'s'
+        };
+
+        private static readonly byte[] _type = new[]
+        {
+            (byte)'t',
+            (byte)'y',
+            (byte)'p',
+            (byte)'e'
+        };
+
+        private static readonly byte[] _id = new[]
+        {
+            (byte)'i',
+            (byte)'d'
+        };
+
+        private static readonly byte[] _payload = new[]
+        {
+            (byte)'p',
+            (byte)'a',
+            (byte)'y',
+            (byte)'l',
+            (byte)'o',
+            (byte)'a',
+            (byte)'d'
         };
     }
 }

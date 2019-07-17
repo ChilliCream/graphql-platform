@@ -402,14 +402,15 @@ namespace HotChocolate.AspNetClassic
                     c.RegisterQueryType<QueryType>();
                     c.RegisterType<InputObjectType<Bar>>();
                 },
+                services => services.AddQueryRequestInterceptor(
+                (context, request, ct) =>
+                {
+                    request.AddProperty("foo", "bar");
+                    return Task.CompletedTask;
+                }),
                 new QueryMiddlewareOptions
                 {
-                    Path = new PathString(path ?? "/"),
-                    OnCreateRequest = (context, request, ct) =>
-                    {
-                        request.AddProperty("foo", "bar");
-                        return Task.CompletedTask;
-                    }
+                    Path = new PathString(path ?? "/")
                 });
         }
     }

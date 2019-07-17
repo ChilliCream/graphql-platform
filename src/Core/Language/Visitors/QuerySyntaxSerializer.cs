@@ -125,6 +125,11 @@ namespace HotChocolate.Language
 
                 writer.WriteSpace();
             }
+            else if (node.Operation != OperationType.Query)
+            {
+                writer.Write(node.Operation.ToString().ToLowerInvariant());
+                writer.WriteSpace();
+            }
 
             VisitSelectionSet(node.SelectionSet, writer);
         }

@@ -8,7 +8,6 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Stitching.Client;
 using HotChocolate.Stitching.Delegation;
 using HotChocolate.Stitching.Merge;
-using HotChocolate.Stitching.Utilities;
 using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Language;
@@ -230,10 +229,17 @@ namespace HotChocolate.Stitching
                     RemoteQueryBatchOperation>();
             }
 
-            serviceCollection.TryAddSingleton<IQueryExecutor>(
-                services => new LazyQueryExecutor(() =>
-                    services.GetRequiredService<StitchingFactory>()
-                        .CreateStitchedQueryExecuter(services)));
+            serviceCollection.TryAddSingleton<ISchema>(sp =>
+                sp.GetRequiredService<StitchingFactory>()
+                    .CreateStitchedSchema(sp));
+
+            var builder = QueryExecutionBuilder.New();
+            foreach (Action<IQueryExecutionBuilder> configure in _execConfigs)
+            {
+                configure(builder);
+            }
+            builder.UseStitchingPipeline();
+            builder.Populate(serviceCollection, true);
 
             serviceCollection.TryAddSingleton(services =>
                 services.GetRequiredService<IQueryExecutor>()

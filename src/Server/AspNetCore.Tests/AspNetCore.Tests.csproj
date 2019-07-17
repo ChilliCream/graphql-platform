@@ -20,12 +20,12 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
     <PackageReference Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
-    <PackageReference Include="Snapshooter.Xunit" Version="0.4.5" />
+    <PackageReference Include="Snapshooter.Xunit" Version="0.4.7" />
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.4.0-beta.1.build3958" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
+    <ProjectReference Include="..\AspNetCore.Tests.Utilities\AspNetCore.Tests.Utilities.csproj" />
     <ProjectReference Include="..\AspNetCore.Authorization\AspNetCore.Authorization.csproj" />
     <ProjectReference Include="..\AspNetCore\AspNetCore.csproj" />
   </ItemGroup>

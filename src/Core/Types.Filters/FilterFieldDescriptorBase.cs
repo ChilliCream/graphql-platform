@@ -226,9 +226,9 @@ namespace HotChocolate.Types.Filters
                 case FilterOperationKind.NotGreaterThan:
                     return Definition.Name + "_not_gt";
 
-                case FilterOperationKind.GreaterThanOrEqual:
+                case FilterOperationKind.GreaterThanOrEquals:
                     return Definition.Name + "_gte";
-                case FilterOperationKind.NotGreaterThanOrEqual:
+                case FilterOperationKind.NotGreaterThanOrEquals:
                     return Definition.Name + "_not_gte";
 
                 case FilterOperationKind.LowerThan:
@@ -236,9 +236,9 @@ namespace HotChocolate.Types.Filters
                 case FilterOperationKind.NotLowerThan:
                     return Definition.Name + "_not_lt";
 
-                case FilterOperationKind.LowerThanOrEqual:
+                case FilterOperationKind.LowerThanOrEquals:
                     return Definition.Name + "_lte";
-                case FilterOperationKind.NotLowerThanOrEqual:
+                case FilterOperationKind.NotLowerThanOrEquals:
                     return Definition.Name + "_not_lte";
 
                 default:

@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 using ChilliCream.Testing;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language
@@ -25,7 +26,7 @@ namespace HotChocolate.Language
             var documentWriter = new DocumentWriter(stringWriter);
             var serializer = new QuerySyntaxSerializer();
             serializer.Visit(rewritten, documentWriter);
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
     }
 }

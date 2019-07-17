@@ -1,12 +1,12 @@
 using System;
 using System.Net.Http;
 using Xunit;
-using HotChocolate.AspNetCore;
 using Snapshooter.Xunit;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using System.Threading.Tasks;
+using HotChocolate.AspNetCore.Tests.Utilities;
 
 namespace HotChocolate.Stitching
 {
