@@ -1,6 +1,7 @@
-{
+﻿{
   "Data": {
     "roles": "foo"
   },
-  "Errors": null
+  "Errors": null,
+  "Extensions": null
 }

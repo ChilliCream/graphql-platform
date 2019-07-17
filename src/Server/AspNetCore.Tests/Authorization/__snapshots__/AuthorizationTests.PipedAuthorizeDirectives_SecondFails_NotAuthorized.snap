@@ -18,5 +18,6 @@
         "code": "AUTH_NOT_AUTHORIZED"
       }
     }
-  ]
+  ],
+  "Extensions": null
 }
