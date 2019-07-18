@@ -21,7 +21,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
         }
 
-        [Fact(Skip = "FIX THIS")]
+        [Fact]
         public async Task Send_Start_ReceiveDataOnMutation_Large_Message()
         {
             using (TestServer testServer = CreateStarWarsServer())
