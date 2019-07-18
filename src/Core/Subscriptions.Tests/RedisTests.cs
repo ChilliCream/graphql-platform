@@ -38,6 +38,21 @@ namespace HotChocolate.Subscriptions.Redis
         }
 
         [Fact(Skip = "Add underlining service")]
+        public async Task SubscribeOneConsumer_Complete_StreamIsCompleted()
+        {
+            // arrange
+            var eventDescription = new EventDescription("foo");
+
+            // act
+            IEventStream consumer = await _registry
+                .SubscribeAsync(eventDescription);
+            await consumer.CompleteAsync();
+
+            // assert
+            Assert.True(consumer.IsCompleted);
+        }
+
+        [Fact(Skip = "Add underlining service")]
         public async Task SubscribeTwoConsumer_SendOneMessage_BothConsumerReceivesMessage()
         {
             // arrange

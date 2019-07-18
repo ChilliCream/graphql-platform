@@ -9,6 +9,7 @@ namespace Subscriptions.Redis
     {
         private readonly ChannelMessageQueue _channel;
         private readonly IPayloadSerializer _serializer;
+        private bool _isCompleted = false;
 
         public RedisEventStream(
             ChannelMessageQueue channel,
@@ -18,7 +19,7 @@ namespace Subscriptions.Redis
             _serializer = serializer;
         }
 
-        public bool IsCompleted => _channel.Channel.IsNullOrEmpty;
+        public bool IsCompleted => _isCompleted;
 
         public async Task<IEventMessage> ReadAsync()
         {
@@ -47,12 +48,20 @@ namespace Subscriptions.Redis
 
         public async Task CompleteAsync()
         {
-            await _channel.Completion;
+            if (!IsCompleted)
+            {
+                await _channel.UnsubscribeAsync();
+                _isCompleted = true;
+            }
         }
 
         public void Dispose()
         {
-            _channel.Unsubscribe();
+            if (!IsCompleted)
+            {
+                _channel.Unsubscribe();
+                _isCompleted = true;
+            }
         }
     }
 }
