@@ -16,7 +16,8 @@ namespace HotChocolate.Utilities
                 throw new ArgumentNullException(nameof(typeInfo));
             }
 
-            ParameterExpression services = Expression.Parameter(typeof(IServiceProvider));
+            ParameterExpression services =
+                Expression.Parameter(typeof(IServiceProvider));
             NewExpression newInstance = CreateNewInstance(typeInfo, services);
             return Expression.Lambda<Func<IServiceProvider, object>>(
                 newInstance, services).Compile();
@@ -30,7 +31,8 @@ namespace HotChocolate.Utilities
                 throw new ArgumentNullException(nameof(typeInfo));
             }
 
-            ParameterExpression services = Expression.Parameter(typeof(IServiceProvider));
+            ParameterExpression services =
+                Expression.Parameter(typeof(IServiceProvider));
             NewExpression newInstance = CreateNewInstance(typeInfo, services);
             return Expression.Lambda<Func<IServiceProvider, T>>(
                 newInstance, services).Compile();
