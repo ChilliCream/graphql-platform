@@ -5,7 +5,6 @@
     <AssemblyName>HotChocolate.Stitching.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Stitching</RootNamespace>
     <IsPackable>false</IsPackable>
-
   </PropertyGroup>
 
   <PropertyGroup>
