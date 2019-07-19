@@ -1,7 +1,7 @@
 using System;
+using HotChocolate.Subscriptions.Redis;
 using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
-using Subscriptions.Redis;
 
 namespace HotChocolate.Subscriptions
 {

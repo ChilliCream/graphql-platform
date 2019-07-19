@@ -1,9 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Subscriptions;
 using StackExchange.Redis;
 
-namespace Subscriptions.Redis
+namespace HotChocolate.Subscriptions.Redis
 {
     public class RedisEventStream : IEventStream
     {
@@ -28,7 +27,7 @@ namespace Subscriptions.Redis
 
             var payload = await _serializer
                 .DeserializeAsync(message.Message);
-            
+
             return new EventMessage(
                 message.Channel, payload);
         }

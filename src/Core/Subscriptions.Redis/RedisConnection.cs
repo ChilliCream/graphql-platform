@@ -1,6 +1,6 @@
 using StackExchange.Redis;
 
-namespace HotChocolate.Subscriptions
+namespace HotChocolate.Subscriptions.Redis
 {
     internal static class RedisConnection
     {

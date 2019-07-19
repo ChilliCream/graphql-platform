@@ -1,6 +1,5 @@
 using System.Threading.Tasks;
 using HotChocolate.Language;
-using Subscriptions.Redis;
 using Xunit;
 
 namespace HotChocolate.Subscriptions.Redis

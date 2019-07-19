@@ -4,7 +4,7 @@
     <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">netstandard2.0</TargetFrameworks>
     <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">netstandard2.0; net461</TargetFrameworks>
     <AssemblyName>HotChocolate.Subscriptions.Redis</AssemblyName>
-    <RootNamespace>HotChocolate.Subscriptions</RootNamespace>
+    <RootNamespace>HotChocolate.Subscriptions.Redis</RootNamespace>
     <PackageId>HotChocolate.Subscriptions.Redis</PackageId>
     <Description>Contains a Redis implementation for a Hot Chocolate GraphQL subscription provider.</Description>
   </PropertyGroup>

@@ -1,8 +1,7 @@
 using System.Threading.Tasks;
-using HotChocolate.Subscriptions;
 using StackExchange.Redis;
 
-namespace Subscriptions.Redis
+namespace HotChocolate.Subscriptions.Redis
 {
     public class RedisEventRegistry
         : IEventRegistry
@@ -27,7 +26,7 @@ namespace Subscriptions.Redis
 
             ChannelMessageQueue channel = await subscriber
                 .SubscribeAsync(eventDescription.ToString());
-            
+
             return new RedisEventStream(channel, _serializer);
         }
 

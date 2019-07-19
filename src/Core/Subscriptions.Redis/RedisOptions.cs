@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace HotChocolate.Subscriptions
+namespace HotChocolate.Subscriptions.Redis
 {
     /// <summary>
     /// Defines Redis server configuration
@@ -50,6 +50,6 @@ namespace HotChocolate.Subscriptions
         /// </summary>
         /// <param name="endpoint"></param>
         public static implicit operator RedisOptions(string endpoint)
-            => new RedisOptions(new []{ endpoint });
+            => new RedisOptions(new[] { endpoint });
     }
 }
