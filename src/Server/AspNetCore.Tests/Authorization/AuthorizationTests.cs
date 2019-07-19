@@ -379,7 +379,7 @@ namespace HotChocolate.AspNetCore.Authorization
 
         [Theory]
         [ClassData(typeof(AuthorizationTestData))]
-        public async Task Roles_UserHasOneOfTheRoles_NotAuthorized(
+        public async Task Roles_UserHasNoneOfTheRoles_NotAuthorized(
             ISchema schema)
         {
             // arrange
@@ -391,9 +391,6 @@ namespace HotChocolate.AspNetCore.Authorization
                 context =>
                 {
                     var identity = new ClaimsIdentity("testauth");
-                    identity.AddClaim(new Claim(
-                        ClaimTypes.Role,
-                        "a"));
                     identity.AddClaim(new Claim(
                         ClaimTypes.Role,
                         "c"));
@@ -659,9 +656,6 @@ namespace HotChocolate.AspNetCore.Authorization
                         (ctx, r, ct) =>
                         {
                             configureUser(ctx);
-                            r.SetProperty(
-                                nameof(ClaimsPrincipal),
-                                ctx.User);
                             return Task.CompletedTask;
                         });
                 },
