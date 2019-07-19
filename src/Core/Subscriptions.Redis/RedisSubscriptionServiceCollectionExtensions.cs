@@ -9,13 +9,13 @@ namespace HotChocolate.Subscriptions
     {
         public static void AddRedisSubscriptionProvider(
             this IServiceCollection services,
-            RedisOptions options)
-            => services
+            ConfigurationOptions options) =>
+            services
                 .AddRedisSubscriptionProvider<JsonPayloadSerializer>(options);
 
         public static void AddRedisSubscriptionProvider<TSerializer>(
             this IServiceCollection services,
-            RedisOptions options)
+            ConfigurationOptions options)
             where TSerializer : class, IPayloadSerializer
         {
             if (services == null)
@@ -26,7 +26,7 @@ namespace HotChocolate.Subscriptions
             services
                 .AddSingleton<IPayloadSerializer, TSerializer>()
                 .AddSingleton<IConnectionMultiplexer>(sp =>
-                    RedisConnection.Create(options))
+                    ConnectionMultiplexer.Connect(options))
                 .AddSingleton<RedisEventRegistry>()
                 .AddSingleton<IEventRegistry>(sp =>
                     sp.GetRequiredService<RedisEventRegistry>())

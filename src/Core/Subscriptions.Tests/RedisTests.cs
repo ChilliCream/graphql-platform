@@ -1,5 +1,7 @@
+using System;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using StackExchange.Redis;
 using Xunit;
 
 namespace HotChocolate.Subscriptions.Redis
@@ -11,15 +13,31 @@ namespace HotChocolate.Subscriptions.Redis
 
         public RedisTests()
         {
+            string endpoint =
+                Environment.GetEnvironmentVariable("RedisEndpoint")
+                ?? "localhost:6379";
+
+            string password =
+                Environment.GetEnvironmentVariable("RedisPassword");
+
+            var configuration = new ConfigurationOptions
+            {
+                Ssl = true,
+                AbortOnConnectFail = false,
+                Password = password
+            };
+
+            configuration.EndPoints.Add(endpoint);
+
             var redisEventRegistry = new RedisEventRegistry(
-                RedisConnection.Create("localhost:6379"), // To be resolved
+                ConnectionMultiplexer.Connect(configuration),
                 new JsonPayloadSerializer());
 
             _sender = redisEventRegistry;
             _registry = redisEventRegistry;
         }
 
-        [Fact(Skip = "Add underlining service")]
+        [Fact]
         public async Task SubscribeOneConsumer_SendMessage_ConsumerReceivesMessage()
         {
             // arrange
@@ -36,7 +54,7 @@ namespace HotChocolate.Subscriptions.Redis
             Assert.Equal(outgoing.Payload, incoming.Payload);
         }
 
-        [Fact(Skip = "Add underlining service")]
+        [Fact]
         public async Task SubscribeOneConsumer_Complete_StreamIsCompleted()
         {
             // arrange
@@ -51,7 +69,7 @@ namespace HotChocolate.Subscriptions.Redis
             Assert.True(consumer.IsCompleted);
         }
 
-        [Fact(Skip = "Add underlining service")]
+        [Fact]
         public async Task SubscribeTwoConsumer_SendOneMessage_BothConsumerReceivesMessage()
         {
             // arrange
@@ -72,7 +90,7 @@ namespace HotChocolate.Subscriptions.Redis
             Assert.Equal(outgoing.Payload, incomingTwo.Payload);
         }
 
-        [Fact(Skip = "Add underlining service")]
+        [Fact]
         public async Task SubscribeTwoConsumer_SendTwoMessage_BothConsumerReceivesIndependentMessage()
         {
             // arrange
