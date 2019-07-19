@@ -50,7 +50,7 @@ namespace HotChocolate.AspNetCore
         }
 
         protected override async Task<IQueryRequestBuilder>
-            CreateQueryRequestAsync(HttpContext context)
+            OnCreateQueryRequestAsync(HttpContext context)
         {
             using (Stream stream = context.Request.Body)
             {
