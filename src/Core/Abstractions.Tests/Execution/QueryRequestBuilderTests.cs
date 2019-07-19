@@ -332,5 +332,67 @@ namespace HotChocolate.Execution.Tests
             // assert
             request.MatchSnapshot();
         }
+
+        [Fact]
+        public void BuildRequest_QueryAndTryAddProperties_PropertyIsSet()
+        {
+            // arrange
+            // act
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ foo }")
+                    .TryAddProperty("one", "bar")
+                    .Create();
+
+            // assert
+            request.MatchSnapshot();
+        }
+
+        [Fact]
+        public void BuildRequest_QueryAndTryAddProperties_PropertyIsNotSet()
+        {
+            // arrange
+            // act
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ foo }")
+                    .AddProperty("one", "foo")
+                    .TryAddProperty("one", "bar")
+                    .Create();
+
+            // assert
+            request.MatchSnapshot();
+        }
+
+        [Fact]
+        public void BuildRequest_QueryAndTryAddVariable_VariableIsSet()
+        {
+            // arrange
+            // act
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ foo }")
+                    .TryAddVariableValue("one", "bar")
+                    .Create();
+
+            // assert
+            request.MatchSnapshot();
+        }
+
+        [Fact]
+        public void BuildRequest_QueryAndTryAddVariable_VariableIsNotSet()
+        {
+            // arrange
+            // act
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ foo }")
+                    .AddVariableValue("one", "foo")
+                    .TryAddVariableValue("one", "bar")
+                    .Create();
+
+            // assert
+            request.MatchSnapshot();
+        }
     }
 }

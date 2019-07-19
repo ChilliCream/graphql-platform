@@ -172,16 +172,15 @@ namespace HotChocolate.AspNetCore
         /// </summary>
         /// <param name="context">An OWIN context.</param>
         /// <returns>A new query request.</returns>
-        protected abstract Task<IQueryRequestBuilder> CreateQueryRequestAsync(
+        protected abstract Task<IQueryRequestBuilder> OnCreateQueryRequestAsync(
             HttpContext context);
 
-        private async Task<IReadOnlyQueryRequest>
-            CreateQueryRequestInternalAsync(
+        private async Task<IReadOnlyQueryRequest> CreateQueryRequestAsync(
                 HttpContext context,
                 IServiceProvider services)
         {
             IQueryRequestBuilder builder =
-                await CreateQueryRequestAsync(context)
+                await OnCreateQueryRequestAsync(context)
                     .ConfigureAwait(false);
 
             if (!_interceptorInitialized)
@@ -191,15 +190,6 @@ namespace HotChocolate.AspNetCore
                 _interceptorInitialized = true;
             }
 
-            builder.AddProperty(nameof(HttpContext), context);
-            builder.AddProperty(nameof(ClaimsPrincipal), context.GetUser());
-            builder.SetServices(services);
-
-            if (context.IsTracingEnabled())
-            {
-                builder.AddProperty(ContextDataKeys.EnableTracing, true);
-            }
-
             if (_interceptor != null)
             {
                 await _interceptor.OnCreateAsync(
@@ -207,6 +197,15 @@ namespace HotChocolate.AspNetCore
                     builder,
                     context.GetCancellationToken())
                     .ConfigureAwait(false);
+            }
+
+            builder.SetServices(services);
+            builder.TryAddProperty(nameof(HttpContext), context);
+            builder.TryAddProperty(nameof(ClaimsPrincipal), context.GetUser());
+
+            if (context.IsTracingEnabled())
+            {
+                builder.TryAddProperty(ContextDataKeys.EnableTracing, true);
             }
 
             return builder.Create();
@@ -233,7 +232,7 @@ namespace HotChocolate.AspNetCore
 #endif
 
             IReadOnlyQueryRequest request =
-                await CreateQueryRequestInternalAsync(context, serviceProvider)
+                await CreateQueryRequestAsync(context, serviceProvider)
                     .ConfigureAwait(false);
 
             IExecutionResult result = await queryExecutor
