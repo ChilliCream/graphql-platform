@@ -1,12 +1,9 @@
-using System.IO;
-using System.Threading.Tasks;
-
 namespace HotChocolate.Subscriptions
 {
     public interface IPayloadSerializer
     {
-        Task<byte[]> SerializeAsync(object value);
+        byte[] Serialize(object value);
 
-        Task<object> DeserializeAsync(byte[] content);
+        object Deserialize(byte[] content);
     }
 }

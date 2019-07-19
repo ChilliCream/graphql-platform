@@ -6,14 +6,17 @@ namespace HotChocolate.Subscriptions.Redis
 {
     public class RedisEventStream : IEventStream
     {
+        private readonly IEventDescription _eventDescription;
         private readonly ChannelMessageQueue _channel;
         private readonly IPayloadSerializer _serializer;
         private bool _isCompleted = false;
 
         public RedisEventStream(
+            IEventDescription eventDescription,
             ChannelMessageQueue channel,
             IPayloadSerializer serializer)
         {
+            _eventDescription = eventDescription;
             _channel = channel;
             _serializer = serializer;
         }
@@ -25,11 +28,9 @@ namespace HotChocolate.Subscriptions.Redis
             ChannelMessage message = await _channel
                 .ReadAsync();
 
-            var payload = await _serializer
-                .DeserializeAsync(message.Message);
+            var payload = _serializer.Deserialize(message.Message);
 
-            return new EventMessage(
-                message.Channel, payload);
+            return new EventMessage(_eventDescription, payload);
         }
 
         public async Task<IEventMessage> ReadAsync(
@@ -38,11 +39,9 @@ namespace HotChocolate.Subscriptions.Redis
             ChannelMessage message = await _channel
                 .ReadAsync(cancellationToken);
 
-            var payload = await _serializer
-                .DeserializeAsync(message.Message);
+            var payload = _serializer.Deserialize(message.Message);
 
-            return new EventMessage(
-                message.Channel, payload);
+            return new EventMessage(message.Channel, payload);
         }
 
         public async Task CompleteAsync()

@@ -19,20 +19,18 @@ namespace HotChocolate.Subscriptions
                 ReferenceLoopHandling = ReferenceLoopHandling.Error
             };
 
-        public Task<byte[]> SerializeAsync(object value)
+        public byte[] Serialize(object value)
         {
             var json = JsonConvert.SerializeObject(value, _settings);
             byte[] encoded = Encoding.UTF8.GetBytes(json);
-
-            return Task.FromResult(encoded);
+            return encoded;
         }
 
-        public Task<object> DeserializeAsync(byte[] content)
+        public object Deserialize(byte[] content)
         {
             var json = Encoding.UTF8.GetString(content);
             object value = JsonConvert.DeserializeObject(json, _settings);
-
-            return Task.FromResult(value);
+            return value;
         }
     }
 }

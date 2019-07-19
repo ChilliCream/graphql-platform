@@ -26,5 +26,8 @@
         public ParserOptionsExperimental Experimental { get; }
 
         public static ParserOptions Default { get; } = new ParserOptions();
+
+        public static ParserOptions NoLocation { get; } =
+            new ParserOptions(noLocations: true);
     }
 }

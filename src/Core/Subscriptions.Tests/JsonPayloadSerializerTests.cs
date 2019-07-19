@@ -6,14 +6,14 @@ namespace HotChocolate.Subscriptions
     public class JsonPayloadSerializerTests
     {
         [Fact]
-        public async Task GivenSerializer_WhenSerialize_ContentIsValid()
+        public void GivenSerializer_WhenSerialize_ContentIsValid()
         {
             // arrange
             var serializer = new JsonPayloadSerializer();
             var payload = "Foo";
 
             // act
-            var encoded = await serializer.SerializeAsync(payload);
+            var encoded = serializer.Serialize(payload);
 
             // assert
             var expected = new byte[] { 34, 70, 111, 111, 34 };
@@ -21,14 +21,14 @@ namespace HotChocolate.Subscriptions
         }
 
         [Fact]
-        public async Task GivenSerializer_WhenDeserialize_ContentIsValid()
+        public void GivenSerializer_WhenDeserialize_ContentIsValid()
         {
             // arrange
             var serializer = new JsonPayloadSerializer();
             var content = new byte[] { 34, 70, 111, 111, 34 };
 
             // act
-            var decoded = await serializer.DeserializeAsync(content);
+            var decoded = serializer.Deserialize(content);
 
             // assert
             var expected = "Foo";

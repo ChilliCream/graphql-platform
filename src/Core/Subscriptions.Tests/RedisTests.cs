@@ -41,7 +41,8 @@ namespace HotChocolate.Subscriptions.Redis
         public async Task SubscribeOneConsumer_SendMessage_ConsumerReceivesMessage()
         {
             // arrange
-            var eventDescription = new EventDescription("foo");
+            var eventDescription = new EventDescription(
+                Guid.NewGuid().ToString());
 
             // act
             IEventStream consumer = await _registry
@@ -58,7 +59,8 @@ namespace HotChocolate.Subscriptions.Redis
         public async Task SubscribeOneConsumer_Complete_StreamIsCompleted()
         {
             // arrange
-            var eventDescription = new EventDescription("foo");
+            var eventDescription = new EventDescription(
+                Guid.NewGuid().ToString());
 
             // act
             IEventStream consumer = await _registry
@@ -73,7 +75,8 @@ namespace HotChocolate.Subscriptions.Redis
         public async Task SubscribeTwoConsumer_SendOneMessage_BothConsumerReceivesMessage()
         {
             // arrange
-            var eventDescription = new EventDescription("foo");
+            var eventDescription = new EventDescription(
+                Guid.NewGuid().ToString());
 
             // act
             IEventStream consumerOne = await _registry
@@ -94,10 +97,11 @@ namespace HotChocolate.Subscriptions.Redis
         public async Task SubscribeTwoConsumer_SendTwoMessage_BothConsumerReceivesIndependentMessage()
         {
             // arrange
+            string name = Guid.NewGuid().ToString();
             var eventDescriptionOne = new EventDescription(
-                "foo", new ArgumentNode("nodeOne", "x"));
+                name, new ArgumentNode(name, "x"));
             var eventDescriptionTwo = new EventDescription(
-                "foo", new ArgumentNode("nodeTwo", "x"));
+                name, new ArgumentNode(name, "x"));
 
             // act
             IEventStream consumerOne = await _registry

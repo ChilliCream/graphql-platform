@@ -27,7 +27,7 @@ namespace HotChocolate.Subscriptions.Redis
             ChannelMessageQueue channel = await subscriber
                 .SubscribeAsync(eventDescription.ToString());
 
-            return new RedisEventStream(channel, _serializer);
+            return new RedisEventStream(eventDescription, channel, _serializer);
         }
 
         public async Task SendAsync(IEventMessage message)
@@ -35,11 +35,10 @@ namespace HotChocolate.Subscriptions.Redis
             ISubscriber subscriber = _connection
                 .GetSubscriber();
 
-            byte[] payload = await _serializer
-                .SerializeAsync(message.Payload);
+            string channel = message.Event.ToString();
+            byte[] payload = _serializer.Serialize(message.Payload);
 
-            await subscriber
-                .PublishAsync(message.Event.ToString(), payload);
+            await subscriber.PublishAsync(channel, payload);
         }
     }
 }
