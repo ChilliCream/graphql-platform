@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added prisma filter types. [#861](https://github.com/ChilliCream/hotchocolate/pull/861)
 - Added UTF-8 request parser. [#869](https://github.com/ChilliCream/hotchocolate/pull/869)
 - Added new syntax visitor API.
+- Added Redis subscription provider [#902](https://github.com/ChilliCream/hotchocolate/pull/902)
 
 ### Changed
 
@@ -29,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Order of types in a serialized schema is now consistent. [#891](https://github.com/ChilliCream/hotchocolate/pull/891)
 - Respect UseXmlDocumentation with Schema.Create [#897](https://github.com/ChilliCream/hotchocolate/pull/897)
 - Variables now work in lists and input objects [#896](https://github.com/ChilliCream/hotchocolate/pull/896)
+- Fixed url scalar now correctly detects url strings.
 
 ## [9.0.4] - 2019-06-16
 
