@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using StackExchange.Redis;
@@ -9,7 +10,7 @@ namespace HotChocolate.Subscriptions.Redis
         private readonly IEventDescription _eventDescription;
         private readonly ChannelMessageQueue _channel;
         private readonly IPayloadSerializer _serializer;
-        private bool _isCompleted = false;
+        private bool _isCompleted;
 
         public RedisEventStream(
             IEventDescription eventDescription,
@@ -23,15 +24,8 @@ namespace HotChocolate.Subscriptions.Redis
 
         public bool IsCompleted => _isCompleted;
 
-        public async Task<IEventMessage> ReadAsync()
-        {
-            ChannelMessage message = await _channel
-                .ReadAsync();
-
-            var payload = _serializer.Deserialize(message.Message);
-
-            return new EventMessage(_eventDescription, payload);
-        }
+        public Task<IEventMessage> ReadAsync() =>
+            ReadAsync(CancellationToken.None);
 
         public async Task<IEventMessage> ReadAsync(
             CancellationToken cancellationToken)
@@ -46,7 +40,7 @@ namespace HotChocolate.Subscriptions.Redis
 
         public async Task CompleteAsync()
         {
-            if (!IsCompleted)
+            if (!_isCompleted)
             {
                 await _channel.UnsubscribeAsync();
                 _isCompleted = true;
@@ -55,9 +49,18 @@ namespace HotChocolate.Subscriptions.Redis
 
         public void Dispose()
         {
-            if (!IsCompleted)
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        public void Dispose(bool disposing)
+        {
+            if (!_isCompleted)
             {
-                _channel.Unsubscribe();
+                if (disposing)
+                {
+                    _channel.Unsubscribe();
+                }
                 _isCompleted = true;
             }
         }
