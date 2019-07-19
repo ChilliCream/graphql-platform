@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using StackExchange.Redis;
@@ -41,6 +42,7 @@ namespace HotChocolate.Subscriptions.Redis
         public async Task SubscribeOneConsumer_SendMessage_ConsumerReceivesMessage()
         {
             // arrange
+            var cts = new CancellationTokenSource(30000);
             var eventDescription = new EventDescription(
                 Guid.NewGuid().ToString());
 
@@ -51,7 +53,7 @@ namespace HotChocolate.Subscriptions.Redis
             await _sender.SendAsync(outgoing);
 
             // assert
-            IEventMessage incoming = await consumer.ReadAsync();
+            IEventMessage incoming = await consumer.ReadAsync(cts.Token);
             Assert.Equal(outgoing.Payload, incoming.Payload);
         }
 
@@ -75,6 +77,7 @@ namespace HotChocolate.Subscriptions.Redis
         public async Task SubscribeTwoConsumer_SendOneMessage_BothConsumerReceivesMessage()
         {
             // arrange
+            var cts = new CancellationTokenSource(30000);
             var eventDescription = new EventDescription(
                 Guid.NewGuid().ToString());
 
@@ -87,8 +90,8 @@ namespace HotChocolate.Subscriptions.Redis
             await _sender.SendAsync(outgoing);
 
             // assert
-            IEventMessage incomingOne = await consumerOne.ReadAsync();
-            IEventMessage incomingTwo = await consumerTwo.ReadAsync();
+            IEventMessage incomingOne = await consumerOne.ReadAsync(cts.Token);
+            IEventMessage incomingTwo = await consumerTwo.ReadAsync(cts.Token);
             Assert.Equal(outgoing.Payload, incomingOne.Payload);
             Assert.Equal(outgoing.Payload, incomingTwo.Payload);
         }
@@ -97,6 +100,7 @@ namespace HotChocolate.Subscriptions.Redis
         public async Task SubscribeTwoConsumer_SendTwoMessage_BothConsumerReceivesIndependentMessage()
         {
             // arrange
+            var cts = new CancellationTokenSource(30000);
             string name = Guid.NewGuid().ToString();
             var eventDescriptionOne = new EventDescription(
                 name, new ArgumentNode("b", "x"));
@@ -115,8 +119,8 @@ namespace HotChocolate.Subscriptions.Redis
             await _sender.SendAsync(outgoingTwo);
 
             // assert
-            IEventMessage incomingOne = await consumerOne.ReadAsync();
-            IEventMessage incomingTwo = await consumerTwo.ReadAsync();
+            IEventMessage incomingOne = await consumerOne.ReadAsync(cts.Token);
+            IEventMessage incomingTwo = await consumerTwo.ReadAsync(cts.Token);
             Assert.Equal(outgoingOne.Payload, incomingOne.Payload);
             Assert.Equal(outgoingTwo.Payload, incomingTwo.Payload);
             Assert.NotEqual(incomingOne.Event, incomingTwo.Event);
