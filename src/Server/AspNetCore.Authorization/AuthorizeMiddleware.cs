@@ -34,13 +34,15 @@ namespace HotChocolate.AspNetCore.Authorization
 
             ClaimsPrincipal principal = null;
             var allowed = false;
+            var authenticated = false;
 
             if (context.ContextData.TryGetValue(
                 nameof(ClaimsPrincipal), out var o)
                 && o is ClaimsPrincipal p)
             {
                 principal = p;
-                allowed = p.Identity.IsAuthenticated;
+                authenticated = allowed =
+                    p.Identities.Any(t => t.IsAuthenticated);
             }
 
             allowed = allowed && IsInAnyRole(principal, directive.Roles);
@@ -62,7 +64,9 @@ namespace HotChocolate.AspNetCore.Authorization
                 context.Result = ErrorBuilder.New()
                     .SetMessage(
                         AuthResources.AuthorizeMiddleware_NotAuthorized)
-                    .SetCode(AuthErrorCodes.NotAuthorized)
+                    .SetCode(authenticated
+                        ? AuthErrorCodes.NotAuthorized
+                        : AuthErrorCodes.NotAuthenticated)
                     .SetPath(context.Path)
                     .AddLocation(context.FieldSelection)
                     .Build();
