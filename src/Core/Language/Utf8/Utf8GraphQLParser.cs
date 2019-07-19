@@ -42,6 +42,29 @@ namespace HotChocolate.Language
             _description = null;
         }
 
+        internal Utf8GraphQLParser(
+            Utf8GraphQLReader reader,
+            ParserOptions options)
+        {
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            if (reader.Kind == TokenKind.EndOfFile)
+            {
+                throw new ArgumentException(
+                    LangResources.GraphQLData_Empty,
+                    nameof(reader));
+            }
+
+            _options = options;
+            _createLocation = !options.NoLocations;
+            _allowFragmentVars = options.Experimental.AllowFragmentVariables;
+            _reader = reader;
+            _description = null;
+        }
+
         public DocumentNode Parse()
         {
             var definitions = new List<IDefinitionNode>();
@@ -58,6 +81,12 @@ namespace HotChocolate.Language
             Location location = CreateLocation(in start);
 
             return new DocumentNode(location, definitions);
+        }
+
+        internal IReadOnlyList<ArgumentNode> ParseArguments()
+        {
+            MoveNext();
+            return ParseArguments(false);
         }
 
         private IDefinitionNode ParseDefinition()
