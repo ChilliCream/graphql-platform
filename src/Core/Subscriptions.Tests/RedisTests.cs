@@ -14,11 +14,11 @@ namespace HotChocolate.Subscriptions.Redis
         public RedisTests()
         {
             string endpoint =
-                Environment.GetEnvironmentVariable("RedisEndpoint")
+                Environment.GetEnvironmentVariable("REDIS_ENDPOINT")
                 ?? "localhost:6379";
 
             string password =
-                Environment.GetEnvironmentVariable("RedisPassword");
+                Environment.GetEnvironmentVariable("REDIS_PASSWORD");
 
             var configuration = new ConfigurationOptions
             {
