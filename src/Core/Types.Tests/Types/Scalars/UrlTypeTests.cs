@@ -120,7 +120,7 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void IsInstanceOfType_GivenUriAsStringValueNode_ReturnsTrue() 
+        public void IsInstanceOfType_GivenUriAsStringValueNode_ReturnsTrue()
         {
             // Arrange
             var urlType = new UrlType();
@@ -134,55 +134,58 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void IsInstanceOfType_GivenNullValueNode_ReturnsTrue() 
+        public void IsInstanceOfType_GivenNullValueNode_ReturnsTrue()
         {
-            // Arrange
+            // arrange
             var urlType = new UrlType();
 
-            // Act
+            // act
             var isUrlType = urlType.IsInstanceOfType(new NullValueNode(null));
 
-            // Assert
+            // assert
             Assert.True(isUrlType);
         }
 
         [Fact]
-        public void IsInstanceOfType_GivenInvalidUriAsStringValueNode_ReturnsFalse() 
+        public void IsInstanceOfType_GivenInvalidUriAsStringLiteral_False()
         {
-            // Arrange
+            // arrange
             var urlType = new UrlType();
 
-            // Act
-            var isUrlType = urlType.IsInstanceOfType(new StringValueNode("$*^domain.test"));
+            // act
+            var isUrlType = urlType.IsInstanceOfType(
+                new StringValueNode("$*^domain.test"));
 
-            // Assert
+            // assert
             Assert.False(isUrlType);
         }
 
         [Fact]
-        public void IsInstanceOfType_GivenNull_ThrowsArgumentException() 
+        public void IsInstanceOfType_GivenNull_ThrowsArgumentException()
         {
-            // Arrange
+            // arrange
             var urlType = new UrlType();
 
-            // Act
+            // act
+            Action action = () => urlType.IsInstanceOfType(null);
 
-            // Assert
-            Assert.Throws<ArgumentNullException>(() => urlType.IsInstanceOfType(null));
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
         }
 
         [Fact]
-        public void IsInstanceOfType_GivenNonUrlValueNode_ReturnsFalse() 
+        public void IsInstanceOfType_GivenNonUrlValueNode_ReturnsFalse()
         {
-            // Arrange
+            // arrange
             var urlType = new UrlType();
             var intValue = new IntValueNode(1);
-            // Act
+
+            // act
             var isUrlType = urlType.IsInstanceOfType(intValue);
 
-            // Assert
+            // assert
             Assert.False(isUrlType);
         }
-        
+
     }
 }
