@@ -21,8 +21,7 @@ namespace HotChocolate.Subscriptions.Redis
         public async Task<IEventStream> SubscribeAsync(
             IEventDescription eventDescription)
         {
-            ISubscriber subscriber = _connection
-                .GetSubscriber();
+            ISubscriber subscriber = _connection.GetSubscriber();
 
             ChannelMessageQueue channel = await subscriber
                 .SubscribeAsync(eventDescription.ToString());

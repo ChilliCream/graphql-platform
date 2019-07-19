@@ -99,14 +99,14 @@ namespace HotChocolate.Subscriptions.Redis
             // arrange
             string name = Guid.NewGuid().ToString();
             var eventDescriptionOne = new EventDescription(
-                name, new ArgumentNode(name, "x"));
+                name, new ArgumentNode("b", "x"));
             var eventDescriptionTwo = new EventDescription(
-                name, new ArgumentNode(name, "x"));
+                name, new ArgumentNode("b", "y"));
 
             // act
             IEventStream consumerOne = await _registry
                 .SubscribeAsync(eventDescriptionOne);
-            var outgoingOne = new EventMessage(eventDescriptionOne, "bar");
+            var outgoingOne = new EventMessage(eventDescriptionOne, "foo");
             await _sender.SendAsync(outgoingOne);
 
             IEventStream consumerTwo = await _registry
