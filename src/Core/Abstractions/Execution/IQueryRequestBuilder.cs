@@ -24,6 +24,8 @@ namespace HotChocolate.Execution
             IReadOnlyDictionary<string, object> variableValues);
         IQueryRequestBuilder AddVariableValue(
             string name, object value);
+        IQueryRequestBuilder TryAddVariableValue(
+            string name, object value);
         IQueryRequestBuilder SetVariableValue(
             string name, object value);
         IQueryRequestBuilder SetInitialValue(
@@ -35,6 +37,8 @@ namespace HotChocolate.Execution
         IQueryRequestBuilder SetProperties(
             IReadOnlyDictionary<string, object> properties);
         IQueryRequestBuilder AddProperty(
+            string name, object value);
+        IQueryRequestBuilder TryAddProperty(
             string name, object value);
         IQueryRequestBuilder SetProperty(
             string name, object value);
