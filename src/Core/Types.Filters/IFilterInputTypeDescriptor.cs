@@ -64,5 +64,14 @@ namespace HotChocolate.Types.Filters
         /// </param>
         IComparableFilterFieldDescriptor Filter(
             Expression<Func<T, IComparable>> propertyOrMethod);
+
+        /// <summary>
+        /// Define a object filter for the selected property.
+        /// </summary>
+        /// <param name="property">
+        /// The property for which a filter shall be applied.
+        /// </param>
+        IObjectFilterFieldDescriptor<TObject> Filter<TObject>(
+            Expression<Func<T, TObject>> propertyOrMethod)
     }
 }
