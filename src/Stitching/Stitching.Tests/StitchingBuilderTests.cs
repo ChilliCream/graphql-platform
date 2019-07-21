@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using ChilliCream.Testing;
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -33,19 +34,20 @@ namespace HotChocolate.Stitching
 
         public TestServerFactory TestServerFactory { get; }
 
-        [Fact(Skip = "Fix this test")]
+        [Fact]
         public void AddSchema()
         {
             // arrange
             StitchingBuilder stitchingBuilder = StitchingBuilder.New();
 
             DocumentNode schema_a = Parser.Default.Parse(
-                "type A { b: String }");
+                "type Query { a: A } type A { b: String }");
             DocumentNode schema_b = Parser.Default.Parse(
-                "type B { c: String }");
+                "type Query { b: B } type B { c: String }");
 
             // act
-            stitchingBuilder.AddSchema("a", s => schema_a)
+            stitchingBuilder
+                .AddSchema("a", s => schema_a)
                 .AddSchema("b", s => schema_b);
 
             // assert
@@ -137,11 +139,9 @@ namespace HotChocolate.Stitching
         public void AddSchema_2()
         {
             // arrange
-            Schema customerSchema = Schema.Create(
-                CustomerSchemaFactory.ConfigureSchema);
+            ISchema customerSchema = CustomerSchemaFactory.Create();
 
-            Schema contractSchema = Schema.Create(
-                ContractSchemaFactory.ConfigureSchema);
+            ISchema contractSchema = ContractSchemaFactory.Create();
 
             var builder = new MockStitchingBuilder();
 
@@ -168,8 +168,7 @@ namespace HotChocolate.Stitching
         public void AddSchema_2_BuilderIsNull_ArgumentNullException()
         {
             // arrange
-            Schema customerSchema = Schema.Create(
-                CustomerSchemaFactory.ConfigureSchema);
+            ISchema customerSchema = CustomerSchemaFactory.Create();
 
             // act
             Action action = () =>
@@ -185,8 +184,7 @@ namespace HotChocolate.Stitching
         public void AddSchema_2_SchemaIsNull_ArgumentNullException()
         {
             // arrange
-            Schema customerSchema = Schema.Create(
-                CustomerSchemaFactory.ConfigureSchema);
+            ISchema customerSchema = CustomerSchemaFactory.Create();
             var builder = new MockStitchingBuilder();
 
             // act
@@ -203,8 +201,7 @@ namespace HotChocolate.Stitching
         public void AddSchema_2_SchemaNameIsEmpty_ArgumentNullException()
         {
             // arrange
-            Schema customerSchema = Schema.Create(
-                CustomerSchemaFactory.ConfigureSchema);
+            ISchema customerSchema = CustomerSchemaFactory.Create();
             var builder = new MockStitchingBuilder();
 
             // act
@@ -967,14 +964,12 @@ namespace HotChocolate.Stitching
         private IHttpClientFactory CreateRemoteSchemas()
         {
             TestServer server_contracts = TestServerFactory.Create(
-                ContractSchemaFactory.ConfigureSchema,
                 ContractSchemaFactory.ConfigureServices,
-                new QueryMiddlewareOptions());
+                app => app.UseGraphQL());
 
             TestServer server_customers = TestServerFactory.Create(
-                CustomerSchemaFactory.ConfigureSchema,
                 CustomerSchemaFactory.ConfigureServices,
-                new QueryMiddlewareOptions());
+                app => app.UseGraphQL());
 
             var httpClientFactory = new Mock<IHttpClientFactory>();
             httpClientFactory.Setup(t => t.CreateClient(It.IsAny<string>()))

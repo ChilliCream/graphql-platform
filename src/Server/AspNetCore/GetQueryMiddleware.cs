@@ -49,7 +49,7 @@ namespace HotChocolate.AspNetCore
 
         /// <inheritdoc />
         protected override Task<IQueryRequestBuilder>
-            CreateQueryRequestAsync(HttpContext context)
+            OnCreateQueryRequestAsync(HttpContext context)
         {
 
 #if ASPNETCLASSIC

@@ -52,6 +52,19 @@ namespace StarWars
             //                (c.Type == ClaimTypes.Country))));
             //});
 
+            /*
+            Note: Intercept and enrich query requests
+
+            services.AddQueryRequestInterceptor((ctx, builder, ct) =>
+            {
+                var identity = new ClaimsIdentity("abc");
+                identity.AddClaim(new Claim(ClaimTypes.Country, "us"));
+                ctx.User = new ClaimsPrincipal(identity);
+                builder.SetProperty(nameof(ClaimsPrincipal), ctx.User);
+                return Task.CompletedTask;
+            });
+            */
+
             return services.BuildServiceProvider();
         }
 

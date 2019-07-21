@@ -2,9 +2,9 @@ using System;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Subscriptions;
 using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Server;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -34,6 +34,9 @@ namespace HotChocolate.AspNetCore
 
         private readonly IQueryResultSerializer _resultSerializer;
         private readonly Func<HttpContext, bool> _isPathValid;
+
+        private IQueryRequestInterceptor<HttpContext> _interceptor;
+        private bool _interceptorInitialized = false;
 
 #if ASPNETCLASSIC
         private OwinContextAccessor _accessor;
@@ -169,40 +172,40 @@ namespace HotChocolate.AspNetCore
         /// </summary>
         /// <param name="context">An OWIN context.</param>
         /// <returns>A new query request.</returns>
-        protected abstract Task<IQueryRequestBuilder> CreateQueryRequestAsync(
+        protected abstract Task<IQueryRequestBuilder> OnCreateQueryRequestAsync(
             HttpContext context);
 
-        private async Task<IReadOnlyQueryRequest>
-            CreateQueryRequestInternalAsync(
+        private async Task<IReadOnlyQueryRequest> CreateQueryRequestAsync(
                 HttpContext context,
                 IServiceProvider services)
         {
             IQueryRequestBuilder builder =
-                await CreateQueryRequestAsync(context)
+                await OnCreateQueryRequestAsync(context)
                     .ConfigureAwait(false);
 
-            OnCreateRequestAsync onCreateRequest = Options.OnCreateRequest
-                ?? GetService<OnCreateRequestAsync>(context);
+            if (!_interceptorInitialized)
+            {
+                _interceptor =
+                    GetService<IQueryRequestInterceptor<HttpContext>>(context);
+                _interceptorInitialized = true;
+            }
 
-            builder.AddProperty(nameof(HttpContext), context);
-            builder.AddProperty(nameof(ClaimsPrincipal), context.GetUser());
+            if (_interceptor != null)
+            {
+                await _interceptor.OnCreateAsync(
+                    context,
+                    builder,
+                    context.GetCancellationToken())
+                    .ConfigureAwait(false);
+            }
+
             builder.SetServices(services);
+            builder.TryAddProperty(nameof(HttpContext), context);
+            builder.TryAddProperty(nameof(ClaimsPrincipal), context.GetUser());
 
             if (context.IsTracingEnabled())
             {
-                builder.AddProperty(ContextDataKeys.EnableTracing, true);
-            }
-
-            if (onCreateRequest != null)
-            {
-                CancellationToken requestAborted =
-                    context.GetCancellationToken();
-
-                await onCreateRequest(
-                    new HttpContextWrapper(context),
-                    builder,
-                    requestAborted)
-                    .ConfigureAwait(false);
+                builder.TryAddProperty(ContextDataKeys.EnableTracing, true);
             }
 
             return builder.Create();
@@ -228,16 +231,16 @@ namespace HotChocolate.AspNetCore
             IServiceProvider serviceProvider = context.RequestServices;
 #endif
 
-                IReadOnlyQueryRequest request =
-                    await CreateQueryRequestInternalAsync(context, serviceProvider)
-                        .ConfigureAwait(false);
-
-                IExecutionResult result = await queryExecutor
-                    .ExecuteAsync(request, context.GetCancellationToken())
+            IReadOnlyQueryRequest request =
+                await CreateQueryRequestAsync(context, serviceProvider)
                     .ConfigureAwait(false);
 
-                await WriteResponseAsync(context.Response, result)
-                    .ConfigureAwait(false);
+            IExecutionResult result = await queryExecutor
+                .ExecuteAsync(request, context.GetCancellationToken())
+                .ConfigureAwait(false);
+
+            await WriteResponseAsync(context.Response, result)
+                .ConfigureAwait(false);
 #if ASPNETCLASSIC
             }
 #endif

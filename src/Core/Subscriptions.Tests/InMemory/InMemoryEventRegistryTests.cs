@@ -6,7 +6,7 @@ namespace HotChocolate.Subscriptions.InMemory
     public class InMemoryEventRegistryTests
     {
         [Fact]
-        public async Task Subscribe_Send_MessageReveived()
+        public async Task Subscribe_Send_MessageReceived()
         {
             // arrange
             var eventDescription = new EventDescription("foo");

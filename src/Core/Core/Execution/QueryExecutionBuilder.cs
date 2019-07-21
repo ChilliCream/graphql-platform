@@ -62,7 +62,10 @@ namespace HotChocolate.Execution
             );
         }
 
-        public void Build(IServiceCollection services)
+        public void Populate(IServiceCollection services) =>
+            Populate(services, false);
+
+        public void Populate(IServiceCollection services, bool lazyExecutor)
         {
             if (services == null)
             {
@@ -78,13 +81,29 @@ namespace HotChocolate.Execution
 
             services.AddSingleton<IQueryExecutor>(sp =>
             {
-                return new QueryExecutor
-                (
-                    sp.GetRequiredService<ISchema>(),
-                    sp,
-                    Compile(_middlewareComponents),
-                    Compile(_fieldMiddlewareComponents)
-                );
+                if (lazyExecutor)
+                {
+                    return new LazyQueryExecutor
+                    (
+                        () => new QueryExecutor
+                        (
+                            sp.GetRequiredService<ISchema>(),
+                            sp,
+                            Compile(_middlewareComponents),
+                            Compile(_fieldMiddlewareComponents)
+                        )
+                    );
+                }
+                else
+                {
+                    return new QueryExecutor
+                    (
+                        sp.GetRequiredService<ISchema>(),
+                        sp,
+                        Compile(_middlewareComponents),
+                        Compile(_fieldMiddlewareComponents)
+                    );
+                }
             });
         }
 
@@ -141,11 +160,11 @@ namespace HotChocolate.Execution
 
         public static void BuildDefault(
             IServiceCollection services) =>
-            New().UseDefaultPipeline().Build(services);
+            New().UseDefaultPipeline().Populate(services);
 
         public static void BuildDefault(
             IServiceCollection services,
             IQueryExecutionOptionsAccessor options) =>
-                New().UseDefaultPipeline(options).Build(services);
+                New().UseDefaultPipeline(options).Populate(services);
     }
 }

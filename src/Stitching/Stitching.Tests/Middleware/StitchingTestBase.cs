@@ -1,5 +1,3 @@
-using System.Linq;
-using System.Runtime.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -9,11 +7,7 @@ using Xunit;
 using HotChocolate.AspNetCore;
 using HotChocolate.Stitching.Schemas.Contracts;
 using HotChocolate.Stitching.Schemas.Customers;
-using HotChocolate.Resolvers;
-using HotChocolate.Stitching.Merge.Rewriters;
-using HotChocolate.Language;
-using HotChocolate.Stitching.Merge;
-using HotChocolate.Stitching.Delegation;
+using HotChocolate.AspNetCore.Tests.Utilities;
 
 namespace HotChocolate.Stitching
 {
@@ -37,14 +31,12 @@ namespace HotChocolate.Stitching
             Dictionary<string, HttpClient> connections)
         {
             TestServer server_contracts = TestServerFactory.Create(
-                ContractSchemaFactory.ConfigureSchema,
                 ContractSchemaFactory.ConfigureServices,
-                new QueryMiddlewareOptions());
+                app => app.UseGraphQL());
 
             TestServer server_customers = TestServerFactory.Create(
-                CustomerSchemaFactory.ConfigureSchema,
                 CustomerSchemaFactory.ConfigureServices,
-                new QueryMiddlewareOptions());
+                app => app.UseGraphQL());
 
             connections["contract"] = server_contracts.CreateClient();
             connections["customer"] = server_customers.CreateClient();

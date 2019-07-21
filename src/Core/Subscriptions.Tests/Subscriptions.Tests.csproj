@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
@@ -21,12 +21,13 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
     <PackageReference Include="Moq" Version="4.10.1" />
     <PackageReference Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
-    <PackageReference Include="Snapshooter.Xunit" Version="0.4.5" />
+    <PackageReference Include="Snapshooter.Xunit" Version="0.4.7" />
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.4.0-beta.1.build3958" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Subscriptions.Redis\Subscriptions.Redis.csproj" />
     <ProjectReference Include="..\Subscriptions\Subscriptions.csproj" />
     <ProjectReference Include="..\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
   </ItemGroup>
