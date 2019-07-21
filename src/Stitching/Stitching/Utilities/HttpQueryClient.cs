@@ -18,7 +18,7 @@ namespace HotChocolate.Stitching.Utilities
             new JsonSerializerSettings
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                DateParseHandling = DateParseHandling.DateTimeOffset
+                DateParseHandling = DateParseHandling.None
             };
 
         public Task<QueryResult> FetchAsync(
