@@ -1,5 +1,5 @@
 
-namespace HotChocolate.Types
+namespace HotChocolate.Execution.Batching
 {
     public sealed class ExportDirective
     {

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
+using HotChocolate.Types;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Execution.Batching
 {
     public sealed class ExportDirectiveType
         : DirectiveType<ExportDirective>

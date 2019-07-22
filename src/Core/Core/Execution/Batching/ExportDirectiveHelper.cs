@@ -1,18 +1,20 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 
-namespace HotChocolate.Types
+namespace HotChocolate.Execution.Batching
 {
-    public static class ExportDirectiveHelper
+    internal static class ExportDirectiveHelper
     {
-        internal const string Name = "export";
-        internal const string ExportedVariables = "HC.ExportedVariables";
+        public const string Name = "export";
+        public const string ExportedVariables = "HC.ExportedVariables";
 
         public static void AddExportedVariables(
-            IDictionary<string, object> contextData)
+            IQueryRequestBuilder builder,
+            ConcurrentBag<ExportedVariable> exportedVariables)
         {
-            contextData[ExportedVariables] =
-                new ConcurrentBag<ExportedVariable>();
+            builder.SetProperty(
+                ExportedVariables,
+                exportedVariables);
         }
 
         public static bool TryGetExportedVariables(
