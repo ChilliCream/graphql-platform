@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 
 namespace HotChocolate.Execution.Batching
 {
@@ -56,6 +58,8 @@ namespace HotChocolate.Execution.Batching
     public class BatchQueryExecutionResult
         : IBatchQueryExecutionResult
     {
+        private readonly ThreadLocal<CollectVariablesVisitor> _collectVars =
+            new ThreadLocal<CollectVariablesVisitor>();
         private readonly IQueryExecutor _executor;
         private readonly IReadOnlyList<IReadOnlyQueryRequest> _batch;
         private readonly ConcurrentBag<ExportedVariable> _exportedVariables =
@@ -66,7 +70,10 @@ namespace HotChocolate.Execution.Batching
             IQueryExecutor executor,
             IReadOnlyList<IReadOnlyQueryRequest> batch)
         {
-
+            _executor = executor
+                ?? throw new ArgumentNullException(nameof(executor));
+            _batch = batch
+                ?? throw new ArgumentNullException(nameof(batch));
         }
 
         public IReadOnlyCollection<IError> Errors { get; }
@@ -93,7 +100,32 @@ namespace HotChocolate.Execution.Batching
 
         private IReadOnlyQueryRequest CreateNextRequest()
         {
-            throw new NotImplementedException();
+            IReadOnlyQueryRequest request = _batch[_index];
+
+            DocumentNode document = request.Query is QueryDocument d
+                ? d.Document
+                : Utf8GraphQLParser.Parse(request.Query.ToSource());
+
+            var visitor = _collectVars.Value;
+            visitor.Prepare(request.OperationName);
+            document.Accept(visitor);
+
+            HashSet<string> _names =
+
+            IDefinitionNode[] definitions = document.Definitions.ToArray();
+            for (var i = 0; i < definitions.Length; i++)
+            {
+                if (definitions[i] is OperationDefinitionNode op
+                    && (request.OperationName == null
+                        || request.OperationName.Equals(
+                            op.Name.Value,
+                            StringComparison.Ordinal)))
+                {
+                    
+
+                    break;
+                }
+            }
         }
 
         public void Dispose()
