@@ -19,32 +19,40 @@
   "Extensions": {},
   "Errors": [
     {
-      "Exception": null,
-      "message": "foo",
-      "path": [
+      "Message": "foo",
+      "Code": null,
+      "Path": [
         "root",
         "child"
       ],
-      "locations": [
+      "Locations": [
         {
           "line": 15,
           "column": 16
         }
       ],
-      "extensions": {
+      "Exception": null,
+      "Extensions": {
         "bar": "baz"
       }
     },
     {
+      "Message": "qux",
+      "Code": null,
+      "Path": null,
+      "Locations": [],
       "Exception": null,
-      "message": "qux",
-      "extensions": {
+      "Extensions": {
         "bar": "baz"
       }
     },
     {
+      "Message": "quux",
+      "Code": null,
+      "Path": null,
+      "Locations": [],
       "Exception": null,
-      "message": "quux"
+      "Extensions": {}
     }
   ],
   "ContextData": {}

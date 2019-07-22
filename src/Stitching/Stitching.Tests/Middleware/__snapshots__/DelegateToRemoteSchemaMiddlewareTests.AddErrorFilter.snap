@@ -36,13 +36,16 @@
       "Extensions": {
         "code": "ERROR_CODE",
         "remote": {
-          "Exception": null,
-          "message": "Error_Message",
-          "path": [
+          "Message": "Error_Message",
+          "Code": "ERROR_CODE",
+          "Path": [
             "contracts",
+            0,
             "error"
           ],
-          "extensions": {
+          "Locations": [],
+          "Exception": null,
+          "Extensions": {
             "code": "ERROR_CODE"
           }
         },
@@ -67,13 +70,16 @@
       "Extensions": {
         "code": "ERROR_CODE",
         "remote": {
-          "Exception": null,
-          "message": "Error_Message",
-          "path": [
+          "Message": "Error_Message",
+          "Code": "ERROR_CODE",
+          "Path": [
             "contracts",
+            1,
             "error"
           ],
-          "extensions": {
+          "Locations": [],
+          "Exception": null,
+          "Extensions": {
             "code": "ERROR_CODE"
           }
         },
