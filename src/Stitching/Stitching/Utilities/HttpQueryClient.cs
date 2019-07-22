@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.Http;
@@ -9,7 +8,6 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Server;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
 namespace HotChocolate.Stitching.Utilities
@@ -42,7 +40,7 @@ namespace HotChocolate.Stitching.Utilities
 
             using (Stream stream = await message.Content.ReadAsStreamAsync())
             {
-                object response = RequestHelper.ReadAsync(
+                object response = await RequestHelper.ReadAsync(
                     stream,
                     (buffer, bytesBuffered) =>
                         ParseJson(buffer, bytesBuffered));
