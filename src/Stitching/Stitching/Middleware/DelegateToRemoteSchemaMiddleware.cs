@@ -1,12 +1,9 @@
-using System.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -51,7 +48,8 @@ namespace HotChocolate.Stitching
 
                 UpdateContextData(context, result, delegateDirective);
 
-                context.Result = ExtractData(result.Data, path.Count());
+                context.Result = new SerializedData(
+                    ExtractData(result.Data, path.Count()));
                 ReportErrors(context, result.Errors);
             }
 
@@ -462,5 +460,4 @@ namespace HotChocolate.Stitching
             return definitions;
         }
     }
-
 }

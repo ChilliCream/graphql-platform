@@ -29,10 +29,10 @@ namespace HotChocolate.Types
         }
 
         protected override bool TryParseLiteral(
-            StringValueNode literal, out object obj)
+            string literal, out object obj)
         {
             if (DateTime.TryParse(
-                literal.Value,
+                literal,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.AssumeLocal,
                 out DateTime dateTime))
