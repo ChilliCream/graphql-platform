@@ -38,12 +38,14 @@ namespace HotChocolate.Stitching.Utilities
                 await FetchInternalAsync(request, httpClient)
                     .ConfigureAwait(false);
 
-            using (Stream stream = await message.Content.ReadAsStreamAsync())
+            using (Stream stream = await message.Content.ReadAsStreamAsync()
+                .ConfigureAwait(false))
             {
                 object response = await RequestHelper.ReadAsync(
                     stream,
                     (buffer, bytesBuffered) =>
-                        ParseJson(buffer, bytesBuffered));
+                        ParseJson(buffer, bytesBuffered))
+                    .ConfigureAwait(false);
 
                 QueryResult queryResult =
                     response is IReadOnlyDictionary<string, object> d
@@ -69,7 +71,7 @@ namespace HotChocolate.Stitching.Utilities
             }
         }
 
-        private object ParseJson(byte[] buffer, int bytesBuffered)
+        private static object ParseJson(byte[] buffer, int bytesBuffered)
         {
             return Utf8GraphQLRequestParser.ParseJson(
                 new ReadOnlySpan<byte>(buffer, 0, bytesBuffered));

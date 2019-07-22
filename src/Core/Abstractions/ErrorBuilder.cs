@@ -170,7 +170,6 @@ namespace HotChocolate
             if (dict.TryGetValue("locations", out obj)
                 && obj is IList<object> locations)
             {
-                var locs = new List<Location>();
                 foreach (IDictionary<string, object> loc in locations
                     .OfType<IDictionary<string, object>>())
                 {
