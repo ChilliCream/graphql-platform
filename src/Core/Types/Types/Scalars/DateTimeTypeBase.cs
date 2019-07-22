@@ -143,11 +143,11 @@ namespace HotChocolate.Types
             return false;
         }
 
-        private bool TryParseLiteral(string literal, out object obj) =>
-            TryParseLiteral(new StringValueNode(literal), out obj);
+        private bool TryParseLiteral(StringValueNode literal, out object obj) =>
+            TryParseLiteral(literal.Value, out obj);
 
         protected abstract bool TryParseLiteral(
-            StringValueNode literal,
+            string literal,
             out object obj);
 
         protected abstract string Serialize(DateTime value);

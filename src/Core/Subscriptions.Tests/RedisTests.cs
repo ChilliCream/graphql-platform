@@ -39,91 +39,139 @@ namespace HotChocolate.Subscriptions.Redis
         }
 
         [Fact]
-        public async Task SubscribeOneConsumer_SendMessage_ConsumerReceivesMessage()
+        public Task SubscribeOneConsumer_SendMessage_ConsumerReceivesMessage()
         {
-            // arrange
-            var cts = new CancellationTokenSource(30000);
-            var eventDescription = new EventDescription(
-                Guid.NewGuid().ToString());
+            return TryTest(async () =>
+            {
+                // arrange
+                var cts = new CancellationTokenSource(30000);
+                var eventDescription = new EventDescription(
+                    Guid.NewGuid().ToString());
 
-            // act
-            IEventStream consumer = await _registry
-                .SubscribeAsync(eventDescription);
-            var outgoing = new EventMessage(eventDescription, "bar");
-            await _sender.SendAsync(outgoing);
+                // act
+                IEventStream consumer = await _registry
+                    .SubscribeAsync(eventDescription);
+                var outgoing = new EventMessage(eventDescription, "bar");
+                await _sender.SendAsync(outgoing);
 
-            // assert
-            IEventMessage incoming = await consumer.ReadAsync(cts.Token);
-            Assert.Equal(outgoing.Payload, incoming.Payload);
+                // assert
+                IEventMessage incoming = await consumer.ReadAsync(cts.Token);
+                Assert.Equal(outgoing.Payload, incoming.Payload);
+            });
         }
 
         [Fact]
-        public async Task SubscribeOneConsumer_Complete_StreamIsCompleted()
+        public Task SubscribeOneConsumer_Complete_StreamIsCompleted()
         {
-            // arrange
-            var eventDescription = new EventDescription(
-                Guid.NewGuid().ToString());
+            return TryTest(async () =>
+            {
+                // arrange
+                var eventDescription = new EventDescription(
+                    Guid.NewGuid().ToString());
 
-            // act
-            IEventStream consumer = await _registry
-                .SubscribeAsync(eventDescription);
-            await consumer.CompleteAsync();
+                // act
+                IEventStream consumer = await _registry
+                    .SubscribeAsync(eventDescription);
+                await consumer.CompleteAsync();
 
-            // assert
-            Assert.True(consumer.IsCompleted);
+                // assert
+                Assert.True(consumer.IsCompleted);
+            });
         }
 
         [Fact]
-        public async Task SubscribeTwoConsumer_SendOneMessage_BothConsumerReceivesMessage()
+        public Task SubscribeTwoConsumer_SendOneMessage_BothConsumerReceivesMessage()
         {
-            // arrange
-            var cts = new CancellationTokenSource(30000);
-            var eventDescription = new EventDescription(
-                Guid.NewGuid().ToString());
+            return TryTest(async () =>
+            {
+                // arrange
+                var cts = new CancellationTokenSource(30000);
+                var eventDescription = new EventDescription(
+                    Guid.NewGuid().ToString());
 
-            // act
-            IEventStream consumerOne = await _registry
-                .SubscribeAsync(eventDescription);
-            IEventStream consumerTwo = await _registry
-                .SubscribeAsync(eventDescription);
-            var outgoing = new EventMessage(eventDescription, "bar");
-            await _sender.SendAsync(outgoing);
+                // act
+                IEventStream consumerOne = await _registry
+                    .SubscribeAsync(eventDescription);
+                IEventStream consumerTwo = await _registry
+                    .SubscribeAsync(eventDescription);
+                var outgoing = new EventMessage(eventDescription, "bar");
+                await _sender.SendAsync(outgoing);
 
-            // assert
-            IEventMessage incomingOne = await consumerOne.ReadAsync(cts.Token);
-            IEventMessage incomingTwo = await consumerTwo.ReadAsync(cts.Token);
-            Assert.Equal(outgoing.Payload, incomingOne.Payload);
-            Assert.Equal(outgoing.Payload, incomingTwo.Payload);
+                // assert
+                IEventMessage incomingOne =
+                    await consumerOne.ReadAsync(cts.Token);
+                IEventMessage incomingTwo =
+                    await consumerTwo.ReadAsync(cts.Token);
+                Assert.Equal(outgoing.Payload, incomingOne.Payload);
+                Assert.Equal(outgoing.Payload, incomingTwo.Payload);
+            });
         }
 
         [Fact]
-        public async Task SubscribeTwoConsumer_SendTwoMessage_BothConsumerReceivesIndependentMessage()
+        public Task SubscribeTwoConsumer_SendTwoMessage_BothConsumerReceivesIndependentMessage()
         {
-            // arrange
-            var cts = new CancellationTokenSource(30000);
-            string name = Guid.NewGuid().ToString();
-            var eventDescriptionOne = new EventDescription(
-                name, new ArgumentNode("b", "x"));
-            var eventDescriptionTwo = new EventDescription(
-                name, new ArgumentNode("b", "y"));
+            return TryTest(async () =>
+            {
+                // arrange
+                var cts = new CancellationTokenSource(30000);
+                string name = Guid.NewGuid().ToString();
+                var eventDescriptionOne = new EventDescription(
+                    name, new ArgumentNode("b", "x"));
+                var eventDescriptionTwo = new EventDescription(
+                    name, new ArgumentNode("b", "y"));
 
-            // act
-            IEventStream consumerOne = await _registry
-                .SubscribeAsync(eventDescriptionOne);
-            var outgoingOne = new EventMessage(eventDescriptionOne, "foo");
-            await _sender.SendAsync(outgoingOne);
+                // act
+                IEventStream consumerOne = await _registry
+                    .SubscribeAsync(eventDescriptionOne);
+                var outgoingOne = new EventMessage(eventDescriptionOne, "foo");
+                await _sender.SendAsync(outgoingOne);
 
-            IEventStream consumerTwo = await _registry
-                .SubscribeAsync(eventDescriptionTwo);
-            var outgoingTwo = new EventMessage(eventDescriptionTwo, "bar");
-            await _sender.SendAsync(outgoingTwo);
+                IEventStream consumerTwo = await _registry
+                    .SubscribeAsync(eventDescriptionTwo);
+                var outgoingTwo = new EventMessage(eventDescriptionTwo, "bar");
+                await _sender.SendAsync(outgoingTwo);
 
-            // assert
-            IEventMessage incomingOne = await consumerOne.ReadAsync(cts.Token);
-            IEventMessage incomingTwo = await consumerTwo.ReadAsync(cts.Token);
-            Assert.Equal(outgoingOne.Payload, incomingOne.Payload);
-            Assert.Equal(outgoingTwo.Payload, incomingTwo.Payload);
-            Assert.NotEqual(incomingOne.Event, incomingTwo.Event);
+                // assert
+                IEventMessage incomingOne =
+                    await consumerOne.ReadAsync(cts.Token);
+                IEventMessage incomingTwo =
+                    await consumerTwo.ReadAsync(cts.Token);
+                Assert.Equal(outgoingOne.Payload, incomingOne.Payload);
+                Assert.Equal(outgoingTwo.Payload, incomingTwo.Payload);
+                Assert.NotEqual(incomingOne.Event, incomingTwo.Event);
+            });
+        }
+
+        private static async Task TryTest(Func<Task> action)
+        {
+            // we will try four times ....
+            int count = 0;
+            int wait = 50;
+
+            while (true)
+            {
+                if (count < 3)
+                {
+                    try
+                    {
+                        await action().ConfigureAwait(false);
+                        break;
+                    }
+                    catch
+                    {
+                        // try again
+                    }
+                }
+                else
+                {
+                    await action().ConfigureAwait(false);
+                    break;
+                }
+
+                await Task.Delay(wait).ConfigureAwait(false);
+                wait = wait * 2;
+                count++;
+            }
         }
     }
 }
