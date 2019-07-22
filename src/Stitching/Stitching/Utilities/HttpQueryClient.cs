@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Server;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -39,67 +40,35 @@ namespace HotChocolate.Stitching.Utilities
                 await FetchInternalAsync(request, httpClient)
                     .ConfigureAwait(false);
 
-            object response;
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(1024 * 2);
-            int bytesBuffered = 0;
-
-            try
+            using (Stream stream = await message.Content.ReadAsStreamAsync())
             {
-                using (Stream stream = await message.Content.ReadAsStreamAsync())
+                object response = RequestHelper.ReadAsync(
+                    stream,
+                    (buffer, bytesBuffered) =>
+                        ParseJson(buffer, bytesBuffered));
+
+                QueryResult queryResult =
+                    response is IReadOnlyDictionary<string, object> d
+                        ? HttpResponseDeserializer.Deserialize(d)
+                        : QueryResult.CreateError(
+                            ErrorBuilder.New()
+                                .SetMessage(
+                                    "Could not deserialize query response.")
+                                .Build());
+
+                if (interceptors != null)
                 {
-                    while (true)
+                    foreach (IHttpQueryRequestInterceptor interceptor in
+                        interceptors)
                     {
-                        var bytesRemaining = buffer.Length - bytesBuffered;
-
-                        if (bytesRemaining == 0)
-                        {
-                            var next = ArrayPool<byte>.Shared.Rent(
-                                buffer.Length * 2);
-                            Buffer.BlockCopy(buffer, 0, next, 0, buffer.Length);
-                            ArrayPool<byte>.Shared.Return(buffer);
-                            buffer = next;
-                            bytesRemaining = buffer.Length - bytesBuffered;
-                        }
-
-                        var bytesRead = await stream.ReadAsync(
-                            buffer, bytesBuffered, bytesRemaining)
+                        await interceptor.OnResponseReceivedAsync(
+                            request, message, queryResult)
                             .ConfigureAwait(false);
-                        if (bytesRead == 0)
-                        {
-                            break;
-                        }
-
-                        bytesBuffered += bytesRead;
                     }
                 }
 
-                response = ParseJson(buffer, bytesBuffered);
+                return queryResult;
             }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
-
-            QueryResult queryResult =
-                response is IReadOnlyDictionary<string, object> d
-                    ? HttpResponseDeserializer.Deserialize(d)
-                    : QueryResult.CreateError(
-                        ErrorBuilder.New()
-                            .SetMessage("Could not deserialize query response.")
-                            .Build());
-
-            if (interceptors != null)
-            {
-                foreach (IHttpQueryRequestInterceptor interceptor in
-                    interceptors)
-                {
-                    await interceptor.OnResponseReceivedAsync(
-                        request, message, queryResult)
-                        .ConfigureAwait(false);
-                }
-            }
-
-            return queryResult;
         }
 
         private object ParseJson(byte[] buffer, int bytesBuffered)
