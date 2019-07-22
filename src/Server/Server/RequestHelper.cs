@@ -91,6 +91,7 @@ namespace HotChocolate.Server
             }
         }
 
+
         private IReadOnlyList<GraphQLRequest> ParseRequest(
             byte[] buffer, int bytesBuffered)
         {

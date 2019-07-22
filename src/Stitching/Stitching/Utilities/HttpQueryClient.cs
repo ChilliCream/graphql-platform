@@ -1,9 +1,12 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
@@ -32,13 +35,58 @@ namespace HotChocolate.Stitching.Utilities
             HttpClient httpClient,
             IEnumerable<IHttpQueryRequestInterceptor> interceptors)
         {
-            (string json, HttpResponseMessage message) result =
-                await FetchStringAsync(request, httpClient)
+            HttpResponseMessage message =
+                await FetchInternalAsync(request, httpClient)
                     .ConfigureAwait(false);
 
-            QueryResult queryResult = HttpResponseDeserializer.Deserialize(
-                JsonConvert.DeserializeObject<JObject>(
-                    result.json, _jsonSettings));
+            object response;
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(1024 * 2);
+            int bytesBuffered = 0;
+
+            try
+            {
+                using (Stream stream = await message.Content.ReadAsStreamAsync())
+                {
+                    while (true)
+                    {
+                        var bytesRemaining = buffer.Length - bytesBuffered;
+
+                        if (bytesRemaining == 0)
+                        {
+                            var next = ArrayPool<byte>.Shared.Rent(
+                                buffer.Length * 2);
+                            Buffer.BlockCopy(buffer, 0, next, 0, buffer.Length);
+                            ArrayPool<byte>.Shared.Return(buffer);
+                            buffer = next;
+                            bytesRemaining = buffer.Length - bytesBuffered;
+                        }
+
+                        var bytesRead = await stream.ReadAsync(
+                            buffer, bytesBuffered, bytesRemaining)
+                            .ConfigureAwait(false);
+                        if (bytesRead == 0)
+                        {
+                            break;
+                        }
+
+                        bytesBuffered += bytesRead;
+                    }
+                }
+
+                response = ParseJson(buffer, bytesBuffered);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+
+            QueryResult queryResult =
+                response is IReadOnlyDictionary<string, object> d
+                    ? HttpResponseDeserializer.Deserialize(d)
+                    : QueryResult.CreateError(
+                        ErrorBuilder.New()
+                            .SetMessage("Could not deserialize query response.")
+                            .Build());
 
             if (interceptors != null)
             {
@@ -46,12 +94,18 @@ namespace HotChocolate.Stitching.Utilities
                     interceptors)
                 {
                     await interceptor.OnResponseReceivedAsync(
-                        request, result.message, queryResult)
+                        request, message, queryResult)
                         .ConfigureAwait(false);
                 }
             }
 
             return queryResult;
+        }
+
+        private object ParseJson(byte[] buffer, int bytesBuffered)
+        {
+            return Utf8GraphQLRequestParser.ParseJson(
+                new ReadOnlySpan<byte>(buffer, 0, bytesBuffered));
         }
 
         public Task<(string, HttpResponseMessage)> FetchStringAsync(
@@ -90,6 +144,23 @@ namespace HotChocolate.Stitching.Utilities
                 .ConfigureAwait(false);
 
             return (json, response);
+        }
+
+        private async Task<HttpResponseMessage> FetchInternalAsync(
+            HttpQueryRequest request,
+            HttpClient httpClient)
+        {
+            var content = new StringContent(
+                SerializeRemoteRequest(request),
+                Encoding.UTF8,
+                _json);
+
+            HttpResponseMessage response =
+                await httpClient.PostAsync(default(Uri), content)
+                    .ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+
+            return response;
         }
 
         private HttpQueryRequest CreateRemoteRequest(
