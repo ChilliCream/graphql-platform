@@ -7,6 +7,8 @@ namespace HotChocolate.Types
     {
         IEnumerable<IDirective> this[NameString key] { get; }
 
+        IDirective GetFirst(NameString directiveName);
+
         bool Contains(NameString key);
     }
 }
