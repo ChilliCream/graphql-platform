@@ -13,7 +13,7 @@ namespace HotChocolate.Stitching.Utilities
         private const string _errors = "errors";
 
         public static QueryResult Deserialize(
-            JObject serializedResult)
+            IReadOnlyDictionary<string, object> serializedResult)
         {
             var result = new QueryResult();
 
@@ -34,13 +34,13 @@ namespace HotChocolate.Stitching.Utilities
 
         private static void DeserializeRootField(
             IDictionary<string, object> data,
-            JObject serializedResult,
+            IReadOnlyDictionary<string, object> serializedResult,
             string field)
         {
-            if (serializedResult.Property(field)?.Value is JObject obj)
+            if (serializedResult.TryGetValue(field, out object o)
+                && o is IReadOnlyDictionary<string, object> d)
             {
-                foreach (KeyValuePair<string, object> item in
-                    DeserializeObject(obj))
+                foreach (KeyValuePair<string, object> item in d)
                 {
                     data[item.Key] = item.Value;
                 }
@@ -49,76 +49,17 @@ namespace HotChocolate.Stitching.Utilities
 
         private static void DeserializeErrors(
             IQueryResult result,
-            JObject serializedResult)
+            IReadOnlyDictionary<string, object> serializedResult)
         {
-            if (serializedResult.Property(_errors)?.Value is JArray array)
+            if (serializedResult.TryGetValue(_errors, out object o)
+                && o is IReadOnlyList<object> l)
             {
-                foreach (JObject error in array.Children().OfType<JObject>())
+                foreach (var error in
+                    l.OfType<IReadOnlyDictionary<string, object>>())
                 {
                     result.Errors.Add(
-                        QueryError.FromDictionary(
-                            DeserializeObject(error)));
+                        ErrorBuilder.FromDictionary(error).Build());
                 }
-            }
-        }
-
-        private static object DeserializeToken(JToken token)
-        {
-            switch (token)
-            {
-                case JObject o:
-                    return DeserializeObject(o);
-                case JArray a:
-                    return DeserializeList(a);
-                case JValue v:
-                    return DeserializeScalar(v);
-                default:
-                    throw new NotSupportedException();
-            }
-        }
-
-        private static OrderedDictionary DeserializeObject(JObject obj)
-        {
-            var dict = new OrderedDictionary();
-
-            foreach (JProperty property in obj.Properties())
-            {
-                dict[property.Name] = DeserializeToken(property.Value);
-            }
-
-            return dict;
-        }
-
-        private static List<object> DeserializeList(JArray array)
-        {
-            var list = new List<object>();
-
-            foreach (JToken token in array.Children())
-            {
-                list.Add(DeserializeToken(token));
-            }
-
-            return list;
-        }
-
-        private static object DeserializeScalar(JValue value)
-        {
-            switch (value.Type)
-            {
-                case JTokenType.Boolean:
-                    return value.Value<bool>();
-
-                case JTokenType.Integer:
-                    return value.Value<long>();
-
-                case JTokenType.Float:
-                    return value.Value<decimal>();
-
-                case JTokenType.Date:
-                    return value.Value<DateTimeOffset>();
-
-                default:
-                    return value.Value<string>();
             }
         }
     }

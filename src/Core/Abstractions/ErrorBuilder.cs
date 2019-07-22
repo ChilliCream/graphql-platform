@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using HotChocolate.Execution;
 
 namespace HotChocolate
@@ -138,6 +139,47 @@ namespace HotChocolate
         public static ErrorBuilder FromError(IError error)
         {
             return new ErrorBuilder(error);
+        }
+
+        public static ErrorBuilder FromDictionary(
+            IReadOnlyDictionary<string, object> dict)
+        {
+            if (dict == null)
+            {
+                throw new ArgumentNullException(nameof(dict));
+            }
+
+            var builder = ErrorBuilder.New();
+            builder.SetMessage((string)dict["message"]);
+
+            if (dict.TryGetValue("extensions", out object obj)
+                && obj is IDictionary<string, object> extensions)
+            {
+                foreach (var item in extensions)
+                {
+                    builder.SetExtension(item.Key, item.Value);
+                }
+            }
+
+            if (dict.TryGetValue("path", out obj)
+                && obj is IReadOnlyList<object> path)
+            {
+                builder.SetPath(path);
+            }
+
+            if (dict.TryGetValue("locations", out obj)
+                && obj is IList<object> locations)
+            {
+                foreach (IDictionary<string, object> loc in locations
+                    .OfType<IDictionary<string, object>>())
+                {
+                    builder.AddLocation(new Location(
+                        Convert.ToInt32(loc["line"]),
+                        Convert.ToInt32(loc["column"])));
+                }
+            }
+
+            return builder;
         }
     }
 }

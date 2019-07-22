@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -6,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
-using HotChocolate.AspNetCore;
 using HotChocolate.Execution;
 using HotChocolate.Types;
 using HotChocolate.Resolvers;
@@ -216,8 +214,8 @@ namespace HotChocolate.Stitching
                     c.Map(new FieldReference("Customer", "foo"),
                         next => context =>
                         {
-                            OrderedDictionary obj =
-                                context.Parent<OrderedDictionary>();
+                            var obj = context
+                                .Parent<IReadOnlyDictionary<string, object>>();
                             context.Result = obj["name"] + "_" + obj["id"];
                             return Task.CompletedTask;
                         });

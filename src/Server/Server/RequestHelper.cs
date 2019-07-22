@@ -39,38 +39,20 @@ namespace HotChocolate.Server
         public Task<IReadOnlyList<GraphQLRequest>> ReadGraphQLQueryAsync(
             Stream stream) => ReadAsync(stream, true);
 
-        private async Task<IReadOnlyList<GraphQLRequest>> ReadAsync(
+        private Task<IReadOnlyList<GraphQLRequest>> ReadAsync(
             Stream stream,
             bool isGraphQLQuery)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
-            var bytesBuffered = 0;
-
-            try
-            {
-                while (true)
+            return ReadAsync(
+                stream,
+                (buffer, bytesBuffered) =>
                 {
-                    var bytesRemaining = buffer.Length - bytesBuffered;
-
-                    if (bytesRemaining == 0)
-                    {
-                        var next = ArrayPool<byte>.Shared.Rent(
-                            buffer.Length * 2);
-                        Buffer.BlockCopy(buffer, 0, next, 0, buffer.Length);
-                        ArrayPool<byte>.Shared.Return(buffer);
-                        buffer = next;
-                        bytesRemaining = buffer.Length - bytesBuffered;
-                    }
-
-                    var bytesRead = await stream.ReadAsync(
-                        buffer, bytesBuffered, bytesRemaining)
-                        .ConfigureAwait(false);
-                    if (bytesRead == 0)
-                    {
-                        break;
-                    }
-
-                    bytesBuffered += bytesRead;
+                    return isGraphQLQuery
+                        ? ParseQuery(buffer, bytesBuffered)
+                        : ParseRequest(buffer, bytesBuffered);
+                },
+                bytesBuffered =>
+                {
                     if (bytesBuffered > _maxRequestSize)
                     {
                         throw new QueryException(
@@ -79,17 +61,9 @@ namespace HotChocolate.Server
                                 .SetCode("MAX_REQUEST_SIZE")
                                 .Build());
                     }
-                }
-
-                return isGraphQLQuery
-                    ? ParseQuery(buffer, bytesBuffered)
-                    : ParseRequest(buffer, bytesBuffered);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+                });
         }
+
 
         private IReadOnlyList<GraphQLRequest> ParseRequest(
             byte[] buffer, int bytesBuffered)
@@ -119,6 +93,57 @@ namespace HotChocolate.Server
             DocumentNode document = requestParser.Parse();
 
             return new[] { new GraphQLRequest(document, queryHash) };
+        }
+
+        public static Task<T> ReadAsync<T>(
+            Stream stream,
+            Func<byte[], int, T> handle) => ReadAsync<T>(stream, handle, null);
+
+        public static async Task<T> ReadAsync<T>(
+            Stream stream,
+            Func<byte[], int, T> handle,
+            Action<int> checkSize)
+        {
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
+            var bytesBuffered = 0;
+
+            try
+            {
+                while (true)
+                {
+                    var bytesRemaining = buffer.Length - bytesBuffered;
+
+                    if (bytesRemaining == 0)
+                    {
+                        var next = ArrayPool<byte>.Shared.Rent(
+                            buffer.Length * 2);
+                        Buffer.BlockCopy(buffer, 0, next, 0, buffer.Length);
+                        ArrayPool<byte>.Shared.Return(buffer);
+                        buffer = next;
+                        bytesRemaining = buffer.Length - bytesBuffered;
+                    }
+
+                    var bytesRead = await stream.ReadAsync(
+                        buffer, bytesBuffered, bytesRemaining)
+                        .ConfigureAwait(false);
+                    if (bytesRead == 0)
+                    {
+                        break;
+                    }
+
+                    bytesBuffered += bytesRead;
+                    if (checkSize != null)
+                    {
+                        checkSize(bytesBuffered);
+                    }
+                }
+
+                return handle(buffer, bytesBuffered);
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
         }
     }
 }
