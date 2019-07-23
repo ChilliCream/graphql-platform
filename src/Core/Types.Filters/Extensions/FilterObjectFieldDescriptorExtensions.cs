@@ -52,10 +52,23 @@ namespace HotChocolate.Types.Filters
                 .Extend()
                 .OnBeforeCreate(definition =>
                 {
-                    Type argumentType = filterType == null
-                        ? typeof(FilterInputType<>).MakeGenericType(
-                            definition.ResolverType)
-                        : filterType;
+                    Type argumentType = filterType;
+
+                    if (filterType == null)
+                    {
+                        if (!TypeInspector.Default.TryCreate(
+                            definition.ResultType, out TypeInfo typeInfo))
+                        {
+                            // TODO : resources
+                            throw new ArgumentException(
+                                "Cannot handle the specified type.",
+                                nameof(descriptor));
+                        }
+
+                        argumentType =
+                            typeof(FilterInputType<>).MakeGenericType(
+                                typeInfo.ClrType);
+                    }
 
                     var argumentTypeReference = new ClrTypeReference(
                         argumentType,
@@ -76,7 +89,7 @@ namespace HotChocolate.Types.Filters
                     var argumentDefinition = new ArgumentDefinition();
                     argumentDefinition.Name = "where";
                     argumentDefinition.Type = new ClrTypeReference(
-                        filterType, TypeContext.Input);
+                        argumentType, TypeContext.Input);
                     definition.Arguments.Add(argumentDefinition);
 
                     ILazyTypeConfiguration lazyConfiguration =
