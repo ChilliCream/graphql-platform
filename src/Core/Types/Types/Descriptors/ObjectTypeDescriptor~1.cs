@@ -12,7 +12,6 @@ namespace HotChocolate.Types.Descriptors
         , IObjectTypeDescriptor<T>
         , IHasClrType
     {
-
         public ObjectTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {
@@ -108,7 +107,7 @@ namespace HotChocolate.Types.Descriptors
             return base.Field(propertyOrMethod);
         }
 
-        public IObjectFieldDescriptor<TValue> Field<TValue>(
+        public IObjectFieldDescriptor Field<TValue>(
             Expression<Func<T, TValue>> propertyOrMethod)
         {
             return base.Field(propertyOrMethod);
