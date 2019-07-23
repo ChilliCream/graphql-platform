@@ -1,34 +1,27 @@
 using System;
 using System.Threading.Tasks;
+using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
     public static class FilterObjectFieldDescriptorExtensions
     {
-        public static IObjectFieldDescriptor<T> UseFiltering<T>(
-            this IObjectFieldDescriptor<T> descriptor)
+        private static readonly Type _middlewareDefinition =
+            typeof(QueryableFilterMiddleware<>);
+
+        public static IObjectFieldDescriptor UseFiltering(
+            this IObjectFieldDescriptor descriptor)
         {
             if (descriptor is null)
             {
                 throw new ArgumentNullException(nameof(descriptor));
             }
 
-            if (!TypeInspector.Default.TryCreate(
-                typeof(T), out TypeInfo typeInfo))
-            {
-                // TODO : resources
-                throw new ArgumentException(
-                    "Cannot handle the specified type.",
-                    nameof(descriptor));
-            }
-
-            Type filterType =
-                typeof(FilterInputType<>).MakeGenericType(typeInfo.ClrType);
-
-            return UseFiltering(descriptor, filterType);
+            return UseFiltering(descriptor, null);
         }
 
         public static IObjectFieldDescriptor UseFiltering<T>(
@@ -47,37 +40,77 @@ namespace HotChocolate.Types.Filters
             return UseFiltering(descriptor, filterType);
         }
 
-        private static TDescriptor UseFiltering<TDescriptor>(
-            TDescriptor descriptor,
+        private static IObjectFieldDescriptor UseFiltering(
+            IObjectFieldDescriptor descriptor,
             Type filterType)
-            where TDescriptor : IObjectFieldDescriptor
         {
             FieldMiddleware placeholder =
                 next => context => Task.CompletedTask;
-            Type middlewareDefinition = typeof(QueryableFilterMiddleware<>);
 
             descriptor
-                .AddFilterArguments(filterType)
                 .Use(placeholder)
                 .Extend()
-                .OnBeforeCompletion((context, defintion) =>
+                .OnBeforeCreate(definition =>
                 {
-                    var reference = new ClrTypeReference(
-                        filterType,
+                    Type argumentType = filterType == null
+                        ? typeof(FilterInputType<>).MakeGenericType(
+                            definition.ResolverType)
+                        : filterType;
+
+                    var argumentTypeReference = new ClrTypeReference(
+                        argumentType,
                         TypeContext.Input);
-                    IFilterInputType type =
-                        context.GetType<IFilterInputType>(reference);
-                    Type middlewareType = middlewareDefinition
-                        .MakeGenericType(type.EntityType);
-                    FieldMiddleware middleware =
-                        FieldClassMiddlewareFactory.Create(middlewareType);
-                    int index =
-                        defintion.MiddlewareComponents.IndexOf(placeholder);
-                    defintion.MiddlewareComponents[index] = middleware;
-                })
-                .DependsOn(filterType, mustBeCompleted: true);
+
+                    if (argumentType == typeof(object))
+                    {
+                        // TODO : resources
+                        throw new SchemaException(
+                            SchemaErrorBuilder.New()
+                                .SetMessage(
+                                    "The filter type cannot be " +
+                                    "infered from `System.Object`.")
+                                .SetCode("FILTER_OBJECT_TYPE")
+                                .Build());
+                    }
+
+                    var argumentDefinition = new ArgumentDefinition();
+                    argumentDefinition.Name = "where";
+                    argumentDefinition.Type = new ClrTypeReference(
+                        filterType, TypeContext.Input);
+                    definition.Arguments.Add(argumentDefinition);
+
+                    ILazyTypeConfiguration lazyConfiguration =
+                        LazyTypeConfigurationBuilder
+                            .New<ObjectFieldDefinition>()
+                            .Configure((context, defintion) =>
+                                CompileMiddleware(
+                                    context,
+                                    definition,
+                                    argumentTypeReference,
+                                    placeholder))
+                            .On(ApplyConfigurationOn.Completion)
+                            .DependsOn(argumentTypeReference, true)
+                            .Build();
+                    definition.Configurations.Add(lazyConfiguration);
+                });
 
             return descriptor;
+        }
+
+        private static void CompileMiddleware(
+            ICompletionContext context,
+            ObjectFieldDefinition definition,
+            ITypeReference argumentTypeReference,
+            FieldMiddleware placeholder)
+        {
+            IFilterInputType type =
+                context.GetType<IFilterInputType>(argumentTypeReference);
+            Type middlewareType = _middlewareDefinition
+                .MakeGenericType(type.EntityType);
+            FieldMiddleware middleware =
+                FieldClassMiddlewareFactory.Create(middlewareType);
+            int index = definition.MiddlewareComponents.IndexOf(placeholder);
+            definition.MiddlewareComponents[index] = middleware;
         }
 
         private static IObjectFieldDescriptor AddFilterArguments(

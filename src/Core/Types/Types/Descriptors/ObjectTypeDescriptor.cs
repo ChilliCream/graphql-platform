@@ -235,8 +235,8 @@ namespace HotChocolate.Types.Descriptors
             Expression<Func<TResolver, object>> propertyOrMethod) =>
             Field<TResolver, object>(propertyOrMethod);
 
-        public IObjectFieldDescriptor<TPropType> Field<TResolver, TPropType>(
-            Expression<Func<TResolver, TPropType>> propertyOrMethod)
+        public IObjectFieldDescriptor Field<TResolver, TPropertyType>(
+            Expression<Func<TResolver, TPropertyType>> propertyOrMethod)
         {
             if (propertyOrMethod == null)
             {
@@ -246,7 +246,7 @@ namespace HotChocolate.Types.Descriptors
             MemberInfo member = propertyOrMethod.ExtractMember();
             if (member is PropertyInfo || member is MethodInfo)
             {
-                var fieldDescriptor = ObjectFieldDescriptor.New<TPropType>(
+                var fieldDescriptor = ObjectFieldDescriptor.New(
                     Context, member, typeof(TResolver));
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
