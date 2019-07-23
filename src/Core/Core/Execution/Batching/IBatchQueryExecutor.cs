@@ -43,6 +43,9 @@ namespace HotChocolate.Execution.Batching
 
 
             }
+
+            throw new NotImplementedException();
+
         }
 
 
@@ -107,9 +110,10 @@ namespace HotChocolate.Execution.Batching
                 : Utf8GraphQLParser.Parse(request.Query.ToSource());
 
             var visitor = _collectVars.Value;
-            visitor.Prepare(request.OperationName);
+            // visitor.Prepare(request.OperationName);
             document.Accept(visitor);
 
+/*
             HashSet<string> _names =
 
             IDefinitionNode[] definitions = document.Definitions.ToArray();
@@ -121,11 +125,14 @@ namespace HotChocolate.Execution.Batching
                             op.Name.Value,
                             StringComparison.Ordinal)))
                 {
-                    
+
 
                     break;
                 }
             }
+             */
+            throw new NotImplementedException();
+
         }
 
         public void Dispose()

@@ -30,8 +30,9 @@ namespace HotChocolate.Execution.Batching
             _schema = schema ?? throw new ArgumentNullException(nameof(schema));
         }
 
-        public IReadOnlyCollection<VariableDefinitionNode> GetVariableDeclarations() =>
-            _variables.Values;
+        public IReadOnlyCollection<VariableDefinitionNode>
+            GetVariableDeclarations() =>
+                _variables.Values;
 
         public VisitorAction Enter(
             OperationDefinitionNode node,

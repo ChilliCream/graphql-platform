@@ -18,7 +18,7 @@ namespace HotChocolate.Execution.Batching
 
             DocumentNode document = Utf8GraphQLParser.Parse(
                 @"
-                {
+                query getHero {
                     hero(episode: $ep) {
                         name
                     }
@@ -32,7 +32,10 @@ namespace HotChocolate.Execution.Batching
             var visitationMap = new CollectVariablesVisitationMap();
 
             // act
-            operation.Accept(visitor, visitationMap);
+            operation.Accept(
+                visitor,
+                visitationMap,
+                node => VisitorAction.Continue);
 
             // assert
             var variables = operation.VariableDefinitions.ToList();
