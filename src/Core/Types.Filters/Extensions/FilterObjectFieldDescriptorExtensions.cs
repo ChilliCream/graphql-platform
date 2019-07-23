@@ -82,6 +82,7 @@ namespace HotChocolate.Types.Filters
                     ILazyTypeConfiguration lazyConfiguration =
                         LazyTypeConfigurationBuilder
                             .New<ObjectFieldDefinition>()
+                            .Definition(definition)
                             .Configure((context, defintion) =>
                                 CompileMiddleware(
                                     context,
