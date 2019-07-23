@@ -29,10 +29,10 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public ICollection<TypeDependency> Dependencies { get; } =
             new List<TypeDependency>();
 
-        internal ICollection<ITypeConfigration> Configurations { get; } =
-            new List<ITypeConfigration>();
+        public ICollection<ILazyTypeConfiguration> Configurations { get; } =
+            new List<ILazyTypeConfiguration>();
 
-        internal virtual IEnumerable<ITypeConfigration> GetConfigurations()
+        internal virtual IEnumerable<ILazyTypeConfiguration> GetConfigurations()
         {
             return Configurations;
         }
