@@ -10,6 +10,7 @@ namespace HotChocolate.Types.Filters
 {
     public static class FilterObjectFieldDescriptorExtensions
     {
+        private const string _whereArgumentName = "where";
         private static readonly Type _middlewareDefinition =
             typeof(QueryableFilterMiddleware<>);
 
@@ -87,7 +88,7 @@ namespace HotChocolate.Types.Filters
                     }
 
                     var argumentDefinition = new ArgumentDefinition();
-                    argumentDefinition.Name = "where";
+                    argumentDefinition.Name = _whereArgumentName;
                     argumentDefinition.Type = new ClrTypeReference(
                         argumentType, TypeContext.Input);
                     definition.Arguments.Add(argumentDefinition);
@@ -131,7 +132,7 @@ namespace HotChocolate.Types.Filters
             this IObjectFieldDescriptor descriptor,
             Type filterType)
         {
-            return descriptor.Argument("where", a =>
+            return descriptor.Argument(_whereArgumentName, a =>
                 a.Extend().OnBeforeCreate(d =>
                     d.Type = new ClrTypeReference(
                         filterType, TypeContext.Input)));
@@ -141,14 +142,16 @@ namespace HotChocolate.Types.Filters
             this IObjectFieldDescriptor descriptor)
             where TFilter : class, IInputType, IFilterInputType
         {
-            return descriptor.Argument("where", a => a.Type<TFilter>());
+            return descriptor.Argument(_whereArgumentName,
+                a => a.Type<TFilter>());
         }
 
         public static IInterfaceFieldDescriptor AddFilterArguments<TFilter>(
             this IInterfaceFieldDescriptor descriptor)
             where TFilter : class, IInputType, IFilterInputType
         {
-            return descriptor.Argument("where", a => a.Type<TFilter>());
+            return descriptor.Argument(_whereArgumentName,
+                a => a.Type<TFilter>());
         }
     }
 }
