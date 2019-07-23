@@ -11,7 +11,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public IBindableList<InterfaceFieldDefinition> Fields { get; } =
             new BindableList<InterfaceFieldDefinition>();
 
-        internal override IEnumerable<ILazyTypeConfiguration> GetConfigurations()
+        internal override IEnumerable<ILazyTypeConfiguration>
+            GetConfigurations()
         {
             var configs = new List<ILazyTypeConfiguration>();
             configs.AddRange(Configurations);
