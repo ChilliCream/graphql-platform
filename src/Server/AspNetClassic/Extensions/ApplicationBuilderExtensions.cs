@@ -4,6 +4,7 @@ using Microsoft.Owin;
 using Owin;
 using IApplicationBuilder = Owin.IAppBuilder;
 using HotChocolate.Execution;
+using HotChocolate.Execution.Batching;
 using HotChocolate.Language;
 
 namespace HotChocolate.AspNetClassic
@@ -53,7 +54,10 @@ namespace HotChocolate.AspNetClassic
             }
 
             IQueryExecutor executor = serviceProvider
-                .GetService<IQueryExecutor>();
+                .GetRequiredService<IQueryExecutor>();
+
+            IBatchQueryExecutor batchExecutor = serviceProvider
+                .GetRequiredService<IBatchQueryExecutor>();
 
             IQueryResultSerializer serializer = serviceProvider
                 .GetService<IQueryResultSerializer>()
@@ -66,7 +70,9 @@ namespace HotChocolate.AspNetClassic
                 .GetRequiredService<IDocumentHashProvider>();
 
             return applicationBuilder
-                .Use<PostQueryMiddleware>(executor, serializer, cache, hashProvider, options)
+                .Use<PostQueryMiddleware>(
+                    executor, batchExecutor, serializer,
+                    cache, hashProvider, options)
                 .Use<GetQueryMiddleware>(executor, serializer, options)
                 .Use<SchemaMiddleware>(executor, options);
         }

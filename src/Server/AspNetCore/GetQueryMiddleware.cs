@@ -29,13 +29,18 @@ namespace HotChocolate.AspNetCore
         private const string _queryIdentifier = "query";
         private const string _variablesIdentifier = "variables";
 
+        private readonly IQueryExecutor _queryExecutor;
+
         public GetQueryMiddleware(
             RequestDelegate next,
             IQueryExecutor queryExecutor,
             IQueryResultSerializer resultSerializer,
             QueryMiddlewareOptions options)
-                : base(next, queryExecutor, resultSerializer, options)
-        { }
+                : base(next, resultSerializer, options)
+        {
+            _queryExecutor = queryExecutor
+                ?? throw new ArgumentNullException(nameof(queryExecutor));
+        }
 
         /// <inheritdoc />
         protected override bool CanHandleRequest(HttpContext context)
@@ -47,11 +52,10 @@ namespace HotChocolate.AspNetCore
                     HasQueryParameter(context);
         }
 
-        /// <inheritdoc />
-        protected override Task<IQueryRequestBuilder>
-            OnCreateQueryRequestAsync(HttpContext context)
+        protected override async Task ExecuteRequestAsync(
+            HttpContext context,
+            IServiceProvider services)
         {
-
 #if ASPNETCLASSIC
             IReadableStringCollection requestQuery = context.Request.Query;
 #else
@@ -73,7 +77,19 @@ namespace HotChocolate.AspNetCore
                 builder.SetVariableValues(v);
             }
 
-            return Task.FromResult(builder);
+            IReadOnlyQueryRequest request =
+                await BuildRequestAsync(
+                    context,
+                    services,
+                    builder)
+                    .ConfigureAwait(false);
+
+            IExecutionResult result = await _queryExecutor
+                    .ExecuteAsync(request, context.GetCancellationToken())
+                    .ConfigureAwait(false);
+
+            await WriteResponseAsync(context.Response, result)
+                .ConfigureAwait(false);
         }
 
         private static bool HasQueryParameter(HttpContext context)

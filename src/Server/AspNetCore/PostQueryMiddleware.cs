@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Server;
+using HotChocolate.Execution.Batching;
+using System.Security.Claims;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -24,16 +26,24 @@ namespace HotChocolate.AspNetCore
         : QueryMiddlewareBase
     {
         private readonly RequestHelper _requestHelper;
+        private readonly IQueryExecutor _queryExecutor;
+        private readonly IBatchQueryExecutor _batchExecutor;
 
         public PostQueryMiddleware(
             RequestDelegate next,
             IQueryExecutor queryExecutor,
+            IBatchQueryExecutor batchExecutor,
             IQueryResultSerializer resultSerializer,
             IDocumentCache documentCache,
             IDocumentHashProvider documentHashProvider,
             QueryMiddlewareOptions options)
-                : base(next, queryExecutor, resultSerializer, options)
+            : base(next, resultSerializer, options)
         {
+            _queryExecutor = queryExecutor
+                ?? throw new ArgumentNullException(nameof(queryExecutor));
+            _batchExecutor = batchExecutor
+                ?? throw new ArgumentNullException(nameof(batchExecutor));
+
             _requestHelper = new RequestHelper(
                 documentCache,
                 documentHashProvider,
@@ -49,8 +59,81 @@ namespace HotChocolate.AspNetCore
                 StringComparison.Ordinal);
         }
 
-        protected override async Task<IQueryRequestBuilder>
-            OnCreateQueryRequestAsync(HttpContext context)
+        protected override async Task ExecuteRequestAsync(
+            HttpContext context,
+            IServiceProvider services)
+        {
+            IReadOnlyList<GraphQLRequest> batch =
+                await ReadRequestAsync(context)
+                    .ConfigureAwait(false);
+
+            if (batch.Count == 1)
+            {
+                IReadOnlyQueryRequest request =
+                    await BuildRequestAsync(
+                        context,
+                        services,
+                        QueryRequestBuilder.From(batch[0]))
+                        .ConfigureAwait(false);
+
+                IExecutionResult result = await _queryExecutor
+                    .ExecuteAsync(request, context.GetCancellationToken())
+                    .ConfigureAwait(false);
+
+                await WriteResponseAsync(context.Response, result)
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                IReadOnlyList<IReadOnlyQueryRequest> request =
+                    await BuildBatchRequestAsync(context, services, batch)
+                        .ConfigureAwait(false);
+
+                IResponseStream stream = await _batchExecutor
+                    .ExecuteAsync(request, context.GetCancellationToken())
+                    .ConfigureAwait(false);
+
+                do
+                {
+                    IReadOnlyQueryResult result =
+                        await stream.ReadAsync(context.RequestAborted);
+
+                    if (result != null)
+                    {
+                        await WriteResponseAsync(context.Response, result)
+                            .ConfigureAwait(false);
+
+                        await context.Response.Body.FlushAsync(
+                            context.RequestAborted)
+                            .ConfigureAwait(false);
+                    }
+                }
+                while (!stream.IsCompleted);
+            }
+        }
+
+        private async Task<IReadOnlyList<IReadOnlyQueryRequest>>
+            BuildBatchRequestAsync(
+                HttpContext context,
+                IServiceProvider services,
+                IReadOnlyList<GraphQLRequest> batch)
+        {
+            var queryBatch = new IReadOnlyQueryRequest[batch.Count];
+
+            for (int i = 0; i < batch.Count; i++)
+            {
+                queryBatch[i] = await BuildRequestAsync(
+                    context,
+                    services,
+                    QueryRequestBuilder.From(batch[i]))
+                    .ConfigureAwait(false);
+            }
+
+            return queryBatch;
+        }
+
+        protected async Task<IReadOnlyList<GraphQLRequest>> ReadRequestAsync(
+            HttpContext context)
         {
             using (Stream stream = context.Request.Body)
             {
@@ -74,17 +157,7 @@ namespace HotChocolate.AspNetCore
                         throw new NotSupportedException();
                 }
 
-
-                // TODO : batching support has to be added later
-                GraphQLRequest request = batch[0];
-
-                return QueryRequestBuilder.New()
-                    .SetQuery(request.Query)
-                    .SetQueryName(request.QueryName)
-                    .SetQueryName(request.QueryName) // TODO : we should have a hash here
-                    .SetOperation(request.OperationName)
-                    .SetVariableValues(request.Variables)
-                    .SetProperties(request.Extensions);
+                return batch;
             }
         }
     }

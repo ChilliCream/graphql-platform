@@ -262,5 +262,19 @@ namespace HotChocolate.Execution
 
             return builder;
         }
+
+        public static QueryRequestBuilder From(GraphQLRequest request)
+        {
+            var builder = QueryRequestBuilder.New();
+
+            builder.SetQuery(request.Query)
+                .SetQueryName(request.QueryName)
+                .SetQueryName(request.QueryName) // TODO : we should have a hash here
+                .SetOperation(request.OperationName)
+                .SetVariableValues(request.Variables)
+                .SetProperties(request.Extensions);
+
+            return builder;
+        }
     }
 }

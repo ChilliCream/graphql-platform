@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Language;
+using HotChocolate.Execution;
+using HotChocolate.Execution.Batching;
 using HotChocolate.Server;
 
 #if ASPNETCLASSIC
@@ -58,7 +61,6 @@ namespace HotChocolate.AspNetCore
         /// </param>
         protected QueryMiddlewareBase(
             RequestDelegate next,
-            IQueryExecutor queryExecutor,
             IQueryResultSerializer resultSerializer,
             QueryMiddlewareOptions options)
 #if ASPNETCLASSIC
@@ -68,8 +70,6 @@ namespace HotChocolate.AspNetCore
 #if !ASPNETCLASSIC
             Next = next;
 #endif
-            Executor = queryExecutor ??
-                throw new ArgumentNullException(nameof(queryExecutor));
             _resultSerializer = resultSerializer
                 ?? throw new ArgumentNullException(nameof(resultSerializer));
             Options = options ??
@@ -92,13 +92,6 @@ namespace HotChocolate.AspNetCore
                 as OwinContextAccessor;
 #endif
         }
-
-        /// <summary>
-        /// Gets the GraphQL query executor resolver.
-        /// </summary>
-        protected IQueryExecutor Executor { get; }
-
-        protected IQueryResultSerializer Serializer => _resultSerializer;
 
 #if !ASPNETCLASSIC
         protected RequestDelegate Next { get; }
@@ -126,7 +119,7 @@ namespace HotChocolate.AspNetCore
             {
                 try
                 {
-                    await HandleRequestAsync(context, Executor)
+                    await HandleRequestAsync(context)
                         .ConfigureAwait(false);
                 }
                 catch (NotSupportedException)
@@ -167,22 +160,42 @@ namespace HotChocolate.AspNetCore
             (T)context.RequestServices.GetService(typeof(T));
 #endif
 
-        /// <summary>
-        /// Creates a new query request.
-        /// </summary>
-        /// <param name="context">An OWIN context.</param>
-        /// <returns>A new query request.</returns>
-        protected abstract Task<IQueryRequestBuilder> OnCreateQueryRequestAsync(
-            HttpContext context);
-
-        private async Task<IReadOnlyQueryRequest> CreateQueryRequestAsync(
-                HttpContext context,
-                IServiceProvider services)
+        private async Task HandleRequestAsync(
+            HttpContext context)
         {
-            IQueryRequestBuilder builder =
-                await OnCreateQueryRequestAsync(context)
-                    .ConfigureAwait(false);
+#if ASPNETCLASSIC
+            if (_accessor != null)
+            {
+                _accessor.OwinContext = context;
+            }
 
+            using (IServiceScope serviceScope =
+                Executor.Schema.Services.CreateScope())
+            {
+                IServiceProvider services =
+                    context.CreateRequestServices(
+                        serviceScope.ServiceProvider);
+#else
+            IServiceProvider services = context.RequestServices;
+#endif
+
+            await ExecuteRequestAsync(context, services)
+                .ConfigureAwait(false);
+
+#if ASPNETCLASSIC
+            }
+#endif
+        }
+
+        protected abstract Task ExecuteRequestAsync(
+            HttpContext context,
+            IServiceProvider services);
+
+        protected async Task<IReadOnlyQueryRequest> BuildRequestAsync(
+            HttpContext context,
+            IServiceProvider services,
+            IQueryRequestBuilder builder)
+        {
             if (!_interceptorInitialized)
             {
                 _interceptor =
@@ -211,42 +224,7 @@ namespace HotChocolate.AspNetCore
             return builder.Create();
         }
 
-        private async Task HandleRequestAsync(
-            HttpContext context,
-            IQueryExecutor queryExecutor)
-        {
-#if ASPNETCLASSIC
-            if (_accessor != null)
-            {
-                _accessor.OwinContext = context;
-            }
-
-            using (IServiceScope serviceScope =
-                Executor.Schema.Services.CreateScope())
-            {
-                IServiceProvider serviceProvider =
-                    context.CreateRequestServices(
-                        serviceScope.ServiceProvider);
-#else
-            IServiceProvider serviceProvider = context.RequestServices;
-#endif
-
-            IReadOnlyQueryRequest request =
-                await CreateQueryRequestAsync(context, serviceProvider)
-                    .ConfigureAwait(false);
-
-            IExecutionResult result = await queryExecutor
-                .ExecuteAsync(request, context.GetCancellationToken())
-                .ConfigureAwait(false);
-
-            await WriteResponseAsync(context.Response, result)
-                .ConfigureAwait(false);
-#if ASPNETCLASSIC
-            }
-#endif
-        }
-
-        private async Task WriteResponseAsync(
+        protected async Task WriteResponseAsync(
             HttpResponse response,
             IExecutionResult executionResult)
         {
