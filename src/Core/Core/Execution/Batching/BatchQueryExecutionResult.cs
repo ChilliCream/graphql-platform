@@ -224,7 +224,7 @@ namespace HotChocolate.Execution.Batching
                 return inputType.Serialize(converted);
             }
 
-            ThrowSerializationError();
+            throw SerializationError();
         }
 
         private void SerializeListValue(
@@ -240,7 +240,7 @@ namespace HotChocolate.Execution.Batching
             }
             else
             {
-                ThrowSerializationError();
+                throw SerializationError();
             }
         }
 
@@ -264,7 +264,7 @@ namespace HotChocolate.Execution.Batching
                     }
                     else
                     {
-                        ThrowSerializationError();
+                        throw SerializationError();
                     }
                 }
             }
@@ -280,15 +280,15 @@ namespace HotChocolate.Execution.Batching
                 }
                 else
                 {
-                    ThrowSerializationError();
+                    throw SerializationError();
                 }
             }
         }
 
-        private void ThrowSerializationError()
+        private QueryException SerializationError()
         {
             // TODO : resources
-            throw new QueryException(
+            return new QueryException(
                 ErrorBuilder.New()
                     .SetMessage("Could not serialize the specified variable.")
                     .SetCode("BATCH_VAR_SERIALIZE")
