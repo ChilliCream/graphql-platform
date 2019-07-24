@@ -2,14 +2,15 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters
 {
-    public interface IObjectFilterOperationDescriptor
+
+    public interface IObjectFilterOperationDescriptor<TObject>
         : IDescriptor<FilterOperationDefintion>
         , IFluent
     {
         /// <summary>
         /// Define filter operations for another field.
         /// </summary>
-        IObjectFilterFieldDescriptor And();
+        IObjectFilterFieldDescriptor<TObject> And();
 
         /// <summary>
         /// Specify the name of the filter operation.
@@ -17,7 +18,7 @@ namespace HotChocolate.Types.Filters
         /// <param name="value">
         ///  The operation name.
         /// </param>
-        IObjectFilterOperationDescriptor Name(NameString value);
+        IObjectFilterOperationDescriptor<TObject> Name(NameString value);
 
         /// <summary>
         /// Specify the description of the filter operation.
@@ -25,7 +26,7 @@ namespace HotChocolate.Types.Filters
         /// <param name="value">
         ///  The operation description.
         /// </param>
-        IObjectFilterOperationDescriptor Description(string value);
+        IObjectFilterOperationDescriptor<TObject> Description(string value);
 
         /// <summary>
         /// Annotate the operation filter field with a directive.
@@ -36,7 +37,7 @@ namespace HotChocolate.Types.Filters
         /// <typeparam name="T">
         /// The directive type.
         /// </typeparam>
-        IObjectFilterOperationDescriptor Directive<T>(T directiveInstance)
+        IObjectFilterOperationDescriptor<TObject> Directive<T>(T directiveInstance)
             where T : class;
 
         /// <summary>
@@ -45,7 +46,7 @@ namespace HotChocolate.Types.Filters
         /// <typeparam name="T">
         /// The directive type.
         /// </typeparam>
-        IObjectFilterOperationDescriptor Directive<T>()
+        IObjectFilterOperationDescriptor<TObject> Directive<T>()
             where T : class, new();
 
         /// <summary>
@@ -57,9 +58,8 @@ namespace HotChocolate.Types.Filters
         /// <param name="arguments">
         /// The argument values of the directive.
         /// </param>
-        IObjectFilterOperationDescriptor Directive(
+        IObjectFilterOperationDescriptor<TObject> Directive(
             NameString name,
             params ArgumentNode[] arguments);
     }
-    
 }

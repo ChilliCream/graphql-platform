@@ -4,20 +4,20 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Filters
 {
-
-    public class ObjectFilterOperationDescriptor
-        : FilterOperationDescriptorBase
-        , IObjectFilterOperationDescriptor
+    
+    public class ObjectFilterOperationDescriptor<TObject>
+        : ObjectFilterOperationDescriptor
+        , IObjectFilterOperationDescriptor<TObject>
     {
-        private readonly ObjectFilterFieldDescriptor _descriptor;
+        private readonly ObjectFilterFieldDescriptor<TObject> _descriptor;
 
         protected ObjectFilterOperationDescriptor(
             IDescriptorContext context,
-            ObjectFilterFieldDescriptor descriptor,
+            ObjectFilterFieldDescriptor<TObject> descriptor,
             NameString name,
             ITypeReference type,
             FilterOperation operation)
-            : base(context)
+            : base(context, descriptor, name, type, operation)
         {
             Definition.Name = name.EnsureNotEmpty(nameof(name));
             Definition.Type = type
@@ -29,17 +29,17 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <inheritdoc/>
-        public IObjectFilterFieldDescriptor And() => _descriptor;
+        public new IObjectFilterFieldDescriptor<TObject> And() => _descriptor;
 
         /// <inheritdoc/>
-        public new IObjectFilterOperationDescriptor Name(NameString value)
+        public new IObjectFilterOperationDescriptor<TObject> Name(NameString value)
         {
             base.Name(value);
             return this;
         }
 
         /// <inheritdoc/>
-        public new IObjectFilterOperationDescriptor Description(
+        public new IObjectFilterOperationDescriptor<TObject> Description(
             string value)
         {
             base.Description(value);
@@ -47,7 +47,7 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <inheritdoc/>
-        public new IObjectFilterOperationDescriptor Directive<T>(
+        public new IObjectFilterOperationDescriptor<TObject> Directive<T>(
             T directiveInstance)
             where T : class
         {
@@ -56,7 +56,7 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <inheritdoc/>
-        public new IObjectFilterOperationDescriptor Directive<T>()
+        public new IObjectFilterOperationDescriptor<TObject> Directive<T>()
             where T : class, new()
         {
             base.Directive<T>();
@@ -64,7 +64,7 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <inheritdoc/>
-        public new IObjectFilterOperationDescriptor Directive(
+        public new IObjectFilterOperationDescriptor<TObject> Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
@@ -91,13 +91,13 @@ namespace HotChocolate.Types.Filters
         /// <param name="operation">
         /// The filter operation info.
         /// </param>
-        public static ObjectFilterOperationDescriptor New(
+        public static ObjectFilterOperationDescriptor<TObject> New(
             IDescriptorContext context,
-            ObjectFilterFieldDescriptor descriptor,
+            ObjectFilterFieldDescriptor<TObject> descriptor,
             NameString name,
             ITypeReference type,
             FilterOperation operation) =>
-            new ObjectFilterOperationDescriptor(
+            new ObjectFilterOperationDescriptor<TObject>(
                 context, descriptor, name, type, operation);
     }
 }
