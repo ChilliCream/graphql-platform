@@ -40,10 +40,17 @@ namespace HotChocolate.Client
         ICompiledQuery<T> Compile(IQueryableItem queryable);
     }
 
-    public interface ICompiledQuery<T>
+    public interface IStreamCompiler
     {
-
+        ICompiledQuery<T> Compile(IQueryableItem queryable);
     }
 
+    public interface ICompiledQuery<T>
+    {
+        Task<T> ExecuteAsync(CancellationToken cancellationToken);
+    }
+
+    // batch => response stream
+    // sub => res stream
 
 }
