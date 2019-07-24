@@ -9,6 +9,96 @@ namespace HotChocolate.Types.Filters
         : TypeTestBase
     {
 
+        //
+        [Fact]
+        public void Create_ObjectFilter_FooImplicitBarImplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<Foo>());
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_ObjectFilter_FooImplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<Foo>(
+                    x => x.Filter(y => y.BarNested)
+                    .AllowObject(
+                        y => y.BindExplicitly()
+                        .Filter(z => z.Baz)
+                        .BindExplicitly()
+                        .AllowContains()
+                        )
+                    )
+           );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_ObjectFilter_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<Foo>(
+                    x => x.BindExplicitly()
+                    .Filter(y => y.BarNested)
+                    .AllowObject(
+                        y => y.BindExplicitly()
+                        .Filter(z => z.Baz)
+                        .BindExplicitly()
+                        .AllowContains()
+                        )
+                    )
+           );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_ObjectFilter_FooExplicitBarExplicitByGeneric()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<Foo>(
+                    x => x.BindExplicitly()
+                    .Filter(y => y.BarNested)
+                    .AllowObject<BarFilterType>()
+                    )
+           );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_ObjectFilter_FooExplicitBarImplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<Foo>(
+                    x => x.BindExplicitly()
+                    .Filter(y => y.BarNested)
+                    .AllowObject()
+                    )
+           );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
         [Fact]
         public void Create_ObjectFilter_BindExplicitly()
         {
@@ -196,19 +286,13 @@ namespace HotChocolate.Types.Filters
             public string Baz { get; set; }
         }
 
-        public class FooFilterType
-            : FilterInputType<Foo>
+        public class BarFilterType
+            : FilterInputType<Bar>
         {
             protected override void Configure(
-                IFilterInputTypeDescriptor<Foo> descriptor)
+                IFilterInputTypeDescriptor<Bar> descriptor)
             {
-                descriptor.BindExplicitly()
-                    .Filter(x => x.BarNested)
-                    .AllowObject(x =>
-                        x.BindExplicitly()
-                        .Filter(y => y.Baz)
-                    );
-
+                descriptor.BindExplicitly().Filter(x => x.Baz).BindExplicitly().AllowEquals().Name("test");
             }
         }
     }
