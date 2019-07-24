@@ -224,19 +224,31 @@ namespace HotChocolate.AspNetCore
             return builder.Create();
         }
 
-        protected async Task WriteResponseAsync(
+        protected Task WriteResponseAsync(
+            HttpResponse response,
+            IExecutionResult executionResult)
+        {
+            SetResponseHeaders(response);
+            return WriteBatchResponseAsync(response, executionResult);
+        }
+
+        protected async Task WriteBatchResponseAsync(
             HttpResponse response,
             IExecutionResult executionResult)
         {
             if (executionResult is IReadOnlyQueryResult queryResult)
             {
-                response.ContentType = ContentType.Json;
-                response.StatusCode = _ok;
-
                 await _resultSerializer.SerializeAsync(
                     queryResult, response.Body)
                     .ConfigureAwait(false);
             }
+        }
+
+        protected void SetResponseHeaders(
+            HttpResponse response)
+        {
+            response.ContentType = ContentType.Json;
+            response.StatusCode = _ok;
         }
     }
 }

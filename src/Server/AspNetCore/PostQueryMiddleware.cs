@@ -25,6 +25,9 @@ namespace HotChocolate.AspNetCore
     public class PostQueryMiddleware
         : QueryMiddlewareBase
     {
+        private const byte _leftBracket = (byte)'[';
+        private const byte _rightBracket = (byte)']';
+        private const byte _comma = (byte)',';
         private readonly RequestHelper _requestHelper;
         private readonly IQueryExecutor _queryExecutor;
         private readonly IBatchQueryExecutor _batchExecutor;
@@ -93,23 +96,48 @@ namespace HotChocolate.AspNetCore
                     .ExecuteAsync(request, context.GetCancellationToken())
                     .ConfigureAwait(false);
 
-                do
+                SetResponseHeaders(context.Response);
+
+                context.Response.Body.WriteByte(_leftBracket);
+
+                await WriteNextResultAsync(context, stream, false)
+                    .ConfigureAwait(false);
+
+                while (!stream.IsCompleted)
                 {
-                    IReadOnlyQueryResult result =
-                        await stream.ReadAsync(context.RequestAborted);
-
-                    if (result != null)
-                    {
-                        await WriteResponseAsync(context.Response, result)
-                            .ConfigureAwait(false);
-
-                        await context.Response.Body.FlushAsync(
-                            context.RequestAborted)
-                            .ConfigureAwait(false);
-                    }
+                    await WriteNextResultAsync(context, stream, true)
+                        .ConfigureAwait(false);
                 }
-                while (!stream.IsCompleted);
+
+                context.Response.Body.WriteByte(_rightBracket);
             }
+        }
+
+        private async Task WriteNextResultAsync(
+            HttpContext context,
+            IResponseStream stream,
+            bool delimiter)
+        {
+            IReadOnlyQueryResult result =
+                await stream.ReadAsync(context.RequestAborted)
+                    .ConfigureAwait(false);
+
+            if (result == null)
+            {
+                return;
+            }
+
+            if (delimiter)
+            {
+                context.Response.Body.WriteByte(_comma);
+            }
+
+            await WriteBatchResponseAsync(context.Response, result)
+                .ConfigureAwait(false);
+
+            await context.Response.Body.FlushAsync(
+                context.RequestAborted)
+                .ConfigureAwait(false);
         }
 
         private async Task<IReadOnlyList<IReadOnlyQueryRequest>>
