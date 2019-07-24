@@ -184,7 +184,7 @@ namespace HotChocolate.Types.Filters
         }
 
         public IObjectFilterFieldDescriptor<TObject> Filter<TObject>(
-            Expression<Func<T, TObject>> propertyOrMethod)
+            Expression<Func<T, TObject>> propertyOrMethod) where TObject : class
         {
             if (propertyOrMethod.ExtractMember() is PropertyInfo p)
             {

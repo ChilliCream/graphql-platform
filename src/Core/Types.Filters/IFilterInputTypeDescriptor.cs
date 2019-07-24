@@ -72,6 +72,6 @@ namespace HotChocolate.Types.Filters
         /// The property for which a filter shall be applied.
         /// </param>
         IObjectFilterFieldDescriptor<TObject> Filter<TObject>(
-            Expression<Func<T, TObject>> propertyOrMethod)
+            Expression<Func<T, TObject>> propertyOrMethod) where TObject : class;
     }
 }

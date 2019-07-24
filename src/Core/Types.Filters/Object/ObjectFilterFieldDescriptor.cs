@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property)
             : base(context, property)
         {
-            
+
             AllowedOperations = new HashSet<FilterOperationKind>
             {
                 FilterOperationKind.Equals
@@ -38,7 +38,7 @@ namespace HotChocolate.Types.Filters
         /// <inheritdoc/>
         public IObjectFilterFieldDescriptor<TObject> BindImplicitly() =>
             BindFilters(BindingBehavior.Implicit);
-        
+
 
         protected override FilterOperationDefintion CreateOperationDefinition(
             FilterOperationKind operationKind) =>
@@ -62,26 +62,25 @@ namespace HotChocolate.Types.Filters
 
         public IObjectFilterFieldDescriptor<TObject> AllowObject(Action<IFilterInputTypeDescriptor<TObject>> descriptor)
         {
-            var desc = FilterInputTypeDescriptor<TObject>.New(Context, typeof(TObject));
-            descriptor.Invoke(desc);
 
-            // TODO: I don't know how to initialize this type 
 
-            
-
+            var type = new FilterInputType<TObject>(descriptor);
+            var typeReference = new SchemaTypeReference(type);
             ObjectFilterOperationDescriptor<TObject> field =
                 CreateOperation(FilterOperationKind.Equals);
+            field.Type(typeReference);
             Filters.Add(field);
             return this;
         }
 
-        public IObjectFilterFieldDescriptor<TObject> AllowObject<TFilter>() where TFilter : IFilterInputTypeDescriptor<TObject>
+        public IObjectFilterFieldDescriptor<TObject> AllowObject<TFilter>() where TFilter : FilterInputType<TObject>
         {
-
-            // TODO: Do wee need to pass the generic TFilter to create Option?
             ObjectFilterOperationDescriptor<TObject> field =
                 CreateOperation(FilterOperationKind.Equals);
+            field.Type<TFilter>();
             Filters.Add(field);
+
+            return this;
         }
     }
 }
