@@ -14,6 +14,9 @@ namespace HotChocolate.Execution.Batching
     public class BatchQueryExecutionResult
         : IBatchQueryExecutionResult
     {
+        private static readonly IReadOnlyDictionary<string, object> _empty =
+            new Dictionary<string, object>();
+
         private readonly IQueryExecutor _executor;
         private readonly IErrorHandler _errorHandler;
         private readonly ITypeConversion _typeConversion;
@@ -46,11 +49,11 @@ namespace HotChocolate.Execution.Batching
             _visitor = new CollectVariablesVisitor(executor.Schema);
         }
 
-        public IReadOnlyCollection<IError> Errors { get; }
+        public IReadOnlyCollection<IError> Errors => Array.Empty<IError>();
 
-        public IReadOnlyDictionary<string, object> Extensions { get; }
+        public IReadOnlyDictionary<string, object> Extensions => _empty;
 
-        public IReadOnlyDictionary<string, object> ContextData { get; }
+        public IReadOnlyDictionary<string, object> ContextData => _empty;
 
         public bool IsCompleted { get; private set; }
 
@@ -96,7 +99,8 @@ namespace HotChocolate.Execution.Batching
 
                 var result =
                     (IReadOnlyQueryResult)await _executor.ExecuteAsync(
-                        request, cancellationToken);
+                        request, cancellationToken)
+                        .ConfigureAwait(false);
                 IsCompleted = _index >= _batch.Count;
                 return result;
             }
@@ -210,24 +214,17 @@ namespace HotChocolate.Execution.Batching
         {
             if (_executor.Schema.TryGetType(
                 type.NamedType().Name.Value,
-                out INamedInputType inputType))
+                out INamedInputType inputType)
+                && _typeConversion.TryConvert(
+                    typeof(object),
+                    inputType.ClrType,
+                    exported.Value,
+                    out var converted))
             {
-                if (_typeConversion.TryConvert(
-                        typeof(object),
-                        inputType.ClrType,
-                        exported.Value,
-                        out var converted))
-                {
-                    return inputType.Serialize(converted);
-                }
+                return inputType.Serialize(converted);
             }
 
-            // TODO : resources
-            throw new QueryException(
-                ErrorBuilder.New()
-                    .SetMessage("Could not serialize the specified variable.")
-                    .SetCode("BATCH_VAR_SERIALIZE")
-                    .Build());
+            ThrowSerializationError();
         }
 
         private void SerializeListValue(
@@ -239,43 +236,57 @@ namespace HotChocolate.Execution.Batching
                 type.NamedType().Name.Value,
                 out INamedInputType inputType))
             {
-                if (exported.Type.IsListType()
-                    && exported.Value is IEnumerable l)
-                {
-                    foreach (var o in l)
-                    {
-                        if (_typeConversion.TryConvert(
-                            typeof(object),
-                            inputType.ClrType,
-                            o,
-                            out var converted))
-                        {
-                            list.Add(inputType.Serialize(converted));
-                        }
-                        else
-                        {
-                            goto list_error;
-                        }
-                    }
-                }
-                else
+                SerializeListValue(exported, inputType, list);
+            }
+            else
+            {
+                ThrowSerializationError();
+            }
+        }
+
+        private void SerializeListValue(
+            ExportedVariable exported,
+            INamedInputType inputType,
+            ICollection<object> list)
+        {
+            if (exported.Type.IsListType()
+                && exported.Value is IEnumerable l)
+            {
+                foreach (var o in l)
                 {
                     if (_typeConversion.TryConvert(
                         typeof(object),
                         inputType.ClrType,
-                        exported.Value,
+                        o,
                         out var converted))
                     {
                         list.Add(inputType.Serialize(converted));
                     }
                     else
                     {
-                        goto list_error;
+                        ThrowSerializationError();
                     }
                 }
             }
+            else
+            {
+                if (_typeConversion.TryConvert(
+                    typeof(object),
+                    inputType.ClrType,
+                    exported.Value,
+                    out var converted))
+                {
+                    list.Add(inputType.Serialize(converted));
+                }
+                else
+                {
+                    ThrowSerializationError();
+                }
+            }
+        }
 
-        list_error:
+        private void ThrowSerializationError()
+        {
             // TODO : resources
             throw new QueryException(
                 ErrorBuilder.New()
@@ -283,7 +294,6 @@ namespace HotChocolate.Execution.Batching
                     .SetCode("BATCH_VAR_SERIALIZE")
                     .Build());
         }
-
         public void Dispose()
         {
             Dispose(true);
