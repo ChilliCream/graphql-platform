@@ -20,9 +20,12 @@ namespace HotChocolate.Execution.Batching
             new Dictionary<string, VariableDefinitionNode>();
         private readonly HashSet<string> _declared = new HashSet<string>();
         private readonly Stack<IType> _type = new Stack<IType>();
-        private readonly Stack<IOutputField> _field = new Stack<IOutputField>();
-        private readonly Stack<VisitorAction> _action = new Stack<VisitorAction>();
-        private readonly HashSet<string> _touchedFragments = new HashSet<string>();
+        private readonly Stack<IOutputField> _field =
+            new Stack<IOutputField>();
+        private readonly Stack<VisitorAction> _action =
+            new Stack<VisitorAction>();
+        private readonly HashSet<string> _touchedFragments =
+            new HashSet<string>();
         private readonly ISchema _schema;
 
         public CollectVariablesVisitor(ISchema schema)
@@ -183,7 +186,8 @@ namespace HotChocolate.Execution.Batching
                     node.Name.Value,
                     out VariableDefinitionNode d))
                 {
-                    if (type.IsNonNullType() && d.Type is INullableTypeNode nullable)
+                    if (type.IsNonNullType()
+                        && d.Type is INullableTypeNode nullable)
                     {
                         _variables[node.Name.Value] =
                             d.WithType(new NonNullTypeNode(nullable));
