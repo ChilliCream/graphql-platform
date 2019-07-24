@@ -428,7 +428,7 @@ namespace HotChocolate.Utilities
             return false;
         }
 
-        private static bool IsListType(Type type)
+        public static bool IsListType(Type type)
         {
             return type.IsArray
                 || typeof(ListType) == type

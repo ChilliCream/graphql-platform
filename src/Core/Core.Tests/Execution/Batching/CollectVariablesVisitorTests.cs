@@ -1,4 +1,5 @@
 using System.Linq;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.StarWars;
 using Snapshooter.Xunit;

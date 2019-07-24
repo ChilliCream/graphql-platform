@@ -433,5 +433,29 @@ namespace HotChocolate.Types
             throw new NotSupportedException(
                 TypeResources.TypeExtensions_KindIsNotSupported);
         }
+
+        internal static ITypeNode ToTypeNode(
+            this IType original,
+            INamedInputType inputType)
+        {
+            if (original is NonNullType nnt
+                && ToTypeNode(nnt.Type, inputType) is INullableTypeNode nntn)
+            {
+                return new NonNullTypeNode(null, nntn);
+            }
+
+            if (original is ListType lt)
+            {
+                return new ListTypeNode(null, ToTypeNode(lt.ElementType, inputType));
+            }
+
+            if (original is INamedType)
+            {
+                return new NamedTypeNode(null, new NameNode(inputType.Name));
+            }
+
+            throw new NotSupportedException(
+                TypeResources.TypeExtensions_KindIsNotSupported);
+        }
     }
 }

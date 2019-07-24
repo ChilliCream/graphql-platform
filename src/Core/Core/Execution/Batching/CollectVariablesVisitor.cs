@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Batching
@@ -215,7 +214,7 @@ namespace HotChocolate.Execution.Batching
                         (
                             null,
                             node,
-                            ToTypeNode(type, inputType),
+                            type.ToTypeNode(inputType),
                             NullValueNode.Default,
                             Array.Empty<DirectiveNode>()
                         );
@@ -329,28 +328,6 @@ namespace HotChocolate.Execution.Batching
             IReadOnlyList<ISyntaxNode> ancestors)
         {
             return VisitorAction.Continue;
-        }
-
-        private static ITypeNode ToTypeNode(IType original, INamedInputType inputType)
-        {
-            if (original is NonNullType nnt
-                && ToTypeNode(nnt.Type, inputType) is INullableTypeNode nntn)
-            {
-                return new NonNullTypeNode(null, nntn);
-            }
-
-            if (original is ListType lt)
-            {
-                return new ListTypeNode(null, ToTypeNode(lt.ElementType, inputType));
-            }
-
-            if (original is INamedType)
-            {
-                return new NamedTypeNode(null, new NameNode(inputType.Name));
-            }
-
-            throw new NotSupportedException(
-                TypeResources.TypeExtensions_KindIsNotSupported);
         }
     }
 }
