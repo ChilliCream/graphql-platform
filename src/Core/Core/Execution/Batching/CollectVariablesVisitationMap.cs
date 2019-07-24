@@ -30,6 +30,7 @@ namespace HotChocolate.Execution.Batching
             VariableNode node,
             IList<SyntaxNodeInfo> children)
         {
+            // we do not want to visit any nodes.
         }
 
         protected override void ResolveChildren(
