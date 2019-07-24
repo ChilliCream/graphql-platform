@@ -53,7 +53,9 @@ namespace HotChocolate.Execution
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                new QueryRequest("{ root { a { foo } b { foo } } }"));
+                QueryRequestBuilder.New()
+                    .SetQuery("{ root { a { foo } b { foo } } }")
+                    .Create());
 
             // assert
             result.MatchSnapshot();

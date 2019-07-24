@@ -5,6 +5,6 @@ namespace HotChocolate.Execution
 {
     public interface IQueryParser
     {
-        DocumentNode Parse(string queryText);
+        DocumentNode Parse(ReadOnlySpan<byte> source);
     }
 }

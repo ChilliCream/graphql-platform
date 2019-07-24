@@ -26,7 +26,7 @@ namespace HotChocolate.AspNetCore.Authorization
             return next.Invoke(context);
         };
 
-        private IQueryExecutor CreateExecutor()
+        private ISchema CreateSchema()
         {
             return Schema.Create(
                 SchemaCode,
@@ -34,24 +34,22 @@ namespace HotChocolate.AspNetCore.Authorization
                 {
                     configuration.RegisterAuthorizeDirectiveType();
                     configuration.Use(SchemaMiddleware);
-                })
-                .MakeExecutable();
+                });
         }
 
-        private IQueryExecutor CreateExecutorWithBuilder()
+        private ISchema CreateSchemaWithBuilder()
         {
             return SchemaBuilder.New()
                 .AddDocumentFromString(SchemaCode)
                 .AddAuthorizeDirectiveType()
                 .Use(SchemaMiddleware)
-                .Create()
-                .MakeExecutable();
+                .Create();
         }
 
         public IEnumerator<object[]> GetEnumerator()
         {
-            yield return new object[] { CreateExecutor() };
-            yield return new object[] { CreateExecutorWithBuilder() };
+            yield return new object[] { CreateSchema() };
+            yield return new object[] { CreateSchemaWithBuilder() };
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

@@ -1,18 +1,14 @@
-﻿using System;
+﻿using System.Collections.Immutable;
 using System.Collections.Generic;
+using System;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
-using HotChocolate.Resolvers.CodeGeneration;
-using HotChocolate.Resolvers.Expressions.Parameters;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types;
 using Moq;
-using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Resolvers.Expressions
@@ -738,6 +734,155 @@ namespace HotChocolate.Resolvers.Expressions
             Assert.True(result);
         }
 
+        [Fact]
+        public async Task Compile_Arguments_ContextData()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("ResolveWithContextData");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+            var contextData = new Dictionary<string, object>
+            {
+                { "foo", "bar"}
+            };
+
+            // act
+            var compiler = new ResolverCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.Setup(t => t.ContextData).Returns(contextData);
+            string result = (string)await resolver.Resolver(context.Object);
+            Assert.Equal("bar", result);
+        }
+
+        [Fact]
+        public async Task Compile_Arguments_ContextData_DefaultValue()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("ResolveWithContextDataDefault");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+            var contextData = new Dictionary<string, object>();
+
+            // act
+            var compiler = new ResolverCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.Setup(t => t.ContextData).Returns(contextData);
+            object result = await resolver.Resolver(context.Object);
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public void Compile_Arguments_ContextData_NotExists()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("ResolveWithContextData");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+            var contextData = new Dictionary<string, object>();
+
+            // act
+            var compiler = new ResolverCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.Setup(t => t.ContextData).Returns(contextData);
+            Action action = () => resolver.Resolver(context.Object);
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public async Task Compile_Arguments_ScopedContextData()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("ResolveWithScopedContextData");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+            var contextData = ImmutableDictionary<string, object>.Empty
+                .SetItem("foo", "bar");
+
+            // act
+            var compiler = new ResolverCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.Setup(t => t.ScopedContextData).Returns(contextData);
+            string result = (string)await resolver.Resolver(context.Object);
+            Assert.Equal("bar", result);
+        }
+
+        [Fact]
+        public async Task Compile_Arguments_ScopedContextData_DefaultValue()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("ResolveWithScopedContextDataDefault");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+            var contextData = ImmutableDictionary<string, object>.Empty;
+
+            // act
+            var compiler = new ResolverCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.Setup(t => t.ScopedContextData).Returns(contextData);
+            object result = await resolver.Resolver(context.Object);
+            Assert.Null(result);
+        }
+
+        [Fact]
+        public void Compile_Arguments_ScopedContextData_NotExists()
+        {
+            // arrange
+            Type type = typeof(Resolvers);
+            MemberInfo resolverMember =
+                type.GetMethod("ResolveWithScopedContextData");
+            var resolverDescriptor = new ResolverDescriptor(
+                type,
+                new FieldMember("A", "b", resolverMember));
+            var contextData = ImmutableDictionary<string, object>.Empty;
+
+            // act
+            var compiler = new ResolverCompiler();
+            FieldResolver resolver = compiler.Compile(resolverDescriptor);
+
+            // assert
+            var context = new Mock<IResolverContext>();
+            context.Setup(t => t.Parent<Resolvers>()).Returns(new Resolvers());
+            context.Setup(t => t.ScopedContextData).Returns(contextData);
+            Action action = () => resolver.Resolver(context.Object);
+            Assert.Throws<ArgumentException>(action);
+        }
+
+
         public class Resolvers
         {
             public Task<object> ObjectTaskResolver() =>
@@ -806,6 +951,19 @@ namespace HotChocolate.Resolvers.Expressions
             public bool ResolverWithService(
                 [Service]MyService service) =>
                 service != null;
+
+            public string ResolveWithContextData(
+                [State("foo")]string s) => s;
+
+            public string ResolveWithContextDataDefault(
+                [State("foo", DefaultIfNotExists = true)]string s) => s;
+
+            public string ResolveWithScopedContextData(
+                [State("foo", IsScoped = true)]string s) => s;
+
+            public string ResolveWithScopedContextDataDefault(
+                [State("foo", IsScoped = true, DefaultIfNotExists = true)]
+                string s) => s;
         }
 
         public class Entity { }

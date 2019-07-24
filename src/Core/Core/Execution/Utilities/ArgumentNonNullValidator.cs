@@ -1,7 +1,5 @@
 using System.Collections.Generic;
-using System.Globalization;
 using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution
@@ -92,7 +90,7 @@ namespace HotChocolate.Execution
             return default;
         }
 
-        internal ref struct Report
+        internal readonly ref struct Report
         {
             internal Report(IType type, Path path)
             {
@@ -102,7 +100,9 @@ namespace HotChocolate.Execution
             }
 
             public bool HasErrors { get; }
+
             public Path Path { get; }
+
             public IType Type { get; }
         }
     }

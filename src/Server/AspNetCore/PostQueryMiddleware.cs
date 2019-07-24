@@ -1,10 +1,10 @@
+using System.Collections.Generic;
 using System;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using Newtonsoft.Json;
-using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Language;
+using HotChocolate.Server;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -23,13 +23,23 @@ namespace HotChocolate.AspNetCore
     public class PostQueryMiddleware
         : QueryMiddlewareBase
     {
+        private readonly RequestHelper _requestHelper;
+
         public PostQueryMiddleware(
             RequestDelegate next,
             IQueryExecutor queryExecutor,
             IQueryResultSerializer resultSerializer,
+            IDocumentCache documentCache,
+            IDocumentHashProvider documentHashProvider,
             QueryMiddlewareOptions options)
                 : base(next, queryExecutor, resultSerializer, options)
-        { }
+        {
+            _requestHelper = new RequestHelper(
+                documentCache,
+                documentHashProvider,
+                options.MaxRequestSize,
+                options.ParserOptions);
+        }
 
         protected override bool CanHandleRequest(HttpContext context)
         {
@@ -40,39 +50,41 @@ namespace HotChocolate.AspNetCore
         }
 
         protected override async Task<IQueryRequestBuilder>
-            CreateQueryRequestAsync(HttpContext context)
+            OnCreateQueryRequestAsync(HttpContext context)
         {
-            QueryRequestDto request = await ReadRequestAsync(context)
-                .ConfigureAwait(false);
-
-            return QueryRequestBuilder.New()
-                .SetQuery(request.Query)
-                .SetOperation(request.OperationName)
-                .SetVariableValues(
-                    QueryMiddlewareUtilities.ToDictionary(request.Variables));
-        }
-
-        private static async Task<QueryRequestDto> ReadRequestAsync(
-            HttpContext context)
-        {
-            using (var reader = new StreamReader(context.Request.Body,
-                Encoding.UTF8))
+            using (Stream stream = context.Request.Body)
             {
-                string content = await reader.ReadToEndAsync()
-                    .ConfigureAwait(false);
+                IReadOnlyList<GraphQLRequest> batch = null;
 
                 switch (context.Request.ContentType.Split(';')[0])
                 {
                     case ContentType.Json:
-                        return JsonConvert.DeserializeObject<QueryRequestDto>(
-                            content, QueryMiddlewareUtilities.JsonSettings);
+                        batch = await _requestHelper
+                            .ReadJsonRequestAsync(stream)
+                            .ConfigureAwait(false);
+                        break;
 
                     case ContentType.GraphQL:
-                        return new QueryRequestDto { Query = content };
+                        batch = await _requestHelper
+                            .ReadGraphQLQueryAsync(stream)
+                            .ConfigureAwait(false);
+                        break;
 
                     default:
                         throw new NotSupportedException();
                 }
+
+
+                // TODO : batching support has to be added later
+                GraphQLRequest request = batch[0];
+
+                return QueryRequestBuilder.New()
+                    .SetQuery(request.Query)
+                    .SetQueryName(request.QueryName)
+                    .SetQueryName(request.QueryName) // TODO : we should have a hash here
+                    .SetOperation(request.OperationName)
+                    .SetVariableValues(request.Variables)
+                    .SetProperties(request.Extensions);
             }
         }
     }

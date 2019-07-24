@@ -1,25 +1,44 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Language;
 
 namespace HotChocolate.Execution
 {
     public interface IQueryRequestBuilder
     {
         IQueryRequestBuilder SetQuery(
-            string query);
+            string querySource);
+        IQueryRequestBuilder SetQuery(
+            DocumentNode queryDocument);
+        IQueryRequestBuilder SetQueryName(
+            string queryName);
+        IQueryRequestBuilder SetQueryHash(
+            string hash);
         IQueryRequestBuilder SetOperation(
             string operationName);
         IQueryRequestBuilder SetVariableValues(
+            Dictionary<string, object> variableValues);
+        IQueryRequestBuilder SetVariableValues(
             IDictionary<string, object> variableValues);
+        IQueryRequestBuilder SetVariableValues(
+            IReadOnlyDictionary<string, object> variableValues);
         IQueryRequestBuilder AddVariableValue(
+            string name, object value);
+        IQueryRequestBuilder TryAddVariableValue(
             string name, object value);
         IQueryRequestBuilder SetVariableValue(
             string name, object value);
         IQueryRequestBuilder SetInitialValue(
             object initialValue);
         IQueryRequestBuilder SetProperties(
+            Dictionary<string, object> properties);
+        IQueryRequestBuilder SetProperties(
             IDictionary<string, object> properties);
+        IQueryRequestBuilder SetProperties(
+            IReadOnlyDictionary<string, object> properties);
         IQueryRequestBuilder AddProperty(
+            string name, object value);
+        IQueryRequestBuilder TryAddProperty(
             string name, object value);
         IQueryRequestBuilder SetProperty(
             string name, object value);

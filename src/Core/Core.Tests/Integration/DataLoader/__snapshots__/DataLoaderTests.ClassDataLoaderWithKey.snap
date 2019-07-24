@@ -1,0 +1,39 @@
+﻿[
+  {
+    "Data": {
+      "a": "a",
+      "b": "b"
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  },
+  {
+    "Data": {
+      "a": "a"
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  },
+  {
+    "Data": {
+      "c": "c"
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  },
+  {
+    "Data": {
+      "loads": [],
+      "loads2": [
+        "a, b",
+        "c"
+      ]
+    },
+    "Extensions": {},
+    "Errors": [],
+    "ContextData": {}
+  }
+]

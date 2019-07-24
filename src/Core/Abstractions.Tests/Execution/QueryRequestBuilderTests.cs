@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
@@ -16,6 +17,22 @@ namespace HotChocolate.Execution.Tests
             IReadOnlyQueryRequest request =
                 QueryRequestBuilder.New()
                     .SetQuery("{ foo }")
+                    .Create();
+
+            // assert
+            request.MatchSnapshot();
+        }
+
+        [Fact]
+        public void BuildRequest_OnlyQueryDocIsSet_RequestHasOnlyQuery()
+        {
+            // arrange
+            DocumentNode query = Utf8GraphQLParser.Parse("{ foo }");
+
+            // act
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery(query)
                     .Create();
 
             // assert
@@ -49,7 +66,7 @@ namespace HotChocolate.Execution.Tests
                     .Create();
 
             // assert
-            Assert.Equal("query",
+            Assert.Equal("querySource",
                 Assert.Throws<ArgumentException>(action).ParamName);
         }
 
@@ -310,6 +327,68 @@ namespace HotChocolate.Execution.Tests
                     .AddVariableValue("two", "bar")
                     .SetServices(new DictionaryServiceProvider(
                         service.GetType(), service))
+                    .Create();
+
+            // assert
+            request.MatchSnapshot();
+        }
+
+        [Fact]
+        public void BuildRequest_QueryAndTryAddProperties_PropertyIsSet()
+        {
+            // arrange
+            // act
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ foo }")
+                    .TryAddProperty("one", "bar")
+                    .Create();
+
+            // assert
+            request.MatchSnapshot();
+        }
+
+        [Fact]
+        public void BuildRequest_QueryAndTryAddProperties_PropertyIsNotSet()
+        {
+            // arrange
+            // act
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ foo }")
+                    .AddProperty("one", "foo")
+                    .TryAddProperty("one", "bar")
+                    .Create();
+
+            // assert
+            request.MatchSnapshot();
+        }
+
+        [Fact]
+        public void BuildRequest_QueryAndTryAddVariable_VariableIsSet()
+        {
+            // arrange
+            // act
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ foo }")
+                    .TryAddVariableValue("one", "bar")
+                    .Create();
+
+            // assert
+            request.MatchSnapshot();
+        }
+
+        [Fact]
+        public void BuildRequest_QueryAndTryAddVariable_VariableIsNotSet()
+        {
+            // arrange
+            // act
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ foo }")
+                    .AddVariableValue("one", "foo")
+                    .TryAddVariableValue("one", "bar")
                     .Create();
 
             // assert

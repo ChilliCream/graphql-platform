@@ -196,7 +196,7 @@ namespace HotChocolate.Language
                         name
                     }
                 }
-            }");
+            }".NormalizeLineBreaks());
 
             // act
             var parser = new Utf8GraphQLParser(
@@ -214,7 +214,8 @@ namespace HotChocolate.Language
         {
             // arrange
             byte[] sourceText = Encoding.UTF8.GetBytes(
-                FileResource.Open("IntrospectionQuery.graphql"));
+                FileResource.Open("IntrospectionQuery.graphql")
+                    .NormalizeLineBreaks());
 
             // act
             var parser = new Utf8GraphQLParser(
@@ -230,7 +231,8 @@ namespace HotChocolate.Language
         {
             // arrange
             byte[] sourceText = Encoding.UTF8.GetBytes(
-                FileResource.Open("kitchen-sink.graphql"));
+                FileResource.Open("kitchen-sink.graphql")
+                    .NormalizeLineBreaks());
 
             // act
             var parser = new Utf8GraphQLParser(
@@ -246,7 +248,8 @@ namespace HotChocolate.Language
         {
             // arrange
             byte[] sourceText = Encoding.UTF8.GetBytes(
-                FileResource.Open("QueryWithStringArg.graphql"));
+                FileResource.Open("QueryWithStringArg.graphql")
+                    .NormalizeLineBreaks());
 
             // act
             var parser = new Utf8GraphQLParser(
@@ -455,6 +458,23 @@ namespace HotChocolate.Language
 
             Assert.Equal(s,
                 Assert.IsType<StringValueNode>(value).Value);
+        }
+
+        [Fact]
+        public void RussionLiterals()
+        {
+            // arrange
+            byte[] sourceText = Encoding.UTF8.GetBytes(
+                FileResource.Open("russion-literals.graphql")
+                    .NormalizeLineBreaks());
+
+            // act
+            var parser = new Utf8GraphQLParser(
+                sourceText, ParserOptions.Default);
+            DocumentNode document = parser.Parse();
+
+            // assert
+            document.MatchSnapshot();
         }
     }
 }
