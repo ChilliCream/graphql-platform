@@ -116,6 +116,14 @@ namespace HotChocolate.Types.Filters
                 return true;
             }
 
+            if (property.PropertyType.IsClass)
+            {
+                var field = new ObjectFilterFieldDescriptor(
+                    Context, property, property.PropertyType);
+                definition = field.CreateDefinition();
+                return true;
+            }
+
             definition = null;
             return false;
         }

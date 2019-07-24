@@ -5,14 +5,76 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Filters
 {
+    public class ObjectFilterFieldDescriptor
+       : FilterFieldDescriptorBase
+       , IObjectFilterFieldDescriptor
+    {
+        private readonly Type type;
+        public ObjectFilterFieldDescriptor(
+            IDescriptorContext context,
+            PropertyInfo property,
+            Type type)
+            : base(context, property)
+        {
+            this.type = type;
+            AllowedOperations = new HashSet<FilterOperationKind>
+            {
+                FilterOperationKind.Equals
+            };
+        }
+
+        protected override ISet<FilterOperationKind> AllowedOperations { get; }
+
+        /// <inheritdoc/>
+        public new IObjectFilterFieldDescriptor BindFilters(
+            BindingBehavior bindingBehavior)
+        {
+            base.BindFilters(bindingBehavior);
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public IObjectFilterFieldDescriptor BindExplicitly() =>
+            BindFilters(BindingBehavior.Explicit);
+
+        /// <inheritdoc/>
+        public IObjectFilterFieldDescriptor BindImplicitly() =>
+            BindFilters(BindingBehavior.Implicit);
+
+
+        protected override FilterOperationDefintion CreateOperationDefinition(
+            FilterOperationKind operationKind) =>
+            CreateOperation(operationKind).CreateDefinition();
+
+        private ObjectFilterOperationDescriptor CreateOperation(
+            FilterOperationKind operationKind)
+        {
+            var operation = new FilterOperation(
+                type,
+                operationKind,
+                Definition.Property);
+
+            var opetationDescirptor = ObjectFilterOperationDescriptor.New(
+                Context,
+                this,
+                CreateFieldName(operationKind),
+                RewriteType(operationKind),
+                operation);
+            ;
+            opetationDescirptor.Type(new ClrTypeReference(typeof(FilterInputType<>).MakeGenericType(type), Definition.Type.Context, true, true));
+            return opetationDescirptor;
+        }
+
+    }
+
     public class ObjectFilterFieldDescriptor<TObject>
-        : FilterFieldDescriptorBase
+        : ObjectFilterFieldDescriptor
         , IObjectFilterFieldDescriptor<TObject>
     {
         public ObjectFilterFieldDescriptor(
             IDescriptorContext context,
             PropertyInfo property)
-            : base(context, property)
+            : base(context, property, typeof(TObject))
         {
 
             AllowedOperations = new HashSet<FilterOperationKind>
@@ -32,11 +94,11 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <inheritdoc/>
-        public IObjectFilterFieldDescriptor<TObject> BindExplicitly() =>
+        public new IObjectFilterFieldDescriptor<TObject> BindExplicitly() =>
             BindFilters(BindingBehavior.Explicit);
 
         /// <inheritdoc/>
-        public IObjectFilterFieldDescriptor<TObject> BindImplicitly() =>
+        public new IObjectFilterFieldDescriptor<TObject> BindImplicitly() =>
             BindFilters(BindingBehavior.Implicit);
 
 
@@ -62,8 +124,6 @@ namespace HotChocolate.Types.Filters
 
         public IObjectFilterFieldDescriptor<TObject> AllowObject(Action<IFilterInputTypeDescriptor<TObject>> descriptor)
         {
-
-
             var type = new FilterInputType<TObject>(descriptor);
             var typeReference = new SchemaTypeReference(type);
             ObjectFilterOperationDescriptor<TObject> field =
