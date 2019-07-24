@@ -31,22 +31,76 @@ namespace HotChocolate.Execution.Batching
 
         public ISchema Schema => _executor.Schema;
 
-        public Task<IBatchQueryExecutionResult> ExecuteAsync(
+        public async Task<IBatchQueryExecutionResult> ExecuteAsync(
             IReadOnlyList<IReadOnlyQueryRequest> batch,
             CancellationToken cancellationToken)
         {
+            var variables = new ConcurrentBag<ExportedVariable>();
+            var visitor = new CollectVariablesVisitor(Schema);
+            var visitationMap = new CollectVariablesVisitationMap();
 
+            Dictionary<string, FragmentDefinitionNode> fragments = null;
+            DocumentNode previous = null;
 
-            for (int i = 0; i < batch.Count; i++)
+            for (var i = 0; i < batch.Count; i++)
             {
+                IReadOnlyQueryRequest request = batch[i];
 
+                DocumentNode document = request.Query is QueryDocument d
+                    ? d.Document
+                    : Utf8GraphQLParser.Parse(request.Query.ToSource());
 
+                OperationDefinitionNode operation =
+                    document.GetOperation(request.OperationName);
+
+                if (document != previous)
+                {
+                    fragments = document.GetFragments();
+                    visitationMap.Initialize(fragments);
+                }
+
+                operation.Accept(
+                    visitor,
+                    visitationMap,
+                    n => VisitorAction.Continue);
+
+                previous = document;
+                document = RewriteDocument(operation, fragments, visitor);
+
+                var requestBuilder = QueryRequestBuilder.From(request);
+                requestBuilder.SetQuery(document);
+
+                IExecutionResult result =
+                    (IReadOnlyQueryResult)await _executor.ExecuteAsync(
+                        requestBuilder.Create(), cancellationToken);
 
             }
 
             throw new NotImplementedException();
 
         }
+
+        private DocumentNode RewriteDocument(
+            OperationDefinitionNode operation,
+            IReadOnlyDictionary<string, FragmentDefinitionNode> fragments,
+            CollectVariablesVisitor visitor)
+        {
+            var definitions = new List<IDefinitionNode>();
+
+            var variables = operation.VariableDefinitions.ToList();
+            variables.AddRange(visitor.VariableDeclarations);
+            operation = operation.WithVariableDefinitions(variables);
+            definitions.Add(operation);
+
+            foreach (string fragmentName in visitor.TouchedFragments)
+            {
+                definitions.Add(fragments[fragmentName]);
+            }
+
+            return new DocumentNode(definitions);
+        }
+
+
 
 
 
@@ -67,6 +121,12 @@ namespace HotChocolate.Execution.Batching
         private readonly IReadOnlyList<IReadOnlyQueryRequest> _batch;
         private readonly ConcurrentBag<ExportedVariable> _exportedVariables =
             new ConcurrentBag<ExportedVariable>();
+        private readonly CollectVariablesVisitor _visitor;
+        private readonly CollectVariablesVisitationMap _visitationMap =
+            new CollectVariablesVisitationMap();
+
+        private DocumentNode _previous;
+        private Dictionary<string, FragmentDefinitionNode> _fragments;
         private int _index = 0;
 
         public BatchQueryExecutionResult(
@@ -77,6 +137,8 @@ namespace HotChocolate.Execution.Batching
                 ?? throw new ArgumentNullException(nameof(executor));
             _batch = batch
                 ?? throw new ArgumentNullException(nameof(batch));
+
+            _visitor = new CollectVariablesVisitor(executor.Schema);
         }
 
         public IReadOnlyCollection<IError> Errors { get; }
@@ -93,45 +155,64 @@ namespace HotChocolate.Execution.Batching
         public async Task<IReadOnlyQueryResult> ReadAsync(
             CancellationToken cancellationToken)
         {
-            IReadOnlyQueryRequest request = CreateNextRequest();
-            var result = (IReadOnlyQueryResult)await _executor
-                .ExecuteAsync(request, cancellationToken)
-                .ConfigureAwait(false);
-            IsCompleted = _index >= _batch.Count;
-            return result;
-        }
-
-        private IReadOnlyQueryRequest CreateNextRequest()
-        {
-            IReadOnlyQueryRequest request = _batch[_index];
+            IReadOnlyQueryRequest request = _batch[_index++];
 
             DocumentNode document = request.Query is QueryDocument d
                 ? d.Document
                 : Utf8GraphQLParser.Parse(request.Query.ToSource());
 
-            var visitor = _collectVars.Value;
-            // visitor.Prepare(request.OperationName);
-            document.Accept(visitor);
+            OperationDefinitionNode operation =
+                document.GetOperation(request.OperationName);
 
-/*
-            HashSet<string> _names =
-
-            IDefinitionNode[] definitions = document.Definitions.ToArray();
-            for (var i = 0; i < definitions.Length; i++)
+            if (document != _previous)
             {
-                if (definitions[i] is OperationDefinitionNode op
-                    && (request.OperationName == null
-                        || request.OperationName.Equals(
-                            op.Name.Value,
-                            StringComparison.Ordinal)))
-                {
-
-
-                    break;
-                }
+                _fragments = document.GetFragments();
+                _visitationMap.Initialize(_fragments);
             }
-             */
-            throw new NotImplementedException();
+
+            operation.Accept(
+                _visitor,
+                _visitationMap,
+                n => VisitorAction.Continue);
+
+            _previous = document;
+
+            request = QueryRequestBuilder.From(request)
+                .SetQuery(
+                    RewriteDocument(operation))
+                .SetVariableValues(
+                    MergeVariables(request.VariableValues, operation))
+                .Create();
+
+            var result =
+                (IReadOnlyQueryResult)await _executor.ExecuteAsync(
+                    request, cancellationToken);
+            IsCompleted = _index >= _batch.Count;
+            return result;
+        }
+
+        private DocumentNode RewriteDocument(
+            OperationDefinitionNode operation)
+        {
+            var definitions = new List<IDefinitionNode>();
+
+            var variables = operation.VariableDefinitions.ToList();
+            variables.AddRange(_visitor.VariableDeclarations);
+            operation = operation.WithVariableDefinitions(variables);
+            definitions.Add(operation);
+
+            foreach (string fragmentName in _visitor.TouchedFragments)
+            {
+                definitions.Add(_fragments[fragmentName]);
+            }
+
+            return new DocumentNode(definitions);
+        }
+
+        private IReadOnlyDictionary<string, object> MergeVariables(
+            IReadOnlyDictionary<string, object> variables,
+            OperationDefinitionNode operation)
+        {
 
         }
 

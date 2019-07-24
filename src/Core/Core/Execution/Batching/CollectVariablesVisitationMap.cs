@@ -7,22 +7,13 @@ namespace HotChocolate.Execution.Batching
     public sealed class CollectVariablesVisitationMap
         : VisitationMap
     {
-        private readonly Dictionary<string, FragmentDefinitionNode> _fragments =
-            new Dictionary<string, FragmentDefinitionNode>();
+        private IReadOnlyDictionary<string, FragmentDefinitionNode> _fragments;
 
-        public void Initialize(IEnumerable<FragmentDefinitionNode> fragments)
+        public void Initialize(
+            IReadOnlyDictionary<string, FragmentDefinitionNode> fragments)
         {
-            if (fragments == null)
-            {
-                throw new ArgumentNullException(nameof(fragments));
-            }
-
-            _fragments.Clear();
-
-            foreach (FragmentDefinitionNode fragment in fragments)
-            {
-                _fragments[fragment.Name.Value] = fragment;
-            }
+            _fragments = fragments
+                ?? throw new ArgumentNullException(nameof(fragments));
         }
 
         protected override void ResolveChildren(

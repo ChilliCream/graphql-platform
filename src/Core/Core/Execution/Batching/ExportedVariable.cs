@@ -13,8 +13,11 @@ namespace HotChocolate.Execution.Batching
             Value = value;
 
         }
+
         public string Name { get; }
+
         public IType Type { get; }
+
         public object Value { get; }
     }
 }

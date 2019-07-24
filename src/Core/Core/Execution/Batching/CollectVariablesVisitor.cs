@@ -23,6 +23,7 @@ namespace HotChocolate.Execution.Batching
         private readonly Stack<IType> _type = new Stack<IType>();
         private readonly Stack<IOutputField> _field = new Stack<IOutputField>();
         private readonly Stack<VisitorAction> _action = new Stack<VisitorAction>();
+        private readonly HashSet<string> _touchedFragments = new HashSet<string>();
         private readonly ISchema _schema;
 
         public CollectVariablesVisitor(ISchema schema)
@@ -31,8 +32,10 @@ namespace HotChocolate.Execution.Batching
         }
 
         public IReadOnlyCollection<VariableDefinitionNode>
-            GetVariableDeclarations() =>
+            VariableDeclarations =>
                 _variables.Values;
+        public IReadOnlyCollection<string> TouchedFragments =>
+            _touchedFragments;
 
         public VisitorAction Enter(
             OperationDefinitionNode node,
@@ -44,6 +47,7 @@ namespace HotChocolate.Execution.Batching
             _field.Clear();
             _type.Clear();
             _action.Clear();
+            _touchedFragments.Clear();
 
             ObjectType type = _schema.GetOperationType(node.Operation);
             _type.Push(type);
@@ -286,6 +290,7 @@ namespace HotChocolate.Execution.Batching
                 node.TypeCondition.Name.Value,
                 out INamedType type))
             {
+                _touchedFragments.Add(node.Name.Value);
                 _type.Push(type);
                 _action.Push(VisitorAction.Continue);
                 return VisitorAction.Continue;

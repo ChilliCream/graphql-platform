@@ -39,7 +39,7 @@ namespace HotChocolate.Execution.Batching
 
             // assert
             var variables = operation.VariableDefinitions.ToList();
-            variables.AddRange(visitor.GetVariableDeclarations());
+            variables.AddRange(visitor.VariableDeclarations);
             operation = operation.WithVariableDefinitions(variables);
 
             QuerySyntaxSerializer.Serialize(
