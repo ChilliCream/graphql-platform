@@ -36,5 +36,10 @@ namespace HotChocolate.Types.Filters
         /// </summary>
         IObjectFilterFieldDescriptor BindImplicitly();
 
+        /// <summary>
+        /// Allow object filter operations.
+        /// </summary>
+        IObjectFilterOperationDescriptor AllowObject();
+
     }
 }

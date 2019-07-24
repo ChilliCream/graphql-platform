@@ -54,15 +54,22 @@ namespace HotChocolate.Types.Filters
                 operationKind,
                 Definition.Property);
 
-            var opetationDescirptor = ObjectFilterOperationDescriptor.New(
+            return ObjectFilterOperationDescriptor.New(
                 Context,
                 this,
                 CreateFieldName(operationKind),
-                RewriteType(operationKind),
+                new ClrTypeReference(typeof(FilterInputType<>).MakeGenericType(type), Definition.Type.Context, true, true),
                 operation);
             ;
-            opetationDescirptor.Type(new ClrTypeReference(typeof(FilterInputType<>).MakeGenericType(type), Definition.Type.Context, true, true));
-            return opetationDescirptor;
+        }
+
+
+        public IObjectFilterOperationDescriptor AllowObject()
+        { 
+            ObjectFilterOperationDescriptor field =
+                CreateOperation(FilterOperationKind.Equals);
+            Filters.Add(field);
+            return field;
         }
 
     }
