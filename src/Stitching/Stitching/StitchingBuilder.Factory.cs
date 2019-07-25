@@ -91,7 +91,6 @@ namespace HotChocolate.Stitching
                 mergedSchema = AddExtensions(mergedSchema, extensions);
                 mergedSchema = RewriteMerged(builder, mergedSchema);
                 mergedSchema = RemoveBuiltInTypes(mergedSchema);
-                mergedSchema = RemoveDirectives(mergedSchema);
 
                 VisitMerged(builder, mergedSchema);
 
@@ -281,12 +280,6 @@ namespace HotChocolate.Stitching
                 }
 
                 return new DocumentNode(definitions);
-            }
-
-            private static DocumentNode RemoveDirectives(DocumentNode document)
-            {
-                var rewriter = new RemoveDirectivesRewriter();
-                return rewriter.RemoveDirectives(document);
             }
         }
     }
