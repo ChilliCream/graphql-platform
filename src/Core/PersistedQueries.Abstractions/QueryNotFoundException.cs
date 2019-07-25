@@ -3,7 +3,8 @@ using System;
 namespace HotChocolate.PersistedQueries
 {
     /// <summary>
-    /// Represents an error in finding a stored query.
+    /// The exception is thrown when the specified query Id
+    /// is not able to be found in the persistence medium.
     /// </summary>
     public class QueryNotFoundException : Exception
     {

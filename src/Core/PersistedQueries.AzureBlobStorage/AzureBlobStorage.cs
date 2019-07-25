@@ -14,6 +14,7 @@ namespace HotChocolate.PersistedQueries.AzureBlobStorage
     /// </summary>
     public class AzureBlobStorage : IReadStoredQueries
     {
+        private const string ContainerNotFoundErrorCode = "ContainerNotFound";
         private const string BlobNotFoundErrorCode = "BlobNotFound";
         
         private readonly CloudBlobContainer _container;
@@ -66,8 +67,12 @@ namespace HotChocolate.PersistedQueries.AzureBlobStorage
             }
             catch (StorageException e)
             {
-                if (e.RequestInformation.ErrorCode == BlobNotFoundErrorCode ||
-                    e.RequestInformation.HttpStatusCode == (int)HttpStatusCode.NotFound)
+                if (e.RequestInformation.ErrorCode == ContainerNotFoundErrorCode)
+                {
+                    throw new QueryContainerNotFoundException(_container.Name);
+                }
+                
+                if (e.RequestInformation.ErrorCode == BlobNotFoundErrorCode)
                 {
                     throw new QueryNotFoundException(queryId);
                 }
