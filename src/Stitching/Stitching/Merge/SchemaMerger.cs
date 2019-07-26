@@ -101,7 +101,7 @@ namespace HotChocolate.Stitching.Merge
             MergeRootType(context, OperationType.Subscription, schemas, merge);
 
             // merge all other types
-            MergeTypes(context, CreateNameSet(schemas), schemas, merge);
+            MergeTypes(context, CreateTypesNameSet(schemas), schemas, merge);
 
             return RewriteTypeReferences(schemas, context.CreateSchema());
         }
@@ -276,7 +276,7 @@ namespace HotChocolate.Stitching.Merge
             }
         }
 
-        private static ISet<string> CreateNameSet(
+        private static ISet<string> CreateTypesNameSet(
             IEnumerable<ISchemaInfo> schemas)
         {
             HashSet<string> names = new HashSet<string>();
