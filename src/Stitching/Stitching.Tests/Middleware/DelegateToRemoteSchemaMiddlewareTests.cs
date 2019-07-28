@@ -679,8 +679,6 @@ namespace HotChocolate.Stitching
             serviceCollection.AddStitchedSchema(builder =>
                 builder.AddSchemaFromHttp("contract")
                     .AddSchemaFromHttp("customer")
-                    .AddExtensionsFromString(
-                        "directive @custom(d: DateTime) on FIELD")
                     .AddSchemaConfiguration(c =>
                     {
                         c.RegisterExtendedScalarTypes();
@@ -728,8 +726,6 @@ namespace HotChocolate.Stitching
             serviceCollection.AddStitchedSchema(builder =>
                 builder.AddSchemaFromHttp("contract")
                     .AddSchemaFromHttp("customer")
-                    .AddExtensionsFromString(
-                        "directive @custom(d: DateTime) on FIELD")
                     .AddSchemaConfiguration(c =>
                     {
                         c.RegisterExtendedScalarTypes();
