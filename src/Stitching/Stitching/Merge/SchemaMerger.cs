@@ -90,18 +90,20 @@ namespace HotChocolate.Stitching.Merge
 
         public DocumentNode Merge()
         {
-            MergeTypeRuleDelegate merge = CompileMergeDelegate();
+            MergeTypeRuleDelegate mergeTypes = CompileMergeTypeDelegate();
+            MergeDirectiveRuleDelegate mergeDirectives = CompileMergeDirectiveDelegate();
             IReadOnlyList<ISchemaInfo> schemas = CreateSchemaInfos();
 
             var context = new SchemaMergeContext();
 
             // merge root types
-            MergeRootType(context, OperationType.Query, schemas, merge);
-            MergeRootType(context, OperationType.Mutation, schemas, merge);
-            MergeRootType(context, OperationType.Subscription, schemas, merge);
+            MergeRootType(context, OperationType.Query, schemas, mergeTypes);
+            MergeRootType(context, OperationType.Mutation, schemas, mergeTypes);
+            MergeRootType(context, OperationType.Subscription, schemas, mergeTypes);
 
             // merge all other types
-            MergeTypes(context, CreateTypesNameSet(schemas), schemas, merge);
+            MergeTypes(context, CreateTypesNameSet(schemas), schemas, mergeTypes);
+            MergeDirectives(context, CreateDirectivesNameSet(schemas), schemas, mergeDirectives);
 
             return RewriteTypeReferences(schemas, context.CreateSchema());
         }
@@ -292,6 +294,37 @@ namespace HotChocolate.Stitching.Merge
             return names;
         }
 
+        private static ISet<string> CreateDirectivesNameSet(
+           IEnumerable<ISchemaInfo> schemas)
+        {
+            HashSet<string> names = new HashSet<string>();
+
+            foreach (ISchemaInfo schema in schemas)
+            {
+                foreach (string name in schema.Directives.Keys)
+                {
+                    names.Add(name);
+                }
+            }
+
+            return names;
+        }
+
+        private void MergeDirectives(
+            ISchemaMergeContext context,
+            ISet<string> typeNames,
+            IEnumerable<ISchemaInfo> schemas,
+            MergeDirectiveRuleDelegate merge)
+        {
+            var directives = new List<IDirectiveTypeInfo>();
+
+            foreach (string typeName in typeNames)
+            {
+                SetDirectives(typeName, schemas, directives);
+                merge(context, directives);
+            }
+        }
+
         private void SetTypes(
             string name,
             IEnumerable<ISchemaInfo> schemas,
@@ -311,7 +344,24 @@ namespace HotChocolate.Stitching.Merge
             }
         }
 
-        private MergeTypeRuleDelegate CompileMergeDelegate()
+        private void SetDirectives(
+            string name,
+            IEnumerable<ISchemaInfo> schemas,
+            ICollection<IDirectiveTypeInfo> directives)
+        {
+            directives.Clear();
+
+            foreach (ISchemaInfo schema in schemas)
+            {
+                if (schema.Directives.TryGetValue(name,
+                    out DirectiveDefinitionNode directiveDefinition))
+                {
+                    directives.Add(new DirectiveTypeInfo(directiveDefinition, schema));
+                }
+            }
+        }
+
+        private MergeTypeRuleDelegate CompileMergeTypeDelegate()
         {
             MergeTypeRuleDelegate current = (c, t) =>
             {
@@ -332,6 +382,20 @@ namespace HotChocolate.Stitching.Merge
             }
 
             return current;
+        }
+
+        private MergeDirectiveRuleDelegate CompileMergeDirectiveDelegate()
+        {
+            MergeDirectiveRuleDelegate current = (c, t) =>
+            {
+                if (t.Count > 0)
+                {
+                    throw new NotSupportedException(
+                        "The type definitions could not be handled.");
+                }
+            };
+
+            return new DirectiveTypeMergeHandler(current).Merge;
         }
 
         public static SchemaMerger New() => new SchemaMerger();
