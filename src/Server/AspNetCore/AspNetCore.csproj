@@ -26,7 +26,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.1.1" />
   </ItemGroup>
 
   <ItemGroup>

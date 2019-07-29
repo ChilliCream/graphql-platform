@@ -26,7 +26,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Owin" Version="4.0.0" />
   </ItemGroup>
 
   <ItemGroup>
