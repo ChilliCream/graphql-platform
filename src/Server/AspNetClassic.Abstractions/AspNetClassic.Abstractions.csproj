@@ -29,6 +29,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Core\Core\Core.csproj" />
+    <ProjectReference Include="..\..\Server\Server\Server.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile
       Include="..\AspNetCore.Abstractions\**\*.cs"
       Exclude="
