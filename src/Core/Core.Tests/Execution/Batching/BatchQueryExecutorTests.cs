@@ -338,5 +338,144 @@ namespace HotChocolate.Execution.Batching
                 r => r.MatchSnapshot(new SnapshotNameExtension("1")),
                 r => r.MatchSnapshot(new SnapshotNameExtension("2")));
         }
+
+        [Fact]
+        public async Task Add_Value_To_Variable_List()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+
+            serviceCollection
+                .AddSingleton<ISchema>(sp => SchemaBuilder.New()
+                    .AddServices(sp)
+                    .AddDirectiveType<ExportDirectiveType>()
+                    .AddQueryType(d => d.Name("Query")
+                        .Field("foo")
+                        .Argument("bar", a => a.Type<ListType<StringType>>())
+                        .Type<ListType<StringType>>()
+                        .Resolver<List<string>>(c =>
+                        {
+                            var list = c.Argument<List<string>>("bar");
+                            list.Add("789");
+                            return list;
+                        }))
+                    .Create())
+                    .AddSingleton<IBatchQueryExecutor, BatchQueryExecutor>();
+
+            QueryExecutionBuilder.BuildDefault(serviceCollection);
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            var executor = services.GetService<IBatchQueryExecutor>();
+
+            // act
+            var batch = new List<IReadOnlyQueryRequest>
+            {
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"query foo1($b: [String]) {
+                            foo(bar: $b) @export(as: ""b"")
+                        }")
+                    .AddVariableValue("b", new[] { "123" })
+                    .Create(),
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"query foo2($b: [String]) {
+                            foo(bar: $b)
+                        }")
+                    .Create()
+            };
+
+            IResponseStream stream =
+                await executor.ExecuteAsync(batch, CancellationToken.None);
+
+            var results = new List<IReadOnlyQueryResult>();
+            while (!stream.IsCompleted)
+            {
+                IReadOnlyQueryResult result = await stream.ReadAsync();
+                if (result != null)
+                {
+                    results.Add(result);
+                }
+            }
+
+            Assert.Collection(results,
+                r => r.MatchSnapshot(new SnapshotNameExtension("1")),
+                            r => r.MatchSnapshot(new SnapshotNameExtension("2")));
+        }
+
+        [Fact]
+        public async Task Convert_List_To_Single_Value_With_Converters()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+
+            serviceCollection
+                .AddSingleton<ISchema>(sp => SchemaBuilder.New()
+                    .AddServices(sp)
+                    .AddDirectiveType<ExportDirectiveType>()
+                    .AddQueryType(d => {
+                        d.Name("Query");
+
+                        d.Field("foo")
+                            .Argument("bar", a => a.Type<ListType<StringType>>())
+                            .Type<ListType<StringType>>()
+                            .Resolver<List<string>>(c =>
+                            {
+                                var list = c.Argument<List<string>>("bar");
+                                list.Add("789");
+                                return list;
+                            });
+
+                        d.Field("baz")
+                            .Argument("bar", a => a.Type<StringType>())
+                            .Resolver(c => c.Argument<string>("bar"));
+                    })
+                    .Create())
+                    .AddSingleton<IBatchQueryExecutor, BatchQueryExecutor>();
+
+            QueryExecutionBuilder.BuildDefault(serviceCollection);
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            var executor = services.GetService<IBatchQueryExecutor>();
+
+            // act
+            var batch = new List<IReadOnlyQueryRequest>
+            {
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"query foo1($b1: [String]) {
+                            foo(bar: $b1) @export(as: ""b2"")
+                        }")
+                    .AddVariableValue("b1", new[] { "123" })
+                    .Create(),
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"query foo2($b2: String) {
+                            baz(bar: $b2)
+                        }")
+                    .Create()
+            };
+
+            IResponseStream stream =
+                await executor.ExecuteAsync(batch, CancellationToken.None);
+
+            var results = new List<IReadOnlyQueryResult>();
+            while (!stream.IsCompleted)
+            {
+                IReadOnlyQueryResult result = await stream.ReadAsync();
+                if (result != null)
+                {
+                    results.Add(result);
+                }
+            }
+
+            Assert.Collection(results,
+                r => r.MatchSnapshot(new SnapshotNameExtension("1")),
+                            r => r.MatchSnapshot(new SnapshotNameExtension("2")));
+        }
     }
 }
