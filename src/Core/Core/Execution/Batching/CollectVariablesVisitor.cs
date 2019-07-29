@@ -219,7 +219,7 @@ namespace HotChocolate.Execution.Batching
                             null,
                             node,
                             type.ToTypeNode(inputType),
-                            NullValueNode.Default,
+                            null,
                             Array.Empty<DirectiveNode>()
                         );
                     }
@@ -230,7 +230,7 @@ namespace HotChocolate.Execution.Batching
                             null,
                             node,
                             type.ToTypeNode(),
-                            NullValueNode.Default,
+                            null,
                             Array.Empty<DirectiveNode>()
                         );
                     }

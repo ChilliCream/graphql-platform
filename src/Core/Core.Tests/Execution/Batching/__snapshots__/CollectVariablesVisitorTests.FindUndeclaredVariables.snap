@@ -1,4 +1,4 @@
-﻿query getHero($ep: Episode! = null) {
+﻿query getHero($ep: Episode!) {
   hero(episode: $ep) {
     name
   }
