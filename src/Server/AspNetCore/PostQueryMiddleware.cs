@@ -318,7 +318,7 @@ namespace HotChocolate.AspNetCore
             }
         }
 
-        private bool TryParseOperations(
+        private static bool TryParseOperations(
             string operationNameString,
             out IReadOnlyList<string> operationNames)
         {
