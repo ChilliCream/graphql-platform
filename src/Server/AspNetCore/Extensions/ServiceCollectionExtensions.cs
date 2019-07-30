@@ -24,7 +24,9 @@ namespace HotChocolate
         {
             return services
                 .AddGraphQLSchema(schemaBuilder)
+#if !ASPNETCLASSIC
                 .AddGraphQLSubscriptions()
+#endif
                 .AddJsonSerializer()
                 .AddQueryExecutor()
                 .AddBatchQueryExecutor();

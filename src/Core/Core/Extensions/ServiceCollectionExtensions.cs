@@ -13,7 +13,7 @@ namespace HotChocolate
             this IServiceCollection services,
             ISchemaBuilder schemaBuilder)
         {
-            return services.AddSingleton<ISchema>(sp =>
+            return services.AddSingleton(sp =>
                 schemaBuilder
                     .AddServices(sp)
                     .Create());
