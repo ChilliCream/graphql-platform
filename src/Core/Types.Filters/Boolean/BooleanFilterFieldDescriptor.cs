@@ -31,11 +31,11 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <inheritdoc/>
-        public IBooleanFilterFieldDescriptor BindExplicitly() =>
+        public IBooleanFilterFieldDescriptor BindFiltersExplicitly() =>
             BindFilters(BindingBehavior.Explicit);
 
         /// <inheritdoc/>
-        public IBooleanFilterFieldDescriptor BindImplicitly() =>
+        public IBooleanFilterFieldDescriptor BindFiltersImplicitly() =>
             BindFilters(BindingBehavior.Implicit);
 
         /// <inheritdoc/>

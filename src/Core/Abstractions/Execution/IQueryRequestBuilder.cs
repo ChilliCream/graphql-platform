@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
         IQueryRequestBuilder SetQueryName(
             string queryName);
         IQueryRequestBuilder SetQueryHash(
-            string hash);
+            string queryHash);
         IQueryRequestBuilder SetOperation(
             string operationName);
         IQueryRequestBuilder SetVariableValues(
