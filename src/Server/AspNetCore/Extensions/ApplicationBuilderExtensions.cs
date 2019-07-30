@@ -49,7 +49,7 @@ namespace HotChocolate.AspNetCore
                     ParserOptions = options.ParserOptions,
                     SubscriptionPath = options.SubscriptionPath
                 })
-                .UseGraphQLSchema(options);
+                .UseGraphQLHttpGetSchema(options);
         }
 
         public static IApplicationBuilder UseGraphQLHttpGet(
@@ -88,7 +88,7 @@ namespace HotChocolate.AspNetCore
                 .UseMiddleware<PostQueryMiddleware>(options);
         }
 
-        public static IApplicationBuilder UseGraphQLSchema(
+        public static IApplicationBuilder UseGraphQLHttpGetSchema(
             this IApplicationBuilder applicationBuilder,
             QueryMiddlewareOptions options)
         {
