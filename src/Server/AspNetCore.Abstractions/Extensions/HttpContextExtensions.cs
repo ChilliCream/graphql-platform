@@ -19,7 +19,7 @@ namespace HotChocolate.AspNetClassic
 namespace HotChocolate.AspNetCore
 #endif
 {
-    internal static class HttpContextExtensions
+    public static class HttpContextExtensions
     {
 #if ASPNETCLASSIC
         public static IServiceProvider CreateRequestServices(
@@ -91,7 +91,7 @@ namespace HotChocolate.AspNetCore
         {
             for (int i = 0; i < paths.Length; i++)
             {
-                if(!IsValidPath(context, paths[i]))
+                if (!IsValidPath(context, paths[i]))
                 {
                     return false;
                 }

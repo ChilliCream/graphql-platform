@@ -31,7 +31,7 @@ namespace HotChocolate.AspNetCore
         private const int _badRequest = 400;
         private const int _ok = 200;
 
-        private readonly IQueryResultSerializer _resultSerializer;
+        private readonly IPathOptionAccessor _options;
         private readonly Func<HttpContext, bool> _isPathValid;
 
         private IQueryRequestInterceptor<HttpContext> _interceptor;
@@ -57,17 +57,16 @@ namespace HotChocolate.AspNetCore
         /// </param>
         protected QueryMiddlewareBase(
             RequestDelegate next,
-            IQueryResultSerializer resultSerializer,
+            IMiddlewareOptionsAccessor options,
             OwinContextAccessor owinContextAccessor,
-            QueryMiddlewareOptions options,
             IServiceProvider services)
             : base(next)
         {
+            _options = options
+                ?? throw new ArgumentNullException(nameof(options));
             _resultSerializer = resultSerializer
                 ?? throw new ArgumentNullException(nameof(resultSerializer));
             _accessor = owinContextAccessor;
-            Options = options
-                ?? throw new ArgumentNullException(nameof(options));
             _services = services
                 ?? throw new ArgumentNullException(nameof(services));
 
@@ -85,16 +84,13 @@ namespace HotChocolate.AspNetCore
 #else
         protected QueryMiddlewareBase(
             RequestDelegate next,
-            IQueryResultSerializer resultSerializer,
-            QueryMiddlewareOptions options)
+            IPathOptionAccessor options)
         {
             Next = next;
-            _resultSerializer = resultSerializer
-                ?? throw new ArgumentNullException(nameof(resultSerializer));
-            Options = options ??
+            _options = options ??
                 throw new ArgumentNullException(nameof(options));
 
-            if (Options.Path.Value.Length > 1)
+            if (_options.Path.Value.Length > 1)
             {
                 var path1 = new PathString(options.Path.Value.TrimEnd('/'));
                 PathString path2 = path1.Add(new PathString("/"));
@@ -108,11 +104,6 @@ namespace HotChocolate.AspNetCore
 
         protected RequestDelegate Next { get; }
 #endif
-
-        /// <summary>
-        /// Gets the GraphQL middleware options.
-        /// </summary>
-        protected QueryMiddlewareOptions Options { get; }
 
 #if ASPNETCLASSIC
         /// <inheritdoc />
@@ -218,26 +209,6 @@ namespace HotChocolate.AspNetCore
             }
 
             return builder.Create();
-        }
-
-        protected Task WriteResponseAsync(
-            HttpResponse response,
-            IExecutionResult executionResult)
-        {
-            SetResponseHeaders(response);
-            return WriteBatchResponseAsync(response, executionResult);
-        }
-
-        protected async Task WriteBatchResponseAsync(
-            HttpResponse response,
-            IExecutionResult executionResult)
-        {
-            if (executionResult is IReadOnlyQueryResult queryResult)
-            {
-                await _resultSerializer.SerializeAsync(
-                    queryResult, response.Body)
-                    .ConfigureAwait(false);
-            }
         }
 
         protected static void SetResponseHeaders(

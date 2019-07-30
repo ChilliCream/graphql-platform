@@ -2,10 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>HotChocolate.AspNetCore.Subscriptions</AssemblyName>
-    <RootNamespace>HotChocolate.AspNetCore.Subscriptions</RootNamespace>
-    <PackageId>HotChocolate.AspNetCore.Subscriptions</PackageId>
-    <Description>Contains the Hot Chocolate GraphQL subscription middleware for ASP.net core.</Description>
+    <AssemblyName>HotChocolate.AspNetCore.HttpGet</AssemblyName>
+    <RootNamespace>HotChocolate.AspNetCore.HttpGet</RootNamespace>
+    <PackageId>HotChocolate.AspNetCore.HttpGet</PackageId>
+    <Description>Contains the Hot Chocolate GraphQL HTTP GET middleware for ASP.net core.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -25,7 +25,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Pipelines" Version="4.5.3" />
   </ItemGroup>
 
   <ItemGroup>

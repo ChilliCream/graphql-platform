@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Server;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -18,7 +19,7 @@ namespace HotChocolate.AspNetClassic
 namespace HotChocolate.AspNetCore
 #endif
 {
-    internal sealed class SchemaMiddleware
+    internal sealed class HttpGetSchemaMiddleware
 #if ASPNETCLASSIC
         : RequestDelegate
 #endif
@@ -26,12 +27,12 @@ namespace HotChocolate.AspNetCore
         private readonly PathString _path;
         private readonly IQueryExecutor _queryExecutor;
 
-        public SchemaMiddleware(
-           RequestDelegate next,
-           IQueryExecutor queryExecutor,
-           QueryMiddlewareOptions options)
+        public HttpGetSchemaMiddleware(
+            RequestDelegate next,
+            IQueryExecutor queryExecutor,
+            IHttpGetSchemaMiddlewareOptions options)
 #if ASPNETCLASSIC
-                : base(next)
+            : base(next)
 #endif
         {
 #if !ASPNETCLASSIC
@@ -57,10 +58,12 @@ namespace HotChocolate.AspNetCore
         public async Task InvokeAsync(HttpContext context)
 #endif
         {
-            if (context.Request.Method.Equals(HttpMethods.Get,
-                StringComparison.Ordinal) && context.IsValidPath(_path))
+            if (context.Request.Method.Equals(
+                HttpMethods.Get,
+                StringComparison.Ordinal)
+                && context.IsValidPath(_path))
             {
-                context.Response.ContentType = "application/graphql";
+                context.Response.ContentType = ContentType.GraphQL;
                 context.Response.Headers.Add(
                     "Content-Disposition",
                     new[] { "attachment; filename=\"schema.graphql\"" });

@@ -24,7 +24,7 @@ namespace HotChocolate.AspNetClassic
 namespace HotChocolate.AspNetCore
 #endif
 {
-    public class PostQueryMiddleware
+    public class HttpPostMiddleware
         : QueryMiddlewareBase
     {
         private const string _batchOperations = "batchOperations";
@@ -34,27 +34,34 @@ namespace HotChocolate.AspNetCore
         private readonly RequestHelper _requestHelper;
         private readonly IQueryExecutor _queryExecutor;
         private readonly IBatchQueryExecutor _batchExecutor;
+        private readonly IQueryResultSerializer _resultSerializer;
+        private readonly IResponseStreamSerializer _streamSerializer;
 
 #if ASPNETCLASSIC
-        public PostQueryMiddleware(
+        public HttpPostMiddleware(
             RequestDelegate next,
-            IQueryExecutor queryExecutor,
-            IBatchQueryExecutor batchExecutor,
-            IQueryResultSerializer resultSerializer,
-            IDocumentCache documentCache,
-            IDocumentHashProvider documentHashProvider,
+            IHttpPostMiddlewareOptions options,
             OwinContextAccessor owinContextAccessor,
-            QueryMiddlewareOptions options)
+            IQueryExecutor queryExecutor,
+            IBatchQueryExecutor batchQueryExecutor,
+            IQueryResultSerializer resultSerializer,
+            IResponseStreamSerializer streamSerializer,
+            IDocumentCache documentCache,
+            IDocumentHashProvider documentHashProvider)
             : base(next,
                 resultSerializer,
-                owinContextAccessor,
                 options,
+                owinContextAccessor,
                 queryExecutor.Schema.Services)
         {
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
-            _batchExecutor = batchExecutor
+            _batchExecutor = batchQueryExecutor
                 ?? throw new ArgumentNullException(nameof(batchExecutor));
+            _resultSerializer = resultSerializer
+                ?? throw new ArgumentNullException(nameof(resultSerializer));
+            _streamSerializer = streamSerializer
+                ?? throw new ArgumentNullException(nameof(streamSerializer));
 
             _requestHelper = new RequestHelper(
                 documentCache,
@@ -63,20 +70,25 @@ namespace HotChocolate.AspNetCore
                 options.ParserOptions);
         }
 #else
-        public PostQueryMiddleware(
+        public HttpPostMiddleware(
             RequestDelegate next,
+            IHttpPostMiddlewareOptions options,
             IQueryExecutor queryExecutor,
-            IBatchQueryExecutor batchExecutor,
+            IBatchQueryExecutor batchQueryExecutor,
             IQueryResultSerializer resultSerializer,
+            IResponseStreamSerializer streamSerializer,
             IDocumentCache documentCache,
-            IDocumentHashProvider documentHashProvider,
-            QueryMiddlewareOptions options)
-            : base(next, resultSerializer, options)
+            IDocumentHashProvider documentHashProvider)
+            : base(next, options)
         {
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
-            _batchExecutor = batchExecutor
-                ?? throw new ArgumentNullException(nameof(batchExecutor));
+            _batchExecutor = batchQueryExecutor
+                ?? throw new ArgumentNullException(nameof(batchQueryExecutor));
+            _resultSerializer = resultSerializer
+                ?? throw new ArgumentNullException(nameof(resultSerializer));
+            _streamSerializer = streamSerializer
+                ?? throw new ArgumentNullException(nameof(streamSerializer));
 
             _requestHelper = new RequestHelper(
                 documentCache,
@@ -126,7 +138,8 @@ namespace HotChocolate.AspNetCore
                             .SetMessage("Invalid GraphQL Request.")
                             .SetCode("INVALID_REQUEST")
                             .Build());
-                    await WriteResponseAsync(context.Response, result)
+                    await _resultSerializer.SerializeAsync(
+                        result, context.Response.Body)
                         .ConfigureAwait(false);
                 }
             }
@@ -153,7 +166,10 @@ namespace HotChocolate.AspNetCore
                 .ExecuteAsync(queryRequest, context.GetCancellationToken())
                 .ConfigureAwait(false);
 
-            await WriteResponseAsync(context.Response, result)
+            await _resultSerializer.SerializeAsync(
+                result,
+                context.Response.Body,
+                context.GetCancellationToken())
                 .ConfigureAwait(false);
         }
 
@@ -169,11 +185,14 @@ namespace HotChocolate.AspNetCore
                     context, services, request, operationNames)
                     .ConfigureAwait(false);
 
-            IResponseStream stream = await _batchExecutor
+            IResponseStream responseStream = await _batchExecutor
                 .ExecuteAsync(requestBatch, context.GetCancellationToken())
                 .ConfigureAwait(false);
 
-            await WriteBatchResultAsync(context, stream)
+            await _streamSerializer.SerializeAsync(
+                responseStream,
+                context.Response.Body,
+                context.GetCancellationToken())
                 .ConfigureAwait(false);
         }
 
@@ -186,61 +205,14 @@ namespace HotChocolate.AspNetCore
                 await BuildBatchRequestAsync(context, services, batch)
                     .ConfigureAwait(false);
 
-            IResponseStream stream = await _batchExecutor
+            IResponseStream responseStream = await _batchExecutor
                 .ExecuteAsync(requestBatch, context.GetCancellationToken())
                 .ConfigureAwait(false);
 
-            await WriteBatchResultAsync(context, stream)
-                .ConfigureAwait(false);
-        }
-
-        private async Task WriteBatchResultAsync(
-            HttpContext context,
-            IResponseStream stream)
-        {
-            // TODO : we might want different stream result types ... we might want to put that im a serializer that can be injected.
-            SetResponseHeaders(context.Response);
-
-            context.Response.Body.WriteByte(_leftBracket);
-
-            await WriteNextResultAsync(context, stream, false)
-                .ConfigureAwait(false);
-
-            while (!stream.IsCompleted)
-            {
-                await WriteNextResultAsync(context, stream, true)
-                    .ConfigureAwait(false);
-            }
-
-            context.Response.Body.WriteByte(_rightBracket);
-        }
-
-        private async Task WriteNextResultAsync(
-            HttpContext context,
-            IResponseStream stream,
-            bool delimiter)
-        {
-            CancellationToken requestAborted = context.GetCancellationToken();
-
-            IReadOnlyQueryResult result =
-                await stream.ReadAsync(requestAborted)
-                    .ConfigureAwait(false);
-
-            if (result == null)
-            {
-                return;
-            }
-
-            if (delimiter)
-            {
-                context.Response.Body.WriteByte(_comma);
-            }
-
-            await WriteBatchResponseAsync(context.Response, result)
-                .ConfigureAwait(false);
-
-            await context.Response.Body.FlushAsync(
-                requestAborted)
+            await _streamSerializer.SerializeAsync(
+                responseStream,
+                context.Response.Body,
+                context.GetCancellationToken())
                 .ConfigureAwait(false);
         }
 

@@ -4,7 +4,7 @@ namespace HotChocolate.AspNetClassic
 namespace HotChocolate.AspNetCore
 #endif
 {
-    internal static class HttpMethods
+    public static class HttpMethods
     {
         public const string Post = "POST";
         public const string Get = "GET";

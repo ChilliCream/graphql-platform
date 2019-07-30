@@ -34,12 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile
-      Include="..\AspNetCore\**\*.cs"
-      Exclude="
-        ..\AspNetCore\**\ApplicationBuilderExtensions.cs;
-        ..\AspNetCore\bin\**\*.cs;
-        ..\AspNetCore\obj\**\*.cs" />
+    <Compile Include="..\AspNetCore\**\*.cs" Exclude="&#xA;        ..\AspNetCore\**\ApplicationBuilderExtensions.cs;&#xA;        ..\AspNetCore\bin\**\*.cs;&#xA;        ..\AspNetCore\obj\**\*.cs" />
   </ItemGroup>
 
 </Project>

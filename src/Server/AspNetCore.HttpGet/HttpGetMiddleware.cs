@@ -19,7 +19,7 @@ namespace HotChocolate.AspNetClassic
 namespace HotChocolate.AspNetCore
 #endif
 {
-    public class GetQueryMiddleware
+    public class HttpGetMiddleware
         : QueryMiddlewareBase
     {
         private const string _namedQueryIdentifier = "namedQuery";
@@ -28,33 +28,37 @@ namespace HotChocolate.AspNetCore
         private const string _variablesIdentifier = "variables";
 
         private readonly IQueryExecutor _queryExecutor;
+        private readonly IQueryResultSerializer _resultSerializer;
 
 #if ASPNETCLASSIC
         public GetQueryMiddleware(
             RequestDelegate next,
-            IQueryExecutor queryExecutor,
-            IQueryResultSerializer resultSerializer,
             OwinContextAccessor owinContextAccessor,
-            QueryMiddlewareOptions options)
+            IGetQueryMiddlewareOptions options,
+            IQueryExecutor queryExecutor,
+            IQueryResultSerializer resultSerializer)
             : base(next,
-                resultSerializer,
                 owinContextAccessor,
                 options,
                 queryExecutor.Schema.Services)
         {
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
+            _resultSerializer = resultSerializer
+                ?? throw new ArgumentNullException(nameof(resultSerializer));
         }
 #else
-        public GetQueryMiddleware(
+        public HttpGetMiddleware(
             RequestDelegate next,
+            IHttpGetMiddlewareOptions options,
             IQueryExecutor queryExecutor,
-            IQueryResultSerializer resultSerializer,        
-            QueryMiddlewareOptions options)
-                : base(next, resultSerializer, options)
+            IQueryResultSerializer resultSerializer)
+                : base(next, options)
         {
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
+            _resultSerializer = resultSerializer
+                ?? throw new ArgumentNullException(nameof(resultSerializer));
         }
 #endif
 
@@ -78,11 +82,18 @@ namespace HotChocolate.AspNetCore
             IQueryCollection requestQuery = context.Request.Query;
 #endif
 
-            IQueryRequestBuilder builder =
-                QueryRequestBuilder.New()
-                    .SetQuery(requestQuery[_queryIdentifier])
-                    .SetQueryName(requestQuery[_namedQueryIdentifier])
-                    .SetOperation(requestQuery[_operationNameIdentifier]);
+            var builder = QueryRequestBuilder.New();
+
+            if (requestQuery[_queryIdentifier].Count != 0)
+            {
+                builder.SetQuery(requestQuery[_queryIdentifier]);
+            }
+            else
+            {
+                builder.SetQueryName(requestQuery[_namedQueryIdentifier]);
+            }
+
+            builder.SetOperation(requestQuery[_operationNameIdentifier]);
 
             string variables = requestQuery[_variablesIdentifier];
             if (variables != null
@@ -101,18 +112,22 @@ namespace HotChocolate.AspNetCore
                     .ConfigureAwait(false);
 
             IExecutionResult result = await _queryExecutor
-                    .ExecuteAsync(request, context.GetCancellationToken())
-                    .ConfigureAwait(false);
+                .ExecuteAsync(request, context.GetCancellationToken())
+                .ConfigureAwait(false);
 
-            await WriteResponseAsync(context.Response, result)
+            SetResponseHeaders(context.Response);
+
+            await _resultSerializer.SerializeAsync(
+                result,
+                context.Response.Body,
+                context.GetCancellationToken())
                 .ConfigureAwait(false);
         }
 
         private static bool HasQueryParameter(HttpContext context)
         {
-            return context.Request.QueryString.HasValue &&
-                context.Request.Query.ToDictionary(i => i.Key, i => i.Value)
-                    .ContainsKey(_queryIdentifier);
+            return context.Request.Query[_queryIdentifier].Count != 0
+                || context.Request.Query[_namedQueryIdentifier].Count != 0;
         }
     }
 }

@@ -34,11 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile
-      Include="..\AspNetCore.Abstractions\**\*.cs"
-      Exclude="
-        ..\AspNetCore.Abstractions\bin\**\*.cs;
-        ..\AspNetCore.Abstractions\obj\**\*.cs" />
+    <Compile Include="..\AspNetCore.Abstractions\**\*.cs" Exclude="&#xA;        ..\AspNetCore.Abstractions\bin\**\*.cs;&#xA;        ..\AspNetCore.Abstractions\obj\**\*.cs" />
   </ItemGroup>
 
 </Project>
