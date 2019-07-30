@@ -252,7 +252,7 @@ namespace HotChocolate.AspNetCore
         {
             var queryBatch = new IReadOnlyQueryRequest[batch.Count];
 
-            for (int i = 0; i < batch.Count; i++)
+            for (var i = 0; i < batch.Count; i++)
             {
                 queryBatch[i] = await BuildRequestAsync(
                     context,
@@ -273,7 +273,7 @@ namespace HotChocolate.AspNetCore
         {
             var queryBatch = new IReadOnlyQueryRequest[operationNames.Count];
 
-            for (int i = 0; i < operationNames.Count; i++)
+            for (var i = 0; i < operationNames.Count; i++)
             {
                 IQueryRequestBuilder requestBuilder =
                     QueryRequestBuilder.From(request)
