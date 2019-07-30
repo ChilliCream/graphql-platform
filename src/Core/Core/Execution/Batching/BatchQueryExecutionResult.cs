@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -95,6 +95,7 @@ namespace HotChocolate.Execution.Batching
                     .SetQuery(document)
                     .SetVariableValues(variableValues)
                     .AddExportedVariables(_exportedVariables)
+                    .SetQueryName(null) // TODO ... should we create a name here?
                     .Create();
 
                 var result =

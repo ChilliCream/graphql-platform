@@ -8,6 +8,7 @@ using HotChocolate.Server;
 using HotChocolate.Execution.Batching;
 using System.Threading;
 using System.Linq;
+using System.Text;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -110,11 +111,11 @@ namespace HotChocolate.AspNetCore
                     await ExecuteQueryAsync(context, services, batch[0])
                         .ConfigureAwait(false);
                 }
-                else if(Utf8GraphQLRequestParser.ParseJson(operations) is
-                    IReadOnlyList<object> o)
+                else if (TryParseOperations(operations,
+                    out IReadOnlyList<string> operationNames))
                 {
                     await ExecuteOperationBatchAsync(
-                        context, services, batch[0], o.Cast<string>())
+                        context, services, batch[0], operationNames)
                         .ConfigureAwait(false);
                 }
                 else
@@ -161,7 +162,7 @@ namespace HotChocolate.AspNetCore
             HttpContext context,
             IServiceProvider services,
             GraphQLRequest request,
-            IEnumerable<string> operationNames)
+            IReadOnlyList<string> operationNames)
         {
             IReadOnlyList<IReadOnlyQueryRequest> requestBatch =
                 await BuildBatchRequestAsync(
@@ -268,21 +269,21 @@ namespace HotChocolate.AspNetCore
                 HttpContext context,
                 IServiceProvider services,
                 GraphQLRequest request,
-                IEnumerable<string> operations)
+                IReadOnlyList<string> operationNames)
         {
-            var queryBatch = new List<IReadOnlyQueryRequest>();
+            var queryBatch = new IReadOnlyQueryRequest[operationNames.Count];
 
-            foreach (string operationName in operations)
+            for (int i = 0; i < operationNames.Count; i++)
             {
                 IQueryRequestBuilder requestBuilder =
                     QueryRequestBuilder.From(request)
-                        .SetOperation(operationName);
+                        .SetOperation(operationNames[i]);
 
-                queryBatch.Add(await BuildRequestAsync(
+                queryBatch[i] = await BuildRequestAsync(
                     context,
                     services,
                     requestBuilder)
-                    .ConfigureAwait(false));
+                    .ConfigureAwait(false);
             }
 
             return queryBatch;
@@ -315,6 +316,37 @@ namespace HotChocolate.AspNetCore
 
                 return batch;
             }
+        }
+
+        private bool TryParseOperations(
+            string operationNameString,
+            out IReadOnlyList<string> operationNames)
+        {
+            var reader = new Utf8GraphQLReader(
+                Encoding.UTF8.GetBytes(operationNameString));
+            reader.Read();
+
+            if (reader.Kind != TokenKind.LeftBracket)
+            {
+                operationNames = null;
+                return false;
+            }
+
+            var names = new List<string>();
+
+            while (reader.Read() && reader.Kind == TokenKind.Name)
+            {
+                names.Add(reader.GetName());
+            }
+
+            if (reader.Kind != TokenKind.RightBracket)
+            {
+                operationNames = null;
+                return false;
+            }
+
+            operationNames = names;
+            return true;
         }
     }
 }
