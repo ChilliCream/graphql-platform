@@ -1,3 +1,4 @@
+using HotChocolate.Execution.Batching;
 using HotChocolate.StarWars;
 using HotChocolate.Subscriptions;
 using Microsoft.Extensions.DependencyInjection;
@@ -19,6 +20,7 @@ namespace HotChocolate.AspNetCore.Tests.Utilities
             services.AddGraphQL(sp => SchemaBuilder.New()
                 .AddServices(sp)
                 .AddStarWarsTypes()
+                .AddDirectiveType<ExportDirectiveType>()
                 .Create());
 
             return services;

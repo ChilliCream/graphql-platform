@@ -38,6 +38,8 @@ namespace HotChocolate.Types
 
         public IEnumerable<IDirective> this[NameString key] => _lookup[key];
 
+        public bool Contains(NameString key) => _lookup.Contains(key);
+
         #region Initialization
 
         internal void CompleteCollection(ICompletionContext context)
@@ -175,8 +177,6 @@ namespace HotChocolate.Types
         }
 
         #endregion
-
-        public bool Contains(NameString key) => _lookup.Contains(key);
 
         public IEnumerator<IDirective> GetEnumerator()
         {

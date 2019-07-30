@@ -1,9 +1,8 @@
 using System;
 using System.Security.Claims;
-using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Execution;
 using HotChocolate.Server;
 
 #if ASPNETCLASSIC
@@ -36,11 +35,11 @@ namespace HotChocolate.AspNetCore
         private readonly Func<HttpContext, bool> _isPathValid;
 
         private IQueryRequestInterceptor<HttpContext> _interceptor;
-        private bool _interceptorInitialized = false;
+        private bool _interceptorInitialized;
 
 #if ASPNETCLASSIC
-        private OwinContextAccessor _accessor;
-#endif
+        private readonly IServiceProvider _services;
+        private readonly OwinContextAccessor _accessor;
 
         /// <summary>
         /// Instantiates the base query middleware with an optional pointer to
@@ -58,18 +57,38 @@ namespace HotChocolate.AspNetCore
         /// </param>
         protected QueryMiddlewareBase(
             RequestDelegate next,
-            IQueryExecutor queryExecutor,
+            IQueryResultSerializer resultSerializer,
+            OwinContextAccessor owinContextAccessor,
+            QueryMiddlewareOptions options,
+            IServiceProvider services)
+            : base(next)
+        {
+            _resultSerializer = resultSerializer
+                ?? throw new ArgumentNullException(nameof(resultSerializer));
+            _accessor = owinContextAccessor;
+            Options = options
+                ?? throw new ArgumentNullException(nameof(options));
+            _services = services
+                ?? throw new ArgumentNullException(nameof(services));
+
+            if (Options.Path.Value.Length > 1)
+            {
+                var path1 = new PathString(options.Path.Value.TrimEnd('/'));
+                PathString path2 = path1.Add(new PathString("/"));
+                _isPathValid = ctx => ctx.IsValidPath(path1, path2);
+            }
+            else
+            {
+                _isPathValid = ctx => ctx.IsValidPath(options.Path);
+            }
+        }
+#else
+        protected QueryMiddlewareBase(
+            RequestDelegate next,
             IQueryResultSerializer resultSerializer,
             QueryMiddlewareOptions options)
-#if ASPNETCLASSIC
-                : base(next)
-#endif
         {
-#if !ASPNETCLASSIC
             Next = next;
-#endif
-            Executor = queryExecutor ??
-                throw new ArgumentNullException(nameof(queryExecutor));
             _resultSerializer = resultSerializer
                 ?? throw new ArgumentNullException(nameof(resultSerializer));
             Options = options ??
@@ -85,22 +104,8 @@ namespace HotChocolate.AspNetCore
             {
                 _isPathValid = ctx => ctx.IsValidPath(options.Path);
             }
-
-#if ASPNETCLASSIC
-            _accessor = queryExecutor.Schema.Services
-                .GetService<IOwinContextAccessor>()
-                as OwinContextAccessor;
-#endif
         }
 
-        /// <summary>
-        /// Gets the GraphQL query executor resolver.
-        /// </summary>
-        protected IQueryExecutor Executor { get; }
-
-        protected IQueryResultSerializer Serializer => _resultSerializer;
-
-#if !ASPNETCLASSIC
         protected RequestDelegate Next { get; }
 #endif
 
@@ -108,7 +113,6 @@ namespace HotChocolate.AspNetCore
         /// Gets the GraphQL middleware options.
         /// </summary>
         protected QueryMiddlewareOptions Options { get; }
-
 
 #if ASPNETCLASSIC
         /// <inheritdoc />
@@ -126,7 +130,7 @@ namespace HotChocolate.AspNetCore
             {
                 try
                 {
-                    await HandleRequestAsync(context, Executor)
+                    await HandleRequestAsync(context)
                         .ConfigureAwait(false);
                 }
                 catch (NotSupportedException)
@@ -150,43 +154,48 @@ namespace HotChocolate.AspNetCore
         /// </returns>
         protected abstract bool CanHandleRequest(HttpContext context);
 
+
 #if ASPNETCLASSIC
-        protected static T GetService<T>(HttpContext context)
+        private async Task HandleRequestAsync(
+            HttpContext context)
         {
-            if (context.Environment.TryGetValue(
-                EnvironmentKeys.ServiceProvider,
-                out var value) && value is IServiceProvider serviceProvider)
+            if (_accessor != null)
             {
-                return (T)serviceProvider.GetService(typeof(T));
+                _accessor.OwinContext = context;
             }
 
-            return default;
+            using (IServiceScope serviceScope = _services.CreateScope())
+            {
+                IServiceProvider services =
+                    context.CreateRequestServices(
+                        serviceScope.ServiceProvider);
+
+                await ExecuteRequestAsync(context, services)
+                    .ConfigureAwait(false);
+            }
         }
 #else
-        protected static T GetService<T>(HttpContext context) =>
-            (T)context.RequestServices.GetService(typeof(T));
+        private async Task HandleRequestAsync(
+                  HttpContext context)
+        {
+            await ExecuteRequestAsync(context, context.RequestServices)
+                .ConfigureAwait(false);
+        }
 #endif
 
-        /// <summary>
-        /// Creates a new query request.
-        /// </summary>
-        /// <param name="context">An OWIN context.</param>
-        /// <returns>A new query request.</returns>
-        protected abstract Task<IQueryRequestBuilder> OnCreateQueryRequestAsync(
-            HttpContext context);
+        protected abstract Task ExecuteRequestAsync(
+            HttpContext context,
+            IServiceProvider services);
 
-        private async Task<IReadOnlyQueryRequest> CreateQueryRequestAsync(
-                HttpContext context,
-                IServiceProvider services)
+        protected async Task<IReadOnlyQueryRequest> BuildRequestAsync(
+            HttpContext context,
+            IServiceProvider services,
+            IQueryRequestBuilder builder)
         {
-            IQueryRequestBuilder builder =
-                await OnCreateQueryRequestAsync(context)
-                    .ConfigureAwait(false);
-
             if (!_interceptorInitialized)
             {
-                _interceptor =
-                    GetService<IQueryRequestInterceptor<HttpContext>>(context);
+                _interceptor = services
+                    .GetService<IQueryRequestInterceptor<HttpContext>>();
                 _interceptorInitialized = true;
             }
 
@@ -211,54 +220,31 @@ namespace HotChocolate.AspNetCore
             return builder.Create();
         }
 
-        private async Task HandleRequestAsync(
-            HttpContext context,
-            IQueryExecutor queryExecutor)
+        protected Task WriteResponseAsync(
+            HttpResponse response,
+            IExecutionResult executionResult)
         {
-#if ASPNETCLASSIC
-            if (_accessor != null)
-            {
-                _accessor.OwinContext = context;
-            }
-
-            using (IServiceScope serviceScope =
-                Executor.Schema.Services.CreateScope())
-            {
-                IServiceProvider serviceProvider =
-                    context.CreateRequestServices(
-                        serviceScope.ServiceProvider);
-#else
-            IServiceProvider serviceProvider = context.RequestServices;
-#endif
-
-            IReadOnlyQueryRequest request =
-                await CreateQueryRequestAsync(context, serviceProvider)
-                    .ConfigureAwait(false);
-
-            IExecutionResult result = await queryExecutor
-                .ExecuteAsync(request, context.GetCancellationToken())
-                .ConfigureAwait(false);
-
-            await WriteResponseAsync(context.Response, result)
-                .ConfigureAwait(false);
-#if ASPNETCLASSIC
-            }
-#endif
+            SetResponseHeaders(response);
+            return WriteBatchResponseAsync(response, executionResult);
         }
 
-        private async Task WriteResponseAsync(
+        protected async Task WriteBatchResponseAsync(
             HttpResponse response,
             IExecutionResult executionResult)
         {
             if (executionResult is IReadOnlyQueryResult queryResult)
             {
-                response.ContentType = ContentType.Json;
-                response.StatusCode = _ok;
-
                 await _resultSerializer.SerializeAsync(
                     queryResult, response.Body)
                     .ConfigureAwait(false);
             }
+        }
+
+        protected static void SetResponseHeaders(
+            HttpResponse response)
+        {
+            response.ContentType = ContentType.Json;
+            response.StatusCode = _ok;
         }
     }
 }
