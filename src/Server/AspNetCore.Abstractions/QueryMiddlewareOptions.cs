@@ -19,6 +19,7 @@ namespace HotChocolate.AspNetCore
     {
         private PathString _path = new PathString("/");
         private PathString _subscriptionPath = new PathString("/");
+        private ParserOptions _parserOptions = new ParserOptions();
 
         [Obsolete(
             "Use query execution options.",
@@ -27,8 +28,18 @@ namespace HotChocolate.AspNetCore
 
         public int MaxRequestSize { get; set; } = 20 * 1000 * 1000;
 
-        public ParserOptions ParserOptions { get; set; } = new ParserOptions();
-
+        public ParserOptions ParserOptions
+        {
+            get => _parserOptions;
+            set
+            {
+                if (value == null)
+                {
+                    throw new ArgumentNullException(nameof(value));
+                }
+                _parserOptions = value;
+            }
+        }
         public PathString Path
         {
             get => _path;
@@ -36,6 +47,7 @@ namespace HotChocolate.AspNetCore
             {
                 if (!value.HasValue)
                 {
+                    // TODO : resources
                     throw new ArgumentException(
                         "The path cannot be empty.");
                 }
@@ -52,6 +64,7 @@ namespace HotChocolate.AspNetCore
             {
                 if (!value.HasValue)
                 {
+                    // TODO : resurces
                     throw new ArgumentException(
                         "The subscription-path cannot be empty.");
                 }

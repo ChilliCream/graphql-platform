@@ -598,7 +598,7 @@ namespace HotChocolate.AspNetCore
                     "?batchOperations=[getHero, getHuman]");
 
             // assert
-            List <ClientQueryResult> result =
+            List<ClientQueryResult> result =
                  await DeserializeBatchAsync(message);
             result.MatchSnapshot();
         }
