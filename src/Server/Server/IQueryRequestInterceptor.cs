@@ -4,7 +4,7 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.Server
 {
-    public interface IQueryRequestInterceptor<TContext>
+    public interface IQueryRequestInterceptor<in TContext>
     {
         Task OnCreateAsync(
             TContext context,

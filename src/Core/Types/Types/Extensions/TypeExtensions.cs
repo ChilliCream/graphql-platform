@@ -446,7 +446,8 @@ namespace HotChocolate.Types
 
             if (original is ListType lt)
             {
-                return new ListTypeNode(null, ToTypeNode(lt.ElementType, inputType));
+                return new ListTypeNode(null,
+                    ToTypeNode(lt.ElementType, inputType));
             }
 
             if (original is INamedType)

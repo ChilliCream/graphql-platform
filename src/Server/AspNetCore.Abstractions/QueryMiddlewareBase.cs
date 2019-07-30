@@ -35,7 +35,7 @@ namespace HotChocolate.AspNetCore
         private readonly Func<HttpContext, bool> _isPathValid;
 
         private IQueryRequestInterceptor<HttpContext> _interceptor;
-        private bool _interceptorInitialized = false;
+        private bool _interceptorInitialized;
 
 #if ASPNETCLASSIC
         private readonly IServiceProvider _services;
@@ -240,7 +240,7 @@ namespace HotChocolate.AspNetCore
             }
         }
 
-        protected void SetResponseHeaders(
+        protected static void SetResponseHeaders(
             HttpResponse response)
         {
             response.ContentType = ContentType.Json;

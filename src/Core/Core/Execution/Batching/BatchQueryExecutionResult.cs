@@ -286,7 +286,7 @@ namespace HotChocolate.Execution.Batching
             }
         }
 
-        private QueryException SerializationError()
+        private static QueryException SerializationError()
         {
             // TODO : resources
             return new QueryException(
