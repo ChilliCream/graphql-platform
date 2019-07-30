@@ -477,5 +477,104 @@ namespace HotChocolate.Execution.Batching
                 r => r.MatchSnapshot(new SnapshotNameExtension("1")),
                             r => r.MatchSnapshot(new SnapshotNameExtension("2")));
         }
+
+        [Fact]
+        public void Schema_Is_Correctly_Set()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+
+            serviceCollection
+                .AddStarWarsRepositories()
+                .AddSingleton<IBatchQueryExecutor, BatchQueryExecutor>();
+
+            QueryExecutionBuilder.BuildDefault(serviceCollection);
+
+            serviceCollection.AddSingleton<ISchema>(sp =>
+                SchemaBuilder.New()
+                    .AddStarWarsTypes()
+                    .AddExportDirectiveType()
+                    .AddServices(sp)
+                    .Create());
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            // act
+            var executor = services.GetService<IBatchQueryExecutor>();
+
+            // assert
+            Assert.Equal(
+                services.GetService<ISchema>(),
+                executor.Schema);
+        }
+
+        [Fact]
+        public async Task Batch_Is_Empty()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+
+            serviceCollection
+                .AddStarWarsRepositories()
+                .AddSingleton<IBatchQueryExecutor, BatchQueryExecutor>();
+
+            QueryExecutionBuilder.BuildDefault(serviceCollection);
+
+            serviceCollection.AddSingleton<ISchema>(sp =>
+                SchemaBuilder.New()
+                    .AddStarWarsTypes()
+                    .AddExportDirectiveType()
+                    .AddServices(sp)
+                    .Create());
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            var executor = services.GetService<IBatchQueryExecutor>();
+
+            // act
+            Func<Task> action = () =>
+                executor.ExecuteAsync(
+                    Array.Empty<IReadOnlyQueryRequest>(),
+                    CancellationToken.None);
+
+            // assert
+            await Assert.ThrowsAsync<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public async Task Batch_Is_Null()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+
+            serviceCollection
+                .AddStarWarsRepositories()
+                .AddSingleton<IBatchQueryExecutor, BatchQueryExecutor>();
+
+            QueryExecutionBuilder.BuildDefault(serviceCollection);
+
+            serviceCollection.AddSingleton<ISchema>(sp =>
+                SchemaBuilder.New()
+                    .AddStarWarsTypes()
+                    .AddExportDirectiveType()
+                    .AddServices(sp)
+                    .Create());
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            var executor = services.GetService<IBatchQueryExecutor>();
+
+            // act
+            Func<Task> action = () =>
+                executor.ExecuteAsync(
+                    null,
+                    CancellationToken.None);
+
+            // assert
+            await Assert.ThrowsAsync<ArgumentNullException>(action);
+        }
     }
 }
