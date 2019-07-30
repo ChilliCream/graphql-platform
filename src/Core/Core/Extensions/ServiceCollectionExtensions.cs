@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace HotChocolate
 {
-    public static class ServiceCollectionExtensions
+    public static class SchemaServiceCollectionExtensions
     {
         public static IServiceCollection AddGraphQLSchema(
             this IServiceCollection services,

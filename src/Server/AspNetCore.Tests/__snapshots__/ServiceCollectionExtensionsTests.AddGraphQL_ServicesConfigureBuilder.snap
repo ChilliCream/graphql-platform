@@ -16,6 +16,7 @@
   "HotChocolate.Execution.IQueryExecutor",
   "HotChocolate.Execution.IQueryParser",
   "HotChocolate.Execution.IQueryResultSerializer",
+  "HotChocolate.Execution.IResponseStreamSerializer",
   "HotChocolate.Execution.Instrumentation.QueryExecutionDiagnostics",
   "HotChocolate.IErrorHandler",
   "HotChocolate.ISchema",
