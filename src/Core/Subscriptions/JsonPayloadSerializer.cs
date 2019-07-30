@@ -1,6 +1,5 @@
 using System.Globalization;
 using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace HotChocolate.Subscriptions
