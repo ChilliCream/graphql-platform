@@ -15,7 +15,13 @@ namespace HotChocolate.Execution
 
         public Task SerializeAsync(
             IReadOnlyQueryResult result,
-            Stream stream)
+            Stream stream) =>
+            SerializeAsync(result, stream, CancellationToken.None);
+
+        public Task SerializeAsync(
+            IReadOnlyQueryResult result,
+            Stream stream,
+            CancellationToken cancellationToken)
         {
             if (result is null)
             {
@@ -31,11 +37,6 @@ namespace HotChocolate.Execution
             string json = JsonConvert.SerializeObject(dict);
             byte[] buffer = _encoding.GetBytes(json);
             return stream.WriteAsync(buffer, 0, buffer.Length);
-        }
-
-        public Task SerializeAsync(IReadOnlyQueryResult result, Stream stream, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
         }
     }
 }
