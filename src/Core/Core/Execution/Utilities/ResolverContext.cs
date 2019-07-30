@@ -48,7 +48,7 @@ namespace HotChocolate.Execution
 
         public FieldNode FieldSelection => _fieldSelection.Selection;
 
-        public string ResponseName => _fieldSelection.ResponseName;
+        public NameString ResponseName => _fieldSelection.ResponseName;
 
         public IImmutableStack<object> Source { get; private set; }
 

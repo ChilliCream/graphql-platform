@@ -4,6 +4,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Configuration;
 using HotChocolate.Server;
+using HotChocolate.Execution.Batching;
 #if ASPNETCLASSIC
 using HotChocolate.AspNetClassic.Interceptors;
 using HttpContext = Microsoft.Owin.IOwinContext;
@@ -32,7 +33,8 @@ namespace HotChocolate
             }
 
             QueryExecutionBuilder.BuildDefault(serviceCollection);
-            return serviceCollection.AddSchema(schema);
+            return serviceCollection.AddSchema(schema)
+                .AddSingleton<IBatchQueryExecutor, BatchQueryExecutor>();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -56,7 +58,8 @@ namespace HotChocolate
             }
 
             configure(QueryExecutionBuilder.New()).Populate(serviceCollection);
-            return serviceCollection.AddSchema(schema);
+            return serviceCollection.AddSchema(schema)
+                .AddSingleton<IBatchQueryExecutor, BatchQueryExecutor>();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -74,7 +77,8 @@ namespace HotChocolate
             }
 
             QueryExecutionBuilder.BuildDefault(serviceCollection);
-            return serviceCollection.AddSchema(schemaFactory);
+            return serviceCollection.AddSchema(schemaFactory)
+                .AddSingleton<IBatchQueryExecutor, BatchQueryExecutor>();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -98,7 +102,8 @@ namespace HotChocolate
             }
 
             configure(QueryExecutionBuilder.New()).Populate(serviceCollection);
-            return serviceCollection.AddSchema(schemaFactory);
+            return serviceCollection.AddSchema(schemaFactory)
+                .AddSingleton<IBatchQueryExecutor, BatchQueryExecutor>();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -120,7 +125,8 @@ namespace HotChocolate
                 {
                     c.RegisterServiceProvider(s);
                     configure(c);
-                }));
+                }))
+                .AddSingleton<IBatchQueryExecutor, BatchQueryExecutor>();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -150,7 +156,8 @@ namespace HotChocolate
                 {
                     c.RegisterServiceProvider(s);
                     configure(c);
-                }));
+                }))
+                .AddSingleton<IBatchQueryExecutor, BatchQueryExecutor>();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -180,7 +187,8 @@ namespace HotChocolate
                 {
                     c.RegisterServiceProvider(s);
                     configure(c);
-                }));
+                }))
+                .AddSingleton<IBatchQueryExecutor, BatchQueryExecutor>();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -218,7 +226,8 @@ namespace HotChocolate
                 {
                     c.RegisterServiceProvider(s);
                     configure(c);
-                }));
+                }))
+                .AddSingleton<IBatchQueryExecutor, BatchQueryExecutor>();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -242,7 +251,8 @@ namespace HotChocolate
             }
 
             QueryExecutionBuilder.BuildDefault(serviceCollection, options);
-            return serviceCollection.AddSchema(schema);
+            return serviceCollection.AddSchema(schema)
+                .AddSingleton<IBatchQueryExecutor, BatchQueryExecutor>();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -266,7 +276,8 @@ namespace HotChocolate
             }
 
             QueryExecutionBuilder.BuildDefault(serviceCollection, options);
-            return serviceCollection.AddSchema(schemaFactory);
+            return serviceCollection.AddSchema(schemaFactory)
+                .AddSingleton<IBatchQueryExecutor, BatchQueryExecutor>();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -296,7 +307,8 @@ namespace HotChocolate
                 {
                     c.RegisterServiceProvider(s);
                     configure(c);
-                }));
+                }))
+                .AddSingleton<IBatchQueryExecutor, BatchQueryExecutor>();
         }
 
         public static IServiceCollection AddGraphQL(
@@ -332,7 +344,8 @@ namespace HotChocolate
                 {
                     c.RegisterServiceProvider(s);
                     configure(c);
-                }));
+                }))
+                .AddSingleton<IBatchQueryExecutor, BatchQueryExecutor>();
         }
 
         [Obsolete("Use different overload.", true)]

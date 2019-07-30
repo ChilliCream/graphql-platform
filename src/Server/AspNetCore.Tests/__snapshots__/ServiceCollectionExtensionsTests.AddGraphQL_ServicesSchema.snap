@@ -5,6 +5,7 @@
   "HotChocolate.AspNetCore.Subscriptions.Messages.IMessageHandler",
   "HotChocolate.AspNetCore.Subscriptions.Messages.IMessageHandler",
   "HotChocolate.AspNetCore.Subscriptions.Messages.IMessageHandler",
+  "HotChocolate.Execution.Batching.IBatchQueryExecutor",
   "HotChocolate.Execution.Configuration.IErrorHandlerOptionsAccessor",
   "HotChocolate.Execution.Configuration.IInstrumentationOptionsAccessor",
   "HotChocolate.Execution.Configuration.IQueryCacheSizeOptionsAccessor",
