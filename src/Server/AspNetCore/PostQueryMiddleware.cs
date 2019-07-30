@@ -7,6 +7,7 @@ using HotChocolate.Language;
 using HotChocolate.Server;
 using HotChocolate.Execution.Batching;
 using System.Security.Claims;
+using System.Threading;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -32,6 +33,34 @@ namespace HotChocolate.AspNetCore
         private readonly IQueryExecutor _queryExecutor;
         private readonly IBatchQueryExecutor _batchExecutor;
 
+#if ASPNETCLASSIC
+        public PostQueryMiddleware(
+            RequestDelegate next,
+            IQueryExecutor queryExecutor,
+            IBatchQueryExecutor batchExecutor,
+            IQueryResultSerializer resultSerializer,
+            IDocumentCache documentCache,
+            IDocumentHashProvider documentHashProvider,
+            OwinContextAccessor owinContextAccessor,
+            QueryMiddlewareOptions options)
+            : base(next,
+                resultSerializer,
+                owinContextAccessor,
+                options,
+                queryExecutor.Schema.Services)
+        {
+            _queryExecutor = queryExecutor
+                ?? throw new ArgumentNullException(nameof(queryExecutor));
+            _batchExecutor = batchExecutor
+                ?? throw new ArgumentNullException(nameof(batchExecutor));
+
+            _requestHelper = new RequestHelper(
+                documentCache,
+                documentHashProvider,
+                options.MaxRequestSize,
+                options.ParserOptions);
+        }
+#else
         public PostQueryMiddleware(
             RequestDelegate next,
             IQueryExecutor queryExecutor,
@@ -53,6 +82,7 @@ namespace HotChocolate.AspNetCore
                 options.MaxRequestSize,
                 options.ParserOptions);
         }
+#endif
 
         protected override bool CanHandleRequest(HttpContext context)
         {
@@ -118,8 +148,10 @@ namespace HotChocolate.AspNetCore
             IResponseStream stream,
             bool delimiter)
         {
+            CancellationToken requestAborted = context.GetCancellationToken();
+
             IReadOnlyQueryResult result =
-                await stream.ReadAsync(context.RequestAborted)
+                await stream.ReadAsync(requestAborted)
                     .ConfigureAwait(false);
 
             if (result == null)
@@ -136,7 +168,7 @@ namespace HotChocolate.AspNetCore
                 .ConfigureAwait(false);
 
             await context.Response.Body.FlushAsync(
-                context.RequestAborted)
+                requestAborted)
                 .ConfigureAwait(false);
         }
 

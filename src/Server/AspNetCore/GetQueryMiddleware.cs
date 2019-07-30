@@ -2,8 +2,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
 using HotChocolate.Language;
 using System.Collections.Generic;
 
@@ -31,16 +29,34 @@ namespace HotChocolate.AspNetCore
 
         private readonly IQueryExecutor _queryExecutor;
 
+#if ASPNETCLASSIC
         public GetQueryMiddleware(
             RequestDelegate next,
             IQueryExecutor queryExecutor,
             IQueryResultSerializer resultSerializer,
+            OwinContextAccessor owinContextAccessor,
+            QueryMiddlewareOptions options)
+            : base(next,
+                resultSerializer,
+                owinContextAccessor,
+                options,
+                queryExecutor.Schema.Services)
+        {
+            _queryExecutor = queryExecutor
+                ?? throw new ArgumentNullException(nameof(queryExecutor));
+        }
+#else
+        public GetQueryMiddleware(
+            RequestDelegate next,
+            IQueryExecutor queryExecutor,
+            IQueryResultSerializer resultSerializer,        
             QueryMiddlewareOptions options)
                 : base(next, resultSerializer, options)
         {
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
         }
+#endif
 
         /// <inheritdoc />
         protected override bool CanHandleRequest(HttpContext context)

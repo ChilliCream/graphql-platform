@@ -69,11 +69,17 @@ namespace HotChocolate.AspNetClassic
             IDocumentHashProvider hashProvider = serviceProvider
                 .GetRequiredService<IDocumentHashProvider>();
 
+            OwinContextAccessor contextAccessor =
+                serviceProvider.GetService<OwinContextAccessor>();
+
             return applicationBuilder
                 .Use<PostQueryMiddleware>(
                     executor, batchExecutor, serializer,
-                    cache, hashProvider, options)
-                .Use<GetQueryMiddleware>(executor, serializer, options)
+                    cache, hashProvider, contextAccessor,
+                    options)
+                .Use<GetQueryMiddleware>(
+                    executor, serializer, contextAccessor,
+                    options)
                 .Use<SchemaMiddleware>(executor, options);
         }
     }

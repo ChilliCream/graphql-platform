@@ -1,12 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Security.Claims;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Language;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Batching;
 using HotChocolate.Server;
 
 #if ASPNETCLASSIC
@@ -42,8 +38,8 @@ namespace HotChocolate.AspNetCore
         private bool _interceptorInitialized = false;
 
 #if ASPNETCLASSIC
-        private OwinContextAccessor _accessor;
-#endif
+        private readonly IServiceProvider _services;
+        private readonly OwinContextAccessor _accessor;
 
         /// <summary>
         /// Instantiates the base query middleware with an optional pointer to
@@ -62,14 +58,37 @@ namespace HotChocolate.AspNetCore
         protected QueryMiddlewareBase(
             RequestDelegate next,
             IQueryResultSerializer resultSerializer,
-            QueryMiddlewareOptions options)
-#if ASPNETCLASSIC
-                : base(next)
-#endif
+            OwinContextAccessor owinContextAccessor,
+            QueryMiddlewareOptions options,
+            IServiceProvider services)
+            : base(next)
         {
-#if !ASPNETCLASSIC
+            _resultSerializer = resultSerializer
+                ?? throw new ArgumentNullException(nameof(resultSerializer));
+            _accessor = owinContextAccessor;
+            Options = options
+                ?? throw new ArgumentNullException(nameof(options));
+            _services = services
+                ?? throw new ArgumentNullException(nameof(services));
+
+            if (Options.Path.Value.Length > 1)
+            {
+                var path1 = new PathString(options.Path.Value.TrimEnd('/'));
+                PathString path2 = path1.Add(new PathString("/"));
+                _isPathValid = ctx => ctx.IsValidPath(path1, path2);
+            }
+            else
+            {
+                _isPathValid = ctx => ctx.IsValidPath(options.Path);
+            }
+        }
+#else
+        protected QueryMiddlewareBase(
+            RequestDelegate next,
+            IQueryResultSerializer resultSerializer,
+            QueryMiddlewareOptions options)
+        {
             Next = next;
-#endif
             _resultSerializer = resultSerializer
                 ?? throw new ArgumentNullException(nameof(resultSerializer));
             Options = options ??
@@ -85,15 +104,8 @@ namespace HotChocolate.AspNetCore
             {
                 _isPathValid = ctx => ctx.IsValidPath(options.Path);
             }
-
-#if ASPNETCLASSIC
-            _accessor = queryExecutor.Schema.Services
-                .GetService<IOwinContextAccessor>()
-                as OwinContextAccessor;
-#endif
         }
 
-#if !ASPNETCLASSIC
         protected RequestDelegate Next { get; }
 #endif
 
@@ -101,7 +113,6 @@ namespace HotChocolate.AspNetCore
         /// Gets the GraphQL middleware options.
         /// </summary>
         protected QueryMiddlewareOptions Options { get; }
-
 
 #if ASPNETCLASSIC
         /// <inheritdoc />
@@ -143,49 +154,34 @@ namespace HotChocolate.AspNetCore
         /// </returns>
         protected abstract bool CanHandleRequest(HttpContext context);
 
+
 #if ASPNETCLASSIC
-        protected static T GetService<T>(HttpContext context)
-        {
-            if (context.Environment.TryGetValue(
-                EnvironmentKeys.ServiceProvider,
-                out var value) && value is IServiceProvider serviceProvider)
-            {
-                return (T)serviceProvider.GetService(typeof(T));
-            }
-
-            return default;
-        }
-#else
-        protected static T GetService<T>(HttpContext context) =>
-            (T)context.RequestServices.GetService(typeof(T));
-#endif
-
         private async Task HandleRequestAsync(
             HttpContext context)
         {
-#if ASPNETCLASSIC
             if (_accessor != null)
             {
                 _accessor.OwinContext = context;
             }
 
-            using (IServiceScope serviceScope =
-                Executor.Schema.Services.CreateScope())
+            using (IServiceScope serviceScope = _services.CreateScope())
             {
                 IServiceProvider services =
                     context.CreateRequestServices(
                         serviceScope.ServiceProvider);
-#else
-            IServiceProvider services = context.RequestServices;
-#endif
 
-            await ExecuteRequestAsync(context, services)
-                .ConfigureAwait(false);
-
-#if ASPNETCLASSIC
+                await ExecuteRequestAsync(context, services)
+                    .ConfigureAwait(false);
             }
-#endif
         }
+#else
+        private async Task HandleRequestAsync(
+                  HttpContext context)
+        {
+            await ExecuteRequestAsync(context, context.RequestServices)
+                .ConfigureAwait(false);
+        }
+#endif
 
         protected abstract Task ExecuteRequestAsync(
             HttpContext context,
@@ -198,8 +194,8 @@ namespace HotChocolate.AspNetCore
         {
             if (!_interceptorInitialized)
             {
-                _interceptor =
-                    GetService<IQueryRequestInterceptor<HttpContext>>(context);
+                _interceptor = services
+                    .GetService<IQueryRequestInterceptor<HttpContext>>();
                 _interceptorInitialized = true;
             }
 
