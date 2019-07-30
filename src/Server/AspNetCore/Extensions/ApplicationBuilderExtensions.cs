@@ -42,13 +42,67 @@ namespace HotChocolate.AspNetCore
             }
 
             return applicationBuilder
-                .UseMiddleware<PostQueryMiddleware>(options)
-                .UseMiddleware<GetQueryMiddleware>(options)
+                .UseGraphQLHttpGet(options)
+                .UseGraphQLHttpPost(options)
                 .UseGraphQLSubscriptions(new SubscriptionMiddlewareOptions
                 {
                     ParserOptions = options.ParserOptions,
                     SubscriptionPath = options.SubscriptionPath
                 })
+                .UseGraphQLSchema(options);
+        }
+
+        public static IApplicationBuilder UseGraphQLHttpGet(
+            this IApplicationBuilder applicationBuilder,
+            QueryMiddlewareOptions options)
+        {
+            if (applicationBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(applicationBuilder));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            return applicationBuilder
+                .UseMiddleware<GetQueryMiddleware>(options);
+        }
+
+        public static IApplicationBuilder UseGraphQLHttpPost(
+            this IApplicationBuilder applicationBuilder,
+            QueryMiddlewareOptions options)
+        {
+            if (applicationBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(applicationBuilder));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            return applicationBuilder
+                .UseMiddleware<PostQueryMiddleware>(options);
+        }
+
+        public static IApplicationBuilder UseGraphQLSchema(
+            this IApplicationBuilder applicationBuilder,
+            QueryMiddlewareOptions options)
+        {
+            if (applicationBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(applicationBuilder));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            return applicationBuilder
                 .UseMiddleware<SchemaMiddleware>(options);
         }
     }
