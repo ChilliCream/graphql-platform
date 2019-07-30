@@ -47,11 +47,11 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <inheritdoc/>
-        public IComparableFilterFieldDescriptor BindExplicitly() =>
+        public IComparableFilterFieldDescriptor BindFiltersExplicitly() =>
             BindFilters(BindingBehavior.Explicit);
 
         /// <inheritdoc/>
-        public IComparableFilterFieldDescriptor BindImplicitly() =>
+        public IComparableFilterFieldDescriptor BindFiltersImplicitly() =>
             BindFilters(BindingBehavior.Implicit);
 
         /// <inheritdoc/>

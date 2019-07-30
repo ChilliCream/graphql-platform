@@ -27,13 +27,13 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Defines that all filter operations have to be specified explicitly.
         /// </summary>
-        IComparableFilterFieldDescriptor BindExplicitly();
+        IComparableFilterFieldDescriptor BindFiltersExplicitly();
 
         /// <summary>
         /// The comparable filter field descriptor will add
         /// all available comparable filter operations.
         /// </summary>
-        IComparableFilterFieldDescriptor BindImplicitly();
+        IComparableFilterFieldDescriptor BindFiltersImplicitly();
 
         /// <summary>
         /// Allow equals filter operations.

@@ -288,7 +288,7 @@ namespace HotChocolate.Types.Filters
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Filter(t => t.Bar)
-                    .BindImplicitly();
+                    .BindFiltersImplicitly();
             }
         }
     }

@@ -12,6 +12,7 @@ using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Language;
 using HotChocolate.Configuration;
+using HotChocolate.Execution.Batching;
 
 namespace HotChocolate.Stitching
 {
@@ -201,10 +202,6 @@ namespace HotChocolate.Stitching
                 throw new ArgumentNullException(nameof(serviceCollection));
             }
 
-            serviceCollection.TryAddSingleton<
-                IQueryResultSerializer,
-                JsonQueryResultSerializer>();
-
             foreach (KeyValuePair<NameString, ExecutorFactory> factory in
                 _execFacs)
             {
@@ -233,13 +230,21 @@ namespace HotChocolate.Stitching
                 sp.GetRequiredService<StitchingFactory>()
                     .CreateStitchedSchema(sp));
 
-            var builder = QueryExecutionBuilder.New();
-            foreach (Action<IQueryExecutionBuilder> configure in _execConfigs)
-            {
-                configure(builder);
-            }
-            builder.UseStitchingPipeline();
-            builder.Populate(serviceCollection, true);
+            serviceCollection.AddQueryExecutor(
+                builder =>
+                {
+                    foreach (Action<IQueryExecutionBuilder> configure in
+                        _execConfigs)
+                    {
+                        configure(builder);
+                    }
+                    builder.UseStitchingPipeline();
+                },
+                true);
+            serviceCollection.AddBatchQueryExecutor();
+            serviceCollection.AddJsonQueryResultSerializer();
+            serviceCollection.AddJsonArrayResponseStreamSerializer();
+
 
             serviceCollection.TryAddSingleton(services =>
                 services.GetRequiredService<IQueryExecutor>()

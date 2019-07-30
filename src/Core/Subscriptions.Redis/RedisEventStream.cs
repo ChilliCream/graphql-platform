@@ -5,7 +5,8 @@ using StackExchange.Redis;
 
 namespace HotChocolate.Subscriptions.Redis
 {
-    public class RedisEventStream : IEventStream
+    public class RedisEventStream
+        : IEventStream
     {
         private readonly IEventDescription _eventDescription;
         private readonly ChannelMessageQueue _channel;
@@ -42,7 +43,8 @@ namespace HotChocolate.Subscriptions.Redis
         {
             if (!_isCompleted)
             {
-                await _channel.UnsubscribeAsync();
+                await _channel.UnsubscribeAsync()
+                    .ConfigureAwait(false);
                 _isCompleted = true;
             }
         }
