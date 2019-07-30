@@ -38,11 +38,6 @@ namespace HotChocolate.Types
 
         public IEnumerable<IDirective> this[NameString key] => _lookup[key];
 
-        public IDirective GetFirst(NameString directiveName)
-        {
-            return _lookup[directiveName].First();
-        }
-
         public bool Contains(NameString key) => _lookup.Contains(key);
 
         #region Initialization
