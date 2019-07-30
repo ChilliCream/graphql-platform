@@ -75,6 +75,9 @@ namespace HotChocolate.Execution
             set => _middlewareContext.ScopedContextData = value;
         }
 
+        public NameString ResponseName =>
+            _middlewareContext.ResponseName;
+
         public T Argument<T>(NameString name) =>
             _middlewareContext.Argument<T>(name);
 

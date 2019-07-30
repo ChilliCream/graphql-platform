@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Language
 {
-    public readonly struct GraphQLRequest
+    public class GraphQLRequest
     {
         public GraphQLRequest(DocumentNode query)
             : this(query, null, null, null, null)

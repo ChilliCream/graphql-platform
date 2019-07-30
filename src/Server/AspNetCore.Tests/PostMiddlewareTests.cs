@@ -526,5 +526,81 @@ namespace HotChocolate.AspNetCore
                     requestPath?.Replace("/", "_Slash_")));
             }
         }
+
+        [Fact]
+        public async Task HttpPost_Batch()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var batch = new List<ClientQueryRequest>
+            {
+                new ClientQueryRequest
+                {
+                    Query =
+                    @"
+                    query getHero {
+                        hero(episode: EMPIRE) {
+                            id @export
+                        }
+                    }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                    @"
+                    query getHuman {
+                        human(id: $id) {
+                            name
+                        }
+                    }"
+                }
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendRequestAsync(batch);
+
+            // assert
+            List<ClientQueryResult> result =
+                 await DeserializeBatchAsync(message);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpPost_Operation_Batch()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var batch = new List<ClientQueryRequest>
+            {
+                new ClientQueryRequest
+                {
+                    Query =
+                    @"
+                    query getHero {
+                        hero(episode: EMPIRE) {
+                            id @export
+                        }
+                    }
+
+                    query getHuman {
+                        human(id: $id) {
+                            name
+                        }
+                    }"
+                }
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendRequestAsync(
+                    batch,
+                    "?batchOperations=[getHero, getHuman]");
+
+            // assert
+            List <ClientQueryResult> result =
+                 await DeserializeBatchAsync(message);
+            result.MatchSnapshot();
+        }
     }
 }

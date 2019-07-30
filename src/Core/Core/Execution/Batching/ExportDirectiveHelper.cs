@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using System.Collections.Generic;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution.Batching
 {
@@ -8,28 +8,29 @@ namespace HotChocolate.Execution.Batching
         public const string Name = "export";
         public const string ExportedVariables = "HC.ExportedVariables";
 
-        public static void AddExportedVariables(
-            IQueryRequestBuilder builder,
+        public static T AddExportedVariables<T>(
+            this T builder,
             ConcurrentBag<ExportedVariable> exportedVariables)
+            where T : IQueryRequestBuilder
         {
             builder.SetProperty(
                 ExportedVariables,
                 exportedVariables);
+            return builder;
         }
 
-        public static bool TryGetExportedVariables(
-            IDictionary<string, object> contextData,
-            out ICollection<ExportedVariable> exportedVariables)
+        public static void ExportValueAsVariable(
+            this IDirectiveContext context)
         {
-            if (contextData.TryGetValue(ExportedVariables, out object obj)
-                && obj is ICollection<ExportedVariable> exp)
+            if (context.ContextData.TryGetValue(ExportedVariables, out object o)
+                && o is ConcurrentBag<ExportedVariable> exp)
             {
-                exportedVariables = exp;
-                return true;
+                exp.Add(new ExportedVariable(
+                    context.Directive.ToObject<ExportDirective>().As
+                        ?? context.Field.Name.Value,
+                    context.Field.Type,
+                    context.Result));
             }
-
-            exportedVariables = null;
-            return false;
         }
     }
 }

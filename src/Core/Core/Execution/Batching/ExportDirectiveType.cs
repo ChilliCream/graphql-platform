@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Batching
@@ -17,17 +16,7 @@ namespace HotChocolate.Execution.Batching
             descriptor.Use(next => async context =>
             {
                 await next(context).ConfigureAwait(false);
-
-                if (ExportDirectiveHelper.TryGetExportedVariables(
-                    context.ContextData,
-                    out ICollection<ExportedVariable> exported))
-                {
-                    IDirective directive = context.Field.Directives
-                        .GetFirst(ExportDirectiveHelper.Name);
-                    string name = directive.ToObject<ExportDirective>().As;
-                    exported.Add(new ExportedVariable(
-                        name, context.Field.Type, context.Result));
-                }
+                context.ExportValueAsVariable();
             });
         }
     }

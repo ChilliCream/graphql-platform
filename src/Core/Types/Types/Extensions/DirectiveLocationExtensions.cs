@@ -85,7 +85,8 @@ namespace HotChocolate.Types
                 },
            };
 
-        public static Language.DirectiveLocation MapDirectiveLocation(this DirectiveLocation location)
+        public static Language.DirectiveLocation MapDirectiveLocation(
+            this DirectiveLocation location)
         {
             if (!_locs.TryGetValue(location, out Language.DirectiveLocation l))
             {

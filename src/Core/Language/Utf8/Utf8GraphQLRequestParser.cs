@@ -108,7 +108,8 @@ namespace HotChocolate.Language
 
             while (_reader.Kind != TokenKind.RightBracket)
             {
-                ParseRequest();
+                batch.Add(ParseRequest());
+                _reader.MoveNext();
             }
 
             return batch;
