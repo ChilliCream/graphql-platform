@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate;
 using HotChocolate.StarWars;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types;
@@ -30,7 +29,7 @@ namespace HotChocolate.Execution.Batching
             serviceCollection.AddSingleton<ISchema>(sp =>
                 SchemaBuilder.New()
                     .AddStarWarsTypes()
-                    .AddDirectiveType<ExportDirectiveType>()
+                    .AddExportDirectiveType()
                     .AddServices(sp)
                     .Create());
 
@@ -96,7 +95,7 @@ namespace HotChocolate.Execution.Batching
             serviceCollection.AddSingleton<ISchema>(sp =>
                 SchemaBuilder.New()
                     .AddStarWarsTypes()
-                    .AddDirectiveType<ExportDirectiveType>()
+                    .AddExportDirectiveType()
                     .AddServices(sp)
                     .Create());
 
@@ -162,7 +161,7 @@ namespace HotChocolate.Execution.Batching
             serviceCollection
                 .AddSingleton<ISchema>(sp => SchemaBuilder.New()
                     .AddServices(sp)
-                    .AddDirectiveType<ExportDirectiveType>()
+                    .AddExportDirectiveType()
                     .AddQueryType(d => d.Name("Query")
                         .Field("foo")
                         .Argument("bar", a => a.Type<ListType<StringType>>())
@@ -238,7 +237,7 @@ namespace HotChocolate.Execution.Batching
             serviceCollection
                 .AddSingleton<ISchema>(sp => SchemaBuilder.New()
                     .AddServices(sp)
-                    .AddDirectiveType<ExportDirectiveType>()
+                    .AddExportDirectiveType()
                     .AddDocumentFromString(
                     @"
                     type Query {
@@ -348,7 +347,7 @@ namespace HotChocolate.Execution.Batching
             serviceCollection
                 .AddSingleton<ISchema>(sp => SchemaBuilder.New()
                     .AddServices(sp)
-                    .AddDirectiveType<ExportDirectiveType>()
+                    .AddExportDirectiveType()
                     .AddQueryType(d => d.Name("Query")
                         .Field("foo")
                         .Argument("bar", a => a.Type<ListType<StringType>>())
@@ -414,8 +413,9 @@ namespace HotChocolate.Execution.Batching
             serviceCollection
                 .AddSingleton<ISchema>(sp => SchemaBuilder.New()
                     .AddServices(sp)
-                    .AddDirectiveType<ExportDirectiveType>()
-                    .AddQueryType(d => {
+                    .AddExportDirectiveType()
+                    .AddQueryType(d =>
+                    {
                         d.Name("Query");
 
                         d.Field("foo")
