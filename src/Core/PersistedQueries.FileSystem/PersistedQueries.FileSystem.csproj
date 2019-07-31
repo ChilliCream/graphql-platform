@@ -1,17 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">netstandard2.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">netstandard2.0; net461</TargetFrameworks>
     <Name>HotChocolate.PersistedQueries.FileSystem</Name>
-    <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>$(Name)</RootNamespace>
     <AssemblyName>$(Name)</AssemblyName>
     <PackageId>$(Name)</PackageId>
     <Description>An implementation of Hot Chocolate persisted queries using the local file system.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -23,6 +25,10 @@
     <DebugType>pdbonly</DebugType>
     <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\PersistedQueries.Abstractions\PersistedQueries.Abstractions.csproj" />

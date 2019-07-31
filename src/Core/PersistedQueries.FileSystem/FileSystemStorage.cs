@@ -21,14 +21,6 @@ namespace HotChocolate.PersistedQueries.FileSystem
         /// <summary>
         /// Initializes a new instance of the class.
         /// </summary>
-        public FileSystemStorage()
-        {
-            _queryMap = new DefaultQueryFileMap();
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the class.
-        /// </summary>
         /// <param name="queryMap">The query identifier mapping.</param>
         public FileSystemStorage(IQueryFileMap queryMap)
         {
