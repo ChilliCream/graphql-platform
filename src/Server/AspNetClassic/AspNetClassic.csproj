@@ -31,6 +31,9 @@
   <ItemGroup>
     <ProjectReference Include="..\AspNetClassic.Authorization\AspNetClassic.Authorization.csproj" />
     <ProjectReference Include="..\AspNetClassic.Abstractions\AspNetClassic.Abstractions.csproj" />
+    <ProjectReference Include="..\AspNetClassic.HttpGet\AspNetClassic.HttpGet.csproj" />
+    <ProjectReference Include="..\AspNetClassic.HttpGetSchema\AspNetClassic.HttpGetSchema.csproj" />
+    <ProjectReference Include="..\AspNetClassic.HttpPost\AspNetClassic.HttpPost.csproj" />
   </ItemGroup>
 
   <ItemGroup>
