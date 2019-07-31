@@ -1,5 +1,7 @@
 using System;
 using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution
@@ -15,14 +17,34 @@ namespace HotChocolate.Execution
 
         public DocumentNode Document { get; }
 
-        public ReadOnlySpan<byte> ToSource()
+        public void WriteTo(Stream output)
+        {
+            using (var sw = new StreamWriter(output))
+            {
+                QuerySyntaxSerializer.Serialize(Document, sw, false);
+            }
+        }
+
+        public Task WriteToAsync(Stream output) =>
+            WriteToAsync(output, CancellationToken.None);
+
+        public async Task WriteToAsync(
+            Stream output,
+            CancellationToken cancellationToken)
+        {
+            using (var sw = new StreamWriter(output))
+            {
+                await Task.Run(() =>
+                    QuerySyntaxSerializer.Serialize(Document, sw, false))
+                    .ConfigureAwait(false);
+            }
+        }
+
+        public ReadOnlySpan<byte> ToSpan()
         {
             using (var stream = new MemoryStream())
             {
-                using (var sw = new StreamWriter(stream))
-                {
-                    QuerySyntaxSerializer.Serialize(Document, sw, false);
-                }
+                WriteTo(stream);
                 return stream.ToArray();
             }
         }

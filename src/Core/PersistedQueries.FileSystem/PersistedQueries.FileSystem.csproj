@@ -1,30 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <Name>HotChocolate.PersistedQueries.FileSystem</Name>
-        <TargetFramework>netstandard2.0</TargetFramework>
-        <RootNamespace>$(Name)</RootNamespace>
-        <AssemblyName>$(Name)</AssemblyName>
-        <PackageId>$(Name)</PackageId>
-        <Description>An implementation of Hot Chocolate persisted queries using the local file system.</Description>
-    </PropertyGroup>
+  <PropertyGroup>
+    <Name>HotChocolate.PersistedQueries.FileSystem</Name>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>$(Name)</RootNamespace>
+    <AssemblyName>$(Name)</AssemblyName>
+    <PackageId>$(Name)</PackageId>
+    <Description>An implementation of Hot Chocolate persisted queries using the local file system.</Description>
+  </PropertyGroup>
 
-    <PropertyGroup>
-        <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    </PropertyGroup>
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-        <DebugType>portable</DebugType>
-        <DebugSymbols>true</DebugSymbols>
-    </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-        <DebugType>pdbonly</DebugType>
-        <DebugSymbols>true</DebugSymbols>
-    </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <ProjectReference Include="..\PersistedQueries.Abstractions\PersistedQueries.Abstractions.csproj" />
-    </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PersistedQueries.Abstractions\PersistedQueries.Abstractions.csproj" />
+    <ProjectReference Include="..\Language\Language.csproj" />
+  </ItemGroup>
 
 </Project>

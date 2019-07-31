@@ -1,4 +1,7 @@
+using System.Threading.Tasks;
 using System;
+using System.IO;
+using System.Threading;
 
 namespace HotChocolate.Execution
 {
@@ -8,9 +11,24 @@ namespace HotChocolate.Execution
     public interface IQuery
     {
         /// <summary>
+        /// Writes the current query to the output stream.
+        /// </summary>
+        void WriteTo(Stream output);
+
+        /// <summary>
+        /// Writes the current query to the output stream.
+        /// </summary>
+        Task WriteToAsync(Stream output);
+
+        /// <summary>
+        /// Writes the current query to the output stream.
+        /// </summary>
+        Task WriteToAsync(Stream output, CancellationToken cancellationToken);
+
+        /// <summary>
         /// Returns the binary query representation.
         /// </summary>
-        ReadOnlySpan<byte> ToSource();
+        ReadOnlySpan<byte> ToSpan();
 
         /// <summary>
         /// Returns the query string representation.

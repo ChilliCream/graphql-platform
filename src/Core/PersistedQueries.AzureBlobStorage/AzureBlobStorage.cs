@@ -16,7 +16,7 @@ namespace HotChocolate.PersistedQueries.AzureBlobStorage
     {
         private const string ContainerNotFoundErrorCode = "ContainerNotFound";
         private const string BlobNotFoundErrorCode = "BlobNotFound";
-        
+
         private readonly CloudBlobContainer _container;
         private readonly IQueryRequestBuilder _queryRequestBuilder;
 
@@ -33,22 +33,22 @@ namespace HotChocolate.PersistedQueries.AzureBlobStorage
             {
                 throw new ArgumentNullException(nameof(containerName));
             }
-            
+
             _container = azureClient.GetContainerReference(containerName);
             _queryRequestBuilder = queryRequestBuilder ?? throw new ArgumentNullException(nameof(queryRequestBuilder));
         }
-        
+
         /// <inheritdoc />
-        public async Task<IQuery> ReadQueryAsync(string queryId)
+        public async Task<IQuery> TryReadQueryAsync(string queryId)
         {
             if (string.IsNullOrWhiteSpace(queryId))
             {
                 throw new ArgumentNullException(nameof(queryId));
             }
-            
+
             var queryBlob = await GetBlob(queryId);
             var blobStream = await queryBlob.OpenReadAsync();
-            
+
             using (var streamReader = new StreamReader(blobStream))
             {
                 var content = await streamReader.ReadToEndAsync();
@@ -71,7 +71,7 @@ namespace HotChocolate.PersistedQueries.AzureBlobStorage
                 {
                     throw new QueryContainerNotFoundException(_container.Name);
                 }
-                
+
                 if (e.RequestInformation.ErrorCode == BlobNotFoundErrorCode)
                 {
                     throw new QueryNotFoundException(queryId);

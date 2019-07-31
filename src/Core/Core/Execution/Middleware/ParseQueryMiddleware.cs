@@ -59,7 +59,7 @@ namespace HotChocolate.Execution
                     {
                         queryKey = context.Request.QueryHash is null
                             ? _documentHashProvider.ComputeHash(
-                                context.Request.Query.ToSource())
+                                context.Request.Query.ToSpan())
                             : context.Request.QueryHash;
                     }
 
@@ -114,7 +114,7 @@ namespace HotChocolate.Execution
 
             if (query is QuerySourceText source)
             {
-                return _parser.Parse(source.ToSource());
+                return _parser.Parse(source.ToSpan());
             }
 
             // TODO : resources

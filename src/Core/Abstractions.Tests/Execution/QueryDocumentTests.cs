@@ -55,7 +55,7 @@ namespace HotChocolate.Execution.Tests
 
             // assert
             QuerySyntaxSerializer.Serialize(
-                Utf8GraphQLParser.Parse(query.ToSource()))
+                Utf8GraphQLParser.Parse(query.ToSpan()))
                 .ToString().MatchSnapshot();
         }
     }

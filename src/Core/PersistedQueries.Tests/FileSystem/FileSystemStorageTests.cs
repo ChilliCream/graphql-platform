@@ -58,7 +58,7 @@ namespace HotChocolate.PersistedQueries.Tests.FileSystem
         public async Task When_ReadQueryAsync_Is_Called_If_Query_Id_Is_Null_Or_White_Space_Then_ArgumentNullException_Is_Thrown(string queryId)
         {
             await Assert.ThrowsAsync<ArgumentNullException>(
-                () => _systemUnderTest.ReadQueryAsync(queryId)
+                () => _systemUnderTest.TryReadQueryAsync(queryId)
             );
         }
 
@@ -76,7 +76,7 @@ namespace HotChocolate.PersistedQueries.Tests.FileSystem
                 .Returns(filePath);
 
             // Act
-            var exception = await Assert.ThrowsAsync<QueryNotFoundException>(() => _systemUnderTest.ReadQueryAsync(queryId));
+            var exception = await Assert.ThrowsAsync<QueryNotFoundException>(() => _systemUnderTest.TryReadQueryAsync(queryId));
 
             // Assert
             Assert.Equal($"Unable to find query with identifier '{queryId}'.", exception.Message);
@@ -94,7 +94,7 @@ namespace HotChocolate.PersistedQueries.Tests.FileSystem
                 .Returns(invalidFilePath);
 
             // Act
-            await Assert.ThrowsAsync<QueryNotFoundException>(() => _systemUnderTest.ReadQueryAsync("query"));
+            await Assert.ThrowsAsync<QueryNotFoundException>(() => _systemUnderTest.TryReadQueryAsync("query"));
         }
 
         [Fact]
@@ -108,7 +108,7 @@ namespace HotChocolate.PersistedQueries.Tests.FileSystem
                 .Returns(simpleQueryFile);
 
             // Act
-            await _systemUnderTest.ReadQueryAsync("query");
+            await _systemUnderTest.TryReadQueryAsync("query");
 
             // Assert
             using (var fileStream = new FileStream(simpleQueryFile, FileMode.Open))
@@ -136,7 +136,7 @@ namespace HotChocolate.PersistedQueries.Tests.FileSystem
             _queryRequestMock.Setup(q => q.Query).Returns(mockQuery.Object);
 
             // Act
-            var query = await _systemUnderTest.ReadQueryAsync("query");
+            var query = await _systemUnderTest.TryReadQueryAsync("query");
 
             // Assert
             Assert.NotNull(query);

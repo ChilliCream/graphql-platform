@@ -1,5 +1,8 @@
 using System;
+using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace HotChocolate.Execution
 {
@@ -16,7 +19,24 @@ namespace HotChocolate.Execution
 
         public string Text { get; }
 
-        public ReadOnlySpan<byte> ToSource()
+        public void WriteTo(Stream output)
+        {
+            var writer = new StreamWriter(output, Encoding.UTF8);
+            writer.Write(Text);
+        }
+
+        public Task WriteToAsync(Stream output) =>
+            WriteToAsync(output, CancellationToken.None);
+
+        public async Task WriteToAsync(
+            Stream output,
+            CancellationToken cancellationToken)
+        {
+            var writer = new StreamWriter(output, Encoding.UTF8);
+            await writer.WriteAsync(Text).ConfigureAwait(false);
+        }
+
+        public ReadOnlySpan<byte> ToSpan()
         {
             if (_source == null)
             {
