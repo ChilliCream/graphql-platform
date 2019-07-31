@@ -80,29 +80,14 @@ namespace HotChocolate.AspNetCore
 
 #if ASPNETCLASSIC
             IReadableStringCollection requestQuery = context.Request.Query;
-
-            if (requestQuery[_queryIdentifier] != null)
-            {
-                builder.SetQuery(requestQuery[_queryIdentifier]);
-            }
-            else
-            {
-                builder.SetQueryName(requestQuery[_namedQueryIdentifier]);
-            }
 #else
             IQueryCollection requestQuery = context.Request.Query;
-
-            if (requestQuery[_queryIdentifier].Count != 0)
-            {
-                builder.SetQuery(requestQuery[_queryIdentifier]);
-            }
-            else
-            {
-                builder.SetQueryName(requestQuery[_namedQueryIdentifier]);
-            }
 #endif
 
-            builder.SetOperation(requestQuery[_operationNameIdentifier]);
+            builder
+                .SetQuery(requestQuery[_queryIdentifier])
+                .SetQueryName(requestQuery[_namedQueryIdentifier])
+                .SetOperation(requestQuery[_operationNameIdentifier]);
 
             string variables = requestQuery[_variablesIdentifier];
             if (variables != null

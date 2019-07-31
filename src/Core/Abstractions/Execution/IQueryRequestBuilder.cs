@@ -12,8 +12,6 @@ namespace HotChocolate.Execution
             DocumentNode queryDocument);
         IQueryRequestBuilder SetQueryName(
             string queryName);
-        IQueryRequestBuilder SetQueryHash(
-            string queryHash);
         IQueryRequestBuilder SetOperation(
             string operationName);
         IQueryRequestBuilder SetVariableValues(
