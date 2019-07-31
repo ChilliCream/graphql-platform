@@ -8,18 +8,20 @@ using HotChocolate.Runtime;
 
 namespace HotChocolate.Execution
 {
-    internal sealed class ParseQueryMiddleware
+    internal sealed class PersistedQueryMiddleware
     {
         private readonly QueryDelegate _next;
         private readonly IQueryParser _parser;
         private readonly Cache<ICachedQuery> _queryCache;
+        private readonly IReadStoredQueries _readStoredQueries;
         private readonly QueryExecutionDiagnostics _diagnosticEvents;
         private readonly IDocumentHashProvider _documentHashProvider;
 
-        public ParseQueryMiddleware(
+        public PersistedQueryMiddleware(
             QueryDelegate next,
             IQueryParser parser,
             Cache<ICachedQuery> queryCache,
+            IReadStoredQueries readStoredQueries,
             QueryExecutionDiagnostics diagnosticEvents,
             IDocumentHashProvider documentHashProvider)
         {
@@ -29,6 +31,7 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(parser));
             _queryCache = queryCache
                 ?? throw new ArgumentNullException(nameof(queryCache));
+            _readStoredQueries = readStoredQueries;
             _diagnosticEvents = diagnosticEvents
                 ?? throw new ArgumentNullException(nameof(diagnosticEvents));
             _documentHashProvider = documentHashProvider
