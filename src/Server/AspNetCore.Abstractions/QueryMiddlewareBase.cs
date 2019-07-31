@@ -57,20 +57,18 @@ namespace HotChocolate.AspNetCore
         /// </param>
         protected QueryMiddlewareBase(
             RequestDelegate next,
-            IMiddlewareOptionsAccessor options,
+            IPathOptionAccessor options,
             OwinContextAccessor owinContextAccessor,
             IServiceProvider services)
             : base(next)
         {
             _options = options
-                ?? throw new ArgumentNullException(nameof(options));
-            _resultSerializer = resultSerializer
-                ?? throw new ArgumentNullException(nameof(resultSerializer));
+                ?? throw new ArgumentNullException(nameof(options));            
             _accessor = owinContextAccessor;
             _services = services
                 ?? throw new ArgumentNullException(nameof(services));
 
-            if (Options.Path.Value.Length > 1)
+            if (_options.Path.Value.Length > 1)
             {
                 var path1 = new PathString(options.Path.Value.TrimEnd('/'));
                 PathString path2 = path1.Add(new PathString("/"));

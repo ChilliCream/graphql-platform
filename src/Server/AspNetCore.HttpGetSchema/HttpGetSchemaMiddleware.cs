@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
@@ -29,8 +29,8 @@ namespace HotChocolate.AspNetCore
 
         public HttpGetSchemaMiddleware(
             RequestDelegate next,
-            IQueryExecutor queryExecutor,
-            IHttpGetSchemaMiddlewareOptions options)
+            IHttpGetSchemaMiddlewareOptions options,
+            IQueryExecutor queryExecutor)
 #if ASPNETCLASSIC
             : base(next)
 #endif

@@ -6,12 +6,9 @@ using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Server;
 using HotChocolate.Execution.Batching;
-using System.Threading;
-using System.Linq;
 using System.Text;
 
 #if ASPNETCLASSIC
-using Microsoft.Owin;
 using HttpContext = Microsoft.Owin.IOwinContext;
 using RequestDelegate = Microsoft.Owin.OwinMiddleware;
 #else
@@ -28,9 +25,6 @@ namespace HotChocolate.AspNetCore
         : QueryMiddlewareBase
     {
         private const string _batchOperations = "batchOperations";
-        private const byte _leftBracket = (byte)'[';
-        private const byte _rightBracket = (byte)']';
-        private const byte _comma = (byte)',';
         private readonly RequestHelper _requestHelper;
         private readonly IQueryExecutor _queryExecutor;
         private readonly IBatchQueryExecutor _batchExecutor;
@@ -49,7 +43,6 @@ namespace HotChocolate.AspNetCore
             IDocumentCache documentCache,
             IDocumentHashProvider documentHashProvider)
             : base(next,
-                resultSerializer,
                 options,
                 owinContextAccessor,
                 queryExecutor.Schema.Services)
@@ -57,7 +50,7 @@ namespace HotChocolate.AspNetCore
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
             _batchExecutor = batchQueryExecutor
-                ?? throw new ArgumentNullException(nameof(batchExecutor));
+                ?? throw new ArgumentNullException(nameof(batchQueryExecutor));
             _resultSerializer = resultSerializer
                 ?? throw new ArgumentNullException(nameof(resultSerializer));
             _streamSerializer = streamSerializer
@@ -268,15 +261,15 @@ namespace HotChocolate.AspNetCore
             {
                 IReadOnlyList<GraphQLRequest> batch = null;
 
-                switch (context.Request.ContentType.Split(';')[0])
+                switch (ParseContentType(context.Request.ContentType))
                 {
-                    case ContentType.Json:
+                    case AllowedContentType.Json:
                         batch = await _requestHelper
                             .ReadJsonRequestAsync(stream)
                             .ConfigureAwait(false);
                         break;
 
-                    case ContentType.GraphQL:
+                    case AllowedContentType.GraphQL:
                         batch = await _requestHelper
                             .ReadGraphQLQueryAsync(stream)
                             .ConfigureAwait(false);
@@ -288,6 +281,32 @@ namespace HotChocolate.AspNetCore
 
                 return batch;
             }
+        }
+
+        private AllowedContentType ParseContentType(string s)
+        {
+            ReadOnlySpan<char> span = s.AsSpan();
+
+            for(int i = 0; i < span.Length; i++)
+            {
+                if(span[i] == ';')
+                {
+                    span = span.Slice(0, i);
+                    break;
+                }
+            }
+
+            if(span.SequenceEqual(ContentType.GraphQLSpan()))
+            {
+                return AllowedContentType.GraphQL;
+            }
+
+            if (span.SequenceEqual(ContentType.JsonSpan()))
+            {
+                return AllowedContentType.Json;
+            }
+
+            return AllowedContentType.None;
         }
 
         private static bool TryParseOperations(
@@ -319,6 +338,13 @@ namespace HotChocolate.AspNetCore
 
             operationNames = names;
             return true;
+        }
+
+        private enum AllowedContentType
+        {
+            None,
+            GraphQL,
+            Json
         }
     }
 }

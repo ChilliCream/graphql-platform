@@ -31,15 +31,15 @@ namespace HotChocolate.AspNetCore
         private readonly IQueryResultSerializer _resultSerializer;
 
 #if ASPNETCLASSIC
-        public GetQueryMiddleware(
+        public HttpGetMiddleware(
             RequestDelegate next,
+            IHttpGetMiddlewareOptions options,
             OwinContextAccessor owinContextAccessor,
-            IGetQueryMiddlewareOptions options,
             IQueryExecutor queryExecutor,
             IQueryResultSerializer resultSerializer)
             : base(next,
-                owinContextAccessor,
                 options,
+                owinContextAccessor,
                 queryExecutor.Schema.Services)
         {
             _queryExecutor = queryExecutor

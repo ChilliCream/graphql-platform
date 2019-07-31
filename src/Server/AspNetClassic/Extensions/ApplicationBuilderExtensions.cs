@@ -53,34 +53,7 @@ namespace HotChocolate.AspNetClassic
                 throw new ArgumentNullException(nameof(options));
             }
 
-            IQueryExecutor executor = serviceProvider
-                .GetRequiredService<IQueryExecutor>();
-
-            IBatchQueryExecutor batchExecutor = serviceProvider
-                .GetRequiredService<IBatchQueryExecutor>();
-
-            IQueryResultSerializer serializer = serviceProvider
-                .GetService<IQueryResultSerializer>()
-                ?? new JsonQueryResultSerializer();
-
-            IDocumentCache cache = serviceProvider
-                .GetRequiredService<IDocumentCache>();
-
-            IDocumentHashProvider hashProvider = serviceProvider
-                .GetRequiredService<IDocumentHashProvider>();
-
-            OwinContextAccessor contextAccessor =
-                serviceProvider.GetService<OwinContextAccessor>();
-
-            return applicationBuilder
-                .Use<PostQueryMiddleware>(
-                    executor, batchExecutor, serializer,
-                    cache, hashProvider, contextAccessor,
-                    options)
-                .Use<GetQueryMiddleware>(
-                    executor, serializer, contextAccessor,
-                    options)
-                .Use<SchemaMiddleware>(executor, options);
+            
         }
     }
 }
