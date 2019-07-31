@@ -76,13 +76,21 @@ namespace HotChocolate.AspNetCore
             HttpContext context,
             IServiceProvider services)
         {
+            var builder = QueryRequestBuilder.New();
+
 #if ASPNETCLASSIC
             IReadableStringCollection requestQuery = context.Request.Query;
+
+            if (requestQuery[_queryIdentifier] != null)
+            {
+                builder.SetQuery(requestQuery[_queryIdentifier]);
+            }
+            else
+            {
+                builder.SetQueryName(requestQuery[_namedQueryIdentifier]);
+            }
 #else
             IQueryCollection requestQuery = context.Request.Query;
-#endif
-
-            var builder = QueryRequestBuilder.New();
 
             if (requestQuery[_queryIdentifier].Count != 0)
             {
@@ -92,6 +100,7 @@ namespace HotChocolate.AspNetCore
             {
                 builder.SetQueryName(requestQuery[_namedQueryIdentifier]);
             }
+#endif
 
             builder.SetOperation(requestQuery[_operationNameIdentifier]);
 
@@ -126,8 +135,13 @@ namespace HotChocolate.AspNetCore
 
         private static bool HasQueryParameter(HttpContext context)
         {
+#if ASPNETCLASSIC
+            return context.Request.Query[_queryIdentifier] != null
+                || context.Request.Query[_namedQueryIdentifier] != null;
+#else
             return context.Request.Query[_queryIdentifier].Count != 0
                 || context.Request.Query[_namedQueryIdentifier].Count != 0;
+#endif
         }
     }
 }

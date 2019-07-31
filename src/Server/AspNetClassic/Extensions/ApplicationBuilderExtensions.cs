@@ -1,11 +1,6 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Owin;
-using Owin;
 using IApplicationBuilder = Owin.IAppBuilder;
-using HotChocolate.Execution;
-using HotChocolate.Execution.Batching;
-using HotChocolate.Language;
 
 namespace HotChocolate.AspNetClassic
 {
@@ -53,7 +48,24 @@ namespace HotChocolate.AspNetClassic
                 throw new ArgumentNullException(nameof(options));
             }
 
-            
+            return applicationBuilder
+                .UseGraphQLHttpPost(serviceProvider,
+                    new HttpPostMiddlewareOptions
+                    {
+                        Path = options.Path,
+                        ParserOptions = options.ParserOptions,
+                        MaxRequestSize = options.MaxRequestSize
+                    })
+                .UseGraphQLHttpGet(serviceProvider,
+                    new HttpGetMiddlewareOptions
+                    {
+                        Path = options.Path
+                    })
+                .UseGraphQLHttpGetSchema(serviceProvider,
+                    new HttpGetSchemaMiddlewareOptions
+                    {
+                        Path = options.Path.Add(new PathString("/schema"))
+                    });
         }
     }
 }

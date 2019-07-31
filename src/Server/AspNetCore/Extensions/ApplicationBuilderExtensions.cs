@@ -42,6 +42,12 @@ namespace HotChocolate.AspNetCore
             }
 
             return applicationBuilder
+                .UseGraphQLHttpPost(new HttpPostMiddlewareOptions
+                {
+                    Path = options.Path,
+                    ParserOptions = options.ParserOptions,
+                    MaxRequestSize = options.MaxRequestSize
+                })
                 .UseGraphQLHttpGet(new HttpGetMiddlewareOptions
                 {
                     Path = options.Path
@@ -49,12 +55,6 @@ namespace HotChocolate.AspNetCore
                 .UseGraphQLHttpGetSchema(new HttpGetSchemaMiddlewareOptions
                 {
                     Path = options.Path.Add(new PathString("/schema"))
-                })
-                .UseGraphQLHttpPost(new HttpPostMiddlewareOptions
-                {
-                    Path = options.Path,
-                    ParserOptions = options.ParserOptions,
-                    MaxRequestSize = options.MaxRequestSize
                 })
                 .UseGraphQLSubscriptions(new SubscriptionMiddlewareOptions
                 {
