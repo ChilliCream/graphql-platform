@@ -1,8 +1,7 @@
 using System.Threading;
-using HotChocolate.Execution;
 using System.Threading.Tasks;
 
-namespace HotChocolate.PersistedQueries
+namespace HotChocolate.Execution
 {
     /// <summary>
     /// A tool for reading queries from some persistence medium.
