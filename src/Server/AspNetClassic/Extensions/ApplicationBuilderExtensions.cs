@@ -1,11 +1,6 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Owin;
-using Owin;
 using IApplicationBuilder = Owin.IAppBuilder;
-using HotChocolate.Execution;
-using HotChocolate.Execution.Batching;
-using HotChocolate.Language;
 
 namespace HotChocolate.AspNetClassic
 {
@@ -53,34 +48,24 @@ namespace HotChocolate.AspNetClassic
                 throw new ArgumentNullException(nameof(options));
             }
 
-            IQueryExecutor executor = serviceProvider
-                .GetRequiredService<IQueryExecutor>();
-
-            IBatchQueryExecutor batchExecutor = serviceProvider
-                .GetRequiredService<IBatchQueryExecutor>();
-
-            IQueryResultSerializer serializer = serviceProvider
-                .GetService<IQueryResultSerializer>()
-                ?? new JsonQueryResultSerializer();
-
-            IDocumentCache cache = serviceProvider
-                .GetRequiredService<IDocumentCache>();
-
-            IDocumentHashProvider hashProvider = serviceProvider
-                .GetRequiredService<IDocumentHashProvider>();
-
-            OwinContextAccessor contextAccessor =
-                serviceProvider.GetService<OwinContextAccessor>();
-
             return applicationBuilder
-                .Use<PostQueryMiddleware>(
-                    executor, batchExecutor, serializer,
-                    cache, hashProvider, contextAccessor,
-                    options)
-                .Use<GetQueryMiddleware>(
-                    executor, serializer, contextAccessor,
-                    options)
-                .Use<SchemaMiddleware>(executor, options);
+                .UseGraphQLHttpPost(serviceProvider,
+                    new HttpPostMiddlewareOptions
+                    {
+                        Path = options.Path,
+                        ParserOptions = options.ParserOptions,
+                        MaxRequestSize = options.MaxRequestSize
+                    })
+                .UseGraphQLHttpGet(serviceProvider,
+                    new HttpGetMiddlewareOptions
+                    {
+                        Path = options.Path
+                    })
+                .UseGraphQLHttpGetSchema(serviceProvider,
+                    new HttpGetSchemaMiddlewareOptions
+                    {
+                        Path = options.Path.Add(new PathString("/schema"))
+                    });
         }
     }
 }

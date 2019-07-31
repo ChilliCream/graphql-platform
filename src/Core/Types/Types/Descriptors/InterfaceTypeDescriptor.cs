@@ -65,9 +65,9 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IInterfaceTypeDescriptor SyntaxNode(
-            InterfaceTypeDefinitionNode interfaceTypeDefinitionNode)
+            InterfaceTypeDefinitionNode interfaceTypeDefinition)
         {
-            Definition.SyntaxNode = interfaceTypeDefinitionNode;
+            Definition.SyntaxNode = interfaceTypeDefinition;
             return this;
         }
 
@@ -100,10 +100,10 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IInterfaceTypeDescriptor Directive<T>(T directive)
+        public IInterfaceTypeDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
-            Definition.AddDirective(directive);
+            Definition.AddDirective(directiveInstance);
             return this;
         }
 

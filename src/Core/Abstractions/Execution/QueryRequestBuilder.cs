@@ -1,3 +1,4 @@
+using System.Runtime.Serialization;
 using System.Linq;
 using System;
 using System.Collections.Generic;
@@ -267,12 +268,17 @@ namespace HotChocolate.Execution
         {
             var builder = QueryRequestBuilder.New();
 
-            builder.SetQuery(request.Query)
+            builder
                 .SetQueryName(request.QueryName)
-                .SetQueryName(request.QueryName) // TODO : we should have a hash here
+                .SetQueryHash(request.QueryHash)
                 .SetOperation(request.OperationName)
                 .SetVariableValues(request.Variables)
                 .SetProperties(request.Extensions);
+
+            if (request.Query != null)
+            {
+                builder.SetQuery(request.Query);
+            }
 
             return builder;
         }

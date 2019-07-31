@@ -37,23 +37,23 @@ namespace HotChocolate.Types.Descriptors
             base.OnCompleteFields(fields, handledMembers);
         }
 
-        public new IObjectTypeDescriptor<T> Name(NameString name)
+        public new IObjectTypeDescriptor<T> Name(NameString value)
         {
-            base.Name(name);
+            base.Name(value);
             return this;
         }
 
         public new IObjectTypeDescriptor<T> Description(
-            string description)
+            string value)
         {
-            base.Description(description);
+            base.Description(value);
             return this;
         }
 
         public IObjectTypeDescriptor<T> BindFields(
-            BindingBehavior bindingBehavior)
+            BindingBehavior behavior)
         {
-            Definition.Fields.BindingBehavior = bindingBehavior;
+            Definition.Fields.BindingBehavior = behavior;
             return this;
         }
 
@@ -114,10 +114,10 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public new IObjectTypeDescriptor<T> Directive<TDirective>(
-            TDirective directive)
+            TDirective directiveInstance)
             where TDirective : class
         {
-            base.Directive(directive);
+            base.Directive(directiveInstance);
             return this;
         }
 

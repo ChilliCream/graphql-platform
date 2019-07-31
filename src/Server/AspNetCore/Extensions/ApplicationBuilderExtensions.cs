@@ -42,68 +42,25 @@ namespace HotChocolate.AspNetCore
             }
 
             return applicationBuilder
-                .UseGraphQLHttpGet(options)
-                .UseGraphQLHttpPost(options)
+                .UseGraphQLHttpPost(new HttpPostMiddlewareOptions
+                {
+                    Path = options.Path,
+                    ParserOptions = options.ParserOptions,
+                    MaxRequestSize = options.MaxRequestSize
+                })
+                .UseGraphQLHttpGet(new HttpGetMiddlewareOptions
+                {
+                    Path = options.Path
+                })
+                .UseGraphQLHttpGetSchema(new HttpGetSchemaMiddlewareOptions
+                {
+                    Path = options.Path.Add(new PathString("/schema"))
+                })
                 .UseGraphQLSubscriptions(new SubscriptionMiddlewareOptions
                 {
                     ParserOptions = options.ParserOptions,
-                    SubscriptionPath = options.SubscriptionPath
-                })
-                .UseGraphQLHttpGetSchema(options);
-        }
-
-        public static IApplicationBuilder UseGraphQLHttpGet(
-            this IApplicationBuilder applicationBuilder,
-            QueryMiddlewareOptions options)
-        {
-            if (applicationBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(applicationBuilder));
-            }
-
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            return applicationBuilder
-                .UseMiddleware<GetQueryMiddleware>(options);
-        }
-
-        public static IApplicationBuilder UseGraphQLHttpPost(
-            this IApplicationBuilder applicationBuilder,
-            QueryMiddlewareOptions options)
-        {
-            if (applicationBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(applicationBuilder));
-            }
-
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            return applicationBuilder
-                .UseMiddleware<PostQueryMiddleware>(options);
-        }
-
-        public static IApplicationBuilder UseGraphQLHttpGetSchema(
-            this IApplicationBuilder applicationBuilder,
-            QueryMiddlewareOptions options)
-        {
-            if (applicationBuilder == null)
-            {
-                throw new ArgumentNullException(nameof(applicationBuilder));
-            }
-
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            return applicationBuilder
-                .UseMiddleware<SchemaMiddleware>(options);
+                    Path = options.SubscriptionPath
+                });
         }
     }
 }

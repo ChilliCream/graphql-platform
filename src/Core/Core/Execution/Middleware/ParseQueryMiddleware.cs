@@ -52,26 +52,46 @@ namespace HotChocolate.Execution
                 try
                 {
                     bool documentRetrievedFromCache = true;
+                    string queryKey = context.Request.QueryName;
+                    ICachedQuery cachedQuery = null;
 
-                    string queryKey = context.Request.QueryHash
-                        ?? context.Request.QueryName;
-
-                    if (queryKey is null)
+                    if (queryKey is null || context.Request.Query != null)
                     {
-                        queryKey = _documentHashProvider.ComputeHash(
-                            context.Request.Query.ToSource());
+                        queryKey = context.Request.QueryHash is null
+                            ? _documentHashProvider.ComputeHash(
+                                context.Request.Query.ToSource())
+                            : context.Request.QueryHash;
                     }
 
+                    if (context.Request.Query is null
+                        && !_queryCache.TryGet(queryKey, out cachedQuery))
+                    {
+                        // TODO : check for query storage here?
+                        // TODO : RESOURCES
+                        context.Result = QueryResult.CreateError(
+                            ErrorBuilder.New()
+                                .SetMessage("persistedQueryNotFound")
+                                .SetCode("CACHED_QUERY_NOT_FOUND")
+                                .Build());
+                        return;
+                    }
+
+                    if (cachedQuery is null)
+                    {
+                        cachedQuery = _queryCache.GetOrCreate(
+                            queryKey,
+                            () =>
+                            {
+                                documentRetrievedFromCache = false;
+                                DocumentNode document =
+                                    ParseDocument(context.Request.Query);
+                                return new CachedQuery(queryKey, document);
+                            });
+                    }
+
+                    // update context
                     context.QueryKey = queryKey;
-                    context.CachedQuery = _queryCache.GetOrCreate(
-                        queryKey,
-                        () =>
-                        {
-                            documentRetrievedFromCache = false;
-                            DocumentNode document =
-                                ParseDocument(context.Request.Query);
-                            return new CachedQuery(queryKey, document);
-                        });
+                    context.CachedQuery = cachedQuery;
                     context.Document = context.CachedQuery.Document;
                     context.ContextData[ContextDataKeys.DocumentCached] =
                         documentRetrievedFromCache;
@@ -80,9 +100,9 @@ namespace HotChocolate.Execution
                 {
                     _diagnosticEvents.EndParsing(activity, context);
                 }
-            }
 
-            await _next(context).ConfigureAwait(false);
+                await _next(context).ConfigureAwait(false);
+            }
         }
 
         private DocumentNode ParseDocument(IQuery query)
@@ -104,8 +124,9 @@ namespace HotChocolate.Execution
 
         private static bool IsContextIncomplete(IQueryContext context)
         {
-            return context.Request == null
-                || context.Request.Query == null;
+            return context.Request is null
+                || (context.Request.Query is null
+                    && context.Request.QueryName is null);
         }
     }
 }

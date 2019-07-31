@@ -136,30 +136,43 @@ namespace HotChocolate.Language
                     "property have to have a value.");
             }
 
-            DocumentNode document;
+            DocumentNode document = null;
 
-            if (_useCache)
+            if (!request.IsQueryNull)
             {
-                if (request.NamedQuery is null)
+                if (_useCache)
                 {
-                    request.NamedQuery =
-                        _hashProvider.ComputeHash(request.Query);
-                }
+                    if (request.NamedQuery is null)
+                    {
+                        request.NamedQuery =
+                            request.QueryHash =
+                            _hashProvider.ComputeHash(request.Query);
+                    }
 
-                if (!_cache.TryGetDocument(request.NamedQuery, out document))
+                    if (!_cache.TryGetDocument(
+                        request.NamedQuery,
+                        out document))
+                    {
+                        document = ParseQuery(in request);
+
+                        if (request.QueryHash is null)
+                        {
+                            request.QueryHash =
+                                _hashProvider.ComputeHash(request.Query);
+                        }
+                    }
+                }
+                else
                 {
                     document = ParseQuery(in request);
                 }
-            }
-            else
-            {
-                document = ParseQuery(in request);
             }
 
             return new GraphQLRequest
             (
                 document,
                 request.NamedQuery,
+                request.QueryHash,
                 request.OperationName,
                 request.Variables,
                 request.Extensions
