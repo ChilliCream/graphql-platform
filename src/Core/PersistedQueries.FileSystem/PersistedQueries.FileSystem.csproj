@@ -7,6 +7,7 @@
     <AssemblyName>$(Name)</AssemblyName>
     <PackageId>$(Name)</PackageId>
     <Description>An implementation of Hot Chocolate persisted queries using the local file system.</Description>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <PropertyGroup>

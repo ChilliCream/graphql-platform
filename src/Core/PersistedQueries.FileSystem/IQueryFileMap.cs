@@ -9,8 +9,8 @@ namespace HotChocolate.PersistedQueries.FileSystem
         /// Maps a query identifier to the file path
         /// containing the query.
         /// </summary>
-        /// <param name="queryIdentifier">The query identifier.</param>
+        /// <param name="queryId">The query identifier.</param>
         /// <returns>The file path of the query.</returns>
-        string MapToFilePath(string queryIdentifier);
+        string MapToFilePath(string queryId);
     }
 }
