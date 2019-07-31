@@ -20,6 +20,6 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// <summary>
         /// Executes this configuration.
         /// </summary>
-        void Configure(ICompletionContext completionContext);
+        void Configure(ICompletionContext context);
     }
 }

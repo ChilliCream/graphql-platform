@@ -137,9 +137,9 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IObjectTypeDescriptor SyntaxNode(
-            ObjectTypeDefinitionNode objectTypeDefinitionNode)
+            ObjectTypeDefinitionNode objectTypeDefinition)
         {
-            Definition.SyntaxNode = objectTypeDefinitionNode;
+            Definition.SyntaxNode = objectTypeDefinition;
             return this;
         }
 
@@ -169,29 +169,29 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IObjectTypeDescriptor Interface<TInterface>(
-            TInterface interfaceType)
+            TInterface type)
             where TInterface : InterfaceType
         {
-            if (interfaceType == null)
+            if (type == null)
             {
-                throw new ArgumentNullException(nameof(interfaceType));
+                throw new ArgumentNullException(nameof(type));
             }
 
             Definition.Interfaces.Add(new SchemaTypeReference(
-                interfaceType));
+                type));
             return this;
         }
 
         public IObjectTypeDescriptor Interface(
-            NamedTypeNode namedTypeNode)
+            NamedTypeNode namedType)
         {
-            if (namedTypeNode == null)
+            if (namedType == null)
             {
-                throw new ArgumentNullException(nameof(namedTypeNode));
+                throw new ArgumentNullException(nameof(namedType));
             }
 
             Definition.Interfaces.Add(new SyntaxTypeReference(
-                namedTypeNode, TypeContext.Output));
+                namedType, TypeContext.Output));
             return this;
         }
 

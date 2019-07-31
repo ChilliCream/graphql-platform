@@ -150,7 +150,7 @@ namespace HotChocolate.Types
                 TypeResourceHelper.Scalar_Cannot_Serialize(Name));
         }
 
-        public object Deserialize(object value)
+        public object Deserialize(object serialized)
         {
             if (TryDeserialize(value, out object v))
             {

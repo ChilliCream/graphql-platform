@@ -142,10 +142,10 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public new IObjectFieldDescriptor Argument(
-            NameString name,
+            NameString argumentName,
             Action<IArgumentDescriptor> argumentDescriptor)
         {
-            base.Argument(name, argumentDescriptor);
+            base.Argument(argumentName, argumentDescriptor);
             return this;
         }
 
@@ -206,10 +206,10 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public new IObjectFieldDescriptor Directive<T>(T directive)
+        public new IObjectFieldDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
-            base.Directive(directive);
+            base.Directive(directiveInstance);
             return this;
         }
 
