@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added UTF-8 request parser. [#869](https://github.com/ChilliCream/hotchocolate/pull/869)
 - Added new syntax visitor API.
 - Added Redis subscription provider [#902](https://github.com/ChilliCream/hotchocolate/pull/902)
+- Added support for batching over HTTP [#933](https://github.com/ChilliCream/hotchocolate/pull/933)
 
 ### Changed
 
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved parser performance. [#806](https://github.com/ChilliCream/hotchocolate/pull/806)
 - Roles collection on authorization directive is now interpreted as OR.
 - The type conversion API is now better integreated with dependency injection.
+- The server is now more modularized and the various server middlewares can be added separably.
 
 ### Fixed
 
@@ -31,6 +33,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Respect UseXmlDocumentation with Schema.Create [#897](https://github.com/ChilliCream/hotchocolate/pull/897)
 - Variables now work in lists and input objects [#896](https://github.com/ChilliCream/hotchocolate/pull/896)
 - Fixed url scalar now correctly detects url strings.
+- Support directives declared stitched schemas [#936](https://github.com/ChilliCream/hotchocolate/pull/936)
 
 ## [9.0.4] - 2019-06-16
 
