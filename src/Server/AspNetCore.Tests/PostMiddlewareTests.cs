@@ -38,7 +38,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -68,7 +68,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -98,7 +98,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -124,7 +124,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -150,7 +150,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request, "foo");
+                await server.SendPostRequestAsync(request, "foo");
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -176,7 +176,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request, "bar");
+                await server.SendPostRequestAsync(request, "bar");
 
             // assert
             Assert.Equal(HttpStatusCode.NotFound, message.StatusCode);
@@ -201,7 +201,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -241,7 +241,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -280,7 +280,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -319,7 +319,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -359,7 +359,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -395,7 +395,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -421,7 +421,7 @@ namespace HotChocolate.AspNetCore
             };
 
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // act
             request = new ClientQueryRequest
@@ -429,7 +429,7 @@ namespace HotChocolate.AspNetCore
                 NamedQuery = "abc"
             };
 
-            message = await server.SendRequestAsync(request);
+            message = await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -514,7 +514,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request, requestPath);
+                await server.SendPostRequestAsync(request, requestPath);
 
             // assert
             Assert.Equal(httpStatus, message.StatusCode);
@@ -559,7 +559,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(batch);
+                await server.SendPostRequestAsync(batch);
 
             // assert
             List<ClientQueryResult> result =
@@ -594,7 +594,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(
+                await server.SendPostRequestAsync(
                     batch,
                     "?batchOperations=[getHero, getHuman]");
 
@@ -634,7 +634,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(
+                await server.SendPostRequestAsync(
                     batch,
                     path);
 

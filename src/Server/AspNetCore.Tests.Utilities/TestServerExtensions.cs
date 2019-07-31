@@ -1,4 +1,4 @@
-﻿using System.Net.Http;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.TestHost;
@@ -8,7 +8,7 @@ namespace HotChocolate.AspNetCore.Tests.Utilities
 {
     public static class TestServerExtensions
     {
-        public static Task<HttpResponseMessage> SendRequestAsync<TObject>(
+        public static Task<HttpResponseMessage> SendPostRequestAsync<TObject>(
             this TestServer testServer, TObject requestBody, string path = null)
         {
             return SendPostRequestAsync(

@@ -8,7 +8,7 @@ using HotChocolate.Language;
 
 namespace HotChocolate.AspNetClassic
 {
-    public static class ApplicationBuilderExtensions
+    public static class HttpPostApplicationBuilderExtensions
     {
         public static IApplicationBuilder UseGraphQLHttpPost(
             this IApplicationBuilder applicationBuilder,

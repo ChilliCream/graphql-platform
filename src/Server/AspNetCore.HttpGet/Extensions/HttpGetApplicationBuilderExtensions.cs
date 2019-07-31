@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Builder;
 
 namespace HotChocolate.AspNetCore
 {
-    public static class ApplicationBuilderExtensions
+    public static class HttpGetApplicationBuilderExtensions
     {
         public static IApplicationBuilder UseGraphQLHttpGet(
             this IApplicationBuilder applicationBuilder) =>
