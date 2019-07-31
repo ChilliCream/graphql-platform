@@ -6,7 +6,7 @@ using HotChocolate.Execution;
 
 namespace HotChocolate.AspNetClassic
 {
-    public static class HttpGetSchemaHttpGetApplicationBuilderExtensions
+    public static class HttpGetApplicationBuilderExtensions
     {
         public static IApplicationBuilder UseGraphQLHttpGet(
             this IApplicationBuilder applicationBuilder,

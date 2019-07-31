@@ -14,7 +14,7 @@ namespace HotChocolate.AspNetCore.Tests.Utilities
             return SendPostRequestAsync(
                 testServer,
                 JsonConvert.SerializeObject(requestBody),
-                path?.TrimStart('/'));
+                path);
         }
 
         public static Task<HttpResponseMessage> SendPostRequestAsync(
@@ -51,7 +51,7 @@ namespace HotChocolate.AspNetCore.Tests.Utilities
             string url = "http://localhost:5000";
             if (path != null)
             {
-                url += "/" + path;
+                url += "/" + path.TrimStart('/');
             }
             return url;
         }
