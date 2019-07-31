@@ -9,6 +9,8 @@ namespace HotChocolate.Execution
 
         string QueryName { get; }
 
+        string QueryHash { get; }
+
         string OperationName { get; }
 
         IReadOnlyDictionary<string, object> VariableValues { get; }

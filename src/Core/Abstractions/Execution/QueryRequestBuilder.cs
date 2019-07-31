@@ -1,3 +1,4 @@
+using System.Runtime.Serialization;
 using System.Linq;
 using System;
 using System.Collections.Generic;
@@ -11,6 +12,7 @@ namespace HotChocolate.Execution
     {
         private IQuery _query;
         private string _queryName;
+        private string _queryHash;
         private string _operationName;
         private IReadOnlyDictionary<string, object> _readOnlyVariableValues;
         private IDictionary<string, object> _variableValues;
@@ -46,6 +48,12 @@ namespace HotChocolate.Execution
         public IQueryRequestBuilder SetQueryName(string queryName)
         {
             _queryName = queryName;
+            return this;
+        }
+
+        public IQueryRequestBuilder SetQueryHash(string queryHash)
+        {
+            _queryHash = queryHash;
             return this;
         }
 
@@ -178,6 +186,7 @@ namespace HotChocolate.Execution
             {
                 Query = _query,
                 QueryName = _queryName,
+                QueryHash = _queryHash,
                 OperationName = _operationName,
                 InitialValue = _initialValue,
                 Services = _services,
@@ -239,6 +248,7 @@ namespace HotChocolate.Execution
             var builder = new QueryRequestBuilder();
             builder._query = request.Query;
             builder._queryName = request.QueryName;
+            builder._queryHash = request.QueryHash;
             builder._operationName = request.OperationName;
             builder._readOnlyVariableValues = request.VariableValues;
             builder._initialValue = request.InitialValue;
@@ -258,12 +268,17 @@ namespace HotChocolate.Execution
         {
             var builder = QueryRequestBuilder.New();
 
-            builder.SetQuery(request.Query)
+            builder
                 .SetQueryName(request.QueryName)
-                .SetQueryName(request.QueryName) // TODO : we should have a hash here
+                .SetQueryHash(request.QueryHash)
                 .SetOperation(request.OperationName)
                 .SetVariableValues(request.Variables)
                 .SetProperties(request.Extensions);
+
+            if (request.Query != null)
+            {
+                builder.SetQuery(request.Query);
+            }
 
             return builder;
         }

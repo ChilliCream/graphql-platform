@@ -34,7 +34,6 @@ namespace HotChocolate.Execution
 
         public async Task InvokeAsync(IQueryContext context)
         {
-
             if (context.Document == null)
             {
                 context.Result = QueryResult.CreateError(new Error

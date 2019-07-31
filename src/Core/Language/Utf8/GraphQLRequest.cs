@@ -6,18 +6,19 @@ namespace HotChocolate.Language
     public class GraphQLRequest
     {
         public GraphQLRequest(DocumentNode query)
-            : this(query, null, null, null, null)
+            : this(query, null, null, null, null, null)
         {
         }
 
         public GraphQLRequest(DocumentNode query, string queryName)
-            : this(query, queryName, null, null, null)
+            : this(query, queryName, null, null, null, null)
         {
         }
 
         public GraphQLRequest(
             DocumentNode query,
             string queryName,
+            string queryHash,
             string operationName,
             IReadOnlyDictionary<string, object> variables,
             IReadOnlyDictionary<string, object> extensions)
@@ -29,6 +30,7 @@ namespace HotChocolate.Language
 
             OperationName = operationName;
             QueryName = queryName;
+            QueryHash = queryHash;
             Query = query;
             Variables = variables;
             Extensions = extensions;
@@ -37,6 +39,8 @@ namespace HotChocolate.Language
         public DocumentNode Query { get; }
 
         public string QueryName { get; }
+
+        public string QueryHash { get; }
 
         public string OperationName { get; }
 

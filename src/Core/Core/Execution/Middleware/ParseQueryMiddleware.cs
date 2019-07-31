@@ -57,8 +57,10 @@ namespace HotChocolate.Execution
 
                     if (queryKey is null || context.Request.Query != null)
                     {
-                        queryKey = _documentHashProvider.ComputeHash(
-                            context.Request.Query.ToSource());
+                        queryKey = context.Request.QueryHash is null
+                            ? _documentHashProvider.ComputeHash(
+                                context.Request.Query.ToSource())
+                            : context.Request.QueryHash;
                     }
 
                     if (context.Request.Query is null
@@ -71,6 +73,7 @@ namespace HotChocolate.Execution
                                 .SetMessage("persistedQueryNotFound")
                                 .SetCode("CACHED_QUERY_NOT_FOUND")
                                 .Build());
+                        return;
                     }
 
                     if (cachedQuery is null)
@@ -97,9 +100,9 @@ namespace HotChocolate.Execution
                 {
                     _diagnosticEvents.EndParsing(activity, context);
                 }
-            }
 
-            await _next(context).ConfigureAwait(false);
+                await _next(context).ConfigureAwait(false);
+            }
         }
 
         private DocumentNode ParseDocument(IQuery query)
@@ -121,8 +124,9 @@ namespace HotChocolate.Execution
 
         private static bool IsContextIncomplete(IQueryContext context)
         {
-            return context.Request == null
-                || context.Request.Query == null;
+            return context.Request is null
+                || (context.Request.Query is null
+                    && context.Request.QueryName is null);
         }
     }
 }

@@ -417,6 +417,73 @@ namespace HotChocolate.AspNetCore
                         }
                     }
                 ",
+            };
+
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request);
+
+            // act
+            request = new ClientQueryRequest
+            {
+                NamedQuery = "OpCt/SQtAoBUPq2XBK6V2w=="
+            };
+
+            message = await server.SendPostRequestAsync(request);
+
+            // assert
+            ClientQueryResult result = await DeserializeAsync(message);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpPost_Json_CachedQuery_2()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var request = new ClientQueryRequest
+            {
+                Query =
+                @"
+                    query a {
+                        hero {
+                            name
+                        }
+                    }
+                ",
+                NamedQuery = "OpCt/SQtAoBUPq2XBK6V2w=="
+            };
+
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request);
+
+            // act
+            request = new ClientQueryRequest
+            {
+                NamedQuery = "OpCt/SQtAoBUPq2XBK6V2w=="
+            };
+
+            message = await server.SendPostRequestAsync(request);
+
+            // assert
+            ClientQueryResult result = await DeserializeAsync(message);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpPost_Json_CachedQuery_NotFound()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var request = new ClientQueryRequest
+            {
+                Query =
+                @"
+                    query a {
+                        hero {
+                            name
+                        }
+                    }
+                ",
                 NamedQuery = "abc"
             };
 
