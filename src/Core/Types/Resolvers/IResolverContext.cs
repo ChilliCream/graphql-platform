@@ -46,6 +46,12 @@ namespace HotChocolate.Resolvers
         FieldNode FieldSelection { get; }
 
         /// <summary>
+        /// Gets the name that the field will have in the response map.
+        /// </summary>
+        /// <value></value>
+        NameString ResponseName { get; }
+
+        /// <summary>
         /// Gets the source stack containing all previous resolver results
         /// of the current execution path.
         /// </summary>

@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.AspNetCore.Voyager</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Voyager</RootNamespace>
     <PackageId>HotChocolate.AspNetCore.Voyager</PackageId>
-    <Description>Contains a GraphQL Voyager for ASP.net core that can be used with the Hot Chocolate GraphQL server.</Description>
+    <Description>Contains a GraphQL Voyager for ASP .Net core that can be used with the Hot Chocolate GraphQL server.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

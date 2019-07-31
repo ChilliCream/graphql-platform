@@ -70,7 +70,7 @@ namespace HotChocolate.Types.Descriptors
 
             var configuration = new TypeConfiguration<T>();
             configuration.Definition = Definition;
-            configuration.Kind = ConfigurationKind.Naming;
+            configuration.On = ApplyConfigurationOn.Naming;
             configuration.Configure = configure;
             Definition.Configurations.Add(configuration);
 
@@ -83,7 +83,7 @@ namespace HotChocolate.Types.Descriptors
         {
             var configuration = new TypeConfiguration<T>();
             configuration.Definition = Definition;
-            configuration.Kind = ConfigurationKind.Completion;
+            configuration.On = ApplyConfigurationOn.Completion;
             configuration.Configure = configure;
             Definition.Configurations.Add(configuration);
 

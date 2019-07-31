@@ -13,7 +13,7 @@ namespace HotChocolate.Execution
         IQueryRequestBuilder SetQueryName(
             string queryName);
         IQueryRequestBuilder SetQueryHash(
-            string hash);
+                string queryHash);
         IQueryRequestBuilder SetOperation(
             string operationName);
         IQueryRequestBuilder SetVariableValues(
@@ -23,6 +23,8 @@ namespace HotChocolate.Execution
         IQueryRequestBuilder SetVariableValues(
             IReadOnlyDictionary<string, object> variableValues);
         IQueryRequestBuilder AddVariableValue(
+            string name, object value);
+        IQueryRequestBuilder TryAddVariableValue(
             string name, object value);
         IQueryRequestBuilder SetVariableValue(
             string name, object value);
@@ -35,6 +37,8 @@ namespace HotChocolate.Execution
         IQueryRequestBuilder SetProperties(
             IReadOnlyDictionary<string, object> properties);
         IQueryRequestBuilder AddProperty(
+            string name, object value);
+        IQueryRequestBuilder TryAddProperty(
             string name, object value);
         IQueryRequestBuilder SetProperty(
             string name, object value);

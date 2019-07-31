@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.AspNetClassic.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic</RootNamespace>
     <PackageId>HotChocolate.AspNetClassic.Abstractions</PackageId>
-    <Description>Contains the Hot Chocolate GraphQL middleware abstractions for ASP.net framework.</Description>
+    <Description>Contains the Hot Chocolate GraphQL middleware abstractions for ASP .Net framework.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -26,6 +26,17 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Owin" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Core\Core.csproj" />
+    <ProjectReference Include="..\..\Server\Server\Server.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\AspNetCore.Abstractions\**\*.cs" Exclude="
+          ..\AspNetCore.Abstractions\bin\**\*.cs;
+          ..\AspNetCore.Abstractions\obj\**\*.cs" />
   </ItemGroup>
 
 </Project>

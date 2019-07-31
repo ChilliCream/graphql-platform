@@ -7,13 +7,13 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Types.Descriptors
 {
     internal class TypeConfiguration<T>
-        : ITypeConfigration
+        : ILazyTypeConfiguration
         where T : DefinitionBase
     {
         private readonly List<TypeDependency> _dependencies =
             new List<TypeDependency>();
 
-        public ConfigurationKind Kind { get; set; }
+        public ApplyConfigurationOn On { get; set; }
 
         public Action<ICompletionContext, T> Configure { get; set; }
 
@@ -21,10 +21,10 @@ namespace HotChocolate.Types.Descriptors
 
         public ICollection<TypeDependency> Dependencies => _dependencies;
 
-        IReadOnlyList<TypeDependency> ITypeConfigration.Dependencies =>
+        IReadOnlyList<TypeDependency> ILazyTypeConfiguration.Dependencies =>
             _dependencies;
 
-        void ITypeConfigration.Configure(ICompletionContext context)
+        void ILazyTypeConfiguration.Configure(ICompletionContext context)
         {
             if (context == null)
             {

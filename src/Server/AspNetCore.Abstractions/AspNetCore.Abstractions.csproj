@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.AspNetCore.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
     <PackageId>HotChocolate.AspNetCore.Abstractions</PackageId>
-    <Description>Contains the Hot Chocolate GraphQL middleware abstractions for ASP.net core.</Description>
+    <Description>Contains the Hot Chocolate GraphQL middleware abstractions for ASP .Net core.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -25,11 +25,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.IO.Pipelines" Version="4.5.3" />
+    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Core\Core.csproj" />
+    <ProjectReference Include="..\..\Server\Server\Server.csproj" />
   </ItemGroup>
 
 </Project>

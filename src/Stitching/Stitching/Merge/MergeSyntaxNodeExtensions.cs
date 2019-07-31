@@ -126,6 +126,25 @@ namespace HotChocolate.Stitching.Merge
                     .WithName(n).WithDirectives(d));
         }
 
+        public static DirectiveDefinitionNode Rename(
+           this DirectiveDefinitionNode directiveDefinition,
+           NameString newName,
+           params NameString[] schemaNames)
+        {
+            return Rename(
+                directiveDefinition,
+                newName,
+                (IEnumerable<NameString>)schemaNames);
+        }
+
+        public static DirectiveDefinitionNode Rename(
+            this DirectiveDefinitionNode directiveDefinition,
+            NameString newName,
+            IEnumerable<NameString> schemaNames)
+        {
+            return directiveDefinition.WithName(new NameNode(newName));
+        }
+
         public static EnumTypeDefinitionNode Rename(
             this EnumTypeDefinitionNode enumTypeDefinition,
             NameString newName,

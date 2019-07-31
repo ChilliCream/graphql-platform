@@ -103,9 +103,10 @@ namespace HotChocolate.Types.Descriptors
             {
                 if (IsResolverRelevant(sourceType, member))
                 {
-                    ObjectFieldDefinition fieldDefinition = ObjectFieldDescriptor
-                        .New(Context, member, resolverType)
-                        .CreateDefinition();
+                    ObjectFieldDefinition fieldDefinition =
+                        ObjectFieldDescriptor
+                            .New(Context, member, resolverType)
+                            .CreateDefinition();
 
                     if (processed.Add(fieldDefinition.Name))
                     {
@@ -136,9 +137,9 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IObjectTypeDescriptor SyntaxNode(
-            ObjectTypeDefinitionNode objectTypeDefinitionNode)
+            ObjectTypeDefinitionNode objectTypeDefinition)
         {
-            Definition.SyntaxNode = objectTypeDefinitionNode;
+            Definition.SyntaxNode = objectTypeDefinition;
             return this;
         }
 
@@ -168,29 +169,29 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IObjectTypeDescriptor Interface<TInterface>(
-            TInterface interfaceType)
+            TInterface type)
             where TInterface : InterfaceType
         {
-            if (interfaceType == null)
+            if (type == null)
             {
-                throw new ArgumentNullException(nameof(interfaceType));
+                throw new ArgumentNullException(nameof(type));
             }
 
             Definition.Interfaces.Add(new SchemaTypeReference(
-                interfaceType));
+                type));
             return this;
         }
 
         public IObjectTypeDescriptor Interface(
-            NamedTypeNode namedTypeNode)
+            NamedTypeNode namedType)
         {
-            if (namedTypeNode == null)
+            if (namedType == null)
             {
-                throw new ArgumentNullException(nameof(namedTypeNode));
+                throw new ArgumentNullException(nameof(namedType));
             }
 
             Definition.Interfaces.Add(new SyntaxTypeReference(
-                namedTypeNode, TypeContext.Output));
+                namedType, TypeContext.Output));
             return this;
         }
 
@@ -235,8 +236,8 @@ namespace HotChocolate.Types.Descriptors
             Expression<Func<TResolver, object>> propertyOrMethod) =>
             Field<TResolver, object>(propertyOrMethod);
 
-        public IObjectFieldDescriptor<TPropType> Field<TResolver, TPropType>(
-            Expression<Func<TResolver, TPropType>> propertyOrMethod)
+        public IObjectFieldDescriptor Field<TResolver, TPropertyType>(
+            Expression<Func<TResolver, TPropertyType>> propertyOrMethod)
         {
             if (propertyOrMethod == null)
             {
@@ -246,7 +247,7 @@ namespace HotChocolate.Types.Descriptors
             MemberInfo member = propertyOrMethod.ExtractMember();
             if (member is PropertyInfo || member is MethodInfo)
             {
-                var fieldDescriptor = ObjectFieldDescriptor.New<TPropType>(
+                var fieldDescriptor = ObjectFieldDescriptor.New(
                     Context, member, typeof(TResolver));
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;

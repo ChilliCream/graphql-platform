@@ -10,14 +10,14 @@ namespace HotChocolate.Types
         , IFluent
     {
         /// <summary>
-        /// Associates the specified <paramref name="objectTypeDefinitionNode"/>
+        /// Associates the specified <paramref name="objectTypeDefinition"/>
         /// with the <see cref="ObjectType"/>.
         /// </summary>
-        /// <param name="objectTypeDefinitionNode">
+        /// <param name="objectTypeDefinition">
         /// The <see cref="ObjectTypeDefinitionNode"/> of a parsed schema.
         /// </param>
         IObjectTypeDescriptor SyntaxNode(
-            ObjectTypeDefinitionNode objectTypeDefinitionNode);
+            ObjectTypeDefinitionNode objectTypeDefinition);
 
         /// <summary>
         /// Defines the name of the <see cref="ObjectType"/>.

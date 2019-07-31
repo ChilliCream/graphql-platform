@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Subscriptions
+namespace HotChocolate.Subscriptions
 {
     /// <summary>
     /// The event message of the pub/sub system.

@@ -91,9 +91,9 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public new IDirectiveTypeDescriptor<T> Location(
-            DirectiveLocation location)
+            DirectiveLocation value)
         {
-            base.Location(location);
+            base.Location(value);
             return this;
         }
 

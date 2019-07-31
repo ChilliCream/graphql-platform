@@ -3,12 +3,23 @@ using HotChocolate.Configuration;
 
 namespace HotChocolate.Types.Descriptors.Definitions
 {
-    internal interface ITypeConfigration
+    public interface ILazyTypeConfiguration
     {
-        ConfigurationKind Kind { get; }
+        /// <summary>
+        /// Defines on which type initialization step this
+        /// configurations is applied on.
+        /// </summary>
+        ApplyConfigurationOn On { get; }
 
+        /// <summary>
+        /// Defines types on on which this configuration is dependant on.
+        /// </summary>
+        /// <returns></returns>
         IReadOnlyList<TypeDependency> Dependencies { get; }
 
-        void Configure(ICompletionContext completionContext);
+        /// <summary>
+        /// Executes this configuration.
+        /// </summary>
+        void Configure(ICompletionContext context);
     }
 }
