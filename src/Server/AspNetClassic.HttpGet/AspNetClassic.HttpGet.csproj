@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <AssemblyName>HotChocolate.AspNetClassic.HttpGet</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic.HttpGet</RootNamespace>
     <PackageId>HotChocolate.AspNetClassic.HttpGet</PackageId>
@@ -29,7 +29,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Core\Core.csproj" />
-    <ProjectReference Include="..\AspNetCore.Abstractions\AspNetClassic.Abstractions.csproj" />
+    <ProjectReference Include="..\AspNetClassic.Abstractions\AspNetClassic.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\AspNetCore.HttpGet\*.cs" />
   </ItemGroup>
 
 </Project>
