@@ -415,7 +415,7 @@ namespace HotChocolate.AspNetClassic
                             name
                         }
                     }
-                ",
+                ".Replace("\n", string.Empty).Replace("\r", string.Empty),
             };
 
             HttpResponseMessage message =
@@ -424,7 +424,7 @@ namespace HotChocolate.AspNetClassic
             // act
             request = new ClientQueryRequest
             {
-                NamedQuery = "OpCt/SQtAoBUPq2XBK6V2w=="
+                NamedQuery = "W5vrrAIypCbniaIYeroNnw=="
             };
 
             message = await server.SendPostRequestAsync(request);
@@ -448,8 +448,8 @@ namespace HotChocolate.AspNetClassic
                             name
                         }
                     }
-                ",
-                NamedQuery = "OpCt/SQtAoBUPq2XBK6V2w=="
+                ".Replace("\n", string.Empty).Replace("\r", string.Empty),
+                NamedQuery = "W5vrrAIypCbniaIYeroNnw=="
             };
 
             HttpResponseMessage message =
@@ -458,7 +458,7 @@ namespace HotChocolate.AspNetClassic
             // act
             request = new ClientQueryRequest
             {
-                NamedQuery = "OpCt/SQtAoBUPq2XBK6V2w=="
+                NamedQuery = "W5vrrAIypCbniaIYeroNnw=="
             };
 
             message = await server.SendPostRequestAsync(request);
@@ -482,7 +482,7 @@ namespace HotChocolate.AspNetClassic
                             name
                         }
                     }
-                ",
+                ".Replace("\n", string.Empty).Replace("\r", string.Empty),
                 NamedQuery = "abc"
             };
 
