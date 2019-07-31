@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.AspNetCore.Subscriptions</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Subscriptions</RootNamespace>
     <PackageId>HotChocolate.AspNetCore.Subscriptions</PackageId>
-    <Description>Contains the Hot Chocolate GraphQL subscription middleware for ASP.net core.</Description>
+    <Description>Contains the Hot Chocolate GraphQL subscription middleware for ASP .Net core.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

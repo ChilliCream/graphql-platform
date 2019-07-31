@@ -156,7 +156,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- The authoization directive is now more aligned how the authorize attribute in ASP.net works.
+- The authoization directive is now more aligned how the authorize attribute in ASP .Net works.
 
 ### Fixed
 
@@ -304,7 +304,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Separate package providing a _GraphiQL_ middleware. The middleware can serve all of _GraphiQL_ without needing to refer to CDNs making it useful even in closed networks. Moreover, we have configured _GraphiQL_ to work with the _GraphQL-ws_ protocol which is supported by _Hot Chocolate_.
 - Initial Support for _GraphQL_ subscriptions. We currently support the _GraphQL-ws_ protocol over web sockets. There will be a lot of additional work in version _0.7.0_ that will harden it.
-- Authorization package for ASP.net core which supports policy-base authorization on fields.
+- Authorization package for ASP .Net core which supports policy-base authorization on fields.
 - Diagnostic source which can be used to track field execution times and other events.
 - Implementing a directive middleware has now become much easier with this release. We have built the authorize-directive with these new APIs.
 

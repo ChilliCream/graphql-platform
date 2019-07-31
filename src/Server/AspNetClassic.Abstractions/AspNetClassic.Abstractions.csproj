@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.AspNetClassic.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic</RootNamespace>
     <PackageId>HotChocolate.AspNetClassic.Abstractions</PackageId>
-    <Description>Contains the Hot Chocolate GraphQL middleware abstractions for ASP.net framework.</Description>
+    <Description>Contains the Hot Chocolate GraphQL middleware abstractions for ASP .Net framework.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

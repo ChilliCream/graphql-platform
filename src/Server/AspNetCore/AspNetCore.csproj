@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.AspNetCore</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
     <PackageId>HotChocolate.AspNetCore</PackageId>
-    <Description>Contains the Hot Chocolate GraphQL middleware for ASP.net core.</Description>
+    <Description>Contains the Hot Chocolate GraphQL middleware for ASP .Net core.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

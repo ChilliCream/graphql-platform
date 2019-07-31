@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.AspNetClassic</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic</RootNamespace>
     <PackageId>HotChocolate.AspNetClassic</PackageId>
-    <Description>Contains the Hot Chocolate GraphQL middleware for ASP.net classic.</Description>
+    <Description>Contains the Hot Chocolate GraphQL middleware for ASP .Net classic.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

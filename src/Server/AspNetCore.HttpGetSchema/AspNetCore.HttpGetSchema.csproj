@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.AspNetCore.HttpGetSchema</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.HttpGetSchema</RootNamespace>
     <PackageId>HotChocolate.AspNetCore.HttpGetSchema</PackageId>
-    <Description>Contains the Hot Chocolate GraphQL HTTP GET schema middleware for ASP.net core.</Description>
+    <Description>Contains the Hot Chocolate GraphQL HTTP GET schema middleware for ASP .Net core.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

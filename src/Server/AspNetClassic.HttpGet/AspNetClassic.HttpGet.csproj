@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.AspNetClassic.HttpGet</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic.HttpGet</RootNamespace>
     <PackageId>HotChocolate.AspNetClassic.HttpGet</PackageId>
-    <Description>Contains the Hot Chocolate GraphQL HTTP GET middleware for ASP.net classic.</Description>
+    <Description>Contains the Hot Chocolate GraphQL HTTP GET middleware for ASP .Net classic.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

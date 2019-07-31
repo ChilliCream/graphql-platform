@@ -126,7 +126,7 @@ This runs a query fetching the one field defined. The graphql function will firs
 Console.WriteLine(executor.Execute("{ foo }").ToJson());
 ```
 
-In order to set up a GraphQL HTTP endpoint, Hot Chocolate comes with an ASP.net core middleware.
+In order to set up a GraphQL HTTP endpoint, Hot Chocolate comes with an ASP .Net core middleware.
 
 Create a new project with the web template that comes with your dotnet CLI.
 

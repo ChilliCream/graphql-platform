@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.AspNetCore.HttpPost</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.HttpPost</RootNamespace>
     <PackageId>HotChocolate.AspNetCore.HttpPost</PackageId>
-    <Description>Contains the Hot Chocolate GraphQL HTTP POST middleware for ASP.net core.</Description>
+    <Description>Contains the Hot Chocolate GraphQL HTTP POST middleware for ASP .Net core.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
