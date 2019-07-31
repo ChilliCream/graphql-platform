@@ -46,7 +46,7 @@ namespace HotChocolate.AspNetCore.Tests.Utilities
                 .GetAsync($"{CreateUrl(path)}?query={normalizedQuery}");
         }
 
-        private static string CreateUrl(string path)
+        public static string CreateUrl(string path)
         {
             string url = "http://localhost:5000";
             if (path != null)

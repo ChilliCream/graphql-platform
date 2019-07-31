@@ -31,7 +31,6 @@ namespace HotChocolate.AspNetCore
         private const int _badRequest = 400;
         private const int _ok = 200;
 
-        private readonly IPathOptionAccessor _options;
         private readonly Func<HttpContext, bool> _isPathValid;
 
         private IQueryRequestInterceptor<HttpContext> _interceptor;
@@ -62,13 +61,16 @@ namespace HotChocolate.AspNetCore
             IServiceProvider services)
             : base(next)
         {
-            _options = options
-                ?? throw new ArgumentNullException(nameof(options));            
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
             _accessor = owinContextAccessor;
             _services = services
                 ?? throw new ArgumentNullException(nameof(services));
 
-            if (_options.Path.Value.Length > 1)
+            if (options.Path.Value.Length > 1)
             {
                 var path1 = new PathString(options.Path.Value.TrimEnd('/'));
                 PathString path2 = path1.Add(new PathString("/"));
@@ -84,11 +86,14 @@ namespace HotChocolate.AspNetCore
             RequestDelegate next,
             IPathOptionAccessor options)
         {
-            Next = next;
-            _options = options ??
+            if (options == null)
+            {
                 throw new ArgumentNullException(nameof(options));
+            }
 
-            if (_options.Path.Value.Length > 1)
+            Next = next;
+
+            if (options.Path.Value.Length > 1)
             {
                 var path1 = new PathString(options.Path.Value.TrimEnd('/'));
                 PathString path2 = path1.Add(new PathString("/"));

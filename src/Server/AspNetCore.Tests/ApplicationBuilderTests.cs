@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.Builder;
@@ -215,6 +213,91 @@ namespace HotChocolate.AspNetCore
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public void UseGraphQLHttpGetSchema_Builder_BuilderIsNull()
+        {
+            // arrange
+            // act
+            Action action =
+                () => HttpGetSchemaApplicationBuilderExtensions
+                    .UseGraphQLHttpGetSchema(null);
 
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public async Task UseGraphQLHttpGetSchema_Builder()
+        {
+            // arrange
+            TestServer server = ServerFactory.Create(
+                services => services.AddStarWars(),
+                app => app.UseGraphQLHttpGetSchema());
+
+            HttpClient client = server.CreateClient();
+
+            string uri = TestServerExtensions.CreateUrl(null);
+
+            // act
+            HttpResponseMessage message = await client.GetAsync(uri);
+
+            // assert
+            string s = await message.Content.ReadAsStringAsync();
+            s.MatchSnapshot();
+        }
+
+        [Fact]
+        public void UseGraphQLHttpGetSchema_BuilderOptions_BuilderIsNull()
+        {
+            // arrange
+            var options = new HttpGetSchemaMiddlewareOptions();
+
+            // act
+            Action action =
+                () => HttpGetSchemaApplicationBuilderExtensions
+                    .UseGraphQLHttpGetSchema(null, options);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void UseGraphQLHttpGetSchema_BuilderOptions_OptionsIsNull()
+        {
+            // arrange
+            IApplicationBuilder builder = Mock.Of<IApplicationBuilder>();
+
+            // act
+            Action action =
+                () => HttpGetSchemaApplicationBuilderExtensions
+                    .UseGraphQLHttpGetSchema(builder, null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public async Task UseGraphQLHttpGetSchema_BuilderOptions()
+        {
+            // arrange
+            TestServer server = ServerFactory.Create(
+                services => services.AddStarWars(),
+                app => app.UseGraphQLHttpGetSchema(
+                    new HttpGetSchemaMiddlewareOptions
+                    {
+                        Path = "/foo"
+                    }));
+
+            HttpClient client = server.CreateClient();
+
+            string uri = TestServerExtensions.CreateUrl("foo");
+
+            // act
+            HttpResponseMessage message = await client.GetAsync(uri);
+
+            // assert
+            string s = await message.Content.ReadAsStringAsync();
+            s.MatchSnapshot();
+        }
     }
 }

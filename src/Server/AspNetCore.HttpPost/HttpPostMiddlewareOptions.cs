@@ -18,6 +18,7 @@ namespace HotChocolate.AspNetCore
     public class HttpPostMiddlewareOptions
         : IHttpPostMiddlewareOptions
     {
+        private const int _minMaxRequestSize = 1024;
         private PathString _path = new PathString("/");
         private ParserOptions _parserOptions = new ParserOptions();
         private int _maxRequestSize = 20 * 1000 * 1000;
@@ -56,7 +57,7 @@ namespace HotChocolate.AspNetCore
             get => _maxRequestSize;
             set
             {
-                if (value < 1024)
+                if (value < _minMaxRequestSize)
                 {
                     // TODO : resources
                     throw new ArgumentException(

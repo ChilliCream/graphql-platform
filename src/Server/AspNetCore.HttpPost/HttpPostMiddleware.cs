@@ -283,7 +283,7 @@ namespace HotChocolate.AspNetCore
             }
         }
 
-        private AllowedContentType ParseContentType(string s)
+        private static AllowedContentType ParseContentType(string s)
         {
             ReadOnlySpan<char> span = s.AsSpan();
 

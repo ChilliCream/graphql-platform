@@ -45,7 +45,7 @@ namespace HotChocolate.AspNetCore
 
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
-            _path = options.Path.Add(new PathString("/schema"));
+            _path = options.Path;
         }
 
 #if !ASPNETCLASSIC
