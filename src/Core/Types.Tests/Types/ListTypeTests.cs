@@ -220,7 +220,7 @@ namespace HotChocolate.Types
             // assert
             Assert.False(object.ReferenceEquals(list, serializedList));
             Assert.Collection(
-                Assert.IsType<List<object>>(serializedList),
+                Assert.IsType<List<string>>(serializedList),
                 t => Assert.Equal("abc", t));
         }
     }
