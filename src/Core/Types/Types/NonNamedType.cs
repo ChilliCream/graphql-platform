@@ -4,11 +4,11 @@ using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
-    public abstract class WrapperType
+    public abstract class NonNamedType
         : IOutputType
         , IInputType
     {
-        public WrapperType(IType innerType)
+        public NonNamedType(IType innerType)
         {
             if (innerType == null)
             {

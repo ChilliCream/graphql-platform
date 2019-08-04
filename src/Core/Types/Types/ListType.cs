@@ -8,7 +8,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types
 {
     public class ListType
-        : WrapperType
+        : NonNamedType
         , INullableType
     {
         public ListType(IType elementType)

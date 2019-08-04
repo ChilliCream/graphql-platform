@@ -5,7 +5,7 @@ using HotChocolate.Properties;
 namespace HotChocolate.Types
 {
     public class NonNullType
-        : WrapperType
+        : NonNamedType
     {
         public NonNullType(IType type)
             : base(type)
