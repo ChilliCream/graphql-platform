@@ -1,7 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using Moq;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -222,6 +222,113 @@ namespace HotChocolate.Types
             Assert.Collection(
                 Assert.IsType<List<string>>(serializedList),
                 t => Assert.Equal("abc", t));
+        }
+
+        [Fact]
+        public void ParseLiteral_ListValue_To_ListString()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+            var list = new ListValueNode(new StringValueNode("abc"));
+
+            // act
+            var serializedList = listType.ParseLiteral(list);
+
+            // assert
+            Assert.Collection(
+                Assert.IsType<List<string>>(serializedList),
+                t => Assert.Equal("abc", t));
+        }
+
+        [Fact]
+        public void ParseLiteral_StringLiteral_To_ListString()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+            var literal = new StringValueNode("abc");
+
+            // act
+            var serializedList = listType.ParseLiteral(literal);
+
+            // assert
+            Assert.Collection(
+                Assert.IsType<List<string>>(serializedList),
+                t => Assert.Equal("abc", t));
+        }
+
+        [Fact]
+        public void ParseLiteral_OutputType_InvalidOperationException()
+        {
+            // arrange
+            ObjectType innerType = Mock.Of<ObjectType>();
+            var listType = (IInputType)new ListType(innerType);
+            var literal = new StringValueNode("abc");
+
+            // act
+            Action action = () => listType.ParseLiteral(literal);
+
+            // assert
+            Assert.Throws<InvalidOperationException>(action);
+        }
+
+        [Fact]
+        public void ParseLiteral_LiteralIsNull_ArgumentNullException()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+
+            // act
+            Action action = () => listType.ParseLiteral(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void ParseValue_StringList_To_ListValue()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+            var abc = new List<string> { "abc" };
+
+            // act
+            IValueNode literal = listType.ParseValue(abc);
+
+            // assert
+            Assert.Collection(
+                Assert.IsType<ListValueNode>(literal).Items,
+                t => Assert.Equal(
+                    "abc",
+                    Assert.IsType<StringValueNode>(t).Value));
+        }
+
+
+        [Fact]
+        public void ParseValue_Null_To_NullValue()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+
+            // act
+            IValueNode literal = listType.ParseValue(null);
+
+            // assert
+            Assert.IsType<NullValueNode>(literal);
+        }
+
+        [Fact]
+        public void ParseValue_OutputType_InvalidOperationException()
+        {
+            // arrange
+            ObjectType innerType = Mock.Of<ObjectType>();
+            var listType = (IInputType)new ListType(innerType);
+            var value = new List<string>();
+
+            // act
+            Action action = () => listType.ParseValue(value);
+
+            // assert
+            Assert.Throws<InvalidOperationException>(action);
         }
     }
 }
