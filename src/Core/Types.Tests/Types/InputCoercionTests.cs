@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using HotChocolate.Language;
 using Xunit;
 
@@ -82,8 +83,8 @@ namespace HotChocolate.Types
             object coercedValue = type.ParseLiteral(list);
 
             // assert
-            Assert.IsType<bool[]>(coercedValue);
-            Assert.Collection((bool[])coercedValue,
+            Assert.Collection(
+                Assert.IsType<List<bool?>>(coercedValue),
                 t => Assert.True(t),
                 t => Assert.False(t));
         }
@@ -99,8 +100,8 @@ namespace HotChocolate.Types
             object coercedValue = type.ParseLiteral(element);
 
             // assert
-            Assert.IsType<bool[]>(coercedValue);
-            Assert.Collection((bool[])coercedValue,
+            Assert.Collection(
+                Assert.IsType<List<bool?>>(coercedValue),
                 t => Assert.True(t));
         }
 

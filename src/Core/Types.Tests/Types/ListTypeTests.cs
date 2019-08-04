@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using Xunit;
@@ -111,6 +112,48 @@ namespace HotChocolate.Types
             // assert
             Assert.False(shouldBeFalse);
             Assert.True(shouldBeTrue);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_ListObject_StringElements()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+            var list = new List<object> { "foo" };
+
+            // act
+            bool isInstanceOf = listType.IsInstanceOfType(list);
+
+            // assert
+            Assert.True(isInstanceOf);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_ListObject_IntElements()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+            var list = new List<object> { 1 };
+
+            // act
+            bool isInstanceOf = listType.IsInstanceOfType(list);
+
+            // assert
+            Assert.False(isInstanceOf);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_ListObject_Empty()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+            var list = new List<object> { };
+
+            // act
+            bool isInstanceOf = listType.IsInstanceOfType(list);
+
+            // assert
+            Assert.True(isInstanceOf);
         }
     }
 }

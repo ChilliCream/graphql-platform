@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
@@ -114,12 +113,12 @@ namespace HotChocolate.Types
 
             if (_inputType.IsInstanceOfType(literal))
             {
-                return CreateArray(new ListValueNode(literal));
+                return CreateList(new ListValueNode(literal));
             }
 
             if (literal is ListValueNode listValueLiteral)
             {
-                return CreateArray(listValueLiteral);
+                return CreateList(listValueLiteral);
             }
 
             // TODO : resources
@@ -127,20 +126,18 @@ namespace HotChocolate.Types
                 "The specified literal cannot be handled by this list type.");
         }
 
-        private object CreateArray(ListValueNode listValueLiteral)
+        private object CreateList(ListValueNode listLiteral)
         {
-            Type elementType = _inputType.ClrType;
-            var array = Array.CreateInstance(
-                elementType,
-                listValueLiteral.Items.Count);
+            var list = (IList)Activator.CreateInstance(ClrType);
 
-            for (var i = 0; i < listValueLiteral.Items.Count; i++)
+            for (var i = 0; i < listLiteral.Items.Count; i++)
             {
-                object element = _inputType.ParseLiteral(listValueLiteral.Items[i]);
-                array.SetValue(element, i);
+                object element = _inputType.ParseLiteral(
+                    listLiteral.Items[i]);
+                list.Add(element);
             }
 
-            return array;
+            return list;
         }
 
         bool IInputType.IsInstanceOfType(object value)
@@ -165,29 +162,19 @@ namespace HotChocolate.Types
                     return false;
                 }
 
+                Type clrType = ElementType.ToClrType();
+
                 if (elementType == typeof(object))
                 {
-                    if(value is IList l)
+                    if (value is IList l)
                     {
-                        return l.Count == 0 || elementType == l[0]?.GetType();
-                    }
-
-                    if(value is IEnumerable<object> e)
-                    {
-                        if(e.Any())
-                        {
-                            return  elementType == e.First()?.GetType();
-                        }
-                        else
-                        {
-                            return true;
-                        }
+                        return l.Count == 0 || clrType == l[0]?.GetType();
                     }
 
                     return false;
                 }
 
-                return elementType == ElementType.ToClrType();
+                return elementType == clrType;
             }
 
             // TODO : resources
@@ -236,18 +223,6 @@ namespace HotChocolate.Types
                     for (int i = 0; i < l.Count; i++)
                     {
                         list.Add(_inputType.Serialize(l[i]));
-                    }
-
-                    return list;
-                }
-
-                if (value.GetType() != typeof(string) && value is IEnumerable e)
-                {
-                    var list = new List<object>();
-
-                    foreach (object obj in e)
-                    {
-                        list.Add(_inputType.Serialize(obj));
                     }
 
                     return list;
@@ -311,28 +286,6 @@ namespace HotChocolate.Types
                 for (int i = 0; i < l.Count; i++)
                 {
                     if (_inputType.TryDeserialize(l[i], out var v))
-                    {
-                        list.Add(v);
-                    }
-                    else
-                    {
-                        value = null;
-                        return false;
-                    }
-                }
-
-                value = list;
-                return true;
-            }
-
-            if (serialized.GetType() != typeof(string)
-                && serialized is IEnumerable e)
-            {
-                var list = (IList)Activator.CreateInstance(ClrType);
-
-                foreach (object obj in e)
-                {
-                    if (_inputType.TryDeserialize(obj, out var v))
                     {
                         list.Add(v);
                     }
