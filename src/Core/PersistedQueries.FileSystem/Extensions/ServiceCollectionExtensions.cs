@@ -1,8 +1,9 @@
 using System.Linq;
-using HotChocolate.PersistedQueries;
-using HotChocolate.PersistedQueries.FileSystem;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using HotChocolate.Execution;
+using HotChocolate.PersistedQueries;
+using HotChocolate.PersistedQueries.FileSystem;
 
 namespace HotChocolate
 {

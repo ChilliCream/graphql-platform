@@ -31,8 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\PersistedQueries.Abstractions\PersistedQueries.Abstractions.csproj" />
-    <ProjectReference Include="..\Language\Language.csproj" />
+    <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

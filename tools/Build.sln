@@ -101,9 +101,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.HttpGet", "..\sr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.HttpPost", "..\src\Server\AspNetCore.HttpPost\AspNetCore.HttpPost.csproj", "{DBADC16A-413E-4AD7-9AF5-75295752EA1C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.Abstractions", "..\src\Core\PersistedQueries.Abstractions\PersistedQueries.Abstractions.csproj", "{D2A8FF35-C5FB-42FE-A7B9-4B9509B582E6}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.FileSystem", "..\src\Core\PersistedQueries.FileSystem\PersistedQueries.FileSystem.csproj", "{9D9D2D78-59AC-446F-B200-EACF527A95A5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.Tests", "..\src\Core\PersistedQueries.Tests\PersistedQueries.Tests.csproj", "{EE424FCC-C888-410D-86BC-224BB10308E0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -703,18 +703,6 @@ Global
 		{DBADC16A-413E-4AD7-9AF5-75295752EA1C}.Release|x64.Build.0 = Release|Any CPU
 		{DBADC16A-413E-4AD7-9AF5-75295752EA1C}.Release|x86.ActiveCfg = Release|Any CPU
 		{DBADC16A-413E-4AD7-9AF5-75295752EA1C}.Release|x86.Build.0 = Release|Any CPU
-		{D2A8FF35-C5FB-42FE-A7B9-4B9509B582E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D2A8FF35-C5FB-42FE-A7B9-4B9509B582E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D2A8FF35-C5FB-42FE-A7B9-4B9509B582E6}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{D2A8FF35-C5FB-42FE-A7B9-4B9509B582E6}.Debug|x64.Build.0 = Debug|Any CPU
-		{D2A8FF35-C5FB-42FE-A7B9-4B9509B582E6}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{D2A8FF35-C5FB-42FE-A7B9-4B9509B582E6}.Debug|x86.Build.0 = Debug|Any CPU
-		{D2A8FF35-C5FB-42FE-A7B9-4B9509B582E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D2A8FF35-C5FB-42FE-A7B9-4B9509B582E6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D2A8FF35-C5FB-42FE-A7B9-4B9509B582E6}.Release|x64.ActiveCfg = Release|Any CPU
-		{D2A8FF35-C5FB-42FE-A7B9-4B9509B582E6}.Release|x64.Build.0 = Release|Any CPU
-		{D2A8FF35-C5FB-42FE-A7B9-4B9509B582E6}.Release|x86.ActiveCfg = Release|Any CPU
-		{D2A8FF35-C5FB-42FE-A7B9-4B9509B582E6}.Release|x86.Build.0 = Release|Any CPU
 		{9D9D2D78-59AC-446F-B200-EACF527A95A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9D9D2D78-59AC-446F-B200-EACF527A95A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9D9D2D78-59AC-446F-B200-EACF527A95A5}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -727,6 +715,18 @@ Global
 		{9D9D2D78-59AC-446F-B200-EACF527A95A5}.Release|x64.Build.0 = Release|Any CPU
 		{9D9D2D78-59AC-446F-B200-EACF527A95A5}.Release|x86.ActiveCfg = Release|Any CPU
 		{9D9D2D78-59AC-446F-B200-EACF527A95A5}.Release|x86.Build.0 = Release|Any CPU
+		{EE424FCC-C888-410D-86BC-224BB10308E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EE424FCC-C888-410D-86BC-224BB10308E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EE424FCC-C888-410D-86BC-224BB10308E0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EE424FCC-C888-410D-86BC-224BB10308E0}.Debug|x64.Build.0 = Debug|Any CPU
+		{EE424FCC-C888-410D-86BC-224BB10308E0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EE424FCC-C888-410D-86BC-224BB10308E0}.Debug|x86.Build.0 = Debug|Any CPU
+		{EE424FCC-C888-410D-86BC-224BB10308E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EE424FCC-C888-410D-86BC-224BB10308E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EE424FCC-C888-410D-86BC-224BB10308E0}.Release|x64.ActiveCfg = Release|Any CPU
+		{EE424FCC-C888-410D-86BC-224BB10308E0}.Release|x64.Build.0 = Release|Any CPU
+		{EE424FCC-C888-410D-86BC-224BB10308E0}.Release|x86.ActiveCfg = Release|Any CPU
+		{EE424FCC-C888-410D-86BC-224BB10308E0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
