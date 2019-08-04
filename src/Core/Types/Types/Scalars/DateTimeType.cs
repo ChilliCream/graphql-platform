@@ -58,7 +58,9 @@ namespace HotChocolate.Types
                     DateTimeStyles.AssumeUniversal,
                     out DateTime zuluTime))
             {
-                obj = new DateTimeOffset(zuluTime.ToUniversalTime());
+                obj = new DateTimeOffset(
+                    zuluTime.ToUniversalTime(),
+                    TimeSpan.Zero);
                 return true;
             }
 

@@ -14,7 +14,7 @@ namespace HotChocolate.Types
 
             // act
             TypeKind kind;
-            Action a = () => kind = type.Kind;
+            Action a = () => kind = ((IInputType)type).Kind;
 
             // assert
             Assert.Throws<NotSupportedException>(a);
@@ -28,7 +28,7 @@ namespace HotChocolate.Types
 
             // act
             Type clrType;
-            Action a = () => clrType = type.ClrType;
+            Action a = () => clrType = ((IInputType)type).ClrType;
 
             // assert
             Assert.Throws<NotSupportedException>(a);
@@ -41,7 +41,8 @@ namespace HotChocolate.Types
             var type = new NativeType<string>();
 
             // act
-            Action a = () => type.IsInstanceOfType(default(IValueNode));
+            Action a = () => ((IInputType)type)
+                .IsInstanceOfType(default(IValueNode));
 
             // assert
             Assert.Throws<NotSupportedException>(a);
@@ -54,7 +55,8 @@ namespace HotChocolate.Types
             var type = new NativeType<string>();
 
             // act
-            Action a = () => type.IsInstanceOfType(default(object));
+            Action a = () => ((IInputType)type)
+                .IsInstanceOfType(default(object));
 
             // assert
             Assert.Throws<NotSupportedException>(a);
@@ -67,7 +69,8 @@ namespace HotChocolate.Types
             var type = new NativeType<string>();
 
             // act
-            Action a = () => type.ParseLiteral(default(IValueNode));
+            Action a = () => ((IInputType)type)
+                .ParseLiteral(default(IValueNode));
 
             // assert
             Assert.Throws<NotSupportedException>(a);
@@ -80,7 +83,50 @@ namespace HotChocolate.Types
             var type = new NativeType<string>();
 
             // act
-            Action a = () => type.ParseValue(default(object));
+            Action a = () => ((IInputType)type)
+                .ParseValue(default(object));
+
+            // assert
+            Assert.Throws<NotSupportedException>(a);
+        }
+
+        [Fact]
+        public void Serialize_NotSupportedException()
+        {
+            // arrange
+            var type = new NativeType<string>();
+
+            // act
+            Action a = () => ((IInputType)type)
+                .Serialize(default(object));
+
+            // assert
+            Assert.Throws<NotSupportedException>(a);
+        }
+
+        [Fact]
+        public void Deserialize_NotSupportedException()
+        {
+            // arrange
+            var type = new NativeType<string>();
+
+            // act
+            Action a = () => ((IInputType)type)
+                .Deserialize(default(object));
+
+            // assert
+            Assert.Throws<NotSupportedException>(a);
+        }
+
+        [Fact]
+        public void TryDeserialize_NotSupportedException()
+        {
+            // arrange
+            var type = new NativeType<string>();
+
+            // act
+            Action a = () => ((IInputType)type)
+                .TryDeserialize(default(object), out var o);
 
             // assert
             Assert.Throws<NotSupportedException>(a);
