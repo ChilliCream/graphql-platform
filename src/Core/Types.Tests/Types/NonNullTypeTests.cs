@@ -1,4 +1,5 @@
-﻿using HotChocolate.Language;
+﻿using System;
+using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -27,6 +28,95 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Equal(typeof(string), type.ClrType);
+        }
+
+        [Fact]
+        public void InnerType_Cannot_Be_A_NonNullType()
+        {
+            // act
+            Action action =
+                () => new NonNullType(new NonNullType(new StringType()));
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void ParseLiteral_NullValueNode()
+        {
+            // arrange
+            var type = (IInputType)new NonNullType(new StringType());
+
+            // act
+            Action action = () => type.ParseLiteral(NullValueNode.Default);
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void ParseLiteral_StringValueNode()
+        {
+            // arrange
+            var type = (IInputType)new NonNullType(new StringType());
+
+            // act
+            object value = type.ParseLiteral(new StringValueNode("abc"));
+
+            // assert
+            Assert.Equal("abc", value);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_Literal_NullValueLiteral()
+        {
+            // arrange
+            var type = (IInputType)new NonNullType(new StringType());
+
+            // act
+            bool value = type.IsInstanceOfType(NullValueNode.Default);
+
+            // assert
+            Assert.False(value);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_Literal_StringValueLiteral()
+        {
+            // arrange
+            var type = (IInputType)new NonNullType(new StringType());
+
+            // act
+            bool value = type.IsInstanceOfType(new StringValueNode("abc"));
+
+            // assert
+            Assert.True(value);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_Value_NullValue()
+        {
+            // arrange
+            var type = (IInputType)new NonNullType(new StringType());
+
+            // act
+            bool value = type.IsInstanceOfType((object)null);
+
+            // assert
+            Assert.False(value);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_Value_StringValue()
+        {
+            // arrange
+            var type = (IInputType)new NonNullType(new StringType());
+
+            // act
+            bool value = type.IsInstanceOfType("abc");
+
+            // assert
+            Assert.True(value);
         }
 
         [Fact]
