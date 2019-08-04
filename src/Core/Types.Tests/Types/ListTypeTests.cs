@@ -155,5 +155,73 @@ namespace HotChocolate.Types
             // assert
             Assert.True(isInstanceOf);
         }
+
+        [Fact]
+        public void Serialize_ListObject_To_ListObject()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+            var list = new List<object> { "abc" };
+
+            // act
+            var serializedList = listType.Serialize(list);
+
+            // assert
+            Assert.False(object.ReferenceEquals(list, serializedList));
+            Assert.Collection(
+                Assert.IsType<List<object>>(serializedList),
+                t => Assert.Equal("abc", t));
+        }
+
+        [Fact]
+        public void Serialize_ListString_To_ListObject()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+            var list = new List<string> { "abc" };
+
+            // act
+            var serializedList = listType.Serialize(list);
+
+            // assert
+            Assert.False(object.ReferenceEquals(list, serializedList));
+            Assert.Collection(
+                Assert.IsType<List<object>>(serializedList),
+                t => Assert.Equal("abc", t));
+        }
+
+        [Fact]
+        public void Serialize_StringArray_To_ListObject()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+            var list = new string[] { "abc" };
+
+            // act
+            var serializedList = listType.Serialize(list);
+
+            // assert
+            Assert.False(object.ReferenceEquals(list, serializedList));
+            Assert.Collection(
+                Assert.IsType<List<object>>(serializedList),
+                t => Assert.Equal("abc", t));
+        }
+
+        [Fact]
+        public void Deserialize_ListObject_To_ListString()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+            var list = new List<object> { "abc" };
+
+            // act
+            var serializedList = listType.Deserialize(list);
+
+            // assert
+            Assert.False(object.ReferenceEquals(list, serializedList));
+            Assert.Collection(
+                Assert.IsType<List<object>>(serializedList),
+                t => Assert.Equal("abc", t));
+        }
     }
 }
