@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 using Moq;
 using Xunit;
@@ -138,6 +139,47 @@ namespace HotChocolate.Types
 
             // act
             bool isInstanceOf = listType.IsInstanceOfType(list);
+
+            // assert
+            Assert.True(isInstanceOf);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_ListOfString()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+            var list = new List<string> { "foo" };
+
+            // act
+            bool isInstanceOf = listType.IsInstanceOfType(list);
+
+            // assert
+            Assert.True(isInstanceOf);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_Enumerable_NoElementType()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+            var list = new List<object> { "foo" }.Select(t => t);
+
+            // act
+            bool isInstanceOf = listType.IsInstanceOfType(list);
+
+            // assert
+            Assert.False(isInstanceOf);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_Null()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+
+            // act
+            bool isInstanceOf = listType.IsInstanceOfType((object)null);
 
             // assert
             Assert.True(isInstanceOf);
@@ -303,7 +345,7 @@ namespace HotChocolate.Types
             Assert.Throws<InvalidOperationException>(action);
         }
 
-         [Fact]
+        [Fact]
         public void TryDeserialize_OutputType_InvalidOperationException()
         {
             // arrange

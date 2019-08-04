@@ -76,20 +76,6 @@ namespace HotChocolate.Types
                 "The specified literal cannot be handled by this list type.");
         }
 
-        private object CreateList(ListValueNode listLiteral)
-        {
-            var list = (IList)Activator.CreateInstance(ClrType);
-
-            for (var i = 0; i < listLiteral.Items.Count; i++)
-            {
-                object element = InnerInputType.ParseLiteral(
-                    listLiteral.Items[i]);
-                list.Add(element);
-            }
-
-            return list;
-        }
-
         protected sealed override bool IsInstanceOfType(object value)
         {
             if (value is null)
@@ -114,12 +100,8 @@ namespace HotChocolate.Types
 
             if (elementType == typeof(object))
             {
-                if (value is IList l)
-                {
-                    return l.Count == 0 || clrType == l[0]?.GetType();
-                }
-
-                return false;
+                return value is IList l
+                    && (l.Count == 0 || clrType == l[0]?.GetType());
             }
 
             return elementType == clrType;
@@ -132,13 +114,15 @@ namespace HotChocolate.Types
                 return NullValueNode.Default;
             }
 
-            if (value is IEnumerable e)
+            if (value is IList l)
             {
                 var items = new List<IValueNode>();
-                foreach (object v in e)
+
+                for (int i = 0; i < l.Count; i++)
                 {
-                    items.Add(InnerInputType.ParseValue(v));
+                    items.Add(InnerInputType.ParseValue(l[i]));
                 }
+
                 return new ListValueNode(null, items);
             }
 
@@ -206,6 +190,20 @@ namespace HotChocolate.Types
 
             value = null;
             return false;
+        }
+
+        private object CreateList(ListValueNode listLiteral)
+        {
+            var list = (IList)Activator.CreateInstance(ClrType);
+
+            for (var i = 0; i < listLiteral.Items.Count; i++)
+            {
+                object element = InnerInputType.ParseLiteral(
+                    listLiteral.Items[i]);
+                list.Add(element);
+            }
+
+            return list;
         }
     }
 }
