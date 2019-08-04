@@ -11,6 +11,8 @@ namespace HotChocolate.Language
         private ThreadLocal<MD5> _md5 =
             new ThreadLocal<MD5>(() => MD5.Create());
 
+        public string Name => "md5Hash";
+
         public string ComputeHash(ReadOnlySpan<byte> document)
         {
             // TODO : with netcoreapp 3.0 we do not need that anymore.

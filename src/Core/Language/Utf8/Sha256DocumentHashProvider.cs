@@ -5,13 +5,13 @@ using System.Security.Cryptography;
 
 namespace HotChocolate.Language
 {
-    public class Sha1DocumentHashProvider
+    public class Sha256DocumentHashProvider
         : IDocumentHashProvider
     {
-        private ThreadLocal<SHA1> _sha =
-            new ThreadLocal<SHA1>(() => SHA1.Create());
+        private ThreadLocal<SHA256> _sha =
+            new ThreadLocal<SHA256>(() => SHA256.Create());
 
-        public string Name => "sha1Hash";
+        public string Name => "sha256Hash";
 
         public string ComputeHash(ReadOnlySpan<byte> document)
         {

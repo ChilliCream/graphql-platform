@@ -70,10 +70,14 @@ namespace HotChocolate.Execution
 
                     // update context
                     context.QueryKey = queryKey;
-                    context.CachedQuery = cachedQuery;
-                    context.Document = context.CachedQuery.Document;
-                    context.ContextData[ContextDataKeys.DocumentCached] =
-                        documentRetrievedFromCache;
+
+                    if (cachedQuery != null)
+                    {
+                        context.CachedQuery = cachedQuery;
+                        context.Document = cachedQuery.Document;
+                        context.ContextData[ContextDataKeys.DocumentCached] =
+                            documentRetrievedFromCache;
+                    }
                 }
                 finally
                 {
@@ -124,4 +128,3 @@ namespace HotChocolate.Execution
         }
     }
 }
-
