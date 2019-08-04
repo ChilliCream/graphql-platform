@@ -17,29 +17,6 @@ namespace HotChocolate.Types
             return (type is NonNullType);
         }
 
-        public static bool IsNonNullElementType(this IType type)
-        {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (type is ListType l
-                && l.ElementType is NonNullType)
-            {
-                return true;
-            }
-
-            if (type is NonNullType n
-                && n.Type is ListType nl
-                && nl.ElementType is NonNullType)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         public static bool IsCompositeType(this IType type)
         {
             if (type == null)
