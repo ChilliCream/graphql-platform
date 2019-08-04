@@ -280,6 +280,19 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Serialize_Null()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+
+            // act
+            var serializedList = listType.Serialize(null);
+
+            // assert
+            Assert.Null(serializedList);
+        }
+
+        [Fact]
         public void Serialize_OutputType_InvalidOperationException()
         {
             // arrange
@@ -329,6 +342,33 @@ namespace HotChocolate.Types
                 t => Assert.Equal("abc", t));
         }
 
+        [Fact]
+        public void Deserialize_Null()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+
+            // act
+            var deserialized = listType.Deserialize(null);
+
+            // assert
+            Assert.Null(deserialized);
+        }
+
+        [Fact]
+        public void TryDeserialize_MixedList_CannotDeserialize()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+            var list = new List<object> { "abc", 123 };
+
+            // act
+            var success = listType.TryDeserialize(list, out var serializedList);
+
+            // assert
+            Assert.False(success);
+            Assert.Null(serializedList);
+        }
 
         [Fact]
         public void Deserialize_OutputType_InvalidOperationException()
@@ -465,6 +505,19 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Throws<InvalidOperationException>(action);
+        }
+
+        [Fact]
+        public void ParseValue_Int_CannotParse()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+
+            // act
+            Action action = () => listType.ParseValue(1);
+
+            // assert
+            Assert.Throws<ScalarSerializationException>(action);
         }
     }
 }
