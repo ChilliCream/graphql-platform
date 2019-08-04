@@ -3,6 +3,6 @@
     internal class NativeType<T>
         : FluentWrapperType
     {
-        private NativeType() { }
+        internal NativeType() { }
     }
 }

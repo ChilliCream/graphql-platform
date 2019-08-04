@@ -8,7 +8,7 @@ namespace HotChocolate.Types
         : IOutputType
         , IInputType
     {
-        public NonNamedType(IType innerType)
+        protected NonNamedType(IType innerType)
         {
             if (innerType == null)
             {

@@ -56,6 +56,21 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void IsInstanceOfType_OutputType_InvalidOperationException()
+        {
+            // arrange
+            ObjectType innerType = Mock.Of<ObjectType>();
+            var listType = (IInputType)new ListType(innerType);
+            IValueNode literal = Mock.Of<IValueNode>();
+
+            // act
+            Action action = () => listType.IsInstanceOfType(literal);
+
+            // assert
+            Assert.Throws<InvalidOperationException>(action);
+        }
+
+        [Fact]
         public void EnsureElementTypeIsCorrectlySet()
         {
             // arrange
@@ -157,6 +172,21 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void IsInstanceOfType_Value_OutputType_InvalidOperationExcept()
+        {
+            // arrange
+            ObjectType innerType = Mock.Of<ObjectType>();
+            var listType = (IInputType)new ListType(innerType);
+            var list = new List<object> { };
+
+            // act
+            Action action = () => listType.IsInstanceOfType(list);
+
+            // assert
+            Assert.Throws<InvalidOperationException>(action);
+        }
+
+        [Fact]
         public void Serialize_ListObject_To_ListObject()
         {
             // arrange
@@ -208,6 +238,21 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Serialize_OutputType_InvalidOperationException()
+        {
+            // arrange
+            ObjectType innerType = Mock.Of<ObjectType>();
+            var listType = (IInputType)new ListType(innerType);
+            var list = new string[] { "abc" };
+
+            // act
+            Action action = () => listType.Serialize(list);
+
+            // assert
+            Assert.Throws<InvalidOperationException>(action);
+        }
+
+        [Fact]
         public void Deserialize_ListObject_To_ListString()
         {
             // arrange
@@ -222,6 +267,21 @@ namespace HotChocolate.Types
             Assert.Collection(
                 Assert.IsType<List<string>>(serializedList),
                 t => Assert.Equal("abc", t));
+        }
+
+        [Fact]
+        public void Deserialize_OutputType_InvalidOperationException()
+        {
+            // arrange
+            ObjectType innerType = Mock.Of<ObjectType>();
+            var listType = (IInputType)new ListType(innerType);
+            var list = new List<object> { "abc" };
+
+            // act
+            Action action = () => listType.Deserialize(list);
+
+            // assert
+            Assert.Throws<InvalidOperationException>(action);
         }
 
         [Fact]

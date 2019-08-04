@@ -110,7 +110,7 @@ namespace HotChocolate.Types
                 return false;
             }
 
-            Type clrType = ElementType.ToClrType();
+            Type clrType = InnerClrType;
 
             if (elementType == typeof(object))
             {
