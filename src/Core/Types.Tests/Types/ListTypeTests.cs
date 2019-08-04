@@ -270,6 +270,25 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void TryDeserialize_ListObject_To_ListString()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+            var list = new List<object> { "abc" };
+
+            // act
+            var success = listType.TryDeserialize(list, out var serializedList);
+
+            // assert
+            Assert.True(success);
+            Assert.False(object.ReferenceEquals(list, serializedList));
+            Assert.Collection(
+                Assert.IsType<List<string>>(serializedList),
+                t => Assert.Equal("abc", t));
+        }
+
+
+        [Fact]
         public void Deserialize_OutputType_InvalidOperationException()
         {
             // arrange
@@ -279,6 +298,21 @@ namespace HotChocolate.Types
 
             // act
             Action action = () => listType.Deserialize(list);
+
+            // assert
+            Assert.Throws<InvalidOperationException>(action);
+        }
+
+         [Fact]
+        public void TryDeserialize_OutputType_InvalidOperationException()
+        {
+            // arrange
+            ObjectType innerType = Mock.Of<ObjectType>();
+            var listType = (IInputType)new ListType(innerType);
+            var list = new List<object> { "abc" };
+
+            // act
+            Action action = () => listType.TryDeserialize(list, out _);
 
             // assert
             Assert.Throws<InvalidOperationException>(action);
