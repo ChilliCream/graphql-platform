@@ -332,42 +332,51 @@ namespace HotChocolate.Stitching
                     VariableValue variable =
                         _resolvers.Resolve(context, sv, arg.Type.ToTypeNode());
 
-                    if (context.Schema.TryGetType(
-                        arg.Type.NamedType().Name,
-                        out INamedInputType inputType))
-                    {
-                        object value = variable.Value;
+                    object value = variable.Value;
 
-                        if (!inputType.IsInstanceOfType(value))
-                        {
-                            value = typeConversion.Convert(
-                                typeof(object), inputType.ClrType, value);
-                        }
-
-                        variable = new VariableValue
-                        (
-                            variable.Name,
-                            variable.Type,
-                            inputType.Serialize(value),
-                            variable.DefaultValue
-                        );
-                    }
-                    else
+                    if (!arg.Type.IsInstanceOfType(value))
                     {
-                        // TODO : resources
-                        throw new QueryException(
-                            ErrorBuilder.New()
-                                .SetMessage(string.Format(
-                                    CultureInfo.InvariantCulture,
-                                    "Serialize argument {0} of type {1}.",
-                                    arg.Name, arg.Type.Visualize()))
-                                .SetPath(context.Path)
-                                .Build());
+                        value = ConvertValue(typeConversion, arg.Type, value);
                     }
+
+                    variable = new VariableValue
+                    (
+                        variable.Name,
+                        variable.Type,
+                        arg.Type.Serialize(value),
+                        variable.DefaultValue
+                    );
 
                     variables.Add(variable);
                 }
             }
+        }
+
+        private static object ConvertValue(
+            ITypeConversion converter,
+            IInputType type,
+            object value)
+        {
+            Type sourceType = typeof(object);
+
+            if (type.IsListType() && value is IEnumerable<object> e)
+            {
+                if (e.Any())
+                {
+                    Type elementType = e.FirstOrDefault()?.GetType();
+                    if(elementType != null)
+                    {
+                        sourceType =
+                            typeof(IEnumerable<>).MakeGenericType(elementType);
+                    }
+                }
+                else
+                {
+                    return Activator.CreateInstance(type.ClrType);
+                }
+            }
+
+            return converter.Convert(sourceType, type.ClrType, value);
         }
 
         private static IEnumerable<VariableValue> ResolveUsedRequestVariables(
