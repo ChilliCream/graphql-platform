@@ -159,6 +159,20 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void IsInstanceOfType_StringArray()
+        {
+            // arrange
+            var listType = (IInputType)new ListType(new StringType());
+            var list = new string[] { "foo" };
+
+            // act
+            bool isInstanceOf = listType.IsInstanceOfType(list);
+
+            // assert
+            Assert.True(isInstanceOf);
+        }
+
+        [Fact]
         public void IsInstanceOfType_Enumerable_NoElementType()
         {
             // arrange

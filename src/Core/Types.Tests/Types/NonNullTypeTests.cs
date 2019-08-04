@@ -68,6 +68,34 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void ParseValue_NullValue()
+        {
+            // arrange
+            var type = (IInputType)new NonNullType(new StringType());
+
+            // act
+            Action action = () => type.ParseValue(null);
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void ParseValue_StringValue()
+        {
+            // arrange
+            var type = (IInputType)new NonNullType(new StringType());
+
+            // act
+            IValueNode value = type.ParseValue("abc");
+
+            // assert
+            Assert.Equal(
+                "abc",
+                Assert.IsType<StringValueNode>(value).Value);
+        }
+
+        [Fact]
         public void IsInstanceOfType_Literal_NullValueLiteral()
         {
             // arrange
