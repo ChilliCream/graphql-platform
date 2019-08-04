@@ -3,10 +3,12 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
-    public abstract class FluentWrapperType
+    public class FluentWrapperType
         : IOutputType
         , IInputType
     {
+        protected FluentWrapperType() { }
+
         Type IHasClrType.ClrType => throw new NotSupportedException();
 
         TypeKind IType.Kind => throw new NotSupportedException();
