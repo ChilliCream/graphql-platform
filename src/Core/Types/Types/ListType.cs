@@ -8,20 +8,12 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types
 {
     public class ListType
-        : IOutputType
-        , IInputType
+        : WrapperType
         , INullableType
     {
-        private readonly bool _isInputType;
-        private readonly IInputType _inputType;
-
         public ListType(IType elementType)
+            : base(elementType)
         {
-            if (elementType == null)
-            {
-                throw new ArgumentNullException(nameof(elementType));
-            }
-
             if (elementType.IsListType())
             {
                 // TODO : resources
@@ -29,45 +21,20 @@ namespace HotChocolate.Types
                     "It is not possible to put a list type into list type.",
                     nameof(elementType));
             }
-
-            _isInputType = elementType.IsInputType();
-            _inputType = elementType as IInputType;
-
-            ElementType = elementType;
-            ClrType = this.ToClrType();
         }
 
-        public TypeKind Kind => TypeKind.List;
+        public override TypeKind Kind => TypeKind.List;
 
-        public IType ElementType { get; }
+        public IType ElementType => InnerType;
 
-        public Type ClrType { get; }
-
-        bool IInputType.IsInstanceOfType(IValueNode literal)
-        {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (_isInputType)
-            {
-                return IsInstanceOfTypeInternal(literal);
-            }
-
-            // TODO : resources
-            throw new InvalidOperationException(
-                "The specified type is not an input type.");
-        }
-
-        private bool IsInstanceOfTypeInternal(IValueNode literal)
+        protected sealed override bool IsInstanceOfType(IValueNode literal)
         {
             if (literal is NullValueNode)
             {
                 return true;
             }
 
-            if (_inputType.IsInstanceOfType(literal))
+            if (InnerInputType.IsInstanceOfType(literal))
             {
                 return true;
             }
@@ -76,7 +43,7 @@ namespace HotChocolate.Types
             {
                 foreach (IValueNode element in listValueLiteral.Items)
                 {
-                    if (!_inputType.IsInstanceOfType(element))
+                    if (!InnerInputType.IsInstanceOfType(element))
                     {
                         return false;
                     }
@@ -87,31 +54,14 @@ namespace HotChocolate.Types
             return false;
         }
 
-        object IInputType.ParseLiteral(IValueNode literal)
-        {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (_isInputType)
-            {
-                return ParseLiteralInternal(literal);
-            }
-
-            // TODO : resources
-            throw new InvalidOperationException(
-                "The specified type is not an input type.");
-        }
-
-        private object ParseLiteralInternal(IValueNode literal)
+        protected sealed override object ParseLiteral(IValueNode literal)
         {
             if (literal is NullValueNode)
             {
                 return null;
             }
 
-            if (_inputType.IsInstanceOfType(literal))
+            if (InnerInputType.IsInstanceOfType(literal))
             {
                 return CreateList(new ListValueNode(literal));
             }
@@ -132,7 +82,7 @@ namespace HotChocolate.Types
 
             for (var i = 0; i < listLiteral.Items.Count; i++)
             {
-                object element = _inputType.ParseLiteral(
+                object element = InnerInputType.ParseLiteral(
                     listLiteral.Items[i]);
                 list.Add(element);
             }
@@ -140,138 +90,92 @@ namespace HotChocolate.Types
             return list;
         }
 
-        bool IInputType.IsInstanceOfType(object value)
+        protected sealed override bool IsInstanceOfType(object value)
         {
-            if (_isInputType)
+            if (value is null)
             {
-                if (value is null)
-                {
-                    return true;
-                }
-
-                if (ClrType.IsInstanceOfType(value))
-                {
-                    return true;
-                }
-
-                Type elementType = DotNetTypeInfoFactory
-                    .GetInnerListType(value.GetType());
-
-                if (elementType is null)
-                {
-                    return false;
-                }
-
-                Type clrType = ElementType.ToClrType();
-
-                if (elementType == typeof(object))
-                {
-                    if (value is IList l)
-                    {
-                        return l.Count == 0 || clrType == l[0]?.GetType();
-                    }
-
-                    return false;
-                }
-
-                return elementType == clrType;
+                return true;
             }
 
-            // TODO : resources
-            throw new InvalidOperationException(
-                "The specified type is not an input type.");
-        }
-
-        IValueNode IInputType.ParseValue(object value)
-        {
-            if (_isInputType)
+            if (ClrType.IsInstanceOfType(value))
             {
-                if (value == null)
-                {
-                    return NullValueNode.Default;
-                }
-
-                if (value is IEnumerable e)
-                {
-                    var items = new List<IValueNode>();
-                    foreach (object v in e)
-                    {
-                        items.Add(_inputType.ParseValue(v));
-                    }
-                    return new ListValueNode(null, items);
-                }
+                return true;
             }
 
-            // TODO : resources
-            throw new InvalidOperationException(
-                "The specified type is not an input type.");
-        }
+            Type elementType = DotNetTypeInfoFactory
+                .GetInnerListType(value.GetType());
 
-        object ISerializableType.Serialize(object value)
-        {
-            if (_isInputType)
+            if (elementType is null)
             {
-                if (value is null)
-                {
-                    return null;
-                }
+                return false;
+            }
 
+            Type clrType = ElementType.ToClrType();
+
+            if (elementType == typeof(object))
+            {
                 if (value is IList l)
                 {
-                    var list = new List<object>();
-
-                    for (int i = 0; i < l.Count; i++)
-                    {
-                        list.Add(_inputType.Serialize(l[i]));
-                    }
-
-                    return list;
+                    return l.Count == 0 || clrType == l[0]?.GetType();
                 }
 
-                // TODO : resources
-                throw new ScalarSerializationException(
-                    TypeResourceHelper.Scalar_Cannot_Serialize(
-                        this.Visualize()));
+                return false;
             }
 
-            // TODO : resources
-            throw new InvalidOperationException(
-                "The specified type is not an input type.");
+            return elementType == clrType;
         }
 
-        object ISerializableType.Deserialize(object serialized)
+        protected sealed override IValueNode ParseValue(object value)
         {
-            if (_isInputType)
+            if (value == null)
             {
-                if (TryDeserialize(serialized, out var value))
+                return NullValueNode.Default;
+            }
+
+            if (value is IEnumerable e)
+            {
+                var items = new List<IValueNode>();
+                foreach (object v in e)
                 {
-                    return value;
+                    items.Add(InnerInputType.ParseValue(v));
+                }
+                return new ListValueNode(null, items);
+            }
+
+            // TODO : resources
+            throw new ScalarSerializationException(
+                TypeResourceHelper.Scalar_Cannot_ParseValue(
+                    this.Visualize(), value.GetType()));
+        }
+
+        protected sealed override bool TrySerialize(
+            object value, out object serialized)
+        {
+            if (value is null)
+            {
+                serialized = null;
+                return true;
+            }
+
+            if (value is IList l)
+            {
+                var list = new List<object>();
+
+                for (int i = 0; i < l.Count; i++)
+                {
+                    list.Add(InnerInputType.Serialize(l[i]));
                 }
 
-                throw new ScalarSerializationException(
-                    TypeResourceHelper.Scalar_Cannot_Deserialize(
-                        this.Visualize()));
+                serialized = list;
+                return true;
             }
 
-            // TODO : resources
-            throw new InvalidOperationException(
-                "The specified type is not an input type.");
+            serialized = null;
+            return false;
         }
 
-        bool ISerializableType.TryDeserialize(
+        protected sealed override bool TryDeserialize(
             object serialized, out object value)
-        {
-            if (_isInputType)
-            {
-                return TryDeserialize(serialized, out value);
-            }
-
-            // TODO : resources
-            throw new InvalidOperationException(
-                "The specified type is not an input type.");
-        }
-
-        private bool TryDeserialize(object serialized, out object value)
         {
             if (serialized is null)
             {
@@ -285,7 +189,7 @@ namespace HotChocolate.Types
 
                 for (int i = 0; i < l.Count; i++)
                 {
-                    if (_inputType.TryDeserialize(l[i], out var v))
+                    if (InnerInputType.TryDeserialize(l[i], out var v))
                     {
                         list.Add(v);
                     }
