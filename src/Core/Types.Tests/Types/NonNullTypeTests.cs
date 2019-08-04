@@ -135,5 +135,57 @@ namespace HotChocolate.Types
             Assert.False(shouldBeFalse);
             Assert.True(shouldBeTrue);
         }
+
+        [Fact]
+        public void Serialize_NullValue()
+        {
+            // arrange
+            var type = (IInputType)new NonNullType(new StringType());
+
+            // act
+            Action action = () => type.Serialize(null);
+
+            // assert
+            Assert.Throws<ScalarSerializationException>(action);
+        }
+
+        [Fact]
+        public void Serialize_StringValue()
+        {
+            // arrange
+            var type = (IInputType)new NonNullType(new StringType());
+
+            // act
+            object value = type.Serialize("abc");
+
+            // assert
+            Assert.Equal("abc", value);
+        }
+
+        [Fact]
+        public void Deserialize_NullValue()
+        {
+            // arrange
+            var type = (IInputType)new NonNullType(new StringType());
+
+            // act
+            Action action = () => type.Deserialize(null);
+
+            // assert
+            Assert.Throws<ScalarSerializationException>(action);
+        }
+
+        [Fact]
+        public void Deserialize_StringValue()
+        {
+            // arrange
+            var type = (IInputType)new NonNullType(new StringType());
+
+            // act
+            object value = type.Deserialize("abc");
+
+            // assert
+            Assert.Equal("abc", value);
+        }
     }
 }
