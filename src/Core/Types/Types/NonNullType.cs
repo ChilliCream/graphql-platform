@@ -38,7 +38,7 @@ namespace HotChocolate.Types
 
         public Type ClrType { get; }
 
-        public bool IsInstanceOfType(IValueNode literal)
+        bool IInputType.IsInstanceOfType(IValueNode literal)
         {
             if (_isInputType)
             {
@@ -54,7 +54,7 @@ namespace HotChocolate.Types
                 TypeResources.NonNullType_NotAnInputType);
         }
 
-        public object ParseLiteral(IValueNode literal)
+        object IInputType.ParseLiteral(IValueNode literal)
         {
             if (literal == null)
             {
@@ -77,7 +77,7 @@ namespace HotChocolate.Types
                 TypeResources.NonNullType_NotAnInputType);
         }
 
-        public bool IsInstanceOfType(object value)
+        bool IInputType.IsInstanceOfType(object value)
         {
             if (_isInputType && Type is IInputType it)
             {
@@ -93,7 +93,7 @@ namespace HotChocolate.Types
                 TypeResources.NonNullType_NotAnInputType);
         }
 
-        public IValueNode ParseValue(object value)
+        IValueNode IInputType.ParseValue(object value)
         {
             if (_isInputType)
             {
@@ -109,6 +109,69 @@ namespace HotChocolate.Types
 
             throw new InvalidOperationException(
                 TypeResources.NonNullType_NotAnInputType);
+        }
+
+        object ISerializableType.Serialize(object value)
+        {
+            if (_isInputType)
+            {
+                if (value != null)
+                {
+                    return _inputType.Serialize(value);
+                }
+
+                // TODO : resources
+                throw new ScalarSerializationException(
+                    TypeResourceHelper.Scalar_Cannot_Serialize(
+                        this.Visualize()));
+            }
+
+            // TODO : resources
+            throw new InvalidOperationException(
+                "The specified type is not an input type.");
+        }
+
+        object ISerializableType.Deserialize(object serialized)
+        {
+            if (_isInputType)
+            {
+                if (TryDeserialize(serialized, out var value))
+                {
+                    return value;
+                }
+
+                throw new ScalarSerializationException(
+                    TypeResourceHelper.Scalar_Cannot_Deserialize(
+                        this.Visualize()));
+            }
+
+            // TODO : resources
+            throw new InvalidOperationException(
+                "The specified type is not an input type.");
+        }
+
+        bool ISerializableType.TryDeserialize(
+            object serialized, out object value)
+        {
+            if (_isInputType)
+            {
+                return TryDeserialize(serialized, out value);
+            }
+
+            // TODO : resources
+            throw new InvalidOperationException(
+                "The specified type is not an input type.");
+        }
+
+        private bool TryDeserialize(object serialized, out object value)
+        {
+            if (serialized != null)
+            {
+                return _inputType.TryDeserialize(serialized, out value);
+            }
+
+            value = null;
+            return false;
         }
     }
 }

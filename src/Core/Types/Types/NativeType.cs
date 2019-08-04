@@ -7,26 +7,42 @@ namespace HotChocolate.Types
         : IOutputType
         , IInputType
     {
-        public TypeKind Kind => throw new NotSupportedException();
+        Type IHasClrType.ClrType => throw new NotSupportedException();
 
-        public Type ClrType => throw new NotSupportedException();
+        TypeKind IType.Kind => throw new NotSupportedException();
 
-        public bool IsInstanceOfType(IValueNode literal)
+        object ISerializableType.Deserialize(object serialized)
         {
             throw new NotSupportedException();
         }
 
-        public bool IsInstanceOfType(object value)
+        bool IInputType.IsInstanceOfType(IValueNode literal)
         {
             throw new NotSupportedException();
         }
 
-        public object ParseLiteral(IValueNode literal)
+        bool IInputType.IsInstanceOfType(object value)
         {
             throw new NotSupportedException();
         }
 
-        public IValueNode ParseValue(object value)
+        object IInputType.ParseLiteral(IValueNode literal)
+        {
+            throw new NotSupportedException();
+        }
+
+        IValueNode IInputType.ParseValue(object value)
+        {
+            throw new NotSupportedException();
+        }
+
+        object ISerializableType.Serialize(object value)
+        {
+            throw new NotSupportedException();
+        }
+
+        bool ISerializableType.TryDeserialize(
+            object serialized, out object value)
         {
             throw new NotSupportedException();
         }

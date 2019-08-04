@@ -34,7 +34,7 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () => new ListType(new StringType())
+            Action action = () => ((IInputType)new ListType(new StringType()))
                 .IsInstanceOfType(null);
 
             // assert
@@ -46,8 +46,8 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            Action action = () => new ListType(
-                new ObjectType(c => c.Name("foo")))
+            Action action = () => ((IInputType)new ListType(
+                new ObjectType(c => c.Name("foo"))))
                 .IsInstanceOfType(new StringValueNode("foo"));
 
             // assert
@@ -99,10 +99,10 @@ namespace HotChocolate.Types
         public void EnsureInstanceOfIsDelegatedToInnerType()
         {
             // arrange
-            var innerType = new NonNullType(new StringType());
+            var innerType = (IInputType)new NonNullType(new StringType());
 
             // act
-            var type = new ListType(innerType);
+            var type = (IInputType)new ListType(innerType);
             bool shouldBeFalse = type.IsInstanceOfType(
                 new ListValueNode(new[] { NullValueNode.Default }));
             bool shouldBeTrue = type.IsInstanceOfType(

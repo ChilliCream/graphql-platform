@@ -72,7 +72,7 @@ namespace HotChocolate.Types
         public void ListCanBeCoercedFromListValue()
         {
             // arrange
-            var type = new ListType(new BooleanType());
+            var type = (IInputType)new ListType(new BooleanType());
             var list = new ListValueNode(
                 new[] {
                     new BooleanValueNode(true),
@@ -92,7 +92,7 @@ namespace HotChocolate.Types
         public void ListCanBeCoercedFromListElementValue()
         {
             // arrange
-            var type = new ListType(new BooleanType());
+            var type = (IInputType)new ListType(new BooleanType());
             var element = new BooleanValueNode(true);
 
             // act
@@ -108,7 +108,7 @@ namespace HotChocolate.Types
         public void ListCannotBeCoercedFromMixedList()
         {
             // arrange
-            var type = new ListType(new BooleanType());
+            var type = (IInputType)new ListType(new BooleanType());
             var list = new ListValueNode(
                 new IValueNode[] {
                     new BooleanValueNode(true),
@@ -125,7 +125,7 @@ namespace HotChocolate.Types
         public void ListCannotBeCoercedIfElementTypeDoesNotMatch()
         {
             // arrange
-            var type = new ListType(new BooleanType());
+            var type = (IInputType)new ListType(new BooleanType());
             var element = new StringValueNode("foo");
 
             // act
@@ -171,7 +171,7 @@ namespace HotChocolate.Types
            where TElement : ScalarType, new()
         {
             // arrange
-            var type = new ListType(new TElement());
+            var type = (IInputType)new ListType(new TElement());
 
             // act
             bool isInstanceOfType = type.IsInstanceOfType(literal);
@@ -185,7 +185,7 @@ namespace HotChocolate.Types
            where TElement : ScalarType, new()
         {
             // arrange
-            var type = new ListType(new TElement());
+            var type = (IInputType)new ListType(new TElement());
 
             // act
             bool isInstanceOfType = type.IsInstanceOfType(literal);

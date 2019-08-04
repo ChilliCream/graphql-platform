@@ -36,9 +36,9 @@ namespace HotChocolate.Types
             var innerType = new ListType(new StringType());
 
             var type = new NonNullType(innerType);
-            bool shouldBeFalse = type.IsInstanceOfType(
+            bool shouldBeFalse = ((IInputType)type).IsInstanceOfType(
                 new IntValueNode("123"));
-            bool shouldBeTrue = type.IsInstanceOfType(
+            bool shouldBeTrue = ((IInputType)type).IsInstanceOfType(
                 new ListValueNode(new[] { new StringValueNode("foo") }));
 
             // assert

@@ -5,6 +5,7 @@ namespace HotChocolate.Types
     public interface IInputType
         : IType
         , IHasClrType
+        , ISerializableType
     {
         bool IsInstanceOfType(IValueNode literal);
 
