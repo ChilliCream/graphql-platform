@@ -1,4 +1,3 @@
-using System.IO;
 using System;
 using System.Buffers;
 using IOPath = System.IO.Path;
@@ -32,16 +31,19 @@ namespace HotChocolate.PersistedQueries.FileSystem
         public DefaultQueryFileMap(string cacheDirectory)
         {
             _cacheDirectory = cacheDirectory;
-
-            if (!Directory.Exists(cacheDirectory))
-            {
-                Directory.CreateDirectory(cacheDirectory);
-            }
         }
+
+        /// <inheritdoc />
+        public string Root => _cacheDirectory;
 
         /// <inheritdoc />
         public string MapToFilePath(string queryId)
         {
+            if (string.IsNullOrEmpty(queryId))
+            {
+                throw new ArgumentNullException(nameof(queryId));
+            }
+
             string fileName = EncodeQueryId(queryId);
 
             if (_cacheDirectory != null)

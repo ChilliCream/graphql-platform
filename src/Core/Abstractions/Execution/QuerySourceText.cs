@@ -23,6 +23,7 @@ namespace HotChocolate.Execution
         {
             var writer = new StreamWriter(output, Encoding.UTF8);
             writer.Write(Text);
+            writer.Flush();
         }
 
         public Task WriteToAsync(Stream output) =>

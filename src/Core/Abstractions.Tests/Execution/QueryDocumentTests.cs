@@ -1,7 +1,9 @@
+using System.IO;
 using System;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
+using System.Threading.Tasks;
 
 namespace HotChocolate.Execution.Tests
 {
@@ -56,6 +58,48 @@ namespace HotChocolate.Execution.Tests
             // assert
             QuerySyntaxSerializer.Serialize(
                 Utf8GraphQLParser.Parse(query.ToSpan()))
+                .ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task QueryDocument_WriteToAsync()
+        {
+            // arrange
+            DocumentNode document = Utf8GraphQLParser.Parse("{ a }");
+            var query = new QueryDocument(document);
+            byte[] buffer;
+
+            // act
+            using (var stream = new MemoryStream())
+            {
+                await query.WriteToAsync(stream);
+                buffer = stream.ToArray();
+            }
+
+            // assert
+            QuerySyntaxSerializer.Serialize(
+                Utf8GraphQLParser.Parse(buffer))
+                .ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void QueryDocument_WriteTo()
+        {
+            // arrange
+            DocumentNode document = Utf8GraphQLParser.Parse("{ a }");
+            var query = new QueryDocument(document);
+            byte[] buffer;
+
+            // act
+            using (var stream = new MemoryStream())
+            {
+                query.WriteTo(stream);
+                buffer = stream.ToArray();
+            }
+
+            // assert
+            QuerySyntaxSerializer.Serialize(
+                Utf8GraphQLParser.Parse(buffer))
                 .ToString().MatchSnapshot();
         }
     }

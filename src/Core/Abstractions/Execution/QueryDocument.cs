@@ -22,6 +22,7 @@ namespace HotChocolate.Execution
             using (var sw = new StreamWriter(output))
             {
                 QuerySyntaxSerializer.Serialize(Document, sw, false);
+                sw.Flush();
             }
         }
 
@@ -37,6 +38,7 @@ namespace HotChocolate.Execution
                 await Task.Run(() =>
                     QuerySyntaxSerializer.Serialize(Document, sw, false))
                     .ConfigureAwait(false);
+                await sw.FlushAsync().ConfigureAwait(false);
             }
         }
 

@@ -27,6 +27,11 @@ namespace HotChocolate.PersistedQueries.FileSystem
         {
             _queryMap = queryMap
                 ?? throw new ArgumentNullException(nameof(queryMap));
+
+            if (!Directory.Exists(_queryMap.Root))
+            {
+                Directory.CreateDirectory(queryMap.Root);
+            }
         }
 
         /// <inheritdoc />
