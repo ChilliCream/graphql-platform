@@ -136,7 +136,7 @@ namespace HotChocolate.Execution
 
         private static IQueryExecutionBuilder UseDefaultDiagnostics(
             this IQueryExecutionBuilder builder,
-            IQueryExecutionOptionsAccessor options)
+            IInstrumentationOptionsAccessor options)
         {
             return builder
                 .UseInstrumentation(options.TracingPreference)
