@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PersistedQueries.FileSystem\PersistedQueries.FileSystem.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>
