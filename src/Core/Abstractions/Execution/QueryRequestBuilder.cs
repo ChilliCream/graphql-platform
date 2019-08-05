@@ -1,7 +1,6 @@
-using System.Runtime.Serialization;
-using System.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
@@ -250,13 +249,11 @@ namespace HotChocolate.Execution
 
         private IReadOnlyDictionary<string, object> GetVariableValues()
         {
-            InitializeVariables();
-
             if (_variableValues != null)
             {
                 return _variableValues;
             }
-            return _readOnlyVariableValues;
+            return _readOnlyVariableValues ?? EmptyDictionary.Instance;
         }
 
         private void InitializeVariables()
@@ -273,13 +270,11 @@ namespace HotChocolate.Execution
 
         private IReadOnlyDictionary<string, object> GetProperties()
         {
-            InitializeProperties();
-
             if (_properties != null)
             {
                 return _properties;
             }
-            return _readOnlyProperties;
+            return _readOnlyProperties ?? EmptyDictionary.Instance;
         }
 
         private void InitializeProperties()
@@ -296,13 +291,11 @@ namespace HotChocolate.Execution
 
         private IReadOnlyDictionary<string, object> GetExtensions()
         {
-            InitializeExtensions();
-
             if (_extensions != null)
             {
                 return _extensions;
             }
-            return _readOnlyProperties;
+            return _readOnlyProperties ?? EmptyDictionary.Instance;
         }
 
         private void InitializeExtensions()

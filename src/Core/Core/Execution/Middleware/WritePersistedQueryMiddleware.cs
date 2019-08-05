@@ -27,6 +27,9 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(queryCache));
             _writeStoredQueries = writeStoredQueries
                 ?? throw new ArgumentNullException(nameof(writeStoredQueries));
+            _documentHashProvider = documentHashProvider
+                ?? throw new ArgumentNullException(nameof(
+                    documentHashProvider));
         }
 
         public async Task InvokeAsync(IQueryContext context)
