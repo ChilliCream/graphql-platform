@@ -5,10 +5,11 @@
   "QueryName": null,
   "QueryHash": null,
   "OperationName": null,
-  "VariableValues": null,
+  "VariableValues": {},
   "InitialValue": null,
   "Properties": {
     "one": "foo"
   },
-  "Services": null
+  "Services": null,
+  "Extensions": {}
 }

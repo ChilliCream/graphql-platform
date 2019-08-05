@@ -85,7 +85,9 @@ namespace HotChocolate.Execution
         public IQueryRequestBuilder SetVariableValues(
             IDictionary<string, object> variableValues)
         {
-            _variableValues = new Dictionary<string, object>(variableValues);
+            _variableValues = variableValues is null
+                ? null
+                : new Dictionary<string, object>(variableValues);
             _readOnlyVariableValues = null;
             return this;
         }
@@ -131,10 +133,13 @@ namespace HotChocolate.Execution
             Dictionary<string, object> properties) =>
             SetProperties((IDictionary<string, object>)properties);
 
+
         public IQueryRequestBuilder SetProperties(
             IDictionary<string, object> properties)
         {
-            _properties = new Dictionary<string, object>(properties);
+            _properties = properties is null
+                ? null
+                : new Dictionary<string, object>(properties);
             _readOnlyProperties = null;
             return this;
         }
@@ -183,7 +188,9 @@ namespace HotChocolate.Execution
         public IQueryRequestBuilder SetExtensions(
             IDictionary<string, object> extensions)
         {
-            _extensions = new Dictionary<string, object>(extensions);
+            _extensions = extensions is null
+                ? null
+                : new Dictionary<string, object>(extensions);
             _readOnlyExtensions = null;
             return this;
         }
@@ -198,7 +205,7 @@ namespace HotChocolate.Execution
 
         public IQueryRequestBuilder SetExtension(string name, object value)
         {
-            InitializeProperties();
+            InitializeExtensions();
 
             _extensions[name] = value;
             return this;
@@ -207,7 +214,7 @@ namespace HotChocolate.Execution
         public IQueryRequestBuilder AddExtension(
             string name, object value)
         {
-            InitializeProperties();
+            InitializeExtensions();
 
             _extensions.Add(name, value);
             return this;
@@ -216,7 +223,7 @@ namespace HotChocolate.Execution
         public IQueryRequestBuilder TryAddExtension(
             string name, object value)
         {
-            InitializeProperties();
+            InitializeExtensions();
 
             if (!_extensions.ContainsKey(name))
             {
