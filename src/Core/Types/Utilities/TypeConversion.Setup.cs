@@ -17,6 +17,8 @@ namespace HotChocolate.Utilities
             RegisterStringConversions(registry);
             RegisterNameStringConversions(registry);
 
+            RegisterByteConversions(registry);
+
             RegisterUInt16Conversions(registry);
             RegisterUInt32Conversions(registry);
             RegisterUInt64Conversions(registry);
