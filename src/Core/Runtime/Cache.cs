@@ -85,7 +85,7 @@ namespace HotChocolate.Runtime
 
         private void ClearSpaceForNewEntry()
         {
-            while (_cache.Count > Size)
+            if (_ranking.Count > Size)
             {
                 LinkedListNode<string> rank = _ranking.Last;
                 if (_cache.TryRemove(rank.Value, out CacheEntry entry))
