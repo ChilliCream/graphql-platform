@@ -37,13 +37,13 @@ namespace HotChocolate.Stitching.Schemas.Contracts
                 .Type<IdType>()
                 .Resolver("abc_123");
             descriptor.Field("byte_field")
-                .Type<IntType>()
+                .Type<ByteType>()
                 .Resolver(123);
             descriptor.Field("int_field")
                 .Type<IntType>()
                 .Resolver(123);
             descriptor.Field("long_field")
-                .Type<IntType>()
+                .Type<LongType>()
                 .Resolver(123);
             descriptor.Field("float_field")
                 .Type<FloatType>()
