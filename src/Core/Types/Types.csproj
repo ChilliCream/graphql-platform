@@ -25,10 +25,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="GreenDonut" Version="2.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\..\DataLoader\Core\Core.csproj" />
     <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
     <ProjectReference Include="..\Language\Language.csproj" />
     <ProjectReference Include="..\Runtime\Runtime.csproj" />
