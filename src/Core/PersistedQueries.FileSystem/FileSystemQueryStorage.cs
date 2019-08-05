@@ -9,10 +9,11 @@ using HotChocolate.Language;
 namespace HotChocolate.PersistedQueries.FileSystem
 {
     /// <summary>
-    /// An implementation of <see cref="IReadStoredQueries"/> that
-    /// uses the local file system as a storage medium.
+    /// An implementation of <see cref="IReadStoredQueries"/>
+    /// and <see cref="IWriteStoredQueries"/> that
+    /// uses the local file system.
     /// </summary>
-    public class FileSystemStorage
+    public class FileSystemQueryStorage
         : IReadStoredQueries
         , IWriteStoredQueries
     {
@@ -22,7 +23,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
         /// Initializes a new instance of the class.
         /// </summary>
         /// <param name="queryMap">The query identifier mapping.</param>
-        public FileSystemStorage(IQueryFileMap queryMap)
+        public FileSystemQueryStorage(IQueryFileMap queryMap)
         {
             _queryMap = queryMap
                 ?? throw new ArgumentNullException(nameof(queryMap));

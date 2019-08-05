@@ -105,6 +105,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.FileSystem
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.Tests", "..\src\Core\PersistedQueries.Tests\PersistedQueries.Tests.csproj", "{EE424FCC-C888-410D-86BC-224BB10308E0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.Redis", "..\src\Core\PersistedQueries.Redis\PersistedQueries.Redis.csproj", "{AE26E10C-647B-4119-AAD7-5FA398FC3275}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -727,6 +729,18 @@ Global
 		{EE424FCC-C888-410D-86BC-224BB10308E0}.Release|x64.Build.0 = Release|Any CPU
 		{EE424FCC-C888-410D-86BC-224BB10308E0}.Release|x86.ActiveCfg = Release|Any CPU
 		{EE424FCC-C888-410D-86BC-224BB10308E0}.Release|x86.Build.0 = Release|Any CPU
+		{AE26E10C-647B-4119-AAD7-5FA398FC3275}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AE26E10C-647B-4119-AAD7-5FA398FC3275}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AE26E10C-647B-4119-AAD7-5FA398FC3275}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AE26E10C-647B-4119-AAD7-5FA398FC3275}.Debug|x64.Build.0 = Debug|Any CPU
+		{AE26E10C-647B-4119-AAD7-5FA398FC3275}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{AE26E10C-647B-4119-AAD7-5FA398FC3275}.Debug|x86.Build.0 = Debug|Any CPU
+		{AE26E10C-647B-4119-AAD7-5FA398FC3275}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AE26E10C-647B-4119-AAD7-5FA398FC3275}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AE26E10C-647B-4119-AAD7-5FA398FC3275}.Release|x64.ActiveCfg = Release|Any CPU
+		{AE26E10C-647B-4119-AAD7-5FA398FC3275}.Release|x64.Build.0 = Release|Any CPU
+		{AE26E10C-647B-4119-AAD7-5FA398FC3275}.Release|x86.ActiveCfg = Release|Any CPU
+		{AE26E10C-647B-4119-AAD7-5FA398FC3275}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
