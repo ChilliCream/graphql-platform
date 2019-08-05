@@ -11,11 +11,13 @@ namespace HotChocolate.Execution
         private readonly QueryDelegate _next;
         private readonly Cache<ICachedQuery> _queryCache;
         private readonly IReadStoredQueries _readStoredQueries;
+        private readonly IErrorHandler _errorHandler;
 
         public ReadPersistedQueryMiddleware(
             QueryDelegate next,
             Cache<ICachedQuery> queryCache,
-            IReadStoredQueries readStoredQueries)
+            IReadStoredQueries readStoredQueries,
+            IErrorHandler errorHandler)
         {
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
@@ -23,6 +25,8 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(queryCache));
             _readStoredQueries = readStoredQueries
                 ?? throw new ArgumentNullException(nameof(readStoredQueries));
+            _errorHandler = errorHandler
+                ?? throw new ArgumentNullException(nameof(errorHandler));
         }
 
         public async Task InvokeAsync(IQueryContext context)
@@ -48,9 +52,11 @@ namespace HotChocolate.Execution
                 if (query == null)
                 {
                     context.Result = QueryResult.CreateError(
-                        ErrorBuilder.New()
+                        _errorHandler.Handle(ErrorBuilder.New()
                             .SetMessage("PersistedQueryNotFound")
-                            .Build());
+                            .SetCode("PERSISTED_QUERY_NOT_FOUND")
+                            .Build()));
+                    return;
                 }
 
                 cachedQuery = _queryCache.GetOrCreate(
@@ -58,7 +64,7 @@ namespace HotChocolate.Execution
                     () =>
                     {
                         DocumentNode document =
-                            ParseDocument(context.Request.Query);
+                            ParseDocument(query);
                         return new CachedQuery(context.QueryKey, document);
                     });
 

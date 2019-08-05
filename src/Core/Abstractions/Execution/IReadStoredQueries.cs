@@ -17,7 +17,7 @@ namespace HotChocolate.Execution
         /// The desired query or null if no query
         /// is found with the specified identifier.
         /// </returns>
-        Task<IQuery> TryReadQueryAsync(string queryId);
+        Task<QueryDocument> TryReadQueryAsync(string queryId);
 
         /// <summary>
         /// Retrieves the query associated with the given identifier.
@@ -29,7 +29,7 @@ namespace HotChocolate.Execution
         /// The desired query or null if no query
         /// is found with the specified identifier.
         /// </returns>
-        Task<IQuery> TryReadQueryAsync(
+        Task<QueryDocument> TryReadQueryAsync(
             string queryId,
             CancellationToken cancellationToken);
     }

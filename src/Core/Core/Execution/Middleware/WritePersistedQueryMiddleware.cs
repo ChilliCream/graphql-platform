@@ -10,10 +10,11 @@ namespace HotChocolate.Execution
     internal sealed class WritePersistedQueryMiddleware
     {
         private const string _persistedQuery = "persistedQuery";
+        private const string _persisted = "persisted";
         private readonly QueryDelegate _next;
         private readonly Cache<ICachedQuery> _queryCache;
         private readonly IWriteStoredQueries _writeStoredQueries;
-        private readonly IDocumentHashProvider _documentHashProvider;
+        private readonly string _hashName;
 
         public WritePersistedQueryMiddleware(
             QueryDelegate next,
@@ -21,15 +22,18 @@ namespace HotChocolate.Execution
             IWriteStoredQueries writeStoredQueries,
             IDocumentHashProvider documentHashProvider)
         {
+            if (documentHashProvider is null)
+            {
+                throw new ArgumentNullException(nameof(documentHashProvider));
+            }
+
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
             _queryCache = queryCache
                 ?? throw new ArgumentNullException(nameof(queryCache));
             _writeStoredQueries = writeStoredQueries
                 ?? throw new ArgumentNullException(nameof(writeStoredQueries));
-            _documentHashProvider = documentHashProvider
-                ?? throw new ArgumentNullException(nameof(
-                    documentHashProvider));
+            _hashName = documentHashProvider.Name;
         }
 
         public async Task InvokeAsync(IQueryContext context)
@@ -48,12 +52,28 @@ namespace HotChocolate.Execution
             if (_writeStoredQueries != null
                 && context.Request.Query != null
                 && context.QueryKey != null
-                && DoHashesMatch(context, _documentHashProvider.Name))
+                && DoHashesMatch(context, _hashName))
             {
                 await _writeStoredQueries.WriteQueryAsync(
                     context.QueryKey,
                     context.Request.Query)
                     .ConfigureAwait(false);
+
+                if (context.Result is QueryResult result
+                    && context.Request.Extensions.TryGetValue(
+                        _persistedQuery, out var s)
+                    && s is IReadOnlyDictionary<string, object> settings
+                    && settings.TryGetValue(_hashName, out object h)
+                    && h is string hash)
+                {
+                    result.Extensions[_persistedQuery] =
+                        new Dictionary<string, object>
+                        {
+                            { _hashName, hash },
+                            { _persisted, true }
+                        };
+                }
+
                 context.ContextData[ContextDataKeys.DocumentSaved] = true;
             }
 

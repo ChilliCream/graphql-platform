@@ -8,6 +8,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate.Execution
 {
@@ -59,6 +60,18 @@ namespace HotChocolate.Execution
         }
 
         public static IQueryExecutionBuilder UsePersistedQueryPipeline(
+            this IQueryExecutionBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder
+                .UsePersistedQueryPipeline(new QueryExecutionOptions());
+        }
+
+        public static IQueryExecutionBuilder UsePersistedQueryPipeline(
             this IQueryExecutionBuilder builder,
             IQueryExecutionOptionsAccessor options)
         {
@@ -93,6 +106,18 @@ namespace HotChocolate.Execution
         }
 
         public static IQueryExecutionBuilder UseActivePersistedQueryPipeline(
+            this IQueryExecutionBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder
+                .UseActivePersistedQueryPipeline(new QueryExecutionOptions());
+        }
+
+        public static IQueryExecutionBuilder UseActivePersistedQueryPipeline(
             this IQueryExecutionBuilder builder,
             IQueryExecutionOptionsAccessor options)
         {
@@ -120,11 +145,11 @@ namespace HotChocolate.Execution
                 .UseExceptionHandling()
                 .UseQueryParser()
                 .UseReadPersistedQuery()
-                .UseWritePersistedQuery()
                 .UseValidation()
                 .UseOperationResolver()
                 .UseMaxComplexity()
-                .UseOperationExecutor();
+                .UseOperationExecutor()
+                .UseWritePersistedQuery();
         }
 
         public static IQueryExecutionBuilder UseExceptionHandling(
@@ -674,7 +699,10 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.AddMD5DocumentHashProvider();
+            builder.Services.TryAddSingleton<
+                IDocumentHashProvider,
+                MD5DocumentHashProvider>();
+            return builder;
         }
 
         public static IQueryExecutionBuilder AddSha1DocumentHashProvider(

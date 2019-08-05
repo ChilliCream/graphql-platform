@@ -29,11 +29,11 @@ namespace HotChocolate.PersistedQueries.FileSystem
         }
 
         /// <inheritdoc />
-        public Task<IQuery> TryReadQueryAsync(string queryId) =>
+        public Task<QueryDocument> TryReadQueryAsync(string queryId) =>
             TryReadQueryAsync(queryId, CancellationToken.None);
 
         /// <inheritdoc />
-        public async Task<IQuery> TryReadQueryAsync(
+        public async Task<QueryDocument> TryReadQueryAsync(
             string queryId,
             CancellationToken cancellationToken)
         {
