@@ -14,7 +14,7 @@ namespace HotChocolate.Stitching.Client
             Request = request;
             Document = request.Query is QueryDocument document
                 ? document.Document
-                : Utf8GraphQLParser.Parse(request.Query.ToSource());
+                : Utf8GraphQLParser.Parse(request.Query.ToSpan());
         }
 
         public IReadOnlyQueryRequest Request { get; }

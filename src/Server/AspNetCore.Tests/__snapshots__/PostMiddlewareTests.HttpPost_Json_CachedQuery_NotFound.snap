@@ -2,7 +2,7 @@
   "Data": null,
   "Errors": [
     {
-      "message": "persistedQueryNotFound",
+      "message": "CachedQueryNotFound",
       "extensions": {
         "code": "CACHED_QUERY_NOT_FOUND"
       }

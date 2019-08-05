@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Collections.Generic;
 using System;
 using System.IO;
@@ -265,13 +266,17 @@ namespace HotChocolate.AspNetCore
                 {
                     case AllowedContentType.Json:
                         batch = await _requestHelper
-                            .ReadJsonRequestAsync(stream)
+                            .ReadJsonRequestAsync(
+                                stream,
+                                context.GetCancellationToken())
                             .ConfigureAwait(false);
                         break;
 
                     case AllowedContentType.GraphQL:
                         batch = await _requestHelper
-                            .ReadGraphQLQueryAsync(stream)
+                            .ReadGraphQLQueryAsync(
+                                stream,
+                                context.GetCancellationToken())
                             .ConfigureAwait(false);
                         break;
 
@@ -287,16 +292,16 @@ namespace HotChocolate.AspNetCore
         {
             ReadOnlySpan<char> span = s.AsSpan();
 
-            for(int i = 0; i < span.Length; i++)
+            for (int i = 0; i < span.Length; i++)
             {
-                if(span[i] == ';')
+                if (span[i] == ';')
                 {
                     span = span.Slice(0, i);
                     break;
                 }
             }
 
-            if(span.SequenceEqual(ContentType.GraphQLSpan()))
+            if (span.SequenceEqual(ContentType.GraphQLSpan()))
             {
                 return AllowedContentType.GraphQL;
             }

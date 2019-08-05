@@ -69,7 +69,7 @@ namespace HotChocolate.Execution.Batching
 
                 DocumentNode document = request.Query is QueryDocument d
                     ? d.Document
-                    : Utf8GraphQLParser.Parse(request.Query.ToSource());
+                    : Utf8GraphQLParser.Parse(request.Query.ToSpan());
 
                 OperationDefinitionNode operation =
                     document.GetOperation(request.OperationName);

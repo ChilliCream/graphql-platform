@@ -8,8 +8,10 @@ namespace HotChocolate.Language
     public class MD5DocumentHashProvider
         : IDocumentHashProvider
     {
-        private ThreadLocal<MD5> _md5 =
+        private readonly ThreadLocal<MD5> _md5 =
             new ThreadLocal<MD5>(() => MD5.Create());
+
+        public string Name => "md5Hash";
 
         public string ComputeHash(ReadOnlySpan<byte> document)
         {
@@ -19,7 +21,8 @@ namespace HotChocolate.Language
 
             try
             {
-                byte[] hash = _md5.Value.ComputeHash(rented, 0, document.Length);
+                byte[] hash = _md5.Value.ComputeHash(
+                    rented, 0, document.Length);
                 return Convert.ToBase64String(hash);
             }
             finally

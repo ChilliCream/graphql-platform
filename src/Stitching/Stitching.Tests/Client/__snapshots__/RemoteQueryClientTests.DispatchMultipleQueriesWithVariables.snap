@@ -194,6 +194,7 @@
     "__0__a": "foo"
   },
   "InitialValue": null,
-  "Properties": null,
-  "Services": {}
+  "Properties": {},
+  "Services": {},
+  "Extensions": {}
 }
