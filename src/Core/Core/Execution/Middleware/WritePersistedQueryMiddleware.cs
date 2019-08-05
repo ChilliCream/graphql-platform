@@ -52,13 +52,21 @@ namespace HotChocolate.Execution
             if (_writeStoredQueries != null
                 && context.Request.Query != null
                 && context.QueryKey != null
+                && context.Document != null
                 && DoHashesMatch(context, _hashName))
             {
+                // save the  query
                 await _writeStoredQueries.WriteQueryAsync(
                     context.QueryKey,
                     context.Request.Query)
                     .ConfigureAwait(false);
 
+                // add the query to the cache
+                _queryCache.TryAdd(
+                    context.QueryKey,
+                    () => new CachedQuery(context.QueryKey, context.Document));
+
+                // add persistence receipt to the result
                 if (context.Result is QueryResult result
                     && context.Request.Extensions.TryGetValue(
                         _persistedQuery, out var s)
