@@ -1,4 +1,10 @@
-﻿{
-  "HotChocolate.PersistedQueries.FileSystem.RedisQueryStorage": null,
-  "HotChocolate.Execution.IReadStoredQueries": null
-}
+﻿[
+  {
+    "Key": "HotChocolate.Execution.IReadStoredQueries",
+    "Value": null
+  },
+  {
+    "Key": "HotChocolate.PersistedQueries.FileSystem.RedisQueryStorage",
+    "Value": null
+  }
+]

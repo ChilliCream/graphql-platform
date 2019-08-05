@@ -1,5 +1,14 @@
-﻿{
-  "HotChocolate.PersistedQueries.FileSystem.FileSystemQueryStorage": "HotChocolate.PersistedQueries.FileSystem.FileSystemQueryStorage",
-  "HotChocolate.Execution.IReadStoredQueries": null,
-  "HotChocolate.PersistedQueries.FileSystem.IQueryFileMap": "HotChocolate.PersistedQueries.FileSystem.DefaultQueryFileMap"
-}
+﻿[
+  {
+    "Key": "HotChocolate.Execution.IReadStoredQueries",
+    "Value": null
+  },
+  {
+    "Key": "HotChocolate.PersistedQueries.FileSystem.FileSystemQueryStorage",
+    "Value": "HotChocolate.PersistedQueries.FileSystem.FileSystemQueryStorage"
+  },
+  {
+    "Key": "HotChocolate.PersistedQueries.FileSystem.IQueryFileMap",
+    "Value": "HotChocolate.PersistedQueries.FileSystem.DefaultQueryFileMap"
+  }
+]

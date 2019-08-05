@@ -125,6 +125,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
             services.ToDictionary(
                 k => k.ServiceType.GetTypeName(),
                 v => v.ImplementationType?.GetTypeName())
+                .OrderBy(t => t.Key)
                 .MatchSnapshot();
         }
 
@@ -154,6 +155,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
             services.ToDictionary(
                 k => k.ServiceType.GetTypeName(),
                 v => v.ImplementationType?.GetTypeName())
+                .OrderBy(t => t.Key)
                 .MatchSnapshot();
         }
     }
