@@ -48,7 +48,6 @@ namespace HotChocolate.Execution
             if (_writeStoredQueries != null
                 && context.Request.Query != null
                 && context.QueryKey != null
-                && context.Document != null
                 && DoHashesMatch(context, _hashName))
             {
                 // save the  query
