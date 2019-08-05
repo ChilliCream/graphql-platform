@@ -1,7 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 
 namespace HotChocolate.Runtime
 {
@@ -47,30 +46,25 @@ namespace HotChocolate.Runtime
             }
             else
             {
-                TryAdd(key, create);
+                entry = new CacheEntry(key, create());
+                TryAdd(key, entry);
             }
             return entry.Value;
         }
 
-        public bool TryAdd(string key, Func<TValue> create)
+        private void TryAdd(string key, CacheEntry entry)
         {
-            if (!_cache.ContainsKey(key))
+            if (_cache.TryAdd(key, entry))
             {
                 lock (_sync)
                 {
-                    if (!_cache.ContainsKey(key))
-                    {
-                        ClearSpaceForNewEntry();
+                    ClearSpaceForNewEntry();
 
-                        var entry = new CacheEntry(key, create());
-                        _ranking.AddFirst(entry.Rank);
-                        _cache[key] = entry;
-                        _first = entry.Rank;
-                        return true;
-                    }
+                    _ranking.AddFirst(entry.Rank);
+                    _cache[key] = entry;
+                    _first = entry.Rank;
                 }
             }
-            return false;
         }
 
         private void TouchEntry(LinkedListNode<string> rank)
