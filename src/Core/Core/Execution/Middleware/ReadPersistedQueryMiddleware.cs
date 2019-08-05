@@ -77,7 +77,7 @@ namespace HotChocolate.Execution
             await _next(context).ConfigureAwait(false);
         }
 
-        private DocumentNode ParseDocument(IQuery query)
+        private static DocumentNode ParseDocument(IQuery query)
         {
             if (query is QueryDocument parsed)
             {
