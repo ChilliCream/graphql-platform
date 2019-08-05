@@ -41,17 +41,8 @@ namespace HotChocolate.Execution
             }
 
             return builder
-                .AddOptions(options)
-                .AddErrorHandler()
-                .AddQueryValidation()
-                .AddDefaultValidationRules()
-                .AddQueryCache(options.QueryCacheSize)
-                .AddExecutionStrategyResolver()
-                .AddDefaultParser()
-                .AddDefaultDocumentHashProvider()
-                .UseInstrumentation(options.TracingPreference)
-                .UseRequestTimeout()
-                .UseExceptionHandling()
+                .AddDefaultServices(options)
+                .UseDefaultDiagnostics(options)
                 .UseQueryParser()
                 .UseNoCachedQueryError()
                 .UseValidation()
@@ -87,17 +78,8 @@ namespace HotChocolate.Execution
             }
 
             return builder
-                .AddOptions(options)
-                .AddErrorHandler()
-                .AddQueryValidation()
-                .AddDefaultValidationRules()
-                .AddQueryCache(options.QueryCacheSize)
-                .AddExecutionStrategyResolver()
-                .AddDefaultParser()
-                .AddDefaultDocumentHashProvider()
-                .UseInstrumentation(options.TracingPreference)
-                .UseRequestTimeout()
-                .UseExceptionHandling()
+                .AddDefaultServices(options)
+                .UseDefaultDiagnostics(options)
                 .UseQueryParser()
                 .UseReadPersistedQuery()
                 .UseValidation()
@@ -133,6 +115,15 @@ namespace HotChocolate.Execution
             }
 
             return builder
+                .UsePersistedQueryPipeline(options)
+                .UseWritePersistedQuery();
+        }
+
+        private static IQueryExecutionBuilder AddDefaultServices(
+            this IQueryExecutionBuilder builder,
+            IQueryExecutionOptionsAccessor options)
+        {
+            return builder
                 .AddOptions(options)
                 .AddErrorHandler()
                 .AddQueryValidation()
@@ -140,17 +131,17 @@ namespace HotChocolate.Execution
                 .AddQueryCache(options.QueryCacheSize)
                 .AddExecutionStrategyResolver()
                 .AddDefaultParser()
-                .AddDefaultDocumentHashProvider()
+                .AddDefaultDocumentHashProvider();
+        }
+
+        private static IQueryExecutionBuilder UseDefaultDiagnostics(
+            this IQueryExecutionBuilder builder,
+            IQueryExecutionOptionsAccessor options)
+        {
+            return builder
                 .UseInstrumentation(options.TracingPreference)
                 .UseRequestTimeout()
-                .UseExceptionHandling()
-                .UseQueryParser()
-                .UseReadPersistedQuery()
-                .UseValidation()
-                .UseOperationResolver()
-                .UseMaxComplexity()
-                .UseOperationExecutor()
-                .UseWritePersistedQuery();
+                .UseExceptionHandling();
         }
 
         public static IQueryExecutionBuilder UseExceptionHandling(
