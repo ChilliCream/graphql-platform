@@ -108,7 +108,9 @@ namespace HotChocolate.Runtime
             }
 
             public string Key { get; }
+
             public LinkedListNode<string> Rank { get; }
+
             public TValue Value { get; }
         }
     }
