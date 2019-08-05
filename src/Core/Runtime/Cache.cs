@@ -85,16 +85,24 @@ namespace HotChocolate.Runtime
 
         private void ClearSpaceForNewEntry()
         {
-            if (_cache.Count >= Size)
+            while (_cache.Count > Size)
             {
                 LinkedListNode<string> rank = _ranking.Last;
                 if (_cache.TryRemove(rank.Value, out CacheEntry entry))
                 {
                     _ranking.Remove(rank);
-                    RemovedEntry?.Invoke(this,
-                        new CacheEntryEventArgs<TValue>(
-                            entry.Key, entry.Value));
+                    OnCacheRemoved(entry.Key, entry.Value);
                 }
+            }
+        }
+
+        private void OnCacheRemoved(string key, TValue value)
+        {
+            if (RemovedEntry != null)
+            {
+                var eventArgs = new CacheEntryEventArgs<TValue>(
+                    key, value);
+                RemovedEntry.Invoke(this, eventArgs);
             }
         }
 
