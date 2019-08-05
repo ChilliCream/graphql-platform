@@ -1,0 +1,5 @@
+﻿{
+  "HotChocolate.PersistedQueries.FileSystem.RedisQueryStorage": null,
+  "HotChocolate.Execution.IReadStoredQueries": null,
+  "HotChocolate.Execution.IWriteStoredQueries": null
+}

@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\PersistedQueries.Redis\PersistedQueries.Redis.csproj" />
+    <ProjectReference Include="..\Core\Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

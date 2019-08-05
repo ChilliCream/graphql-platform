@@ -23,7 +23,7 @@ namespace HotChocolate.Subscriptions.Redis
 
             var configuration = new ConfigurationOptions
             {
-                Ssl = true,
+                Ssl = !string.IsNullOrEmpty(password),
                 AbortOnConnectFail = false,
                 Password = password
             };

@@ -33,7 +33,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
             TryReadQueryAsync(queryId, CancellationToken.None);
 
         /// <inheritdoc />
-        public async Task<QueryDocument> TryReadQueryAsync(
+        public Task<QueryDocument> TryReadQueryAsync(
             string queryId,
             CancellationToken cancellationToken)
         {
@@ -42,6 +42,13 @@ namespace HotChocolate.PersistedQueries.FileSystem
                 throw new ArgumentNullException(nameof(queryId));
             }
 
+            return TryReadQueryInternalAsync(queryId, cancellationToken);
+        }
+
+        private async Task<QueryDocument> TryReadQueryInternalAsync(
+            string queryId,
+            CancellationToken cancellationToken)
+        {
             var buffer = (byte[])await _database.StringGetAsync(queryId)
                 .ConfigureAwait(false);
             DocumentNode document = Utf8GraphQLParser.Parse(buffer);
@@ -53,7 +60,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
             WriteQueryAsync(queryId, query, CancellationToken.None);
 
         /// <inheritdoc />
-        public async Task WriteQueryAsync(
+        public Task WriteQueryAsync(
             string queryId,
             IQuery query,
             CancellationToken cancellationToken)
@@ -63,10 +70,14 @@ namespace HotChocolate.PersistedQueries.FileSystem
                 throw new ArgumentNullException(nameof(queryId));
             }
 
-            await _database.StringSetAsync(
+            if (query is null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+
+            return _database.StringSetAsync(
                 queryId,
-                query.ToSpan().ToArray())
-                .ConfigureAwait(false);
+                query.ToSpan().ToArray());
         }
     }
 }
