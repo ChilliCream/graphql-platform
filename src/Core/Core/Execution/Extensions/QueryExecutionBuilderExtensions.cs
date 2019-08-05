@@ -53,6 +53,7 @@ namespace HotChocolate.Execution
                 .UseRequestTimeout()
                 .UseExceptionHandling()
                 .UseQueryParser()
+                .UseNoCachedQueryError()
                 .UseValidation()
                 .UseOperationResolver()
                 .UseMaxComplexity()
@@ -225,6 +226,17 @@ namespace HotChocolate.Execution
             }
 
             return builder.Use<ParseQueryMiddleware>();
+        }
+
+        public static IQueryExecutionBuilder UseNoCachedQueryError(
+            this IQueryExecutionBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.Use<NoCachedQueryErrorMiddleware>();
         }
 
         public static IQueryExecutionBuilder UseReadPersistedQuery(
