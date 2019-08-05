@@ -53,6 +53,7 @@ Task("Clean")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
+    DotNetCoreClean("./src/DataLoader");
     DotNetCoreClean("./src/Core");
     DotNetCoreClean("./src/Server");
 });
