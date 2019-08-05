@@ -22,7 +22,6 @@ namespace HotChocolate.Runtime
         }
 
         public int Size { get; }
-
         public int Usage => _cache.Count;
 
         public bool TryGet(string key, out TValue value)
@@ -47,24 +46,9 @@ namespace HotChocolate.Runtime
             else
             {
                 entry = new CacheEntry(key, create());
-                TryAdd(key, entry);
+                AddNewEntry(entry);
             }
             return entry.Value;
-        }
-
-        private void TryAdd(string key, CacheEntry entry)
-        {
-            if (_cache.TryAdd(key, entry))
-            {
-                lock (_sync)
-                {
-                    ClearSpaceForNewEntry();
-
-                    _ranking.AddFirst(entry.Rank);
-                    _cache[key] = entry;
-                    _first = entry.Rank;
-                }
-            }
         }
 
         private void TouchEntry(LinkedListNode<string> rank)
@@ -83,26 +67,35 @@ namespace HotChocolate.Runtime
             }
         }
 
+        private void AddNewEntry(CacheEntry entry)
+        {
+            if (!_cache.ContainsKey(entry.Key))
+            {
+                lock (_sync)
+                {
+                    if (!_cache.ContainsKey(entry.Key))
+                    {
+                        ClearSpaceForNewEntry();
+                        _ranking.AddFirst(entry.Rank);
+                        _cache[entry.Key] = entry;
+                        _first = entry.Rank;
+                    }
+                }
+            }
+        }
+
         private void ClearSpaceForNewEntry()
         {
-            if (_ranking.Count > Size)
+            if (_cache.Count >= Size)
             {
                 LinkedListNode<string> rank = _ranking.Last;
                 if (_cache.TryRemove(rank.Value, out CacheEntry entry))
                 {
                     _ranking.Remove(rank);
-                    OnCacheRemoved(entry.Key, entry.Value);
+                    RemovedEntry?.Invoke(this,
+                        new CacheEntryEventArgs<TValue>(
+                            entry.Key, entry.Value));
                 }
-            }
-        }
-
-        private void OnCacheRemoved(string key, TValue value)
-        {
-            if (RemovedEntry != null)
-            {
-                var eventArgs = new CacheEntryEventArgs<TValue>(
-                    key, value);
-                RemovedEntry.Invoke(this, eventArgs);
             }
         }
 
@@ -116,9 +109,7 @@ namespace HotChocolate.Runtime
             }
 
             public string Key { get; }
-
             public LinkedListNode<string> Rank { get; }
-
             public TValue Value { get; }
         }
     }
