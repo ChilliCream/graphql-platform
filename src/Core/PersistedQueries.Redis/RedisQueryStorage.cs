@@ -42,12 +42,11 @@ namespace HotChocolate.PersistedQueries.FileSystem
                 throw new ArgumentNullException(nameof(queryId));
             }
 
-            return TryReadQueryInternalAsync(queryId, cancellationToken);
+            return TryReadQueryInternalAsync(queryId);
         }
 
         private async Task<QueryDocument> TryReadQueryInternalAsync(
-            string queryId,
-            CancellationToken cancellationToken)
+            string queryId)
         {
             var buffer = (byte[])await _database.StringGetAsync(queryId)
                 .ConfigureAwait(false);
