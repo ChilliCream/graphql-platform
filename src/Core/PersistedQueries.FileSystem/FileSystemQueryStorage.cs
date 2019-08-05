@@ -34,7 +34,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
             TryReadQueryAsync(queryId, CancellationToken.None);
 
         /// <inheritdoc />
-        public async Task<QueryDocument> TryReadQueryAsync(
+        public Task<QueryDocument> TryReadQueryAsync(
             string queryId,
             CancellationToken cancellationToken)
         {
@@ -47,9 +47,18 @@ namespace HotChocolate.PersistedQueries.FileSystem
 
             if (!File.Exists(filePath))
             {
-                return null;
+                return Task.FromResult<QueryDocument>(null);
             }
 
+            return TryReadQueryInternalAsync(
+                queryId, filePath, cancellationToken);
+        }
+
+        private async Task<QueryDocument> TryReadQueryInternalAsync(
+            string queryId,
+            string filePath,
+            CancellationToken cancellationToken)
+        {
             using (var stream = new FileStream(
                 filePath, FileMode.Open, FileAccess.Read))
             {
@@ -60,7 +69,8 @@ namespace HotChocolate.PersistedQueries.FileSystem
                         var span = buffer.AsSpan().Slice(0, buffered);
                         return Utf8GraphQLParser.Parse(span);
                     },
-                    cancellationToken);
+                    cancellationToken)
+                    .ConfigureAwait(false);
                 return new QueryDocument(document);
             }
         }
@@ -70,7 +80,7 @@ namespace HotChocolate.PersistedQueries.FileSystem
             WriteQueryAsync(queryId, query, CancellationToken.None);
 
         /// <inheritdoc />
-        public async Task WriteQueryAsync(
+        public Task WriteQueryAsync(
             string queryId,
             IQuery query,
             CancellationToken cancellationToken)
@@ -87,6 +97,16 @@ namespace HotChocolate.PersistedQueries.FileSystem
 
             var filePath = _queryMap.MapToFilePath(queryId);
 
+            return WriteQueryInternalAsync(
+                queryId, query, filePath, cancellationToken);
+        }
+
+        private async Task WriteQueryInternalAsync(
+            string queryId,
+            IQuery query,
+            string filePath,
+            CancellationToken cancellationToken)
+        {
             if (!File.Exists(filePath))
             {
                 using (var stream = new FileStream(

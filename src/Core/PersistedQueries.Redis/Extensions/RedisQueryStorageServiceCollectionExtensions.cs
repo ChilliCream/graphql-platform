@@ -37,10 +37,10 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(databaseFactory));
             }
 
-            services.AddReadOnlyRedisQueryStorage(databaseFactory);
-            services.AddSingleton<IWriteStoredQueries>(sp =>
-                sp.GetRequiredService<RedisQueryStorage>());
-            return services;
+            return services
+                .AddReadOnlyRedisQueryStorage(databaseFactory)
+                .AddSingleton<IWriteStoredQueries>(sp =>
+                    sp.GetRequiredService<RedisQueryStorage>());
         }
 
         /// <summary>
@@ -67,14 +67,13 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(databaseFactory));
             }
 
-            RemoveService<IReadStoredQueries>(services);
-            RemoveService<IWriteStoredQueries>(services);
-
-            services.AddSingleton<RedisQueryStorage>(sp =>
-                new RedisQueryStorage(databaseFactory(sp)));
-            services.AddSingleton<IReadStoredQueries>(sp =>
-                sp.GetRequiredService<RedisQueryStorage>());
-            return services;
+            return services
+                .RemoveService<IReadStoredQueries>()
+                .RemoveService<IWriteStoredQueries>()
+                .AddSingleton<RedisQueryStorage>(sp =>
+                    new RedisQueryStorage(databaseFactory(sp)))
+                .AddSingleton<IReadStoredQueries>(sp =>
+                    sp.GetRequiredService<RedisQueryStorage>());
         }
 
         private static IServiceCollection RemoveService<TService>(

@@ -1,9 +1,9 @@
+using System;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Execution;
 using HotChocolate.PersistedQueries.FileSystem;
-using System;
 
 namespace HotChocolate
 {
@@ -36,10 +36,10 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(cacheDirectory));
             }
 
-            services.AddReadOnlyFileSystemQueryStorage(cacheDirectory);
-            services.AddSingleton<IWriteStoredQueries>(sp =>
-                sp.GetRequiredService<FileSystemQueryStorage>());
-            return services;
+            return services
+                .AddReadOnlyFileSystemQueryStorage(cacheDirectory)
+                .AddSingleton<IWriteStoredQueries>(sp =>
+                    sp.GetRequiredService<FileSystemQueryStorage>());
         }
 
         /// <summary>
@@ -58,10 +58,10 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.AddReadOnlyFileSystemQueryStorage();
-            services.AddSingleton<IWriteStoredQueries>(sp =>
-                sp.GetRequiredService<FileSystemQueryStorage>());
-            return services;
+            return services
+                .AddReadOnlyFileSystemQueryStorage()
+                .AddSingleton<IWriteStoredQueries>(sp =>
+                    sp.GetRequiredService<FileSystemQueryStorage>());
         }
 
         /// <summary>
@@ -88,13 +88,15 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(cacheDirectory));
             }
 
-            services.AddSingleton<FileSystemQueryStorage>();
-            services.AddSingleton<IReadStoredQueries>(sp =>
-                sp.GetRequiredService<FileSystemQueryStorage>());
-            services.RemoveService<IQueryFileMap>();
-            services.AddSingleton<IQueryFileMap>(
-                new DefaultQueryFileMap(cacheDirectory));
-            return services;
+            return services
+                .RemoveService<IReadStoredQueries>()
+                .RemoveService<IWriteStoredQueries>()
+                .RemoveService<IQueryFileMap>()
+                .AddSingleton<FileSystemQueryStorage>()
+                .AddSingleton<IReadStoredQueries>(sp =>
+                    sp.GetRequiredService<FileSystemQueryStorage>())
+                .AddSingleton<IQueryFileMap>(
+                    new DefaultQueryFileMap(cacheDirectory));
         }
 
         /// <summary>
@@ -113,11 +115,14 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.AddSingleton<FileSystemQueryStorage>();
-            services.AddSingleton<IReadStoredQueries>(sp =>
-                sp.GetRequiredService<FileSystemQueryStorage>());
             services.TryAddSingleton<IQueryFileMap, DefaultQueryFileMap>();
-            return services;
+
+            return services
+                .RemoveService<IReadStoredQueries>()
+                .RemoveService<IWriteStoredQueries>()
+                .AddSingleton<FileSystemQueryStorage>()
+                .AddSingleton<IReadStoredQueries>(sp =>
+                    sp.GetRequiredService<FileSystemQueryStorage>());
         }
 
         private static IServiceCollection RemoveService<TService>(
