@@ -43,11 +43,11 @@ namespace HotChocolate.Execution
         IQueryRequestBuilder SetProperty(
             string name, object value);
         IQueryRequestBuilder SetExtensions(
-            Dictionary<string, object> properties);
+            Dictionary<string, object> extensions);
         IQueryRequestBuilder SetExtensions(
-            IDictionary<string, object> properties);
+            IDictionary<string, object> extensions);
         IQueryRequestBuilder SetExtensions(
-            IReadOnlyDictionary<string, object> properties);
+            IReadOnlyDictionary<string, object> extensions);
         IQueryRequestBuilder AddExtension(
             string name, object value);
         IQueryRequestBuilder TryAddExtension(
