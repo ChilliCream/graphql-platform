@@ -21,7 +21,8 @@ namespace HotChocolate.Language
 
             try
             {
-                byte[] hash = _sha.Value.ComputeHash(rented, 0, document.Length);
+                byte[] hash = _sha.Value.ComputeHash(
+                    rented, 0, document.Length);
                 return Convert.ToBase64String(hash);
             }
             finally
