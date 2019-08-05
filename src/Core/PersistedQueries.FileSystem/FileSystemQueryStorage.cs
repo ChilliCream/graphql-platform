@@ -87,7 +87,8 @@ namespace HotChocolate.PersistedQueries.FileSystem
                 using (var stream = new FileStream(
                     filePath, FileMode.CreateNew, FileAccess.Write))
                 {
-                    await query.WriteToAsync(stream, cancellationToken);
+                    await query.WriteToAsync(stream, cancellationToken)
+                        .ConfigureAwait(false);
                 }
             }
         }

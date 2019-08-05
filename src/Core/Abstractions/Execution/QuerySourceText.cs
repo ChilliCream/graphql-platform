@@ -34,6 +34,7 @@ namespace HotChocolate.Execution
         {
             var writer = new StreamWriter(output, Encoding.UTF8);
             await writer.WriteAsync(Text).ConfigureAwait(false);
+            await writer.FlushAsync().ConfigureAwait(false);
         }
 
         public ReadOnlySpan<byte> ToSpan()
