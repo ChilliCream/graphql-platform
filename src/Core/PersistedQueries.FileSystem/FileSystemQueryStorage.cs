@@ -80,6 +80,11 @@ namespace HotChocolate.PersistedQueries.FileSystem
                 throw new ArgumentNullException(nameof(queryId));
             }
 
+            if (query is null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+
             var filePath = _queryMap.MapToFilePath(queryId);
 
             if (!File.Exists(filePath))
