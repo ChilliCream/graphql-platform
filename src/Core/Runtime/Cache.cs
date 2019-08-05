@@ -47,31 +47,12 @@ namespace HotChocolate.Runtime
             }
             else
             {
-                AddNewEntry(key, create);
+                TryAdd(key, create);
             }
             return entry.Value;
         }
 
-        public bool TryAdd(string key, Func<TValue> create) =>
-            AddNewEntry(key, create);
-
-        private void TouchEntry(LinkedListNode<string> rank)
-        {
-            if (_first != rank)
-            {
-                lock (_sync)
-                {
-                    if (_ranking.First != rank)
-                    {
-                        _ranking.Remove(rank);
-                        _ranking.AddFirst(rank);
-                        _first = rank;
-                    }
-                }
-            }
-        }
-
-        private bool AddNewEntry(string key, Func<TValue> create)
+        public bool TryAdd(string key, Func<TValue> create)
         {
             if (!_cache.ContainsKey(key))
             {
@@ -90,6 +71,22 @@ namespace HotChocolate.Runtime
                 }
             }
             return false;
+        }
+
+        private void TouchEntry(LinkedListNode<string> rank)
+        {
+            if (_first != rank)
+            {
+                lock (_sync)
+                {
+                    if (_ranking.First != rank)
+                    {
+                        _ranking.Remove(rank);
+                        _ranking.AddFirst(rank);
+                        _first = rank;
+                    }
+                }
+            }
         }
 
         private void ClearSpaceForNewEntry()

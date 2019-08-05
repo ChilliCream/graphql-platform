@@ -12,13 +12,11 @@ namespace HotChocolate.Execution
         private const string _persistedQuery = "persistedQuery";
         private const string _persisted = "persisted";
         private readonly QueryDelegate _next;
-        private readonly Cache<ICachedQuery> _queryCache;
         private readonly IWriteStoredQueries _writeStoredQueries;
         private readonly string _hashName;
 
         public WritePersistedQueryMiddleware(
             QueryDelegate next,
-            Cache<ICachedQuery> queryCache,
             IWriteStoredQueries writeStoredQueries,
             IDocumentHashProvider documentHashProvider)
         {
@@ -29,8 +27,6 @@ namespace HotChocolate.Execution
 
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
-            _queryCache = queryCache
-                ?? throw new ArgumentNullException(nameof(queryCache));
             _writeStoredQueries = writeStoredQueries
                 ?? throw new ArgumentNullException(nameof(writeStoredQueries));
             _hashName = documentHashProvider.Name;
@@ -60,11 +56,6 @@ namespace HotChocolate.Execution
                     context.QueryKey,
                     context.Request.Query)
                     .ConfigureAwait(false);
-
-                // add the query to the cache
-                _queryCache.TryAdd(
-                    context.QueryKey,
-                    () => new CachedQuery(context.QueryKey, context.Document));
 
                 // add persistence receipt to the result
                 if (context.Result is QueryResult result
