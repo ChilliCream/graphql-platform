@@ -44,6 +44,17 @@ namespace HotChocolate.Types
         IEnumTypeDescriptor BindItems(
             BindingBehavior behavior);
 
+        /// <summary>
+        /// Defines that all enum values have to be specified explicitly.
+        /// </summary>
+        IEnumTypeDescriptor BindItemsExplicitly();
+
+        /// <summary>
+        /// Defines that all enum values shall be infered
+        /// from the associated .Net type,
+        /// </summary>
+        IEnumTypeDescriptor BindItemsImplicitly();
+
         IEnumTypeDescriptor Directive<T>(
             T directiveInstance)
             where T : class;

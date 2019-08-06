@@ -222,27 +222,20 @@ Task("RedisTests")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
-    var buildSettings = new DotNetCoreBuildSettings
-    {
-        Configuration = "Debug"
-    };
-
     int i = 0;
     var testSettings = new DotNetCoreTestSettings
     {
         Configuration = "Debug",
         ResultsDirectory = $"./{testOutputDir}",
         Logger = "trx",
-        NoRestore = true,
-        NoBuild = true,
+        NoRestore = false,
+        NoBuild = false,
         ArgumentCustomization = args => args
             .Append("/p:CollectCoverage=true")
             .Append("/p:Exclude=[xunit.*]*")
             .Append("/p:CoverletOutputFormat=opencover")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/core_{i++}\" --blame")
     };
-
-    DotNetCoreBuild("./tools/Build.Core.sln", buildSettings);
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
@@ -257,27 +250,20 @@ Task("MongoTests")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
-    var buildSettings = new DotNetCoreBuildSettings
-    {
-        Configuration = "Debug"
-    };
-
     int i = 0;
     var testSettings = new DotNetCoreTestSettings
     {
         Configuration = "Debug",
         ResultsDirectory = $"./{testOutputDir}",
         Logger = "trx",
-        NoRestore = true,
-        NoBuild = true,
+        NoRestore = false,
+        NoBuild = false,
         ArgumentCustomization = args => args
             .Append("/p:CollectCoverage=true")
             .Append("/p:Exclude=[xunit.*]*")
             .Append("/p:CoverletOutputFormat=opencover")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/core_{i++}\" --blame")
     };
-
-    DotNetCoreBuild("./tools/Build.Core.sln", buildSettings);
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {

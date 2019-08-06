@@ -36,6 +36,12 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public new IEnumTypeDescriptor<T> BindItemsExplicitly() =>
+            BindItems(BindingBehavior.Explicit);
+
+        public new IEnumTypeDescriptor<T> BindItemsImplicitly() =>
+            BindItems(BindingBehavior.Implicit);
+
         public IEnumValueDescriptor Item(T value)
         {
             return base.Item(value);
