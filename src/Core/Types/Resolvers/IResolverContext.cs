@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -68,6 +69,11 @@ namespace HotChocolate.Resolvers
         /// hierarchy
         /// </summary>
         IImmutableDictionary<string, object> ScopedContextData { get; set; }
+
+        /// <summary>
+        /// Gets access to the coerced variable values of the request.
+        /// </summary>
+        IVariableCollection Variables { get; }
 
         /// <summary>
         /// Notifies when the connection underlying this request is aborted

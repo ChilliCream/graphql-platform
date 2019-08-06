@@ -21,19 +21,19 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(variables));
         }
 
-        public T GetVariable<T>(string variableName)
+        public T GetVariable<T>(string name)
         {
-            if (string.IsNullOrEmpty(variableName))
+            if (string.IsNullOrEmpty(name))
             {
-                throw new ArgumentNullException(nameof(variableName));
+                throw new ArgumentNullException(nameof(name));
             }
 
-            if (!TryGetVariable(variableName, out T variableValue))
+            if (!TryGetVariable(name, out T variableValue))
             {
                 throw new QueryException(ErrorBuilder.New()
                     .SetMessage(CoreResources
                         .VariableCollection_VariableNotDeclared)
-                    .SetExtension(nameof(variableName), variableName)
+                    .SetExtension(nameof(name), name)
                     .Build());
             }
 

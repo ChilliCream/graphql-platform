@@ -78,6 +78,8 @@ namespace HotChocolate.Execution
         public NameString ResponseName =>
             _middlewareContext.ResponseName;
 
+        public IVariableCollection Variables => _middlewareContext.Variables;
+
         public T Argument<T>(NameString name) =>
             _middlewareContext.Argument<T>(name);
 
