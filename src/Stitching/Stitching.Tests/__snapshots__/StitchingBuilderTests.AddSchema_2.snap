@@ -101,11 +101,20 @@ interface Contract @source(name: "Contract", schema: "contract") {
 }
 
 type LifeInsuranceContract implements Contract @source(name: "LifeInsuranceContract", schema: "contract") {
+  byte_field: Byte
   customerId: ID!
+  date_field: Date
+  date_time_field: DateTime
+  decimal_field: Decimal
   error: String
+  float_field: Float
   foo(bar: String): String
   id: ID!
+  id_field: ID
+  int_field: Int
+  long_field: Long
   premium: Float!
+  string_field: String
 }
 
 type SomeOtherContract implements Contract @source(name: "SomeOtherContract", schema: "contract") {

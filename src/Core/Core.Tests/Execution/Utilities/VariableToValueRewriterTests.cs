@@ -22,7 +22,7 @@ namespace HotChocolate.Execution
                 .Create();
 
             var type = schema.GetType<InputObjectType>("Foo");
-            var variables = Mock.Of<IVariableCollection>();
+            var variables = Mock.Of<IVariableValueCollection>();
             var typeConversion = new TypeConversion();
 
             // act
@@ -47,7 +47,7 @@ namespace HotChocolate.Execution
                 new ObjectFieldNode(
                     "a",
                     new StringValueNode("abc")));
-            var variables = Mock.Of<IVariableCollection>();
+            var variables = Mock.Of<IVariableValueCollection>();
             var typeConversion = new TypeConversion();
 
             // act
@@ -98,7 +98,7 @@ namespace HotChocolate.Execution
                     "a",
                     new StringValueNode("abc")));
             var type = schema.GetType<InputObjectType>("Foo");
-            var variables = Mock.Of<IVariableCollection>();
+            var variables = Mock.Of<IVariableValueCollection>();
 
             // act
             Action action = () => VariableToValueRewriter.Rewrite(
@@ -259,31 +259,31 @@ namespace HotChocolate.Execution
         }
 
         private class VariableCollectionMock
-            : IVariableCollection
+            : IVariableValueCollection
         {
             private Dictionary<string, object> _values =
                 new Dictionary<string, object>();
 
-            public VariableCollectionMock(string variableName, object value)
+            public VariableCollectionMock(string name, object value)
             {
-                _values[variableName] = value;
+                _values[name] = value;
             }
 
-            public T GetVariable<T>(string variableName)
+            public T GetVariable<T>(NameString name)
             {
-                return (T)_values[variableName];
+                return (T)_values[name];
             }
 
-            public bool TryGetVariable<T>(string variableName, out T variableValue)
+            public bool TryGetVariable<T>(NameString name, out T value)
             {
-                if (_values.TryGetValue(variableName, out object value)
-                    && value is T casted)
+                if (_values.TryGetValue(name, out object v)
+                    && v is T casted)
                 {
-                    variableValue = casted;
+                    value = casted;
                     return true;
                 }
 
-                variableValue = default;
+                value = default;
                 return false;
             }
         }
