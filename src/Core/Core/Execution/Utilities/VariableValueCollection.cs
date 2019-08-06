@@ -5,13 +5,13 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
-    internal sealed class VariableCollection
-        : IVariableCollection
+    internal sealed class VariableValueCollection
+        : IVariableValueCollection
     {
         private readonly ITypeConversion _converter;
         private readonly Dictionary<string, object> _variables;
 
-        public VariableCollection(
+        public VariableValueCollection(
             ITypeConversion converter,
             Dictionary<string, object> variables)
         {
@@ -21,12 +21,9 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(variables));
         }
 
-        public T GetVariable<T>(string name)
+        public T GetVariable<T>(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
+            name.EnsureNotEmpty("name");
 
             if (!TryGetVariable(name, out T variableValue))
             {
@@ -40,28 +37,25 @@ namespace HotChocolate.Execution
             return variableValue;
         }
 
-        public bool TryGetVariable<T>(string variableName, out T variableValue)
+        public bool TryGetVariable<T>(NameString name, out T value)
         {
-            if (string.IsNullOrEmpty(variableName))
-            {
-                throw new ArgumentNullException(nameof(variableName));
-            }
+            name.EnsureNotEmpty("name");
 
-            if (_variables.TryGetValue(variableName, out object value))
+            if (_variables.TryGetValue(name, out object coercedValue))
             {
-                if (value is T v)
+                if (coercedValue is T castedValue)
                 {
-                    variableValue = v;
+                    value = castedValue;
                 }
                 else
                 {
-                    variableValue = (T)_converter.Convert(
-                        typeof(object), typeof(T), value);
+                    value = (T)_converter.Convert(
+                        typeof(object), typeof(T), coercedValue);
                 }
                 return true;
             }
 
-            variableValue = default;
+            value = default;
             return false;
         }
     }

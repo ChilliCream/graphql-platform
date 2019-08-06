@@ -41,7 +41,7 @@ namespace HotChocolate.Execution
         /// Gets the coerced variables.
         /// </summary>
         /// <value></value>
-        IVariableCollection Variables { get; }
+        IVariableValueCollection Variables { get; }
 
         /// <summary>
         /// Gets the query result.

@@ -3,7 +3,7 @@
     /// <summary>
     /// Represents a collection of coerced variables.
     /// </summary>
-    public interface IVariableCollection
+    public interface IVariableValueCollection
     {
         /// <summary>
         /// Gets a coreced variable value from the collection.
@@ -19,7 +19,7 @@
         /// The <paramref name="name" /> mustn't be null or
         /// <see cref="string.Empty" />.
         /// </exception>
-        T GetVariable<T>(string name);
+        T GetVariable<T>(NameString name);
 
         /// <summary>
         /// Tries to get a coreced variable value from the collection.
@@ -30,6 +30,6 @@
         /// <c>true</c> if a coerced variable exists and can be converted
         /// to the requested type; otherwise, <c>false</c> will be returned.
         /// </returns>
-        bool TryGetVariable<T>(string name, out T value);
+        bool TryGetVariable<T>(NameString name, out T value);
     }
 }

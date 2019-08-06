@@ -73,7 +73,7 @@ namespace HotChocolate.Resolvers
         /// <summary>
         /// Gets access to the coerced variable values of the request.
         /// </summary>
-        IVariableCollection Variables { get; }
+        IVariableValueCollection Variables { get; }
 
         /// <summary>
         /// Notifies when the connection underlying this request is aborted

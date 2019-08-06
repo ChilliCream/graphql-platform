@@ -99,7 +99,7 @@ namespace HotChocolate.Execution
 
         public Action PropagateNonNullViolation { get; private set; }
 
-        public IVariableCollection Variables => _executionContext.Variables;
+        public IVariableValueCollection Variables => _executionContext.Variables;
 
         public T Parent<T>()
         {

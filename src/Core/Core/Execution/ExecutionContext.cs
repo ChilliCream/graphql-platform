@@ -65,7 +65,7 @@ namespace HotChocolate.Execution
 
         public IOperation Operation { get; }
 
-        public IVariableCollection Variables => Operation.Variables;
+        public IVariableValueCollection Variables => Operation.Variables;
 
         public IQueryResult Result { get; private set; }
 
