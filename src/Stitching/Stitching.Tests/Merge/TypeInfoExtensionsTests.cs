@@ -10,7 +10,7 @@ namespace HotChocolate.Stitching.Merge
         public void IsQueryType_True()
         {
             // arrange
-            DocumentNode schema = Parser.Default.Parse(
+            DocumentNode schema = Utf8GraphQLParser.Parse(
                 "type Query { a: String } type Abc { a: String }");
             var schemaInfo = new SchemaInfo("foo", schema);
             ObjectTypeDefinitionNode queryType = schema.Definitions
@@ -28,7 +28,7 @@ namespace HotChocolate.Stitching.Merge
         public void IsQueryType_False()
         {
             // arrange
-            DocumentNode schema = Parser.Default.Parse(
+            DocumentNode schema = Utf8GraphQLParser.Parse(
                 "type Query { a: String } type Abc { a: String }");
             var schemaInfo = new SchemaInfo("foo", schema);
             ObjectTypeDefinitionNode queryType = schema.Definitions
@@ -46,7 +46,7 @@ namespace HotChocolate.Stitching.Merge
         public void IsMutationType_True()
         {
             // arrange
-            DocumentNode schema = Parser.Default.Parse(
+            DocumentNode schema = Utf8GraphQLParser.Parse(
                 "type Mutation { a: String } type Abc { a: String }");
             var schemaInfo = new SchemaInfo("foo", schema);
             ObjectTypeDefinitionNode queryType = schema.Definitions
@@ -64,7 +64,7 @@ namespace HotChocolate.Stitching.Merge
         public void IsMutationType_False()
         {
             // arrange
-            DocumentNode schema = Parser.Default.Parse(
+            DocumentNode schema = Utf8GraphQLParser.Parse(
                 "type Mutation { a: String } type Abc { a: String }");
             var schemaInfo = new SchemaInfo("foo", schema);
             ObjectTypeDefinitionNode queryType = schema.Definitions
@@ -82,7 +82,7 @@ namespace HotChocolate.Stitching.Merge
         public void IsSubscriptionType_True()
         {
             // arrange
-            DocumentNode schema = Parser.Default.Parse(
+            DocumentNode schema = Utf8GraphQLParser.Parse(
                 "type Subscription { a: String } type Abc { a: String }");
             var schemaInfo = new SchemaInfo("foo", schema);
             ObjectTypeDefinitionNode queryType = schema.Definitions
@@ -100,7 +100,7 @@ namespace HotChocolate.Stitching.Merge
         public void IsSubscriptionType_False()
         {
             // arrange
-            DocumentNode schema = Parser.Default.Parse(
+            DocumentNode schema = Utf8GraphQLParser.Parse(
                 "type Subscription { a: String } type Abc { a: String }");
             var schemaInfo = new SchemaInfo("foo", schema);
             ObjectTypeDefinitionNode queryType = schema.Definitions

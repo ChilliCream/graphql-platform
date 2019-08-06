@@ -20,7 +20,7 @@ namespace HotChocolate.Execution
                 "type Query { foo: String }",
                 c => c.Use(next => context => Task.CompletedTask));
 
-            DocumentNode query = Parser.Default.Parse("{ foo }");
+            DocumentNode query = Utf8GraphQLParser.Parse("{ foo }");
 
             var errorHandler = new Mock<IErrorHandler>();
 
@@ -66,7 +66,7 @@ namespace HotChocolate.Execution
                 "type Query { foo: String }",
                 c => c.Use(next => context => Task.CompletedTask));
 
-            DocumentNode query = Parser.Default.Parse("{ foo }");
+            DocumentNode query = Utf8GraphQLParser.Parse("{ foo }");
 
             var errorHandler = new Mock<IErrorHandler>();
 
