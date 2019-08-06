@@ -16,7 +16,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment argOnRequiredArg on Dog {
                     doesKnowCommand(dogCommand: SIT)
                 }
@@ -34,7 +34,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment argOnOptional on Dog {
                     isHousetrained(atOtherHomes: true) @include(if: true)
                 }
@@ -52,7 +52,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment invalidArgName on Dog {
                     doesKnowCommand(command: CLEAN_UP_HOUSE)
                 }
@@ -73,7 +73,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment invalidArgName on Dog {
                     isHousetrained(atOtherHomes: true) @include(unless: false)
                 }
@@ -94,7 +94,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment multipleArgs on Arguments {
                     multipleReqs(x: 1, y: 2)
                 }

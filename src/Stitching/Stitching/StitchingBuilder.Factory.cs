@@ -180,7 +180,13 @@ namespace HotChocolate.Stitching
 
                 foreach (MergeTypeRuleFactory handler in builder._mergeRules)
                 {
-                    merger.AddMergeRule(handler);
+                    merger.AddTypeMergeRule(handler);
+                }
+
+                foreach (MergeDirectiveRuleFactory handler in
+                    builder._mergeDirectiveRules)
+                {
+                    merger.AddDirectiveMergeRule(handler);
                 }
 
                 foreach (IDocumentRewriter rewriter in builder._docRewriters)

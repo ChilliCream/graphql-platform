@@ -190,30 +190,78 @@ namespace HotChocolate.Stitching.Merge
                     schemaName, field, newFieldName));
         }
 
+        [Obsolete("Use AddTypeMergeHandler")]
         public static ISchemaMerger AddMergeHandler<T>(
            this ISchemaMerger merger)
-           where T : ITypeMergeHandler
+           where T : class, ITypeMergeHandler =>
+           AddTypeMergeHandler<T>(merger);
+
+        public static ISchemaMerger AddTypeMergeHandler<T>(
+            this ISchemaMerger merger)
+            where T : class, ITypeMergeHandler
         {
             if (merger == null)
             {
                 throw new System.ArgumentNullException(nameof(merger));
             }
 
-            merger.AddMergeRule(CreateHandler<T>());
+            merger.AddTypeMergeRule(CreateTypeMergeRule<T>());
 
             return merger;
         }
 
-        internal static MergeTypeRuleFactory CreateHandler<T>()
-            where T : ITypeMergeHandler
+        public static ISchemaMerger AddDirectiveMergeHandler<T>(
+            this ISchemaMerger merger)
+            where T : class, IDirectiveMergeHandler
         {
-            ConstructorInfo constructor = typeof(T).GetTypeInfo()
+            if (merger == null)
+            {
+                throw new System.ArgumentNullException(nameof(merger));
+            }
+
+            merger.AddDirectiveMergeRule(CreateDirectiveMergeRule<T>());
+
+            return merger;
+        }
+
+        internal static MergeTypeRuleFactory CreateTypeMergeRule<T>()
+            where T : class, ITypeMergeHandler
+        {
+            ConstructorInfo constructor =
+                CreateHandlerInternal<T, MergeTypeRuleDelegate>();
+
+            return next =>
+            {
+                var handler = (ITypeMergeHandler)constructor
+                    .Invoke(new object[] { next });
+                return handler.Merge;
+            };
+        }
+
+        internal static MergeDirectiveRuleFactory CreateDirectiveMergeRule<T>()
+            where T : class, IDirectiveMergeHandler
+        {
+            ConstructorInfo constructor =
+                CreateHandlerInternal<T, MergeDirectiveRuleDelegate>();
+
+            return next =>
+            {
+                var handler = (IDirectiveMergeHandler)constructor
+                    .Invoke(new object[] { next });
+                return handler.Merge;
+            };
+        }
+
+        private static ConstructorInfo CreateHandlerInternal<THandler, TRule>()
+            where THandler : class
+        {
+            ConstructorInfo constructor = typeof(THandler).GetTypeInfo()
                 .DeclaredConstructors.SingleOrDefault(c =>
                 {
                     ParameterInfo[] parameters = c.GetParameters();
                     return parameters.Length == 1
                         && parameters[0].ParameterType ==
-                            typeof(MergeTypeRuleDelegate);
+                            typeof(TRule);
                 });
 
             if (constructor == null)
@@ -222,12 +270,7 @@ namespace HotChocolate.Stitching.Merge
                     .SchemaMergerExtensions_NoValidConstructor);
             }
 
-            return next =>
-            {
-                ITypeMergeHandler handler = (ITypeMergeHandler)constructor
-                    .Invoke(new object[] { next });
-                return handler.Merge;
-            };
+            return constructor;
         }
     }
 }

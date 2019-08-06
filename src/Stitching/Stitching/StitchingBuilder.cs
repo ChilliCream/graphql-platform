@@ -27,6 +27,8 @@ namespace HotChocolate.Stitching
             new List<LoadSchemaDocument>();
         private readonly List<MergeTypeRuleFactory> _mergeRules =
             new List<MergeTypeRuleFactory>();
+        private readonly List<MergeDirectiveRuleFactory> _mergeDirectiveRules =
+            new List<MergeDirectiveRuleFactory>();
         private readonly List<Action<ISchemaConfiguration>> _schemaConfigs =
             new List<Action<ISchemaConfiguration>>();
         private readonly List<Action<IQueryExecutionBuilder>> _execConfigs =
@@ -101,7 +103,13 @@ namespace HotChocolate.Stitching
             return this;
         }
 
-        public IStitchingBuilder AddMergeRule(MergeTypeRuleFactory factory)
+        [Obsolete("Use AddTypeMergeRule")]
+        public IStitchingBuilder AddMergeRule(
+            MergeTypeRuleFactory factory) =>
+            AddTypeMergeRule(factory);
+
+        public IStitchingBuilder AddTypeMergeRule(
+            MergeTypeRuleFactory factory)
         {
             if (factory == null)
             {
@@ -109,6 +117,19 @@ namespace HotChocolate.Stitching
             }
 
             _mergeRules.Add(factory);
+
+            return this;
+        }
+
+        public IStitchingBuilder AddDirectiveMergeRule(
+            MergeDirectiveRuleFactory factory)
+        {
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            _mergeDirectiveRules.Add(factory);
 
             return this;
         }

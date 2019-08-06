@@ -12,7 +12,7 @@ namespace HotChocolate.Stitching
         {
             // arrange
             const string schemaName = "foo";
-            DocumentNode schema = Parser.Default.Parse(
+            DocumentNode schema = Utf8GraphQLParser.Parse(
                 FileResource.Open("SchemaInfoTests_Schema.graphql"));
 
             // act
@@ -37,7 +37,7 @@ namespace HotChocolate.Stitching
         {
             // arrange
             const string schemaName = "foo";
-            DocumentNode schema = Parser.Default.Parse(
+            DocumentNode schema = Utf8GraphQLParser.Parse(
                 FileResource.Open("SchemaInfoTests_Schema.graphql"));
             var schemaInfo = new SchemaInfo(schemaName, schema);
 
@@ -56,7 +56,7 @@ namespace HotChocolate.Stitching
         {
             // arrange
             const string schemaName = "foo";
-            DocumentNode schema = Parser.Default.Parse(
+            DocumentNode schema = Utf8GraphQLParser.Parse(
                 FileResource.Open("SchemaInfoTests_Schema.graphql"));
             var schemaInfo = new SchemaInfo(schemaName, schema);
 
@@ -75,7 +75,7 @@ namespace HotChocolate.Stitching
         {
             // arrange
             const string schemaName = "foo";
-            DocumentNode schema = Parser.Default.Parse(
+            DocumentNode schema = Utf8GraphQLParser.Parse(
                 FileResource.Open("SchemaInfoTests_Schema.graphql"));
             var schemaInfo = new SchemaInfo(schemaName, schema);
 
