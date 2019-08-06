@@ -40,7 +40,8 @@ namespace HotChocolate.Stitching
             new List<Func<DocumentNode, DocumentNode>>();
         private readonly List<Action<DocumentNode>> _mergedDocVis =
             new List<Action<DocumentNode>>();
-        private IQueryExecutionOptionsAccessor _options;
+        private IQueryExecutionOptionsAccessor _options =
+            new QueryExecutionOptions();
         private bool _buildOnFirstRequest = true;
 
         public IStitchingBuilder AddSchema(
