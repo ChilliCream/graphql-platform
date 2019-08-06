@@ -1,0 +1,9 @@
+﻿{
+  "QueryTypeName": "A",
+  "MutationTypeName": "B",
+  "SubscriptionTypeName": "C",
+  "StrictValidation": false,
+  "UseXmlDocumentation": false,
+  "DefaultBindingBehavior": "Explicit",
+  "FieldMiddleware": "AllFields"
+}

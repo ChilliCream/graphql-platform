@@ -1073,6 +1073,11 @@ namespace HotChocolate.Stitching
             {
                 throw new NotImplementedException();
             }
+
+            public IStitchingBuilder SetSchemaCreation(SchemaCreation creation)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

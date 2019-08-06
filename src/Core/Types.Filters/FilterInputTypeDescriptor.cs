@@ -32,6 +32,8 @@ namespace HotChocolate.Types.Filters
             // TODO : should we rework get type description?
             Definition.Description = context.Naming.GetTypeDescription(
                 entityType, TypeKind.Object);
+            Definition.Fields.BindingBehavior =
+                context.Options.DefaultBindingBehavior;
         }
 
         protected override FilterInputTypeDefinition Definition { get; } =

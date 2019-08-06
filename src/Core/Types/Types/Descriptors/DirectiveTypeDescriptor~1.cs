@@ -18,6 +18,8 @@ namespace HotChocolate.Types.Descriptors
         protected internal DirectiveTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {
+            Definition.Arguments.BindingBehavior =
+                context.Options.DefaultBindingBehavior;
         }
 
         Type IHasClrType.ClrType => Definition.ClrType;
@@ -69,6 +71,12 @@ namespace HotChocolate.Types.Descriptors
             Definition.Arguments.BindingBehavior = behavior;
             return this;
         }
+
+        public IDirectiveTypeDescriptor<T> BindArgumentsExplicitly() =>
+            BindArguments(BindingBehavior.Explicit);
+
+        public IDirectiveTypeDescriptor<T> BindArgumentsImplicitly() =>
+            BindArguments(BindingBehavior.Implicit);
 
         public IDirectiveArgumentDescriptor Argument(
             Expression<Func<T, object>> property)
