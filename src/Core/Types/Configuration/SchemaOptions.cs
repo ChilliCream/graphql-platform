@@ -1,3 +1,5 @@
+using HotChocolate.Types;
+
 namespace HotChocolate.Configuration
 {
     public class SchemaOptions
@@ -12,6 +14,9 @@ namespace HotChocolate.Configuration
         public bool StrictValidation { get; set; } = true;
 
         public bool UseXmlDocumentation { get; set; } = true;
+
+        public BindingBehavior DefaultBindingBehavior { get; set; } =
+            BindingBehavior.Implicit;
 
         public FieldMiddlewareApplication FieldMiddleware
         {
@@ -28,7 +33,8 @@ namespace HotChocolate.Configuration
                 SubscriptionTypeName = options.SubscriptionTypeName,
                 StrictValidation = options.StrictValidation,
                 UseXmlDocumentation = options.UseXmlDocumentation,
-                FieldMiddleware = options.FieldMiddleware
+                FieldMiddleware = options.FieldMiddleware,
+                DefaultBindingBehavior = options.DefaultBindingBehavior
             };
         }
     }
