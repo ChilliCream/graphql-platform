@@ -49,11 +49,20 @@ type CustomerEdge @source(name: "CustomerEdge", schema: "customer") {
 }
 
 type LifeInsuranceContract implements Contract @source(name: "LifeInsuranceContract", schema: "contract") {
+  byte_field: Byte
   customerId: ID!
+  date_field: Date
+  date_time_field: DateTime
+  decimal_field: Decimal
   error: String
+  float_field: Float
   foo(bar: String): String
   id: ID!
+  id_field: ID
+  int_field: Int
+  long_field: Long
   premium: Float!
+  string_field: String
 }
 
 type Mutation {
@@ -128,8 +137,17 @@ directive @source("The original name of the annotated type." name: Name! "The na
 "The `Boolean` scalar type represents `true` or `false`."
 scalar Boolean
 
+"The `Byte` scalar type represents non-fractional whole numeric values. Byte can represent values between 0 and 255."
+scalar Byte
+
+"The `Date` scalar represents an ISO-8601 compliant date type."
+scalar Date
+
 "The `DateTime` scalar represents an ISO-8601 compliant date time type."
 scalar DateTime
+
+"The built-in `Decimal` scalar type."
+scalar Decimal
 
 "The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
 scalar Float
@@ -139,6 +157,9 @@ scalar ID
 
 "The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
 scalar Int
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long
 
 "The name scalar represents a valid GraphQL name as specified in the spec and can be used to refer to fields or types."
 scalar Name

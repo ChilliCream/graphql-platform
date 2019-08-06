@@ -98,21 +98,26 @@ namespace HotChocolate.Types
                 ? TryGetValueOnUnknownType(obj, out object value)
                 : TryGetValueOnKnownType(obj, out value);
 
-            if (!success)
+            return success ? value : null;
+        }
+
+        public bool TryGetValue(object obj, out object value)
+        {
+            if (obj == null)
             {
-                throw new InvalidOperationException(
-                    TypeResources.InputField_CannotGetValue);
+                throw new ArgumentNullException(nameof(obj));
             }
 
-            return value;
+            return Property == null
+                ? TryGetValueOnUnknownType(obj, out value)
+                : TryGetValueOnKnownType(obj, out value);
         }
 
         private bool TryGetValueOnUnknownType(object obj, out object value)
         {
-            if (obj is IDictionary<string, object> dict)
+            if (obj is IDictionary<string, object> d)
             {
-                dict.TryGetValue(Name, out value);
-                return true;
+                return d.TryGetValue(Name, out value);
             }
 
             ILookup<string, PropertyInfo> properties =

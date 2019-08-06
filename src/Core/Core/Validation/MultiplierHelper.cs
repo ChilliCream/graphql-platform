@@ -11,7 +11,7 @@ namespace HotChocolate.Validation
     {
         public static bool TryGetMultiplierValue(
             FieldNode field,
-            IVariableCollection variables,
+            IVariableValueCollection variables,
             string multiplier,
             out int value)
         {
@@ -39,7 +39,7 @@ namespace HotChocolate.Validation
 
         private static bool TryGetMultiplierFromArgument(
            FieldNode field,
-           IVariableCollection variables,
+           IVariableValueCollection variables,
            string argumentName,
            out int value)
         {
@@ -57,7 +57,7 @@ namespace HotChocolate.Validation
 
         private static bool TryGetMultiplierFromObject(
             FieldNode field,
-            IVariableCollection variables,
+            IVariableValueCollection variables,
             string multiplierPath,
             out int value)
         {
@@ -104,7 +104,7 @@ namespace HotChocolate.Validation
 
         private static bool TryParseValue(
             IValueNode valueNode,
-            IVariableCollection variables,
+            IVariableValueCollection variables,
             out int value)
         {
             if (valueNode is VariableNode variable)

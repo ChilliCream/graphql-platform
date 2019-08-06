@@ -9,11 +9,11 @@ namespace HotChocolate.Validation
     internal class MaxComplexityWithMultipliersVisitorContext
         : MaxComplexityVisitorContext
     {
-        private readonly IVariableCollection _variables;
+        private readonly IVariableValueCollection _variables;
 
         internal protected MaxComplexityWithMultipliersVisitorContext(
             ISchema schema,
-            IVariableCollection variables,
+            IVariableValueCollection variables,
             ComplexityCalculation calculateComplexity)
             : base(schema, calculateComplexity)
         {

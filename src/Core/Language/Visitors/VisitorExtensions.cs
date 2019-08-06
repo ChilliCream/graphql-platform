@@ -100,12 +100,12 @@ namespace HotChocolate.Language
             level.Push(root);
 
             int index = 0;
+            SyntaxNodeInfo parent = default;
 
             while (level.Count != 0)
             {
                 bool isLeaving = level[index].Count == 0;
                 VisitorAction action = default;
-                SyntaxNodeInfo parent = default;
                 SyntaxNodeInfo current = default;
 
                 if (isLeaving)

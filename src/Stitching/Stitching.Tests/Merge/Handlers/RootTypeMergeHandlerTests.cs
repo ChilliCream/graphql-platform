@@ -13,9 +13,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("type Query { a: String }");
+                Utf8GraphQLParser.Parse("type Query { a: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse("type Query { b: String }");
+                Utf8GraphQLParser.Parse("type Query { b: String }");
 
             var types = new List<ITypeInfo>
             {
@@ -43,9 +43,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("type Query { a: String }");
+                Utf8GraphQLParser.Parse("type Query { a: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse("type Query { a: String }");
+                Utf8GraphQLParser.Parse("type Query { a: String }");
 
             var types = new List<ITypeInfo>
             {

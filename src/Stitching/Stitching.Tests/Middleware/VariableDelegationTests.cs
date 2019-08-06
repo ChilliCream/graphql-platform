@@ -47,9 +47,14 @@ namespace HotChocolate.Stitching
             using (IServiceScope scope = services.CreateScope())
             {
                 IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                    .SetQuery("query foo ($ids: [ID!]!) { customers(ids: $ids) { id } }")
+                    .SetQuery("query foo ($ids: [ID!]!) " +
+                        "{ customers(ids: $ids) { id } }")
                     .SetServices(scope.ServiceProvider)
-                    .SetVariableValue("ids", new List<object> { "Q3VzdG9tZXIteDE=", "Q3VzdG9tZXIteDE=" })
+                    .SetVariableValue("ids", new List<object>
+                    {
+                        "Q3VzdG9tZXIteDE=",
+                        "Q3VzdG9tZXIteDE="
+                    })
                     .Create();
 
                 result = await executor.ExecuteAsync(request);

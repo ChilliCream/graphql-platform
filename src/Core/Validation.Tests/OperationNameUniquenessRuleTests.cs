@@ -16,7 +16,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query getDogName {
                     dog {
                         name
@@ -46,7 +46,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query getName {
                     dog {
                         name
@@ -78,7 +78,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query dogOperation {
                     dog {
                         name

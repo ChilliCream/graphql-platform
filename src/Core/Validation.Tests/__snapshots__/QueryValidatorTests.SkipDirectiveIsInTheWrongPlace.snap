@@ -1,11 +1,11 @@
-[
+﻿[
   {
     "Exception": null,
     "message": "The field `field` does not exist on the type `Query`.",
     "locations": [
       {
         "line": 3,
-        "column": 22
+        "column": 21
       }
     ]
   },
@@ -15,7 +15,7 @@
     "locations": [
       {
         "line": 2,
-        "column": 18
+        "column": 17
       }
     ]
   },
@@ -25,7 +25,7 @@
     "locations": [
       {
         "line": 2,
-        "column": 24
+        "column": 23
       }
     ]
   }
