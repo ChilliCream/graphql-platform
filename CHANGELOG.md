@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Redis subscription provider [#902](https://github.com/ChilliCream/hotchocolate/pull/902)
 - Added support for batching over HTTP [#933](https://github.com/ChilliCream/hotchocolate/pull/933)
 - Added support for persisted queries and added a middleware to enable the active persisted query flow. [#858](https://github.com/ChilliCream/hotchocolate/pull/858)
+- Provide access to variables through IResolverContext. [#958](https://github.com/ChilliCream/hotchocolate/pull/958)
 
 ### Changed
 
@@ -35,6 +36,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Variables now work in lists and input objects [#896](https://github.com/ChilliCream/hotchocolate/pull/896)
 - Fixed url scalar now correctly detects url strings.
 - Support directives declared stitched schemas [#936](https://github.com/ChilliCream/hotchocolate/pull/936)
+- Fixed issues with filters and variables. [#960](https://github.com/ChilliCream/hotchocolate/pull/960)
+- Fixed issues stitching lists. [#946](https://github.com/ChilliCream/hotchocolate/pull/946)
+- Fixed source link support. [#943](https://github.com/ChilliCream/hotchocolate/pull/943)
+- Fixed dead-lock issues with the DataLoader [#942](https://github.com/ChilliCream/hotchocolate/pull/942)
 
 ## [9.0.4] - 2019-06-16
 
