@@ -18,6 +18,12 @@ namespace HotChocolate.Configuration
         public BindingBehavior DefaultBindingBehavior { get; set; } =
             BindingBehavior.Implicit;
 
+        public FieldMiddlewareApplication FieldMiddleware
+        {
+            get;
+            set;
+        } = FieldMiddlewareApplication.UserDefinedFields;
+
         public static SchemaOptions FromOptions(IReadOnlySchemaOptions options)
         {
             return new SchemaOptions
@@ -26,7 +32,9 @@ namespace HotChocolate.Configuration
                 MutationTypeName = options.MutationTypeName,
                 SubscriptionTypeName = options.SubscriptionTypeName,
                 StrictValidation = options.StrictValidation,
-                UseXmlDocumentation = options.UseXmlDocumentation
+                UseXmlDocumentation = options.UseXmlDocumentation,
+                FieldMiddleware = options.FieldMiddleware,
+                DefaultBindingBehavior = options.DefaultBindingBehavior
             };
         }
     }

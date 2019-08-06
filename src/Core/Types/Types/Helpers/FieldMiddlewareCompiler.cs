@@ -11,7 +11,7 @@ namespace HotChocolate.Types
             IReadOnlyList<FieldMiddleware> globalComponents,
             IReadOnlyList<FieldMiddleware> fieldComponents,
             FieldResolverDelegate fieldResolver,
-            bool isIntrospection)
+            bool skipMiddleware)
         {
             if (globalComponents == null)
             {
@@ -23,7 +23,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(fieldComponents));
             }
 
-            if (isIntrospection
+            if (skipMiddleware
                 || (globalComponents.Count == 0
                     && fieldComponents.Count == 0))
             {

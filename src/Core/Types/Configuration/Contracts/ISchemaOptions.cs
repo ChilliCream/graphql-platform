@@ -16,5 +16,7 @@ namespace HotChocolate.Configuration
         new bool UseXmlDocumentation { get; set; }
 
         new BindingBehavior DefaultBindingBehavior { get; set; }
+
+        new FieldMiddlewareApplication FieldMiddleware { get; set; }
     }
 }

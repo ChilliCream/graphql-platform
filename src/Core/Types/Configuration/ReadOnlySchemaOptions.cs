@@ -22,6 +22,7 @@ namespace HotChocolate.Configuration
             StrictValidation = options.StrictValidation;
             UseXmlDocumentation = options.UseXmlDocumentation;
             DefaultBindingBehavior = options.DefaultBindingBehavior;
+            FieldMiddleware = options.FieldMiddleware;
         }
 
         public string QueryTypeName { get; }
@@ -35,5 +36,7 @@ namespace HotChocolate.Configuration
         public bool UseXmlDocumentation { get; }
 
         public BindingBehavior DefaultBindingBehavior { get; }
+
+        public FieldMiddlewareApplication FieldMiddleware { get; }
     }
 }
