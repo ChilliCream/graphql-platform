@@ -12,7 +12,6 @@ using HotChocolate.Stitching.Merge.Rewriters;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Language;
 using HotChocolate.Configuration;
-using HotChocolate.Execution.Batching;
 
 namespace HotChocolate.Stitching
 {
@@ -41,8 +40,9 @@ namespace HotChocolate.Stitching
             new List<Func<DocumentNode, DocumentNode>>();
         private readonly List<Action<DocumentNode>> _mergedDocVis =
             new List<Action<DocumentNode>>();
-
-        private IQueryExecutionOptionsAccessor _options;
+        private IQueryExecutionOptionsAccessor _options =
+            new QueryExecutionOptions();
+        private bool _buildOnFirstRequest = true;
 
         public IStitchingBuilder AddSchema(
             NameString name,
@@ -216,6 +216,12 @@ namespace HotChocolate.Stitching
             return this;
         }
 
+        public IStitchingBuilder SetSchemaCreation(SchemaCreation creation)
+        {
+            _buildOnFirstRequest = creation == SchemaCreation.OnFirstRequest;
+            return this;
+        }
+
         public void Populate(IServiceCollection serviceCollection)
         {
             if (serviceCollection == null)
@@ -259,9 +265,9 @@ namespace HotChocolate.Stitching
                     {
                         configure(builder);
                     }
-                    builder.UseStitchingPipeline();
+                    builder.UseStitchingPipeline(_options);
                 },
-                true);
+                _buildOnFirstRequest);
             serviceCollection.AddBatchQueryExecutor();
             serviceCollection.AddJsonQueryResultSerializer();
             serviceCollection.AddJsonArrayResponseStreamSerializer();
