@@ -12,5 +12,7 @@
         new bool StrictValidation { get; set; }
 
         new bool UseXmlDocumentation { get; set; }
+
+        new FieldMiddlewareApplication FieldMiddleware { get; set; }
     }
 }

@@ -110,11 +110,18 @@ namespace HotChocolate.Types
                     context.Type.Name, Resolver, resolver);
             }
 
+            IReadOnlySchemaOptions options = context.DescriptorContext.Options;
+
+            bool skipMiddleware =
+                options.FieldMiddleware == FieldMiddlewareApplication.AllFields
+                    ? false
+                    : isIntrospectionField;
+
             Middleware = FieldMiddlewareCompiler.Compile(
                 context.GlobalComponents,
                 definition.MiddlewareComponents.ToArray(),
                 Resolver,
-                isIntrospectionField);
+                skipMiddleware);
 
             if (Resolver == null && Middleware == null)
             {
