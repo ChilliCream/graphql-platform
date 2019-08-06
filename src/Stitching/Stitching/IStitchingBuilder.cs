@@ -133,5 +133,7 @@ namespace HotChocolate.Stitching
 
         IStitchingBuilder SetExecutionOptions(
             IQueryExecutionOptionsAccessor options);
+
+        IStitchingBuilder SetSchemaCreation(SchemaCreation creation);
     }
 }
