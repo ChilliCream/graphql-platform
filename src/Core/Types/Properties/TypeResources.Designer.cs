@@ -677,17 +677,6 @@ namespace HotChocolate.Properties
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Unable to get the input field value..
-        /// </summary>
-        internal static string InputField_CannotGetValue
-        {
-            get
-            {
-                return ResourceManager.GetString("InputField_CannotGetValue", resourceCulture);
-            }
-        }
-
-        /// <summary>
         ///   Looks up a localized string similar to Unable to set the input field value..
         /// </summary>
         internal static string InputField_CannotSetValue

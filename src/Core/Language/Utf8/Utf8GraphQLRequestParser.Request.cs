@@ -11,6 +11,8 @@ namespace HotChocolate.Language
 
             public string NamedQuery { get; set; }
 
+            public string QueryHash { get; set; }
+
             public ReadOnlySpan<byte> Query { get; set; }
 
             public bool IsQueryNull { get; set; }

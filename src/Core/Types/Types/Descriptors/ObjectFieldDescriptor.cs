@@ -1,9 +1,10 @@
-using System.Linq;
 using System;
+using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -19,6 +20,7 @@ namespace HotChocolate.Types.Descriptors
             : base(context)
         {
             Definition.Name = fieldName.EnsureNotEmpty(nameof(fieldName));
+            Definition.ResultType = typeof(object);
         }
 
         protected ObjectFieldDescriptor(
@@ -53,6 +55,11 @@ namespace HotChocolate.Types.Descriptors
             {
                 Parameters = m.GetParameters().ToDictionary(
                     t => new NameString(t.Name));
+                Definition.ResultType = m.ReturnType;
+            }
+            else if (member is PropertyInfo p)
+            {
+                Definition.ResultType = p.PropertyType;
             }
         }
 
@@ -135,10 +142,10 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public new IObjectFieldDescriptor Argument(
-            NameString name,
+            NameString argumentName,
             Action<IArgumentDescriptor> argumentDescriptor)
         {
-            base.Argument(name, argumentDescriptor);
+            base.Argument(argumentName, argumentDescriptor);
             return this;
         }
 
@@ -174,6 +181,16 @@ namespace HotChocolate.Types.Descriptors
             if (resultType != null)
             {
                 Definition.SetMoreSpecificType(resultType, TypeContext.Output);
+
+                Type resultTypeDef = resultType.GetGenericTypeDefinition();
+                Type clrResultType = resultType.IsGenericType
+                    && resultTypeDef == typeof(NativeType<>)
+                        ? resultType.GetGenericArguments()[0]
+                        : resultType;
+                if (!BaseTypes.IsSchemaType(clrResultType))
+                {
+                    Definition.ResultType = clrResultType;
+                }
             }
             return this;
         }
@@ -189,10 +206,10 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public new IObjectFieldDescriptor Directive<T>(T directive)
+        public new IObjectFieldDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
-            base.Directive(directive);
+            base.Directive(directiveInstance);
             return this;
         }
 
@@ -226,21 +243,5 @@ namespace HotChocolate.Types.Descriptors
             MemberInfo member,
             Type resolverType) =>
             new ObjectFieldDescriptor(context, member, resolverType);
-
-        public static ObjectFieldDescriptor<T> New<T>(
-            IDescriptorContext context,
-            NameString fieldName) =>
-            new ObjectFieldDescriptor<T>(context, fieldName);
-
-        public static ObjectFieldDescriptor<T> New<T>(
-            IDescriptorContext context,
-            MemberInfo member) =>
-            new ObjectFieldDescriptor<T>(context, member);
-
-        public static ObjectFieldDescriptor<T> New<T>(
-            IDescriptorContext context,
-            MemberInfo member,
-            Type resolverType) =>
-            new ObjectFieldDescriptor<T>(context, member, resolverType);
     }
 }

@@ -1,5 +1,5 @@
-using HotChocolate.StarWars.Data;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.StarWars.Data;
 
 namespace HotChocolate.StarWars
 {

@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.AspNetCore</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
     <PackageId>HotChocolate.AspNetCore</PackageId>
-    <Description>Contains the Hot Chocolate GraphQL middleware for ASP.net core.</Description>
+    <Description>Contains the Hot Chocolate GraphQL middleware for ASP .Net core.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -26,7 +26,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.1.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,6 +33,9 @@
     <ProjectReference Include="..\AspNetCore.Authorization\AspNetCore.Authorization.csproj" />
     <ProjectReference Include="..\AspNetCore.Subscriptions\AspNetCore.Subscriptions.csproj" />
     <ProjectReference Include="..\AspNetCore.Abstractions\AspNetCore.Abstractions.csproj" />
+    <ProjectReference Include="..\AspNetCore.HttpGet\AspNetCore.HttpGet.csproj" />
+    <ProjectReference Include="..\AspNetCore.HttpGetSchema\AspNetCore.HttpGetSchema.csproj" />
+    <ProjectReference Include="..\AspNetCore.HttpPost\AspNetCore.HttpPost.csproj" />
   </ItemGroup>
 
 </Project>

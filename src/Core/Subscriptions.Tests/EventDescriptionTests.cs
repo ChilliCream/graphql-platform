@@ -103,7 +103,7 @@ namespace HotChocolate.Subscriptions
             string result_b = b.ToString();
 
             // assert
-            Assert.Equal("event(foo = \"bar\")", result_a);
+            Assert.Equal("event(foo: \"bar\")", result_a);
             Assert.Equal("event", result_b);
         }
 
@@ -128,6 +128,39 @@ namespace HotChocolate.Subscriptions
             // assert
             Assert.Equal(result_a, result_b);
             Assert.NotEqual(result_a, result_c);
+        }
+
+        [Fact]
+        public void EventDescription_Parse_WithArguments()
+        {
+            // arrange
+            string s = "event(foo: \"bar\")";
+
+            // act
+            EventDescription description = EventDescription.Parse(s);
+
+            // assert
+            Assert.Equal("event", description.Name);
+            Assert.Collection(description.Arguments,
+                t =>
+                {
+                    Assert.Equal("foo", t.Name.Value);
+                    Assert.Equal("bar", t.Value.Value);
+                });
+        }
+
+        [Fact]
+        public void EventDescription_Parse_WithoutArguments()
+        {
+            // arrange
+            string s = "event";
+
+            // act
+            EventDescription description = EventDescription.Parse(s);
+
+            // assert
+            Assert.Equal("event", description.Name);
+            Assert.Empty(description.Arguments);
         }
     }
 }

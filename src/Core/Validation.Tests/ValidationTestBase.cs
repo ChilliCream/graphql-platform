@@ -17,7 +17,7 @@ namespace HotChocolate.Validation
         public void SchemaIsNulll()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"{ foo }");
+            DocumentNode query = Utf8GraphQLParser.Parse(@"{ foo }");
 
             // act
             Action a = () => Rule.Validate(null, query);

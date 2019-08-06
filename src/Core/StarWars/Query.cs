@@ -48,7 +48,7 @@ namespace HotChocolate.StarWars
 
         public IEnumerable<ICharacter> GetCharacter(string[] characterIds, IResolverContext context)
         {
-            foreach (string characterId in characterIds)
+            foreach (var characterId in characterIds)
             {
                 ICharacter character = _repository.GetCharacter(characterId);
                 if (character == null)

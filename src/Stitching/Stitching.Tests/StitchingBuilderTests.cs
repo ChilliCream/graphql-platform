@@ -40,9 +40,9 @@ namespace HotChocolate.Stitching
             // arrange
             StitchingBuilder stitchingBuilder = StitchingBuilder.New();
 
-            DocumentNode schema_a = Parser.Default.Parse(
+            DocumentNode schema_a = Utf8GraphQLParser.Parse(
                 "type Query { a: A } type A { b: String }");
-            DocumentNode schema_b = Parser.Default.Parse(
+            DocumentNode schema_b = Utf8GraphQLParser.Parse(
                 "type Query { b: B } type B { c: String }");
 
             // act
@@ -1062,6 +1062,16 @@ namespace HotChocolate.Stitching
                 Action<DocumentNode> visit)
             {
                 throw new NotSupportedException();
+            }
+
+            public IStitchingBuilder AddTypeMergeRule(MergeTypeRuleFactory factory)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IStitchingBuilder AddDirectiveMergeRule(MergeDirectiveRuleFactory factory)
+            {
+                throw new NotImplementedException();
             }
         }
     }

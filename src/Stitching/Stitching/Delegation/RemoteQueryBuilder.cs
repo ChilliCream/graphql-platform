@@ -133,7 +133,7 @@ namespace HotChocolate.Stitching.Delegation
             }
 
             FieldNode requestField = _requestField;
-            if (_additionalFields.Count > 0
+            if (_additionalFields.Count != 0
                 && requestField.SelectionSet != null)
             {
                 var selections = new List<ISelectionNode>(

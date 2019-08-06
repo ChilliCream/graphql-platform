@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
+using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -46,6 +47,12 @@ namespace HotChocolate.Resolvers
         FieldNode FieldSelection { get; }
 
         /// <summary>
+        /// Gets the name that the field will have in the response map.
+        /// </summary>
+        /// <value></value>
+        NameString ResponseName { get; }
+
+        /// <summary>
         /// Gets the source stack containing all previous resolver results
         /// of the current execution path.
         /// </summary>
@@ -62,6 +69,11 @@ namespace HotChocolate.Resolvers
         /// hierarchy
         /// </summary>
         IImmutableDictionary<string, object> ScopedContextData { get; set; }
+
+        /// <summary>
+        /// Gets access to the coerced variable values of the request.
+        /// </summary>
+        IVariableValueCollection Variables { get; }
 
         /// <summary>
         /// Notifies when the connection underlying this request is aborted

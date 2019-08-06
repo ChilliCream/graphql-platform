@@ -18,14 +18,14 @@ namespace HotChocolate.Execution
             // arrange
             var errorRaised = false;
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a
                     x:c
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -67,7 +67,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a
                     x:c
@@ -75,7 +75,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -102,14 +102,14 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a
                     x:c @skip(if:true)
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -142,14 +142,14 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a @include(if:true)
                     x:c @include(if:false)
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -182,14 +182,14 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a @include(if:true)
                     x:c @include(if:true) @skip(if:true)
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -222,7 +222,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a
                     ... on Foo {
@@ -234,7 +234,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -273,7 +273,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a
                     ... Test
@@ -288,7 +288,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -327,7 +327,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a
                     ... Test
@@ -338,7 +338,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -388,7 +388,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a
                     ... Test
@@ -399,7 +399,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -449,7 +449,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     ... Test
                 }
@@ -463,7 +463,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -496,7 +496,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     ... Test
                 }
@@ -510,7 +510,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);

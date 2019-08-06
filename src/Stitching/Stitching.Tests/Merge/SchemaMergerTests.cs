@@ -1,10 +1,11 @@
+using System.Linq;
 using ChilliCream.Testing;
 using Snapshooter.Xunit;
 using Xunit;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using Snapshooter;
-using HotChocolate.Stitching.Introspection;
+using System.Collections.Generic;
 
 namespace HotChocolate.Stitching.Merge
 {
@@ -15,9 +16,9 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("union Foo = Bar | Baz union A = B | C");
+                Utf8GraphQLParser.Parse("union Foo = Bar | Baz union A = B | C");
             DocumentNode schema_b =
-                Parser.Default.Parse("union Foo = Bar | Baz");
+                Utf8GraphQLParser.Parse("union Foo = Bar | Baz");
 
             // act
             DocumentNode schema = SchemaMerger.New()
@@ -34,10 +35,10 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     FileResource.Open("Contract.graphql"));
             DocumentNode schema_b =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     FileResource.Open("Customer.graphql"));
 
             // act
@@ -55,10 +56,10 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     FileResource.Open("Contract.graphql"));
             DocumentNode schema_b =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     FileResource.Open("Customer.graphql"));
 
             // act
@@ -77,10 +78,10 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     FileResource.Open("Contract.graphql"));
             DocumentNode schema_b =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     FileResource.Open("Customer.graphql"));
 
             // act
@@ -99,10 +100,10 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: String b2: String } type B { c: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: String b3: String } type B { c: String }");
 
             // act
@@ -122,10 +123,10 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: String b2: String } type B { c: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: String b3: String } type B { c: String }");
 
             // act
@@ -144,10 +145,10 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: String } type B { c: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b2: String } type B { c: String }");
 
             // act
@@ -167,10 +168,10 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: String } type B { c: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b2: String } type B { c: String }");
 
             // act
@@ -189,10 +190,10 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: String b2: String } type B { c: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: String b3: String } type B { c: String }");
 
             // act
@@ -212,10 +213,10 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: String b2: String } type B { c: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: String b3: String } type B { c: String }");
 
             // act
@@ -234,10 +235,10 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: String b2: String } type B { c: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: String b3: String } type B { c: String }");
 
             // act
@@ -257,10 +258,10 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: String b2: String } type B { c: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: String b3: String } type B { c: String }");
 
             // act
@@ -279,13 +280,13 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: B } " +
                     "type B implements C { c: String } " +
                     "interface C { c: String }");
 
             DocumentNode schema_b =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type B { b1: String b3: String } type C { c: String }");
 
             // act
@@ -313,10 +314,10 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: String b2: String } type B { c: String! }");
             DocumentNode schema_b =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: String b3: String } type B { c: String }");
 
             // act
@@ -334,14 +335,14 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: B } " +
                     "type B implements D { c: String } " +
                     "type C implements D { c: String } " +
                     "interface D { c: String }");
 
             DocumentNode schema_b =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type B { b1: String b3: String } type C { c: String }");
 
             // act
@@ -360,14 +361,14 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: B } " +
                     "type B { c: String } " +
                     "type C implements D { c: String } " +
                     "interface D { c: String }");
 
             DocumentNode schema_b =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type B { b1: String b3: String } type C { c: String }");
 
             // act
@@ -386,14 +387,14 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: B } " +
                     "type B implements D { c: String } " +
                     "type C implements D { c: String } " +
                     "interface D { c: String }");
 
             DocumentNode schema_b =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type B { b1: String b3: String } type C { c: String }");
 
             // act
@@ -412,14 +413,14 @@ namespace HotChocolate.Stitching.Merge
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type A { b1: B } " +
                     "type B implements D { c: String } " +
                     "type C implements D { c: String } " +
                     "interface D { c: String }");
 
             DocumentNode schema_b =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     "type B { b1: String b3: String } type C { c: String }");
 
             // act
@@ -444,6 +445,134 @@ namespace HotChocolate.Stitching.Merge
                 SnapshotNameExtension.Create("A"));
             SchemaSyntaxSerializer.Serialize(b).MatchSnapshot(
                 SnapshotNameExtension.Create("B"));
+        }
+
+        [Fact]
+        public void MergeDirectivesWithCustomRule()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Utf8GraphQLParser.Parse("directive @foo on FIELD");
+            DocumentNode schema_b =
+                Utf8GraphQLParser.Parse("directive @foo(a: String) on FIELD");
+
+            // act
+            DocumentNode a = SchemaMerger.New()
+                .AddSchema("A", schema_a)
+                .AddSchema("B", schema_b)
+                .AddDirectiveMergeRule(next => (context, directives) =>
+                {
+                    context.AddDirective(
+                        directives.First(t =>
+                            t.Definition.Arguments.Any()).Definition);
+                })
+                .Merge();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot();
+        }
+
+        [Fact]
+        public void MergeDirectivesWithCustomHandler()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Utf8GraphQLParser.Parse("directive @foo on FIELD");
+            DocumentNode schema_b =
+                Utf8GraphQLParser.Parse("directive @foo(a: String) on FIELD");
+
+            // act
+            DocumentNode a = SchemaMerger.New()
+                .AddSchema("A", schema_a)
+                .AddSchema("B", schema_b)
+                .AddDirectiveMergeHandler<CustomDirectiveMergeHandler>()
+                .Merge();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot();
+        }
+
+        [Fact]
+        public void MergeTypeWithCustomRule()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Utf8GraphQLParser.Parse("type Foo { a: String }");
+            DocumentNode schema_b =
+                Utf8GraphQLParser.Parse("type Foo { b: String }");
+
+            // act
+            DocumentNode a = SchemaMerger.New()
+                .AddSchema("A", schema_a)
+                .AddSchema("B", schema_b)
+                .AddTypeMergeRule(next => (context, types) =>
+                {
+                    var typeInfos = types.OfType<ObjectTypeInfo>().ToArray();
+                    var fields = typeInfos[0].Definition.Fields.ToList();
+                    fields.AddRange(typeInfos[1].Definition.Fields);
+                    context.AddType(
+                        typeInfos[0].Definition.WithFields(fields));
+                })
+                .Merge();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot();
+        }
+
+        [Fact]
+        public void MergeTypeWithCustomHandler()
+        {
+            // arrange
+            DocumentNode schema_a =
+                Utf8GraphQLParser.Parse("type Foo { a: String }");
+            DocumentNode schema_b =
+                Utf8GraphQLParser.Parse("type Foo { b: String }");
+
+            // act
+            DocumentNode a = SchemaMerger.New()
+                .AddSchema("A", schema_a)
+                .AddSchema("B", schema_b)
+                .AddTypeMergeHandler<CustomTypeMergeHandler>()
+                .Merge();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(a).MatchSnapshot();
+        }
+
+        public class CustomDirectiveMergeHandler
+            : IDirectiveMergeHandler
+        {
+            public CustomDirectiveMergeHandler(MergeDirectiveRuleDelegate next)
+            {
+            }
+
+            public void Merge(
+                ISchemaMergeContext context,
+                IReadOnlyList<IDirectiveTypeInfo> directives)
+            {
+                context.AddDirective(
+                        directives.First(t =>
+                            t.Definition.Arguments.Any()).Definition);
+            }
+        }
+
+        public class CustomTypeMergeHandler
+            : ITypeMergeHandler
+        {
+            public CustomTypeMergeHandler(MergeTypeRuleDelegate next)
+            {
+            }
+
+            public void Merge(
+                ISchemaMergeContext context,
+                IReadOnlyList<ITypeInfo> types)
+            {
+                var typeInfos = types.OfType<ObjectTypeInfo>().ToArray();
+                var fields = typeInfos[0].Definition.Fields.ToList();
+                fields.AddRange(typeInfos[1].Definition.Fields);
+                context.AddType(
+                    typeInfos[0].Definition.WithFields(fields));
+            }
         }
     }
 }

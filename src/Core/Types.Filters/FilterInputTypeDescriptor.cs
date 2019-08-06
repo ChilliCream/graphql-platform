@@ -127,16 +127,16 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
-        public IFilterInputTypeDescriptor<T> BindExplicitly() =>
+        public IFilterInputTypeDescriptor<T> BindFieldsExplicitly() =>
             BindFields(BindingBehavior.Explicit);
 
-        public IFilterInputTypeDescriptor<T> BindImplicitly() =>
+        public IFilterInputTypeDescriptor<T> BindFieldsImplicitly() =>
             BindFields(BindingBehavior.Implicit);
 
         public IStringFilterFieldDescriptor Filter(
-            Expression<Func<T, string>> propertyOrMethod)
+            Expression<Func<T, string>> property)
         {
-            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+            if (property.ExtractMember() is PropertyInfo p)
             {
                 var field = new StringFilterFieldDescriptor(Context, p);
                 Fields.Add(field);
@@ -146,14 +146,14 @@ namespace HotChocolate.Types.Filters
             // TODO : resources
             throw new ArgumentException(
                 "Only properties are allowed for input types.",
-                nameof(propertyOrMethod));
+                nameof(property));
         }
 
 
         public IBooleanFilterFieldDescriptor Filter(
-            Expression<Func<T, bool>> propertyOrMethod)
+            Expression<Func<T, bool>> property)
         {
-            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+            if (property.ExtractMember() is PropertyInfo p)
             {
                 var field = new BooleanFilterFieldDescriptor(Context, p);
                 Fields.Add(field);
@@ -163,14 +163,14 @@ namespace HotChocolate.Types.Filters
             // TODO : resources
             throw new ArgumentException(
                 "Only properties are allowed for input types.",
-                nameof(propertyOrMethod));
+                nameof(property));
         }
 
 
         public IComparableFilterFieldDescriptor Filter(
-            Expression<Func<T, IComparable>> propertyOrMethod)
+            Expression<Func<T, IComparable>> property)
         {
-            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+            if (property.ExtractMember() is PropertyInfo p)
             {
                 var field = new ComparableFilterFieldDescriptor(Context, p);
                 Fields.Add(field);
@@ -180,7 +180,7 @@ namespace HotChocolate.Types.Filters
             // TODO : resources
             throw new ArgumentException(
                 "Only properties are allowed for input types.",
-                nameof(propertyOrMethod));
+                nameof(property));
         }
 
         public static FilterInputTypeDescriptor<T> New(

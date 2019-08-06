@@ -401,7 +401,7 @@ namespace HotChocolate
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddDocument(sp =>
-                    Parser.Default.Parse("type Query { a: String }"))
+                    Utf8GraphQLParser.Parse("type Query { a: String }"))
                 .Use(next => context =>
                 {
                     context.Result = "foo";
@@ -433,9 +433,9 @@ namespace HotChocolate
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddDocument(sp =>
-                    Parser.Default.Parse("type Query { a: Foo }"))
+                    Utf8GraphQLParser.Parse("type Query { a: Foo }"))
                 .AddDocument(sp =>
-                    Parser.Default.Parse("type Foo { a: String }"))
+                    Utf8GraphQLParser.Parse("type Foo { a: String }"))
                 .Use(next => context =>
                 {
                     context.Result = "foo";

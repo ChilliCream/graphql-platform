@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -106,10 +105,10 @@ namespace HotChocolate.Types.Descriptors
 
         public IEnumValueDescriptor Value<T>(T value) => Item<T>(value);
 
-        public IEnumTypeDescriptor Directive<T>(T instance)
+        public IEnumTypeDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
-            Definition.AddDirective(instance);
+            Definition.AddDirective(directiveInstance);
             return this;
         }
 
