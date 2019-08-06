@@ -58,7 +58,7 @@ namespace HotChocolate.Execution
         public FieldDelegate Middleware { get; }
 
         public IReadOnlyDictionary<NameString, ArgumentValue> CoerceArguments(
-            IVariableCollection variables,
+            IVariableValueCollection variables,
             ITypeConversion converter)
         {
             if (_hasArgumentErrors)
@@ -113,7 +113,7 @@ namespace HotChocolate.Execution
             return args;
         }
 
-        public bool IsVisible(IVariableCollection variables)
+        public bool IsVisible(IVariableValueCollection variables)
         {
             if (_visibility == null || _visibility.Count == 0)
             {

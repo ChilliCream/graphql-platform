@@ -28,7 +28,7 @@ namespace HotChocolate.Execution
 
             // act
             var resolver = new VariableValueBuilder(schema, operation);
-            VariableCollection coercedVariableValues =
+            VariableValueCollection coercedVariableValues =
                 resolver.CreateValues(variableValues);
 
             // assert
@@ -90,7 +90,7 @@ namespace HotChocolate.Execution
 
             // act
             var resolver = new VariableValueBuilder(schema, operation);
-            VariableCollection coercedVariableValues =
+            VariableValueCollection coercedVariableValues =
                 resolver.CreateValues(variableValues);
 
             // assert
@@ -113,7 +113,7 @@ namespace HotChocolate.Execution
             var resolver = new VariableValueBuilder(schema, operation);
 
             // act
-            VariableCollection coercedVariableValues =
+            VariableValueCollection coercedVariableValues =
                 resolver.CreateValues(variableValues);
 
             // assert
@@ -136,7 +136,7 @@ namespace HotChocolate.Execution
             var resolver = new VariableValueBuilder(schema, operation);
 
             // act
-            VariableCollection coercedVariableValues =
+            VariableValueCollection coercedVariableValues =
                 resolver.CreateValues(variableValues);
 
             // assert
@@ -160,7 +160,7 @@ namespace HotChocolate.Execution
             var resolver = new VariableValueBuilder(schema, operation);
 
             // act
-            VariableCollection coercedVariableValues =
+            VariableValueCollection coercedVariableValues =
                 resolver.CreateValues(variableValues);
 
             // assert
@@ -184,7 +184,7 @@ namespace HotChocolate.Execution
             var resolver = new VariableValueBuilder(schema, operation);
 
             // act
-            VariableCollection coercedVariableValues =
+            VariableValueCollection coercedVariableValues =
                 resolver.CreateValues(variableValues);
 
             // assert
@@ -218,7 +218,7 @@ namespace HotChocolate.Execution
             var resolver = new VariableValueBuilder(schema, operation);
 
             // act
-            VariableCollection coercedVariableValues =
+            VariableValueCollection coercedVariableValues =
                 resolver.CreateValues(variableValues);
 
             // assert
@@ -250,7 +250,7 @@ namespace HotChocolate.Execution
             var resolver = new VariableValueBuilder(schema, operation);
 
             // act
-            VariableCollection coercedVariableValues =
+            VariableValueCollection coercedVariableValues =
                 resolver.CreateValues(variableValues);
 
             // assert
@@ -280,7 +280,7 @@ namespace HotChocolate.Execution
             var resolver = new VariableValueBuilder(schema, operation);
 
             // act
-            VariableCollection coercedVariableValues =
+            VariableValueCollection coercedVariableValues =
                 resolver.CreateValues(variableValues);
 
             // assert
@@ -308,7 +308,7 @@ namespace HotChocolate.Execution
             var resolver = new VariableValueBuilder(schema, operation);
 
             // act
-            VariableCollection coercedVariableValues =
+            VariableValueCollection coercedVariableValues =
                 resolver.CreateValues(variableValues);
 
             // assert
@@ -333,7 +333,7 @@ namespace HotChocolate.Execution
             var resolver = new VariableValueBuilder(schema, operation);
 
             // act
-            VariableCollection coercedVariableValues =
+            VariableValueCollection coercedVariableValues =
                 resolver.CreateValues(variableValues);
 
             // assert
@@ -358,7 +358,7 @@ namespace HotChocolate.Execution
             var resolver = new VariableValueBuilder(schema, operation);
 
             // act
-            VariableCollection coercedVariableValues =
+            VariableValueCollection coercedVariableValues =
                 resolver.CreateValues(variableValues);
 
             // assert
@@ -500,7 +500,7 @@ namespace HotChocolate.Execution
 
             // act
             var resolver = new VariableValueBuilder(schema, operation);
-            VariableCollection variables =
+            VariableValueCollection variables =
                 resolver.CreateValues(variableValues);
 
             // assert
