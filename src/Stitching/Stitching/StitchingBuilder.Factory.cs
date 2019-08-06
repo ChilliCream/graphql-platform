@@ -21,7 +21,6 @@ namespace HotChocolate.Stitching
         {
             private readonly StitchingBuilder _builder;
             private readonly IReadOnlyList<IRemoteExecutorAccessor> _executors;
-            private readonly IQueryExecutionOptionsAccessor _options;
 
             private StitchingFactory(
                 StitchingBuilder builder,
@@ -31,7 +30,6 @@ namespace HotChocolate.Stitching
                 _builder = builder;
                 _executors = executors;
                 MergedSchema = mergedSchema;
-                _options = _builder._options ?? new QueryExecutionOptions();
             }
 
             public DocumentNode MergedSchema { get; }
@@ -180,7 +178,13 @@ namespace HotChocolate.Stitching
 
                 foreach (MergeTypeRuleFactory handler in builder._mergeRules)
                 {
-                    merger.AddMergeRule(handler);
+                    merger.AddTypeMergeRule(handler);
+                }
+
+                foreach (MergeDirectiveRuleFactory handler in
+                    builder._mergeDirectiveRules)
+                {
+                    merger.AddDirectiveMergeRule(handler);
                 }
 
                 foreach (IDocumentRewriter rewriter in builder._docRewriters)

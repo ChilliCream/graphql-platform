@@ -35,7 +35,7 @@ namespace HotChocolate.Execution
                         .To("Mutation", "changeTheNumber");
                 });
 
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 FileResource.Open("MutationExecutionQuery.graphql"));
 
             OperationDefinitionNode operationNode = query.Definitions

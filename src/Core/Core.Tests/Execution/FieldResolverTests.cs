@@ -18,7 +18,7 @@ namespace HotChocolate.Execution
             // arrange
             var errorRaised = false;
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a
                     x:c
@@ -67,7 +67,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a
                     x:c
@@ -102,7 +102,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a
                     x:c @skip(if:true)
@@ -142,7 +142,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a @include(if:true)
                     x:c @include(if:false)
@@ -182,7 +182,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a @include(if:true)
                     x:c @include(if:true) @skip(if:true)
@@ -222,7 +222,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a
                     ... on Foo {
@@ -273,7 +273,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a
                     ... Test
@@ -327,7 +327,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a
                     ... Test
@@ -388,7 +388,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     a
                     ... Test
@@ -449,7 +449,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     ... Test
                 }
@@ -496,7 +496,7 @@ namespace HotChocolate.Execution
         {
             // arrange
             Schema schema = CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     ... Test
                 }

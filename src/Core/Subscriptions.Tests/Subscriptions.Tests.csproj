@@ -5,7 +5,6 @@
     <AssemblyName>HotChocolate.Subscriptions.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions</RootNamespace>
     <IsPackable>false</IsPackable>
-
   </PropertyGroup>
 
   <PropertyGroup>

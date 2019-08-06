@@ -16,7 +16,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableUnused($atOtherHomes: Boolean) {
                     dog {
                         isHousetrained
@@ -40,7 +40,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableUsedInFragment($atOtherHomes: Boolean) {
                     dog {
                         ...isHousetrainedFragment
@@ -64,7 +64,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableUsedInFragment($atOtherHomes: Boolean) {
                     dog {
                         ...isHousetrainedFragment
@@ -92,7 +92,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode querya = Parser.Default.Parse(@"
+            DocumentNode querya = Utf8GraphQLParser.Parse(@"
                 query variableUsedInFragment($atOtherHomes: Boolean) {
                     dog {
                         ...isHousetrainedFragment
@@ -104,7 +104,7 @@ namespace HotChocolate.Validation
                 }
             ");
 
-            DocumentNode queryb = Parser.Default.Parse(@"
+            DocumentNode queryb = Utf8GraphQLParser.Parse(@"
                 query variableUsedInFragment($atOtherHomes: Boolean) {
                     dog {
                         ...isHousetrainedFragment @skip(if: $atOtherHomes)
@@ -131,7 +131,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableNotUsedWithinFragment($atOtherHomes: Boolean) {
                     dog {
                         ...isHousetrainedWithoutVariableFragment
@@ -159,7 +159,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query queryWithUsedVar($atOtherHomes: Boolean) {
                     dog {
                         ...isHousetrainedFragment
@@ -193,7 +193,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableIsDefined($atOtherHomes: Boolean)
                 {
                     dog {
@@ -213,7 +213,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query queryWithComplexInput($name: String)
                 {
                     findDog(complex: { name: $name }) {
@@ -233,7 +233,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query queryWithListInput($value: Bool)
                 {
                     booleanList(booleanListArg: [ $value ])
@@ -252,7 +252,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableIsDefined
                 {
                     dog {
@@ -276,7 +276,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableIsNotDefinedUsedInNestedFragment {
                     dog {
                         ...outerHousetrainedFragment
@@ -307,7 +307,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query housetrainedQueryOne($atOtherHomes: Boolean) {
                     dog {
                         ...isHousetrainedFragment
@@ -342,7 +342,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableIsNotDefinedUsedInNestedFragment {
                     dog {
                         ...outerHousetrainedFragment

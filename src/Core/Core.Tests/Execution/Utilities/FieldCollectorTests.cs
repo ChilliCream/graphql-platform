@@ -19,7 +19,7 @@ namespace HotChocolate.Execution
         public void MergeFieldsWithFragmentSpreads()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 FileResource.Open("MergeQuery.graphql"));
 
             OperationDefinitionNode operation =
@@ -69,7 +69,7 @@ namespace HotChocolate.Execution
         public void MergeMerged()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 FileResource.Open("MergeQuery.graphql"));
 
             OperationDefinitionNode operation =
@@ -223,7 +223,7 @@ namespace HotChocolate.Execution
 
         private static FieldNode CreateField(string field)
         {
-            return Parser.Default.Parse($"{{ {field} }}").Definitions
+            return Utf8GraphQLParser.Parse($"{{ {field} }}").Definitions
                 .OfType<OperationDefinitionNode>()
                 .SelectMany(t => t.SelectionSet.Selections)
                 .OfType<FieldNode>()

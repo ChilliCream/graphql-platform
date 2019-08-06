@@ -115,6 +115,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataLoader.Tests", "..\src\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataLoader.DiagnosticSource.Tests", "..\src\DataLoader\DiagnosticSource.Tests\DiagnosticSource.Tests.csproj", "{0731D956-7E1B-4C03-A57C-34D6BD307704}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriptions.Redis.Tests", "..\src\Core\Subscriptions.Redis.Tests\Subscriptions.Redis.Tests.csproj", "{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -797,6 +799,18 @@ Global
 		{0731D956-7E1B-4C03-A57C-34D6BD307704}.Release|x64.Build.0 = Release|Any CPU
 		{0731D956-7E1B-4C03-A57C-34D6BD307704}.Release|x86.ActiveCfg = Release|Any CPU
 		{0731D956-7E1B-4C03-A57C-34D6BD307704}.Release|x86.Build.0 = Release|Any CPU
+		{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}.Debug|x64.Build.0 = Debug|Any CPU
+		{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}.Debug|x86.Build.0 = Debug|Any CPU
+		{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}.Release|x64.ActiveCfg = Release|Any CPU
+		{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}.Release|x64.Build.0 = Release|Any CPU
+		{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}.Release|x86.ActiveCfg = Release|Any CPU
+		{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

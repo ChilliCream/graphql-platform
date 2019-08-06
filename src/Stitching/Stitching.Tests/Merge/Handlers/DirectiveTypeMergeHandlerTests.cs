@@ -14,15 +14,19 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("directive @test(arg: String) on OBJECT");
+                Utf8GraphQLParser.Parse(
+                    "directive @test(arg: String) on OBJECT");
             DocumentNode schema_b =
-                Parser.Default.Parse("directive @test(arg: String) on OBJECT");
+                Utf8GraphQLParser.Parse(
+                    "directive @test(arg: String) on OBJECT");
 
             var types = new List<IDirectiveTypeInfo>
             {
-                new DirectiveTypeInfo(schema_a.Definitions.OfType<DirectiveDefinitionNode>().First(),
+                new DirectiveTypeInfo(schema_a.Definitions
+                    .OfType<DirectiveDefinitionNode>().First(),
                     new SchemaInfo("Schema_A", schema_a)),
-                new DirectiveTypeInfo(schema_b.Definitions.OfType<DirectiveDefinitionNode>().First(),
+                new DirectiveTypeInfo(schema_b.Definitions
+                    .OfType<DirectiveDefinitionNode>().First(),
                     new SchemaInfo("Schema_B", schema_b)),
             };
 
@@ -42,15 +46,17 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("directive @test(arg: Int) on OBJECT");
+                Utf8GraphQLParser.Parse("directive @test(arg: Int) on OBJECT");
             DocumentNode schema_b =
-                Parser.Default.Parse("directive @test(arg: String) on OBJECT");
+                Utf8GraphQLParser.Parse("directive @test(arg: String) on OBJECT");
 
             var types = new List<IDirectiveTypeInfo>
             {
-                new DirectiveTypeInfo(schema_a.Definitions.OfType<DirectiveDefinitionNode>().First(),
+                new DirectiveTypeInfo(schema_a.Definitions
+                    .OfType<DirectiveDefinitionNode>().First(),
                     new SchemaInfo("Schema_A", schema_a)),
-                new DirectiveTypeInfo(schema_b.Definitions.OfType<DirectiveDefinitionNode>().First(),
+                new DirectiveTypeInfo(schema_b.Definitions
+                    .OfType<DirectiveDefinitionNode>().First(),
                     new SchemaInfo("Schema_B", schema_b))
             };
 
@@ -59,7 +65,8 @@ namespace HotChocolate.Stitching.Merge.Handlers
             // act
             var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
 
-            Assert.Throws<InvalidOperationException>(() => typeMerger.Merge(context, types));
+            Assert.Throws<InvalidOperationException>(
+                () => typeMerger.Merge(context, types));
         }
 
         [Fact]
@@ -67,15 +74,19 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("directive @test(arg: String) on OBJECT | INTERFACE");
+                Utf8GraphQLParser.Parse(
+                    "directive @test(arg: String) on OBJECT | INTERFACE");
             DocumentNode schema_b =
-                Parser.Default.Parse("directive @test(arg: String) on OBJECT");
+                Utf8GraphQLParser.Parse(
+                    "directive @test(arg: String) on OBJECT");
 
             var types = new List<IDirectiveTypeInfo>
             {
-                new DirectiveTypeInfo(schema_a.Definitions.OfType<DirectiveDefinitionNode>().First(),
+                new DirectiveTypeInfo(schema_a.Definitions
+                    .OfType<DirectiveDefinitionNode>().First(),
                     new SchemaInfo("Schema_A", schema_a)),
-                new DirectiveTypeInfo(schema_b.Definitions.OfType<DirectiveDefinitionNode>().First(),
+                new DirectiveTypeInfo(schema_b.Definitions
+                    .OfType<DirectiveDefinitionNode>().First(),
                     new SchemaInfo("Schema_B", schema_b))
             };
 
@@ -84,7 +95,8 @@ namespace HotChocolate.Stitching.Merge.Handlers
             // act
             var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
 
-            Assert.Throws<InvalidOperationException>(() => typeMerger.Merge(context, types));
+            Assert.Throws<InvalidOperationException>(
+                () => typeMerger.Merge(context, types));
         }
 
         [Fact]
@@ -92,15 +104,19 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("directive @test(arg: String) repeatable on OBJECT");
+                Utf8GraphQLParser.Parse(
+                    "directive @test(arg: String) repeatable on OBJECT");
             DocumentNode schema_b =
-                Parser.Default.Parse("directive @test(arg: String) on OBJECT");
+                Utf8GraphQLParser.Parse(
+                    "directive @test(arg: String) on OBJECT");
 
             var types = new List<IDirectiveTypeInfo>
             {
-                new DirectiveTypeInfo(schema_a.Definitions.OfType<DirectiveDefinitionNode>().First(),
+                new DirectiveTypeInfo(schema_a.Definitions
+                    .OfType<DirectiveDefinitionNode>().First(),
                     new SchemaInfo("Schema_A", schema_a)),
-                new DirectiveTypeInfo(schema_b.Definitions.OfType<DirectiveDefinitionNode>().First(),
+                new DirectiveTypeInfo(schema_b.Definitions
+                    .OfType<DirectiveDefinitionNode>().First(),
                     new SchemaInfo("Schema_B", schema_b))
             };
 
@@ -109,7 +125,8 @@ namespace HotChocolate.Stitching.Merge.Handlers
             // act
             var typeMerger = new DirectiveTypeMergeHandler((c, t) => { });
 
-            Assert.Throws<InvalidOperationException>(() => typeMerger.Merge(context, types));
+            Assert.Throws<InvalidOperationException>(
+                () => typeMerger.Merge(context, types));
         }
 
         [Fact]
@@ -117,19 +134,25 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("directive @test(arg: String) on OBJECT");
+                Utf8GraphQLParser.Parse(
+                    "directive @test(arg: String) on OBJECT");
             DocumentNode schema_b =
-                Parser.Default.Parse("directive @test1(arg: String) on OBJECT");
+                Utf8GraphQLParser.Parse(
+                    "directive @test1(arg: String) on OBJECT");
             DocumentNode schema_c =
-                Parser.Default.Parse("directive @test(arg: String) on OBJECT");
+                Utf8GraphQLParser.Parse(
+                    "directive @test(arg: String) on OBJECT");
 
             var types = new List<IDirectiveTypeInfo>
             {
-                new DirectiveTypeInfo(schema_a.Definitions.OfType<DirectiveDefinitionNode>().First(),
+                new DirectiveTypeInfo(schema_a.Definitions
+                    .OfType<DirectiveDefinitionNode>().First(),
                     new SchemaInfo("Schema_A", schema_a)),
-                new DirectiveTypeInfo(schema_b.Definitions.OfType<DirectiveDefinitionNode>().First(),
+                new DirectiveTypeInfo(schema_b.Definitions
+                    .OfType<DirectiveDefinitionNode>().First(),
                     new SchemaInfo("Schema_B", schema_b)),
-                new DirectiveTypeInfo(schema_c.Definitions.OfType<DirectiveDefinitionNode>().First(),
+                new DirectiveTypeInfo(schema_c.Definitions
+                    .OfType<DirectiveDefinitionNode>().First(),
                     new SchemaInfo("Schema_C", schema_c))
             };
 
