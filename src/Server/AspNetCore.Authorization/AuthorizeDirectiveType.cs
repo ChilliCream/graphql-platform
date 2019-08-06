@@ -31,7 +31,7 @@ namespace HotChocolate.AspNetCore.Authorization
             // TODO :resources
             descriptor.Argument(t => t.Policy)
                 .Description(
-                    "The name of the authorzation policy that determines " +
+                    "The name of the authorization policy that determines " +
                     "access to the annotated resource.")
                 .Type<StringType>();
 #endif
