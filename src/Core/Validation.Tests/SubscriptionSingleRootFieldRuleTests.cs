@@ -16,7 +16,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 subscription sub {
                     newMessage {
                         body
@@ -37,7 +37,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 subscription sub {
                     ...newMessageFields
                 }
@@ -62,7 +62,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 subscription sub {
                     newMessage {
                         body
@@ -88,7 +88,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 subscription sub {
                     ...multipleSubscriptions
                 }
@@ -118,7 +118,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 subscription sub {
                     newMessage {
                         body

@@ -19,7 +19,7 @@ namespace HotChocolate.Validation
             bool hasErrors)
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     foo {
                         ... on Foo {
@@ -63,7 +63,7 @@ namespace HotChocolate.Validation
             bool hasErrors)
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     foo {
                         ... on Foo {
@@ -108,7 +108,7 @@ namespace HotChocolate.Validation
             bool hasErrors)
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     bazOrBar {
                         ... on Foo {
@@ -158,7 +158,7 @@ namespace HotChocolate.Validation
             bool hasErrors)
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query a {
                     bazOrBar {
                         ... on Foo {

@@ -190,16 +190,36 @@ namespace HotChocolate.Stitching.Merge
                     schemaName, field, newFieldName));
         }
 
+        [Obsolete("Use AddTypeMergeHandler")]
         public static ISchemaMerger AddMergeHandler<T>(
            this ISchemaMerger merger)
-           where T : class, ITypeMergeHandler
+           where T : class, ITypeMergeHandler =>
+           AddTypeMergeHandler<T>(merger);
+
+        public static ISchemaMerger AddTypeMergeHandler<T>(
+            this ISchemaMerger merger)
+            where T : class, ITypeMergeHandler
         {
             if (merger == null)
             {
                 throw new System.ArgumentNullException(nameof(merger));
             }
 
-            merger.AddMergeRule(CreateTypeMergeRule<T>());
+            merger.AddTypeMergeRule(CreateTypeMergeRule<T>());
+
+            return merger;
+        }
+
+        public static ISchemaMerger AddDirectiveMergeHandler<T>(
+            this ISchemaMerger merger)
+            where T : class, IDirectiveMergeHandler
+        {
+            if (merger == null)
+            {
+                throw new System.ArgumentNullException(nameof(merger));
+            }
+
+            merger.AddDirectiveMergeRule(CreateDirectiveMergeRule<T>());
 
             return merger;
         }
@@ -222,7 +242,7 @@ namespace HotChocolate.Stitching.Merge
             where T : class, IDirectiveMergeHandler
         {
             ConstructorInfo constructor =
-                CreateHandlerInternal<T, MergeTypeRuleDelegate>();
+                CreateHandlerInternal<T, MergeDirectiveRuleDelegate>();
 
             return next =>
             {

@@ -474,15 +474,15 @@ namespace HotChocolate.Stitching
 
         public static IStitchingBuilder AddDirectiveMergeHandler<T>(
             this IStitchingBuilder builder)
-            where T : class, ITypeMergeHandler
+            where T : class, IDirectiveMergeHandler
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.AddTypeMergeRule(
-                SchemaMergerExtensions.CreateTypeMergeRule<T>());
+            return builder.AddDirectiveMergeRule(
+                SchemaMergerExtensions.CreateDirectiveMergeRule<T>());
         }
     }
 }

@@ -40,7 +40,11 @@ namespace HotChocolate.Stitching.Merge
         private readonly OrderedDictionary<NameString, DocumentNode> _schemas =
             new OrderedDictionary<NameString, DocumentNode>();
 
-        public ISchemaMerger AddMergeRule(MergeTypeRuleFactory factory)
+        [Obsolete("Use AddTypeMergeRule")]
+        public ISchemaMerger AddMergeRule(MergeTypeRuleFactory factory) =>
+            AddTypeMergeRule(factory);
+
+        public ISchemaMerger AddTypeMergeRule(MergeTypeRuleFactory factory)
         {
             if (factory == null)
             {
@@ -365,7 +369,8 @@ namespace HotChocolate.Stitching.Merge
                 if (schema.Directives.TryGetValue(name,
                     out DirectiveDefinitionNode directiveDefinition))
                 {
-                    directives.Add(new DirectiveTypeInfo(directiveDefinition, schema));
+                    directives.Add(new DirectiveTypeInfo(
+                        directiveDefinition, schema));
                 }
             }
         }
@@ -382,8 +387,8 @@ namespace HotChocolate.Stitching.Merge
             };
 
             var handlers = new List<MergeTypeRuleFactory>();
-            handlers.AddRange(_defaultMergeRules);
             handlers.AddRange(_mergeRules);
+            handlers.AddRange(_defaultMergeRules);
 
             for (int i = handlers.Count - 1; i >= 0; i--)
             {
@@ -405,8 +410,8 @@ namespace HotChocolate.Stitching.Merge
             };
 
             var handlers = new List<MergeDirectiveRuleFactory>();
-            handlers.Add(c => new DirectiveTypeMergeHandler(c).Merge);
             handlers.AddRange(_directiveMergeRules);
+            handlers.Add(c => new DirectiveTypeMergeHandler(c).Merge);
 
             for (int i = handlers.Count - 1; i >= 0; i--)
             {

@@ -16,7 +16,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment nameFragment on Dog { # unused
                     name
                 }
@@ -44,7 +44,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment nameFragment on Dog {
                     name
                 }
@@ -64,12 +64,12 @@ namespace HotChocolate.Validation
             Assert.False(result.HasErrors);
         }
 
-         [Fact]
+        [Fact]
         public void UsedNestedFragment()
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment nameFragment on Dog {
                     name
                     ... nestedNameFragment
