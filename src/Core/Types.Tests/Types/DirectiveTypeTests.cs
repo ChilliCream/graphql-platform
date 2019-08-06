@@ -24,6 +24,40 @@ namespace HotChocolate.Types
             Assert.True(directiveType.IsExecutable);
             Assert.NotEmpty(directiveType.MiddlewareComponents);
             Assert.Equal(typeof(CustomDirective), directiveType.ClrType);
+            Assert.Collection(directiveType.Arguments,
+                t => Assert.Equal("argument", t.Name.Value));
+        }
+
+        [Fact]
+        public void ConfigureTypedDirective_DefaultBinding_Explicit()
+        {
+            // arrange
+            // act
+            DirectiveType directiveType =
+                CreateDirective(new CustomDirectiveType(),
+                    b => b.ModifyOptions(o =>
+                        o.DefaultBindingBehavior = BindingBehavior.Explicit));
+
+            // assert
+            Assert.True(directiveType.IsExecutable);
+            Assert.NotEmpty(directiveType.MiddlewareComponents);
+            Assert.Equal(typeof(CustomDirective), directiveType.ClrType);
+            Assert.Empty(directiveType.Arguments);
+        }
+
+        [Fact]
+        public void ConfigureTypedDirectiveNoArguments()
+        {
+            // arrange
+            // act
+            DirectiveType directiveType =
+                CreateDirective(new Custom2DirectiveType());
+
+            // assert
+            Assert.True(directiveType.IsExecutable);
+            Assert.NotEmpty(directiveType.MiddlewareComponents);
+            Assert.Equal(typeof(CustomDirective), directiveType.ClrType);
+            Assert.Empty(directiveType.Arguments);
         }
 
         [Fact]
@@ -478,6 +512,20 @@ namespace HotChocolate.Types
                 descriptor.Location(DirectiveLocation.Enum);
                 descriptor.Location(DirectiveLocation.Field);
                 descriptor.Use(next => context => Task.CompletedTask);
+            }
+        }
+
+        public class Custom2DirectiveType
+            : DirectiveType<CustomDirective>
+        {
+            protected override void Configure(
+                IDirectiveTypeDescriptor<CustomDirective> descriptor)
+            {
+                descriptor.Name("Custom");
+                descriptor.Location(DirectiveLocation.Enum);
+                descriptor.Location(DirectiveLocation.Field);
+                descriptor.Use(next => context => Task.CompletedTask);
+                descriptor.BindArgumentsExplicitly();
             }
         }
 

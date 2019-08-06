@@ -170,6 +170,29 @@ namespace HotChocolate.Types
             Assert.Null(value);
         }
 
+         [Fact]
+        public void ExplicitEnumType_OnlyContainDeclaredValues_2()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new EnumType<Foo>(d =>
+                {
+                    d.BindItemsImplicitly();
+                    d.Item(Foo.Bar1);
+                }));
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("Foo");
+            Assert.NotNull(type);
+            Assert.True(type.TryGetValue("BAR1", out object value));
+            Assert.Equal(Foo.Bar1, value);
+            Assert.False(type.TryGetValue("BAR2", out value));
+            Assert.Null(value);
+        }
+
         [Fact]
         public void ImplicitEnumType_OnlyBar1HasCustomName()
         {
