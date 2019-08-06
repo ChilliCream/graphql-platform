@@ -151,6 +151,5 @@ namespace HotChocolate.Stitching
 
             return httpClientFactory.Object;
         }
-
     }
 }
