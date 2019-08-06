@@ -525,7 +525,7 @@ namespace HotChocolate.Types
                 descriptor.Location(DirectiveLocation.Enum);
                 descriptor.Location(DirectiveLocation.Field);
                 descriptor.Use(next => context => Task.CompletedTask);
-                descriptor.BindArgumentsExplicitly();
+                descriptor.BindArgumentsImplicitly().BindArgumentsExplicitly();
             }
         }
 
