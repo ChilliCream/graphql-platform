@@ -103,6 +103,11 @@ namespace HotChocolate.Types.Filters
         {
             base.Enter(node, parent, path, ancestors);
 
+            if(node.Value is NullValueNode)
+            {
+                return VisitorAction.Skip;
+            }
+
             if (Operations.Peek() is FilterOperationField field)
             {
                 // TODO : needed only if we allow objects
