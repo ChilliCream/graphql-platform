@@ -25,7 +25,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -75,7 +75,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -109,7 +109,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -149,7 +149,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -189,7 +189,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -234,7 +234,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -288,7 +288,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -338,7 +338,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -399,7 +399,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -463,7 +463,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
@@ -510,7 +510,7 @@ namespace HotChocolate.Execution
                 }
             ");
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
             var fragments = new FragmentCollection(schema, query);
