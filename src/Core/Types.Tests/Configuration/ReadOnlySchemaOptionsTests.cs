@@ -2,6 +2,7 @@ using HotChocolate.Types;
 using Xunit;
 using Snapshooter.Xunit;
 using HotChocolate.Configuration;
+using System;
 
 namespace HotChocolate
 {
@@ -26,7 +27,7 @@ namespace HotChocolate
             var copied = new ReadOnlySchemaOptions(options);
 
             // assert
-            options.MatchSnapshot();
+            copied.MatchSnapshot();
         }
 
         [Fact]
@@ -39,7 +40,18 @@ namespace HotChocolate
             var copied = new ReadOnlySchemaOptions(options);
 
             // assert
-            options.MatchSnapshot();
+            copied.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Options_Null()
+        {
+            // arrange
+            // act
+            Action action = () => new ReadOnlySchemaOptions(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
         }
     }
 }
