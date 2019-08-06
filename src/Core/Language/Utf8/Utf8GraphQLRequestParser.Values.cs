@@ -184,12 +184,12 @@ namespace HotChocolate.Language
                 case TokenKind.Integer:
                     value = _reader.GetScalarValue();
                     _reader.MoveNext();
-                    return long.Parse(value);
+                    return long.Parse(value, CultureInfo.InvariantCulture);
 
                 case TokenKind.Float:
                     value = _reader.GetScalarValue();
                     _reader.MoveNext();
-                    return decimal.Parse(value);
+                    return decimal.Parse(value, CultureInfo.InvariantCulture);
 
                 case TokenKind.Name:
                     if (_reader.Value.SequenceEqual(GraphQLKeywords.True))

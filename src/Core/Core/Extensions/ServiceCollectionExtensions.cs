@@ -11,10 +11,23 @@ namespace HotChocolate
     {
         public static IServiceCollection AddGraphQLSchema(
             this IServiceCollection services,
-            ISchemaBuilder schemaBuilder)
+            Action<ISchemaBuilder> build)
         {
-            return services.AddSingleton(sp =>
-                schemaBuilder
+            return services.AddSingleton<ISchema>(sp =>
+            {
+                var builder = SchemaBuilder.New();
+                build(builder);
+                builder.AddServices(sp);
+                return builder.Create();
+            });
+        }
+
+        public static IServiceCollection AddGraphQLSchema(
+            this IServiceCollection services,
+            ISchemaBuilder builder)
+        {
+            return services.AddSingleton<ISchema>(sp =>
+                builder
                     .AddServices(sp)
                     .Create());
         }

@@ -8,6 +8,7 @@ using HotChocolate.Resolvers;
 using HotChocolate.Runtime;
 using HotChocolate.Validation;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace HotChocolate.Execution
 {
@@ -40,6 +41,89 @@ namespace HotChocolate.Execution
             }
 
             return builder
+                .AddDefaultServices(options)
+                .UseDefaultDiagnostics(options)
+                .UseQueryParser()
+                .UseNoCachedQueryError()
+                .UseValidation()
+                .UseOperationResolver()
+                .UseMaxComplexity()
+                .UseOperationExecutor();
+        }
+
+        public static IQueryExecutionBuilder UsePersistedQueryPipeline(
+            this IQueryExecutionBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder
+                .UsePersistedQueryPipeline(new QueryExecutionOptions());
+        }
+
+        public static IQueryExecutionBuilder UsePersistedQueryPipeline(
+            this IQueryExecutionBuilder builder,
+            IQueryExecutionOptionsAccessor options)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            return builder
+                .AddDefaultServices(options)
+                .UseDefaultDiagnostics(options)
+                .UseQueryParser()
+                .UseReadPersistedQuery()
+                .UseValidation()
+                .UseOperationResolver()
+                .UseMaxComplexity()
+                .UseOperationExecutor();
+        }
+
+        public static IQueryExecutionBuilder UseActivePersistedQueryPipeline(
+            this IQueryExecutionBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder
+                .UseActivePersistedQueryPipeline(new QueryExecutionOptions());
+        }
+
+        public static IQueryExecutionBuilder UseActivePersistedQueryPipeline(
+            this IQueryExecutionBuilder builder,
+            IQueryExecutionOptionsAccessor options)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            return builder
+                .UsePersistedQueryPipeline(options)
+                .UseWritePersistedQuery();
+        }
+
+        private static IQueryExecutionBuilder AddDefaultServices(
+            this IQueryExecutionBuilder builder,
+            IQueryExecutionOptionsAccessor options)
+        {
+            return builder
                 .AddOptions(options)
                 .AddErrorHandler()
                 .AddQueryValidation()
@@ -47,15 +131,17 @@ namespace HotChocolate.Execution
                 .AddQueryCache(options.QueryCacheSize)
                 .AddExecutionStrategyResolver()
                 .AddDefaultParser()
-                .AddDefaultDocumentHashProvider()
+                .AddDefaultDocumentHashProvider();
+        }
+
+        private static IQueryExecutionBuilder UseDefaultDiagnostics(
+            this IQueryExecutionBuilder builder,
+            IInstrumentationOptionsAccessor options)
+        {
+            return builder
                 .UseInstrumentation(options.TracingPreference)
                 .UseRequestTimeout()
-                .UseExceptionHandling()
-                .UseQueryParser()
-                .UseValidation()
-                .UseOperationResolver()
-                .UseMaxComplexity()
-                .UseOperationExecutor();
+                .UseExceptionHandling();
         }
 
         public static IQueryExecutionBuilder UseExceptionHandling(
@@ -131,6 +217,39 @@ namespace HotChocolate.Execution
             }
 
             return builder.Use<ParseQueryMiddleware>();
+        }
+
+        public static IQueryExecutionBuilder UseNoCachedQueryError(
+            this IQueryExecutionBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.Use<NoCachedQueryErrorMiddleware>();
+        }
+
+        public static IQueryExecutionBuilder UseReadPersistedQuery(
+            this IQueryExecutionBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.Use<ReadPersistedQueryMiddleware>();
+        }
+
+        public static IQueryExecutionBuilder UseWritePersistedQuery(
+            this IQueryExecutionBuilder builder)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.Use<WritePersistedQueryMiddleware>();
         }
 
         public static IQueryExecutionBuilder UseRequestTimeout(
@@ -583,7 +702,10 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            return builder.AddMD5DocumentHashProvider();
+            builder.Services.TryAddSingleton<
+                IDocumentHashProvider,
+                MD5DocumentHashProvider>();
+            return builder;
         }
 
         public static IQueryExecutionBuilder AddSha1DocumentHashProvider(
@@ -593,6 +715,16 @@ namespace HotChocolate.Execution
             builder.Services.AddSingleton<
                 IDocumentHashProvider,
                 Sha1DocumentHashProvider>();
+            return builder;
+        }
+
+        public static IQueryExecutionBuilder AddSha256DocumentHashProvider(
+            this IQueryExecutionBuilder builder)
+        {
+            builder.RemoveService<IDocumentHashProvider>();
+            builder.Services.AddSingleton<
+                IDocumentHashProvider,
+                Sha256DocumentHashProvider>();
             return builder;
         }
 

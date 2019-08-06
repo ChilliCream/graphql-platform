@@ -36,11 +36,11 @@ namespace HotChocolate.Execution
         {
             if (context.Document == null)
             {
-                context.Result = QueryResult.CreateError(new Error
-                {
-                    Message = CoreResources
-                        .ValidateQueryMiddleware_NoDocument
-                });
+                context.Result = QueryResult.CreateError(
+                    ErrorBuilder.New()
+                        .SetMessage(CoreResources
+                            .ValidateQueryMiddleware_NoDocument)
+                        .Build());
             }
             else
             {

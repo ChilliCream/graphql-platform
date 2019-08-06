@@ -8,8 +8,10 @@ namespace HotChocolate.Language
     public class Sha1DocumentHashProvider
         : IDocumentHashProvider
     {
-        private ThreadLocal<SHA1> _sha =
+        private readonly ThreadLocal<SHA1> _sha =
             new ThreadLocal<SHA1>(() => SHA1.Create());
+
+        public string Name => "sha1Hash";
 
         public string ComputeHash(ReadOnlySpan<byte> document)
         {
@@ -19,7 +21,8 @@ namespace HotChocolate.Language
 
             try
             {
-                byte[] hash = _sha.Value.ComputeHash(rented, 0, document.Length);
+                byte[] hash = _sha.Value.ComputeHash(
+                    rented, 0, document.Length);
                 return Convert.ToBase64String(hash);
             }
             finally

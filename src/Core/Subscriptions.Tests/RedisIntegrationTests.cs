@@ -1,14 +1,12 @@
 using System;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Language;
+using Microsoft.Extensions.DependencyInjection;
 using StackExchange.Redis;
 using Xunit;
 using HotChocolate.Types;
 using HotChocolate.Execution;
-using System.Threading;
-using Snapshooter.Xunit;
-using Microsoft.Extensions.DependencyInjection;
-using System.Linq;
 
 namespace HotChocolate.Subscriptions.Redis
 {
@@ -28,7 +26,7 @@ namespace HotChocolate.Subscriptions.Redis
 
             _configuration = new ConfigurationOptions
             {
-                Ssl = true,
+                Ssl = !string.IsNullOrEmpty(password),
                 AbortOnConnectFail = false,
                 Password = password
             };
