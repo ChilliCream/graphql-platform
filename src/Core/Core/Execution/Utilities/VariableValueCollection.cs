@@ -13,12 +13,12 @@ namespace HotChocolate.Execution
 
         public VariableValueCollection(
             ITypeConversion converter,
-            Dictionary<string, object> variables)
+            Dictionary<string, object> values)
         {
             _converter = converter
                 ?? throw new ArgumentNullException(nameof(converter));
-            _variables = variables
-                ?? throw new ArgumentNullException(nameof(variables));
+            _variables = values
+                ?? throw new ArgumentNullException(nameof(values));
         }
 
         public T GetVariable<T>(NameString name)
