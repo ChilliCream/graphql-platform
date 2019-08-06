@@ -1,12 +1,9 @@
-using System.Xml.Linq;
-using System.Linq;
-using System.Collections.Specialized;
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Execution;
 using HotChocolate.Stitching.Merge.Handlers;
-using HotChocolate.Resolvers;
 using HotChocolate.Stitching.Merge.Rewriters;
 
 namespace HotChocolate.Stitching.Merge
@@ -18,22 +15,24 @@ namespace HotChocolate.Stitching.Merge
             new List<MergeTypeRuleFactory>
             {
                 SchemaMergerExtensions
-                    .CreateHandler<ScalarTypeMergeHandler>(),
+                    .CreateTypeMergeRule<ScalarTypeMergeHandler>(),
                 SchemaMergerExtensions
-                    .CreateHandler<InputObjectTypeMergeHandler>(),
+                    .CreateTypeMergeRule<InputObjectTypeMergeHandler>(),
                 SchemaMergerExtensions
-                    .CreateHandler<RootTypeMergeHandler>(),
+                    .CreateTypeMergeRule<RootTypeMergeHandler>(),
                 SchemaMergerExtensions
-                    .CreateHandler<ObjectTypeMergeHandler>(),
+                    .CreateTypeMergeRule<ObjectTypeMergeHandler>(),
                 SchemaMergerExtensions
-                    .CreateHandler<InterfaceTypeMergeHandler>(),
+                    .CreateTypeMergeRule<InterfaceTypeMergeHandler>(),
                 SchemaMergerExtensions
-                    .CreateHandler<UnionTypeMergeHandler>(),
+                    .CreateTypeMergeRule<UnionTypeMergeHandler>(),
                 SchemaMergerExtensions
-                    .CreateHandler<EnumTypeMergeHandler>(),
+                    .CreateTypeMergeRule<EnumTypeMergeHandler>(),
             };
         private readonly List<MergeTypeRuleFactory> _mergeRules =
             new List<MergeTypeRuleFactory>();
+        private readonly List<MergeDirectiveRuleFactory> _directiveMergeRules =
+            new List<MergeDirectiveRuleFactory>();
         private readonly List<ITypeRewriter> _typeRewriters =
             new List<ITypeRewriter>();
         private readonly List<IDocumentRewriter> _docRewriters =
@@ -49,6 +48,18 @@ namespace HotChocolate.Stitching.Merge
             }
 
             _mergeRules.Add(factory);
+            return this;
+        }
+
+        public ISchemaMerger AddDirectiveMergeRule(
+            MergeDirectiveRuleFactory factory)
+        {
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            _directiveMergeRules.Add(factory);
             return this;
         }
 
@@ -337,8 +348,6 @@ namespace HotChocolate.Stitching.Merge
                 if (schema.Types.TryGetValue(name,
                     out ITypeDefinitionNode typeDefinition))
                 {
-
-
                     types.Add(TypeInfo.Create(typeDefinition, schema));
                 }
             }
@@ -395,7 +404,16 @@ namespace HotChocolate.Stitching.Merge
                 }
             };
 
-            return new DirectiveTypeMergeHandler(current).Merge;
+            var handlers = new List<MergeDirectiveRuleFactory>();
+            handlers.Add(c => new DirectiveTypeMergeHandler(c).Merge);
+            handlers.AddRange(_directiveMergeRules);
+
+            for (int i = handlers.Count - 1; i >= 0; i--)
+            {
+                current = handlers[i].Invoke(current);
+            }
+
+            return current;
         }
 
         public static SchemaMerger New() => new SchemaMerger();

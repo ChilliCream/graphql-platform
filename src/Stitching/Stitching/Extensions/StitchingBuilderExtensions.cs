@@ -453,18 +453,36 @@ namespace HotChocolate.Stitching
                 new DelegateDocumentRewriter(rewrite));
         }
 
+        [Obsolete("Use AddTypeMergeHandler")]
         public static IStitchingBuilder AddMergeHandler<T>(
             this IStitchingBuilder builder)
-            where T : ITypeMergeHandler
+            where T : class, ITypeMergeHandler =>
+            AddTypeMergeHandler<T>(builder);
+
+        public static IStitchingBuilder AddTypeMergeHandler<T>(
+            this IStitchingBuilder builder)
+            where T : class, ITypeMergeHandler
         {
             if (builder == null)
             {
                 throw new ArgumentNullException(nameof(builder));
             }
 
-            builder.AddMergeRule(SchemaMergerExtensions.CreateHandler<T>());
+            return builder.AddTypeMergeRule(
+                SchemaMergerExtensions.CreateTypeMergeRule<T>());
+        }
 
-            return builder;
+        public static IStitchingBuilder AddDirectiveMergeHandler<T>(
+            this IStitchingBuilder builder)
+            where T : class, ITypeMergeHandler
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.AddTypeMergeRule(
+                SchemaMergerExtensions.CreateTypeMergeRule<T>());
         }
     }
 }

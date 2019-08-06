@@ -1,11 +1,9 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Merge;
 using HotChocolate.Stitching.Merge.Rewriters;
-using HotChocolate.Resolvers;
 using HotChocolate.Configuration;
 
 namespace HotChocolate.Stitching
@@ -82,8 +80,28 @@ namespace HotChocolate.Stitching
         /// <param name="factory">
         /// A factory that create the type merging rule.
         /// </param>
+        [Obsolete("Use AddTypeMergeRule")]
         IStitchingBuilder AddMergeRule(
             MergeTypeRuleFactory factory);
+
+        /// <summary>
+        /// Add a type merge rule in order to define how a type is merged.
+        /// </summary>
+        /// <param name="factory">
+        /// A factory that create the type merging rule.
+        /// </param>
+        IStitchingBuilder AddTypeMergeRule(
+            MergeTypeRuleFactory factory);
+
+        /// <summary>
+        /// Add a directive merge rule in order to define
+        /// how a directive is merged.
+        /// </summary>
+        /// <param name="factory">
+        /// A factory that create the directive merging rule.
+        /// </param>
+        IStitchingBuilder AddDirectiveMergeRule(
+            MergeDirectiveRuleFactory factory);
 
         /// <summary>
         /// Add a document rewriter that is executed on

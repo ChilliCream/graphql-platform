@@ -1063,6 +1063,16 @@ namespace HotChocolate.Stitching
             {
                 throw new NotSupportedException();
             }
+
+            public IStitchingBuilder AddTypeMergeRule(MergeTypeRuleFactory factory)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IStitchingBuilder AddDirectiveMergeRule(MergeDirectiveRuleFactory factory)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }
