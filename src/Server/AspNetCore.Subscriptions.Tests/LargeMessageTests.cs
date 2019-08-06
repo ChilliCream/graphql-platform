@@ -21,7 +21,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         {
         }
 
-        [Fact(Skip = "FIX THIS")]
+        [Fact(Skip = "Fix this one.")]
         public async Task Send_Start_ReceiveDataOnMutation_Large_Message()
         {
             using (TestServer testServer = CreateStarWarsServer())
@@ -44,7 +44,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 // assert
                 await webSocket.SendEmptyMessageAsync();
 
-                await testServer.SendRequestAsync(new ClientQueryRequest
+                await testServer.SendPostRequestAsync(new ClientQueryRequest
                 {
                     Query = @"
                     mutation {

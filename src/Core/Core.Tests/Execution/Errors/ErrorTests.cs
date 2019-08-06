@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using Xunit;
@@ -53,14 +54,13 @@ namespace HotChocolate.Execution
             Assert.Null(error.Locations);
         }
 
+        [Obsolete]
         [Fact]
         public void VariableError_CreateWithoutLocation()
         {
             // arrange
             // act
-#pragma warning disable CS0618 // Type or member is obsolete
             var error = new VariableError("foo", "bar");
-#pragma warning restore CS0618 // Type or member is obsolete
 
             // assert
             Assert.Equal("foo", error.Message);

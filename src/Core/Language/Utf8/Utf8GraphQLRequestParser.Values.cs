@@ -25,12 +25,7 @@ namespace HotChocolate.Language
                     return ParseScalar();
 
                 default:
-                    throw new SyntaxException(_reader,
-                        string.Format(
-                            CultureInfo.InvariantCulture,
-                            "Unexpected token found `{0}` " +
-                            "while expecting a value.",
-                            _reader.Kind));
+                    throw UnexpectedToken();
             }
         }
 
@@ -51,12 +46,7 @@ namespace HotChocolate.Language
                     return SkipScalar();
 
                 default:
-                    throw new SyntaxException(_reader,
-                        string.Format(
-                            CultureInfo.InvariantCulture,
-                            "Unexpected token found `{0}` " +
-                            "while expecting a value.",
-                            _reader.Kind));
+                    throw UnexpectedToken();
             }
         }
 
@@ -194,12 +184,12 @@ namespace HotChocolate.Language
                 case TokenKind.Integer:
                     value = _reader.GetScalarValue();
                     _reader.MoveNext();
-                    return long.Parse(value);
+                    return long.Parse(value, CultureInfo.InvariantCulture);
 
                 case TokenKind.Float:
                     value = _reader.GetScalarValue();
                     _reader.MoveNext();
-                    return decimal.Parse(value);
+                    return decimal.Parse(value, CultureInfo.InvariantCulture);
 
                 case TokenKind.Name:
                     if (_reader.Value.SequenceEqual(GraphQLKeywords.True))
@@ -219,15 +209,12 @@ namespace HotChocolate.Language
                         _reader.MoveNext();
                         return null;
                     }
-                    break;
-            }
 
-            throw new SyntaxException(_reader,
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    "Unexpected token found `{0}` " +
-                    "while expecting a scalar value.",
-                    _reader.Kind));
+                    throw UnexpectedToken();
+
+                default:
+                    throw UnexpectedToken();
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -267,15 +254,12 @@ namespace HotChocolate.Language
                         _reader.MoveNext();
                         return end;
                     }
-                    break;
-            }
 
-            throw new SyntaxException(_reader,
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    "Unexpected token found `{0}` " +
-                    "while expecting a scalar value.",
-                    _reader.Kind));
+                    throw UnexpectedToken();
+
+                default:
+                    throw UnexpectedToken();
+            }
         }
     }
 }

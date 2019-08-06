@@ -31,7 +31,7 @@ namespace HotChocolate.Execution
 
             var fragments = new FragmentCollection(schema, query);
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
 
@@ -81,7 +81,7 @@ namespace HotChocolate.Execution
 
             var fragments = new FragmentCollection(schema, query);
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
 
@@ -121,7 +121,7 @@ namespace HotChocolate.Execution
                 schema,
                 document);
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
 
@@ -158,7 +158,7 @@ namespace HotChocolate.Execution
                 schema,
                 document);
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
 
@@ -195,7 +195,7 @@ namespace HotChocolate.Execution
                 schema,
                 document);
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
 

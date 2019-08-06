@@ -27,13 +27,13 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Defines that all filter operations have to be specified explicitly.
         /// </summary>
-        IStringFilterFieldDescriptor BindExplicitly();
+        IStringFilterFieldDescriptor BindFiltersExplicitly();
 
         /// <summary>
         /// The string filter field descriptor will add
         /// all available string filter operations.
         /// </summary>
-        IStringFilterFieldDescriptor BindImplicitly();
+        IStringFilterFieldDescriptor BindFiltersImplicitly();
 
         /// <summary>
         /// Allow contains filter operations.

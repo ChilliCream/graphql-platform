@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.AspNetClassic.Authorization</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic.Authorization</RootNamespace>
     <PackageId>HotChocolate.AspNetClassic.Authorization</PackageId>
-    <Description>Contains authorization extensions for the Hot Chocolate ASP.net classic GraphQL middleware.</Description>
+    <Description>Contains authorization extensions for the Hot Chocolate ASP .Net classic GraphQL middleware.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">

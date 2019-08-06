@@ -1,6 +1,6 @@
 ﻿namespace HotChocolate.Types
 {
-    internal enum ConfigurationKind
+    public enum ApplyConfigurationOn
     {
         Naming,
         Completion

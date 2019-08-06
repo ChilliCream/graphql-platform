@@ -1,6 +1,5 @@
 using System;
 using System.Globalization;
-using HotChocolate.Language;
 using HotChocolate.Properties;
 
 namespace HotChocolate.Types
@@ -48,23 +47,25 @@ namespace HotChocolate.Types
         }
 
         protected override bool TryParseLiteral(
-            StringValueNode literal,
+            string literal,
             out object obj)
         {
-            if (literal.Value != null
-                && literal.Value.EndsWith("Z")
+            if (literal != null
+                && literal.EndsWith("Z")
                 && DateTime.TryParse(
-                    literal.Value,
+                    literal,
                     CultureInfo.InvariantCulture,
                     DateTimeStyles.AssumeUniversal,
                     out DateTime zuluTime))
             {
-                obj = new DateTimeOffset(zuluTime);
+                obj = new DateTimeOffset(
+                    zuluTime.ToUniversalTime(),
+                    TimeSpan.Zero);
                 return true;
             }
 
             if (DateTimeOffset.TryParse(
-                literal.Value,
+                literal,
                 out DateTimeOffset dateTime))
             {
                 obj = dateTime;

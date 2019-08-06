@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
@@ -27,6 +27,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.csproj" />
+    <ProjectReference Include="..\Subscriptions.Redis\Subscriptions.Redis.csproj" />
     <ProjectReference Include="..\Subscriptions\Subscriptions.csproj" />
     <ProjectReference Include="..\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
   </ItemGroup>

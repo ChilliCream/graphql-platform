@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added prisma filter types. [#861](https://github.com/ChilliCream/hotchocolate/pull/861)
 - Added UTF-8 request parser. [#869](https://github.com/ChilliCream/hotchocolate/pull/869)
 - Added new syntax visitor API.
+- Added Redis subscription provider [#902](https://github.com/ChilliCream/hotchocolate/pull/902)
+- Added support for batching over HTTP [#933](https://github.com/ChilliCream/hotchocolate/pull/933)
+- Added support for persisted queries and added a middleware to enable the active persisted query flow. [#858](https://github.com/ChilliCream/hotchocolate/pull/858)
 
 ### Changed
 
@@ -20,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved parser performance. [#806](https://github.com/ChilliCream/hotchocolate/pull/806)
 - Roles collection on authorization directive is now interpreted as OR.
 - The type conversion API is now better integreated with dependency injection.
+- The server is now more modularized and the various server middlewares can be added separably.
 
 ### Fixed
 
@@ -29,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Order of types in a serialized schema is now consistent. [#891](https://github.com/ChilliCream/hotchocolate/pull/891)
 - Respect UseXmlDocumentation with Schema.Create [#897](https://github.com/ChilliCream/hotchocolate/pull/897)
 - Variables now work in lists and input objects [#896](https://github.com/ChilliCream/hotchocolate/pull/896)
+- Fixed url scalar now correctly detects url strings.
+- Support directives declared stitched schemas [#936](https://github.com/ChilliCream/hotchocolate/pull/936)
 
 ## [9.0.4] - 2019-06-16
 
@@ -154,7 +160,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- The authoization directive is now more aligned how the authorize attribute in ASP.net works.
+- The authoization directive is now more aligned how the authorize attribute in ASP .Net works.
 
 ### Fixed
 
@@ -302,7 +308,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Separate package providing a _GraphiQL_ middleware. The middleware can serve all of _GraphiQL_ without needing to refer to CDNs making it useful even in closed networks. Moreover, we have configured _GraphiQL_ to work with the _GraphQL-ws_ protocol which is supported by _Hot Chocolate_.
 - Initial Support for _GraphQL_ subscriptions. We currently support the _GraphQL-ws_ protocol over web sockets. There will be a lot of additional work in version _0.7.0_ that will harden it.
-- Authorization package for ASP.net core which supports policy-base authorization on fields.
+- Authorization package for ASP .Net core which supports policy-base authorization on fields.
 - Diagnostic source which can be used to track field execution times and other events.
 - Implementing a directive middleware has now become much easier with this release. We have built the authorize-directive with these new APIs.
 

@@ -27,7 +27,7 @@ namespace HotChocolate.Types.Filters
             var schema = CreateSchema(
                 new FilterInputType<Foo>(d => d
                     .Filter(f => f.Bar)
-                        .BindExplicitly()
+                        .BindFiltersExplicitly()
                         .AllowEquals()
                         .Name("foo_eq")));
 
@@ -43,7 +43,7 @@ namespace HotChocolate.Types.Filters
             var schema = CreateSchema(
                 new FilterInputType<Foo>(d => d
                     .Filter(f => f.Bar)
-                        .BindExplicitly()
+                        .BindFiltersExplicitly()
                         .AllowEquals()
                         .And().AllowContains()
                         .And().AllowEndsWith()
@@ -94,7 +94,7 @@ namespace HotChocolate.Types.Filters
             var schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
             {
                 descriptor.Filter(x => x.Bar)
-                    .BindExplicitly()
+                    .BindFiltersExplicitly()
                     .AllowEquals()
                     .Name("custom_equals");
             }));
@@ -111,7 +111,7 @@ namespace HotChocolate.Types.Filters
             var schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
             {
                 descriptor.Filter(x => x.Bar)
-                    .BindExplicitly()
+                    .BindFiltersExplicitly()
                     .AllowEquals()
                     .Description("custom_equals_description");
             }));
@@ -129,7 +129,7 @@ namespace HotChocolate.Types.Filters
                 builder.AddType(new FilterInputType<Foo>(d =>
                 {
                     d.Filter(x => x.Bar)
-                        .BindExplicitly()
+                        .BindFiltersExplicitly()
                         .AllowEquals()
                         .Directive("bar");
                 }))
@@ -150,7 +150,7 @@ namespace HotChocolate.Types.Filters
                 builder.AddType(new FilterInputType<Foo>(d =>
                 {
                     d.Filter(x => x.Bar)
-                        .BindExplicitly()
+                        .BindFiltersExplicitly()
                         .AllowEquals()
                         .Directive("bar",
                             new ArgumentNode("qux",
@@ -175,7 +175,7 @@ namespace HotChocolate.Types.Filters
                 builder.AddType(new FilterInputType<Foo>(d =>
                 {
                     d.Filter(x => x.Bar)
-                        .BindExplicitly()
+                        .BindFiltersExplicitly()
                         .AllowEquals()
                         .Directive<Bar>();
                 }))
@@ -195,7 +195,7 @@ namespace HotChocolate.Types.Filters
                 builder.AddType(new FilterInputType<Foo>(d =>
                 {
                     d.Filter(x => x.Bar)
-                        .BindExplicitly()
+                        .BindFiltersExplicitly()
                         .AllowEquals()
                         .Directive(new Bar());
                 }))
@@ -215,10 +215,10 @@ namespace HotChocolate.Types.Filters
                 new FilterInputType<Foo>(descriptor =>
                 {
                     descriptor
-                        .BindExplicitly()
+                        .BindFieldsExplicitly()
                         .Filter(x => x.Bar)
-                        .BindExplicitly()
-                        .BindImplicitly();
+                        .BindFiltersExplicitly()
+                        .BindFiltersImplicitly();
                 }));
 
             // assert
@@ -242,7 +242,7 @@ namespace HotChocolate.Types.Filters
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Filter(t => t.Bar)
-                    .BindExplicitly()
+                    .BindFiltersExplicitly()
                     .AllowContains().And()
                     .AllowEquals().Name("equals").And()
                     .AllowIn();

@@ -1,4 +1,6 @@
-﻿using System;
+using System.Runtime.InteropServices;
+using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -11,6 +13,7 @@ namespace HotChocolate.Subscriptions
         : IEventDescription
         , IEquatable<EventDescription>
     {
+        private static readonly Encoding _encoding = Encoding.UTF8;
         private string _serialized;
 
         public EventDescription(string name)
@@ -38,9 +41,25 @@ namespace HotChocolate.Subscriptions
                 ?? throw new ArgumentNullException(nameof(arguments));
         }
 
+        private EventDescription(
+            string name,
+            IReadOnlyList<ArgumentNode> arguments)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(
+                    "The event name cannot be null or empty.",
+                    nameof(name));
+            }
+
+            Name = name;
+            Arguments = arguments
+                ?? throw new ArgumentNullException(nameof(arguments));
+        }
+
         public string Name { get; }
 
-        public IReadOnlyCollection<ArgumentNode> Arguments { get; }
+        public IReadOnlyList<ArgumentNode> Arguments { get; }
 
         public bool Equals(EventDescription other)
         {
@@ -111,30 +130,69 @@ namespace HotChocolate.Subscriptions
         {
             if (_serialized == null)
             {
-                _serialized = Arguments.Any()
-                    ? $"{Name}({SerializeArguments(Arguments)})"
-                    : Name;
+                if (Arguments.Count == 0)
+                {
+                    _serialized = Name;
+                }
+                else
+                {
+                    var serialized = new StringBuilder();
+                    serialized.Append(Name);
+                    serialized.Append('(');
+                    SerializeArguments(serialized, Arguments);
+                    serialized.Append(')');
+                    _serialized = serialized.ToString();
+                }
             }
             return _serialized;
         }
 
-        private static string SerializeArguments(
-            IEnumerable<ArgumentNode> arguments)
+        private static void SerializeArguments(
+            StringBuilder serialized,
+            IReadOnlyList<ArgumentNode> arguments)
         {
-            var serializer = new QuerySyntaxSerializer();
-            var sb = new StringBuilder();
-
-            using (var stringWriter = new StringWriter(sb))
+            for (int i = 0; i < arguments.Count; i++)
             {
-                var documentWriter = new DocumentWriter(stringWriter);
-
-                return string.Join(", ", arguments.Select(t =>
+                if (i != 0)
                 {
-                    sb.Clear();
-                    serializer.Visit(t.Value, documentWriter);
-                    return t.Name.Value + " = " + sb;
-                }));
+                    serialized.Append(',');
+                    serialized.Append(' ');
+                }
+
+                ArgumentNode argument = arguments[i];
+                serialized.Append(argument.Name.Value);
+                serialized.Append(':');
+                serialized.Append(' ');
+                serialized.Append(QuerySyntaxSerializer.Serialize(argument.Value));
             }
+        }
+
+        public static EventDescription Parse(string s)
+        {
+            return Parse(_encoding.GetBytes(s));
+        }
+
+        public static EventDescription Parse(ReadOnlySpan<byte> data)
+        {
+            var reader = new Utf8GraphQLReader(data);
+            if (reader.Read())
+            {
+                if (reader.Kind != TokenKind.Name)
+                {
+                    // TODO : exception
+                    throw new Exception();
+                }
+
+                string name = reader.GetString();
+
+                var parser = new Utf8GraphQLParser(
+                    reader,
+                    ParserOptions.NoLocation);
+                IReadOnlyList<ArgumentNode> arguments = parser.ParseArguments();
+                return new EventDescription(name, arguments);
+            }
+
+            throw new ArgumentException("data is empty.", nameof(data));
         }
     }
 }
