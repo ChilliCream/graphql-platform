@@ -53,6 +53,7 @@ Task("Clean")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
+    DotNetCoreClean("./src/DataLoader");
     DotNetCoreClean("./src/Core");
     DotNetCoreClean("./src/Server");
 });
@@ -162,7 +163,10 @@ Task("Tests")
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
-        DotNetCoreTest(file.FullPath, testSettings);
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
     }
 });
 
@@ -207,7 +211,80 @@ Task("CoreTests")
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
-        DotNetCoreTest(file.FullPath, testSettings);
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
+Task("RedisTests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    var buildSettings = new DotNetCoreBuildSettings
+    {
+        Configuration = "Debug"
+    };
+
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = true,
+        NoBuild = true,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/core_{i++}\" --blame")
+    };
+
+    DotNetCoreBuild("./tools/Build.Core.sln", buildSettings);
+
+    foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
+    {
+        if(file.FullPath.Contains("Redis"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
+Task("MongoTests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    var buildSettings = new DotNetCoreBuildSettings
+    {
+        Configuration = "Debug"
+    };
+
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = true,
+        NoBuild = true,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/core_{i++}\" --blame")
+    };
+
+    DotNetCoreBuild("./tools/Build.Core.sln", buildSettings);
+
+    foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
+    {
+        if(file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
     }
 });
 

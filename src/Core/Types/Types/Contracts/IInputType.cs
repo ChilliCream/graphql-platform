@@ -3,7 +3,7 @@
 namespace HotChocolate.Types
 {
     public interface IInputType
-        : IType
+        : ISerializableType
         , IHasClrType
     {
         bool IsInstanceOfType(IValueNode literal);

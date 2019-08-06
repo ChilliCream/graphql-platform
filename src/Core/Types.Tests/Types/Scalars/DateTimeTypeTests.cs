@@ -174,11 +174,11 @@ namespace HotChocolate.Types
                 2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
 
             // act
-            DateTime deserializedValue = ((DateTimeOffset)dateTimeType
-                .Deserialize("2018-06-11T08:46:14.000Z")).DateTime;
+            DateTimeOffset deserializedValue = ((DateTimeOffset)dateTimeType
+                .Deserialize("2018-06-11T08:46:14.000Z"));
 
             // assert
-            Assert.Equal(dateTime, deserializedValue);
+            Assert.Equal(dateTime, deserializedValue.UtcDateTime);
         }
 
         [Fact]

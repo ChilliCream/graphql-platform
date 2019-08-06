@@ -15,13 +15,13 @@ namespace HotChocolate.Execution
             new ThreadLocal<VariableToValueRewriter>(
                 () => new VariableToValueRewriter());
         private readonly Stack<IType> _type = new Stack<IType>();
-        private IVariableCollection _variables;
+        private IVariableValueCollection _variables;
         private ITypeConversion _typeConversion;
 
         public IValueNode RewriteValue(
             IValueNode value,
             IType type,
-            IVariableCollection variables,
+            IVariableValueCollection variables,
             ITypeConversion typeConversion)
         {
             if (value is null)
@@ -190,7 +190,7 @@ namespace HotChocolate.Execution
         public static IValueNode Rewrite(
             IValueNode value,
             IType type,
-            IVariableCollection variables,
+            IVariableValueCollection variables,
             ITypeConversion typeConversion) =>
             _current.Value.RewriteValue(value, type, variables, typeConversion);
     }

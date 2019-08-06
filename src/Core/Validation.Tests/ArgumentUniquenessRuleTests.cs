@@ -16,7 +16,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment goodNonNullArg on Arguments {
                     nonNullBooleanArgField(nonNullBooleanArg: true)
                 }
@@ -34,7 +34,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment goodNonNullArg on Arguments {
                     nonNullBooleanArgField(nonNullBooleanArg: true, nonNullBooleanArg: true)
                 }

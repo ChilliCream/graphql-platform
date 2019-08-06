@@ -46,7 +46,7 @@ namespace HotChocolate.Validation
         public void QueryWithTypeSystemDefinitions()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query getDogName {
                     dog {
                         name
@@ -81,7 +81,7 @@ namespace HotChocolate.Validation
         public void QueryWithOneAnonymousAndOneNamedOperation()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         name
@@ -120,7 +120,7 @@ namespace HotChocolate.Validation
         public void TwoQueryOperationsWithTheSameName()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query getName {
                     dog {
                         name
@@ -155,7 +155,7 @@ namespace HotChocolate.Validation
         public void OperationWithTwoVariablesThatHaveTheSameName()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query houseTrainedQuery(
                     $atOtherHomes: Boolean, $atOtherHomes: Boolean) {
                     dog {
@@ -187,7 +187,7 @@ namespace HotChocolate.Validation
         public void DuplicateArgument()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment goodNonNullArg on Arguments {
                     nonNullBooleanArgField(
                         nonNullBooleanArg: true, nonNullBooleanArg: true)
@@ -216,7 +216,7 @@ namespace HotChocolate.Validation
         public void MissingRequiredArgNonNullBooleanArg()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment missingRequiredArg on Arguments {
                     nonNullBooleanArgField(nonNullBooleanArg: null)
                 }
@@ -245,7 +245,7 @@ namespace HotChocolate.Validation
         public void DisallowedSecondRootField()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 subscription sub {
                     newMessage {
                         body
@@ -277,7 +277,7 @@ namespace HotChocolate.Validation
         public void FieldIsNotDefinedOnTypeInFragment()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment fieldNotDefined on Dog {
                     meowVolume
                 }
@@ -318,7 +318,7 @@ namespace HotChocolate.Validation
         public void VariableNotUsedWithinFragment()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query variableNotUsedWithinFragment($atOtherHomes: Boolean) {
                     dog {
                         ...isHousetrainedWithoutVariableFragment
@@ -349,7 +349,7 @@ namespace HotChocolate.Validation
         public void SkipDirectiveIsInTheWrongPlace()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query @skip(if: $foo) {
                     field
                 }
@@ -371,7 +371,7 @@ namespace HotChocolate.Validation
         public void QueriesWithInvalidVariableTypes()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query takesCat($cat: Cat) {
                     # ...
                 }
@@ -429,7 +429,7 @@ namespace HotChocolate.Validation
         public void ConflictingBecauseAlias()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment conflictingBecauseAlias on Dog {
                     name: nickname
                     name
@@ -459,7 +459,7 @@ namespace HotChocolate.Validation
         public void InvalidFieldArgName()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment invalidArgName on Dog {
                     doesKnowCommand(command: CLEAN_UP_HOUSE)
                 }
@@ -491,7 +491,7 @@ namespace HotChocolate.Validation
         public void UnusedFragment()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment nameFragment on Dog { # unused
                     name
                 }
@@ -522,7 +522,7 @@ namespace HotChocolate.Validation
         public void DuplicateFragments()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...fragmentOne
@@ -559,7 +559,7 @@ namespace HotChocolate.Validation
         public void ScalarSelectionsNotAllowedOnInt()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         barkVolume {
@@ -589,7 +589,7 @@ namespace HotChocolate.Validation
         public void InlineFragOnScalar()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                        ... inlineFragOnScalar
@@ -622,7 +622,7 @@ namespace HotChocolate.Validation
         public void FragmentCycle1()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...nameFragment
@@ -661,7 +661,7 @@ namespace HotChocolate.Validation
         public void UndefinedFragment()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...undefinedFragment
@@ -689,7 +689,7 @@ namespace HotChocolate.Validation
         public void FragmentDoesNotMatchType()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...fragmentDoesNotMatchType
@@ -721,7 +721,7 @@ namespace HotChocolate.Validation
         public void NotExistingTypeOnInlineFragment()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...inlineNotExistingType
@@ -755,7 +755,7 @@ namespace HotChocolate.Validation
         public void InvalidInputObjectFieldsExist()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     findDog(complex: { favoriteCookieFlavor: ""Bacon"" })
                     {
@@ -784,7 +784,7 @@ namespace HotChocolate.Validation
         public void RequiredFieldIsNull()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     findDog2(complex: { name: null })
                     {
@@ -812,7 +812,7 @@ namespace HotChocolate.Validation
         public void NameFieldIsAmbiguous()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     findDog(complex: { name: ""A"", name: ""B"" })
                     {
@@ -840,7 +840,7 @@ namespace HotChocolate.Validation
         public void UnsupportedDirective()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         name @foo(bar: true)
@@ -868,7 +868,7 @@ namespace HotChocolate.Validation
         public void StringIntoInt()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     arguments {
                         ...stringIntoInt
@@ -900,7 +900,7 @@ namespace HotChocolate.Validation
         public void MaxDepthRuleIsIncluded()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query {
                     catOrDog
                     {

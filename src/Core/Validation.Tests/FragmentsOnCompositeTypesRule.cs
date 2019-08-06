@@ -16,7 +16,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                        ... fragOnObject
@@ -40,7 +40,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                        ... fragOnInterface
@@ -64,7 +64,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                        ... fragOnUnion
@@ -90,7 +90,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                        ... fragOnScalar
@@ -118,7 +118,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                        ... inlineFragOnScalar

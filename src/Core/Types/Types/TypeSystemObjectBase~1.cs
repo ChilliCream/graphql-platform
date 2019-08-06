@@ -14,7 +14,7 @@ namespace HotChocolate.Types
     {
         private TDefinition _definition;
         private Dictionary<string, object> _contextData;
-        private IReadOnlyCollection<ITypeConfigration> _configrations;
+        private IReadOnlyCollection<ILazyTypeConfiguration> _configrations;
 
         protected TypeSystemObjectBase() { }
 
@@ -50,7 +50,7 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteName(ICompletionContext context)
         {
-            ExecuteConfigurations(context, ConfigurationKind.Naming);
+            ExecuteConfigurations(context, ApplyConfigurationOn.Naming);
             OnCompleteName(context, _definition);
 
             if (Name.IsEmpty)
@@ -80,7 +80,7 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteType(ICompletionContext context)
         {
-            ExecuteConfigurations(context, ConfigurationKind.Completion);
+            ExecuteConfigurations(context, ApplyConfigurationOn.Completion);
 
             Description = _definition.Description;
 
@@ -115,10 +115,10 @@ namespace HotChocolate.Types
 
         private void ExecuteConfigurations(
             ICompletionContext context,
-            ConfigurationKind kind)
+            ApplyConfigurationOn kind)
         {
-            foreach (ITypeConfigration configuration in
-                _configrations.Where(t => t.Kind == kind))
+            foreach (ILazyTypeConfiguration configuration in
+                _configrations.Where(t => t.On == kind))
             {
                 configuration.Configure(context);
             }

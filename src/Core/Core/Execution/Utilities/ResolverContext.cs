@@ -48,7 +48,7 @@ namespace HotChocolate.Execution
 
         public FieldNode FieldSelection => _fieldSelection.Selection;
 
-        public string ResponseName => _fieldSelection.ResponseName;
+        public NameString ResponseName => _fieldSelection.ResponseName;
 
         public IImmutableStack<object> Source { get; private set; }
 
@@ -98,6 +98,8 @@ namespace HotChocolate.Execution
         public bool IsResultModified { get; private set; }
 
         public Action PropagateNonNullViolation { get; private set; }
+
+        public IVariableValueCollection Variables => _executionContext.Variables;
 
         public T Parent<T>()
         {

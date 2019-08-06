@@ -1,0 +1,3 @@
+﻿directive @test(arg: String) on OBJECT
+
+directive @test1(arg: String) on OBJECT

@@ -1,12 +1,10 @@
 using System;
 using System.Globalization;
-using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Runtime;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -31,11 +29,12 @@ namespace HotChocolate.Execution
             string cacheKey = CreateKey(operationName, context.QueryKey);
 
             OperationDefinitionNode node = _queryCache.GetOrCreate(cacheKey,
-                () => GetOperation(context.Document, operationName));
+                () => QueryDocumentHelper.GetOperation(
+                    context.Document, operationName));
 
             ObjectType rootType = ResolveRootType(context, node.Operation);
             object rootValue = ResolveRootValue(context, rootType);
-            bool disposeRootValue = false;
+            var disposeRootValue = false;
 
             if (rootValue == null)
             {
@@ -71,38 +70,6 @@ namespace HotChocolate.Execution
                 return queryText;
             }
             return $"{operationName}-->{queryText}";
-        }
-
-        private static OperationDefinitionNode GetOperation(
-            DocumentNode queryDocument, string operationName)
-        {
-            var operations = queryDocument.Definitions
-                .OfType<OperationDefinitionNode>()
-                .ToList();
-
-            if (string.IsNullOrEmpty(operationName))
-            {
-                if (operations.Count == 1)
-                {
-                    return operations[0];
-                }
-
-                throw new QueryException(
-                    CoreResources.GetOperation_MultipleOperations);
-            }
-            else
-            {
-                OperationDefinitionNode operation = operations.SingleOrDefault(
-                    t => t.Name.Value.EqualsOrdinal(operationName));
-                if (operation == null)
-                {
-                    throw new QueryException(string.Format(
-                        CultureInfo.CurrentCulture,
-                        CoreResources.GetOperation_InvalidOperationName,
-                        operationName));
-                }
-                return operation;
-            }
         }
 
         private static ObjectType ResolveRootType(

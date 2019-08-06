@@ -42,14 +42,25 @@ namespace HotChocolate.AspNetCore
             }
 
             return applicationBuilder
-                .UseMiddleware<PostQueryMiddleware>(options)
-                .UseMiddleware<GetQueryMiddleware>(options)
+                .UseGraphQLHttpPost(new HttpPostMiddlewareOptions
+                {
+                    Path = options.Path,
+                    ParserOptions = options.ParserOptions,
+                    MaxRequestSize = options.MaxRequestSize
+                })
+                .UseGraphQLHttpGet(new HttpGetMiddlewareOptions
+                {
+                    Path = options.Path
+                })
+                .UseGraphQLHttpGetSchema(new HttpGetSchemaMiddlewareOptions
+                {
+                    Path = options.Path.Add(new PathString("/schema"))
+                })
                 .UseGraphQLSubscriptions(new SubscriptionMiddlewareOptions
                 {
                     ParserOptions = options.ParserOptions,
-                    SubscriptionPath = options.SubscriptionPath
-                })
-                .UseMiddleware<SchemaMiddleware>(options);
+                    Path = options.SubscriptionPath
+                });
         }
     }
 }

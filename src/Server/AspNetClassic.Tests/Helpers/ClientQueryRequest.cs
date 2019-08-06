@@ -1,9 +1,10 @@
-﻿using Newtonsoft.Json;
+using System.Collections.Generic;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace HotChocolate.AspNetClassic
 {
-    internal class ClientQueryRequest
+    public class ClientQueryRequest
     {
         [JsonProperty("operationName")]
         public string OperationName { get; set; }
@@ -15,6 +16,6 @@ namespace HotChocolate.AspNetClassic
         public string Query { get; set; }
 
         [JsonProperty("variables")]
-        public JObject Variables { get; set; }
+        public Dictionary<string, object> Variables { get; set; }
     }
 }

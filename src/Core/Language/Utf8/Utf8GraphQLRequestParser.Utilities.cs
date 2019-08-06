@@ -63,5 +63,14 @@ namespace HotChocolate.Language
             return _reader.Kind == TokenKind.Name
                 && _reader.Value.SequenceEqual(GraphQLKeywords.Null);
         }
+
+        // TODO : resources
+        private SyntaxException UnexpectedToken() =>
+            throw new SyntaxException(_reader,
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    "Unexpected token found `{0}` " +
+                    "while expecting a scalar value.",
+                    _reader.Kind));
     }
 }

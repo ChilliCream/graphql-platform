@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
@@ -14,7 +15,13 @@ namespace HotChocolate.Execution
 
         public Task SerializeAsync(
             IReadOnlyQueryResult result,
-            Stream stream)
+            Stream stream) =>
+            SerializeAsync(result, stream, CancellationToken.None);
+
+        public Task SerializeAsync(
+            IReadOnlyQueryResult result,
+            Stream stream,
+            CancellationToken cancellationToken)
         {
             if (result is null)
             {

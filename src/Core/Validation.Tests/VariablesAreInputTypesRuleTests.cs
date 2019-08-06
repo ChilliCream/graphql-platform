@@ -16,7 +16,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query takesBoolean($atOtherHomes: Boolean) {
                     dog {
                         isHousetrained(atOtherHomes: $atOtherHomes)
@@ -46,7 +46,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query takesCat($cat: Cat) {
                     # ...
                 }

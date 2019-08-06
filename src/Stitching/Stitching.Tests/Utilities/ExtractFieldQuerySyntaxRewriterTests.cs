@@ -37,7 +37,7 @@ namespace HotChocolate.Stitching
                     c.Use(next => context => Task.CompletedTask);
                 });
 
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 FileResource.Open(queryFile));
 
             OperationDefinitionNode operation = query.Definitions
@@ -80,7 +80,7 @@ namespace HotChocolate.Stitching
                     c.Use(next => context => Task.CompletedTask);
                 });
 
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 FileResource.Open("StitchingQuery.graphql"));
 
             OperationDefinitionNode operation = query.Definitions

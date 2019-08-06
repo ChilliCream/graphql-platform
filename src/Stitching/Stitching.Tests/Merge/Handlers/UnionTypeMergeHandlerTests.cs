@@ -13,9 +13,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("union Foo = Bar | Baz");
+                Utf8GraphQLParser.Parse("union Foo = Bar | Baz");
             DocumentNode schema_b =
-                Parser.Default.Parse("union Foo = Bar | Baz");
+                Utf8GraphQLParser.Parse("union Foo = Bar | Baz");
 
             var types = new List<ITypeInfo>
             {

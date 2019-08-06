@@ -21,9 +21,9 @@ namespace HotChocolate.Stitching
 
             // act
             var rewriter = new MergeQueryRewriter(Array.Empty<string>());
-            rewriter.AddQuery(Parser.Default.Parse(query_a), "_a", false);
-            rewriter.AddQuery(Parser.Default.Parse(query_b), "_b", false);
-            rewriter.AddQuery(Parser.Default.Parse(query_c), "_c", false);
+            rewriter.AddQuery(Utf8GraphQLParser.Parse(query_a), "_a", false);
+            rewriter.AddQuery(Utf8GraphQLParser.Parse(query_b), "_b", false);
+            rewriter.AddQuery(Utf8GraphQLParser.Parse(query_c), "_c", false);
             DocumentNode document = rewriter.Merge();
 
             // assert
@@ -34,9 +34,9 @@ namespace HotChocolate.Stitching
         public void QueryWithPrivateVariables()
         {
             // arrange
-            DocumentNode query_a = Parser.Default.Parse(
+            DocumentNode query_a = Utf8GraphQLParser.Parse(
                 FileResource.Open("StitchingQueryWithUnion.graphql"));
-            DocumentNode query_b = Parser.Default.Parse(
+            DocumentNode query_b = Utf8GraphQLParser.Parse(
                 FileResource.Open("StitchingQueryWithVariables.graphql"));
 
             // act
@@ -53,9 +53,9 @@ namespace HotChocolate.Stitching
         public void QueryWithGlobalVariables()
         {
             // arrange
-            DocumentNode query_a = Parser.Default.Parse(
+            DocumentNode query_a = Utf8GraphQLParser.Parse(
                 FileResource.Open("MergeQueryWithVariable.graphql"));
-            DocumentNode query_b = Parser.Default.Parse(
+            DocumentNode query_b = Utf8GraphQLParser.Parse(
                 FileResource.Open("MergeQueryWithVariable.graphql"));
 
             // act
@@ -73,9 +73,9 @@ namespace HotChocolate.Stitching
         public void AliasesMapIsCorrect()
         {
             // arrange
-            DocumentNode query_a = Parser.Default.Parse(
+            DocumentNode query_a = Utf8GraphQLParser.Parse(
                 FileResource.Open("MergeQueryWithVariable.graphql"));
-            DocumentNode query_b = Parser.Default.Parse(
+            DocumentNode query_b = Utf8GraphQLParser.Parse(
                 FileResource.Open("MergeQueryWithVariable.graphql"));
 
             // act
@@ -95,7 +95,7 @@ namespace HotChocolate.Stitching
         public void DocumentHasNoOperation()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 "type Foo { s: String }");
 
             // act
@@ -111,7 +111,7 @@ namespace HotChocolate.Stitching
         public void DocumentIsNull()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 "type Foo { s: String }");
 
             // act
@@ -127,8 +127,8 @@ namespace HotChocolate.Stitching
         public void QueriesAreNotOfTheSameOperationType()
         {
             // arrange
-            DocumentNode query_a = Parser.Default.Parse("query a { b }");
-            DocumentNode query_b = Parser.Default.Parse("mutation a { b }");
+            DocumentNode query_a = Utf8GraphQLParser.Parse("query a { b }");
+            DocumentNode query_b = Utf8GraphQLParser.Parse("mutation a { b }");
 
             // act
             var rewriter = new MergeQueryRewriter(Array.Empty<string>());
@@ -144,7 +144,7 @@ namespace HotChocolate.Stitching
         public void RequestPrefixIsEmpty()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 "type Foo { s: String }");
 
             // act
@@ -161,7 +161,7 @@ namespace HotChocolate.Stitching
         public void CreateNewInstance_GlobalVariablesIsNull()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 "type Foo { s: String }");
 
             // act

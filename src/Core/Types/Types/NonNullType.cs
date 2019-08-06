@@ -5,110 +5,90 @@ using HotChocolate.Properties;
 namespace HotChocolate.Types
 {
     public class NonNullType
-        : IOutputType
-        , IInputType
+        : NonNamedType
     {
-        private readonly bool _isInputType;
-        private readonly IInputType _inputType;
-
         public NonNullType(IType type)
+            : base(type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
             if (!(type is INullableType))
             {
                 throw new ArgumentException(
                     TypeResources.NonNullType_TypeIsNunNullType,
                     nameof(type));
             }
-
-            _isInputType = type.IsInputType();
-            _inputType = type as IInputType;
-
-            Type = type;
-            ClrType = this.ToClrType();
         }
 
-        public TypeKind Kind => TypeKind.NonNull;
+        public override TypeKind Kind => TypeKind.NonNull;
 
-        public IType Type { get; }
+        public IType Type => InnerType;
 
-        public Type ClrType { get; }
-
-        public bool IsInstanceOfType(IValueNode literal)
+        protected sealed override bool IsInstanceOfType(IValueNode literal)
         {
-            if (_isInputType)
+            if (literal is NullValueNode)
             {
-                if (literal is NullValueNode)
-                {
-                    return false;
-                }
-
-                return _inputType.IsInstanceOfType(literal);
+                return false;
             }
 
-            throw new InvalidOperationException(
-                TypeResources.NonNullType_NotAnInputType);
+            return InnerInputType.IsInstanceOfType(literal);
         }
 
-        public object ParseLiteral(IValueNode literal)
+        protected sealed override object ParseLiteral(IValueNode literal)
         {
-            if (literal == null)
+            if (literal is NullValueNode)
             {
-                throw new ArgumentNullException(nameof(literal));
+                throw new ArgumentException(
+                    TypeResources.NonNullType_ValueIsNull,
+                    nameof(literal));
             }
 
-            if (_isInputType)
-            {
-                if (literal is NullValueNode)
-                {
-                    throw new ArgumentException(
-                        TypeResources.NonNullType_ValueIsNull,
-                        nameof(literal));
-                }
-
-                return _inputType.ParseLiteral(literal);
-            }
-
-            throw new InvalidOperationException(
-                TypeResources.NonNullType_NotAnInputType);
+            return InnerInputType.ParseLiteral(literal);
         }
 
-        public bool IsInstanceOfType(object value)
+        protected sealed override bool IsInstanceOfType(object value)
         {
-            if (_isInputType && Type is IInputType it)
+            if (value is null)
             {
-                if (value is null)
-                {
-                    return false;
-                }
-
-                return it.IsInstanceOfType(value);
+                return false;
             }
 
-            throw new InvalidOperationException(
-                TypeResources.NonNullType_NotAnInputType);
+            return InnerInputType.IsInstanceOfType(value);
         }
 
-        public IValueNode ParseValue(object value)
+        protected sealed override IValueNode ParseValue(object value)
         {
-            if (_isInputType)
+            if (value == null)
             {
-                if (value == null)
-                {
-                    throw new ArgumentException(
-                        TypeResources.NonNullType_ValueIsNull,
-                        nameof(value));
-                }
-
-                return _inputType.ParseValue(value);
+                throw new ArgumentException(
+                    TypeResources.NonNullType_ValueIsNull,
+                    nameof(value));
             }
 
-            throw new InvalidOperationException(
-                TypeResources.NonNullType_NotAnInputType);
+            return InnerInputType.ParseValue(value);
+        }
+
+        protected sealed override bool TrySerialize(
+            object value, out object serialized)
+        {
+            if (value != null)
+            {
+                serialized = InnerInputType.Serialize(value);
+                return true;
+            }
+
+            serialized = null;
+            return false;
+        }
+
+        protected sealed override bool TryDeserialize(
+            object serialized, out object value)
+        {
+            if (serialized != null)
+            {
+                return InnerInputType.TryDeserialize(serialized, out value);
+            }
+
+            value = null;
+            return false;
         }
     }
 }

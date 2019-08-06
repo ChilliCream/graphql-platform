@@ -5,7 +5,7 @@
     <AssemblyName>HotChocolate.AspNetClassic</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic</RootNamespace>
     <PackageId>HotChocolate.AspNetClassic</PackageId>
-    <Description>Contains the Hot Chocolate GraphQL middleware for ASP.net classic.</Description>
+    <Description>Contains the Hot Chocolate GraphQL middleware for ASP .Net classic.</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -26,23 +26,18 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Owin" Version="4.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Core\Core.csproj" />
     <ProjectReference Include="..\AspNetClassic.Authorization\AspNetClassic.Authorization.csproj" />
     <ProjectReference Include="..\AspNetClassic.Abstractions\AspNetClassic.Abstractions.csproj" />
-    <ProjectReference Include="..\Server\Server.csproj" />
+    <ProjectReference Include="..\AspNetClassic.HttpGet\AspNetClassic.HttpGet.csproj" />
+    <ProjectReference Include="..\AspNetClassic.HttpGetSchema\AspNetClassic.HttpGetSchema.csproj" />
+    <ProjectReference Include="..\AspNetClassic.HttpPost\AspNetClassic.HttpPost.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Compile
-      Include="..\AspNetCore\**\*.cs"
-      Exclude="
-        ..\AspNetCore\**\ApplicationBuilderExtensions.cs;
-        ..\AspNetCore\bin\**\*.cs;
-        ..\AspNetCore\obj\**\*.cs" />
+    <Compile Include="..\AspNetCore\**\*.cs" Exclude="&#xA;        ..\AspNetCore\**\ApplicationBuilderExtensions.cs;&#xA;        ..\AspNetCore\bin\**\*.cs;&#xA;        ..\AspNetCore\obj\**\*.cs" />
   </ItemGroup>
 
 </Project>

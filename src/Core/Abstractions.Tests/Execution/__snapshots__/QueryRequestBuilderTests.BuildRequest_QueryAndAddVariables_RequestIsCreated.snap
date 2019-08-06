@@ -10,6 +10,7 @@
     "two": "bar"
   },
   "InitialValue": null,
-  "Properties": null,
-  "Services": null
+  "Properties": {},
+  "Services": null,
+  "Extensions": {}
 }

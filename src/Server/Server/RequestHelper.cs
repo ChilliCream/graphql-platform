@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Collections.Generic;
 using System;
 using System.IO;
@@ -5,6 +6,7 @@ using System.Threading.Tasks;
 using System.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Server
 {
@@ -34,61 +36,41 @@ namespace HotChocolate.Server
         }
 
         public Task<IReadOnlyList<GraphQLRequest>> ReadJsonRequestAsync(
-            Stream stream) => ReadAsync(stream, false);
+            Stream stream,
+            CancellationToken cancellationToken) =>
+            ReadAsync(stream, false, cancellationToken);
 
         public Task<IReadOnlyList<GraphQLRequest>> ReadGraphQLQueryAsync(
-            Stream stream) => ReadAsync(stream, true);
-
-        private async Task<IReadOnlyList<GraphQLRequest>> ReadAsync(
             Stream stream,
-            bool isGraphQLQuery)
+            CancellationToken cancellationToken) =>
+            ReadAsync(stream, true, cancellationToken);
+
+        private Task<IReadOnlyList<GraphQLRequest>> ReadAsync(
+            Stream stream,
+            bool isGraphQLQuery,
+            CancellationToken cancellationToken)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
-            var bytesBuffered = 0;
-
-            try
-            {
-                while (true)
+            return BufferHelper.ReadAsync(
+                stream,
+                (buffer, bytesBuffered) =>
                 {
-                    var bytesRemaining = buffer.Length - bytesBuffered;
-
-                    if (bytesRemaining == 0)
-                    {
-                        var next = ArrayPool<byte>.Shared.Rent(
-                            buffer.Length * 2);
-                        Buffer.BlockCopy(buffer, 0, next, 0, buffer.Length);
-                        ArrayPool<byte>.Shared.Return(buffer);
-                        buffer = next;
-                        bytesRemaining = buffer.Length - bytesBuffered;
-                    }
-
-                    var bytesRead = await stream.ReadAsync(
-                        buffer, bytesBuffered, bytesRemaining)
-                        .ConfigureAwait(false);
-                    if (bytesRead == 0)
-                    {
-                        break;
-                    }
-
-                    bytesBuffered += bytesRead;
+                    return isGraphQLQuery
+                        ? ParseQuery(buffer, bytesBuffered)
+                        : ParseRequest(buffer, bytesBuffered);
+                },
+                bytesBuffered =>
+                {
                     if (bytesBuffered > _maxRequestSize)
                     {
+                        // TODO : resources
                         throw new QueryException(
                             ErrorBuilder.New()
                                 .SetMessage("Max request size reached.")
                                 .SetCode("MAX_REQUEST_SIZE")
                                 .Build());
                     }
-                }
-
-                return isGraphQLQuery
-                    ? ParseQuery(buffer, bytesBuffered)
-                    : ParseRequest(buffer, bytesBuffered);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
+                },
+                cancellationToken);
         }
 
         private IReadOnlyList<GraphQLRequest> ParseRequest(

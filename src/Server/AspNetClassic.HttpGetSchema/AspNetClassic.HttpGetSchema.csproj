@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
+    <AssemblyName>HotChocolate.AspNetClassic.HttpGetSchema</AssemblyName>
+    <RootNamespace>HotChocolate.AspNetClassic.HttpGetSchema</RootNamespace>
+    <PackageId>HotChocolate.AspNetClassic.HttpGetSchema</PackageId>
+    <Description>Contains the Hot Chocolate GraphQL HTTP GET schema middleware for ASP .Net classic.</Description>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DebugType>portable</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DefineConstants>TRACE;DEBUG;ASPNETCLASSIC</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <DebugType>pdbonly</DebugType>
+    <DebugSymbols>true</DebugSymbols>
+    <DefineConstants>TRACE;ASPNETCLASSIC</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Core\Core.csproj" />
+    <ProjectReference Include="..\AspNetClassic.Abstractions\AspNetClassic.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\AspNetCore.HttpGetSchema\*.cs" />
+  </ItemGroup>
+
+</Project>

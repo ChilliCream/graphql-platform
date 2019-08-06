@@ -3,6 +3,7 @@
   customer(id: ID!): Customer @delegate(schema: "customer")
   customerByKind(kind: CustomerKind!): Customer @delegate(schema: "customer")
   customerOrConsultant(id: ID!): CustomerOrConsultant @delegate(schema: "customer")
+  customers(ids: [ID!]!): [Customer] @delegate(schema: "customer")
   contract(contractId: ID!): Contract @delegate(schema: "contract")
   contracts(customerId: ID!): [Contract!] @delegate(schema: "contract")
   extendedScalar(d: DateTime): DateTime @delegate(schema: "contract")
@@ -95,11 +96,20 @@ input CustomerInput @source(name: "CustomerInput", schema: "customer") {
 }
 
 type LifeInsuranceContract implements Contract @source(name: "LifeInsuranceContract", schema: "contract") {
+  byte_field: Byte
   customerId: ID!
+  date_field: Date
+  date_time_field: DateTime
+  decimal_field: Decimal
   error: String
+  float_field: Float
   foo(bar: String): String
   id: ID!
+  id_field: ID
+  int_field: Int
+  long_field: Long
   premium: Float!
+  string_field: String
 }
 
 type SomeOtherContract implements Contract @source(name: "SomeOtherContract", schema: "contract") {
@@ -112,3 +122,17 @@ interface Contract @source(name: "Contract", schema: "contract") {
   customerId: ID!
   id: ID!
 }
+
+"Directs the executor to skip this field or fragment when the `if` argument is true."
+directive @skip("Skipped when true." if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"Directs the executor to include this field or fragment only when the `if` argument is true."
+directive @include("Included when true." if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
+
+"The cost directives is used to express the complexity of a field."
+directive @cost("Defines the complexity of the field." complexity: Int! = 1 "Defines field arguments that act as complexity multipliers." multipliers: [MultiplierPath!]) on FIELD_DEFINITION
+
+"The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values."
+directive @deprecated("Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark)." reason: String = "No longer supported") on FIELD_DEFINITION | ENUM_VALUE
+
+directive @custom(d: DateTime) on FIELD

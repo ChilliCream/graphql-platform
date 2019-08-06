@@ -1,4 +1,5 @@
 ﻿{
   "appDomain": "denied",
-  "maxParallelThreads": 1
+  "maxParallelThreads": 1,
+  "parallelizeTestCollections": false
 }

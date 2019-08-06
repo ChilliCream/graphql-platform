@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using System;
 using System.Linq;
 using HotChocolate.Configuration;
@@ -12,6 +13,26 @@ namespace HotChocolate.AspNetCore
 {
     public class ServiceCollectionExtensionsTests
     {
+        [Fact]
+        public void AddGraphQL_ServicesSchemaBuilder()
+        {
+            // arrange
+            var services = new ServiceCollection();
+
+            // act
+            ServiceCollectionExtensions.AddGraphQL(
+                services,
+                SchemaBuilder.New()
+                    .AddDocumentFromString("type Query { a: String }")
+                    .Use(next => context => Task.CompletedTask));
+
+            // assert
+            services.Select(t => ReflectionUtils.GetTypeName(t.ServiceType))
+                .OrderBy(t => t, StringComparer.Ordinal)
+                .ToArray()
+                .MatchSnapshot();
+        }
+
         [Fact]
         public void AddGraphQL_ServicesSchema_ServiceNull()
         {
