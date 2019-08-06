@@ -16,6 +16,8 @@ namespace HotChocolate.Types.Descriptors
         protected internal InputObjectTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {
+            Definition.Fields.BindingBehavior =
+                context.Options.DefaultBindingBehavior;
         }
 
         Type IHasClrType.ClrType => Definition.ClrType;

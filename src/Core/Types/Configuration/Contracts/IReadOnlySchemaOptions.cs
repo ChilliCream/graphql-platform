@@ -1,4 +1,6 @@
-﻿namespace HotChocolate.Configuration
+﻿using HotChocolate.Types;
+
+namespace HotChocolate.Configuration
 {
     public interface IReadOnlySchemaOptions
     {
@@ -11,5 +13,7 @@
         bool StrictValidation { get; }
 
         bool UseXmlDocumentation { get; }
+
+        BindingBehavior DefaultBindingBehavior { get; }
     }
 }
