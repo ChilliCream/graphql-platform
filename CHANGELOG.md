@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added new syntax visitor API.
 - Added Redis subscription provider [#902](https://github.com/ChilliCream/hotchocolate/pull/902)
 - Added support for batching over HTTP [#933](https://github.com/ChilliCream/hotchocolate/pull/933)
+- Added support for persisted queries and added a middleware to enable the active persisted query flow. [#858](https://github.com/ChilliCream/hotchocolate/pull/858)
 
 ### Changed
 

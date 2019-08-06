@@ -14,5 +14,6 @@
   "Properties": {
     "one": "foo"
   },
-  "Services": {}
+  "Services": {},
+  "Extensions": {}
 }

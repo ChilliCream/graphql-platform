@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Collections.Generic;
 using System;
 using System.IO;
@@ -5,6 +6,7 @@ using System.Threading.Tasks;
 using System.Buffers;
 using HotChocolate.Execution;
 using HotChocolate.Language;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Server
 {
@@ -34,16 +36,21 @@ namespace HotChocolate.Server
         }
 
         public Task<IReadOnlyList<GraphQLRequest>> ReadJsonRequestAsync(
-            Stream stream) => ReadAsync(stream, false);
+            Stream stream,
+            CancellationToken cancellationToken) =>
+            ReadAsync(stream, false, cancellationToken);
 
         public Task<IReadOnlyList<GraphQLRequest>> ReadGraphQLQueryAsync(
-            Stream stream) => ReadAsync(stream, true);
+            Stream stream,
+            CancellationToken cancellationToken) =>
+            ReadAsync(stream, true, cancellationToken);
 
         private Task<IReadOnlyList<GraphQLRequest>> ReadAsync(
             Stream stream,
-            bool isGraphQLQuery)
+            bool isGraphQLQuery,
+            CancellationToken cancellationToken)
         {
-            return ReadAsync(
+            return BufferHelper.ReadAsync(
                 stream,
                 (buffer, bytesBuffered) =>
                 {
@@ -55,15 +62,16 @@ namespace HotChocolate.Server
                 {
                     if (bytesBuffered > _maxRequestSize)
                     {
+                        // TODO : resources
                         throw new QueryException(
                             ErrorBuilder.New()
                                 .SetMessage("Max request size reached.")
                                 .SetCode("MAX_REQUEST_SIZE")
                                 .Build());
                     }
-                });
+                },
+                cancellationToken);
         }
-
 
         private IReadOnlyList<GraphQLRequest> ParseRequest(
             byte[] buffer, int bytesBuffered)
@@ -93,57 +101,6 @@ namespace HotChocolate.Server
             DocumentNode document = requestParser.Parse();
 
             return new[] { new GraphQLRequest(document, queryHash) };
-        }
-
-        public static Task<T> ReadAsync<T>(
-            Stream stream,
-            Func<byte[], int, T> handle) => ReadAsync<T>(stream, handle, null);
-
-        public static async Task<T> ReadAsync<T>(
-            Stream stream,
-            Func<byte[], int, T> handle,
-            Action<int> checkSize)
-        {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(1024);
-            var bytesBuffered = 0;
-
-            try
-            {
-                while (true)
-                {
-                    var bytesRemaining = buffer.Length - bytesBuffered;
-
-                    if (bytesRemaining == 0)
-                    {
-                        var next = ArrayPool<byte>.Shared.Rent(
-                            buffer.Length * 2);
-                        Buffer.BlockCopy(buffer, 0, next, 0, buffer.Length);
-                        ArrayPool<byte>.Shared.Return(buffer);
-                        buffer = next;
-                        bytesRemaining = buffer.Length - bytesBuffered;
-                    }
-
-                    var bytesRead = await stream.ReadAsync(
-                        buffer, bytesBuffered, bytesRemaining)
-                        .ConfigureAwait(false);
-                    if (bytesRead == 0)
-                    {
-                        break;
-                    }
-
-                    bytesBuffered += bytesRead;
-                    if (checkSize != null)
-                    {
-                        checkSize(bytesBuffered);
-                    }
-                }
-
-                return handle(buffer, bytesBuffered);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
         }
     }
 }

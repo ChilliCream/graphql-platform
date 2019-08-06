@@ -52,31 +52,14 @@ namespace HotChocolate.Execution
                 try
                 {
                     bool documentRetrievedFromCache = true;
-                    string queryKey = context.Request.QueryName;
                     ICachedQuery cachedQuery = null;
+                    string queryKey = ResolveQueryKey(context.Request);
 
-                    if (queryKey is null || context.Request.Query != null)
+                    if (context.Request.Query is null)
                     {
-                        queryKey = context.Request.QueryHash is null
-                            ? _documentHashProvider.ComputeHash(
-                                context.Request.Query.ToSource())
-                            : context.Request.QueryHash;
+                        _queryCache.TryGet(queryKey, out cachedQuery);
                     }
-
-                    if (context.Request.Query is null
-                        && !_queryCache.TryGet(queryKey, out cachedQuery))
-                    {
-                        // TODO : check for query storage here?
-                        // TODO : RESOURCES
-                        context.Result = QueryResult.CreateError(
-                            ErrorBuilder.New()
-                                .SetMessage("persistedQueryNotFound")
-                                .SetCode("CACHED_QUERY_NOT_FOUND")
-                                .Build());
-                        return;
-                    }
-
-                    if (cachedQuery is null)
+                    else
                     {
                         cachedQuery = _queryCache.GetOrCreate(
                             queryKey,
@@ -91,10 +74,14 @@ namespace HotChocolate.Execution
 
                     // update context
                     context.QueryKey = queryKey;
-                    context.CachedQuery = cachedQuery;
-                    context.Document = context.CachedQuery.Document;
-                    context.ContextData[ContextDataKeys.DocumentCached] =
-                        documentRetrievedFromCache;
+
+                    if (cachedQuery != null)
+                    {
+                        context.CachedQuery = cachedQuery;
+                        context.Document = cachedQuery.Document;
+                        context.ContextData[ContextDataKeys.DocumentCached] =
+                            documentRetrievedFromCache;
+                    }
                 }
                 finally
                 {
@@ -103,6 +90,21 @@ namespace HotChocolate.Execution
 
                 await _next(context).ConfigureAwait(false);
             }
+        }
+
+        private string ResolveQueryKey(IReadOnlyQueryRequest request)
+        {
+            string queryKey = request.QueryName;
+
+            if (queryKey is null || request.Query != null)
+            {
+                queryKey = request.QueryHash is null
+                    ? _documentHashProvider.ComputeHash(
+                        request.Query.ToSpan())
+                    : request.QueryHash;
+            }
+
+            return queryKey;
         }
 
         private DocumentNode ParseDocument(IQuery query)
@@ -114,7 +116,7 @@ namespace HotChocolate.Execution
 
             if (query is QuerySourceText source)
             {
-                return _parser.Parse(source.ToSource());
+                return _parser.Parse(source.ToSpan());
             }
 
             // TODO : resources
@@ -129,5 +131,37 @@ namespace HotChocolate.Execution
                     && context.Request.QueryName is null);
         }
     }
-}
 
+    internal sealed class NoCachedQueryErrorMiddleware
+    {
+        private readonly QueryDelegate _next;
+        private readonly IErrorHandler _errorHandler;
+
+        public NoCachedQueryErrorMiddleware(
+            QueryDelegate next,
+            IErrorHandler errorHandler)
+        {
+            _next = next
+                ?? throw new ArgumentNullException(nameof(next));
+            _errorHandler = errorHandler
+                ?? throw new ArgumentNullException(nameof(errorHandler));
+        }
+
+        public Task InvokeAsync(IQueryContext context)
+        {
+            if (context.Document is null)
+            {
+                context.Result = QueryResult.CreateError(
+                    _errorHandler.Handle(ErrorBuilder.New()
+                        .SetMessage("CachedQueryNotFound")
+                        .SetCode("CACHED_QUERY_NOT_FOUND")
+                        .Build()));
+                return Task.CompletedTask;
+            }
+            else
+            {
+                return _next.Invoke(context);
+            }
+        }
+    }
+}

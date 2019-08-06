@@ -5,8 +5,9 @@
   "QueryName": null,
   "QueryHash": null,
   "OperationName": "bar",
-  "VariableValues": null,
+  "VariableValues": {},
   "InitialValue": null,
-  "Properties": null,
-  "Services": null
+  "Properties": {},
+  "Services": null,
+  "Extensions": {}
 }

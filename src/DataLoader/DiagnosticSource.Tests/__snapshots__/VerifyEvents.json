@@ -1,0 +1,129 @@
+{
+  "BatchErrors": [
+    {
+      "Key": "Foo",
+      "Value": "BatchError: Foo"
+    }
+  ],
+  "BatchKeys": [
+    "Foo",
+    "Bar",
+    "Baz",
+    "Qux",
+    "Foo"
+  ],
+  "BatchEntries": [
+    {
+      "Key": "Foo",
+      "Value": "Qux"
+    },
+    {
+      "Key": "Bar",
+      "Value": "Quux"
+    },
+    {
+      "Key": "Baz",
+      "Value": null
+    },
+    {
+      "Key": "Qux",
+      "Value": null
+    }
+  ],
+  "CachedEntries": [
+    {
+      "Key": "Foo",
+      "Value": {
+        "Result": "Qux",
+        "Id": 1,
+        "Exception": null,
+        "Status": "RanToCompletion",
+        "IsCanceled": false,
+        "IsCompleted": true,
+        "IsCompletedSuccessfully": true,
+        "CreationOptions": "RunContinuationsAsynchronously",
+        "AsyncState": null,
+        "IsFaulted": false
+      }
+    },
+    {
+      "Key": "Bar",
+      "Value": {
+        "Result": "Quux",
+        "Id": 2,
+        "Exception": null,
+        "Status": "RanToCompletion",
+        "IsCanceled": false,
+        "IsCompleted": true,
+        "IsCompletedSuccessfully": true,
+        "CreationOptions": "RunContinuationsAsynchronously",
+        "AsyncState": null,
+        "IsFaulted": false
+      }
+    },
+    {
+      "Key": "Foo",
+      "Value": {
+        "Result": "Qux",
+        "Id": 3,
+        "Exception": null,
+        "Status": "RanToCompletion",
+        "IsCanceled": false,
+        "IsCompleted": true,
+        "IsCompletedSuccessfully": true,
+        "CreationOptions": "RunContinuationsAsynchronously",
+        "AsyncState": null,
+        "IsFaulted": false
+      }
+    },
+    {
+      "Key": "Bar",
+      "Value": {
+        "Result": "Quux",
+        "Id": 4,
+        "Exception": null,
+        "Status": "RanToCompletion",
+        "IsCanceled": false,
+        "IsCompleted": true,
+        "IsCompletedSuccessfully": true,
+        "CreationOptions": "RunContinuationsAsynchronously",
+        "AsyncState": null,
+        "IsFaulted": false
+      }
+    }
+  ],
+  "Entries": [
+    {
+      "Key": "Foo",
+      "Value": "Qux"
+    },
+    {
+      "Key": "Bar",
+      "Value": "Quux"
+    },
+    {
+      "Key": "Baz",
+      "Value": null
+    },
+    {
+      "Key": "Qux",
+      "Value": null
+    }
+  ],
+  "Errors": [
+    {
+      "Key": "Baz",
+      "Value": "Error: Corge"
+    },
+    {
+      "Key": "Baz",
+      "Value": "Error: Corge"
+    }
+  ],
+  "Keys": [
+    "Foo",
+    "Bar",
+    "Baz",
+    "Qux"
+  ]
+}
