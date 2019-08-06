@@ -44,7 +44,7 @@ namespace HotChocolate.Execution
         /// Returns the coerced variable values converted
         /// to their .net counterparts.
         /// </returns>/
-        public VariableCollection CreateValues(
+        public VariableValueCollection CreateValues(
             IReadOnlyDictionary<string, object> variableValues)
         {
             var values = variableValues ?? _empty;
@@ -62,7 +62,7 @@ namespace HotChocolate.Execution
                 }
             }
 
-            return new VariableCollection(_converter, coercedValues);
+            return new VariableValueCollection(_converter, coercedValues);
         }
 
         private Variable CreateVariable(
