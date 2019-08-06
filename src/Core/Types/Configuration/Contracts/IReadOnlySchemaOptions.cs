@@ -11,5 +11,10 @@
         bool StrictValidation { get; }
 
         bool UseXmlDocumentation { get; }
+
+        /// <summary>
+        /// Defines on which fields a middleware pipeline can be applied on.
+        /// </summary>
+        FieldMiddlewareApplication FieldMiddleware { get; }
     }
 }

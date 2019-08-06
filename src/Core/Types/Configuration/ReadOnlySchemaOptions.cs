@@ -20,6 +20,7 @@ namespace HotChocolate.Configuration
                 ?? "Subscription";
             StrictValidation = options.StrictValidation;
             UseXmlDocumentation = options.UseXmlDocumentation;
+            FieldMiddleware = options.FieldMiddleware;
         }
 
         public string QueryTypeName { get; }
@@ -31,5 +32,7 @@ namespace HotChocolate.Configuration
         public bool StrictValidation { get; }
 
         public bool UseXmlDocumentation { get; }
+
+        public FieldMiddlewareApplication FieldMiddleware { get; }
     }
 }
