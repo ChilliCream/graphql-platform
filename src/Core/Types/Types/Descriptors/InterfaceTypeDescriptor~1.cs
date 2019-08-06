@@ -66,6 +66,12 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public IInterfaceTypeDescriptor<T> BindFieldsExplicitly() =>
+            BindFields(BindingBehavior.Explicit);
+
+        public IInterfaceTypeDescriptor<T> BindFieldsImplicitly() =>
+            BindFields(BindingBehavior.Implicit);
+
         public IInterfaceFieldDescriptor Field(
             Expression<Func<T, object>> propertyOrMethod)
         {

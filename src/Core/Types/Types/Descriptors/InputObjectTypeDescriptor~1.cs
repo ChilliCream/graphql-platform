@@ -66,6 +66,12 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public IInputObjectTypeDescriptor<T> BindFieldsExplicitly() =>
+            BindFields(BindingBehavior.Explicit);
+
+        public IInputObjectTypeDescriptor<T> BindFieldsImplicitly() =>
+            BindFields(BindingBehavior.Implicit);
+
         public IInputFieldDescriptor Field<TValue>(
             Expression<Func<T, TValue>> property)
         {

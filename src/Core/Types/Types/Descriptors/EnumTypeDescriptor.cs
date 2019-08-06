@@ -100,6 +100,12 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public IEnumTypeDescriptor BindItemsExplicitly() =>
+            BindItems(BindingBehavior.Explicit);
+
+        public IEnumTypeDescriptor BindItemsImplicitly() =>
+            BindItems(BindingBehavior.Implicit);
+
         public IEnumValueDescriptor Item<T>(T value)
         {
             var descriptor = new EnumValueDescriptor(Context, value);

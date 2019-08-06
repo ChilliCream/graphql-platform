@@ -72,6 +72,12 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public IDirectiveTypeDescriptor<T> BindArgumentsExplicitly() =>
+            BindArguments(BindingBehavior.Explicit);
+
+        public IDirectiveTypeDescriptor<T> BindArgumentsImplicitly() =>
+            BindArguments(BindingBehavior.Implicit);
+
         public IDirectiveArgumentDescriptor Argument(
             Expression<Func<T, object>> property)
         {

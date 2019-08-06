@@ -1,4 +1,5 @@
 ﻿using System;
+using HotChocolate.Types;
 
 namespace HotChocolate.Configuration
 {
@@ -20,6 +21,7 @@ namespace HotChocolate.Configuration
                 ?? "Subscription";
             StrictValidation = options.StrictValidation;
             UseXmlDocumentation = options.UseXmlDocumentation;
+            DefaultBindingBehavior = options.DefaultBindingBehavior;
         }
 
         public string QueryTypeName { get; }
@@ -31,5 +33,7 @@ namespace HotChocolate.Configuration
         public bool StrictValidation { get; }
 
         public bool UseXmlDocumentation { get; }
+
+        public BindingBehavior DefaultBindingBehavior { get; }
     }
 }
