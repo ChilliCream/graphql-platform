@@ -1,7 +1,7 @@
 ﻿{
-  "QueryTypeName": null,
-  "MutationTypeName": null,
-  "SubscriptionTypeName": null,
+  "QueryTypeName": "Query",
+  "MutationTypeName": "Mutation",
+  "SubscriptionTypeName": "Subscription",
   "StrictValidation": true,
   "UseXmlDocumentation": true,
   "DefaultBindingBehavior": "Implicit",
