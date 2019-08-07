@@ -17,7 +17,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             ParameterInfo parameter,
             Type sourceType)
         {
-            return sourceType == parameter.ParameterType
+            return parameter.ParameterType.IsAssignableFrom(sourceType)
                 || parameter.IsDefined(typeof(ParentAttribute));
         }
     }

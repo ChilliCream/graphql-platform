@@ -1,6 +1,7 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using GreenDonut;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
@@ -29,8 +30,11 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public override bool CanHandle(
             ParameterInfo parameter,
-            Type sourceType) =>
-            parameter.IsDefined(typeof(DataLoaderAttribute));
+            Type sourceType)
+        {
+            return typeof(IDataLoader).IsAssignableFrom(parameter.ParameterType)
+                || parameter.IsDefined(typeof(DataLoaderAttribute));
+        }
 
         public override Expression Compile(
             Expression context,
@@ -40,7 +44,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             var attribute =
                 parameter.GetCustomAttribute<DataLoaderAttribute>();
 
-            return string.IsNullOrEmpty(attribute.Key)
+            return string.IsNullOrEmpty(attribute?.Key)
                 ? Expression.Call(
                     _dataLoader.MakeGenericMethod(
                         parameter.ParameterType),
