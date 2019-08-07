@@ -4,6 +4,7 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Batching;
 using System.Linq;
+using HotChocolate.Types.Relay;
 
 namespace HotChocolate
 {
@@ -19,17 +20,16 @@ namespace HotChocolate
                 build(builder);
                 builder.AddServices(sp);
                 return builder.Create();
-            });
+            }).AddSingleton<IIdSerializer, IdSerializer>();
         }
 
         public static IServiceCollection AddGraphQLSchema(
             this IServiceCollection services,
             ISchemaBuilder builder)
         {
-            return services.AddSingleton<ISchema>(sp =>
-                builder
-                    .AddServices(sp)
-                    .Create());
+            return services.AddSingleton<ISchema>(
+                sp => builder.AddServices(sp).Create())
+                .AddSingleton<IIdSerializer, IdSerializer>();
         }
 
         public static IServiceCollection AddQueryExecutor(
