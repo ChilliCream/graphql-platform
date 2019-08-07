@@ -1,6 +1,7 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Resolvers.CodeGeneration;
 using HotChocolate.Types;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
@@ -20,7 +21,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         public override bool CanHandle(
             ParameterInfo parameter,
             Type sourceType) =>
-            typeof(IOutputField).IsAssignableFrom(parameter.ParameterType);
+            ArgumentHelper.IsOutputField(parameter);
 
         public override Expression Compile(
             Expression context,

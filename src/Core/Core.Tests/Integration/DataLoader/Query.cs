@@ -28,7 +28,7 @@ namespace HotChocolate.Integration.DataLoader
         public Task<string> GetDataLoaderWithInterface(
             string key,
             FieldNode fieldSelection,
-            [DataLoader]ITestDataLoader testDataLoader,
+            ITestDataLoader testDataLoader,
             CancellationToken cancellationToken)
         {
             return testDataLoader.LoadAsync(key, cancellationToken);
@@ -75,8 +75,7 @@ namespace HotChocolate.Integration.DataLoader
             return list;
         }
 
-        public List<string> GetLoads3(
-            [DataLoader]ITestDataLoader testDataLoader)
+        public List<string> GetLoads3(ITestDataLoader testDataLoader)
         {
             var list = new List<string>();
 

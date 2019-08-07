@@ -2,6 +2,7 @@ using System;
 using System.Linq.Expressions;
 using System.Reflection;
 using GreenDonut;
+using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
@@ -30,11 +31,8 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public override bool CanHandle(
             ParameterInfo parameter,
-            Type sourceType)
-        {
-            return typeof(IDataLoader).IsAssignableFrom(parameter.ParameterType)
-                || parameter.IsDefined(typeof(DataLoaderAttribute));
-        }
+            Type sourceType) =>
+            ArgumentHelper.IsDataLoader(parameter);
 
         public override Expression Compile(
             Expression context,

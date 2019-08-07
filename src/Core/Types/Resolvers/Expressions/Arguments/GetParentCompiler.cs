@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
@@ -15,10 +16,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public override bool CanHandle(
             ParameterInfo parameter,
-            Type sourceType)
-        {
-            return parameter.ParameterType.IsAssignableFrom(sourceType)
-                || parameter.IsDefined(typeof(ParentAttribute));
-        }
+            Type sourceType) =>
+            ArgumentHelper.IsParent(parameter, sourceType);
     }
 }
