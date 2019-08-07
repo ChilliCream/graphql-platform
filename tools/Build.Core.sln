@@ -93,6 +93,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataLoader.DiagnosticSource
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriptions.Redis.Tests", "..\src\Core\Subscriptions.Redis.Tests\Subscriptions.Redis.Tests.csproj", "{08755406-5B00-4D63-A4E0-52D1BB851C77}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Filters.Mongo.Tests", "..\src\Core\Types.Filters.Mongo.Tests\Types.Filters.Mongo.Tests.csproj", "{2B73C14B-4A86-4DA5-B66B-F050CCF64A11}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -643,6 +645,18 @@ Global
 		{08755406-5B00-4D63-A4E0-52D1BB851C77}.Release|x64.Build.0 = Release|Any CPU
 		{08755406-5B00-4D63-A4E0-52D1BB851C77}.Release|x86.ActiveCfg = Release|Any CPU
 		{08755406-5B00-4D63-A4E0-52D1BB851C77}.Release|x86.Build.0 = Release|Any CPU
+		{2B73C14B-4A86-4DA5-B66B-F050CCF64A11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2B73C14B-4A86-4DA5-B66B-F050CCF64A11}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2B73C14B-4A86-4DA5-B66B-F050CCF64A11}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2B73C14B-4A86-4DA5-B66B-F050CCF64A11}.Debug|x64.Build.0 = Debug|Any CPU
+		{2B73C14B-4A86-4DA5-B66B-F050CCF64A11}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{2B73C14B-4A86-4DA5-B66B-F050CCF64A11}.Debug|x86.Build.0 = Debug|Any CPU
+		{2B73C14B-4A86-4DA5-B66B-F050CCF64A11}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2B73C14B-4A86-4DA5-B66B-F050CCF64A11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2B73C14B-4A86-4DA5-B66B-F050CCF64A11}.Release|x64.ActiveCfg = Release|Any CPU
+		{2B73C14B-4A86-4DA5-B66B-F050CCF64A11}.Release|x64.Build.0 = Release|Any CPU
+		{2B73C14B-4A86-4DA5-B66B-F050CCF64A11}.Release|x86.ActiveCfg = Release|Any CPU
+		{2B73C14B-4A86-4DA5-B66B-F050CCF64A11}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

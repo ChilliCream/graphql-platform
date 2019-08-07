@@ -59,6 +59,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.Redis.Test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriptions.Redis.Tests", "Subscriptions.Redis.Tests\Subscriptions.Redis.Tests.csproj", "{4918D8FC-2685-4211-8856-207DB0AEF291}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Filters.Mongo.Tests", "Types.Filters.Mongo.Tests\Types.Filters.Mongo.Tests.csproj", "{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -405,6 +407,18 @@ Global
 		{4918D8FC-2685-4211-8856-207DB0AEF291}.Release|x64.Build.0 = Release|Any CPU
 		{4918D8FC-2685-4211-8856-207DB0AEF291}.Release|x86.ActiveCfg = Release|Any CPU
 		{4918D8FC-2685-4211-8856-207DB0AEF291}.Release|x86.Build.0 = Release|Any CPU
+		{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}.Debug|x64.Build.0 = Debug|Any CPU
+		{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}.Debug|x86.Build.0 = Debug|Any CPU
+		{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}.Release|x64.ActiveCfg = Release|Any CPU
+		{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}.Release|x64.Build.0 = Release|Any CPU
+		{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}.Release|x86.ActiveCfg = Release|Any CPU
+		{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
