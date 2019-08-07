@@ -289,7 +289,7 @@ namespace HotChocolate.Resolvers
         public static T DataLoader<T>(
             this IResolverContext context,
             string key)
-            where T : IDataLoader
+            where T : class, IDataLoader
         {
             if (context == null)
             {
@@ -314,16 +314,20 @@ namespace HotChocolate.Resolvers
             (
                 key,
                 registry,
-                r => r.Register(key, ActivatorHelper.CompileFactory<T>())
+                r => r.Register(key, services =>
+                {
+                    var instance = (T)services.GetService(typeof(T));
+                    return instance is null
+                        ? ActivatorHelper.CompileFactory<T>().Invoke(services)
+                        : instance;
+                })
             );
         }
 
         public static T DataLoader<T>(
             this IResolverContext context)
-            where T : IDataLoader
-        {
-            return DataLoader<T>(context, typeof(T).FullName);
-        }
+            where T : class, IDataLoader =>
+            DataLoader<T>(context, typeof(T).FullName);
 
         private static bool TryGetDataLoader<T>(
             IResolverContext context,

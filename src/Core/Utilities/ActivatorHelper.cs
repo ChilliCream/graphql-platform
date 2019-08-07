@@ -22,24 +22,13 @@ namespace HotChocolate.Utilities
 
             Func<IServiceProvider, object> factory;
 
-            if (typeInfo.IsClass)
-            {
-                if (!_factories.TryGetValue(typeInfo, out factory))
-                {
-                    ParameterExpression services =
-                        Expression.Parameter(typeof(IServiceProvider));
-                    NewExpression newInstance = CreateNewInstance(typeInfo, services);
-                    factory = Expression.Lambda<Func<IServiceProvider, object>>(
-                        newInstance, services).Compile();
-                    _factories.TryAdd(typeInfo, factory);
-                }
-                return factory;
-            }
-
             if (!_factories.TryGetValue(typeInfo, out factory))
             {
-                Type type = typeInfo.AsType();
-                factory = s => s.GetService(type);
+                ParameterExpression services =
+                    Expression.Parameter(typeof(IServiceProvider));
+                NewExpression newInstance = CreateNewInstance(typeInfo, services);
+                factory = Expression.Lambda<Func<IServiceProvider, object>>(
+                    newInstance, services).Compile();
                 _factories.TryAdd(typeInfo, factory);
             }
 
