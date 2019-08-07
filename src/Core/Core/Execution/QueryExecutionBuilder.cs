@@ -148,7 +148,7 @@ namespace HotChocolate.Execution
             };
         }
 
-        public static IQueryExecutionBuilder New() =>
+        public static QueryExecutionBuilder New() =>
             new QueryExecutionBuilder();
 
         public static IQueryExecutor BuildDefault(ISchema schema) =>
