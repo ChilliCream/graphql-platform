@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -8,7 +9,10 @@ namespace HotChocolate.Utilities
 {
     internal static class ActivatorHelper
     {
-        public static Func<IServiceProvider, object> CreateInstanceFactory(
+        private static readonly ConcurrentDictionary<TypeInfo, Func<IServiceProvider, object>>
+            _factories = new ConcurrentDictionary<TypeInfo, Func<IServiceProvider, object>>();
+
+        public static Func<IServiceProvider, object> CompileFactory(
             TypeInfo typeInfo)
         {
             if (typeInfo == null)
@@ -16,14 +20,33 @@ namespace HotChocolate.Utilities
                 throw new ArgumentNullException(nameof(typeInfo));
             }
 
-            ParameterExpression services =
-                Expression.Parameter(typeof(IServiceProvider));
-            NewExpression newInstance = CreateNewInstance(typeInfo, services);
-            return Expression.Lambda<Func<IServiceProvider, object>>(
-                newInstance, services).Compile();
+            Func<IServiceProvider, object> factory;
+
+            if (typeInfo.IsClass)
+            {
+                if (!_factories.TryGetValue(typeInfo, out factory))
+                {
+                    ParameterExpression services =
+                        Expression.Parameter(typeof(IServiceProvider));
+                    NewExpression newInstance = CreateNewInstance(typeInfo, services);
+                    factory = Expression.Lambda<Func<IServiceProvider, object>>(
+                        newInstance, services).Compile();
+                    _factories.TryAdd(typeInfo, factory);
+                }
+                return factory;
+            }
+
+            if (!_factories.TryGetValue(typeInfo, out factory))
+            {
+                Type type = typeInfo.AsType();
+                factory = s => s.GetService(type);
+                _factories.TryAdd(typeInfo, factory);
+            }
+
+            return factory;
         }
 
-        public static Func<IServiceProvider, T> CreateInstanceFactory<T>(
+        public static Func<IServiceProvider, T> CompileFactory<T>(
             TypeInfo typeInfo)
         {
             if (typeInfo == null)
@@ -31,18 +54,11 @@ namespace HotChocolate.Utilities
                 throw new ArgumentNullException(nameof(typeInfo));
             }
 
-            ParameterExpression services =
-                Expression.Parameter(typeof(IServiceProvider));
-            NewExpression newInstance = CreateNewInstance(typeInfo, services);
-            return Expression.Lambda<Func<IServiceProvider, T>>(
-                newInstance, services).Compile();
+            return s => (T)CompileFactory(typeInfo).Invoke(s);
         }
 
-        public static Func<IServiceProvider, T> CreateInstanceFactory<T>()
-            where T : class
-        {
-            return CreateInstanceFactory<T>(typeof(T).GetTypeInfo());
-        }
+        public static Func<IServiceProvider, T> CompileFactory<T>() =>
+            CompileFactory<T>(typeof(T).GetTypeInfo());
 
         private static NewExpression CreateNewInstance(
             TypeInfo typeInfo,

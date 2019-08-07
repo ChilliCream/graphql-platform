@@ -170,7 +170,8 @@ namespace HotChocolate
             return name.ToLowerInvariant();
         }
 
-        private static TAttribute GetAttributeIfDefined<TAttribute>(ICustomAttributeProvider attributeProvider)
+        private static TAttribute GetAttributeIfDefined<TAttribute>(
+            ICustomAttributeProvider attributeProvider)
             where TAttribute : Attribute
         {
             Type attributeType = typeof(TAttribute);

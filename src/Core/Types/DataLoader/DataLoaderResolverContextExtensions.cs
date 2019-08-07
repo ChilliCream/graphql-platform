@@ -10,11 +10,10 @@ namespace HotChocolate.Resolvers
 {
     public static class DataLoaderResolverContextExtensions
     {
-        private static IDataLoader<TKey, TValue>
-            BatchDataLoaderFactory<TKey, TValue>(
-                this IResolverContext context,
-                string key,
-                FetchBatchFactory<TKey, TValue> factory)
+        private static IDataLoader<TKey, TValue> BatchDataLoaderFactory<TKey, TValue>(
+            this IResolverContext context,
+            string key,
+            FetchBatchFactory<TKey, TValue> factory)
         {
             if (TryGetDataLoader(context, key,
                 out IDataLoader<TKey, TValue> dataLoader,
@@ -80,11 +79,10 @@ namespace HotChocolate.Resolvers
                 keys => fetch(keys, context.RequestAborted));
         }
 
-        private static IDataLoader<TKey, TValue[]>
-            GroupDataLoaderFactory<TKey, TValue>(
-                this IResolverContext context,
-                string key,
-                FetchGroupeFactory<TKey, TValue> factory)
+        private static IDataLoader<TKey, TValue[]> GroupDataLoaderFactory<TKey, TValue>(
+            this IResolverContext context,
+            string key,
+            FetchGroupeFactory<TKey, TValue> factory)
         {
             if (TryGetDataLoader(context, key,
                 out IDataLoader<TKey, TValue[]> dataLoader,
@@ -97,11 +95,10 @@ namespace HotChocolate.Resolvers
                 key, registry, r => r.Register(key, factory));
         }
 
-        public static IDataLoader<TKey, TValue[]>
-            GroupDataLoader<TKey, TValue>(
-                this IResolverContext context,
-                string key,
-                FetchGroup<TKey, TValue> fetch)
+        public static IDataLoader<TKey, TValue[]> GroupDataLoader<TKey, TValue>(
+            this IResolverContext context,
+            string key,
+            FetchGroup<TKey, TValue> fetch)
         {
             if (context == null)
             {
@@ -123,11 +120,10 @@ namespace HotChocolate.Resolvers
             return GroupDataLoaderFactory(context, key, services => fetch);
         }
 
-        public static IDataLoader<TKey, TValue[]>
-            GroupDataLoader<TKey, TValue>(
-                this IResolverContext context,
-                string key,
-                FetchGroupCt<TKey, TValue> fetch)
+        public static IDataLoader<TKey, TValue[]> GroupDataLoader<TKey, TValue>(
+            this IResolverContext context,
+            string key,
+            FetchGroupCt<TKey, TValue> fetch)
         {
             if (context == null)
             {
@@ -152,11 +148,10 @@ namespace HotChocolate.Resolvers
                 keys => fetch(keys, context.RequestAborted));
         }
 
-        private static IDataLoader<TKey, TValue>
-            CacheDataLoaderFactory<TKey, TValue>(
-                this IResolverContext context,
-                string key,
-                FetchCacheFactory<TKey, TValue> factory)
+        private static IDataLoader<TKey, TValue> CacheDataLoaderFactory<TKey, TValue>(
+            this IResolverContext context,
+            string key,
+            FetchCacheFactory<TKey, TValue> factory)
         {
             if (TryGetDataLoader(context, key,
                 out IDataLoader<TKey, TValue> dataLoader,
@@ -294,7 +289,7 @@ namespace HotChocolate.Resolvers
         public static T DataLoader<T>(
             this IResolverContext context,
             string key)
-            where T : class, IDataLoader
+            where T : IDataLoader
         {
             if (context == null)
             {
@@ -315,13 +310,17 @@ namespace HotChocolate.Resolvers
                 return dataLoader;
             }
 
-            return GetOrCreate<T>(key, registry, r => r.Register(
-                key, ActivatorHelper.CreateInstanceFactory<T>()));
+            return GetOrCreate<T>
+            (
+                key,
+                registry,
+                r => r.Register(key, ActivatorHelper.CompileFactory<T>())
+            );
         }
 
         public static T DataLoader<T>(
             this IResolverContext context)
-            where T : class, IDataLoader
+            where T : IDataLoader
         {
             return DataLoader<T>(context, typeof(T).FullName);
         }
