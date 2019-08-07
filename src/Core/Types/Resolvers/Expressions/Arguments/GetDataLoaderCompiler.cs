@@ -15,13 +15,16 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         {
             _dataLoaderWithKey = typeof(DataLoaderResolverContextExtensions)
                 .GetTypeInfo()
-                .GetDeclaredMethod("DataLoader",
+                .GetDeclaredMethod(
+                    "DataLoader",
                     typeof(IResolverContext),
                     typeof(string));
 
             _dataLoader = typeof(DataLoaderResolverContextExtensions)
                 .GetTypeInfo()
-                .GetDeclaredMethod("DataLoader", typeof(IResolverContext));
+                .GetDeclaredMethod(
+                    "DataLoader",
+                    typeof(IResolverContext));
         }
 
         public override bool CanHandle(
