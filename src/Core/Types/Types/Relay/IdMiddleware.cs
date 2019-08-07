@@ -14,8 +14,7 @@ namespace HotChocolate.Types.Relay
         {
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
-            _serializer = serializer
-                ?? throw new ArgumentNullException(nameof(serializer));
+            _serializer = serializer ?? new IdSerializer();
         }
 
         public async Task InvokeAsync(IMiddlewareContext context)

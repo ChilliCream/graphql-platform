@@ -29,13 +29,10 @@ namespace HotChocolate.Types.Relay
                 {
                     if (_serializer is null)
                     {
-                        _serializer = ctx.Service<IIdSerializer>();
-                        if (_serializer == null)
-                        {
-                            // TODO : resources
-                            throw new InvalidOperationException(
-                                "The ID serializer was not registered as a service.");
-                        }
+                        var services = ctx.Service<IServiceProvider>();
+                        _serializer = services.GetService(typeof(IIdSerializer)) is IIdSerializer s
+                            ? s
+                            : new IdSerializer();
                     }
 
                     string id = ctx.Argument<string>("id");
