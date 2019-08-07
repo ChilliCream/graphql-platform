@@ -61,7 +61,7 @@ namespace HotChocolate.Stitching.Delegation
                 QueryRequestBuilder.New()
                     .SetQuery(
                         @"{
-                            contracts(customerId: ""Q3VzdG9tZXIteDE="")
+                            contracts(customerId: ""Q3VzdG9tZXIKZDE="")
                             {
                                 id
                             }

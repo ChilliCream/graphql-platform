@@ -71,7 +71,7 @@ namespace HotChocolate.Stitching
                             }}")
                         .SetVariableValue(
                             "contractId",
-                            "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgx")
+                            "TGlmZUluc3VyYW5jZUNvbnRyYWN0CmQx")
                         .SetServices(scope.ServiceProvider)
                         .Create();
 
