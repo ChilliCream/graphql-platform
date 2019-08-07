@@ -89,8 +89,7 @@ namespace HotChocolate.AspNetClassic
             Action action = () => ServiceCollectionExtensions.AddGraphQL(
                 null,
                 schema,
-                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
-                    c => c));
+                new Action<IQueryExecutionBuilder>(b => { }));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -104,8 +103,7 @@ namespace HotChocolate.AspNetClassic
             Action action = () => ServiceCollectionExtensions.AddGraphQL(
                 new ServiceCollection(),
                 default(Schema),
-                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
-                    c => c));
+                new Action<IQueryExecutionBuilder>(b => { }));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -121,7 +119,7 @@ namespace HotChocolate.AspNetClassic
             Action action = () => ServiceCollectionExtensions.AddGraphQL(
                 new ServiceCollection(),
                 schema,
-                default(Func<IQueryExecutionBuilder, IQueryExecutionBuilder>));
+                default(Action<IQueryExecutionBuilder>));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -133,7 +131,7 @@ namespace HotChocolate.AspNetClassic
             // arrange
             var services = new ServiceCollection();
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
-            var cfg = new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+            var cfg = new Action<IQueryExecutionBuilder>(
                 c => c.UseDefaultPipeline());
 
             // act
@@ -186,8 +184,7 @@ namespace HotChocolate.AspNetClassic
             Action action = () => ServiceCollectionExtensions.AddGraphQL(
                 null,
                 new Func<IServiceProvider, ISchema>(s => schema),
-                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
-                    b => b));
+                new Action<IQueryExecutionBuilder>(b => { }));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -201,8 +198,7 @@ namespace HotChocolate.AspNetClassic
             Action action = () => ServiceCollectionExtensions.AddGraphQL(
                 new ServiceCollection(),
                 default(Func<IServiceProvider, ISchema>),
-                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
-                    b => b));
+                new Action<IQueryExecutionBuilder>(b => { }));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -218,7 +214,7 @@ namespace HotChocolate.AspNetClassic
             Action action = () => ServiceCollectionExtensions.AddGraphQL(
                 new ServiceCollection(),
                 new Func<IServiceProvider, ISchema>(s => schema),
-                default(Func<IQueryExecutionBuilder, IQueryExecutionBuilder>));
+                default(Action<IQueryExecutionBuilder>));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -230,7 +226,7 @@ namespace HotChocolate.AspNetClassic
             // arrange
             var services = new ServiceCollection();
             var schema = Schema.Create(c => c.Options.StrictValidation = false);
-            var cfg = new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+            var cfg = new Action<IQueryExecutionBuilder>(
                 c => c.UseDefaultPipeline());
 
             // act
@@ -302,8 +298,7 @@ namespace HotChocolate.AspNetClassic
             Action action = () => ServiceCollectionExtensions.AddGraphQL(
                 null,
                 new Action<ISchemaConfiguration>(c => { }),
-                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
-                    b => b));
+                new Action<IQueryExecutionBuilder>(b => { }));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -317,8 +312,7 @@ namespace HotChocolate.AspNetClassic
             Action action = () => ServiceCollectionExtensions.AddGraphQL(
                 new ServiceCollection(),
                 default(Action<ISchemaConfiguration>),
-                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
-                    b => b));
+                new Action<IQueryExecutionBuilder>(b => { }));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -334,7 +328,7 @@ namespace HotChocolate.AspNetClassic
             Action action = () => ServiceCollectionExtensions.AddGraphQL(
                 new ServiceCollection(),
                 new Action<ISchemaConfiguration>(c => { }),
-                default(Func<IQueryExecutionBuilder, IQueryExecutionBuilder>));
+                default(Action<IQueryExecutionBuilder>));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -347,7 +341,7 @@ namespace HotChocolate.AspNetClassic
             var services = new ServiceCollection();
             var schemaCfg = new Action<ISchemaConfiguration>(
                 c => c.Options.StrictValidation = false);
-            var cfg = new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+            var cfg = new Action<IQueryExecutionBuilder>(
                 c => c.UseDefaultPipeline());
 
             // act
@@ -452,8 +446,7 @@ namespace HotChocolate.AspNetClassic
                 null,
                 "type Query { a: String }",
                 new Action<ISchemaConfiguration>(c => { }),
-                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
-                    b => b));
+                new Action<IQueryExecutionBuilder>(b => { }));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -468,8 +461,7 @@ namespace HotChocolate.AspNetClassic
                 new ServiceCollection(),
                 default(string),
                 new Action<ISchemaConfiguration>(c => { }),
-                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
-                    b => b));
+                new Action<IQueryExecutionBuilder>(b => { }));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -484,8 +476,7 @@ namespace HotChocolate.AspNetClassic
                 new ServiceCollection(),
                 string.Empty,
                 new Action<ISchemaConfiguration>(c => { }),
-                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
-                    b => b));
+                new Action<IQueryExecutionBuilder>(b => { }));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -502,8 +493,7 @@ namespace HotChocolate.AspNetClassic
                 new ServiceCollection(),
                 "type Query { a: String }",
                 default(Action<ISchemaConfiguration>),
-                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
-                    b => b));
+                new Action<IQueryExecutionBuilder>(b => { }));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -518,7 +508,7 @@ namespace HotChocolate.AspNetClassic
                 new ServiceCollection(),
                 "type Query { a: String }",
                 new Action<ISchemaConfiguration>(c => { }),
-                default(Func<IQueryExecutionBuilder, IQueryExecutionBuilder>));
+                default(Action<IQueryExecutionBuilder>));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -532,7 +522,7 @@ namespace HotChocolate.AspNetClassic
             string schema = "type Query { a: String }";
             var schemaCfg = new Action<ISchemaConfiguration>(
                 c => c.Options.StrictValidation = false);
-            var cfg = new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+            var cfg = new Action<IQueryExecutionBuilder>(
                 c => c.UseDefaultPipeline());
 
             // act
@@ -788,8 +778,7 @@ namespace HotChocolate.AspNetClassic
                 null,
                 "type Query { a: String }",
                 new Action<ISchemaConfiguration>(c => { }),
-                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
-                    b => b));
+                new Action<IQueryExecutionBuilder>(b => { }));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -804,8 +793,7 @@ namespace HotChocolate.AspNetClassic
                 new ServiceCollection(),
                 null,
                 new Action<ISchemaConfiguration>(c => { }),
-                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
-                    b => b));
+                new Action<IQueryExecutionBuilder>(b => { }));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -820,8 +808,7 @@ namespace HotChocolate.AspNetClassic
                 new ServiceCollection(),
                 "type Query { a: String }",
                 default(Action<ISchemaConfiguration>),
-                new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
-                    b => b));
+                new Action<IQueryExecutionBuilder>(b => { }));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -838,7 +825,7 @@ namespace HotChocolate.AspNetClassic
                 new ServiceCollection(),
                 "type Query { a: String }",
                 new Action<ISchemaConfiguration>(c => { }),
-                default(Func<IQueryExecutionBuilder, IQueryExecutionBuilder>));
+                default(Action<IQueryExecutionBuilder>));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -852,7 +839,7 @@ namespace HotChocolate.AspNetClassic
             var schema = "type Query { a: String }";
             var schemaCfg = new Action<ISchemaConfiguration>(
                 c => c.Options.StrictValidation = false);
-            var cfg = new Func<IQueryExecutionBuilder, IQueryExecutionBuilder>(
+            var cfg = new Action<IQueryExecutionBuilder>(
                 c => c.UseDefaultPipeline());
 
             // act
