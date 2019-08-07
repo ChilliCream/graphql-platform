@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for batching over HTTP [#933](https://github.com/ChilliCream/hotchocolate/pull/933)
 - Added support for persisted queries and added a middleware to enable the active persisted query flow. [#858](https://github.com/ChilliCream/hotchocolate/pull/858)
 - Provide access to variables through IResolverContext. [#958](https://github.com/ChilliCream/hotchocolate/pull/958)
+- Added ability to control when the schem stitching will pull in the remote schemas. [#964](https://github.com/ChilliCream/hotchocolate/pull/964)
+- Added support to register class DataLoader with the standard dependency injection. [#966](https://github.com/ChilliCream/hotchocolate/pull/966)
 
 ### Changed
 

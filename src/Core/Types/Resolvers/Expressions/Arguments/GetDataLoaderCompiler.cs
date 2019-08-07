@@ -1,6 +1,8 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using GreenDonut;
+using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
@@ -15,19 +17,22 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         {
             _dataLoaderWithKey = typeof(DataLoaderResolverContextExtensions)
                 .GetTypeInfo()
-                .GetDeclaredMethod("DataLoader",
+                .GetDeclaredMethod(
+                    "DataLoader",
                     typeof(IResolverContext),
                     typeof(string));
 
             _dataLoader = typeof(DataLoaderResolverContextExtensions)
                 .GetTypeInfo()
-                .GetDeclaredMethod("DataLoader", typeof(IResolverContext));
+                .GetDeclaredMethod(
+                    "DataLoader",
+                    typeof(IResolverContext));
         }
 
         public override bool CanHandle(
             ParameterInfo parameter,
             Type sourceType) =>
-            parameter.IsDefined(typeof(DataLoaderAttribute));
+            ArgumentHelper.IsDataLoader(parameter);
 
         public override Expression Compile(
             Expression context,
@@ -37,7 +42,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
             var attribute =
                 parameter.GetCustomAttribute<DataLoaderAttribute>();
 
-            return string.IsNullOrEmpty(attribute.Key)
+            return string.IsNullOrEmpty(attribute?.Key)
                 ? Expression.Call(
                     _dataLoader.MakeGenericMethod(
                         parameter.ParameterType),

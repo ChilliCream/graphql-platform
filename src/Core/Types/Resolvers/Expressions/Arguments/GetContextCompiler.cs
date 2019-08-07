@@ -12,7 +12,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         public override bool CanHandle(
             ParameterInfo parameter,
             Type sourceType) =>
-            typeof(TContext) == parameter.ParameterType;
+            parameter.ParameterType.IsAssignableFrom(typeof(TContext));
 
         public override Expression Compile(
             Expression context,

@@ -19,7 +19,8 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public override bool CanHandle(
             ParameterInfo parameter,
-            Type sourceType) => typeof(DocumentNode) == parameter.ParameterType;
+            Type sourceType) =>
+            typeof(DocumentNode) == parameter.ParameterType;
 
         public override Expression Compile(
             Expression context,
