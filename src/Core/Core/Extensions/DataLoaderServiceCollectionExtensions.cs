@@ -13,9 +13,16 @@ namespace HotChocolate
             this IServiceCollection services)
             where T : class, IDataLoader
         {
-            return services
+            if (services is null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            services
                 .AddDataLoaderRegistry()
-                .AddTransient<T>();
+                .TryAddTransient<T>();
+
+            return services;
         }
 
         public static IServiceCollection AddDataLoader<TService>(
@@ -23,9 +30,21 @@ namespace HotChocolate
             Func<IServiceProvider, TService> factory)
             where TService : class, IDataLoader
         {
-            return services
+            if (services is null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (factory is null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            services
                 .AddDataLoaderRegistry()
-                .AddTransient<TService>(factory);
+                .TryAddTransient<TService>(factory);
+
+            return services;
         }
 
         public static IServiceCollection AddDataLoader<TService, TImplementation>(
@@ -33,14 +52,26 @@ namespace HotChocolate
             where TService : class, IDataLoader
             where TImplementation : class, TService
         {
-            return services
+            if (services is null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            services
                 .AddDataLoaderRegistry()
-                .AddTransient<TService, TImplementation>();
+                .TryAddTransient<TService, TImplementation>();
+
+            return services;
         }
 
         public static IServiceCollection AddDataLoaderRegistry(
             this IServiceCollection services)
         {
+            if (services is null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
             services.TryAddScoped<IDataLoaderRegistry, DataLoaderRegistry>();
             services.TryAddScoped<IBatchOperation>(sp =>
             {
