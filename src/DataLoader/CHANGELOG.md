@@ -6,7 +6,11 @@ The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+---
+
+**For versions greater than 2.0.0 check the [CHANGELOG](https://github.com/ChilliCream/hotchocolate/blob/master/CHANGELOG.md) file of Hot Chocolate.**
+
+---
 
 ## [2.0.0] - 2019-02-03
 
