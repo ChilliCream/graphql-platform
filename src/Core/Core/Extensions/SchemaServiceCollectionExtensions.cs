@@ -127,6 +127,53 @@ namespace HotChocolate
                 .AddSingleton<IResponseStreamSerializer>(sp => factory(sp));
         }
 
+        public static IServiceCollection AddErrorFilter(
+            this IServiceCollection services,
+            Func<IError, IError> errorFilter)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (errorFilter == null)
+            {
+                throw new ArgumentNullException(nameof(errorFilter));
+            }
+
+            return services.AddSingleton<IErrorFilter>(
+                new FuncErrorFilterWrapper(errorFilter));
+        }
+
+        public static IServiceCollection AddErrorFilter(
+            this IServiceCollection services,
+            Func<IServiceProvider, IErrorFilter> factory)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            return services.AddSingleton(factory);
+        }
+
+        public static IServiceCollection AddErrorFilter<T>(
+            this IServiceCollection services)
+            where T : class, IErrorFilter
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            return services.AddSingleton<IErrorFilter, T>();
+        }
+
         private static IServiceCollection RemoveService<TService>(
             this IServiceCollection services)
         {
