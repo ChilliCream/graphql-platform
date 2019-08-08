@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.28010.2050
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29201.188
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.Tests", "AspNetClassic.Tests\AspNetClassic.Tests.csproj", "{F5C7CA16-A02F-4A6D-BD6A-F737C1BD2FAE}"
 EndProject
@@ -49,31 +49,33 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.Voyager", "As
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Filters", "..\Core\Types.Filters\Types.Filters.csproj", "{F3FD6777-B22A-436B-95C8-A6DA74503A99}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.Subscriptions", "AspNetCore.Subscriptions\AspNetCore.Subscriptions.csproj", "{09D37648-3F81-40C3-9BAC-6439D0D2F4AB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Subscriptions", "AspNetCore.Subscriptions\AspNetCore.Subscriptions.csproj", "{09D37648-3F81-40C3-9BAC-6439D0D2F4AB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Server", "Server\Server.csproj", "{1E147006-83E2-4E63-BF37-F8150A573464}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Server", "Server\Server.csproj", "{1E147006-83E2-4E63-BF37-F8150A573464}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.Subscriptions.Tests", "AspNetCore.Subscriptions.Tests\AspNetCore.Subscriptions.Tests.csproj", "{B5316B17-0B65-4BC4-8700-2B893D8F6B0F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Subscriptions.Tests", "AspNetCore.Subscriptions.Tests\AspNetCore.Subscriptions.Tests.csproj", "{B5316B17-0B65-4BC4-8700-2B893D8F6B0F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.Abstractions", "AspNetCore.Abstractions\AspNetCore.Abstractions.csproj", "{EE292576-74A9-41C4-9748-AE84DC63F370}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Abstractions", "AspNetCore.Abstractions\AspNetCore.Abstractions.csproj", "{EE292576-74A9-41C4-9748-AE84DC63F370}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.Tests.Utilities", "AspNetCore.Tests.Utilities\AspNetCore.Tests.Utilities.csproj", "{AF440449-DBE1-40AB-B155-87C3B31E7378}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Tests.Utilities", "AspNetCore.Tests.Utilities\AspNetCore.Tests.Utilities.csproj", "{AF440449-DBE1-40AB-B155-87C3B31E7378}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarWars", "..\Core\StarWars\StarWars.csproj", "{9CA71125-2837-4F92-9822-CB41B64E2E43}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetClassic.Abstractions", "AspNetClassic.Abstractions\AspNetClassic.Abstractions.csproj", "{B930D413-E013-4DE6-B1AB-C88BE946E615}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.Abstractions", "AspNetClassic.Abstractions\AspNetClassic.Abstractions.csproj", "{B930D413-E013-4DE6-B1AB-C88BE946E615}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetClassic.HttpGet", "AspNetClassic.HttpGet\AspNetClassic.HttpGet.csproj", "{24990C47-B073-40D5-AE1C-A9740EE35845}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.HttpGet", "AspNetClassic.HttpGet\AspNetClassic.HttpGet.csproj", "{24990C47-B073-40D5-AE1C-A9740EE35845}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetClassic.HttpGetSchema", "AspNetClassic.HttpGetSchema\AspNetClassic.HttpGetSchema.csproj", "{05815423-DF06-4959-B5B1-63962F883836}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.HttpGetSchema", "AspNetClassic.HttpGetSchema\AspNetClassic.HttpGetSchema.csproj", "{05815423-DF06-4959-B5B1-63962F883836}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetClassic.HttpPost", "AspNetClassic.HttpPost\AspNetClassic.HttpPost.csproj", "{4B7871E6-63CA-4472-AB88-B1DD6BD99A3B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.HttpPost", "AspNetClassic.HttpPost\AspNetClassic.HttpPost.csproj", "{4B7871E6-63CA-4472-AB88-B1DD6BD99A3B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.HttpGet", "AspNetCore.HttpGet\AspNetCore.HttpGet.csproj", "{AF1587CB-958E-4758-9B80-4DE357EF146A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.HttpGet", "AspNetCore.HttpGet\AspNetCore.HttpGet.csproj", "{AF1587CB-958E-4758-9B80-4DE357EF146A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.HttpGetSchema", "AspNetCore.HttpGetSchema\AspNetCore.HttpGetSchema.csproj", "{155D7C34-3B27-4C35-8436-E5136E7326AF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.HttpGetSchema", "AspNetCore.HttpGetSchema\AspNetCore.HttpGetSchema.csproj", "{155D7C34-3B27-4C35-8436-E5136E7326AF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.HttpPost", "AspNetCore.HttpPost\AspNetCore.HttpPost.csproj", "{D072B67B-348C-4AB1-893F-FBD456FDFE2C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.HttpPost", "AspNetCore.HttpPost\AspNetCore.HttpPost.csproj", "{D072B67B-348C-4AB1-893F-FBD456FDFE2C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut", "..\DataLoader\Core\GreenDonut.csproj", "{893BF07B-4171-4C10-8D41-E7704C19D7C0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -221,6 +223,10 @@ Global
 		{D072B67B-348C-4AB1-893F-FBD456FDFE2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D072B67B-348C-4AB1-893F-FBD456FDFE2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D072B67B-348C-4AB1-893F-FBD456FDFE2C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{893BF07B-4171-4C10-8D41-E7704C19D7C0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{893BF07B-4171-4C10-8D41-E7704C19D7C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{893BF07B-4171-4C10-8D41-E7704C19D7C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{893BF07B-4171-4C10-8D41-E7704C19D7C0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -234,6 +240,7 @@ Global
 		{BB73F3D2-AD8A-466E-854A-1002C55A1F26} = {948ABAC5-4F55-44FB-B083-7A7CC3DE1170}
 		{B992574E-FBF8-48D9-BD01-A1287B9F3603} = {948ABAC5-4F55-44FB-B083-7A7CC3DE1170}
 		{F3FD6777-B22A-436B-95C8-A6DA74503A99} = {948ABAC5-4F55-44FB-B083-7A7CC3DE1170}
+		{893BF07B-4171-4C10-8D41-E7704C19D7C0} = {948ABAC5-4F55-44FB-B083-7A7CC3DE1170}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {19F6ECEC-F157-45FD-88ED-C5232E1E0108}

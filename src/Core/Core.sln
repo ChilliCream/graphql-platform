@@ -49,13 +49,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StarWars", "StarWars\StarWa
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.Redis", "PersistedQueries.Redis\PersistedQueries.Redis.csproj", "{B4CC72E4-C93E-4AFB-8381-BFF6F4B06CC9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.FileSystem.Tests", "PersistedQueries.FileSystem.Tests\PersistedQueries.FileSystem.Tests.csproj", "{F3657CF0-6B18-4021-8CCF-A7C131E4F745}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PersistedQueries.FileSystem.Tests", "PersistedQueries.FileSystem.Tests\PersistedQueries.FileSystem.Tests.csproj", "{F3657CF0-6B18-4021-8CCF-A7C131E4F745}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.Redis.Tests", "PersistedQueries.Redis.Tests\PersistedQueries.Redis.Tests.csproj", "{33AB229E-08A8-408E-A76F-E8CDEA6FECF6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PersistedQueries.Redis.Tests", "PersistedQueries.Redis.Tests\PersistedQueries.Redis.Tests.csproj", "{33AB229E-08A8-408E-A76F-E8CDEA6FECF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriptions.Redis.Tests", "Subscriptions.Redis.Tests\Subscriptions.Redis.Tests.csproj", "{4918D8FC-2685-4211-8856-207DB0AEF291}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriptions.Redis.Tests", "Subscriptions.Redis.Tests\Subscriptions.Redis.Tests.csproj", "{4918D8FC-2685-4211-8856-207DB0AEF291}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Filters.Mongo.Tests", "Types.Filters.Mongo.Tests\Types.Filters.Mongo.Tests.csproj", "{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Filters.Mongo.Tests", "Types.Filters.Mongo.Tests\Types.Filters.Mongo.Tests.csproj", "{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "References", "References", "{3A9B3137-9B55-477D-9F2E-6A30320A8A66}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut", "..\DataLoader\Core\GreenDonut.csproj", "{EFDF63CD-8F0E-402B-A0FB-6DB78240AE6E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -391,9 +395,24 @@ Global
 		{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}.Release|x64.Build.0 = Release|Any CPU
 		{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}.Release|x86.ActiveCfg = Release|Any CPU
 		{EDFF4012-4D25-4902-AD5F-06AF4137B8F0}.Release|x86.Build.0 = Release|Any CPU
+		{EFDF63CD-8F0E-402B-A0FB-6DB78240AE6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFDF63CD-8F0E-402B-A0FB-6DB78240AE6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFDF63CD-8F0E-402B-A0FB-6DB78240AE6E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EFDF63CD-8F0E-402B-A0FB-6DB78240AE6E}.Debug|x64.Build.0 = Debug|Any CPU
+		{EFDF63CD-8F0E-402B-A0FB-6DB78240AE6E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{EFDF63CD-8F0E-402B-A0FB-6DB78240AE6E}.Debug|x86.Build.0 = Debug|Any CPU
+		{EFDF63CD-8F0E-402B-A0FB-6DB78240AE6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFDF63CD-8F0E-402B-A0FB-6DB78240AE6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EFDF63CD-8F0E-402B-A0FB-6DB78240AE6E}.Release|x64.ActiveCfg = Release|Any CPU
+		{EFDF63CD-8F0E-402B-A0FB-6DB78240AE6E}.Release|x64.Build.0 = Release|Any CPU
+		{EFDF63CD-8F0E-402B-A0FB-6DB78240AE6E}.Release|x86.ActiveCfg = Release|Any CPU
+		{EFDF63CD-8F0E-402B-A0FB-6DB78240AE6E}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{EFDF63CD-8F0E-402B-A0FB-6DB78240AE6E} = {3A9B3137-9B55-477D-9F2E-6A30320A8A66}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {87D0BB31-B12C-42C7-98C0-1060CD805E74}
