@@ -11,10 +11,9 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <Name>HotChocolate.PersistedQueries.Redis</Name>
-    <PackageId>$(Name)</PackageId>
-    <AssemblyName>$(Name)</AssemblyName>
-    <RootNamespace>$(Name)</RootNamespace>
+    <PackageId>HotChocolate.PersistedQueries.Redis</PackageId>
+    <AssemblyName>HotChocolate.PersistedQueries.Redis</AssemblyName>
+    <RootNamespace>HotChocolate.PersistedQueries.Redis</RootNamespace>
     <Description>An implementation of Hot Chocolate persisted queries using the Redis cache.</Description>
   </PropertyGroup>
 

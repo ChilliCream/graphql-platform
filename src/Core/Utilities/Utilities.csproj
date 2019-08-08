@@ -30,7 +30,7 @@
     <PackageReference Include="System.ComponentModel" Version="4.3.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461' OR '$(TargetFramework)' == 'net47'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <PackageReference Include="Newtonsoft.Json" Version="6.0.4" />
     <PackageReference Include="System.ComponentModel" Version="4.3.0" />
   </ItemGroup>

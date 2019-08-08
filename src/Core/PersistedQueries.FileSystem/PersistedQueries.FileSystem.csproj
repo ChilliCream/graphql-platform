@@ -11,10 +11,9 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <Name>HotChocolate.PersistedQueries.FileSystem</Name>
-    <PackageId>$(Name)</PackageId>
-    <AssemblyName>$(Name)</AssemblyName>
-    <RootNamespace>$(Name)</RootNamespace>
+    <PackageId>HotChocolate.PersistedQueries.FileSystem</PackageId>
+    <AssemblyName>HotChocolate.PersistedQueries.FileSystem</AssemblyName>
+    <RootNamespace>HotChocolate.PersistedQueries.FileSystem</RootNamespace>
     <Description>An implementation of Hot Chocolate persisted queries using the local file system.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
