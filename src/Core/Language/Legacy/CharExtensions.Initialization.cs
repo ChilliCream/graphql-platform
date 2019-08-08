@@ -1,4 +1,4 @@
-﻿namespace HotChocolate.Utilities
+﻿namespace HotChocolate.Language
 {
     internal static partial class CharExtensions
     {
