@@ -116,7 +116,7 @@ namespace HotChocolate.Subscriptions
         {
             unchecked
             {
-                if (_hash == null)
+                if (_hash is null)
                 {
                     var hash = Name.GetHashCode() * 379;
 
