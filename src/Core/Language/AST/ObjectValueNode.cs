@@ -72,11 +72,12 @@ namespace HotChocolate.Language
                     .OrderBy(t => t.Name.Value, StringComparer.Ordinal)
                     .GetEnumerator();
 
-                foreach (ObjectFieldNode a in Fields.OrderBy(t => t.Name.Value, StringComparer.Ordinal))
+                foreach (ObjectFieldNode field in
+                    Fields.OrderBy(t => t.Name.Value, StringComparer.Ordinal))
                 {
                     otherFields.MoveNext();
 
-                    if (!otherFields.Current.Equals(a))
+                    if (!otherFields.Current.Equals(field))
                     {
                         return false;
                     }
