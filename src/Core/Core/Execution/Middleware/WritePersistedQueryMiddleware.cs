@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Runtime;
 
 namespace HotChocolate.Execution
 {

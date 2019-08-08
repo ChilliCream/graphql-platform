@@ -7,7 +7,6 @@ using ChilliCream.Testing;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
-using HotChocolate.Runtime;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Xunit;

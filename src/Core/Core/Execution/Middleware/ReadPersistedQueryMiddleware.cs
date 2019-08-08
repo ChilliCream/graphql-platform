@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Runtime;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {

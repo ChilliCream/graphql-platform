@@ -1,9 +1,9 @@
 ﻿using System.Buffers;
 using System;
 using System.Text;
-using HotChocolate.Utilities;
 using System.Buffers.Text;
 using System.Runtime.InteropServices;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types.Relay
 {
