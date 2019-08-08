@@ -2,7 +2,6 @@ using System;
 using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Language;
 
 namespace HotChocolate.Types
 {
