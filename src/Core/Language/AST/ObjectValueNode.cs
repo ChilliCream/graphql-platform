@@ -165,8 +165,8 @@ namespace HotChocolate.Language
                 {
                     var hash = (Kind.GetHashCode() * 397);
 
-                    foreach (ObjectFieldNode field in
-                        Fields.OrderBy(t => t.Name.Value, StringComparer.Ordinal))
+                    foreach (ObjectFieldNode field in Fields.OrderBy(
+                        t => t.Name.Value, StringComparer.Ordinal))
                     {
                         hash = hash ^ (field.GetHashCode() * 397);
                     }
