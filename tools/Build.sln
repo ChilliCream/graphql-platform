@@ -15,10 +15,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Language", "..\src\Core\Lan
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Language.Tests", "..\src\Core\Language.Tests\Language.Tests.csproj", "{2D425F11-34C0-43B5-BA32-9AB77204675A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runtime", "..\src\Core\Runtime\Runtime.csproj", "{05818E65-4B2C-4C25-97AE-23A867C1C633}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Runtime.Tests", "..\src\Core\Runtime.Tests\Runtime.Tests.csproj", "{9F9AE843-0661-42A8-A639-89901615B4B9}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriptions", "..\src\Core\Subscriptions\Subscriptions.csproj", "{3B391F66-9BBE-4B47-912D-F8AFA2EA460B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriptions.InMemory", "..\src\Core\Subscriptions.InMemory\Subscriptions.InMemory.csproj", "{E384CEB5-737C-4E90-8465-B864C024739C}"
@@ -85,39 +81,37 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StarWars", "..\src\Core\Sta
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types.Tests.Documentation", "..\src\Core\Types.Tests.Documentation\Types.Tests.Documentation.csproj", "{0BE5CA9F-1FF9-4360-B5CD-ECEC694C7DFB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetClassic.Abstractions", "..\src\Server\AspNetClassic.Abstractions\AspNetClassic.Abstractions.csproj", "{A62D1CE5-DE77-4AC4-B905-4B267CFC0602}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.Abstractions", "..\src\Server\AspNetClassic.Abstractions\AspNetClassic.Abstractions.csproj", "{A62D1CE5-DE77-4AC4-B905-4B267CFC0602}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriptions.Redis", "..\src\Core\Subscriptions.Redis\Subscriptions.Redis.csproj", "{48D7658F-ECD5-4D13-88F2-2E394E8BFF9D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriptions.Redis", "..\src\Core\Subscriptions.Redis\Subscriptions.Redis.csproj", "{48D7658F-ECD5-4D13-88F2-2E394E8BFF9D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.HttpGetSchema", "..\src\Server\AspNetCore.HttpGetSchema\AspNetCore.HttpGetSchema.csproj", "{C860EF23-7BA0-4DB5-89C7-F51398AC8B5A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.HttpGetSchema", "..\src\Server\AspNetCore.HttpGetSchema\AspNetCore.HttpGetSchema.csproj", "{C860EF23-7BA0-4DB5-89C7-F51398AC8B5A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetClassic.HttpGet", "..\src\Server\AspNetClassic.HttpGet\AspNetClassic.HttpGet.csproj", "{19548E97-1C1F-4C15-A87E-7B428A719060}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.HttpGet", "..\src\Server\AspNetClassic.HttpGet\AspNetClassic.HttpGet.csproj", "{19548E97-1C1F-4C15-A87E-7B428A719060}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetClassic.HttpGetSchema", "..\src\Server\AspNetClassic.HttpGetSchema\AspNetClassic.HttpGetSchema.csproj", "{6D7179B8-8F09-47D3-82C4-98E0769DC26B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.HttpGetSchema", "..\src\Server\AspNetClassic.HttpGetSchema\AspNetClassic.HttpGetSchema.csproj", "{6D7179B8-8F09-47D3-82C4-98E0769DC26B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetClassic.HttpPost", "..\src\Server\AspNetClassic.HttpPost\AspNetClassic.HttpPost.csproj", "{4F2FD7D7-F1F7-4732-B7E1-390C056E1F1F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetClassic.HttpPost", "..\src\Server\AspNetClassic.HttpPost\AspNetClassic.HttpPost.csproj", "{4F2FD7D7-F1F7-4732-B7E1-390C056E1F1F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.HttpGet", "..\src\Server\AspNetCore.HttpGet\AspNetCore.HttpGet.csproj", "{594F453D-1AF3-4E7A-B554-09B3E9546437}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.HttpGet", "..\src\Server\AspNetCore.HttpGet\AspNetCore.HttpGet.csproj", "{594F453D-1AF3-4E7A-B554-09B3E9546437}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.HttpPost", "..\src\Server\AspNetCore.HttpPost\AspNetCore.HttpPost.csproj", "{DBADC16A-413E-4AD7-9AF5-75295752EA1C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.HttpPost", "..\src\Server\AspNetCore.HttpPost\AspNetCore.HttpPost.csproj", "{DBADC16A-413E-4AD7-9AF5-75295752EA1C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.FileSystem", "..\src\Core\PersistedQueries.FileSystem\PersistedQueries.FileSystem.csproj", "{9D9D2D78-59AC-446F-B200-EACF527A95A5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PersistedQueries.FileSystem", "..\src\Core\PersistedQueries.FileSystem\PersistedQueries.FileSystem.csproj", "{9D9D2D78-59AC-446F-B200-EACF527A95A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.Redis", "..\src\Core\PersistedQueries.Redis\PersistedQueries.Redis.csproj", "{AE26E10C-647B-4119-AAD7-5FA398FC3275}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PersistedQueries.Redis", "..\src\Core\PersistedQueries.Redis\PersistedQueries.Redis.csproj", "{AE26E10C-647B-4119-AAD7-5FA398FC3275}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.FileSystem.Tests", "..\src\Core\PersistedQueries.FileSystem.Tests\PersistedQueries.FileSystem.Tests.csproj", "{9DE98CBB-B3DA-4324-9881-B86D8A964F7A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PersistedQueries.FileSystem.Tests", "..\src\Core\PersistedQueries.FileSystem.Tests\PersistedQueries.FileSystem.Tests.csproj", "{9DE98CBB-B3DA-4324-9881-B86D8A964F7A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PersistedQueries.Redis.Tests", "..\src\Core\PersistedQueries.Redis.Tests\PersistedQueries.Redis.Tests.csproj", "{82ADA5C2-DBCF-411A-9735-EA2F36998AD1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PersistedQueries.Redis.Tests", "..\src\Core\PersistedQueries.Redis.Tests\PersistedQueries.Redis.Tests.csproj", "{82ADA5C2-DBCF-411A-9735-EA2F36998AD1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataLoader", "..\src\DataLoader\Core\Core.csproj", "{DD17893A-8B06-4295-BBD9-0876B168BBC3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "..\src\DataLoader\Core\Core.csproj", "{DD17893A-8B06-4295-BBD9-0876B168BBC3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataLoader.Tests", "..\src\DataLoader\Core.Tests\Core.Tests.csproj", "{C58B2D13-54C9-42EA-BB69-FDF68543F393}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Tests", "..\src\DataLoader\Core.Tests\Core.Tests.csproj", "{C58B2D13-54C9-42EA-BB69-FDF68543F393}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataLoader.DiagnosticSource.Tests", "..\src\DataLoader\DiagnosticSource.Tests\DiagnosticSource.Tests.csproj", "{0731D956-7E1B-4C03-A57C-34D6BD307704}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiagnosticSource.Tests", "..\src\DataLoader\DiagnosticSource.Tests\DiagnosticSource.Tests.csproj", "{0731D956-7E1B-4C03-A57C-34D6BD307704}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriptions.Redis.Tests", "..\src\Core\Subscriptions.Redis.Tests\Subscriptions.Redis.Tests.csproj", "{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types.Filters.Mongo.Tests", "..\src\Core\Types.Filters.Mongo.Tests\Types.Filters.Mongo.Tests.csproj", "{3E8141D2-381E-4923-A170-857782775659}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriptions.Redis.Tests", "..\src\Core\Subscriptions.Redis.Tests\Subscriptions.Redis.Tests.csproj", "{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -201,30 +195,6 @@ Global
 		{2D425F11-34C0-43B5-BA32-9AB77204675A}.Release|x64.Build.0 = Release|Any CPU
 		{2D425F11-34C0-43B5-BA32-9AB77204675A}.Release|x86.ActiveCfg = Release|Any CPU
 		{2D425F11-34C0-43B5-BA32-9AB77204675A}.Release|x86.Build.0 = Release|Any CPU
-		{05818E65-4B2C-4C25-97AE-23A867C1C633}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{05818E65-4B2C-4C25-97AE-23A867C1C633}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{05818E65-4B2C-4C25-97AE-23A867C1C633}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{05818E65-4B2C-4C25-97AE-23A867C1C633}.Debug|x64.Build.0 = Debug|Any CPU
-		{05818E65-4B2C-4C25-97AE-23A867C1C633}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{05818E65-4B2C-4C25-97AE-23A867C1C633}.Debug|x86.Build.0 = Debug|Any CPU
-		{05818E65-4B2C-4C25-97AE-23A867C1C633}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{05818E65-4B2C-4C25-97AE-23A867C1C633}.Release|Any CPU.Build.0 = Release|Any CPU
-		{05818E65-4B2C-4C25-97AE-23A867C1C633}.Release|x64.ActiveCfg = Release|Any CPU
-		{05818E65-4B2C-4C25-97AE-23A867C1C633}.Release|x64.Build.0 = Release|Any CPU
-		{05818E65-4B2C-4C25-97AE-23A867C1C633}.Release|x86.ActiveCfg = Release|Any CPU
-		{05818E65-4B2C-4C25-97AE-23A867C1C633}.Release|x86.Build.0 = Release|Any CPU
-		{9F9AE843-0661-42A8-A639-89901615B4B9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9F9AE843-0661-42A8-A639-89901615B4B9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9F9AE843-0661-42A8-A639-89901615B4B9}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{9F9AE843-0661-42A8-A639-89901615B4B9}.Debug|x64.Build.0 = Debug|Any CPU
-		{9F9AE843-0661-42A8-A639-89901615B4B9}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{9F9AE843-0661-42A8-A639-89901615B4B9}.Debug|x86.Build.0 = Debug|Any CPU
-		{9F9AE843-0661-42A8-A639-89901615B4B9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9F9AE843-0661-42A8-A639-89901615B4B9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9F9AE843-0661-42A8-A639-89901615B4B9}.Release|x64.ActiveCfg = Release|Any CPU
-		{9F9AE843-0661-42A8-A639-89901615B4B9}.Release|x64.Build.0 = Release|Any CPU
-		{9F9AE843-0661-42A8-A639-89901615B4B9}.Release|x86.ActiveCfg = Release|Any CPU
-		{9F9AE843-0661-42A8-A639-89901615B4B9}.Release|x86.Build.0 = Release|Any CPU
 		{3B391F66-9BBE-4B47-912D-F8AFA2EA460B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{3B391F66-9BBE-4B47-912D-F8AFA2EA460B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3B391F66-9BBE-4B47-912D-F8AFA2EA460B}.Debug|x64.ActiveCfg = Debug|Any CPU
@@ -813,18 +783,6 @@ Global
 		{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}.Release|x64.Build.0 = Release|Any CPU
 		{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}.Release|x86.ActiveCfg = Release|Any CPU
 		{1993F07A-B7EA-4737-AFBF-86CB9A8330DD}.Release|x86.Build.0 = Release|Any CPU
-		{3E8141D2-381E-4923-A170-857782775659}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3E8141D2-381E-4923-A170-857782775659}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3E8141D2-381E-4923-A170-857782775659}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{3E8141D2-381E-4923-A170-857782775659}.Debug|x64.Build.0 = Debug|Any CPU
-		{3E8141D2-381E-4923-A170-857782775659}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{3E8141D2-381E-4923-A170-857782775659}.Debug|x86.Build.0 = Debug|Any CPU
-		{3E8141D2-381E-4923-A170-857782775659}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3E8141D2-381E-4923-A170-857782775659}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3E8141D2-381E-4923-A170-857782775659}.Release|x64.ActiveCfg = Release|Any CPU
-		{3E8141D2-381E-4923-A170-857782775659}.Release|x64.Build.0 = Release|Any CPU
-		{3E8141D2-381E-4923-A170-857782775659}.Release|x86.ActiveCfg = Release|Any CPU
-		{3E8141D2-381E-4923-A170-857782775659}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
