@@ -2,7 +2,6 @@
 using System;
 using System.Text;
 using System.Buffers.Text;
-using System.Runtime.InteropServices;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Relay
@@ -57,6 +56,8 @@ namespace HotChocolate.Types.Relay
                     break;
             }
 
+            int bytesWritten;
+
             int schemaSize = checked(schemaName.HasValue
                 ? GetAllocationSize(schemaName.Value)
                 : 0);
@@ -97,26 +98,26 @@ namespace HotChocolate.Types.Relay
                 {
                     case Guid g:
                         serialized[position++] = _guid;
-                        MemoryMarshal.TryWrite(value, ref g);
+                        Utf8Formatter.TryFormat(g, value, out bytesWritten, 'N');
                         position += idSize;
                         break;
 
                     case short s:
                         serialized[position++] = _short;
-                        MemoryMarshal.TryWrite(value, ref s);
-                        position += idSize;
+                        Utf8Formatter.TryFormat(s, value, out bytesWritten);
+                        position += bytesWritten;
                         break;
 
                     case int i:
                         serialized[position++] = _int;
-                        MemoryMarshal.TryWrite(value, ref i);
-                        position += idSize;
+                        Utf8Formatter.TryFormat(i, value, out bytesWritten);
+                        position += bytesWritten;
                         break;
 
                     case long l:
                         serialized[position++] = _long;
-                        MemoryMarshal.TryWrite(value, ref l);
-                        position += idSize;
+                        Utf8Formatter.TryFormat(l, value, out bytesWritten);
+                        position += bytesWritten;
                         break;
 
                     default:
@@ -126,7 +127,7 @@ namespace HotChocolate.Types.Relay
                 }
 
                 if (Base64.EncodeToUtf8InPlace(
-                    serialized, position, out int bytesWritten) != OperationStatus.Done)
+                    serialized, position, out bytesWritten) != OperationStatus.Done)
                 {
                     // TODO : resources
                     throw new InvalidOperationException("Unable to encode data.");
@@ -219,19 +220,19 @@ namespace HotChocolate.Types.Relay
                 switch (decoded[0])
                 {
                     case _guid:
-                        success = MemoryMarshal.TryRead(decoded.Slice(1), out Guid g);
+                        success = Utf8Parser.TryParse(decoded.Slice(1), out Guid g, out _, 'N');
                         value = g;
                         break;
                     case _short:
-                        success = MemoryMarshal.TryRead(decoded.Slice(1), out short s);
+                        success = Utf8Parser.TryParse(decoded.Slice(1), out short s, out _);
                         value = s;
                         break;
                     case _int:
-                        success = MemoryMarshal.TryRead(decoded.Slice(1), out int i);
+                        success = Utf8Parser.TryParse(decoded.Slice(1), out int i, out _);
                         value = i;
                         break;
                     case _long:
-                        success = MemoryMarshal.TryRead(decoded.Slice(1), out long l);
+                        success = Utf8Parser.TryParse(decoded.Slice(1), out long l, out _);
                         value = l;
                         break;
                     default:
@@ -297,16 +298,16 @@ namespace HotChocolate.Types.Relay
             switch (value)
             {
                 case Guid g:
-                    return 17;
+                    return 32;
 
                 case short s:
-                    return 3;
+                    return 6;
 
                 case int i:
-                    return 5;
+                    return 11;
 
                 case long l:
-                    return 9;
+                    return 20;
 
                 case string s:
                     return _utf8.GetByteCount(s);

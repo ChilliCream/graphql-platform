@@ -95,9 +95,9 @@ namespace HotChocolate.Types.Relay
         }
 
 
-        [InlineData((short)123, "Foo\ns{\0\0")]
-        [InlineData(123, "Foo\ni{\0\0\0\0")]
-        [InlineData((long)123, "Foo\nl{\0\0\0\0\0\0\0\0")]
+        [InlineData((short)123, "Foo\ns123")]
+        [InlineData(123, "Foo\ni123")]
+        [InlineData((long)123, "Foo\nl123")]
         [InlineData("123456", "Foo\nd123456")]
         [Theory]
         public void SerializeIdValue(object id, string expected)
@@ -116,6 +116,25 @@ namespace HotChocolate.Types.Relay
         }
 
         [Fact]
+        public void SerializeMaxLongIdValue()
+        {
+            // arrange
+            object id = long.MaxValue;
+            string expected = "Foo\nl" + id;
+            NameString typeName = "Foo";
+            var serializer = new IdSerializer();
+
+            // act
+            string serializedId = serializer.Serialize(typeName, id);
+
+            // assert
+            string unwrapped = Encoding.UTF8.GetString(
+                Convert.FromBase64String(serializedId));
+            Assert.Equal(expected, unwrapped);
+        }
+
+
+        [Fact]
         public void SerializeGuidValue()
         {
             // arrange
@@ -129,16 +148,16 @@ namespace HotChocolate.Types.Relay
             // assert
             string unwrapped = Encoding.UTF8.GetString(
                 Convert.FromBase64String(serializedId));
-            Assert.StartsWith("Foo\ng=", unwrapped);
+            Assert.Equal("Foo\ngdad4f33d303345d7b7541d9ac23974d9", unwrapped);
         }
 
-        [InlineData("Rm9vCnN7AAA=", (short)123, typeof(short))]
-        [InlineData("Rm9vCml7AAAAAA==", 123, typeof(int))]
-        [InlineData("Rm9vCmx7AAAAAAAAAAA=", (long)123, typeof(long))]
+        [InlineData("Rm9vCnMxMjM=", (short)123, typeof(short))]
+        [InlineData("Rm9vCmkxMjM=", 123, typeof(int))]
+        [InlineData("Rm9vCmwxMjM=", (long)123, typeof(long))]
         [InlineData("Rm9vCmQxMjM0NTY=", "123456", typeof(string))]
         [Theory]
         public void DeserializeIdValue(
-            string serialized, object id, Type idType)
+           string serialized, object id, Type idType)
         {
             // arrange
             var serializer = new IdSerializer();
@@ -156,7 +175,7 @@ namespace HotChocolate.Types.Relay
         public void DeserializeGuidValue()
         {
             // arrange
-            var serialized = "Rm9vCmc989TaMzDXRbdUHZrCOXTZAA==";
+            var serialized = "Rm9vCmdkYWQ0ZjMzZDMwMzM0NWQ3Yjc1NDFkOWFjMjM5NzRkOQ==";
             var serializer = new IdSerializer();
 
             // act
