@@ -1,28 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
+    <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
+    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'ParserFramework.props'))</ChilliFramework>
+    <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'BuildSettings.props'))</ChilliBuild>
+  </PropertyGroup>
+
+  <Import Project="$(ChilliFramework)" />
+  <Import Project="$(ChilliBuild)" />
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard1.3;$(TargetFrameworks)</TargetFrameworks>
+    <PackageId>GreenDonut</PackageId>
     <AssemblyName>GreenDonut</AssemblyName>
     <RootNamespace>GreenDonut</RootNamespace>
-    <PackageId>GreenDonut</PackageId>
     <Description>Green Donut is a port of facebook's DataLoader utility, written in C# for .NET Core and .NET Framework.</Description>
     <PackageProjectUrl>https://greendonut.io</PackageProjectUrl>
     <PackageTags>DataLoader Batching Caching GraphQL ChilliCream Facebook</PackageTags>
     <PackageIconUrl>https://cdn.rawgit.com/ChilliCream/greendonut-logo/master/img/greendonut-signet.png</PackageIconUrl>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>Full</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>pdbonly</DebugType>
-    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
