@@ -1,29 +1,12 @@
 ﻿{
-  "Data": {},
+  "Data": {
+    "items": [
+      {
+        "foo": "abc"
+      }
+    ]
+  },
   "Extensions": {},
-  "Errors": [
-    {
-      "Message": "Unexpected Execution Error",
-      "Code": null,
-      "Path": null,
-      "Locations": [],
-      "Exception": {
-        "ClassName": "System.ArgumentNullException",
-        "Message": "Value cannot be null.",
-        "Data": null,
-        "InnerException": null,
-        "HelpURL": null,
-        "StackTraceString": "   at MongoDB.Driver.Core.Misc.Ensure.IsNotNull[T](T value, String paramName)\n   at MongoDB.Driver.Linq.Expressions.WhereExpression..ctor(Expression source, String itemName, Expression predicate)\n   at MongoDB.Driver.Linq.Processors.BinderHelper.BindWhere(PipelineExpression pipeline, IBindingContext bindingContext, LambdaExpression lambda)\n   at MongoDB.Driver.Linq.Processors.Pipeline.MethodCallBinders.WhereBinder.Bind(PipelineExpression pipeline, PipelineBindingContext bindingContext, MethodCallExpression node, IEnumerable`1 arguments)\n   at MongoDB.Driver.Linq.Processors.MethodInfoMethodCallBinder`1.Bind(PipelineExpression pipeline, TBindingContext bindingContext, MethodCallExpression node, IEnumerable`1 arguments)\n   at MongoDB.Driver.Linq.Processors.PipelineBinderBase`1.BindMethodCall(MethodCallExpression node)\n   at MongoDB.Driver.Linq.Processors.Pipeline.PipelineBinder.Bind(Expression node, IBsonSerializerRegistry serializerRegistry)\n   at MongoDB.Driver.Linq.MongoQueryProviderImpl`1.Prepare(Expression expression)\n   at MongoDB.Driver.Linq.MongoQueryProviderImpl`1.Translate(Expression expression)\n   at MongoDB.Driver.Linq.MongoQueryProviderImpl`1.Execute(Expression expression)\n   at MongoDB.Driver.Linq.MongoQueryableImpl`2.GetEnumerator()\n   at HotChocolate.Execution.ValueCompletion.CompleteList(ICompleteValueContext context, IType elementType, Object result) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Utilities/ValueCompletion.cs:line 91\n   at HotChocolate.Execution.ValueCompletion.CompleteValue(ICompleteValueContext context, IType type, Object result) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Utilities/ValueCompletion.cs:line 64\n   at HotChocolate.Execution.ValueCompletion.CompleteValue(Action`1 enqueueNext, ResolverContext resolverContext) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Utilities/ValueCompletion.cs:line 29\n   at HotChocolate.Execution.ExecutionStrategyBase.EndExecuteResolverBatchAsync(IEnumerable`1 batch, Action`1 enqueueNext, CancellationToken cancellationToken) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/ExecutionStrategyBase.cs:line 183\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteResolversAsync(IExecutionContext executionContext, IEnumerable`1 initialBatch, BatchOperationHandler batchOperationHandler, CancellationToken cancellationToken) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/ExecutionStrategyBase.cs:line 92\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteQueryAsync(IExecutionContext executionContext, BatchOperationHandler batchOperationHandler, CancellationToken cancellationToken) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/ExecutionStrategyBase.cs:line 34\n   at HotChocolate.Execution.QueryExecutionStrategy.ExecuteInternalAsync(IExecutionContext executionContext, CancellationToken cancellationToken) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/QueryExecutionStrategy.cs:line 31\n   at HotChocolate.Execution.ExecuteOperationMiddleware.InvokeAsync(IQueryContext context) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Middleware/ExecuteOperationMiddleware.cs:line 54\n   at HotChocolate.Execution.ValidateQueryMiddleware.InvokeAsync(IQueryContext context) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Middleware/ValidateQueryMiddleware.cs:line 67\n   at HotChocolate.Execution.ParseQueryMiddleware.InvokeAsync(IQueryContext context) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Middleware/ParseQueryMiddleware.cs:line 91\n   at HotChocolate.Execution.ExceptionMiddleware.InvokeAsync(IQueryContext context) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Middleware/ExceptionMiddleware.cs:line 26",
-        "RemoteStackTraceString": null,
-        "RemoteStackIndex": 0,
-        "ExceptionMethod": null,
-        "HResult": -2147467261,
-        "Source": "MongoDB.Driver.Core",
-        "WatsonBuckets": null,
-        "ParamName": "itemName"
-      },
-      "Extensions": {}
-    }
-  ],
+  "Errors": [],
   "ContextData": {}
 }
