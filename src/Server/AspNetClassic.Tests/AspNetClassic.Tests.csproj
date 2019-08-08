@@ -17,6 +17,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNet.WebApi.Core" Version="5.2.7" />
+    <PackageReference Include="Microsoft.Owin.Testing" Version="4.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Core\StarWars\StarWars.csproj" />
     <ProjectReference Include="..\..\Core\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
     <ProjectReference Include="..\AspNetClassic.Authorization\AspNetClassic.Authorization.csproj" />
