@@ -3,7 +3,7 @@
   <PropertyGroup>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
     <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
-    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreFramework.props'))</ChilliFramework>
+    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreServerFramework.props'))</ChilliFramework>
     <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'BuildSettings.props'))</ChilliBuild>
   </PropertyGroup>
 

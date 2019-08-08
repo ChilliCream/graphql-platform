@@ -3,7 +3,7 @@
   <PropertyGroup>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
     <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
-    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreFramework.props'))</ChilliFramework>
+    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreServerFramework.props'))</ChilliFramework>
     <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'BuildSettings.props'))</ChilliBuild>
   </PropertyGroup>
 
@@ -11,9 +11,9 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <PackageId>HotChocolate.AspNetCore.Voyager</PackageId>
     <AssemblyName>HotChocolate.AspNetCore.Voyager</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Voyager</RootNamespace>
-    <PackageId>HotChocolate.AspNetCore.Voyager</PackageId>
     <Description>Contains a GraphQL Voyager for ASP .Net core that can be used with the Hot Chocolate GraphQL server.</Description>
   </PropertyGroup>
 

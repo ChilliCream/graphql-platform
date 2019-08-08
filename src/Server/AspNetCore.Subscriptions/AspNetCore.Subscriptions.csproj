@@ -3,7 +3,7 @@
   <PropertyGroup>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
     <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
-    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreFramework.props'))</ChilliFramework>
+    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreServerFramework.props'))</ChilliFramework>
     <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'BuildSettings.props'))</ChilliBuild>
   </PropertyGroup>
 
@@ -11,9 +11,9 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <PackageId>HotChocolate.AspNetCore.Subscriptions</PackageId>
     <AssemblyName>HotChocolate.AspNetCore.Subscriptions</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Subscriptions</RootNamespace>
-    <PackageId>HotChocolate.AspNetCore.Subscriptions</PackageId>
     <Description>Contains the Hot Chocolate GraphQL subscription middleware for ASP .Net core.</Description>
   </PropertyGroup>
 
