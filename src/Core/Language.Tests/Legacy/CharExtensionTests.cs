@@ -1,6 +1,6 @@
 ﻿using Xunit;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Language
 {
     public class CharExtensionTests
     {

@@ -1,8 +1,7 @@
 ﻿using System;
-using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace HotChocolate.Runtime
+namespace HotChocolate.Utilities
 {
     public class ServiceFactoryTests
     {
@@ -38,10 +37,9 @@ namespace HotChocolate.Runtime
         public void CreateInstanceWithServiceProvider()
         {
             // arrange
-            var services = new ServiceCollection();
-            services.AddSingleton<ClassWithNoDependencies>();
-            IServiceProvider serviceProvider =
-                 services.BuildServiceProvider();
+            var serviceProvider = new DictionaryServiceProvider(
+                typeof(ClassWithNoDependencies),
+                new ClassWithNoDependencies());
 
             var factory = new ServiceFactory();
             factory.Services = serviceProvider;

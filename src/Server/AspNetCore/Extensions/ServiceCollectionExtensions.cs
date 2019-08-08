@@ -5,6 +5,7 @@ using HotChocolate.Execution;
 using HotChocolate.Configuration;
 using HotChocolate.Server;
 using HotChocolate.Execution.Batching;
+using HotChocolate.Types.Relay;
 #if ASPNETCLASSIC
 using HotChocolate.AspNetClassic.Interceptors;
 using HttpContext = Microsoft.Owin.IOwinContext;
@@ -423,6 +424,7 @@ namespace HotChocolate
             this IServiceCollection services,
             Func<IServiceProvider, ISchema> factory)
         {
+            services.AddSingleton<IIdSerializer, IdSerializer>();
             services.AddSingleton(factory);
             services.AddJsonSerializer();
 #if !ASPNETCLASSIC

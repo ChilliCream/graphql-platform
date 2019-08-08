@@ -52,8 +52,8 @@ namespace HotChocolate.Stitching
                     .SetServices(scope.ServiceProvider)
                     .SetVariableValue("ids", new List<object>
                     {
-                        "Q3VzdG9tZXIteDE=",
-                        "Q3VzdG9tZXIteDE="
+                        "Q3VzdG9tZXIKZDE=",
+                        "Q3VzdG9tZXIKZDE="
                     })
                     .Create();
 
@@ -104,8 +104,8 @@ namespace HotChocolate.Stitching
                     .SetServices(scope.ServiceProvider)
                     .SetProperty("ids", new List<object>
                     {
-                        "Q3VzdG9tZXIteDE=",
-                        "Q3VzdG9tZXIteDE="
+                        "Q3VzdG9tZXIKZDE=",
+                        "Q3VzdG9tZXIKZDE="
                     })
                     .Create();
 

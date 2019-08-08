@@ -1,7 +1,7 @@
 ﻿using System;
 using Xunit;
 
-namespace HotChocolate.Runtime
+namespace HotChocolate.Utilities
 {
     public class CacheEntryEventArgsTests
     {

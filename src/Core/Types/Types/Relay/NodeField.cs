@@ -7,8 +7,6 @@ namespace HotChocolate.Types.Relay
     internal sealed class NodeField
          : ObjectField
     {
-        private static readonly IdSerializer _idSerializer = new IdSerializer();
-
         internal NodeField(IDescriptorContext context)
            : base(CreateDefinition(context))
         {
@@ -22,13 +20,23 @@ namespace HotChocolate.Types.Relay
             var descriptor = ObjectFieldDescriptor
                 .New(context, "node");
 
+            IIdSerializer _serializer = null;
+
             descriptor
                 .Argument("id", a => a.Type<NonNullType<IdType>>())
                 .Type<NonNullType<NodeType>>()
                 .Resolver(async ctx =>
                 {
+                    if (_serializer is null)
+                    {
+                        var services = ctx.Service<IServiceProvider>();
+                        _serializer = services.GetService(typeof(IIdSerializer)) is IIdSerializer s
+                            ? s
+                            : new IdSerializer();
+                    }
+
                     string id = ctx.Argument<string>("id");
-                    IdValue deserializedId = _idSerializer.Deserialize(id);
+                    IdValue deserializedId = _serializer.Deserialize(id);
 
                     if (ctx.Schema.TryGetType(deserializedId.TypeName,
                         out ObjectType type)

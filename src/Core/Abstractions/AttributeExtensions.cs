@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using HotChocolate.Utilities;
+using HotChocolate.Language;
 
 namespace HotChocolate
 {
@@ -25,7 +25,7 @@ namespace HotChocolate
                 typeof(GraphQLNameAttribute), false)
                 ? typeInfo.GetCustomAttribute<GraphQLNameAttribute>().Name
                 : GetFromType(typeInfo);
-            return NameUtils.RemoveInvalidCharacters(name);
+            return NameUtils.MakeValidGraphQLName(name);
         }
 
         public static string GetGraphQLName(this PropertyInfo property)
@@ -34,7 +34,7 @@ namespace HotChocolate
                 typeof(GraphQLNameAttribute), false)
                 ? property.GetCustomAttribute<GraphQLNameAttribute>().Name
                 : NormalizeName(property.Name);
-            return NameUtils.RemoveInvalidCharacters(name);
+            return NameUtils.MakeValidGraphQLName(name);
         }
 
         public static string GetGraphQLName(this MethodInfo method)
@@ -43,7 +43,7 @@ namespace HotChocolate
                 typeof(GraphQLNameAttribute), false)
                 ? method.GetCustomAttribute<GraphQLNameAttribute>().Name
                 : NormalizeMethodName(method);
-            return NameUtils.RemoveInvalidCharacters(name);
+            return NameUtils.MakeValidGraphQLName(name);
         }
 
         public static string GetGraphQLName(this ParameterInfo parameter)
@@ -52,7 +52,7 @@ namespace HotChocolate
                 typeof(GraphQLNameAttribute), false)
                 ? parameter.GetCustomAttribute<GraphQLNameAttribute>().Name
                 : NormalizeName(parameter.Name);
-            return NameUtils.RemoveInvalidCharacters(name);
+            return NameUtils.MakeValidGraphQLName(name);
         }
 
         public static string GetGraphQLName(this MemberInfo member)

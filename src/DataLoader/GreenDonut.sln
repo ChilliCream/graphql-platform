@@ -1,13 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29201.188
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "Core\Core.csproj", "{BC3897A8-B14C-40EC-883F-16C2AE3DA024}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut", "Core\GreenDonut.csproj", "{BC3897A8-B14C-40EC-883F-16C2AE3DA024}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core.Tests", "Core.Tests\Core.Tests.csproj", "{AAB2CD73-2B67-4E2E-8C32-E045462800B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut.Tests", "Core.Tests\GreenDonut.Tests.csproj", "{AAB2CD73-2B67-4E2E-8C32-E045462800B4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DiagnosticSource.Tests", "DiagnosticSource.Tests\DiagnosticSource.Tests.csproj", "{433F27CC-17C0-4051-A358-FDC0CE913220}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut.DiagnosticSource.Tests", "DiagnosticSource.Tests\GreenDonut.DiagnosticSource.Tests.csproj", "{433F27CC-17C0-4051-A358-FDC0CE913220}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Benchmarks", "Benchmarks\Benchmarks.csproj", "{DAD763C5-2B30-48C0-985F-63B76959547D}"
 EndProject

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace HotChocolate.Runtime
+namespace HotChocolate.Utilities
 {
     /// <summary>
     /// Represents cache entry event args.
@@ -9,7 +9,7 @@ namespace HotChocolate.Runtime
         : EventArgs
     {
         /// <summary>
-        /// Initializes a new instance of the 
+        /// Initializes a new instance of the
         /// <see cref="CacheEntryEventArgs{TValue}"/> class.
         /// </summary>
         /// <param name="key">The cache entry key.</param>

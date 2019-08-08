@@ -11,6 +11,7 @@ namespace HotChocolate.Types.Filters
     public class QueryableFilterVisitor
         : FilterVisitorBase
     {
+        private const string _parameterName = "t";
         private readonly IReadOnlyList<IExpressionOperationHandler> _opHandlers;
         private readonly ParameterExpression _parameter;
         private readonly ITypeConversion _converter;
@@ -21,7 +22,7 @@ namespace HotChocolate.Types.Filters
             ITypeConversion converter)
             : base(initialType)
         {
-            _parameter = Expression.Parameter(source);
+            _parameter = Expression.Parameter(source, _parameterName);
             _opHandlers = ExpressionOperationHandlers.All;
             _converter = converter;
 
@@ -41,7 +42,7 @@ namespace HotChocolate.Types.Filters
             }
 
             _opHandlers = operationHandlers.ToArray();
-            _parameter = Expression.Parameter(source);
+            _parameter = Expression.Parameter(source, _parameterName);
 
             Level.Push(new Queue<Expression>());
             Instance.Push(_parameter);

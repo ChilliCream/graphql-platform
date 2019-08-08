@@ -1,5 +1,5 @@
 query fetch {
-  contracts(id: "Q3VzdG9tZXIteDE=") {
+  contracts(id: "Q3VzdG9tZXIKZDE=") {
     id
     __typename
   }

@@ -1,10 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Resolvers;
 
 namespace HotChocolate.Execution
 {
@@ -40,6 +39,22 @@ namespace HotChocolate.Execution
             {
                 await resolverContext.Middleware.Invoke(resolverContext)
                     .ConfigureAwait(false);
+
+                // TODO : this should be handled more elegant
+                if (resolverContext.Result is IQueryable q)
+                {
+                    resolverContext.Result =
+                        await Task.Run(() =>
+                        {
+                            var items = new List<object>();
+                            foreach (object o in q)
+                            {
+                                items.Add(o);
+                            }
+                            return items;
+                        })
+                        .ConfigureAwait(false);
+                }
             }
             catch (QueryException ex)
             {

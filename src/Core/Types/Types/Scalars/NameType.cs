@@ -2,7 +2,6 @@ using System;
 using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -34,7 +33,7 @@ namespace HotChocolate.Types
             }
 
             return literal is StringValueNode s
-                && NameUtils.IsValidName(s.Value);
+                && NameUtils.IsValidGraphQLName(s.Value);
         }
 
         public override object ParseLiteral(IValueNode literal)
@@ -46,7 +45,7 @@ namespace HotChocolate.Types
 
             if (literal is StringValueNode stringLiteral)
             {
-                if (!NameUtils.IsValidName(stringLiteral.Value))
+                if (!NameUtils.IsValidGraphQLName(stringLiteral.Value))
                 {
                     throw new ScalarSerializationException(
                         string.Format(CultureInfo.InvariantCulture,

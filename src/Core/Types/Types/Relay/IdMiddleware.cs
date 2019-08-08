@@ -7,12 +7,14 @@ namespace HotChocolate.Types.Relay
     public class IdMiddleware
     {
         private static readonly string _idFieldName = new NameString("id");
-        private readonly IdSerializer _serializer = new IdSerializer();
+        private readonly IIdSerializer _serializer;
         private readonly FieldDelegate _next;
 
-        public IdMiddleware(FieldDelegate next)
+        public IdMiddleware(FieldDelegate next, IIdSerializer serializer)
         {
-            _next = next ?? throw new ArgumentNullException(nameof(next));
+            _next = next
+                ?? throw new ArgumentNullException(nameof(next));
+            _serializer = serializer ?? new IdSerializer();
         }
 
         public async Task InvokeAsync(IMiddlewareContext context)

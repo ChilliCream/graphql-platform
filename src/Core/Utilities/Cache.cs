@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace HotChocolate.Runtime
+namespace HotChocolate.Utilities
 {
     public class Cache<TValue>
     {

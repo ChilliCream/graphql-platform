@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace HotChocolate.Utilities
+namespace HotChocolate.Language
 {
     /// <summary>
     /// This class provides internal char utilities

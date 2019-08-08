@@ -1,36 +1,21 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
+    <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
+    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'ClassicFramework.props'))</ChilliFramework>
+    <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'ClassicBuildSettings.props'))</ChilliBuild>
+  </PropertyGroup>
+
+  <Import Project="$(ChilliFramework)" />
+  <Import Project="$(ChilliBuild)" />
+
+  <PropertyGroup>
     <AssemblyName>HotChocolate.AspNetClassic.Playground</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic.Playground</RootNamespace>
     <PackageId>HotChocolate.AspNetClassic.Playground</PackageId>
     <Description>Contains a GraphQL Playground for ASP .Net classic that can be used with the Hot Chocolate GraphQL server.</Description>
   </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>TRACE;DEBUG;ASPNETCLASSIC</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>pdbonly</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>TRACE;ASPNETCLASSIC</DefineConstants>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="..\AspNetCore.Playground\**\*.css;..\AspNetCore.Playground\**\*.html;..\AspNetCore.Playground\**\*.js;..\AspNetCore.Playground\**\*.png" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="..\AspNetCore.Playground\**\*.css;..\AspNetCore.Playground\**\*.html;..\AspNetCore.Playground\**\*.js;..\AspNetCore.Playground\**\*.png" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Owin" Version="4.0.0" />
@@ -42,6 +27,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="..\AspNetCore.Playground\**\*.css;..\AspNetCore.Playground\**\*.html;..\AspNetCore.Playground\**\*.js;..\AspNetCore.Playground\**\*.png" />
+    <EmbeddedResource Include="..\AspNetCore.Playground\**\*.css;..\AspNetCore.Playground\**\*.html;..\AspNetCore.Playground\**\*.js;..\AspNetCore.Playground\**\*.png" />
     <Compile Include="..\AspNetCore.Playground\**\*.cs" Exclude="..\AspNetCore.Playground\bin\**\*.cs;..\AspNetCore.Playground\obj\**\*.cs" />
   </ItemGroup>
 

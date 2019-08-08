@@ -1,8 +1,21 @@
-﻿namespace HotChocolate.Utilities
+﻿namespace HotChocolate.Language
 {
-    internal static class NameUtils
+    /// <summary>
+    /// Helper methods to handle GrahQL names.
+    /// </summary>
+    public static class NameUtils
     {
-        public static bool IsValidName(string name)
+        /// <summary>
+        /// Checks if the provided name is a valid GraphQL type or field name.
+        /// </summary>
+        /// <param name="name">
+        /// The name that shall be checked.
+        /// </param>
+        /// <returns>
+        /// <c>true</c>, if the name is a valid GraphQL name;
+        /// otherwise, <c>false</c>.
+        /// </returns>
+        public static bool IsValidGraphQLName(string name)
         {
             if (name == null || name.Length == 0)
             {
@@ -28,7 +41,15 @@
             return false;
         }
 
-        public static string RemoveInvalidCharacters(string name)
+        /// <summary>
+        /// Takes the provided name and replaces invalid
+        /// charactes with an underscore.
+        /// </summary>
+        /// <param name="name">
+        /// A name that shall be made a value GraphQL name.
+        /// </param>
+        /// <returns>Returns a valid GraphQL name.</returns>
+        public static string MakeValidGraphQLName(string name)
         {
             if (name == null || name.Length == 0)
             {

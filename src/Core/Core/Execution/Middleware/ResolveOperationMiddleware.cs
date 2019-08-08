@@ -3,8 +3,8 @@ using System.Globalization;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Runtime;
 using HotChocolate.Types;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
