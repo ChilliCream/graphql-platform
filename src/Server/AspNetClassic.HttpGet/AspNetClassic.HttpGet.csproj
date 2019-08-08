@@ -1,27 +1,20 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
+    <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
+    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'ClassicFramework.props'))</ChilliFramework>
+    <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'ClassicBuildSettings.props'))</ChilliBuild>
+  </PropertyGroup>
+
+  <Import Project="$(ChilliFramework)" />
+  <Import Project="$(ChilliBuild)" />
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.AspNetClassic.HttpGet</PackageId>
     <AssemblyName>HotChocolate.AspNetClassic.HttpGet</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic.HttpGet</RootNamespace>
-    <PackageId>HotChocolate.AspNetClassic.HttpGet</PackageId>
     <Description>Contains the Hot Chocolate GraphQL HTTP GET middleware for ASP .Net classic.</Description>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>TRACE;DEBUG;ASPNETCLASSIC</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>pdbonly</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>TRACE;ASPNETCLASSIC</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

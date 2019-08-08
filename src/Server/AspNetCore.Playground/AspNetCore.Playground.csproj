@@ -1,34 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
+    <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
+    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreFramework.props'))</ChilliFramework>
+    <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'BuildSettings.props'))</ChilliBuild>
+  </PropertyGroup>
+
+  <Import Project="$(ChilliFramework)" />
+  <Import Project="$(ChilliBuild)" />
+
+  <PropertyGroup>
     <AssemblyName>HotChocolate.AspNetCore.Playground</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Playground</RootNamespace>
     <PackageId>HotChocolate.AspNetCore.Playground</PackageId>
     <Description>Contains a GraphQL Playground for ASP .Net core that can be used with the Hot Chocolate GraphQL server.</Description>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>pdbonly</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>TRACE</DefineConstants>
-  </PropertyGroup>
-
   <ItemGroup>
     <None Remove="**\*.css;**\*.html;**\*.js;**\*.png" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="**\*.css;**\*.html;**\*.js;**\*.png" />
   </ItemGroup>
 

@@ -1,27 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
+    <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
+    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'ClassicFramework.props'))</ChilliFramework>
+    <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'ClassicBuildSettings.props'))</ChilliBuild>
+  </PropertyGroup>
+
+  <Import Project="$(ChilliFramework)" />
+  <Import Project="$(ChilliBuild)" />
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.AspNetClassic.Authorization</PackageId>
     <AssemblyName>HotChocolate.AspNetClassic.Authorization</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic.Authorization</RootNamespace>
-    <PackageId>HotChocolate.AspNetClassic.Authorization</PackageId>
     <Description>Contains authorization extensions for the Hot Chocolate ASP .Net classic GraphQL middleware.</Description>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>TRACE;DEBUG;ASPNETCLASSIC</DefineConstants>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>pdbonly</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-    <DefineConstants>TRACE;ASPNETCLASSIC</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>

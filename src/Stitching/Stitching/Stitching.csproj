@@ -1,34 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
-    <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">netstandard2.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">netstandard2.0; net461</TargetFrameworks>
+    <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
+    <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
+    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreFramework.props'))</ChilliFramework>
+    <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'BuildSettings.props'))</ChilliBuild>
+  </PropertyGroup>
+
+  <Import Project="$(ChilliFramework)" />
+  <Import Project="$(ChilliBuild)" />
+
+  <PropertyGroup>
+    <PackageId>HotChocolate.Stitching</PackageId>
     <AssemblyName>HotChocolate.Stitching</AssemblyName>
     <RootNamespace>HotChocolate.Stitching</RootNamespace>
-    <PackageId>HotChocolate.Stitching</PackageId>
     <Description>Contains the Hot Chocolate GraphQL schema stitching layer.</Description>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>pdbonly</DebugType>
-    <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Resources\introspection_phase_1.graphql" />
     <None Remove="Resources\introspection_phase_2.graphql" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="Resources\introspection_phase_1.graphql" />
     <EmbeddedResource Include="Resources\introspection_phase_2.graphql" />
   </ItemGroup>
