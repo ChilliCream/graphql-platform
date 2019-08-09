@@ -5,6 +5,7 @@ using System.Threading;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
@@ -97,7 +98,8 @@ namespace HotChocolate.Execution
             // TODO : resource
             throw new QueryException(
                 ErrorBuilder.New()
-                    .SetMessage("Unknown field.")
+                    .SetMessage(CoreResources.VarRewriter_UnknownField)
+                    .SetCode(UtilityErrorCodes.UnknownField)
                     .Build());
         }
 
@@ -171,13 +173,11 @@ namespace HotChocolate.Execution
                         v,
                         out v))
                 {
-                    // TODO : resource
-                    // TODO : path?
                     throw new QueryException(
                         ErrorBuilder.New()
-                            .SetMessage(
-                                "Unable to convert the specified " +
-                                "variable value.")
+                            .SetMessage(CoreResources.VarRewriter_CannotConvert)
+                            .SetCode(UtilityErrorCodes.NoConverter)
+                            .AddLocation(variable)
                             .Build());
                 }
 

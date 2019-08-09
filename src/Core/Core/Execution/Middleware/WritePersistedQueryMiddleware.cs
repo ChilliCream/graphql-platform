@@ -35,12 +35,10 @@ namespace HotChocolate.Execution
         {
             if (IsContextIncomplete(context))
             {
-                // TODO : resources
                 context.Result = QueryResult.CreateError(
                     ErrorBuilder.New()
-                        .SetMessage(CoreResources
-                            .ParseQueryMiddleware_InComplete)
-                        .Build());
+                        .SetMessage(CoreResources.Write_PQ_Middleware_Incomplete)
+                        .SetCode(MiddlewareErrorCodes.Incomplete)                        .Build());
                 return;
             }
 
