@@ -1,5 +1,6 @@
 using Xunit;
 using HotChocolate.AspNetCore.Playground;
+using System;
 
 namespace HotChocolate.AspNetCore
 {
@@ -125,6 +126,45 @@ namespace HotChocolate.AspNetCore
             Assert.Equal("/bar/playground", options.Path);
             Assert.Equal("/bar", options.QueryPath);
             Assert.Equal("/foo", options.SubscriptionPath);
+        }
+
+        [Fact]
+        public void Path_Set_To_Empty_ArgumentException()
+        {
+            // arrange
+            var options = new PlaygroundOptions();
+
+            // act
+            Action action = () => options.Path = default;
+
+            // act
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void QueryPath_Set_To_Empty_ArgumentException()
+        {
+            // arrange
+            var options = new PlaygroundOptions();
+
+            // act
+            Action action = () => options.QueryPath = default;
+
+            // act
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void SubscriptionPath_Set_To_Empty_ArgumentException()
+        {
+            // arrange
+            var options = new PlaygroundOptions();
+
+            // act
+            Action action = () => options.SubscriptionPath = default;
+
+            // act
+            Assert.Throws<ArgumentException>(action);
         }
     }
 }

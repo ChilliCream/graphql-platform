@@ -14,7 +14,7 @@ namespace HotChocolate.AspNetCore.Voyager
 {
     public class VoyagerOptions
     {
-        private bool _pathIsSet = false;
+        private bool _pathIsSet;
         private PathString _path = new PathString("/voyager");
         private PathString _queryPath = new PathString("/");
 
@@ -30,6 +30,7 @@ namespace HotChocolate.AspNetCore.Voyager
                 }
 
                 _path = value;
+                _pathIsSet = true;
             }
         }
 

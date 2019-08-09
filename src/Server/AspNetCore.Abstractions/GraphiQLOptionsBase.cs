@@ -15,8 +15,8 @@ namespace HotChocolate.AspNetCore
     public class GraphiQLOptionsBase
         : IUIOptionsAccessor
     {
-        private bool _pathIsSet = false;
-        private bool _subscriptionPathIsSet = false;
+        private bool _pathIsSet;
+        private bool _subscriptionPathIsSet;
 
         private readonly PathString _defaultPath;
         private PathString _path;
