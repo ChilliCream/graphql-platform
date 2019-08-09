@@ -3,11 +3,10 @@ using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using Xunit;
 using Microsoft.Owin.Testing;
-using HotChocolate.AspNetClassic;
 using HotChocolate.AspNetClassic.Playground;
 using Microsoft.Owin;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetClassic
 {
     public class PlaygroundMiddlewareTests
         : ServerTestBase

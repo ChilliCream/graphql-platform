@@ -2,7 +2,7 @@ using Xunit;
 using HotChocolate.AspNetClassic.Playground;
 using Microsoft.Owin;
 
-namespace HotChocolate.AspNetCore
+namespace HotChocolate.AspNetClassic
 {
     public class PlaygroundOptionsTests
     {
