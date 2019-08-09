@@ -34,7 +34,7 @@ namespace HotChocolate
                 t => t is FooType);
 
             // act
-            typeInitializer.Initialize(() => null);
+            typeInitializer.Initialize(() => null, new SchemaOptions());
 
             // assert
             bool exists = typeInitializer.Types.TryGetValue(
@@ -79,7 +79,7 @@ namespace HotChocolate
                 t => t is ObjectType<Foo>);
 
             // act
-            typeInitializer.Initialize(() => null);
+            typeInitializer.Initialize(() => null, new SchemaOptions());
 
             // assert
             bool exists = typeInitializer.Types.TryGetValue(
@@ -105,6 +105,61 @@ namespace HotChocolate
                 .MatchSnapshot(new SnapshotNameExtension("BarType"));
         }
 
+        [Fact]
+        public void Initializer_SchemaResolver_Is_Null()
+        {
+            // arrange
+            var initialTypes = new List<ITypeReference>();
+            initialTypes.Add(new ClrTypeReference(
+                typeof(Foo),
+                TypeContext.Output));
+
+            var serviceProvider = new EmptyServiceProvider();
+
+            var typeInitializer = new TypeInitializer(
+                serviceProvider,
+                DescriptorContext.Create(),
+                initialTypes,
+                new List<Type>(),
+                new Dictionary<string, object>(),
+                null,
+                t => t is ObjectType<Foo>);
+
+            // act
+            Action action =
+                () => typeInitializer.Initialize(null, new SchemaOptions());
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Initializer_SchemaOptions_Are_Null()
+        {
+            // arrange
+            var initialTypes = new List<ITypeReference>();
+            initialTypes.Add(new ClrTypeReference(
+                typeof(Foo),
+                TypeContext.Output));
+
+            var serviceProvider = new EmptyServiceProvider();
+
+            var typeInitializer = new TypeInitializer(
+                serviceProvider,
+                DescriptorContext.Create(),
+                initialTypes,
+                new List<Type>(),
+                new Dictionary<string, object>(),
+                null,
+                t => t is ObjectType<Foo>);
+
+            // act
+            Action action =
+                () => typeInitializer.Initialize(() => null, null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
 
         public class FooType
             : ObjectType<Foo>
