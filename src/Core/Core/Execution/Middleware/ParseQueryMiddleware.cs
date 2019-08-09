@@ -41,8 +41,8 @@ namespace HotChocolate.Execution
             {
                 context.Result = QueryResult.CreateError(
                     ErrorBuilder.New()
-                        .SetMessage(CoreResources
-                            .ParseQueryMiddleware_InComplete)
+                        .SetMessage(CoreResources.ParseQueryMiddleware_InComplete)
+                        .SetCode(MiddlewareErrorCodes.Incomplete)
                         .Build());
             }
             else
@@ -119,9 +119,8 @@ namespace HotChocolate.Execution
                 return _parser.Parse(source.ToSpan());
             }
 
-            // TODO : resources
             throw new NotSupportedException(
-                "The specified query type is not supported.");
+                CoreResources.ParseQuery_Middleware_QueryTypeNotSupported);
         }
 
         private static bool IsContextIncomplete(IQueryContext context)

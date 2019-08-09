@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution.Batching
@@ -204,13 +205,11 @@ namespace HotChocolate.Execution.Batching
 
                         if (inputType == null)
                         {
-                            // TODO : resources
                             throw new QueryException(ErrorBuilder.New()
-                                .SetMessage("Unable to find a compatible " +
-                                    "input type for the exported object type.")
+                                .SetMessage(CoreResources.BatchColVars_NoCompatibleType)
+                                .SetCode(BatchingErrorCodes.AutoMapVarError)
                                 .SetPath(path)
                                 .AddLocation(node)
-                                .SetCode("BATCH_AUTO_MAP_VAR_TYPE")
                                 .Build());
                         }
 

@@ -33,11 +33,10 @@ namespace HotChocolate.Execution
         {
             if (IsContextIncomplete(context))
             {
-                // TODO : resources
                 context.Result = QueryResult.CreateError(
                     ErrorBuilder.New()
-                        .SetMessage(CoreResources
-                            .ParseQueryMiddleware_InComplete)
+                        .SetMessage(CoreResources.Read_PQ_Middleware_Incomplete)
+                        .SetCode(MiddlewareErrorCodes.Incomplete)
                         .Build());
                 return;
             }
@@ -53,8 +52,8 @@ namespace HotChocolate.Execution
                 {
                     context.Result = QueryResult.CreateError(
                         _errorHandler.Handle(ErrorBuilder.New()
-                            .SetMessage("PersistedQueryNotFound")
-                            .SetCode("PERSISTED_QUERY_NOT_FOUND")
+                            .SetMessage(CoreResources.Read_PQ_Middleware_QueryNotFound)
+                            .SetCode(MiddlewareErrorCodes.QueryNotFound)
                             .Build()));
                     return;
                 }
@@ -84,9 +83,8 @@ namespace HotChocolate.Execution
                 return parsed.Document;
             }
 
-            // TODO : resources
             throw new NotSupportedException(
-                "The specified query type is not supported.");
+                CoreResources.Read_PQ_Middleware_QueryTypeNotSupported);
         }
 
         private static bool IsContextIncomplete(IQueryContext context)
