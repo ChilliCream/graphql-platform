@@ -94,6 +94,8 @@ namespace HotChocolate.Stitching.Delegation
                 _schema,
                 c =>
                 {
+                    c.Options.StrictValidation = false;
+
                     foreach (Type type in _scalarTypes)
                     {
                         c.RegisterType(type);
