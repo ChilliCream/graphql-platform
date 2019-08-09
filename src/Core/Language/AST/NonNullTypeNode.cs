@@ -30,7 +30,7 @@ namespace HotChocolate.Language
 
         public NonNullTypeNode WithType(INullableTypeNode type)
         {
-            return new NonNullTypeNode(Location, Type);
+            return new NonNullTypeNode(Location, type);
         }
 
         public bool Equals(NonNullTypeNode other)
