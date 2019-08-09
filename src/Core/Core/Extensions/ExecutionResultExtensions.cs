@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Execution;
+using HotChocolate.Properties;
 using Newtonsoft.Json;
 
 namespace HotChocolate
@@ -37,9 +38,8 @@ namespace HotChocolate
                     queryResult.ToDictionary());
             }
 
-            // TODO : resources
             throw new NotSupportedException(
-                "Only query results are supported.");
+                CoreResources.ToJson_OnlyQueryResultsSupported);
         }
     }
 }
