@@ -84,5 +84,11 @@ namespace HotChocolate.Types.Filters
         /// Allow not ends with filter oprerations.
         /// </summary>
         IStringFilterOperationDescriptor AllowNotEndsWith();
+
+        /// <summary>
+        /// Ignore the specified property.
+        /// </summary>
+        /// <param name="property">The property that hall be ignored.</param>
+        IStringFilterFieldDescriptor Ignore();
     }
 }

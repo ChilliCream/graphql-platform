@@ -64,5 +64,12 @@ namespace HotChocolate.Types.Filters
         /// </param>
         IComparableFilterFieldDescriptor Filter(
             Expression<Func<T, IComparable>> property);
+
+        /// <summary>
+        /// Ignore the specified property.
+        /// </summary>
+        /// <param name="property">The property that hall be ignored.</param>
+        IFilterInputTypeDescriptor<T> Ignore(
+            Expression<Func<T, object>> property);
     }
 }

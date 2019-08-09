@@ -61,6 +61,33 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void Ignore_Field_Fields()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<Foo>(d => d
+                    .Ignore(f => f.Bar)));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Ignore_Field_2()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<Foo>(d => d
+                    .Filter(f => f.Bar)
+                    .Ignore()));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Rename_Specific_Filter()
         {
             // arrange
