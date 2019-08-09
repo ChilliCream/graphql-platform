@@ -30,4 +30,9 @@
     <ProjectReference Include="..\AspNetClassic\AspNetClassic.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="GraphiQL\__snapshots__\__mismatch__\" />
+    <Folder Include="Playground\__snapshots__\__mismatch__\" />
+  </ItemGroup>
+
 </Project>

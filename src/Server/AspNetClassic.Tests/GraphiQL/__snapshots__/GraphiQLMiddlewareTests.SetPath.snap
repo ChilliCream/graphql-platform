@@ -2,6 +2,6 @@
                 window.Settings = {
                     url: "http://localhost:5000/foo/..",
                     subscriptionUrl: "ws://localhost:5000/foo/..",
-                    enableSubscriptions: true
+                    enableSubscriptions: false
                 }
             
