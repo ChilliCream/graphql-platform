@@ -15,10 +15,15 @@ namespace HotChocolate.AspNetCore.Playground
     public class PlaygroundOptions
     {
         private bool _pathIsSet = false;
+        private bool _subscriptionPathIsSet = false;
+
         private PathString _path = new PathString("/playground");
         private PathString _queryPath = new PathString("/");
-        private PathString _subscriptionPath = new PathString("/ws");
+        private PathString _subscriptionPath = new PathString("/");
 
+        /// <summary>
+        /// The path of the playground middleware.
+        /// </summary>
         public PathString Path
         {
             get => _path;
@@ -35,6 +40,11 @@ namespace HotChocolate.AspNetCore.Playground
             }
         }
 
+        /// <summary>
+        /// The path of the query middleware.
+        /// This is basically where playground
+        /// send its requests to execute its queries.
+        /// </summary>
         public PathString QueryPath
         {
             get => _queryPath;
@@ -47,7 +57,11 @@ namespace HotChocolate.AspNetCore.Playground
                 }
 
                 _queryPath = value;
-                _subscriptionPath = value.Add(new PathString("/ws"));
+
+                if (!_subscriptionPathIsSet)
+                {
+                    _subscriptionPath = value;
+                }
 
                 if (!_pathIsSet)
                 {
@@ -56,6 +70,10 @@ namespace HotChocolate.AspNetCore.Playground
             }
         }
 
+        /// <summary>
+        /// The path of the subscription middleware.
+        /// By default this will be the same as the query path.
+        /// </summary>
         public PathString SubscriptionPath
         {
             get => _subscriptionPath;
@@ -68,6 +86,7 @@ namespace HotChocolate.AspNetCore.Playground
                 }
 
                 _subscriptionPath = value;
+                _subscriptionPathIsSet = true;
             }
         }
 
