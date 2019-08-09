@@ -23,6 +23,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AspNetCore.Abstractions\AspNetCore.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Resources\*.*" />
     <EmbeddedResource Include="Resources\*.*" />
   </ItemGroup>

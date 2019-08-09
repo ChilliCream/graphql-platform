@@ -12,7 +12,7 @@ namespace HotChocolate.AspNetClassic
 namespace HotChocolate.AspNetCore
 #endif
 {
-    internal static class HttpRequestExtensions
+    public static class HttpRequestExtensions
     {
         public static bool IsHttps(
             this HttpRequest request)
