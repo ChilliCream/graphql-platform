@@ -969,10 +969,30 @@ namespace HotChocolate
 
             // assert
             Assert.Equal(
-                "There is no object type implementing interface `Bar`.",
+                "There is no object type implementing interface `Bar`. - Type: Bar",
                 Assert.Throws<SchemaException>(action).Message);
         }
 
+        [Fact]
+        public void Interface_Without_Implementation_Not_Strict()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(@"
+                    type Query {
+                        foo : Bar
+                    }
+                    interface Bar {
+                        baz: String
+                    }")
+                .AddResolver("Query", "foo", "bar")
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            // assert
+            Assert.NotNull(schema);
+        }
         public class DynamicFooType
             : ObjectType
         {
