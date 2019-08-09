@@ -6,17 +6,20 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Configuration.Validation
 {
-    internal class InterfaceImplementationRule
+    internal class InetrfaceFieldsAreImplementedRule
         : ISchemaValidationRule
     {
         public IEnumerable<ISchemaError> Validate(
-            IReadOnlyList<ITypeSystemObject> typeSystemObjects)
+            IReadOnlyList<ITypeSystemObject> typeSystemObjects,
+            IReadOnlySchemaOptions options)
         {
             var errors = new List<ISchemaError>();
+
             foreach (ObjectType objectType in typeSystemObjects.OfType<ObjectType>())
             {
                 ValidateInterfaceImplementation(errors, objectType);
             }
+
             return errors;
         }
 

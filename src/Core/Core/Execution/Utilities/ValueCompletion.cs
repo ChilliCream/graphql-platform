@@ -6,7 +6,6 @@ using System.Globalization;
 using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
-using HotChocolate.Configuration;
 
 namespace HotChocolate.Execution
 {
@@ -176,7 +175,8 @@ namespace HotChocolate.Execution
                     b.SetMessage(string.Format(
                         CultureInfo.InvariantCulture,
                         CoreResources.CompleteCompositeType_UnknownSchemaType,
-                        context.Value.GetType().GetTypeName())));
+                        result.GetType().GetTypeName(),
+                        type.NamedType().Name.Value)));
                 context.Value = null;
             }
             else
