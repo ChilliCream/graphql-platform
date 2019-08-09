@@ -179,6 +179,7 @@ namespace HotChocolate
                 .MatchSnapshot();
         }
 
+        [Fact]
         public void AddDataLoaderRegistry_ServicesIsNull()
         {
             // arrange

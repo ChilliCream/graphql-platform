@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Execution
@@ -10,6 +11,8 @@ namespace HotChocolate.Execution
         private const string _message = "message";
         private const string _locations = "locations";
         private const string _path = "path";
+        private const string _line = "line";
+        private const string _column = "column";
 
         public static IReadOnlyDictionary<string, object> ToDictionary(
             IReadOnlyQueryResult result)
@@ -46,7 +49,7 @@ namespace HotChocolate.Execution
 
                 if (error.Locations != null && error.Locations.Count > 0)
                 {
-                    formattedError[_locations] = error.Locations;
+                    formattedError[_locations] = SerializeLocations(error.Locations);
                 }
 
                 if (error.Path != null && error.Path.Count > 0)
@@ -63,6 +66,24 @@ namespace HotChocolate.Execution
             }
 
             return formattedErrors;
+        }
+
+        private static IReadOnlyList<IReadOnlyDictionary<string, int>> SerializeLocations(
+            IReadOnlyList<Location> locations)
+        {
+            var serializedLocations = new IReadOnlyDictionary<string, int>[locations.Count];
+
+            for (int i = 0; i < locations.Count; i++)
+            {
+                Location location = locations[i];
+                serializedLocations[i] = new OrderedDictionary<string, int>
+                {
+                    { _line, location.Line },
+                    { _column, location.Column }
+                };
+            }
+
+            return serializedLocations;
         }
     }
 }

@@ -13,8 +13,8 @@
       ],
       "Locations": [
         {
-          "line": 1,
-          "column": 3
+          "Line": 1,
+          "Column": 3
         }
       ],
       "Exception": null,
@@ -28,8 +28,8 @@
       ],
       "Locations": [
         {
-          "line": 1,
-          "column": 5
+          "Line": 1,
+          "Column": 5
         }
       ],
       "Exception": null,
