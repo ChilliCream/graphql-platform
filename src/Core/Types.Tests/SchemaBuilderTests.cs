@@ -993,6 +993,46 @@ namespace HotChocolate
             // assert
             Assert.NotNull(schema);
         }
+
+        [Fact]
+        public async Task Execute_Agains_Interface_Without_Impl_Field()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(@"
+                    type Query {
+                        foo : Bar
+                    }
+                    interface Bar {
+                        baz: String
+                    }")
+                .AddResolver("Query", "foo", "bar")
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result =
+                await executor.ExecuteAsync("{ foo { baz } }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Abstract_Classes_Are_Allowed_As_Object_Types()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<AbstractQuery>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class DynamicFooType
             : ObjectType
         {
@@ -1096,6 +1136,18 @@ namespace HotChocolate
         public class QueryWithIntField
         {
             public int Foo { get; set; }
+        }
+
+        public abstract class AbstractQuery
+        {
+            public string Foo { get; set; }
+
+            public AbstractChild Object { get; set; }
+        }
+
+        public abstract class AbstractChild
+        {
+            public string Foo { get; set; }
         }
     }
 }
