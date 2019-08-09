@@ -91,7 +91,9 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>());
+            InterfaceType<IFoo> fooType = CreateType(
+                new InterfaceType<IFoo>(),
+                b => b.ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.Collection(
