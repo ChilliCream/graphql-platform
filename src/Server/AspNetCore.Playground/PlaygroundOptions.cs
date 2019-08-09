@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -15,7 +15,7 @@ namespace HotChocolate.AspNetCore.Playground
     public class PlaygroundOptions
         : GraphiQLOptionsBase
     {
-        public PlaygroundOptions() : base("/playground")
+        public PlaygroundOptions() : base(new PathString("/playground"))
         {
         }
     }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -48,7 +48,7 @@ namespace HotChocolate.AspNetCore.Voyager
 
                 if (!_pathIsSet)
                 {
-                    _path = value.Add("/voyager");
+                    _path = value.Add(new PathString("/voyager"));
                 }
             }
         }

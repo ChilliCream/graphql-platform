@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -15,7 +15,7 @@ namespace HotChocolate.AspNetCore.GraphiQL
     public class GraphiQLOptions
         : GraphiQLOptionsBase
     {
-        public GraphiQLOptions() : base("/graphiql")
+        public GraphiQLOptions() : base(new PathString("/graphiql"))
         {
         }
     }
