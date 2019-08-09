@@ -94,5 +94,11 @@ namespace HotChocolate.Types.Filters
         /// Allow not lower than or equals filter operations.
         /// </summary>
         IComparableFilterOperationDescriptor AllowNotLowerThanOrEquals();
+
+        /// <summary>
+        /// Ignore the specified property.
+        /// </summary>
+        /// <param name="property">The property that hall be ignored.</param>
+        IComparableFilterFieldDescriptor Ignore();
     }
 }

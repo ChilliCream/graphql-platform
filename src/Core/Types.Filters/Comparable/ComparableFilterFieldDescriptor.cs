@@ -162,6 +162,13 @@ namespace HotChocolate.Types.Filters
             return field;
         }
 
+        /// <inheritdoc/>
+        public IComparableFilterFieldDescriptor Ignore()
+        {
+            Definition.Ignore = true;
+            return this;
+        }
+
         protected override FilterOperationDefintion CreateOperationDefinition(
             FilterOperationKind operationKind) =>
             CreateOperation(operationKind).CreateDefinition();

@@ -44,5 +44,11 @@ namespace HotChocolate.Types.Filters
         /// Allow not equals filter operations.
         /// </summary>
         IBooleanFilterOperationDescriptor AllowNotEquals();
+
+        /// <summary>
+        /// Ignore the specified property.
+        /// </summary>
+        /// <param name="property">The property that hall be ignored.</param>
+        IBooleanFilterFieldDescriptor Ignore();
     }
 }
