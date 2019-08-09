@@ -84,6 +84,18 @@ Task("Build")
     DotNetCoreBuild("./tools/Build.sln", settings);
 });
 
+Task("BuildDebug")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    var buildSettings = new DotNetCoreBuildSettings
+    {
+        Configuration = "Debug"
+    };
+
+    DotNetCoreBuild("./tools/Build.sln", buildSettings);
+});
+
 Task("BuildCore")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
@@ -322,6 +334,11 @@ Task("Default")
 Task("Sonar")
     .IsDependentOn("SonarBegin")
     .IsDependentOn("Tests")
+    .IsDependentOn("SonarEnd");
+
+Task("SonarSlim")
+    .IsDependentOn("SonarBegin")
+    .IsDependentOn("BuildDebug")
     .IsDependentOn("SonarEnd");
 
 Task("Release")
