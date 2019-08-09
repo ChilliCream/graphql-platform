@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Linq;
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
@@ -9,7 +8,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Bindings;
-using HotChocolate.Types.Factories;
 using HotChocolate.Properties;
 
 namespace HotChocolate
