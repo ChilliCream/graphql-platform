@@ -1,6 +1,7 @@
 using Xunit;
 using HotChocolate.AspNetClassic.Playground;
 using Microsoft.Owin;
+using System;
 
 namespace HotChocolate.AspNetClassic
 {
@@ -126,6 +127,45 @@ namespace HotChocolate.AspNetClassic
             Assert.Equal("/bar/playground", options.Path.ToString());
             Assert.Equal("/bar", options.QueryPath.ToString());
             Assert.Equal("/foo", options.SubscriptionPath.ToString());
+        }
+
+        [Fact]
+        public void Path_Set_To_Empty_ArgumentException()
+        {
+            // arrange
+            var options = new PlaygroundOptions();
+
+            // act
+            Action action = () => options.Path = default;
+
+            // act
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void QueryPath_Set_To_Empty_ArgumentException()
+        {
+            // arrange
+            var options = new PlaygroundOptions();
+
+            // act
+            Action action = () => options.QueryPath = default;
+
+            // act
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void SubscriptionPath_Set_To_Empty_ArgumentException()
+        {
+            // arrange
+            var options = new PlaygroundOptions();
+
+            // act
+            Action action = () => options.SubscriptionPath = default;
+
+            // act
+            Assert.Throws<ArgumentException>(action);
         }
     }
 }

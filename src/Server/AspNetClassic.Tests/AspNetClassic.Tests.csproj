@@ -27,6 +27,7 @@
     <ProjectReference Include="..\AspNetClassic.Authorization\AspNetClassic.Authorization.csproj" />
     <ProjectReference Include="..\AspNetClassic.GraphiQL\AspNetClassic.GraphiQL.csproj" />
     <ProjectReference Include="..\AspNetClassic.Playground\AspNetClassic.Playground.csproj" />
+    <ProjectReference Include="..\AspNetClassic.Voyager\AspNetClassic.Voyager.csproj" />
     <ProjectReference Include="..\AspNetClassic\AspNetClassic.csproj" />
   </ItemGroup>
 
