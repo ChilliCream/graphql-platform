@@ -101,6 +101,10 @@ namespace HotChocolate.AspNetCore
         /// <summary>
         /// Defines if the GraphiQL client shall handle subscriptions.
         /// </summary>
+#if ASPNETCLASSIC
+        public bool EnableSubscription { get; set; } = false;
+#else
         public bool EnableSubscription { get; set; } = true;
+#endif
     }
 }
