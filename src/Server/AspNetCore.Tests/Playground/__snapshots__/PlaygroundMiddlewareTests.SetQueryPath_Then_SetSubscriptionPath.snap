@@ -1,0 +1,6 @@
+﻿
+                window.Settings = {
+                    url: "http://localhost:5000/foo/playground/..",
+                    subscriptionUrl: "ws://localhost:5000/foo/playground/../../bar",
+                }
+            

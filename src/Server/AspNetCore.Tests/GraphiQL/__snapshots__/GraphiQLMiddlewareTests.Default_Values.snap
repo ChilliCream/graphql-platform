@@ -1,0 +1,7 @@
+﻿
+                window.Settings = {
+                    url: "http://localhost:5000/graphiql/..",
+                    subscriptionUrl: "ws://localhost:5000/graphiql/..",
+                    enableSubscriptions: true
+                }
+            

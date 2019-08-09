@@ -29,6 +29,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\AspNetClassic.Abstractions\AspNetClassic.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\..\Core\Core\Core.csproj" />
   </ItemGroup>
 

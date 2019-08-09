@@ -23,6 +23,9 @@
     <ProjectReference Include="..\AspNetCore.Tests.Utilities\AspNetCore.Tests.Utilities.csproj" />
     <ProjectReference Include="..\AspNetCore.Authorization\AspNetCore.Authorization.csproj" />
     <ProjectReference Include="..\AspNetCore\AspNetCore.csproj" />
+    <ProjectReference Include="..\AspNetCore.Playground\AspNetCore.Playground.csproj" />
+    <ProjectReference Include="..\AspNetCore.GraphiQL\AspNetCore.GraphiQL.csproj" />
+    <ProjectReference Include="..\AspNetCore.Voyager\AspNetCore.Voyager.csproj" />
   </ItemGroup>
 
 </Project>
