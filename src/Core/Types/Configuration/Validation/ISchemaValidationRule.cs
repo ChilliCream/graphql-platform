@@ -6,6 +6,7 @@ namespace HotChocolate.Configuration.Validation
     internal interface ISchemaValidationRule
     {
         IEnumerable<ISchemaError> Validate(
-            IReadOnlyList<ITypeSystemObject> typeSystemObjects);
+            IReadOnlyList<ITypeSystemObject> typeSystemObjects,
+            IReadOnlySchemaOptions options);
     }
 }

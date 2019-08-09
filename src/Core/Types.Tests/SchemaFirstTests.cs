@@ -23,6 +23,7 @@ namespace HotChocolate
                 source,
                 c =>
                 {
+                    c.Options.StrictValidation = false;
                     c.Use(next => context => next(context));
                 });
 
