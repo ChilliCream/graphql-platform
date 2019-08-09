@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Abstractions\Abstractions.csproj" />
+    <ProjectReference Include="..\..\Core\Utilities\Utilities.csproj" />
   </ItemGroup>
 
 </Project>

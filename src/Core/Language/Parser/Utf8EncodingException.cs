@@ -2,7 +2,9 @@
 
 namespace HotChocolate.Language
 {
+#if netstandard1_4
     [Serializable]
+#endif
     public class Utf8EncodingException
         : Exception
     {

@@ -21,6 +21,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
     <ProjectReference Include="..\Subscriptions\Subscriptions.csproj" />
+    <ProjectReference Include="..\Utilities\Utilities.csproj" />
     <ProjectReference Include="..\..\DataLoader\Core\GreenDonut.csproj" />
   </ItemGroup>
 
