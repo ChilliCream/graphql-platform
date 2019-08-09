@@ -62,6 +62,7 @@ namespace HotChocolate.Configuration
         private static bool IsInputObjectType(IClrTypeReference unresolvedType)
         {
             return IsComplexType(unresolvedType)
+                && !unresolvedType.Type.IsAbstract
                 && unresolvedType.Context == TypeContext.Input;
         }
 
@@ -69,7 +70,6 @@ namespace HotChocolate.Configuration
         {
             bool isComplexType =
                 (unresolvedType.Type.IsClass
-                    && !unresolvedType.Type.IsAbstract
                     && (unresolvedType.Type.IsPublic
                         || unresolvedType.Type.IsNestedPublic))
                     && unresolvedType.Type != typeof(string);
