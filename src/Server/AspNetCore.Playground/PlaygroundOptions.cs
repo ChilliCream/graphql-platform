@@ -31,6 +31,7 @@ namespace HotChocolate.AspNetCore.Playground
                 }
 
                 _path = value;
+                _pathIsSet = true;
             }
         }
 
