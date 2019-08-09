@@ -1,14 +1,10 @@
-using System.Collections.Generic;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Playground;
-using HotChocolate.AspNetCore.Tests.Utilities;
-using HotChocolate.Language;
 using Microsoft.AspNetCore.TestHost;
-using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
+using HotChocolate.AspNetCore.Playground;
+using HotChocolate.AspNetCore.Tests.Utilities;
 
 namespace HotChocolate.AspNetCore
 {
@@ -20,131 +16,178 @@ namespace HotChocolate.AspNetCore
         {
         }
 
-
-    }
-
-    public class PlaygroundOptionsTests
-    {
         [Fact]
-        public void Default_Values()
+        public async Task Default_Values()
         {
             // arrange
-            // act
             var options = new PlaygroundOptions();
 
+            TestServer server = CreateServer(options);
+            string settingsUri = "/playground/settings.js";
+
             // act
-            Assert.Equal("/playground", options.Path);
-            Assert.Equal("/", options.QueryPath);
-            Assert.Equal("/", options.SubscriptionPath);
+            string settings_js = await GetSettingsAsync(server, settingsUri);
+
+            // act
+            settings_js.MatchSnapshot();
         }
 
         [Fact]
-        public void SetPath()
+        public async Task Disable_Subscriptions()
         {
             // arrange
             var options = new PlaygroundOptions();
+            options.EnableSubscription = false;
+
+            TestServer server = CreateServer(options);
+            string settingsUri = "/playground/settings.js";
 
             // act
+            string settings_js = await GetSettingsAsync(server, settingsUri);
+
+            // act
+            settings_js.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task SetPath()
+        {
+            // arrange
+            var options = new PlaygroundOptions();
             options.Path = "/foo";
 
+            TestServer server = CreateServer(options);
+            string settingsUri = "/foo/settings.js";
+
             // act
-            Assert.Equal("/foo", options.Path);
-            Assert.Equal("/", options.QueryPath);
-            Assert.Equal("/", options.SubscriptionPath);
+            string settings_js = await GetSettingsAsync(server, settingsUri);
+
+            // act
+            settings_js.MatchSnapshot();
         }
 
         [Fact]
-        public void SetPath_Then_SetQueryPath()
+        public async Task SetPath_Then_SetQueryPath()
         {
             // arrange
             var options = new PlaygroundOptions();
-
-            // act
             options.Path = "/foo";
             options.QueryPath = "/bar";
 
+            TestServer server = CreateServer(options);
+            string settingsUri = "/foo/settings.js";
+
             // act
-            Assert.Equal("/foo", options.Path);
-            Assert.Equal("/bar", options.QueryPath);
-            Assert.Equal("/bar", options.SubscriptionPath);
+            string settings_js = await GetSettingsAsync(server, settingsUri);
+
+            // act
+            settings_js.MatchSnapshot();
         }
 
         [Fact]
-        public void SetQueryPath()
+        public async Task SetQueryPath()
         {
             // arrange
             var options = new PlaygroundOptions();
-
-            // act
             options.QueryPath = "/foo";
 
+            TestServer server = CreateServer(options);
+            string settingsUri = "/foo/playground/settings.js";
+
             // act
-            Assert.Equal("/foo/playground", options.Path);
-            Assert.Equal("/foo", options.QueryPath);
-            Assert.Equal("/foo", options.SubscriptionPath);
+            string settings_js = await GetSettingsAsync(server, settingsUri);
+
+            // act
+            settings_js.MatchSnapshot();
         }
 
         [Fact]
-        public void SetQueryPath_Then_SetPath()
+        public async Task SetQueryPath_Then_SetPath()
         {
             // arrange
             var options = new PlaygroundOptions();
-
-            // act
             options.QueryPath = "/foo";
             options.Path = "/bar";
 
+            TestServer server = CreateServer(options);
+            string settingsUri = "/foo/settings.js";
+
             // act
-            Assert.Equal("/bar", options.Path);
-            Assert.Equal("/foo", options.QueryPath);
-            Assert.Equal("/foo", options.SubscriptionPath);
+            string settings_js = await GetSettingsAsync(server, settingsUri);
+
+            // act
+            settings_js.MatchSnapshot();
         }
 
         [Fact]
-        public void SetQueryPath_Then_SetSubscriptionPath()
+        public async Task SetQueryPath_Then_SetSubscriptionPath()
         {
             // arrange
             var options = new PlaygroundOptions();
-
-            // act
             options.QueryPath = "/foo";
             options.SubscriptionPath = "/bar";
 
+            TestServer server = CreateServer(options);
+            string settingsUri = "/foo/playground/settings.js";
+
             // act
-            Assert.Equal("/foo/playground", options.Path);
-            Assert.Equal("/foo", options.QueryPath);
-            Assert.Equal("/bar", options.SubscriptionPath);
+            string settings_js = await GetSettingsAsync(server, settingsUri);
+
+            // act
+            settings_js.MatchSnapshot();
         }
 
         [Fact]
-        public void SetSubscriptionPath()
+        public async Task SetSubscriptionPath()
         {
             // arrange
             var options = new PlaygroundOptions();
-
-            // act
             options.SubscriptionPath = "/foo";
 
+            TestServer server = CreateServer(options);
+            string settingsUri = "/playground/settings.js";
+
             // act
-            Assert.Equal("/playground", options.Path);
-            Assert.Equal("/", options.QueryPath);
-            Assert.Equal("/foo", options.SubscriptionPath);
+            string settings_js = await GetSettingsAsync(server, settingsUri);
+
+            // act
+            settings_js.MatchSnapshot();
         }
 
         [Fact]
-        public void SetSubscriptionPath_Then_SetQueryPath()
+        public async Task SetSubscriptionPath_Then_SetQueryPath()
         {
             // arrange
             var options = new PlaygroundOptions();
-
-            // act
             options.SubscriptionPath = "/foo";
             options.QueryPath = "/bar";
 
+            TestServer server = CreateServer(options);
+            string settingsUri = "/bar/playground/settings.js";
+
             // act
-            Assert.Equal("/bar/playground", options.Path);
-            Assert.Equal("/bar", options.QueryPath);
-            Assert.Equal("/foo", options.SubscriptionPath);
+            string settings_js = await GetSettingsAsync(server, settingsUri);
+
+            // act
+            settings_js.MatchSnapshot();
+        }
+
+        private TestServer CreateServer(PlaygroundOptions options)
+        {
+            return ServerFactory.Create(
+                services => services.AddStarWars(),
+                app => app.UseGraphQL().UsePlayground(options));
+        }
+
+        private async Task<string> GetSettingsAsync(
+            TestServer server,
+            string path)
+        {
+            HttpResponseMessage response =
+                await server.CreateClient().GetAsync(
+                    TestServerExtensions.CreateUrl(path));
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
         }
     }
 }
