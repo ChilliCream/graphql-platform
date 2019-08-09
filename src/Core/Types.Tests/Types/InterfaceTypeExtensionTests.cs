@@ -192,6 +192,7 @@ namespace HotChocolate.Types
                         .Type<StringType>()
                         .Extend()
                         .OnBeforeCreate(c => c.ContextData["foo"] = "bar"))))
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert

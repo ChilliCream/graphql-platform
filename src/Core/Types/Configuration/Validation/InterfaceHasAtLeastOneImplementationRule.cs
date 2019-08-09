@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -9,8 +10,14 @@ namespace HotChocolate.Configuration.Validation
         : ISchemaValidationRule
     {
         public IEnumerable<ISchemaError> Validate(
-            IReadOnlyList<ITypeSystemObject> typeSystemObjects)
+            IReadOnlyList<ITypeSystemObject> typeSystemObjects,
+            IReadOnlySchemaOptions options)
         {
+            if (!options.StrictValidation)
+            {
+                yield break;
+            }
+
             var interfaceTypes = new HashSet<InterfaceType>(
                 typeSystemObjects.OfType<InterfaceType>());
 

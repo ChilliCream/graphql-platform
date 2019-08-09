@@ -10,7 +10,8 @@ namespace HotChocolate.Configuration.Validation
         : ISchemaValidationRule
     {
         public IEnumerable<ISchemaError> Validate(
-            IReadOnlyList<ITypeSystemObject> typeSystemObjects)
+            IReadOnlyList<ITypeSystemObject> typeSystemObjects,
+            IReadOnlySchemaOptions options)
         {
             var errors = new List<ISchemaError>();
 

@@ -104,11 +104,18 @@ namespace HotChocolate.Configuration
             return false;
         }
 
-        public void Initialize(Func<ISchema> schemaResolver)
+        public void Initialize(
+            Func<ISchema> schemaResolver,
+            IReadOnlySchemaOptions options)
         {
             if (schemaResolver == null)
             {
                 throw new ArgumentNullException(nameof(schemaResolver));
+            }
+
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
             }
 
             if (RegisterTypes())
@@ -122,7 +129,8 @@ namespace HotChocolate.Configuration
             }
 
             _errors.AddRange(SchemaValidator.Validate(
-                _types.Select(t => t.Value.Type)));
+                _types.Select(t => t.Value.Type),
+                options));
 
             if (_errors.Count > 0)
             {

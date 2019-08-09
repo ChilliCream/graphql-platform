@@ -146,6 +146,7 @@ namespace HotChocolate.Types
             // act
             var schema = Schema.Create(source, c =>
             {
+                c.Options.StrictValidation = false;
                 c.RegisterQueryType<DummyQuery>();
             });
 
