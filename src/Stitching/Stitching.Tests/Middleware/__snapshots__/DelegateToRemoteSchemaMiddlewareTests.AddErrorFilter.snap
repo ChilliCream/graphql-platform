@@ -28,8 +28,8 @@
       ],
       "Locations": [
         {
-          "line": 4,
-          "column": 33
+          "Line": 4,
+          "Column": 33
         }
       ],
       "Exception": null,
@@ -62,8 +62,8 @@
       ],
       "Locations": [
         {
-          "line": 4,
-          "column": 33
+          "Line": 4,
+          "Column": 33
         }
       ],
       "Exception": null,

@@ -1,9 +1,6 @@
 ﻿{
-  "Data": {},
-  "Extensions": {},
-  "Errors": [
+  "errors": [
     {
-      "Exception": null,
       "message": "The specified argument value does not match the argument type.\nArgument: `name`\nValue: `  `",
       "locations": [
         {
@@ -12,6 +9,5 @@
         }
       ]
     }
-  ],
-  "ContextData": {}
+  ]
 }

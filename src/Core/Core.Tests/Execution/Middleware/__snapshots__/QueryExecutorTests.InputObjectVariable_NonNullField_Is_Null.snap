@@ -8,8 +8,8 @@
       "Path": null,
       "Locations": [
         {
-          "line": 2,
-          "column": 35
+          "Line": 2,
+          "Column": 35
         }
       ],
       "Exception": null,

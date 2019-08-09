@@ -27,8 +27,8 @@
       ],
       "Locations": [
         {
-          "line": 15,
-          "column": 16
+          "Line": 15,
+          "Column": 16
         }
       ],
       "Exception": null,

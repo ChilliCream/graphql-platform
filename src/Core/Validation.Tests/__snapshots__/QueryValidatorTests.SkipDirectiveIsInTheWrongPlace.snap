@@ -4,8 +4,8 @@
     "message": "The field `field` does not exist on the type `Query`.",
     "locations": [
       {
-        "line": 3,
-        "column": 21
+        "Line": 3,
+        "Column": 21
       }
     ]
   },
@@ -14,8 +14,8 @@
     "message": "The following variables were not declared: foo.",
     "locations": [
       {
-        "line": 2,
-        "column": 17
+        "Line": 2,
+        "Column": 17
       }
     ]
   },
@@ -24,8 +24,8 @@
     "message": "The specified directive is not valid the current location.",
     "locations": [
       {
-        "line": 2,
-        "column": 23
+        "Line": 2,
+        "Column": 23
       }
     ]
   }
