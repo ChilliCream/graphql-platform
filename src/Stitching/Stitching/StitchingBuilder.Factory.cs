@@ -148,14 +148,14 @@ namespace HotChocolate.Stitching
 
                     IQueryExecutor executor = Schema.Create(schema, c =>
                     {
+                        c.Options.StrictValidation = false;
+
                         c.UseNullResolver();
 
                         foreach (ScalarTypeDefinitionNode typeDefinition in
-                            schema.Definitions
-                                .OfType<ScalarTypeDefinitionNode>())
+                            schema.Definitions.OfType<ScalarTypeDefinitionNode>())
                         {
-                            c.RegisterType(new CustomScalarType(
-                                typeDefinition));
+                            c.RegisterType(new CustomScalarType(typeDefinition));
                         }
                     }).MakeExecutable(b => b.UseQueryDelegationPipeline(name));
 
