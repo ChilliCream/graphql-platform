@@ -110,7 +110,7 @@ namespace HotChocolate.AspNetCore
             options.Path = "/bar";
 
             TestServer server = CreateServer(options);
-            string settingsUri = "/foo/settings.js";
+            string settingsUri = "/bar/settings.js";
 
             // act
             string settings_js = await GetSettingsAsync(server, settingsUri);
