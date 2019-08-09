@@ -17,6 +17,7 @@ namespace HotChocolate.Stitching
 {
     public class DelegateToRemoteSchemaMiddleware
     {
+        private const string _remoteErrorField = "remote";
         private static readonly RootScopedVariableResolver _resolvers =
             new RootScopedVariableResolver();
         private readonly FieldDelegate _next;
@@ -183,7 +184,7 @@ namespace HotChocolate.Stitching
             foreach (IError error in errors)
             {
                 IErrorBuilder builder = ErrorBuilder.FromError(error)
-                    .SetExtension("remote", error);
+                    .SetExtension(_remoteErrorField, error.RemoveException());
 
                 if (error.Path != null)
                 {
@@ -364,7 +365,7 @@ namespace HotChocolate.Stitching
                 if (e.Any())
                 {
                     Type elementType = e.FirstOrDefault()?.GetType();
-                    if(elementType != null)
+                    if (elementType != null)
                     {
                         sourceType =
                             typeof(IEnumerable<>).MakeGenericType(elementType);
