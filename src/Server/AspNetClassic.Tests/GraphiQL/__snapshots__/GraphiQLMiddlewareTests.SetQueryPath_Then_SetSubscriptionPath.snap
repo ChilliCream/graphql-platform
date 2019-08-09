@@ -2,6 +2,6 @@
                 window.Settings = {
                     url: "http://localhost:5000/foo/graphiql/..",
                     subscriptionUrl: "ws://localhost:5000/foo/graphiql/../../bar",
-                    enableSubscriptions: true
+                    enableSubscriptions: false
                 }
             

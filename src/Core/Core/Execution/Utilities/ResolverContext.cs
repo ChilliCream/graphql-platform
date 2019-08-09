@@ -119,11 +119,10 @@ namespace HotChocolate.Execution
                 return parent;
             }
 
-            // TODO : resources
             throw new InvalidCastException(
                 string.Format(
                     CultureInfo.InvariantCulture,
-                    "Could not cast the source object to `{0}`.",
+                    CoreResources.ResolverContext_Parent_InvalidCast,
                     typeof(T).FullName));
         }
 

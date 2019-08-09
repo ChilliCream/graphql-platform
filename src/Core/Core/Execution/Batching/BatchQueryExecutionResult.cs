@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
@@ -289,11 +290,10 @@ namespace HotChocolate.Execution.Batching
 
         private static QueryException SerializationError()
         {
-            // TODO : resources
             return new QueryException(
                 ErrorBuilder.New()
-                    .SetMessage("Could not serialize the specified variable.")
-                    .SetCode("BATCH_VAR_SERIALIZE")
+                    .SetMessage(CoreResources.BatchQueryExec_CannotSerialize)
+                    .SetCode(BatchingErrorCodes.CannotSerialize)
                     .Build());
         }
         public void Dispose()
