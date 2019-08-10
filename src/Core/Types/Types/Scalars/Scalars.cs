@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types
@@ -82,6 +83,23 @@ namespace HotChocolate.Types
                     typeof(PaginationAmountType), TypeContext.None) },
            };
 
+        private static readonly Dictionary<Type, ScalarKind> _scalarKinds =
+            new Dictionary<Type, ScalarKind>
+            {
+                { typeof(string), ScalarKind.String },
+                { typeof(long), ScalarKind.Integer },
+                { typeof(int), ScalarKind.Integer },
+                { typeof(short), ScalarKind.Integer },
+                { typeof(ulong), ScalarKind.Integer },
+                { typeof(uint), ScalarKind.Integer },
+                { typeof(ushort), ScalarKind.Integer },
+                { typeof(byte), ScalarKind.Integer },
+                { typeof(float), ScalarKind.Float },
+                { typeof(double), ScalarKind.Float },
+                { typeof(decimal), ScalarKind.Float },
+                { typeof(bool), ScalarKind.Float }
+            };
+
         internal static bool TryGetScalar(
             Type clrType,
             out IClrTypeReference schemaType)
@@ -107,5 +125,34 @@ namespace HotChocolate.Types
         {
             return typeName.HasValue && _nameLookup.ContainsKey(typeName);
         }
+
+        public static bool TryGetKind(object value, out ScalarKind kind)
+        {
+            if (value is null)
+            {
+                kind = ScalarKind.Null;
+                return true;
+            }
+
+            Type valueType = value.GetType();
+
+            if (valueType.IsEnum)
+            {
+                kind = ScalarKind.Enum;
+                return true;
+            }
+
+            return _scalarKinds.TryGetValue(valueType, out kind);
+        }
+    }
+
+    public enum ScalarKind
+    {
+        String,
+        Integer,
+        Float,
+        Boolean,
+        Enum,
+        Null
     }
 }

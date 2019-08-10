@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -113,9 +114,15 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (serialized is decimal d)
+            if (serialized is decimal)
             {
-                value = d;
+                value = serialized;
+                return true;
+            }
+
+            if (TryConvertSerialized(serialized, ScalarKind.Float, out decimal c))
+            {
+                value = c;
                 return true;
             }
 
