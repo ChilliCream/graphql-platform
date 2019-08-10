@@ -206,7 +206,7 @@ namespace HotChocolate.Types
             out T value)
         {
             if (Scalars.TryGetKind(serialized, out ScalarKind kind)
-                && kind == ScalarKind.Integer
+                && kind == expectedKind
                 && _converter.TryConvert<object, T>(serialized, out T c))
             {
                 value = c;

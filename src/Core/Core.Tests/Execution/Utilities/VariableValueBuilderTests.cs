@@ -350,7 +350,7 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: Decimal) { a }");
-            var input = "1.000000E-004";
+            var input = 1.000000E-004;
 
             var variableValues = new Dictionary<string, object>();
             variableValues.Add("test", input);
