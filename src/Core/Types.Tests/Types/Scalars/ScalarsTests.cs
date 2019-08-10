@@ -86,6 +86,19 @@ namespace HotChocolate.Types
             Assert.Equal(expectedKind, kind);
         }
 
+        [Fact]
+        public void Object_Is_Not_A_Serialized_Scalar()
+        {
+            // arrange
+            object o = new object();
+
+            // act
+            bool isScalar = Scalars.TryGetKind(o, out _);
+
+            // assert
+            Assert.False(isScalar);
+        }
+
         public enum Foo
         {
             Bar
