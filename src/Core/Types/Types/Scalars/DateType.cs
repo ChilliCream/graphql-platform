@@ -59,10 +59,10 @@ namespace HotChocolate.Types
         }
 
         protected override bool TryDeserializeFromString(
-            string literal, out object obj)
+            string serialized, out object obj)
         {
             if (DateTime.TryParse(
-                literal,
+                serialized,
                 CultureInfo.InvariantCulture,
                 DateTimeStyles.AssumeLocal,
                 out DateTime dateTime))

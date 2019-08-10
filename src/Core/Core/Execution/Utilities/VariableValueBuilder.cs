@@ -155,17 +155,11 @@ namespace HotChocolate.Execution
                 value = variable.Type.ParseLiteral(literal);
             }
 
-            value = DeserializeValue(variable.Type, value);
-
-            return value;
-        }
-
-        private object DeserializeValue(IInputType type, object value)
-        {
-            if (type.TryDeserialize(value, out object d))
+            if (variable.Type.TryDeserialize(value, out object deserialized))
             {
-                return d;
+                return deserialized;
             }
+
             return value;
         }
 
