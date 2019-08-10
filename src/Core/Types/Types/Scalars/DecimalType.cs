@@ -119,7 +119,8 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (TryConvertSerialized(serialized, ScalarKind.Float, out decimal c))
+            if (TryConvertSerialized(serialized, ScalarValueKind.Float, out decimal c)
+                || TryConvertSerialized(serialized, ScalarValueKind.Integer, out c))
             {
                 value = c;
                 return true;

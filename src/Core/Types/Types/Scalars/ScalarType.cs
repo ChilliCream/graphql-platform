@@ -202,10 +202,10 @@ namespace HotChocolate.Types
 
         protected static bool TryConvertSerialized<T>(
             object serialized,
-            ScalarKind expectedKind,
+            ScalarValueKind expectedKind,
             out T value)
         {
-            if (Scalars.TryGetKind(serialized, out ScalarKind kind)
+            if (Scalars.TryGetKind(serialized, out ScalarValueKind kind)
                 && kind == expectedKind
                 && _converter.TryConvert<object, T>(serialized, out T c))
             {

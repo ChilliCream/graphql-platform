@@ -53,5 +53,93 @@ namespace HotChocolate.Types
             Assert.Equal(123, Assert.IsType<decimal>(output));
         }
 
+        [Fact]
+        public void Deserialize_Int_To_Decimal()
+        {
+            // arrange
+            var type = new DecimalType();
+            int serialized = 123;
+
+            // act
+            bool success = type.TryDeserialize(serialized, out object value);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal((decimal)123, Assert.IsType<decimal>(value));
+        }
+
+        [Fact]
+        public void Deserialize_NullableInt_To_Decimal()
+        {
+            // arrange
+            var type = new DecimalType();
+            int? serialized = 123;
+
+            // act
+            bool success = type.TryDeserialize(serialized, out object value);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal((decimal)123, Assert.IsType<decimal>(value));
+        }
+
+        [Fact]
+        public void Deserialize_Float_To_Decimal()
+        {
+            // arrange
+            var type = new DecimalType();
+            float serialized = 123;
+
+            // act
+            bool success = type.TryDeserialize(serialized, out object value);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal((decimal)123, Assert.IsType<decimal>(value));
+        }
+
+        [Fact]
+        public void Deserialize_NullableFloat_To_Decimal()
+        {
+            // arrange
+            var type = new DecimalType();
+            float? serialized = 123;
+
+            // act
+            bool success = type.TryDeserialize(serialized, out object value);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal((decimal)123, Assert.IsType<decimal>(value));
+        }
+
+        [Fact]
+        public void Deserialize_Decimal_To_Decimal()
+        {
+            // arrange
+            var type = new DecimalType();
+            decimal serialized = 123;
+
+            // act
+            bool success = type.TryDeserialize(serialized, out object value);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal((decimal)123, Assert.IsType<decimal>(value));
+        }
+
+        [Fact]
+        public void Deserialize_Null_To_Null()
+        {
+            // arrange
+            var type = new DecimalType();
+
+            // act
+            bool success = type.TryDeserialize(null, out object value);
+
+            // assert
+            Assert.True(success);
+            Assert.Null(value);
+        }
     }
 }

@@ -83,21 +83,32 @@ namespace HotChocolate.Types
                     typeof(PaginationAmountType), TypeContext.None) },
            };
 
-        private static readonly Dictionary<Type, ScalarKind> _scalarKinds =
-            new Dictionary<Type, ScalarKind>
+        private static readonly Dictionary<Type, ScalarValueKind> _scalarKinds =
+            new Dictionary<Type, ScalarValueKind>
             {
-                { typeof(string), ScalarKind.String },
-                { typeof(long), ScalarKind.Integer },
-                { typeof(int), ScalarKind.Integer },
-                { typeof(short), ScalarKind.Integer },
-                { typeof(ulong), ScalarKind.Integer },
-                { typeof(uint), ScalarKind.Integer },
-                { typeof(ushort), ScalarKind.Integer },
-                { typeof(byte), ScalarKind.Integer },
-                { typeof(float), ScalarKind.Float },
-                { typeof(double), ScalarKind.Float },
-                { typeof(decimal), ScalarKind.Float },
-                { typeof(bool), ScalarKind.Float }
+                { typeof(string), ScalarValueKind.String },
+                { typeof(long), ScalarValueKind.Integer },
+                { typeof(int), ScalarValueKind.Integer },
+                { typeof(short), ScalarValueKind.Integer },
+                { typeof(long?), ScalarValueKind.Integer },
+                { typeof(int?), ScalarValueKind.Integer },
+                { typeof(short?), ScalarValueKind.Integer },
+                { typeof(ulong), ScalarValueKind.Integer },
+                { typeof(uint), ScalarValueKind.Integer },
+                { typeof(ushort), ScalarValueKind.Integer },
+                { typeof(ulong?), ScalarValueKind.Integer },
+                { typeof(uint?), ScalarValueKind.Integer },
+                { typeof(ushort?), ScalarValueKind.Integer },
+                { typeof(byte), ScalarValueKind.Integer },
+                { typeof(byte?), ScalarValueKind.Integer },
+                { typeof(float), ScalarValueKind.Float },
+                { typeof(double), ScalarValueKind.Float },
+                { typeof(decimal), ScalarValueKind.Float },
+                { typeof(float?), ScalarValueKind.Float },
+                { typeof(double?), ScalarValueKind.Float },
+                { typeof(decimal?), ScalarValueKind.Float },
+                { typeof(bool), ScalarValueKind.Float },
+                { typeof(bool?), ScalarValueKind.Float }
             };
 
         internal static bool TryGetScalar(
@@ -126,11 +137,11 @@ namespace HotChocolate.Types
             return typeName.HasValue && _nameLookup.ContainsKey(typeName);
         }
 
-        public static bool TryGetKind(object value, out ScalarKind kind)
+        public static bool TryGetKind(object value, out ScalarValueKind kind)
         {
             if (value is null)
             {
-                kind = ScalarKind.Null;
+                kind = ScalarValueKind.Null;
                 return true;
             }
 
@@ -138,21 +149,11 @@ namespace HotChocolate.Types
 
             if (valueType.IsEnum)
             {
-                kind = ScalarKind.Enum;
+                kind = ScalarValueKind.Enum;
                 return true;
             }
 
             return _scalarKinds.TryGetValue(valueType, out kind);
         }
-    }
-
-    public enum ScalarKind
-    {
-        String,
-        Integer,
-        Float,
-        Boolean,
-        Enum,
-        Null
     }
 }
