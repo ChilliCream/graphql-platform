@@ -94,6 +94,79 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Serialize_Int()
+        {
+            // arrange
+            var uuidType = new UuidType();
+            var value = 123;
+
+            // act
+            Action action = () => uuidType.Serialize(value);
+
+            // assert
+            Assert.Throws<ScalarSerializationException>(action);
+        }
+
+        [Fact]
+        public void Deserialize_Null()
+        {
+            // arrange
+            var uuidType = new UuidType();
+
+            // act
+            var success = uuidType.TryDeserialize(null, out object o);
+
+            // assert
+            Assert.True(success);
+            Assert.Null(o);
+        }
+
+        [Fact]
+        public void Deserialize_String()
+        {
+            // arrange
+            var uuidType = new UuidType();
+            var guid = Guid.NewGuid();
+
+            // act
+            var success = uuidType.TryDeserialize(
+                guid.ToString("N"), out object o);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal(guid, o);
+        }
+
+        [Fact]
+        public void Deserialize_Guid()
+        {
+            // arrange
+            var uuidType = new UuidType();
+            var guid = Guid.NewGuid();
+
+            // act
+            var success = uuidType.TryDeserialize(guid, out object o);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal(guid, o);
+        }
+
+        [Fact]
+        public void Deserialize_Int()
+        {
+            // arrange
+            var uuidType = new UuidType();
+            var value = 123;
+
+            // act
+            var success = uuidType.TryDeserialize(value, out _);
+
+            // assert
+            Assert.False(success);
+        }
+
+        [Fact]
         public void ParseLiteral_StringValueNode()
         {
             // arrange
@@ -180,6 +253,20 @@ namespace HotChocolate.Types
             // assert
             Assert.True(stringLiteral is NullValueNode);
             Assert.Null(((NullValueNode)stringLiteral).Value);
+        }
+
+        [Fact]
+        public void ParseValue_Int()
+        {
+            // arrange
+            var uuidType = new UuidType();
+            int value = 123;
+
+            // act
+            Action action = () => uuidType.ParseValue(value);
+
+            // assert
+            Assert.Throws<ScalarSerializationException>(action);
         }
 
         [Fact]
