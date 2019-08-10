@@ -227,6 +227,52 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Deserialize_NullableDateTime_To_DateTimeOffset()
+        {
+            // arrange
+            var type = new DateTimeType();
+            DateTime? time =
+                new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+
+            // act
+            bool success = type.TryDeserialize(time, out object deserialized);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal(time,
+                Assert.IsType<DateTimeOffset>(deserialized).UtcDateTime);
+        }
+
+        [Fact]
+        public void Deserialize_NullableDateTime_To_DateTimeOffset_2()
+        {
+            // arrange
+            var type = new DateTimeType();
+            DateTime? time = null;
+
+            // act
+            bool success = type.TryDeserialize(time, out object deserialized);
+
+            // assert
+            Assert.True(success);
+            Assert.Null(deserialized);
+        }
+
+        [Fact]
+        public void Deserialize_Null_To_Null()
+        {
+            // arrange
+            var type = new DateTimeType();
+
+            // act
+            bool success = type.TryDeserialize(null, out object deserialized);
+
+            // assert
+            Assert.True(success);
+            Assert.Null(deserialized);
+        }
+
+        [Fact]
         public void ParseLiteral_NullValueNode()
         {
             // arrange
