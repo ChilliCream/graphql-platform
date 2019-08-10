@@ -110,6 +110,20 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void ParseLiteral_IntValueNode()
+        {
+            // arrange
+            var uuidType = new UuidType();
+            var literal = new IntValueNode(123);
+
+            // act
+            Action action = () => uuidType.ParseLiteral(literal);
+
+            // assert
+            Assert.Throws<ScalarSerializationException>(action);
+        }
+
+        [Fact]
         public void ParseLiteral_NullValueNode()
         {
             // arrange
