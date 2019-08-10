@@ -130,7 +130,14 @@ namespace HotChocolate.Types
 
             if (serialized is int i && i >= _min && i <= _max)
             {
-                value = i;
+                value = serialized;
+                return true;
+            }
+
+            if (TryConvertSerialized(serialized, ScalarValueKind.Integer, out int c)
+                && c >= _min && c <= _max)
+            {
+                value = c;
                 return true;
             }
 

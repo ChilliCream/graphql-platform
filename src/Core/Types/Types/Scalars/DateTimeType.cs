@@ -46,14 +46,47 @@ namespace HotChocolate.Types
                 CultureInfo.InvariantCulture);
         }
 
-        protected override bool TryParseLiteral(
-            string literal,
+        public override bool TryDeserialize(object serialized, out object value)
+        {
+            if (serialized is null)
+            {
+                value = null;
+                return true;
+            }
+
+            if (serialized is string s
+                && TryDeserializeFromString(s, out object d))
+            {
+                value = d;
+                return true;
+            }
+
+            if (serialized is DateTimeOffset)
+            {
+                value = serialized;
+                return true;
+            }
+
+            if (serialized is DateTime dt)
+            {
+                value = new DateTimeOffset(
+                    dt.ToUniversalTime(),
+                    TimeSpan.Zero);
+                return true;
+            }
+
+            value = null;
+            return false;
+        }
+
+        protected override bool TryDeserializeFromString(
+            string serialized,
             out object obj)
         {
-            if (literal != null
-                && literal.EndsWith("Z")
+            if (serialized != null
+                && serialized.EndsWith("Z")
                 && DateTime.TryParse(
-                    literal,
+                    serialized,
                     CultureInfo.InvariantCulture,
                     DateTimeStyles.AssumeUniversal,
                     out DateTime zuluTime))
@@ -65,7 +98,7 @@ namespace HotChocolate.Types
             }
 
             if (DateTimeOffset.TryParse(
-                literal,
+                serialized,
                 out DateTimeOffset dateTime))
             {
                 obj = dateTime;

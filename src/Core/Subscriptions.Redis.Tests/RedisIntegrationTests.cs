@@ -42,85 +42,91 @@ namespace HotChocolate.Subscriptions.Redis
         }
 
         [Fact]
-        public async Task Subscribe()
+        public Task Subscribe()
         {
-            // arrange
-            var services = new ServiceCollection();
-            services.AddRedisSubscriptionProvider(_configuration);
+            return TestHelper.TryTest(async () =>
+            {
+                // arrange
+                var services = new ServiceCollection();
+                services.AddRedisSubscriptionProvider(_configuration);
 
-            IServiceProvider serviceProvider = services.BuildServiceProvider();
+                IServiceProvider serviceProvider = services.BuildServiceProvider();
 
-            var cts = new CancellationTokenSource(30000);
-            string name = "field_" + Guid.NewGuid().ToString("N");
-            IQueryExecutor executor = SchemaBuilder.New()
-                .AddServices(serviceProvider)
-                .AddQueryType(d => d
-                    .Name("foo")
-                    .Field("a")
-                    .Resolver("b"))
-                .AddSubscriptionType(d => d.Name("bar")
-                    .Field(name)
-                    .Resolver("baz"))
-                .Create()
-                .MakeExecutable();
+                var cts = new CancellationTokenSource(30000);
+                string name = "field_" + Guid.NewGuid().ToString("N");
+                IQueryExecutor executor = SchemaBuilder.New()
+                    .AddServices(serviceProvider)
+                    .AddQueryType(d => d
+                        .Name("foo")
+                        .Field("a")
+                        .Resolver("b"))
+                    .AddSubscriptionType(d => d.Name("bar")
+                        .Field(name)
+                        .Resolver("baz"))
+                    .Create()
+                    .MakeExecutable();
 
-            var eventDescription = new EventDescription(name);
-            var outgoing = new EventMessage(eventDescription, "bar");
+                var eventDescription = new EventDescription(name);
+                var outgoing = new EventMessage(eventDescription, "bar");
 
-            IExecutionResult result = executor.Execute(
-                "subscription { " + name + " }");
+                IExecutionResult result = executor.Execute(
+                    "subscription { " + name + " }");
 
-            // act
-            await _sender.SendAsync(outgoing);
+                // act
+                await _sender.SendAsync(outgoing);
 
-            // assert
-            var stream = (IResponseStream)result;
-            IReadOnlyQueryResult message = await stream.ReadAsync(cts.Token);
-            Assert.Equal("baz", message.Data.First().Value);
-            stream.Dispose();
+                // assert
+                var stream = (IResponseStream)result;
+                IReadOnlyQueryResult message = await stream.ReadAsync(cts.Token);
+                Assert.Equal("baz", message.Data.First().Value);
+                stream.Dispose();
+            });
         }
 
         [Fact]
-        public async Task Subscribe_With_ObjectValue()
+        public Task Subscribe_With_ObjectValue()
         {
-            // arrange
-            var services = new ServiceCollection();
-            services.AddRedisSubscriptionProvider(_configuration);
+            return TestHelper.TryTest(async () =>
+            {
+                // arrange
+                var services = new ServiceCollection();
+                services.AddRedisSubscriptionProvider(_configuration);
 
-            IServiceProvider serviceProvider = services.BuildServiceProvider();
+                IServiceProvider serviceProvider = services.BuildServiceProvider();
 
-            var cts = new CancellationTokenSource(30000);
-            string name = "field_" + Guid.NewGuid().ToString("N");
-            IQueryExecutor executor = SchemaBuilder.New()
-                .AddServices(serviceProvider)
-                .AddQueryType(d => d
-                    .Name("foo")
-                    .Field("a")
-                    .Resolver("b"))
-                .AddSubscriptionType(d => d.Name("bar")
-                    .Field(name)
-                    .Argument("a", a => a.Type<FooType>())
-                    .Resolver("baz"))
-                .Create()
-                .MakeExecutable();
+                var cts = new CancellationTokenSource(30000);
+                string name = "field_" + Guid.NewGuid().ToString("N");
+                IQueryExecutor executor = SchemaBuilder.New()
+                    .AddServices(serviceProvider)
+                    .AddQueryType(d => d
+                        .Name("foo")
+                        .Field("a")
+                        .Resolver("b"))
+                    .AddSubscriptionType(d => d.Name("bar")
+                        .Field(name)
+                        .Argument("a", a => a.Type<FooType>())
+                        .Resolver("baz"))
+                    .Create()
+                    .MakeExecutable();
 
-            var eventDescription = new EventDescription(name,
-                new ArgumentNode("a",
-                    new ObjectValueNode(
-                        new ObjectFieldNode("def", "xyz"))));
-            var outgoing = new EventMessage(eventDescription, "bar");
+                var eventDescription = new EventDescription(name,
+                    new ArgumentNode("a",
+                        new ObjectValueNode(
+                            new ObjectFieldNode("def", "xyz"))));
+                var outgoing = new EventMessage(eventDescription, "bar");
 
-            IExecutionResult result = executor.Execute(
-                "subscription { " + name + "(a: { def: \"xyz\" }) }");
+                IExecutionResult result = executor.Execute(
+                    "subscription { " + name + "(a: { def: \"xyz\" }) }");
 
-            // act
-            await _sender.SendAsync(outgoing);
+                // act
+                await _sender.SendAsync(outgoing);
 
-            // assert
-            var stream = (IResponseStream)result;
-            IReadOnlyQueryResult message = await stream.ReadAsync(cts.Token);
-            Assert.Equal("baz", message.Data.First().Value);
-            stream.Dispose();
+                // assert
+                var stream = (IResponseStream)result;
+                IReadOnlyQueryResult message = await stream.ReadAsync(cts.Token);
+                Assert.Equal("baz", message.Data.First().Value);
+                stream.Dispose();
+            });
         }
 
         public class FooType : InputObjectType

@@ -1,0 +1,15 @@
+﻿[
+  {
+    "Message": "Variable `test` got invalid value.",
+    "Code": null,
+    "Path": null,
+    "Locations": [
+      {
+        "Line": 1,
+        "Column": 12
+      }
+    ],
+    "Exception": null,
+    "Extensions": {}
+  }
+]

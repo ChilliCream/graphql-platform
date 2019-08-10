@@ -16,7 +16,6 @@ namespace HotChocolate.Execution
         private readonly ISchema _schema;
         private readonly OperationDefinitionNode _operation;
         private readonly ITypeConversion _converter;
-        private readonly DictionaryToInputObjectConverter _inputTypeConverter;
 
         public VariableValueBuilder(
             ISchema schema,
@@ -28,8 +27,6 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(operation));
 
             _converter = _schema.Services.GetTypeConversion();
-            _inputTypeConverter = new DictionaryToInputObjectConverter(
-                _converter);
         }
 
         /// <summary>
@@ -139,7 +136,7 @@ namespace HotChocolate.Execution
             return variable;
         }
 
-        private object Normalize(
+        private static object Normalize(
             VariableDefinitionNode variableDefinition,
             Variable variable,
             object rawValue)
@@ -158,45 +155,11 @@ namespace HotChocolate.Execution
                 value = variable.Type.ParseLiteral(literal);
             }
 
-            value = DeserializeValue(variable.Type, value);
-            value = EnsureClrTypeIsCorrect(variable.Type, value);
-
-            return value;
-        }
-
-        private object DeserializeValue(IInputType type, object value)
-        {
-            if (type.IsLeafType()
-                && type.NamedType() is ISerializableType serializable
-                && serializable.TryDeserialize(value, out object deserialized))
+            if (variable.Type.TryDeserialize(value, out object deserialized))
             {
                 return deserialized;
             }
 
-            if (type.IsListType() && value is IList<object>)
-            {
-                return _inputTypeConverter.Convert(value, type);
-            }
-
-            if (type.IsInputObjectType()
-                && value is IDictionary<string, object>)
-            {
-                return _inputTypeConverter.Convert(value, type);
-            }
-
-            return value;
-        }
-
-        private object EnsureClrTypeIsCorrect(IHasClrType type, object value)
-        {
-            if (type.ClrType != typeof(object)
-                && value.GetType() != type.ClrType
-                && _converter.TryConvert(value.GetType(),
-                    type.ClrType, value,
-                    out object converted))
-            {
-                return converted;
-            }
             return value;
         }
 
