@@ -136,7 +136,7 @@ namespace HotChocolate.Execution
             return variable;
         }
 
-        private object Normalize(
+        private static object Normalize(
             VariableDefinitionNode variableDefinition,
             Variable variable,
             object rawValue)
