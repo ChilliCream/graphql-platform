@@ -224,13 +224,11 @@ namespace HotChocolate.Execution
 
         public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType typeContext) =>
-            _executionContext.CollectFields(
-                typeContext, FieldSelection.SelectionSet, Path);
+            CollectFields(typeContext, FieldSelection.SelectionSet);
 
         public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType typeContext, SelectionSetNode selectionSet) =>
-            _executionContext.CollectFields(
-                typeContext, FieldSelection.SelectionSet, Path);
+            _executionContext.CollectFields(typeContext, selectionSet, Path);
 
         IReadOnlyCollection<IFieldSelection> IResolverContext.CollectFields(
             ObjectType typeContext) => CollectFields(typeContext);
