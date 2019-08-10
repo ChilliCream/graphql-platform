@@ -207,5 +207,99 @@ namespace HotChocolate.Types.Filters
         }
 
         #endregion
+
+        #region Scalar Values
+
+        public override VisitorAction Enter(
+            StringValueNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return VisitorAction.Continue;
+        }
+
+        public override VisitorAction Leave(
+            StringValueNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return VisitorAction.Continue;
+        }
+
+        public override VisitorAction Enter(
+            IntValueNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return VisitorAction.Continue;
+        }
+
+        public override VisitorAction Leave(
+            IntValueNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return VisitorAction.Continue;
+        }
+
+        public override VisitorAction Enter(
+            FloatValueNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return VisitorAction.Continue;
+        }
+
+        public override VisitorAction Leave(
+            FloatValueNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return VisitorAction.Continue;
+        }
+
+        public override VisitorAction Enter(
+            EnumValueNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return VisitorAction.Continue;
+        }
+
+        public override VisitorAction Leave(
+            EnumValueNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return VisitorAction.Continue;
+        }
+
+        public override VisitorAction Enter(
+            BooleanValueNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return VisitorAction.Continue;
+        }
+
+        public override VisitorAction Leave(
+            BooleanValueNode node,
+            ISyntaxNode parent,
+            IReadOnlyList<object> path,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
+            return VisitorAction.Continue;
+        }
+
+        #endregion
     }
 }
