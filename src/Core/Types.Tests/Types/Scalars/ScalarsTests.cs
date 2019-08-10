@@ -62,28 +62,28 @@ namespace HotChocolate.Types
         public void Decimal_Is_Float()
         {
             // arrange
-            decimal d = 123.123;
+            decimal d = 123.123M;
 
             // act
-            bool isScalar = Scalars.TryGetKind(value, out ScalarValueKind kind);
+            bool isScalar = Scalars.TryGetKind(d, out ScalarValueKind kind);
 
             // assert
             Assert.True(isScalar);
-            Assert.Equal(expectedKind, kind);
+            Assert.Equal(ScalarValueKind.Float, kind);
         }
 
         [Fact]
         public void NullableDecimal_Is_Float()
         {
             // arrange
-            decimal? d = 123.123;
+            decimal? d = 123.123M;
 
             // act
-            bool isScalar = Scalars.TryGetKind(value, out ScalarValueKind kind);
+            bool isScalar = Scalars.TryGetKind(d, out ScalarValueKind kind);
 
             // assert
             Assert.True(isScalar);
-            Assert.Equal(expectedKind, kind);
+            Assert.Equal(ScalarValueKind.Float, kind);
         }
 
         [Fact]
