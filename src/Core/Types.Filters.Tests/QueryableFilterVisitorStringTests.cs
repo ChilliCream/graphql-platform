@@ -91,6 +91,32 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void Create_StringIn_SingleValue_Expression()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("bar_in",
+                    new StringValueNode("a")));
+
+            var fooType = CreateType(new FooFilterType());
+
+            // act
+            var filter = new QueryableFilterVisitor(
+                fooType,
+                typeof(Foo),
+                TypeConversion.Default);
+            value.Accept(filter);
+            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+
+            // assert
+            var a = new Foo { Bar = "a" };
+            Assert.True(func(a));
+
+            var b = new Foo { Bar = "b" };
+            Assert.False(func(b));
+        }
+
+        [Fact]
         public void Create_StringNotIn_Expression()
         {
             // arrange
