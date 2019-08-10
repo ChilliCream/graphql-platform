@@ -286,6 +286,119 @@ Task("MongoTests")
     }
 });
 
+Task("HC_DataLoader_Tests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/hc_dataloader_{i++}\" --blame")
+    };
+
+    foreach(var file in GetFiles("./src/DataLoader/**/*.Tests.csproj"))
+    {
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
+
+Task("HC_Core_Tests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/hc_core_{i++}\" --blame")
+    };
+
+    foreach(var file in GetFiles("./src/Core/**/*.Tests.csproj"))
+    {
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
+Task("HC_Server_Tests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/hc_server_{i++}\" --blame")
+    };
+
+    foreach(var file in GetFiles("./src/Server/**/*.Tests.csproj"))
+    {
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
+Task("HC_Stitching_Tests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/hc_stitching_{i++}\" --blame")
+    };
+
+    foreach(var file in GetFiles("./src/Stitching/**/*.Tests.csproj"))
+    {
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
 Task("SonarBegin")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
