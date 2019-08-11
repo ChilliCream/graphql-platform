@@ -75,22 +75,21 @@ namespace HotChocolate.Types
                 {
                     Type argumentType = filterType;
 
-                    if (filterTypeInstance != null)
-                        if (filterType == null)
+                    if (filterType == null)
+                    {
+                        if (!TypeInspector.Default.TryCreate(
+                            definition.ResultType, out TypeInfo typeInfo))
                         {
-                            if (!TypeInspector.Default.TryCreate(
-                                definition.ResultType, out TypeInfo typeInfo))
-                            {
-                                // TODO : resources
-                                throw new ArgumentException(
-                                    "Cannot handle the specified type.",
-                                    nameof(descriptor));
-                            }
-
-                            argumentType =
-                                typeof(FilterInputType<>).MakeGenericType(
-                                    typeInfo.ClrType);
+                            // TODO : resources
+                            throw new ArgumentException(
+                                "Cannot handle the specified type.",
+                                nameof(descriptor));
                         }
+
+                        argumentType =
+                            typeof(FilterInputType<>).MakeGenericType(
+                                typeInfo.ClrType);
+                    }
 
                     var argumentTypeReference = filterTypeInstance is null
                         ? (ITypeReference)new ClrTypeReference(
