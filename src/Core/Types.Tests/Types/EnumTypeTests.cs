@@ -155,7 +155,7 @@ namespace HotChocolate.Types
             {
                 c.RegisterType(new EnumType<Foo>(d =>
                 {
-                    d.BindItems(BindingBehavior.Explicit);
+                    d.BindValues(BindingBehavior.Explicit);
                     d.Item(Foo.Bar1);
                 }));
                 c.Options.StrictValidation = false;
@@ -178,7 +178,7 @@ namespace HotChocolate.Types
             {
                 c.RegisterType(new EnumType<Foo>(d =>
                 {
-                    d.BindItemsImplicitly().BindItemsExplicitly();
+                    d.BindValuesImplicitly().BindValuesExplicitly();
                     d.Item(Foo.Bar1);
                 }));
                 c.Options.StrictValidation = false;
