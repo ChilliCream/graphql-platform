@@ -2,6 +2,7 @@ using System;
 using Snapshooter.Xunit;
 using Xunit;
 using HotChocolate.Types;
+using HotChocolate.Language;
 
 namespace HotChocolate
 {
@@ -666,6 +667,24 @@ namespace HotChocolate
         }
 
         [Fact]
+        public void AddInterfaceType_With_Descriptor()
+        {
+            // arrange
+            SchemaBuilder builder = SchemaBuilder.New();
+
+            // act
+            SchemaBuilderExtensions.AddInterfaceType(
+                builder, d => d.Name("ABC").Field("abc").Type<StringType>());
+
+            // assert
+            builder
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+        [Fact]
         public void AddInterfaceType_ConfigureIsNull_ArgumentNullException()
         {
             // arrange
@@ -705,7 +724,25 @@ namespace HotChocolate
         }
 
         [Fact]
-        public void AddunionType_BuilderIsNull_ArgumentNullException()
+        public void AddInterfaceTypeT_With_Descriptor()
+        {
+            // arrange
+            SchemaBuilder builder = SchemaBuilder.New();
+
+            // act
+            SchemaBuilderExtensions.AddInterfaceType<IMyInterface>(
+                builder, d => d.Field("abc").Type<StringType>());
+
+            // assert
+            builder
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+        [Fact]
+        public void AddUnionType_BuilderIsNull_ArgumentNullException()
         {
             // arrange
             // act
@@ -728,6 +765,29 @@ namespace HotChocolate
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddUnionType_With_Descriptor()
+        {
+            // arrange
+            SchemaBuilder builder = SchemaBuilder.New();
+            builder.AddObjectType(d => d
+                .Name("Foo")
+                .Field("bar")
+                .Type<StringType>()
+                .Resolver("empty"));
+
+            // act
+            SchemaBuilderExtensions.AddUnionType(
+                builder, d => d.Name("ABC").Type(new NamedTypeNode("Foo")));
+
+            // assert
+            builder
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .ToString()
+                .MatchSnapshot();
         }
 
         [Fact]
@@ -757,6 +817,29 @@ namespace HotChocolate
         }
 
         [Fact]
+        public void AddUnionTypeT_With_Descriptor()
+        {
+            // arrange
+            SchemaBuilder builder = SchemaBuilder.New();
+            builder.AddObjectType(d => d
+                .Name("Foo")
+                .Field("bar")
+                .Type<StringType>()
+                .Resolver("empty"));
+
+            // act
+            SchemaBuilderExtensions.AddUnionType<IMyInterface>(
+                builder, d => d.Name("ABC").Type(new NamedTypeNode("Foo")));
+
+            // assert
+            builder
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+        [Fact]
         public void AddInputObjectType_BuilderIsNull_ArgumentNullException()
         {
             // arrange
@@ -780,6 +863,24 @@ namespace HotChocolate
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddInputObjectType_With_Descriptor()
+        {
+            // arrange
+            SchemaBuilder builder = SchemaBuilder.New();
+
+            // act
+            SchemaBuilderExtensions.AddInputObjectType(
+                builder, d => d.Name("Foo").Field("bar").Type<StringType>());
+
+            // assert
+            builder
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .ToString()
+                .MatchSnapshot();
         }
 
         [Fact]
@@ -809,6 +910,25 @@ namespace HotChocolate
         }
 
         [Fact]
+        public void AddInputObjectTypeT_With_Descriptor()
+        {
+            // arrange
+            SchemaBuilder builder = SchemaBuilder.New();
+
+            // act
+            SchemaBuilderExtensions.AddInputObjectType<Bar>(
+                builder, d => d.Field("qux").Type<StringType>());
+
+            // assert
+            builder
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+
+        [Fact]
         public void AddEnumType_BuilderIsNull_ArgumentNullException()
         {
             // arrange
@@ -835,6 +955,24 @@ namespace HotChocolate
         }
 
         [Fact]
+        public void AddEnumType_With_Descriptor()
+        {
+            // arrange
+            SchemaBuilder builder = SchemaBuilder.New();
+
+            // act
+            SchemaBuilderExtensions.AddEnumType(
+                builder, d => d.Name("Foo").Value("bar").Name("BAZ"));
+
+            // assert
+            builder
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .ToString()
+                .MatchSnapshot();
+        }
+
+        [Fact]
         public void AddEnumTypeT_BuilderIsNull_ArgumentNullException()
         {
             // arrange
@@ -858,6 +996,24 @@ namespace HotChocolate
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
+        }
+
+         [Fact]
+        public void AddEnumTypeT_With_Descriptor()
+        {
+            // arrange
+            SchemaBuilder builder = SchemaBuilder.New();
+
+            // act
+            SchemaBuilderExtensions.AddEnumType<MyEnum>(
+                builder, d => d.BindValuesExplicitly().Value(MyEnum.A));
+
+            // assert
+            builder
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create()
+                .ToString()
+                .MatchSnapshot();
         }
 
         public class QueryType
@@ -950,7 +1106,7 @@ namespace HotChocolate
                 IDirectiveTypeDescriptor descriptor)
             {
                 descriptor.Name("my");
-                descriptor.Location(DirectiveLocation.Field);
+                descriptor.Location(Types.DirectiveLocation.Field);
             }
         }
 

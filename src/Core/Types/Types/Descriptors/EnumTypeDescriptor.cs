@@ -94,17 +94,21 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IEnumTypeDescriptor BindItems(
+            BindingBehavior behavior) =>
+            BindValues(behavior);
+
+        public IEnumTypeDescriptor BindValues(
             BindingBehavior behavior)
         {
             Definition.Values.BindingBehavior = behavior;
             return this;
         }
 
-        public IEnumTypeDescriptor BindItemsExplicitly() =>
-            BindItems(BindingBehavior.Explicit);
+        public IEnumTypeDescriptor BindValuesExplicitly() =>
+            BindValues(BindingBehavior.Explicit);
 
-        public IEnumTypeDescriptor BindItemsImplicitly() =>
-            BindItems(BindingBehavior.Implicit);
+        public IEnumTypeDescriptor BindValuesImplicitly() =>
+            BindValues(BindingBehavior.Implicit);
 
         public IEnumValueDescriptor Item<T>(T value)
         {
