@@ -9,8 +9,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [10.0.0]
+
+### Added
+
 - Added support to infer if a field or enum value is deprecated. [#826](https://github.com/ChilliCream/hotchocolate/pull/826)
-- Added prisma filter types. [#861](https://github.com/ChilliCream/hotchocolate/pull/861)
+- Added filter types. [#861](https://github.com/ChilliCream/hotchocolate/pull/861)
 - Added UTF-8 request parser. [#869](https://github.com/ChilliCream/hotchocolate/pull/869)
 - Added new syntax visitor API.
 - Added Redis subscription provider [#902](https://github.com/ChilliCream/hotchocolate/pull/902)
@@ -19,6 +23,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Provide access to variables through IResolverContext. [#958](https://github.com/ChilliCream/hotchocolate/pull/958)
 - Added ability to control when the schem stitching will pull in the remote schemas. [#964](https://github.com/ChilliCream/hotchocolate/pull/964)
 - Added support to register class DataLoader with the standard dependency injection. [#966](https://github.com/ChilliCream/hotchocolate/pull/966)
+- Added support for ObsoleteAttribute. Fields & enum values that are annotated with ObsoleteAttribute become deprecated.
+- Add Redis Provider for Subscriptions [#902](https://github.com/ChilliCream/hotchocolate/pull/902)
+- Added not authenticated error code.
+- Added TryAddProperty, TryAddExtension and TryAddVariable to query request builder
+- Added support for persisted queries with providers for the file system and Redis. [#858](https://github.com/ChilliCream/hotchocolate/pull/858)
+- Added support for middleware on introspection fields. [#962](https://github.com/ChilliCream/hotchocolate/pull/962)
+- Added default binding behavior option to schema options. [#963](https://github.com/ChilliCream/hotchocolate/pull/963)
+- Added support for directives on enum values with schema first [#815](https://github.com/ChilliCream/hotchocolate/pull/815)
+- Added DataLoader Dependency Injection Support. [#966](https://github.com/ChilliCream/hotchocolate/pull/966)
+- Added AddDocumentFromFile to SchemaBuilder. [#974](https://github.com/ChilliCream/hotchocolate/pull/974)
+- Added error filter ServiceCollection extensions [#973](https://github.com/ChilliCream/hotchocolate/pull/973)
+- Added schema validation rule that ensures that interfaces are implemented. [#979](https://github.com/ChilliCream/hotchocolate/pull/979)
 
 ### Changed
 
@@ -27,6 +43,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Roles collection on authorization directive is now interpreted as OR.
 - The type conversion API is now better integreated with dependency injection.
 - The server is now more modularized and the various server middlewares can be added separably.
+- context.Parent() converts now the result if the source object is not of the type of T
+- Update GraphQL-Voyager to 1.0.0-rc.27 [#972](https://github.com/ChilliCream/hotchocolate/pull/972)
 
 ### Fixed
 
@@ -42,6 +60,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed issues stitching lists. [#946](https://github.com/ChilliCream/hotchocolate/pull/946)
 - Fixed source link support. [#943](https://github.com/ChilliCream/hotchocolate/pull/943)
 - Fixed dead-lock issues with the DataLoader [#942](https://github.com/ChilliCream/hotchocolate/pull/942)
+- Fixed UrlType IsInstanceOfType method to correctly return true for a Url StringValueNode.
+- Fixed Date and DateTime handling in the stitching layer.
+- Fixed subscriptions with InputObject arguments [#975](https://github.com/ChilliCream/hotchocolate/pull/975)
+- Fixed Playground, GraphiQL and Voyager path logic in middleware options object. [#984](https://github.com/ChilliCream/hotchocolate/pull/984)
+- Exceptions are now correctly removed from the remote error data structure so that no exception information leaks.
+- Fixed IResolverContext.CollectFields issue where the provided selection set was not passed to the underlying field collection algoritm. [#994](https://github.com/ChilliCream/hotchocolate/pull/994)
+- Fixed variable coercion so that we are now throwing GraphQL errors if the wrong type is passed. [#991](https://github.com/ChilliCream/hotchocolate/pull/991)
+- Fixed type rename issue in the stitching layer when types where nun-null types. [#998](https://github.com/ChilliCream/hotchocolate/pull/998)
 
 ## [9.0.4] - 2019-06-16
 
