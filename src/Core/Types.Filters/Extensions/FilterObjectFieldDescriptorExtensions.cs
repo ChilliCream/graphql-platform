@@ -2,13 +2,12 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Types.Filters;
 using HotChocolate.Utilities;
 
-namespace HotChocolate
+namespace HotChocolate.Types
 {
     public static class FilterObjectFieldDescriptorExtensions
     {
