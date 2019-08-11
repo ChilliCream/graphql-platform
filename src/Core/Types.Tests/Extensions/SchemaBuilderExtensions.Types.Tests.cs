@@ -652,7 +652,213 @@ namespace HotChocolate
             builder.Create().ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void AddInterfaceType_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddInterfaceType(
+                    null, c => { });
 
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddInterfaceType_ConfigureIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddInterfaceType(
+                    SchemaBuilder.New(), null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddInterfaceTypeT_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddInterfaceType<Foo>(
+                    null, c => { });
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddInterfaceTypeT_ConfigureIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddInterfaceType<Foo>(
+                    SchemaBuilder.New(), null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddunionType_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddUnionType(
+                    null, c => { });
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddUnionType_ConfigureIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddUnionType(
+                    SchemaBuilder.New(), null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddUnionTypeT_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddUnionType<Foo>(
+                    null, c => { });
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddUnionTypeT_ConfigureIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddUnionType<Foo>(
+                    SchemaBuilder.New(), null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddInputObjectType_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddInputObjectType(
+                    null, c => { });
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddInputObjectType_ConfigureIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddInputObjectType(
+                    SchemaBuilder.New(), null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddInputObjectTypeT_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddInputObjectType<Foo>(
+                    null, c => { });
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddInputObjectTypeT_ConfigureIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddInputObjectType<Foo>(
+                    SchemaBuilder.New(), null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddEnumType_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddEnumType(
+                    null, c => { });
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddEnumType_ConfigureIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddEnumType(
+                    SchemaBuilder.New(), null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddEnumTypeT_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddEnumType<Foo>(
+                    null, c => { });
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddEnumTypeT_ConfigureIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.AddObjectType<Foo>(
+                    SchemaBuilder.New(), null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
 
         public class QueryType
            : ObjectType
@@ -746,6 +952,17 @@ namespace HotChocolate
                 descriptor.Name("my");
                 descriptor.Location(DirectiveLocation.Field);
             }
+        }
+
+        public interface IMyInterface
+        {
+
+        }
+
+        public enum MyEnum
+        {
+            A,
+            B
         }
     }
 }
