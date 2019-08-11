@@ -2,11 +2,13 @@ using System;
 using System.Threading.Tasks;
 using HotChocolate.Configuration;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Types.Filters;
 using HotChocolate.Utilities;
 
-namespace HotChocolate.Types.Filters
+namespace HotChocolate
 {
     public static class FilterObjectFieldDescriptorExtensions
     {
@@ -41,9 +43,28 @@ namespace HotChocolate.Types.Filters
             return UseFiltering(descriptor, filterType);
         }
 
+        public static IObjectFieldDescriptor UseFiltering<T>(
+            this IObjectFieldDescriptor descriptor,
+            Action<IFilterInputTypeDescriptor<T>> configure)
+        {
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            if (configure is null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            var filterType = new FilterInputType<T>(configure);
+            return UseFiltering(descriptor, filterType.GetType(), filterType);
+        }
+
         private static IObjectFieldDescriptor UseFiltering(
             IObjectFieldDescriptor descriptor,
-            Type filterType)
+            Type filterType,
+            ITypeSystemMember filterTypeInstance = null)
         {
             FieldMiddleware placeholder =
                 next => context => Task.CompletedTask;
@@ -55,25 +76,27 @@ namespace HotChocolate.Types.Filters
                 {
                     Type argumentType = filterType;
 
-                    if (filterType == null)
-                    {
-                        if (!TypeInspector.Default.TryCreate(
-                            definition.ResultType, out TypeInfo typeInfo))
+                    if (filterTypeInstance != null)
+                        if (filterType == null)
                         {
-                            // TODO : resources
-                            throw new ArgumentException(
-                                "Cannot handle the specified type.",
-                                nameof(descriptor));
+                            if (!TypeInspector.Default.TryCreate(
+                                definition.ResultType, out TypeInfo typeInfo))
+                            {
+                                // TODO : resources
+                                throw new ArgumentException(
+                                    "Cannot handle the specified type.",
+                                    nameof(descriptor));
+                            }
+
+                            argumentType =
+                                typeof(FilterInputType<>).MakeGenericType(
+                                    typeInfo.ClrType);
                         }
 
-                        argumentType =
-                            typeof(FilterInputType<>).MakeGenericType(
-                                typeInfo.ClrType);
-                    }
-
-                    var argumentTypeReference = new ClrTypeReference(
-                        argumentType,
-                        TypeContext.Input);
+                    var argumentTypeReference = filterTypeInstance is null
+                        ? (ITypeReference)new ClrTypeReference(
+                            argumentType, TypeContext.Input)
+                        : new SchemaTypeReference(filterTypeInstance);
 
                     if (argumentType == typeof(object))
                     {
