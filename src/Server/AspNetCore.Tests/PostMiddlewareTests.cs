@@ -46,6 +46,33 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task HttpPost_Check_Response_ContentType()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var request = new ClientQueryRequest
+            {
+                Query =
+                @"
+                    {
+                        hero {
+                            name
+                        }
+                    }
+                "
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request);
+
+            // assert
+            Assert.Collection(
+                message.Content.Headers.GetValues("Content-Type"),
+                t => Assert.Equal("application/json", t));
+        }
+
+        [Fact]
         public async Task HttpPost_Json_QueryAndEnumVariable()
         {
             // arrange
@@ -632,6 +659,45 @@ namespace HotChocolate.AspNetCore
             List<ClientQueryResult> result =
                  await DeserializeBatchAsync(message);
             result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpPost_Batch_ContentType()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var batch = new List<ClientQueryRequest>
+            {
+                new ClientQueryRequest
+                {
+                    Query =
+                    @"
+                    query getHero {
+                        hero(episode: EMPIRE) {
+                            id @export
+                        }
+                    }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                    @"
+                    query getHuman {
+                        human(id: $id) {
+                            name
+                        }
+                    }"
+                }
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(batch);
+
+            // assert
+            Assert.Collection(
+                message.Content.Headers.GetValues("Content-Type"),
+                    t => Assert.Equal("application/json", t));
         }
 
         [Fact]

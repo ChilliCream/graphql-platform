@@ -8,12 +8,15 @@ namespace HotChocolate.Execution.Batching
     public sealed class JsonArrayResponseStreamSerializer
         : IResponseStreamSerializer
     {
+        private const string _contentType = "application/json";
         private const byte _leftBracket = (byte)'[';
         private const byte _rightBracket = (byte)']';
         private const byte _comma = (byte)',';
         private readonly UTF8Encoding _encoding = new UTF8Encoding();
         private readonly JsonQueryResultSerializer _serializer =
             new JsonQueryResultSerializer();
+
+        public string ContentType => _contentType;
 
         public Task SerializeAsync(
             IResponseStream responseStream,
