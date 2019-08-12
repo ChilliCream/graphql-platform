@@ -1,8 +1,6 @@
-using System.Runtime.InteropServices;
 using System;
 using System.Buffers;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using HotChocolate.Language;
@@ -15,6 +13,7 @@ namespace HotChocolate.Subscriptions
     {
         private static readonly Encoding _encoding = Encoding.UTF8;
         private string _serialized;
+        private int? _hash;
 
         public EventDescription(string name)
             : this(name, Array.Empty<ArgumentNode>())
@@ -76,16 +75,17 @@ namespace HotChocolate.Subscriptions
             if (Name.Equals(other.Name, StringComparison.Ordinal)
                 && Arguments.Count == other.Arguments.Count)
             {
-                var arguments =
-                    other.Arguments.ToDictionary(
-                        c => c.Name.Value,
-                        c => c.Value);
+                IEnumerator<ArgumentNode> otherFields = other.Arguments
+                    .OrderBy(t => t.Name.Value, StringComparer.Ordinal)
+                    .GetEnumerator();
 
-                foreach (ArgumentNode argument in Arguments)
+                foreach (ArgumentNode argument in
+                    Arguments.OrderBy(t => t.Name.Value, StringComparer.Ordinal))
                 {
-                    if (!arguments.TryGetValue(argument.Name.Value,
-                        out IValueNode v)
-                        || !v.Equals(argument.Value))
+                    otherFields.MoveNext();
+
+                    if (!otherFields.Current.Name.Equals(argument.Name)
+                        || !otherFields.Current.Value.Equals(argument.Value))
                     {
                         return false;
                     }
@@ -116,13 +116,20 @@ namespace HotChocolate.Subscriptions
         {
             unchecked
             {
-                var hash = Name.GetHashCode() * 379;
-                foreach (ArgumentNode argument in Arguments)
+                if (_hash is null)
                 {
-                    hash ^= (argument.Name.GetHashCode() * 7);
-                    hash ^= (argument.Value.GetHashCode() * 11);
+                    var hash = Name.GetHashCode() * 379;
+
+                    foreach (ArgumentNode argument in
+                        Arguments.OrderBy(t => t.Name.Value, StringComparer.Ordinal))
+                    {
+                        hash ^= (argument.Name.GetHashCode() * 7);
+                        hash ^= (argument.Value.GetHashCode() * 11);
+                    }
+
+                    _hash = hash;
                 }
-                return hash;
+                return _hash.Value;
             }
         }
 

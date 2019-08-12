@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
+    <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
+    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'ParserFramework.props'))</ChilliFramework>
+    <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'BuildSettings.props'))</ChilliBuild>
+  </PropertyGroup>
+
+  <Import Project="$(ChilliFramework)" />
+  <Import Project="$(ChilliBuild)" />
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard1.3;$(TargetFrameworks)</TargetFrameworks>
+    <PackageId>GreenDonut</PackageId>
+    <AssemblyName>GreenDonut</AssemblyName>
+    <RootNamespace>GreenDonut</RootNamespace>
+    <Description>Green Donut is a port of facebook's DataLoader utility, written in C# for .NET Core and .NET Framework.</Description>
+    <PackageProjectUrl>https://greendonut.io</PackageProjectUrl>
+    <PackageTags>DataLoader Batching Caching GraphQL ChilliCream Facebook</PackageTags>
+    <PackageIconUrl>https://cdn.rawgit.com/ChilliCream/greendonut-logo/master/img/greendonut-signet.png</PackageIconUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.5.1" />
+  </ItemGroup>
+
+</Project>

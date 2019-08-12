@@ -1,29 +1,20 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
-    <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">netstandard2.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">netstandard2.0; net461</TargetFrameworks>
-    <Name>HotChocolate.PersistedQueries.Redis</Name>
-    <RootNamespace>$(Name)</RootNamespace>
-    <AssemblyName>$(Name)</AssemblyName>
-    <PackageId>$(Name)</PackageId>
-    <Description>An implementation of Hot Chocolate persisted queries using the local file system.</Description>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
+    <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
+    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreFramework.props'))</ChilliFramework>
+    <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'BuildSettings.props'))</ChilliBuild>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>bin\$(Configuration)\$(TargetFramework)\$(AssemblyName).xml</DocumentationFile>
-  </PropertyGroup>
+  <Import Project="$(ChilliFramework)" />
+  <Import Project="$(ChilliBuild)" />
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DebugType>pdbonly</DebugType>
-    <DebugSymbols>true</DebugSymbols>
+  <PropertyGroup>
+    <PackageId>HotChocolate.PersistedQueries.Redis</PackageId>
+    <AssemblyName>HotChocolate.PersistedQueries.Redis</AssemblyName>
+    <RootNamespace>HotChocolate.PersistedQueries.Redis</RootNamespace>
+    <Description>An implementation of Hot Chocolate persisted queries using the Redis cache.</Description>
   </PropertyGroup>
 
   <ItemGroup>

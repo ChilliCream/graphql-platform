@@ -48,8 +48,7 @@ namespace HotChocolate.Types.Relay
             {
                 source = q;
             }
-
-            if (context.Result is IEnumerable<T> e)
+            else if (context.Result is IEnumerable<T> e)
             {
                 source = e.AsQueryable();
             }

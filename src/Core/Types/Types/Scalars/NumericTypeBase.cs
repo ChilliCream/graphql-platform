@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -102,6 +103,12 @@ namespace HotChocolate.Types
             if (serialized is T v)
             {
                 value = v;
+                return true;
+            }
+
+            if (TryConvertSerialized(serialized, ScalarValueKind.Integer, out T c))
+            {
+                value = c;
                 return true;
             }
 

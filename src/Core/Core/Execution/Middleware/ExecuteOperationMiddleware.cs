@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Properties;
-using HotChocolate.Runtime;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -36,8 +36,8 @@ namespace HotChocolate.Execution
             {
                 context.Result = QueryResult.CreateError(
                     ErrorBuilder.New()
-                        .SetMessage(CoreResources
-                            .ExecuteOperationMiddleware_InComplete)
+                        .SetMessage(CoreResources.ExecuteOperationMiddleware_InComplete)
+                        .SetCode(MiddlewareErrorCodes.Incomplete)
                         .Build());
             }
             else

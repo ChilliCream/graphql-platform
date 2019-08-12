@@ -21,6 +21,25 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void Create_Schema_With_FilteType_With_Fluent_API()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(d =>
+                    d.Field(m => m.Foos)
+                        .UseFiltering<Foo>(f =>
+                            f.BindFieldsExplicitly()
+                                .Filter(m => m.Bar)
+                                .BindFiltersExplicitly()
+                                .AllowEquals()))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Execute_Filter()
         {
             // arrange

@@ -7,12 +7,12 @@ type Query {
   consultantName: String!
     @delegate(
       schema: "customer"
-      path: "customer(id:\"Q3VzdG9tZXIteDE=\").consultant.name"
+      path: "customer(id:\"Q3VzdG9tZXIKZDE=\").consultant.name"
     )
   consultant: Consultant
     @delegate(
       schema: "customer"
-      path: "customer(id:\"Q3VzdG9tZXIteDE=\").consultant"
+      path: "customer(id:\"Q3VzdG9tZXIKZDE=\").consultant"
     )
 }
 

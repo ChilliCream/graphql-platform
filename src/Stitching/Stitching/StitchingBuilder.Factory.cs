@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Execution;
-using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Client;
 using HotChocolate.Stitching.Delegation;
@@ -21,7 +20,6 @@ namespace HotChocolate.Stitching
         {
             private readonly StitchingBuilder _builder;
             private readonly IReadOnlyList<IRemoteExecutorAccessor> _executors;
-            private readonly IQueryExecutionOptionsAccessor _options;
 
             private StitchingFactory(
                 StitchingBuilder builder,
@@ -31,7 +29,6 @@ namespace HotChocolate.Stitching
                 _builder = builder;
                 _executors = executors;
                 MergedSchema = mergedSchema;
-                _options = _builder._options ?? new QueryExecutionOptions();
             }
 
             public DocumentNode MergedSchema { get; }
@@ -150,14 +147,14 @@ namespace HotChocolate.Stitching
 
                     IQueryExecutor executor = Schema.Create(schema, c =>
                     {
+                        c.Options.StrictValidation = false;
+
                         c.UseNullResolver();
 
                         foreach (ScalarTypeDefinitionNode typeDefinition in
-                            schema.Definitions
-                                .OfType<ScalarTypeDefinitionNode>())
+                            schema.Definitions.OfType<ScalarTypeDefinitionNode>())
                         {
-                            c.RegisterType(new CustomScalarType(
-                                typeDefinition));
+                            c.RegisterType(new CustomScalarType(typeDefinition));
                         }
                     }).MakeExecutable(b => b.UseQueryDelegationPipeline(name));
 

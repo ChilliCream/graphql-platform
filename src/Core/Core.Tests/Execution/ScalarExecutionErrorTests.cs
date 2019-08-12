@@ -65,7 +65,7 @@ namespace HotChocolate.Execution
                 "{ nameToString(name: \"  \") }");
 
             // assert
-            result.MatchSnapshot();
+            result.ToJson().MatchSnapshot();
         }
 
         [Fact]

@@ -84,6 +84,18 @@ Task("Build")
     DotNetCoreBuild("./tools/Build.sln", settings);
 });
 
+Task("BuildDebug")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    var buildSettings = new DotNetCoreBuildSettings
+    {
+        Configuration = "Debug"
+    };
+
+    DotNetCoreBuild("./tools/Build.sln", buildSettings);
+});
+
 Task("BuildCore")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
@@ -222,27 +234,20 @@ Task("RedisTests")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
-    var buildSettings = new DotNetCoreBuildSettings
-    {
-        Configuration = "Debug"
-    };
-
     int i = 0;
     var testSettings = new DotNetCoreTestSettings
     {
         Configuration = "Debug",
         ResultsDirectory = $"./{testOutputDir}",
         Logger = "trx",
-        NoRestore = true,
-        NoBuild = true,
+        NoRestore = false,
+        NoBuild = false,
         ArgumentCustomization = args => args
             .Append("/p:CollectCoverage=true")
             .Append("/p:Exclude=[xunit.*]*")
             .Append("/p:CoverletOutputFormat=opencover")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/core_{i++}\" --blame")
     };
-
-    DotNetCoreBuild("./tools/Build.Core.sln", buildSettings);
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
@@ -257,19 +262,14 @@ Task("MongoTests")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
-    var buildSettings = new DotNetCoreBuildSettings
-    {
-        Configuration = "Debug"
-    };
-
     int i = 0;
     var testSettings = new DotNetCoreTestSettings
     {
         Configuration = "Debug",
         ResultsDirectory = $"./{testOutputDir}",
         Logger = "trx",
-        NoRestore = true,
-        NoBuild = true,
+        NoRestore = false,
+        NoBuild = false,
         ArgumentCustomization = args => args
             .Append("/p:CollectCoverage=true")
             .Append("/p:Exclude=[xunit.*]*")
@@ -277,11 +277,122 @@ Task("MongoTests")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/core_{i++}\" --blame")
     };
 
-    DotNetCoreBuild("./tools/Build.Core.sln", buildSettings);
-
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
         if(file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
+Task("HC_DataLoader_Tests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/hc_dataloader_{i++}\" --blame")
+    };
+
+    foreach(var file in GetFiles("./src/DataLoader/**/*.Tests.csproj"))
+    {
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
+
+Task("HC_Core_Tests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/hc_core_{i++}\" --blame")
+    };
+
+    foreach(var file in GetFiles("./src/Core/**/*.Tests.csproj"))
+    {
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
+Task("HC_Server_Tests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/hc_server_{i++}\" --blame")
+    };
+
+    foreach(var file in GetFiles("./src/Server/**/*.Tests.csproj"))
+    {
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
+Task("HC_Stitching_Tests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/hc_stitching_{i++}\" --blame")
+    };
+
+    foreach(var file in GetFiles("./src/Stitching/**/*.Tests.csproj"))
+    {
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
         {
             DotNetCoreTest(file.FullPath, testSettings);
         }
@@ -336,6 +447,11 @@ Task("Default")
 Task("Sonar")
     .IsDependentOn("SonarBegin")
     .IsDependentOn("Tests")
+    .IsDependentOn("SonarEnd");
+
+Task("SonarSlim")
+    .IsDependentOn("SonarBegin")
+    .IsDependentOn("BuildDebug")
     .IsDependentOn("SonarEnd");
 
 Task("Release")

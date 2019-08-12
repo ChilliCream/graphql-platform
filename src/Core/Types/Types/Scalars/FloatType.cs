@@ -130,9 +130,16 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (serialized is double d)
+            if (serialized is double)
             {
-                value = d;
+                value = serialized;
+                return true;
+            }
+
+            if (TryConvertSerialized(serialized, ScalarValueKind.Float, out double c)
+                || TryConvertSerialized(serialized, ScalarValueKind.Integer, out c))
+            {
+                value = c;
                 return true;
             }
 

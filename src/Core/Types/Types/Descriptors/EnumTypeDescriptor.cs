@@ -14,6 +14,8 @@ namespace HotChocolate.Types.Descriptors
             : base(context)
         {
             Definition.ClrType = typeof(object);
+            Definition.Values.BindingBehavior =
+                context.Options.DefaultBindingBehavior;
         }
 
         protected EnumTypeDescriptor(IDescriptorContext context, Type clrType)
@@ -25,6 +27,8 @@ namespace HotChocolate.Types.Descriptors
                 clrType, TypeKind.Enum);
             Definition.Description = context.Naming.GetTypeDescription(
                 clrType, TypeKind.Enum);
+            Definition.Values.BindingBehavior =
+                context.Options.DefaultBindingBehavior;
         }
 
         protected override EnumTypeDefinition Definition { get; } =
@@ -90,11 +94,21 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IEnumTypeDescriptor BindItems(
+            BindingBehavior behavior) =>
+            BindValues(behavior);
+
+        public IEnumTypeDescriptor BindValues(
             BindingBehavior behavior)
         {
             Definition.Values.BindingBehavior = behavior;
             return this;
         }
+
+        public IEnumTypeDescriptor BindValuesExplicitly() =>
+            BindValues(BindingBehavior.Explicit);
+
+        public IEnumTypeDescriptor BindValuesImplicitly() =>
+            BindValues(BindingBehavior.Implicit);
 
         public IEnumValueDescriptor Item<T>(T value)
         {

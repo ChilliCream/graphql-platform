@@ -41,7 +41,7 @@ namespace HotChocolate.Subscriptions.Redis
         [Fact]
         public Task SubscribeOneConsumer_SendMessage_ConsumerReceivesMessage()
         {
-            return TryTest(async () =>
+            return TestHelper.TryTest(async () =>
             {
                 // arrange
                 var cts = new CancellationTokenSource(30000);
@@ -63,7 +63,7 @@ namespace HotChocolate.Subscriptions.Redis
         [Fact]
         public Task SubscribeOneConsumer_Complete_StreamIsCompleted()
         {
-            return TryTest(async () =>
+            return TestHelper.TryTest(async () =>
             {
                 // arrange
                 var eventDescription = new EventDescription(
@@ -82,7 +82,7 @@ namespace HotChocolate.Subscriptions.Redis
         [Fact]
         public Task SubscribeTwoConsumer_SendOneMessage_BothConsumerReceivesMessage()
         {
-            return TryTest(async () =>
+            return TestHelper.TryTest(async () =>
             {
                 // arrange
                 var cts = new CancellationTokenSource(30000);
@@ -110,7 +110,7 @@ namespace HotChocolate.Subscriptions.Redis
         [Fact]
         public Task SubscribeTwoConsumer_SendTwoMessage_BothConsumerReceivesIndependentMessage()
         {
-            return TryTest(async () =>
+            return TestHelper.TryTest(async () =>
             {
                 // arrange
                 var cts = new CancellationTokenSource(30000);
@@ -140,38 +140,6 @@ namespace HotChocolate.Subscriptions.Redis
                 Assert.Equal(outgoingTwo.Payload, incomingTwo.Payload);
                 Assert.NotEqual(incomingOne.Event, incomingTwo.Event);
             });
-        }
-
-        private static async Task TryTest(Func<Task> action)
-        {
-            // we will try four times ....
-            int count = 0;
-            int wait = 50;
-
-            while (true)
-            {
-                if (count < 3)
-                {
-                    try
-                    {
-                        await action().ConfigureAwait(false);
-                        break;
-                    }
-                    catch
-                    {
-                        // try again
-                    }
-                }
-                else
-                {
-                    await action().ConfigureAwait(false);
-                    break;
-                }
-
-                await Task.Delay(wait).ConfigureAwait(false);
-                wait = wait * 2;
-                count++;
-            }
         }
     }
 }

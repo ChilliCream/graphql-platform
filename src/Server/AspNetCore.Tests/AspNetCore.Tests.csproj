@@ -1,40 +1,31 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
-    <AssemblyName>HotChocolate.AspNetCore.Tests</AssemblyName>
-    <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
-    <IsPackable>false</IsPackable>
-
+    <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
+    <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
+    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreTestFramework.props'))</ChilliFramework>
+    <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'TestSettings.props'))</ChilliBuild>
   </PropertyGroup>
 
+  <Import Project="$(ChilliFramework)" />
+  <Import Project="$(ChilliBuild)" />
+
   <PropertyGroup>
-    <DebugType>portable</DebugType>
-    <DebugSymbols>true</DebugSymbols>
+    <AssemblyName>HotChocolate.AspNetCore.Tests</AssemblyName>
+    <RootNamespace>HotChocolate.AspNetCore</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.1.1" />
-    <PackageReference Include="Moq" Version="4.10.1" />
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
-    <PackageReference Include="coverlet.msbuild" Version="2.5.1" />
-    <PackageReference Include="ChilliCream.Testing.Utilities" Version="0.2.0" />
-    <PackageReference Include="Snapshooter.Xunit" Version="0.4.7" />
-    <DotNetCliToolReference Include="dotnet-xunit" Version="2.4.0-beta.1.build3958" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\AspNetCore.Tests.Utilities\AspNetCore.Tests.Utilities.csproj" />
     <ProjectReference Include="..\AspNetCore.Authorization\AspNetCore.Authorization.csproj" />
     <ProjectReference Include="..\AspNetCore\AspNetCore.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="__snapshots__\*.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <ProjectReference Include="..\AspNetCore.Playground\AspNetCore.Playground.csproj" />
+    <ProjectReference Include="..\AspNetCore.GraphiQL\AspNetCore.GraphiQL.csproj" />
+    <ProjectReference Include="..\AspNetCore.Voyager\AspNetCore.Voyager.csproj" />
   </ItemGroup>
 
 </Project>

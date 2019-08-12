@@ -1,5 +1,5 @@
 query fetch {
-  customer: customerOrConsultant(id: "Q3VzdG9tZXIteDE=") {
+  customer: customerOrConsultant(id: "Q3VzdG9tZXIKZDE=") {
     ... customer
     ... consultant
     ... on Customer {

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Runtime;
+using HotChocolate.Utilities;
 using HotChocolate.Validation;
 
 namespace HotChocolate.Execution
@@ -38,8 +38,8 @@ namespace HotChocolate.Execution
             {
                 context.Result = QueryResult.CreateError(
                     ErrorBuilder.New()
-                        .SetMessage(CoreResources
-                            .ValidateQueryMiddleware_NoDocument)
+                        .SetMessage(CoreResources.ValidateQueryMiddleware_NoDocument)
+                        .SetCode(MiddlewareErrorCodes.Incomplete)
                         .Build());
             }
             else

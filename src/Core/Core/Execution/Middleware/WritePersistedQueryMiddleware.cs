@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Runtime;
 
 namespace HotChocolate.Execution
 {
@@ -36,12 +35,10 @@ namespace HotChocolate.Execution
         {
             if (IsContextIncomplete(context))
             {
-                // TODO : resources
                 context.Result = QueryResult.CreateError(
                     ErrorBuilder.New()
-                        .SetMessage(CoreResources
-                            .ParseQueryMiddleware_InComplete)
-                        .Build());
+                        .SetMessage(CoreResources.Write_PQ_Middleware_Incomplete)
+                        .SetCode(MiddlewareErrorCodes.Incomplete)                        .Build());
                 return;
             }
 

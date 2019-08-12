@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CompleteCompositeType_UnknownSchemaType" xml:space="preserve">
-    <value>Could not resolve the schema type from `{0}`.</value>
+    <value>Could not resolve the actual object type from `{0}` for the abstract type `{1}`.</value>
   </data>
   <data name="CompleteLeadType_UndefinedError" xml:space="preserve">
     <value>Undefined scalar field serialization error.</value>
@@ -213,5 +213,41 @@ The maximum allowed query complexity is {1}.</value>
   </data>
   <data name="RequestTimeoutMiddleware_Timeout" xml:space="preserve">
     <value>Execution timeout has been exceeded.</value>
+  </data>
+  <data name="BatchColVars_NoCompatibleType" xml:space="preserve">
+    <value>Unable to find a compatible input type for the exported object type.</value>
+  </data>
+  <data name="BatchQueryExec_CannotSerialize" xml:space="preserve">
+    <value>Could not serialize the specified variable.</value>
+  </data>
+  <data name="CachedQuery_Key_Is_Null" xml:space="preserve">
+    <value>The query key mustn't be null or empty.</value>
+  </data>
+  <data name="ParseQuery_Middleware_QueryTypeNotSupported" xml:space="preserve">
+    <value>The specified query type is not supported.</value>
+  </data>
+  <data name="Read_PQ_Middleware_Incomplete" xml:space="preserve">
+    <value>The read persisted query middleware expects a valid query request.</value>
+  </data>
+  <data name="Read_PQ_Middleware_QueryNotFound" xml:space="preserve">
+    <value>PersistedQueryNotFound</value>
+  </data>
+  <data name="Read_PQ_Middleware_QueryTypeNotSupported" xml:space="preserve">
+    <value>The specified query type is not supported.</value>
+  </data>
+  <data name="ResolverContext_Parent_InvalidCast" xml:space="preserve">
+    <value>Could not cast the source object to `{0}`.</value>
+  </data>
+  <data name="ToJson_OnlyQueryResultsSupported" xml:space="preserve">
+    <value>Only query results are supported.</value>
+  </data>
+  <data name="VarRewriter_CannotConvert" xml:space="preserve">
+    <value>Unable to convert the specified variable value.</value>
+  </data>
+  <data name="VarRewriter_UnknownField" xml:space="preserve">
+    <value>Unknown field.</value>
+  </data>
+  <data name="Write_PQ_Middleware_Incomplete" xml:space="preserve">
+    <value>The write persisted query middleware expects a valid query request.</value>
   </data>
 </root>

@@ -6,7 +6,7 @@
     <Company>ChilliCream</Company>
     <Copyright>Copyright © 2019 ChilliCream (Michael &amp; Rafael Staib)</Copyright>
     <PackageLicenseUrl>https://github.com/ChilliCream/hotchocolate/blob/master/LICENSE</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/ChilliCream/hotchocolate</PackageProjectUrl>
+    <PackageProjectUrl>https://hotchocolate.io</PackageProjectUrl>
     <PackageReleaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/$(PackageVersion)</PackageReleaseNotes>
     <PackageTags>GraphQL ChilliCream</PackageTags>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>

@@ -37,6 +37,77 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
+        public void Coerce_Variable_Value_Int_To_String()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            OperationDefinitionNode operation = CreateQuery(
+                "query test($test: String! = \"foo\") { a }");
+            var variableValues = new Dictionary<string, object>
+            {
+                {
+                    "test",
+                    123
+                }
+            };
+
+            // act
+            var resolver = new VariableValueBuilder(schema, operation);
+            Action action = () => resolver.CreateValues(variableValues);
+
+            // assert
+            Assert.Throws<QueryException>(action).Errors.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Coerce_Variable_Value_Float_To_Int()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            OperationDefinitionNode operation = CreateQuery(
+                "query test($test: Int!) { a }");
+            var variableValues = new Dictionary<string, object>
+            {
+                {
+                    "test",
+                    123.123
+                }
+            };
+
+            // act
+            var resolver = new VariableValueBuilder(schema, operation);
+            Action action = () => resolver.CreateValues(variableValues);
+
+            // assert
+            Assert.Throws<QueryException>(action).Errors.MatchSnapshot();
+        }
+
+         [Fact]
+        public void Coerce_Variable_Value_Int_To_Float()
+        {
+            // arrange
+            Schema schema = CreateSchema();
+            OperationDefinitionNode operation = CreateQuery(
+                "query test($test: Float!) { a }");
+            var variableValues = new Dictionary<string, object>
+            {
+                {
+                    "test",
+                    123
+                }
+            };
+
+            // act
+            var resolver = new VariableValueBuilder(schema, operation);
+            VariableValueCollection coercedVariableValues =
+                resolver.CreateValues(variableValues);
+
+            // assert
+            Assert.Equal((float)123,
+                coercedVariableValues.GetVariable<float>("test"));
+        }
+
+        [Fact]
         public void StringVariableIsObject()
         {
             // arrange
@@ -350,7 +421,7 @@ namespace HotChocolate.Execution
             Schema schema = CreateSchema();
             OperationDefinitionNode operation = CreateQuery(
                 "query test($test: Decimal) { a }");
-            var input = "1.000000E-004";
+            var input = 1.000000E-004;
 
             var variableValues = new Dictionary<string, object>();
             variableValues.Add("test", input);
@@ -551,6 +622,7 @@ namespace HotChocolate.Execution
                     c.RegisterType<FooType>();
                     c.RegisterType<BazType>();
                     c.RegisterType<BarEnumType>();
+                    c.RegisterType<FloatType>();
                     c.RegisterExtendedScalarTypes();
                 });
         }

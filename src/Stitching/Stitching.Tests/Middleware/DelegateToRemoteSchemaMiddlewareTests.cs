@@ -61,7 +61,7 @@ namespace HotChocolate.Stitching
             var request = QueryRequestBuilder.New()
                 .SetQuery(FileResource.Open(
                     "StitchingQueryWithVariables.graphql"))
-                .SetVariableValue("customerId", "Q3VzdG9tZXIteDE=")
+                .SetVariableValue("customerId", "Q3VzdG9tZXIKZDE=")
                 .Create();
 
             // act
@@ -271,7 +271,7 @@ namespace HotChocolate.Stitching
                     QueryRequestBuilder.New()
                         .SetQuery(@"
                         {
-                            customer(id: ""Q3VzdG9tZXIteDE="") {
+                            customer(id: ""Q3VzdG9tZXIKZDE="") {
                                 int
                             }
                         }")
@@ -318,7 +318,7 @@ namespace HotChocolate.Stitching
                     QueryRequestBuilder.New()
                         .SetQuery(@"
                         {
-                            customer(id: ""Q3VzdG9tZXIteDE="") {
+                            customer(id: ""Q3VzdG9tZXIKZDE="") {
                                 guid
                             }
                         }")
@@ -364,14 +364,14 @@ namespace HotChocolate.Stitching
                     QueryRequestBuilder.New()
                         .SetQuery(@"
                         {
-                            a: customer(id: ""Q3VzdG9tZXIteDE="") {
+                            a: customer(id: ""Q3VzdG9tZXIKZDE="") {
                                 bar: foo
                                 contracts {
                                     id
                                 }
                             }
 
-                            b: customer(id: ""Q3VzdG9tZXIteDE="") {
+                            b: customer(id: ""Q3VzdG9tZXIKZDE="") {
                                 foo
                                 contracts {
                                     id
@@ -433,7 +433,7 @@ namespace HotChocolate.Stitching
                                 foo(bar: $bar)
                             }
                         ")
-                        .SetVariableValue("id", "Q3VzdG9tZXIteDE=")
+                        .SetVariableValue("id", "Q3VzdG9tZXIKZDE=")
                         .SetVariableValue("bar", "this variable is passed to remote query!")
                         .SetServices(scope.ServiceProvider)
                         .Create();
@@ -495,7 +495,7 @@ namespace HotChocolate.Stitching
                             {
                                 premium
                             }")
-                        .SetVariableValue("id", "Q3VzdG9tZXIteDE=")
+                        .SetVariableValue("id", "Q3VzdG9tZXIKZDE=")
                         .SetServices(scope.ServiceProvider)
                         .Create();
 
@@ -564,7 +564,7 @@ namespace HotChocolate.Stitching
                             }
 
                             ")
-                        .SetVariableValue("id", "Q3VzdG9tZXIteDE=")
+                        .SetVariableValue("id", "Q3VzdG9tZXIKZDE=")
                         .SetServices(scope.ServiceProvider)
                         .Create();
 
@@ -611,7 +611,7 @@ namespace HotChocolate.Stitching
                                     name
                                 }
                             }")
-                        .SetVariableValue("id", "Q3VzdG9tZXIteDE=")
+                        .SetVariableValue("id", "Q3VzdG9tZXIKZDE=")
                         .SetServices(scope.ServiceProvider)
                         .Create();
 
@@ -1126,7 +1126,7 @@ namespace HotChocolate.Stitching
                     QueryRequestBuilder.New()
                         .SetQuery(@"
                         {
-                            customer(id: ""Q3VzdG9tZXIteDE="") {
+                            customer(id: ""Q3VzdG9tZXIKZDE="") {
                                 contracts {
                                     id
                                     ... on LifeInsuranceContract {

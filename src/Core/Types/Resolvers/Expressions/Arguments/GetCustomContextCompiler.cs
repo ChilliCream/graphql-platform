@@ -1,6 +1,7 @@
 using System;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
@@ -28,7 +29,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
         public override bool CanHandle(
             ParameterInfo parameter,
             Type sourceType) =>
-            parameter.IsDefined(typeof(StateAttribute));
+            ArgumentHelper.IsState(parameter);
 
         public override Expression Compile(
             Expression context,

@@ -3,6 +3,7 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Configuration;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -15,6 +16,8 @@ namespace HotChocolate.Types
         : TypeSystemObjectBase
         , ILeafType
     {
+        private static readonly ITypeConversion _converter =
+            TypeConversion.Default;
         private readonly Dictionary<string, object> _contextData =
             new Dictionary<string, object>();
 
@@ -195,6 +198,23 @@ namespace HotChocolate.Types
             ICompletionContext context,
             IDictionary<string, object> contextData)
         {
+        }
+
+        protected static bool TryConvertSerialized<T>(
+            object serialized,
+            ScalarValueKind expectedKind,
+            out T value)
+        {
+            if (Scalars.TryGetKind(serialized, out ScalarValueKind kind)
+                && kind == expectedKind
+                && _converter.TryConvert<object, T>(serialized, out T c))
+            {
+                value = c;
+                return true;
+            }
+
+            value = default;
+            return false;
         }
     }
 }

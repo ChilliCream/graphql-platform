@@ -12,7 +12,7 @@ namespace HotChocolate.Utilities
             // arrange
             // act
             Action action = () => ActivatorHelper
-                .CreateInstanceFactory(default(TypeInfo));
+                .CompileFactory(default(TypeInfo));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -24,7 +24,7 @@ namespace HotChocolate.Utilities
             // arrange
             // act
             Action action = () => ActivatorHelper
-                .CreateInstanceFactory<object>(default(TypeInfo));
+                .CompileFactory<object>(default(TypeInfo));
 
             // assert
             Assert.Throws<ArgumentNullException>(action);

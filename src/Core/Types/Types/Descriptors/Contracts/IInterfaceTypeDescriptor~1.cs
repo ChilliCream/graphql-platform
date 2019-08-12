@@ -58,6 +58,17 @@ namespace HotChocolate.Types
         /// </param>
         IInterfaceTypeDescriptor<T> BindFields(BindingBehavior behavior);
 
+        /// <summary>
+        /// Defines that all fields have to be specified explicitly.
+        /// </summary>
+        IInterfaceTypeDescriptor<T> BindFieldsExplicitly();
+
+        /// <summary>
+        /// Defines that all fields shall be infered
+        /// from the associated .Net type,
+        /// </summary>
+        IInterfaceTypeDescriptor<T> BindFieldsImplicitly();
+
         IInterfaceTypeDescriptor<T> ResolveAbstractType(
             ResolveAbstractType typeResolver);
 

@@ -310,6 +310,26 @@ namespace HotChocolate.Stitching.Merge
         }
 
         [Fact]
+        public void Rename_Type_With_Various_Variants()
+        {
+            // arrange
+            DocumentNode initial =
+                Utf8GraphQLParser.Parse(
+                    "type A { b1: B! b2: [B!] b3: [B] b4: [B!]! } " +
+                    "type B implements C { c: String } " +
+                    "interface C { c: String }");
+
+            // act
+            DocumentNode merged = SchemaMerger.New()
+                .AddSchema("A", initial)
+                .RenameType("A", "B", "Foo")
+                .Merge();
+
+            // assert
+            SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
+        }
+
+        [Fact]
         public void FieldDefinitionDoesNotHaveSameTypeShape()
         {
             // arrange

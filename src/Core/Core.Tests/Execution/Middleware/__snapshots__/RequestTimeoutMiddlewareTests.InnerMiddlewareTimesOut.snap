@@ -4,11 +4,13 @@
   "Errors": [
     {
       "Message": "Execution timeout has been exceeded.",
-      "Code": null,
+      "Code": "EXEC_TIMEOUT",
       "Path": null,
       "Locations": [],
       "Exception": null,
-      "Extensions": {}
+      "Extensions": {
+        "code": "EXEC_TIMEOUT"
+      }
     }
   ],
   "ContextData": {}

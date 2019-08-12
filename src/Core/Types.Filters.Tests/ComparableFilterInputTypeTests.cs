@@ -200,6 +200,33 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Ignore_Field_Fields()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<Foo>(d => d
+                    .Ignore(f => f.BarShort)));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Ignore_Field_2()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<Foo>(d => d
+                    .Filter(f => f.BarShort)
+                    .Ignore()));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public enum FooBar
         {
             Foo,

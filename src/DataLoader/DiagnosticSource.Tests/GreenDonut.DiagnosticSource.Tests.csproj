@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+
+  <PropertyGroup>
+    <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
+    <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
+    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreTestFramework.props'))</ChilliFramework>
+    <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'TestSettings.props'))</ChilliBuild>
+  </PropertyGroup>
+
+  <Import Project="$(ChilliFramework)" />
+  <Import Project="$(ChilliBuild)" />
+
+  <PropertyGroup>
+    <AssemblyName>GreenDonut.DiagnosticSource.Tests</AssemblyName>
+    <RootNamespace>GreenDonut</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="4.5.1" />
+    <PackageReference Include="Microsoft.Extensions.DiagnosticAdapter" Version="2.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Core\GreenDonut.csproj" />
+  </ItemGroup>
+
+</Project>

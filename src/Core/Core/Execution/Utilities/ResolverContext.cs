@@ -119,11 +119,10 @@ namespace HotChocolate.Execution
                 return parent;
             }
 
-            // TODO : resources
             throw new InvalidCastException(
                 string.Format(
                     CultureInfo.InvariantCulture,
-                    "Could not cast the source object to `{0}`.",
+                    CoreResources.ResolverContext_Parent_InvalidCast,
                     typeof(T).FullName));
         }
 
@@ -225,13 +224,11 @@ namespace HotChocolate.Execution
 
         public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType typeContext) =>
-            _executionContext.CollectFields(
-                typeContext, FieldSelection.SelectionSet, Path);
+            CollectFields(typeContext, FieldSelection.SelectionSet);
 
         public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType typeContext, SelectionSetNode selectionSet) =>
-            _executionContext.CollectFields(
-                typeContext, FieldSelection.SelectionSet, Path);
+            _executionContext.CollectFields(typeContext, selectionSet, Path);
 
         IReadOnlyCollection<IFieldSelection> IResolverContext.CollectFields(
             ObjectType typeContext) => CollectFields(typeContext);

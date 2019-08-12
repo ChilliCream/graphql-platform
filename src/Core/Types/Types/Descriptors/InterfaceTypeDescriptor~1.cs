@@ -16,6 +16,8 @@ namespace HotChocolate.Types.Descriptors
         protected internal InterfaceTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {
+            Definition.Fields.BindingBehavior =
+                context.Options.DefaultBindingBehavior;
         }
 
         Type IHasClrType.ClrType => Definition.ClrType;
@@ -63,6 +65,12 @@ namespace HotChocolate.Types.Descriptors
             Definition.Fields.BindingBehavior = behavior;
             return this;
         }
+
+        public IInterfaceTypeDescriptor<T> BindFieldsExplicitly() =>
+            BindFields(BindingBehavior.Explicit);
+
+        public IInterfaceTypeDescriptor<T> BindFieldsImplicitly() =>
+            BindFields(BindingBehavior.Implicit);
 
         public IInterfaceFieldDescriptor Field(
             Expression<Func<T, object>> propertyOrMethod)

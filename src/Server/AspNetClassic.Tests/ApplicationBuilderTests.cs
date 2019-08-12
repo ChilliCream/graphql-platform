@@ -2,7 +2,6 @@ using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 using HotChocolate.Utilities;
-using HotChocolate.StarWars;
 using Moq;
 using Owin;
 using Snapshooter.Xunit;

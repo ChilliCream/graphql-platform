@@ -134,7 +134,7 @@ namespace HotChocolate.Types
             protected override void Configure(
                 IEnumTypeDescriptor<Foo> descriptor)
             {
-                descriptor.BindItems(BindingBehavior.Explicit);
+                descriptor.BindValues(BindingBehavior.Explicit);
                 descriptor.Item(Foo.Bar);
                 descriptor.Item(Foo.Baz);
             }

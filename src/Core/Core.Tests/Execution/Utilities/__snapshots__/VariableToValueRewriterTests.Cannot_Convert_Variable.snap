@@ -1,10 +1,12 @@
 ﻿[
   {
     "Message": "Unable to convert the specified variable value.",
-    "Code": null,
+    "Code": "EXEC_VAR_NO_CONVERTER",
     "Path": null,
     "Locations": [],
     "Exception": null,
-    "Extensions": {}
+    "Extensions": {
+      "code": "EXEC_VAR_NO_CONVERTER"
+    }
   }
 ]
