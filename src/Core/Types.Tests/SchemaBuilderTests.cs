@@ -974,6 +974,32 @@ namespace HotChocolate
         }
 
         [Fact]
+        public void Interface_Without_Implementation_But_Not_Used()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(@"
+                    type Query {
+                        foo : Baz
+                    }
+
+                    type Baz {
+                        baz: String
+                    }
+
+                    interface Bar {
+                        baz: String
+                    }")
+                .AddResolver("Query", "foo", "bar")
+                .AddResolver("Baz", "baz", "baz")
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Interface_Without_Implementation_Not_Strict()
         {
             // arrange
