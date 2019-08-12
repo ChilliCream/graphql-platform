@@ -6,6 +6,8 @@ namespace HotChocolate.Execution
 {
     public interface IResponseStreamSerializer
     {
+        string ContentType { get; }
+
         Task SerializeAsync(
             IResponseStream responseStream,
             Stream outputStream);

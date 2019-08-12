@@ -11,7 +11,10 @@ namespace HotChocolate.Execution
     public sealed class JsonQueryResultSerializer
         : IQueryResultSerializer
     {
+        private const string _contentType = "application/json";
         private readonly UTF8Encoding _encoding = new UTF8Encoding();
+
+        public string ContentType => _contentType;
 
         public Task SerializeAsync(
             IReadOnlyQueryResult result,

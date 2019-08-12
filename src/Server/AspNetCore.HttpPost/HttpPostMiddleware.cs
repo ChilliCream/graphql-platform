@@ -132,6 +132,11 @@ namespace HotChocolate.AspNetCore
                             .SetMessage("Invalid GraphQL Request.")
                             .SetCode("INVALID_REQUEST")
                             .Build());
+
+                    SetResponseHeaders(
+                        context.Response,
+                        _resultSerializer.ContentType);
+
                     await _resultSerializer.SerializeAsync(
                         result, context.Response.Body)
                         .ConfigureAwait(false);
@@ -160,6 +165,10 @@ namespace HotChocolate.AspNetCore
                 .ExecuteAsync(queryRequest, context.GetCancellationToken())
                 .ConfigureAwait(false);
 
+            SetResponseHeaders(
+                context.Response,
+                _resultSerializer.ContentType);
+
             await _resultSerializer.SerializeAsync(
                 result,
                 context.Response.Body,
@@ -183,6 +192,10 @@ namespace HotChocolate.AspNetCore
                 .ExecuteAsync(requestBatch, context.GetCancellationToken())
                 .ConfigureAwait(false);
 
+            SetResponseHeaders(
+                context.Response,
+                _streamSerializer.ContentType);
+
             await _streamSerializer.SerializeAsync(
                 responseStream,
                 context.Response.Body,
@@ -202,6 +215,10 @@ namespace HotChocolate.AspNetCore
             IResponseStream responseStream = await _batchExecutor
                 .ExecuteAsync(requestBatch, context.GetCancellationToken())
                 .ConfigureAwait(false);
+
+            SetResponseHeaders(
+                context.Response,
+                _streamSerializer.ContentType);
 
             await _streamSerializer.SerializeAsync(
                 responseStream,
