@@ -31,10 +31,6 @@ namespace HotChocolate.Configuration.Validation
 
                 foreach (ObjectField field in objectType.Fields)
                 {
-                    if (field.Type.NamedType().Name == "Bar")
-                    {
-
-                    }
                     fieldTypes.Add(field.Type.NamedType());
                 }
             }
