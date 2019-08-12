@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -21,15 +20,22 @@ namespace HotChocolate.Configuration.Validation
             var interfaceTypes = new HashSet<InterfaceType>(
                 typeSystemObjects.OfType<InterfaceType>());
 
+            var fieldTypes = new HashSet<INamedType>();
+
             foreach (ObjectType objectType in typeSystemObjects.OfType<ObjectType>())
             {
                 foreach (InterfaceType interfaceType in objectType.Interfaces.Values)
                 {
                     interfaceTypes.Remove(interfaceType);
                 }
+
+                foreach (ObjectField field in objectType.Fields)
+                {
+                    fieldTypes.Add(field.Type.NamedType());
+                }
             }
 
-            foreach (InterfaceType interfaceType in interfaceTypes)
+            foreach (InterfaceType interfaceType in interfaceTypes.Where(fieldTypes.Contains))
             {
                 // TODO : resources
                 yield return SchemaErrorBuilder.New()
