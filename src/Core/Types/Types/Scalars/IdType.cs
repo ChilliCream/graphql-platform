@@ -108,9 +108,15 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (serialized is string s)
+            if (serialized is string)
             {
-                value = s;
+                value = serialized;
+                return true;
+            }
+
+            if (TryConvertSerialized(serialized, ScalarValueKind.Integer, out string c))
+            {
+                value = c;
                 return true;
             }
 
