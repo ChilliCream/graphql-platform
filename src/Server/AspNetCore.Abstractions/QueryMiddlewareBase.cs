@@ -215,9 +215,10 @@ namespace HotChocolate.AspNetCore
         }
 
         protected static void SetResponseHeaders(
-            HttpResponse response)
+            HttpResponse response,
+            string contentType)
         {
-            response.ContentType = ContentType.Json;
+            response.ContentType = contentType ?? ContentType.Json;
             response.StatusCode = _ok;
         }
     }

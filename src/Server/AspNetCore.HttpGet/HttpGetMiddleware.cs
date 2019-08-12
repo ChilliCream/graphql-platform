@@ -109,7 +109,9 @@ namespace HotChocolate.AspNetCore
                 .ExecuteAsync(request, context.GetCancellationToken())
                 .ConfigureAwait(false);
 
-            SetResponseHeaders(context.Response);
+            SetResponseHeaders(
+                context.Response,
+                _resultSerializer.ContentType);
 
             await _resultSerializer.SerializeAsync(
                 result,
