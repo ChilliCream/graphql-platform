@@ -32,6 +32,22 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task HttpGet_Query_SyntaxException()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var request = "{ ähero { name } }";
+
+            // act
+            HttpResponseMessage message =
+                await server.SendGetRequestAsync(request);
+
+            // assert
+            ClientQueryResult result = await DeserializeAsync(message);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task HttpGet_ContentType()
         {
             // arrange
