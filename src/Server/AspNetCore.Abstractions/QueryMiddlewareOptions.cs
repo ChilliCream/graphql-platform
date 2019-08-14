@@ -40,6 +40,7 @@ namespace HotChocolate.AspNetCore
                 _parserOptions = value;
             }
         }
+
         public PathString Path
         {
             get => _path;
@@ -72,6 +73,8 @@ namespace HotChocolate.AspNetCore
                 _subscriptionPath = value;
             }
         }
+
+        public bool EnableSubscriptions { get; set; } = true;
 
         [Obsolete(
             "Use serviceCollection.AddSocketConnectionInterceptor()",
