@@ -415,7 +415,8 @@ namespace HotChocolate.Utilities
                 if (typeDefinition == typeof(IReadOnlyCollection<>)
                     || typeDefinition == typeof(IReadOnlyList<>)
                     || typeDefinition == typeof(ICollection<>)
-                    || typeDefinition == typeof(IList<>))
+                    || typeDefinition == typeof(IList<>)
+                    || typeDefinition == typeof(IQueryable<>))
                 {
                     return true;
                 }
