@@ -64,7 +64,7 @@ namespace HotChocolate.Utilities
             if (!typeInfo.IsClass || typeInfo.IsAbstract)
             {
                 // TODO : resources
-                throw new NotSupportedException(
+                throw new InvalidOperationException(
                     $"The type {typeInfo.FullName} is abstract and we cannot " +
                     "use it to compile a service factory from it.");
             }
@@ -78,7 +78,7 @@ namespace HotChocolate.Utilities
             }
 
             // TODO : resources
-            throw new NotSupportedException(
+            throw new InvalidOperationException(
                 $"The specified class {typeInfo.FullName} must have exactly " +
                 "one public constructor.");
         }
