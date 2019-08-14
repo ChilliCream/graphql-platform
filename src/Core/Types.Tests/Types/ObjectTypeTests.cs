@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Resolvers;
@@ -1439,6 +1441,19 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Infer_List_From_Queryable()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<MyListQuery>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1526,7 +1541,7 @@ namespace HotChocolate.Types
             // inference since we cannot determine what object means
             // in the graphql context.
             // This field has to be included explicitly.
-            public object Quux{ get; set; }
+            public object Quux { get; set; }
 
             // should be included by the automatic field
             // inference.
@@ -1536,6 +1551,36 @@ namespace HotChocolate.Types
         public class FooWithDict
         {
             public Dictionary<string, Bar> Map { get; set; }
+        }
+
+        public class MyList
+            : MyListBase
+        {
+        }
+
+        public class MyListBase
+            : IQueryable<Bar>
+        {
+            public Type ElementType => throw new NotImplementedException();
+
+            public Expression Expression => throw new NotImplementedException();
+
+            public IQueryProvider Provider => throw new NotImplementedException();
+
+            public IEnumerator<Bar> GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public class MyListQuery
+        {
+            public MyList List { get; set; }
         }
     }
 }
