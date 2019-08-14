@@ -46,6 +46,32 @@ namespace HotChocolate.AspNetCore
         }
 
         [Fact]
+        public async Task HttpPost_Query_Syntax_Exception()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var request = new ClientQueryRequest
+            {
+                Query =
+                @"
+                    {
+                        ähero {
+                            name
+                        }
+                    }
+                "
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request);
+
+            // assert
+            ClientQueryResult result = await DeserializeAsync(message);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task HttpPost_Check_Response_ContentType()
         {
             // arrange
