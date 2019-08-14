@@ -40,7 +40,8 @@ namespace HotChocolate.AspNetCore
             : base(next,
                 options,
                 owinContextAccessor,
-                queryExecutor.Schema.Services)
+                queryExecutor.Schema.Services,
+                resultSerializer)
         {
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
@@ -53,7 +54,7 @@ namespace HotChocolate.AspNetCore
             IHttpGetMiddlewareOptions options,
             IQueryExecutor queryExecutor,
             IQueryResultSerializer resultSerializer)
-                : base(next, options)
+            : base(next, options, resultSerializer)
         {
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
