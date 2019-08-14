@@ -21,9 +21,7 @@ namespace HotChocolate.AspNetCore
         private PathString _subscriptionPath = new PathString("/");
         private ParserOptions _parserOptions = new ParserOptions();
 
-        [Obsolete(
-            "Use query execution options.",
-            true)]
+        [Obsolete("Use query execution options.", true)]
         public int QueryCacheSize { get; set; } = 100;
 
         public int MaxRequestSize { get; set; } = 20 * 1000 * 1000;
@@ -40,6 +38,7 @@ namespace HotChocolate.AspNetCore
                 _parserOptions = value;
             }
         }
+
         public PathString Path
         {
             get => _path;
@@ -72,6 +71,10 @@ namespace HotChocolate.AspNetCore
                 _subscriptionPath = value;
             }
         }
+
+#if !ASPNETCLASSIC
+        public bool EnableSubscriptions { get; set; } = true;
+#endif
 
         [Obsolete(
             "Use serviceCollection.AddSocketConnectionInterceptor()",
