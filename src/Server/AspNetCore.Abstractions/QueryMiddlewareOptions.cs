@@ -21,9 +21,7 @@ namespace HotChocolate.AspNetCore
         private PathString _subscriptionPath = new PathString("/");
         private ParserOptions _parserOptions = new ParserOptions();
 
-        [Obsolete(
-            "Use query execution options.",
-            true)]
+        [Obsolete("Use query execution options.", true)]
         public int QueryCacheSize { get; set; } = 100;
 
         public int MaxRequestSize { get; set; } = 20 * 1000 * 1000;
