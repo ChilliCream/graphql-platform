@@ -61,6 +61,14 @@ namespace HotChocolate.Utilities
 
         private static ConstructorInfo ResolveCunstructor(TypeInfo typeInfo)
         {
+            if (!typeInfo.IsClass || typeInfo.IsAbstract)
+            {
+                // TODO : resources
+                throw new NotSupportedException(
+                    $"The type {typeInfo.FullName} is abstract and we cannot " +
+                    "use it to compile a service factory from it.");
+            }
+
             ConstructorInfo[] constructors = typeInfo.DeclaredConstructors
                 .Where(t => t.IsPublic).ToArray();
 
@@ -69,8 +77,9 @@ namespace HotChocolate.Utilities
                 return constructors[0];
             }
 
+            // TODO : resources
             throw new NotSupportedException(
-                "The specified class must have exactly " +
+                $"The specified class {typeInfo.FullName} must have exactly " +
                 "one public constructor.");
         }
 
