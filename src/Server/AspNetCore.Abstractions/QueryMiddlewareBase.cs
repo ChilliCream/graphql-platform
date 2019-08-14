@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
 using HotChocolate.Server;
+using HotChocolate.Language;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -32,6 +33,7 @@ namespace HotChocolate.AspNetCore
         private const int _ok = 200;
 
         private readonly Func<HttpContext, bool> _isPathValid;
+        private readonly IQueryResultSerializer _serializer;
 
         private IQueryRequestInterceptor<HttpContext> _interceptor;
         private bool _interceptorInitialized;
@@ -40,25 +42,12 @@ namespace HotChocolate.AspNetCore
         private readonly IServiceProvider _services;
         private readonly OwinContextAccessor _accessor;
 
-        /// <summary>
-        /// Instantiates the base query middleware with an optional pointer to
-        /// the next component.
-        /// </summary>
-        /// <param name="next">
-        /// An optional pointer to the next component.
-        /// </param>
-        /// <param name="queryExecutor">
-        /// A required query executor resolver.
-        /// </param>
-        /// <param name="resultSerializer">
-        /// </param>
-        /// <param name="options">
-        /// </param>
         protected QueryMiddlewareBase(
             RequestDelegate next,
             IPathOptionAccessor options,
             OwinContextAccessor owinContextAccessor,
-            IServiceProvider services)
+            IServiceProvider services,
+            IQueryResultSerializer serializer)
             : base(next)
         {
             if (options == null)
@@ -69,6 +58,8 @@ namespace HotChocolate.AspNetCore
             _accessor = owinContextAccessor;
             _services = services
                 ?? throw new ArgumentNullException(nameof(services));
+            _serializer = serializer
+                ?? throw new ArgumentNullException(nameof(serializer));
 
             if (options.Path.Value.Length > 1)
             {
@@ -84,12 +75,16 @@ namespace HotChocolate.AspNetCore
 #else
         protected QueryMiddlewareBase(
             RequestDelegate next,
-            IPathOptionAccessor options)
+            IPathOptionAccessor options,
+            IQueryResultSerializer serializer)
         {
             if (options == null)
             {
                 throw new ArgumentNullException(nameof(options));
             }
+
+            _serializer = serializer
+                ?? throw new ArgumentNullException(nameof(serializer));
 
             Next = next;
 
@@ -130,6 +125,19 @@ namespace HotChocolate.AspNetCore
                 catch (NotSupportedException)
                 {
                     context.Response.StatusCode = _badRequest;
+                }
+                catch (SyntaxException ex)
+                {
+                    IError error = ErrorBuilder.New()
+                        .SetMessage(ex.Message)
+                        .AddLocation(ex.Line, ex.Column)
+                        .Build();
+
+                    var errorResult = QueryResult.CreateError(error);
+
+                    SetResponseHeaders(context.Response, _serializer.ContentType);
+                    await _serializer.SerializeAsync(errorResult, context.Response.Body)
+                        .ConfigureAwait(false);
                 }
             }
             else if (Next != null)
