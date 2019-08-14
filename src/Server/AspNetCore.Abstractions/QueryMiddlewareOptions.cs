@@ -74,7 +74,9 @@ namespace HotChocolate.AspNetCore
             }
         }
 
+#if !ASPNETCLASSIC
         public bool EnableSubscriptions { get; set; } = true;
+#endif
 
         [Obsolete(
             "Use serviceCollection.AddSocketConnectionInterceptor()",
