@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace HotChocolate.Server
+namespace HotChocolate.Server.Template
 {
     public class Program
     {
