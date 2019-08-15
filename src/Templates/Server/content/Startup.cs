@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.AspNetCore;
 using HotChocolate;
 
-namespace HotChocolate.Server
+namespace HotChocolate.Server.Template
 {
     public class Startup
     {
@@ -25,8 +25,7 @@ namespace HotChocolate.Server
             services.AddGraphQL(sp => SchemaBuilder.New()
                 // enable for authorization support
                 // .AddDirectiveType<AuthorizeDirectiveType>()
-                .AddQueryType<Query>()
-                .Create());
+                .AddQueryType<Query>());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

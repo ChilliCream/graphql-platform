@@ -142,7 +142,7 @@ Task("PublishTemplates")
     };
 
     ReplaceTextInFiles("src/Templates/StarWars/content/StarWars/StarWars.csproj", "10.0.1", packageVersion);
-    ReplaceTextInFiles("src/Templates/Server/content/HotChocolate.Server.csproj", "10.0.1", packageVersion);
+    ReplaceTextInFiles("src/Templates/Server/content/HotChocolate.Server.Template.csproj", "10.0.1", packageVersion);
     NuGetPack("src/Templates/StarWars/HotChocolate.Templates.StarWars.nuspec", nuGetPackSettings);
     NuGetPack("src/Templates/Server/HotChocolate.Templates.Server.nuspec", nuGetPackSettings);
 });
