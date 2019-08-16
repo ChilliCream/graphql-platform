@@ -207,7 +207,7 @@ namespace HotChocolate.Execution.Batching
                         {
                             throw new QueryException(ErrorBuilder.New()
                                 .SetMessage(CoreResources.BatchColVars_NoCompatibleType)
-                                .SetCode(BatchingErrorCodes.AutoMapVarError)
+                                .SetCode(ErrorCodes.Execution.AutoMapVarError)
                                 .SetPath(path)
                                 .AddLocation(node)
                                 .Build());

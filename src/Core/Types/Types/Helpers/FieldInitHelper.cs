@@ -31,7 +31,7 @@ namespace HotChocolate.Types
             {
                 context.ReportError(SchemaErrorBuilder.New()
                     .SetMessage(TypeResources.FieldInitHelper_InvalidDefaultValue)
-                    .SetCode(TypeErrorCodes.MissingType)
+                    .SetCode(ErrorCodes.Schema.MissingType)
                     .SetTypeSystemObject(context.Type)
                     .AddSyntaxNode(definition.SyntaxNode)
                     .SetException(ex)
@@ -61,7 +61,7 @@ namespace HotChocolate.Types
                         TypeResources.FieldInitHelper_NoFields,
                         kind,
                         context.Type.Name))
-                    .SetCode(TypeErrorCodes.MissingType)
+                    .SetCode(ErrorCodes.Schema.MissingType)
                     .SetTypeSystemObject(context.Type)
                     .AddSyntaxNode(definition.SyntaxNode)
                     .Build());

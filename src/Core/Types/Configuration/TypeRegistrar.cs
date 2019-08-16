@@ -103,7 +103,7 @@ namespace HotChocolate.Configuration
                         .SetExtension(
                             TypeErrorFields.Reference,
                             unresolvedReference)
-                        .SetCode(TypeErrorCodes.UnresolvedTypes)
+                        .SetCode(ErrorCodes.Schema.UnresolvedTypes)
                         .Build());
                 }
             }

@@ -38,7 +38,7 @@ namespace HotChocolate.Execution
                     context.Result = QueryResult.CreateError(
                         ErrorBuilder.New()
                             .SetMessage(CoreResources.MaxComplexityMiddleware_Prerequisite)
-                            .SetCode(MiddlewareErrorCodes.Incomplete)
+                            .SetCode(ErrorCodes.Execution.Incomplete)
                             .Build());
                     return Task.CompletedTask;
                 }

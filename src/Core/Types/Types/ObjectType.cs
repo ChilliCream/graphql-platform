@@ -146,7 +146,7 @@ namespace HotChocolate.Types
                     context.ReportError(SchemaErrorBuilder.New()
                         .SetMessage(
                            "COULD NOT RESOLVE INTERFACE")
-                        .SetCode(TypeErrorCodes.MissingType)
+                        .SetCode(ErrorCodes.Schema.MissingType)
                         .SetTypeSystemObject(this)
                         .AddSyntaxNode(SyntaxNode)
                         .Build());
@@ -192,7 +192,7 @@ namespace HotChocolate.Types
                         "Unable to infer or resolve the type of field {0}.{1}.",
                         Name,
                         field.Name))
-                    .SetCode(TypeErrorCodes.NoFieldType)
+                    .SetCode(ErrorCodes.Schema.NoFieldType)
                     .SetTypeSystemObject(this)
                     .SetPath(Path.New(Name).Append(field.Name))
                     .Build());

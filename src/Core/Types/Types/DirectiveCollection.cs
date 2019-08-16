@@ -86,7 +86,7 @@ namespace HotChocolate.Types
                             CultureInfo.InvariantCulture,
                             TypeResources.DirectiveCollection_DirectiveIsUnique,
                             directiveType.Name))
-                        .SetCode(TypeErrorCodes.MissingType)
+                        .SetCode(ErrorCodes.Schema.MissingType)
                         .SetTypeSystemObject(context.Type)
                         .AddSyntaxNode(definition.ParsedDirective)
                         .Build());
@@ -103,7 +103,7 @@ namespace HotChocolate.Types
                             TypeResources.DirectiveCollection_LocationNotAllowed,
                             directiveType.Name,
                             _location))
-                        .SetCode(TypeErrorCodes.MissingType)
+                        .SetCode(ErrorCodes.Schema.MissingType)
                         .SetTypeSystemObject(context.Type)
                         .AddSyntaxNode(definition.ParsedDirective)
                         .Build());
@@ -131,7 +131,7 @@ namespace HotChocolate.Types
                                 CultureInfo.InvariantCulture,
                                 "The argument `{0}` value type is wrong.",
                                 arg.Name))
-                            .SetCode(TypeErrorCodes.ArgumentValueTypeWrong)
+                            .SetCode(ErrorCodes.Schema.ArgumentValueTypeWrong)
                             .SetTypeSystemObject(context.Type)
                             .AddSyntaxNode(directive.ToNode())
                             .Build());
@@ -147,7 +147,7 @@ namespace HotChocolate.Types
                             "directive `{1}`.",
                             argument.Name.Value,
                             directive.Type.Name))
-                        .SetCode(TypeErrorCodes.InvalidArgument)
+                        .SetCode(ErrorCodes.Schema.InvalidArgument)
                         .SetTypeSystemObject(context.Type)
                         .AddSyntaxNode(directive.ToNode())
                         .Build());
@@ -168,7 +168,7 @@ namespace HotChocolate.Types
                             "mustn't be null.",
                             argument.Name.Value,
                             directive.Type.Name))
-                        .SetCode(TypeErrorCodes.NonNullArgument)
+                        .SetCode(ErrorCodes.Schema.NonNullArgument)
                         .SetTypeSystemObject(context.Type)
                         .AddSyntaxNode(directive.ToNode())
                         .Build());
