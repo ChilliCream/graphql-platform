@@ -42,7 +42,7 @@ namespace HotChocolate.Execution
                 context.Result = QueryResult.CreateError(
                     ErrorBuilder.New()
                         .SetMessage(CoreResources.ParseQueryMiddleware_InComplete)
-                        .SetCode(MiddlewareErrorCodes.Incomplete)
+                        .SetCode(ErrorCodes.Execution.Incomplete)
                         .Build());
             }
             else

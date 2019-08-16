@@ -60,7 +60,7 @@ namespace HotChocolate.Types
                         CultureInfo.InvariantCulture,
                         TypeResources.TypeSystemObjectBase_NameIsNull,
                         GetType().FullName))
-                    .SetCode(TypeErrorCodes.NoName)
+                    .SetCode(ErrorCodes.Schema.NoName)
                     .SetTypeSystemObject(this)
                     .Build());
             }

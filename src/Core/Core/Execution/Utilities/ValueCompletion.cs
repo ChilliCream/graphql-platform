@@ -230,7 +230,7 @@ namespace HotChocolate.Execution
                     context.AddError(b => b
                         .SetMessage(CoreResources
                             .HandleNonNullViolation_Message)
-                        .SetCode(ExecErrorCodes.NonNullViolation));
+                        .SetCode(ErrorCodes.Execution.NonNullViolation));
                 }
 
                 context.IsViolatingNonNullType = true;
