@@ -1,0 +1,5 @@
+﻿public interface IQuery
+{
+     AbcAlias { get; }
+     Def { get; }
+}

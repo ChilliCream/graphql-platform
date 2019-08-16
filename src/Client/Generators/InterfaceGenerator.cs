@@ -1,13 +1,11 @@
-﻿using System.Runtime.InteropServices.WindowsRuntime;
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
+using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace HotChocolate.Clients.Generators
+namespace StrawberryShake.Generators
 {
     public class InterfaceGenerator
     {
@@ -17,12 +15,12 @@ namespace HotChocolate.Clients.Generators
             INamedType type,
             SelectionSetNode selectionSet,
             IEnumerable<FieldNode> fields,
-            NameString targetName,
+            string targetName,
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync();
             await writer.WriteAsync("public interface ");
-            await writer.WriteAsync(targetName.Value);
+            await writer.WriteAsync(NameUtils.GetInterfaceName(targetName));
             await writer.WriteLineAsync();
 
             await writer.WriteIndentAsync();
@@ -38,10 +36,14 @@ namespace HotChocolate.Clients.Generators
                     if (complexType.Fields.ContainsField(
                         fieldSelection.Name.Value))
                     {
+                        NameNode name = fieldSelection.Alias ?? fieldSelection.Name;
+                        string typeName = typeLookup.GetTypeName(selectionSet, fieldSelection);
+                        string propertyName = NameUtils.GetPropertyName(name.Value);
+
                         await writer.WriteIndentAsync();
-                        await writer.WriteAsync(typeLookup.GetTypeName(selectionSet, fieldSelection));
+                        await writer.WriteAsync(typeName);
                         await writer.WriteSpaceAsync();
-                        await writer.WriteAsync(fieldSelection.Alias.Value);
+                        await writer.WriteAsync(propertyName);
                         await writer.WriteSpaceAsync();
                         await writer.WriteAsync("{ get; }");
                         await writer.WriteLineAsync();
@@ -55,34 +57,10 @@ namespace HotChocolate.Clients.Generators
                 }
             }
 
-            writer.IncreaseIndent();
+            writer.DecreaseIndent();
 
             await writer.WriteIndentAsync();
             await writer.WriteAsync("}");
         }
-    }
-
-    public interface ITypeLookup
-    {
-        string GetTypeName(SelectionSetNode selectionSet, FieldNode field);
-    }
-
-    public class CodeWriter
-        : TextWriter
-    {
-        public CodeWriter()
-        {
-        }
-
-        public override Encoding Encoding { get; } = Encoding.UTF8;
-
-        public void WriteIndent() => throw new NotImplementedException();
-        public Task WriteIndentAsync() => throw new NotImplementedException();
-
-        public void WriteSpace() => throw new NotImplementedException();
-        public Task WriteSpaceAsync() => throw new NotImplementedException();
-
-        public void IncreaseIndent() => throw new NotImplementedException();
-        public void DecreaseIndent() => throw new NotImplementedException();
     }
 }
