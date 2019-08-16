@@ -53,7 +53,7 @@ namespace HotChocolate.Execution
                 context.Result = QueryResult.CreateError(
                     ErrorBuilder.New()
                         .SetMessage(CoreResources.RequestTimeoutMiddleware_Timeout)
-                        .SetCode(MiddlewareErrorCodes.Timeout)
+                        .SetCode(ErrorCodes.Execution.Timeout)
                         .Build());
             }
             finally
