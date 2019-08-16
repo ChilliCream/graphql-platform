@@ -4,7 +4,7 @@ namespace HotChocolate.AspNetClassic.Authorization
 namespace HotChocolate.AspNetCore.Authorization
 #endif
 {
-    internal static class AuthErrorCodes
+    public static class AuthErrorCodes
     {
         public const string NotAuthorized = "AUTH_NOT_AUTHORIZED";
         public const string NotAuthenticated = "AUTH_NOT_AUTHENTICATED";
