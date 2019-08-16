@@ -1,24 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
+<PropertyGroup>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
     <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
-    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreFramework.props'))</ChilliFramework>
-    <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'BuildSettings.props'))</ChilliBuild>
+    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreTestFramework.props'))</ChilliFramework>
+    <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'TestSettings.props'))</ChilliBuild>
   </PropertyGroup>
 
   <Import Project="$(ChilliFramework)" />
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <PackageId>StrawberryShake.Generators</PackageId>
-    <AssemblyName>StrawberryShake.Generators</AssemblyName>
+    <AssemblyName>StrawberryShake.Generators.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.Generators</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Core\Language\Language.csproj" />
-    <ProjectReference Include="..\..\Core\Types\Types.csproj" />
+    <ProjectReference Include="..\Generators\Generators.csproj" />
   </ItemGroup>
 
 </Project>
