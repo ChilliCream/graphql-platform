@@ -3,15 +3,22 @@
   <PropertyGroup>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
     <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
-    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'ParserFramework.props'))</ChilliFramework>
+    <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreFramework.props'))</ChilliFramework>
     <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'BuildSettings.props'))</ChilliBuild>
   </PropertyGroup>
 
   <Import Project="$(ChilliFramework)" />
   <Import Project="$(ChilliBuild)" />
 
+  <PropertyGroup>
+    <PackageId>HotChocolate.Clients.Generators</PackageId>
+    <AssemblyName>HotChocolate.Clients.Generators</AssemblyName>
+    <RootNamespace>HotChocolate.Clients.Generators</RootNamespace>
+  </PropertyGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\Language\Language.csproj" />
+    <ProjectReference Include="..\..\Core\Language\Language.csproj" />
+    <ProjectReference Include="..\..\Core\Types\Types.csproj" />
   </ItemGroup>
 
 </Project>
