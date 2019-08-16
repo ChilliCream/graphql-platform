@@ -111,7 +111,7 @@ namespace HotChocolate.Types
                         CultureInfo.InvariantCulture,
                         TypeResources.DirectiveType_NoLocations,
                         Name))
-                    .SetCode(TypeErrorCodes.MissingType)
+                    .SetCode(ErrorCodes.Schema.MissingType)
                     .SetTypeSystemObject(context.Type)
                     .AddSyntaxNode(definition.SyntaxNode)
                     .Build());

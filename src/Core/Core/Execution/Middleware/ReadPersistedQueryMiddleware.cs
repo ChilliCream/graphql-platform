@@ -36,7 +36,7 @@ namespace HotChocolate.Execution
                 context.Result = QueryResult.CreateError(
                     ErrorBuilder.New()
                         .SetMessage(CoreResources.Read_PQ_Middleware_Incomplete)
-                        .SetCode(MiddlewareErrorCodes.Incomplete)
+                        .SetCode(ErrorCodes.Execution.Incomplete)
                         .Build());
                 return;
             }
@@ -53,7 +53,7 @@ namespace HotChocolate.Execution
                     context.Result = QueryResult.CreateError(
                         _errorHandler.Handle(ErrorBuilder.New()
                             .SetMessage(CoreResources.Read_PQ_Middleware_QueryNotFound)
-                            .SetCode(MiddlewareErrorCodes.QueryNotFound)
+                            .SetCode(ErrorCodes.Execution.QueryNotFound)
                             .Build()));
                     return;
                 }

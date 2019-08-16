@@ -147,7 +147,7 @@ namespace HotChocolate.Configuration.Validation
                         objectType.Name,
                         first.Name,
                         first.DeclaringType.Name))
-                    .SetCode(TypeErrorCodes.MissingType)
+                    .SetCode(ErrorCodes.Schema.MissingType)
                     .SetTypeSystemObject(objectType)
                     .AddSyntaxNode(objectType.SyntaxNode)
                     .AddSyntaxNode(first.SyntaxNode)

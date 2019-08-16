@@ -293,7 +293,7 @@ namespace HotChocolate.Execution.Batching
             return new QueryException(
                 ErrorBuilder.New()
                     .SetMessage(CoreResources.BatchQueryExec_CannotSerialize)
-                    .SetCode(BatchingErrorCodes.CannotSerialize)
+                    .SetCode(ErrorCodes.Execution.CannotSerialize)
                     .Build());
         }
         public void Dispose()

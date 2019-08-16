@@ -186,13 +186,13 @@ namespace HotChocolate
             Assert.Collection(
                 Assert.Throws<SchemaException>(action).Errors,
                     error => Assert.Equal(
-                        TypeErrorCodes.InvalidArgument,
+                        ErrorCodes.Schema.InvalidArgument,
                         error.Code),
                     error => Assert.Equal(
-                        TypeErrorCodes.ArgumentValueTypeWrong,
+                        ErrorCodes.Schema.ArgumentValueTypeWrong,
                         error.Code),
                     error => Assert.Equal(
-                        TypeErrorCodes.NonNullArgument,
+                        ErrorCodes.Schema.NonNullArgument,
                         error.Code));
         }
 

@@ -225,7 +225,7 @@ namespace HotChocolate.Types
                 context.ReportError(
                     SchemaErrorBuilder.New()
                         .SetMessage(TypeResources.EnumType_NoValues, Name)
-                        .SetCode(TypeErrorCodes.NoEnumValues)
+                        .SetCode(ErrorCodes.Schema.NoEnumValues)
                         .SetTypeSystemObject(this)
                         .AddSyntaxNode(SyntaxNode)
                         .Build());

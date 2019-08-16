@@ -39,7 +39,7 @@ namespace HotChocolate.Execution
                 context.Result = QueryResult.CreateError(
                     ErrorBuilder.New()
                         .SetMessage(CoreResources.ValidateQueryMiddleware_NoDocument)
-                        .SetCode(MiddlewareErrorCodes.Incomplete)
+                        .SetCode(ErrorCodes.Execution.Incomplete)
                         .Build());
             }
             else
