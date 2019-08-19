@@ -15,8 +15,7 @@ namespace StrawberryShake.Generators
             INamedType type,
             SelectionSetNode selectionSet,
             IEnumerable<FieldNode> fields,
-            string targetName,
-            ITypeLookup typeLookup)
+            string targetName)
         {
             await writer.WriteIndentAsync();
             await writer.WriteAsync("public interface ");
@@ -37,7 +36,7 @@ namespace StrawberryShake.Generators
                         fieldSelection.Name.Value))
                     {
                         NameNode name = fieldSelection.Alias ?? fieldSelection.Name;
-                        string typeName = typeLookup.GetTypeName(selectionSet, fieldSelection);
+                        string typeName = "string"; // typeLookup.GetTypeName(selectionSet, fieldSelection);
                         string propertyName = NameUtils.GetPropertyName(name.Value);
 
                         await writer.WriteIndentAsync();

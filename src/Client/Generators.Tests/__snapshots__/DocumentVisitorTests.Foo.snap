@@ -1,0 +1,4 @@
+﻿public interface IQuery
+{
+    string Hero { get; }
+}

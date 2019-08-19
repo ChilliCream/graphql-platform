@@ -19,4 +19,10 @@
     <ProjectReference Include="..\Generators\Generators.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="InterfaceGeneratorTests.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="InterfaceGeneratorTests.txt" Condition=" '$(EnableDefaultCompileItems)' == 'true' " />
+  </ItemGroup>
 </Project>

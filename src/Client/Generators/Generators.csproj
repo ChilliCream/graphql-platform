@@ -14,11 +14,12 @@
     <PackageId>StrawberryShake.Generators</PackageId>
     <AssemblyName>StrawberryShake.Generators</AssemblyName>
     <RootNamespace>StrawberryShake.Generators</RootNamespace>
+    <AllowUnsafeBlocks Condition="'$(TargetFramework)' == 'netstandard2.0'">true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Language\Language.csproj" />
-    <ProjectReference Include="..\..\Core\Types\Types.csproj" />
+    <ProjectReference Include="..\..\Core\Core\Core.csproj" />
   </ItemGroup>
 
 </Project>

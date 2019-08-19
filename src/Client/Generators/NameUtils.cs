@@ -17,12 +17,16 @@ namespace StrawberryShake.Generators
             return 'I' + GetPropertyName(typeName);
         }
 
+#if NETCOREAPP3_0 || NETSTANDARD2_1
         public static string GetPropertyName(string fieldName)
+#else
+        public unsafe static string GetPropertyName(string fieldName)
+#endif
         {
-            int buffered = 0;
+            var buffered = 0;
             Span<char> amended = stackalloc char[fieldName.Length];
 
-            for (int i = 0; i < fieldName.Length; i++)
+            for (var i = 0; i < fieldName.Length; i++)
             {
                 if (i == 0 && char.IsLetter(fieldName[i]))
                 {
@@ -42,7 +46,16 @@ namespace StrawberryShake.Generators
                 }
             }
 
+#if NETCOREAPP3_0 || NETSTANDARD2_1
             return new string(amended.Slice(0, buffered));
+#else
+            
+            amended = amended.Slice(0, buffered);
+            fixed (char* charPtr = amended)
+            {
+                return new string(charPtr, 0, amended.Length);
+            }
+#endif
         }
     }
 }

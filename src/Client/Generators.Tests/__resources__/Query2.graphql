@@ -1,0 +1,27 @@
+query getHero {
+  hero @remove {
+    ...Hero
+  }
+}
+
+fragment Hero on Hero {
+  name
+  friends {
+    ...Friend
+  }
+}
+
+fragment Friend on CharacterConnection {
+  nodes @remove {
+    ...Droid
+    ...Human
+  }
+}
+
+fragment Human on Human {
+  name
+}
+
+fragment Droid on Droid {
+  name
+}
