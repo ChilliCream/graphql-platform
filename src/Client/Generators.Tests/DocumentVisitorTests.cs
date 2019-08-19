@@ -48,6 +48,8 @@ namespace StrawberryShake.Generators
             foreach (var f in list)
             {
                 await f(stream);
+                stream.WriteByte((byte)'\n');
+                stream.WriteByte((byte)'\n');
             }
 
             Encoding.UTF8.GetString(stream.ToArray()).MatchSnapshot();

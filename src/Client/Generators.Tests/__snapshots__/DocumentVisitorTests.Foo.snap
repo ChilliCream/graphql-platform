@@ -1,4 +1,10 @@
-﻿public interface IQuery
+﻿public interface IFriend
 {
-    string Hero { get; }
+    string Nodes { get; }
+}
+
+public interface IHero
+{
+    string Name { get; }
+    string Friends { get; }
 }

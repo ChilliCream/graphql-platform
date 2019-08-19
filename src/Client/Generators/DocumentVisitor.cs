@@ -164,49 +164,50 @@ namespace StrawberryShake.Generators
         {
             string name = null;
 
-            if (node.Selections.Count == 1
-                && node.Selections[0] is FragmentSpreadNode f)
+
+
+            if (parent is FragmentDefinitionNode f)
             {
                 name = f.Name.Value;
-
-                // generate interfac
             }
             else
             {
                 name = _types.Peek().NamedType().Name;
-                if (!_typeNames.Add(name))
+            }
+
+            if (!_typeNames.Add(name))
+            {
+                for (int i = 0; i < int.MaxValue; i++)
                 {
-                    for (int i = 0; i < int.MaxValue; i++)
+                    string n = name + i;
+                    if (_typeNames.Add(n))
                     {
-                        string n = name + i;
-                        if (_typeNames.Add(n))
-                        {
-                            name = n;
-                            break;
-                        }
+                        name = n;
+                        break;
                     }
                 }
-
-                string fileName = NameUtils.GetInterfaceName(name) + ".cs";
-                INamedType type = _types.Peek().NamedType();
-
-                _fileHandler.WriteTo(fileName, async stream =>
-                {
-                    using (var sw = new StreamWriter(stream))
-                    {
-                        using (var cw = new CodeWriter(sw))
-                        {
-                            await _generator.WriteAsync(
-                                cw,
-                                _schema,
-                                type,
-                                node,
-                                node.Selections.OfType<FieldNode>(),
-                                name);
-                        }
-                    }
-                });
             }
+
+            string fileName = NameUtils.GetInterfaceName(name) + ".cs";
+            INamedType type = _types.Peek().NamedType();
+
+            _fileHandler.WriteTo(fileName, async stream =>
+            {
+                var sw = new StreamWriter(stream);
+                var cw = new CodeWriter(sw);
+
+                await _generator.WriteAsync(
+                    cw,
+                    _schema,
+                    type,
+                    node,
+                    node.Selections.OfType<FieldNode>(),
+                    name);
+
+                await cw.FlushAsync();
+                await sw.FlushAsync();
+            });
+
             return VisitorAction.Continue;
         }
     }
