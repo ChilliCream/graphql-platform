@@ -60,7 +60,8 @@ namespace HotChocolate
 
         private static string CreateErrorMessage(ISchemaError error)
         {
-            if (error.TypeSystemObject == null)
+            if (error.TypeSystemObject == null
+                || error.TypeSystemObject.Name.IsEmpty)
             {
                 return error.Message;
             }
