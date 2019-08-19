@@ -1,6 +1,6 @@
 ﻿public interface IFriend
 {
-    string Nodes { get; }
+    string Name { get; }
 }
 
 public interface IHero
@@ -8,3 +8,4 @@ public interface IHero
     string Name { get; }
     string Friends { get; }
 }
+

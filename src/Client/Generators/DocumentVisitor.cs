@@ -6,6 +6,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using System.Linq;
 using System.Threading.Tasks;
+using WithDirectives = HotChocolate.Language.IHasDirectives;
 
 namespace StrawberryShake.Generators
 {
@@ -162,17 +163,49 @@ namespace StrawberryShake.Generators
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
+            if (node.Selections.Count == 1
+                && node.Selections[0] is NamedSyntaxNode n
+                && (IsRemoved(n) || n is FragmentSpreadNode))
+            {
+                return VisitorAction.Continue;
+            }
+
+            string name = GetName(node, ancestors);
+            GenerateInterface(name, node);
+            return VisitorAction.Continue;
+        }
+
+        private string GetName(
+            SelectionSetNode node,
+            IReadOnlyList<ISyntaxNode> ancestors)
+        {
             string name = null;
 
-
-
-            if (parent is FragmentDefinitionNode f)
+            int last = ancestors.Count - 1;
+            for (int i = last; i >= 0; i--)
             {
-                name = f.Name.Value;
-            }
-            else
-            {
-                name = _types.Peek().NamedType().Name;
+                if (ancestors[i] is NamedSyntaxNode n
+                    && IsRemoved(n))
+                {
+                    i--;
+                }
+                else
+                {
+                    if (ancestors[i] is FragmentDefinitionNode f)
+                    {
+                        name = f.Name.Value;
+                    }
+                    else if (ancestors[i] is WithDirectives wd
+                        && TryGetTypeName(wd, out string typeName))
+                    {
+                        name = typeName;
+                    }
+                    else
+                    {
+                        name = _types.Peek().NamedType().Name;
+                    }
+                    break;
+                }
             }
 
             if (!_typeNames.Add(name))
@@ -188,6 +221,39 @@ namespace StrawberryShake.Generators
                 }
             }
 
+            return name;
+        }
+
+        private bool IsRemoved(NamedSyntaxNode node)
+        {
+            return node.Directives.Any(t =>
+                t.Name.Value.Equals(
+                    "remove",
+                    StringComparison.InvariantCulture));
+        }
+
+        private bool TryGetTypeName(
+            WithDirectives withDirectives,
+            out string typeName)
+        {
+            DirectiveNode directive = withDirectives.Directives.FirstOrDefault(t =>
+                t.Name.Value.Equals("type", StringComparison.InvariantCulture));
+
+            if (directive is null)
+            {
+                typeName = null;
+                return false;
+            }
+
+            typeName = (string)directive.Arguments.Single(a =>
+                a.Name.Value.Equals("name", StringComparison.InvariantCulture)).Value.Value;
+            return true;
+        }
+
+        private void GenerateInterface(
+            string name,
+            SelectionSetNode selectionSet)
+        {
             string fileName = NameUtils.GetInterfaceName(name) + ".cs";
             INamedType type = _types.Peek().NamedType();
 
@@ -200,17 +266,16 @@ namespace StrawberryShake.Generators
                     cw,
                     _schema,
                     type,
-                    node,
-                    node.Selections.OfType<FieldNode>(),
+                    selectionSet,
+                    selectionSet.Selections.OfType<FieldNode>(),
                     name);
 
                 await cw.FlushAsync();
                 await sw.FlushAsync();
             });
-
-            return VisitorAction.Continue;
         }
     }
+
 
     public interface IFileHandler
     {
