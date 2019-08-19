@@ -7,19 +7,16 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.Generators
 {
-    public class InterfaceGenerator
+    public class ModelInterfaceGenerator
     {
         public async Task WriteAsync(
             CodeWriter writer,
             ISchema schema,
-            INamedType type,
-            SelectionSetNode selectionSet,
-            IEnumerable<FieldNode> fields,
-            string targetName)
+            InterfaceCodeDescriptor interfaceDescriptor)
         {
             await writer.WriteIndentAsync();
             await writer.WriteAsync("public interface ");
-            await writer.WriteAsync(NameUtils.GetInterfaceName(targetName));
+            await writer.WriteAsync(interfaceDescriptor.Name);
             await writer.WriteLineAsync();
 
             await writer.WriteIndentAsync();
@@ -28,9 +25,9 @@ namespace StrawberryShake.Generators
 
             writer.IncreaseIndent();
 
-            if (type is IComplexOutputType complexType)
+            if (interfaceDescriptor.Type is IComplexOutputType complexType)
             {
-                foreach (FieldNode fieldSelection in fields)
+                foreach (FieldNode fieldSelection in interfaceDescriptor.Fields)
                 {
                     if (complexType.Fields.ContainsField(
                         fieldSelection.Name.Value))

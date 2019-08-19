@@ -17,10 +17,14 @@ namespace StrawberryShake.Generators
         , ISyntaxNodeVisitor<FragmentDefinitionNode>
         , ISyntaxNodeVisitor<SelectionSetNode>
     {
-        private readonly InterfaceGenerator _generator = new InterfaceGenerator();
+        private readonly ModelInterfaceGenerator _modelInterfaceGenerator =
+            new ModelInterfaceGenerator();
+        private readonly ModelClassGenerator _modelClassGenerator =
+            new ModelClassGenerator();
         private readonly Stack<IType> _types = new Stack<IType>();
         private readonly HashSet<string> _typeNames = new HashSet<string>();
-        private readonly Stack<List<SelectionSetNode>> _grouped = new Stack<List<SelectionSetNode>>();
+        private readonly Stack<List<SelectionSetNode>> _grouped =
+            new Stack<List<SelectionSetNode>>();
         private readonly Stack<FieldInfo> _field = new Stack<FieldInfo>();
         private readonly ISchema _schema;
         private readonly IFileHandler _fileHandler;
@@ -171,7 +175,16 @@ namespace StrawberryShake.Generators
             }
 
             string name = GetName(node, ancestors);
-            GenerateInterface(name, node);
+
+            var descriptor = new InterfaceCodeDescriptor(
+                _types.Peek().NamedType(),
+                NameUtils.GetInterfaceName(name),
+                node.Selections.OfType<FieldNode>().ToList());
+
+            GenerateModelInterface(descriptor);
+            GenerateModelClass(
+                NameUtils.GetClassName(name),
+                new[] { descriptor });
             return VisitorAction.Continue;
         }
 
@@ -250,11 +263,31 @@ namespace StrawberryShake.Generators
             return true;
         }
 
-        private void GenerateInterface(
-            string name,
-            SelectionSetNode selectionSet)
+        private void GenerateModelInterface(
+            InterfaceCodeDescriptor descriptor)
         {
-            string fileName = NameUtils.GetInterfaceName(name) + ".cs";
+            string fileName = descriptor.Name + ".cs";
+
+            _fileHandler.WriteTo(fileName, async stream =>
+            {
+                var sw = new StreamWriter(stream);
+                var cw = new CodeWriter(sw);
+
+                await _modelInterfaceGenerator.WriteAsync(
+                    cw,
+                    _schema,
+                    descriptor);
+
+                await cw.FlushAsync();
+                await sw.FlushAsync();
+            });
+        }
+
+        private void GenerateModelClass(
+            string name,
+            IReadOnlyList<InterfaceCodeDescriptor> implements)
+        {
+            string fileName = name + ".cs";
             INamedType type = _types.Peek().NamedType();
 
             _fileHandler.WriteTo(fileName, async stream =>
@@ -262,13 +295,12 @@ namespace StrawberryShake.Generators
                 var sw = new StreamWriter(stream);
                 var cw = new CodeWriter(sw);
 
-                await _generator.WriteAsync(
+                await _modelClassGenerator.WriteAsync(
                     cw,
                     _schema,
                     type,
-                    selectionSet,
-                    selectionSet.Selections.OfType<FieldNode>(),
-                    name);
+                    name,
+                    implements);
 
                 await cw.FlushAsync();
                 await sw.FlushAsync();
@@ -280,5 +312,22 @@ namespace StrawberryShake.Generators
     public interface IFileHandler
     {
         void WriteTo(string fileName, Func<Stream, Task> write);
+    }
+
+    public class InterfaceCodeDescriptor
+    {
+        public InterfaceCodeDescriptor(
+            INamedType type,
+            string name,
+            IReadOnlyList<FieldNode> fields)
+        {
+            Type = type;
+            Name = name;
+            Fields = fields;
+        }
+
+        public INamedType Type { get; }
+        public string Name { get; }
+        public IReadOnlyList<FieldNode> Fields { get; }
     }
 }

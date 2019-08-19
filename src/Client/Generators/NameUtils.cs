@@ -17,6 +17,11 @@ namespace StrawberryShake.Generators
             return 'I' + GetPropertyName(typeName);
         }
 
+        public static string GetClassName(string typeName)
+        {
+            return GetPropertyName(typeName);
+        }
+
 #if NETCOREAPP3_0 || NETSTANDARD2_1
         public static string GetPropertyName(string fieldName)
 #else
@@ -49,7 +54,7 @@ namespace StrawberryShake.Generators
 #if NETCOREAPP3_0 || NETSTANDARD2_1
             return new string(amended.Slice(0, buffered));
 #else
-            
+
             amended = amended.Slice(0, buffered);
             fixed (char* charPtr = amended)
             {

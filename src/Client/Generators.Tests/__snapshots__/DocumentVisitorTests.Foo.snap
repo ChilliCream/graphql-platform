@@ -3,9 +3,22 @@
     string Name { get; }
 }
 
+public class Friend
+    : IFriend
+{
+    public string Name { get; set; }
+}
+
 public interface IHero
 {
     string Name { get; }
     string Friends { get; }
+}
+
+public class Hero
+    : IHero
+{
+    public string Name { get; set; }
+    public string Friends { get; set; }
 }
 
