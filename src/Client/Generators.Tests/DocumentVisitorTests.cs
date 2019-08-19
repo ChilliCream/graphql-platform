@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ChilliCream.Testing;
@@ -26,6 +27,11 @@ namespace StrawberryShake.Generators
             DocumentNode query = Utf8GraphQLParser.Parse(
                 FileResource.Open("Query.graphql"));
 
+            var visitationMap = new DocumentVisitationMap();
+            visitationMap.Initialize(
+                query.Definitions.OfType<FragmentDefinitionNode>()
+                    .ToDictionary(t => t.Name.Value));
+
             var list = new List<Func<Stream, Task>>();
 
             var fileHandler = new Mock<IFileHandler>();
@@ -35,7 +41,7 @@ namespace StrawberryShake.Generators
 
             // act
             var visitor = new DocumentVisitor(schema, fileHandler.Object);
-            query.Accept(visitor, n => VisitorAction.Continue);
+            query.Accept(visitor, visitationMap, n => VisitorAction.Continue);
 
             // assert
             var stream = new MemoryStream();
