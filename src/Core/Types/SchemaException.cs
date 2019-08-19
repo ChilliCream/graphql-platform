@@ -39,6 +39,7 @@ namespace HotChocolate
         {
             if (errors == null || errors.Count == 0)
             {
+                // TODO : resources
                 return "Unexpected schema exception occured.";
             }
 
@@ -49,6 +50,7 @@ namespace HotChocolate
 
             var message = new StringBuilder();
 
+            // TODO : resources
             message.AppendLine("Multiple schema errors occured:");
             foreach (ISchemaError error in errors)
             {
