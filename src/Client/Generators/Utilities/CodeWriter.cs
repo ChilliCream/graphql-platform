@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
@@ -8,7 +8,6 @@ namespace StrawberryShake.Generators
     public class CodeWriter
         : TextWriter
     {
-        private static readonly Encoding _utf8 = Encoding.UTF8;
         private readonly TextWriter _writer;
         private readonly bool _disposeWriter;
         private bool _disposed;
