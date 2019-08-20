@@ -1,4 +1,4 @@
-![HotChocolate](https://cdn.rawgit.com/ChilliCream/hotchocolate-logo/acacc5b353f4a21bc03591d9910232c3c748d552/img/hotchocolate-banner-light.svg)
+![HotChocolate](https://cdn.rawgit.com/ChilliCream/hotchocolate-logo/05d976dc63b50439f6e48e77077862d739d05913/img/hotchocolate-banner.svg)
 
 [![GitHub release](https://img.shields.io/github/release/chillicream/HotChocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![NuGet Package](https://img.shields.io/nuget/v/hotchocolate.svg)](https://www.nuget.org/packages/HotChocolate/) [![License](https://img.shields.io/github/license/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![Azure DevOps builds](https://img.shields.io/azure-devops/build/chillicream/414ff59c-4852-4687-b04d-6973125e7de2/48.svg)](https://chillicream.visualstudio.com/HotChocolate/_build?definitionId=48) [![Azure DevOps tests](https://img.shields.io/azure-devops/tests/chillicream/HotChocolate/48.svg)](https://chillicream.visualstudio.com/HotChocolate/_build?definitionId=48) [![Coverage Status](https://sonarcloud.io/api/project_badges/measure?project=HotChocolate&metric=coverage)](https://sonarcloud.io/dashboard?id=HotChocolate) [![Quality](https://sonarcloud.io/api/project_badges/measure?project=HotChocolate&metric=alert_status)](https://sonarcloud.io/dashboard?id=HotChocolate)
 [![Slack channel](https://img.shields.io/badge/join%20the%20community-on%20slack-blue.svg)](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTBkZjNjZWIzMmNlZjQ5MDQyNDNjMmY3NzYzZjgyYTVmZDU2YjVmNDlhNjNlNTk2ZWRiYzIxMTkwYzA4ODA5Yzg) [![Twitter](https://img.shields.io/badge/join%20us-on%20twitter-green.svg)](https://twitter.com/chilli_cream)
@@ -7,7 +7,7 @@
 
 **Hot Chocolate is a GraphQL server for _.NET Core_ and _.NET Classic_**
 
-_Hot Chocolate_ is a GraphQL server implementation based on the current GraphQL [June 2018 specification](http://facebook.github.io/graphql/June2018/).
+_Hot Chocolate_ is a GraphQL server implementation based on the current GraphQL [June 2018 specification](https://graphql.github.io/graphql-spec/June2018/).
 
 ## Getting Started
 
@@ -23,7 +23,7 @@ dotnet new -i HotChocolate.Templates.StarWars
 dotnet new starwars
 ```
 
-The GraphQL specification and more is available on the [Facebook GraphQL repository](https://github.com/facebook/graphql).
+The GraphQL specification and more is available on the [Facebook GraphQL repository](https://github.com/graphql/graphql-spec).
 
 If you want to get in touch with us you can do so by joining our [slack group](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTBkZjNjZWIzMmNlZjQ5MDQyNDNjMmY3NzYzZjgyYTVmZDU2YjVmNDlhNjNlNTk2ZWRiYzIxMTkwYzA4ODA5Yzg).
 

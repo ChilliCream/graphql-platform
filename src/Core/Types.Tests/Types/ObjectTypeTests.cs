@@ -1353,7 +1353,7 @@ namespace HotChocolate.Types
 
             // assert
             Assert.Throws<SchemaException>(action)
-                .Errors.MatchSnapshot();
+                .Errors.MatchSnapshot(o => o.IgnoreField("[0].Extensions"));
         }
 
         [Fact]
