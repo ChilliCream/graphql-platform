@@ -10,9 +10,8 @@
   <Import Project="$(ChilliFramework)" />
   <Import Project="$(ChilliBuild)" />
 
-
-
   <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <PackageId>HotChocolate.Language</PackageId>
     <AssemblyName>HotChocolate.Language</AssemblyName>
     <RootNamespace>HotChocolate.Language</RootNamespace>

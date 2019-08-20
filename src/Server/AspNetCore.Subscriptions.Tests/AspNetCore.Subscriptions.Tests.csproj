@@ -11,6 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <AssemblyName>HotChocolate.AspNetCore.Subscriptions.Tests</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Subscriptions</RootNamespace>
   </PropertyGroup>

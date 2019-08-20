@@ -11,6 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <PackageId>HotChocolate.AspNetCore.Voyager</PackageId>
     <AssemblyName>HotChocolate.AspNetCore.Voyager</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Voyager</RootNamespace>

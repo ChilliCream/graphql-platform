@@ -10,9 +10,8 @@
   <Import Project="$(ChilliFramework)" />
   <Import Project="$(ChilliBuild)" />
 
-
-
   <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <AssemblyName>HotChocolate.Subscriptions.Redis.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions</RootNamespace>
   </PropertyGroup>

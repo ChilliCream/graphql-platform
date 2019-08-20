@@ -11,6 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <PackageId>HotChocolate.AspNetCore.HttpGet</PackageId>
     <AssemblyName>HotChocolate.AspNetCore.HttpGet</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.HttpGet</RootNamespace>

@@ -11,6 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFramework>net461</TargetFramework>
     <AssemblyName>HotChocolate.AspNetClassic.HttpGetSchema</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic.HttpGetSchema</RootNamespace>
     <PackageId>HotChocolate.AspNetClassic.HttpGetSchema</PackageId>

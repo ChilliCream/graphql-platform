@@ -11,6 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <AssemblyName>HotChocolate.AspNetCore.Tests.Utilities</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Tests.Utilities</RootNamespace>
   </PropertyGroup>

@@ -13,6 +13,7 @@
 
 
   <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <PackageId>HotChocolate.PersistedQueries.Redis</PackageId>
     <AssemblyName>HotChocolate.PersistedQueries.Redis</AssemblyName>
     <RootNamespace>HotChocolate.PersistedQueries.Redis</RootNamespace>

@@ -13,6 +13,7 @@
 
 
   <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <PackageId>StrawberryShake.Generators</PackageId>
     <AssemblyName>StrawberryShake.Generators</AssemblyName>
     <RootNamespace>StrawberryShake.Generators</RootNamespace>

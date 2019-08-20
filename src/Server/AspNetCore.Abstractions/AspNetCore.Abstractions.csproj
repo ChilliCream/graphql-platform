@@ -11,6 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <PackageId>HotChocolate.AspNetCore.Abstractions</PackageId>
     <AssemblyName>HotChocolate.AspNetCore.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore</RootNamespace>

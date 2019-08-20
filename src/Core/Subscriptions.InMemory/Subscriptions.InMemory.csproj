@@ -10,9 +10,8 @@
   <Import Project="$(ChilliFramework)" />
   <Import Project="$(ChilliBuild)" />
 
-
-
   <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <PackageId>HotChocolate.Subscriptions.InMemory</PackageId>
     <AssemblyName>HotChocolate.Subscriptions.InMemory</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions</RootNamespace>

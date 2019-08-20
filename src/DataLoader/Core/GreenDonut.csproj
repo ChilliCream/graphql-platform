@@ -10,8 +10,6 @@
   <Import Project="$(ChilliFramework)" />
   <Import Project="$(ChilliBuild)" />
 
-
-
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;$(TargetFrameworks)</TargetFrameworks>
     <PackageId>GreenDonut</PackageId>

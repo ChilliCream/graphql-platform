@@ -11,6 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <AssemblyName>HotChocolate.Server</AssemblyName>
     <RootNamespace>HotChocolate.Server</RootNamespace>
     <PackageId>HotChocolate.Server</PackageId>

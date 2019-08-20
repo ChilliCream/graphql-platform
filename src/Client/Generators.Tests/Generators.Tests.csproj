@@ -13,6 +13,7 @@
 
 
   <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <AssemblyName>StrawberryShake.Generators.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.Generators</RootNamespace>
   </PropertyGroup>

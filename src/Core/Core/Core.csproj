@@ -13,6 +13,7 @@
 
 
   <PropertyGroup>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <PackageId>HotChocolate</PackageId>
     <AssemblyName>HotChocolate.Core</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
