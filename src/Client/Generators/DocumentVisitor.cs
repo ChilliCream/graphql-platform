@@ -169,7 +169,7 @@ namespace StrawberryShake.Generators
         {
             if (node.Selections.Count == 1
                 && node.Selections[0] is NamedSyntaxNode n
-                && (IsRemoved(n) || n is FragmentSpreadNode))
+                && (Spread(n) || n is FragmentSpreadNode))
             {
                 return VisitorAction.Continue;
             }
@@ -198,7 +198,7 @@ namespace StrawberryShake.Generators
             for (int i = last; i >= 0; i--)
             {
                 if (ancestors[i] is NamedSyntaxNode n
-                    && IsRemoved(n))
+                    && Spread(n))
                 {
                     i--;
                 }
@@ -237,11 +237,11 @@ namespace StrawberryShake.Generators
             return name;
         }
 
-        private bool IsRemoved(NamedSyntaxNode node)
+        private bool Spread(NamedSyntaxNode node)
         {
             return node.Directives.Any(t =>
                 t.Name.Value.Equals(
-                    "remove",
+                    GeneratorDirectives.Spread,
                     StringComparison.InvariantCulture));
         }
 
@@ -249,8 +249,9 @@ namespace StrawberryShake.Generators
             WithDirectives withDirectives,
             out string typeName)
         {
-            DirectiveNode directive = withDirectives.Directives.FirstOrDefault(t =>
-                t.Name.Value.Equals("type", StringComparison.InvariantCulture));
+            DirectiveNode directive =
+                withDirectives.Directives.FirstOrDefault(t =>
+                    t.Name.Value.EqualsOrdinal(GeneratorDirectives.Type));
 
             if (directive is null)
             {
@@ -259,14 +260,14 @@ namespace StrawberryShake.Generators
             }
 
             typeName = (string)directive.Arguments.Single(a =>
-                a.Name.Value.Equals("name", StringComparison.InvariantCulture)).Value.Value;
+                a.Name.Value.EqualsOrdinal("name")).Value.Value;
             return true;
         }
 
         private void GenerateModelInterface(
             InterfaceCodeDescriptor descriptor)
         {
-            string fileName = descriptor.Name + ".cs";
+            string fileName = descriptor.Name + FileExtensions.CSharp;
 
             _fileHandler.WriteTo(fileName, async stream =>
             {
@@ -287,7 +288,7 @@ namespace StrawberryShake.Generators
             string name,
             IReadOnlyList<InterfaceCodeDescriptor> implements)
         {
-            string fileName = name + ".cs";
+            string fileName = name + FileExtensions.CSharp;
             INamedType type = _types.Peek().NamedType();
 
             _fileHandler.WriteTo(fileName, async stream =>
@@ -329,5 +330,24 @@ namespace StrawberryShake.Generators
         public INamedType Type { get; }
         public string Name { get; }
         public IReadOnlyList<FieldNode> Fields { get; }
+    }
+
+    internal static class GeneratorDirectives
+    {
+        public const string Spread = "spread";
+        public const string Type = "type";
+    }
+
+    internal static class FileExtensions
+    {
+        public const string CSharp = ".cs";
+    }
+
+    internal static class StringExtensions
+    {
+        public static bool EqualsOrdinal(this string a, string b)
+        {
+            return string.Equals(a, b, StringComparison.Ordinal);
+        }
     }
 }
