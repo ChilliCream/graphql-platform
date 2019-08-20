@@ -1,6 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">netcoreapp3.0; netstandard2.1; netstandard2.0;</TargetFrameworks>
+    <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">netcoreapp3.0; netstandard2.1; netstandard2.0; net461</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
     <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
     <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreFramework.props'))</ChilliFramework>
