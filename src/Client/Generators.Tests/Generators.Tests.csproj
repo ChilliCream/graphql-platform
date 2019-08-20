@@ -1,8 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
-  </PropertyGroup>
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
@@ -24,9 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Remove="InterfaceGeneratorTests.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="InterfaceGeneratorTests.txt" Condition=" '$(EnableDefaultCompileItems)' == 'true' " />
   </ItemGroup>
+  
 </Project>

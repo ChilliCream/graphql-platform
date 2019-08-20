@@ -1,5 +1,5 @@
 query getHero {
-  hero @remove {
+  hero @spread {
     ...Hero
   }
 }
@@ -12,7 +12,7 @@ fragment Hero on Character {
 }
 
 fragment Friend on CharacterConnection {
-  nodes @remove {
+  nodes @spread {
     name
   }
 }

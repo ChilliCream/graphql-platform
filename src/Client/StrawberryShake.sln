@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29209.62
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Generators", "Generators\Generators.csproj", "{B612718F-C1B9-46BC-BC0C-2BA1B7D1E7EE}"
 EndProject
@@ -31,9 +31,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{B612718F-C1B9-46BC-BC0C-2BA1B7D1E7EE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -145,6 +142,9 @@ Global
 		{37E8CC3C-A52F-429D-BA6E-CBB1BE7057D1}.Release|x86.ActiveCfg = Release|Any CPU
 		{37E8CC3C-A52F-429D-BA6E-CBB1BE7057D1}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{4F515CD7-6A42-4140-AB66-CFB14A1A26EF} = {221C2F3F-C438-446F-AB2F-DA35447FC69F}
 		{F2EFEA97-FE45-4FB5-9854-7B2254221531} = {221C2F3F-C438-446F-AB2F-DA35447FC69F}
@@ -153,5 +153,8 @@ Global
 		{820D1C91-5F64-44BE-A980-58BC0A4F830B} = {221C2F3F-C438-446F-AB2F-DA35447FC69F}
 		{0069628F-D881-4053-904B-075A1BD27692} = {221C2F3F-C438-446F-AB2F-DA35447FC69F}
 		{37E8CC3C-A52F-429D-BA6E-CBB1BE7057D1} = {221C2F3F-C438-446F-AB2F-DA35447FC69F}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {EB94FF4F-C3C7-4362-AC05-778F2BA3DB5A}
 	EndGlobalSection
 EndGlobal

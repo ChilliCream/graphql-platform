@@ -273,7 +273,8 @@ namespace StrawberryShake.Generators
             IReadOnlyList<ISyntaxNode> ancestors,
             IType type)
         {
-            var types = new Stack<IType>(_types);
+            var types = new Stack<IType>(_types.Reverse());
+            types.Pop();
 
             int last = ancestors.Count - 1;
             for (int i = last; i >= 0; i--)
@@ -286,6 +287,25 @@ namespace StrawberryShake.Generators
                 }
                 else
                 {
+                    if (ancestors[i] is FieldNode field)
+                    {
+                        _fieldTypes[field] = type;
+                    }
+                    else if (ancestors[i] is FragmentDefinitionNode)
+                    {
+                        if (ancestors[i - 2] is SelectionSetNode selectionSet
+                            && selectionSet.Selections.Count == 1
+                            && ancestors[i - 3] is FieldNode field2)
+                        {
+                            _fieldTypes[field2] = type;
+                        }
+                        else
+                        {
+                            // TODO : resources
+                            // TODO : exception type
+                            throw new InvalidOperationException();
+                        }
+                    }
 
                     break;
                 }
@@ -341,7 +361,7 @@ namespace StrawberryShake.Generators
             string typeName,
             SelectionSetNode selectionSet)
         {
-            if (_types.Peek() is IComplexOutputType type)
+            if (_types.Peek().NamedType() is IComplexOutputType type)
             {
                 var fields = new List<FieldInfo>();
                 foreach (FieldNode selection in selectionSet.Selections.OfType<FieldNode>())
@@ -355,8 +375,8 @@ namespace StrawberryShake.Generators
                     fields.Add(new FieldInfo(field, selection, fieldType));
                 }
 
-                var descriptor = new InterfaceDescriptor(
-                    _types.Peek().NamedType(),
+                return new InterfaceDescriptor(
+                    type,
                     NameUtils.GetInterfaceName(typeName),
                     fields);
             }
