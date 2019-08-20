@@ -292,7 +292,7 @@ namespace StrawberryShake.Generators
                     if (ancestors[i] is FieldNode field)
                     {
                         _fieldTypes[field] = type;
-                        _fieldSelectionSets[field2] = selectionSet;
+                        _fieldSelectionSets[field] = node;
                     }
                     else if (ancestors[i] is FragmentDefinitionNode)
                     {
@@ -301,7 +301,7 @@ namespace StrawberryShake.Generators
                             && ancestors[i - 3] is FieldNode field2)
                         {
                             _fieldTypes[field2] = type;
-                            _fieldSelectionSets[field2] = selectionSet;
+                            _fieldSelectionSets[field2] = node;
                         }
                         else
                         {
