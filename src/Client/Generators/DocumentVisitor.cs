@@ -15,6 +15,7 @@ namespace StrawberryShake.Generators
         , ISyntaxNodeVisitor<InlineFragmentNode>
         , ISyntaxNodeVisitor<FragmentDefinitionNode>
         , ISyntaxNodeVisitor<SelectionSetNode>
+        , ITypeLookup
     {
         private readonly ModelInterfaceGenerator _modelInterfaceGenerator =
             new ModelInterfaceGenerator();
@@ -329,8 +330,8 @@ namespace StrawberryShake.Generators
 
                 await _modelInterfaceGenerator.WriteAsync(
                     cw,
-                    _schema,
-                    descriptor);
+                    descriptor,
+                    this);
 
                 await cw.FlushAsync();
                 await sw.FlushAsync();
@@ -350,11 +351,10 @@ namespace StrawberryShake.Generators
                 var cw = new CodeWriter(sw);
 
                 await _modelClassGenerator.WriteAsync(
-                    cw,
-                    _schema,
-                    type,
+                    cw,                    
                     name,
-                    implements);
+                    implements,
+                    this);
 
                 await cw.FlushAsync();
                 await sw.FlushAsync();
@@ -386,6 +386,43 @@ namespace StrawberryShake.Generators
             }
 
             throw new InvalidOperationException();
+        }
+
+        public string GetTypeName(FieldNode field, IType fieldType, bool readOnly)
+        {
+            if (fieldType.NamedType().IsScalarType())
+            {
+                return "string";
+            }
+            else if (fieldType.NamedType().IsEnumType())
+            {
+                return "string";
+            }
+            else if (_fieldSelectionSets.TryGetValue(field, out SelectionSetNode selectionSet)
+                && _typeNames.TryGetValue(selectionSet, out string typeName))
+            {
+                return BuildType(fieldType, typeName, readOnly);
+            }
+
+            throw new NotSupportedException();
+        }
+
+        private static string BuildType(IType type, string typeName, bool readOnly)
+        {
+            if (type is NonNullType nnt)
+            {
+                return BuildType(nnt.Type, typeName, readOnly);
+            }
+            else if (type is ListType lt)
+            {
+                return readOnly
+                    ? $"IReadOnlyList<{BuildType(lt.ElementType, typeName, readOnly)}>"
+                    : $"List<{BuildType(lt.ElementType, typeName, readOnly)}>";
+            }
+            else
+            {
+                return typeName;
+            }
         }
     }
 }

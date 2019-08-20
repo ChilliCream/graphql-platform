@@ -1,0 +1,26 @@
+query getHero {
+  hero @spread {
+    ...Hero
+  }
+}
+
+fragment Hero on Character {
+  ... HasName
+  ... HasFriends
+}
+
+fragment HasFriends on CharacterConnection {
+  friends {
+    ...Friend
+  }
+}
+
+fragment Friend on CharacterConnection {
+  nodes @spread {
+    ... HasName
+  }
+}
+
+fragment HasName on Character {
+  name
+}

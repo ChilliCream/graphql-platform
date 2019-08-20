@@ -12,13 +12,14 @@ public class Friend
 public interface IHero
 {
     string Name { get; }
-    string Friends { get; }
+    IReadOnlyList<Friend> Friends { get; }
 }
 
 public class Hero
     : IHero
 {
     public string Name { get; set; }
-    public string Friends { get; set; }
+    public List<Friend> Friends { get; set; }
+    IReadOnlyList<Friend> IHero.Friends  => Friends;
 }
 

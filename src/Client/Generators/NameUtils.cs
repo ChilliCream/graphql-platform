@@ -22,7 +22,7 @@ namespace StrawberryShake.Generators
             return GetPropertyName(typeName);
         }
 
-#if NETCOREAPP3_0 || NETSTANDARD2_1
+#if NETCOREAPP3_0 || NETCOREAPP2_2
         public static string GetPropertyName(string fieldName)
 #else
         public unsafe static string GetPropertyName(string fieldName)
@@ -51,7 +51,7 @@ namespace StrawberryShake.Generators
                 }
             }
 
-#if NETCOREAPP3_0 || NETSTANDARD2_1
+#if NETCOREAPP3_0 || NETCOREAPP2_2
             return new string(amended.Slice(0, buffered));
 #else
 

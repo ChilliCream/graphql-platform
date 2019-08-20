@@ -1,0 +1,47 @@
+﻿public interface ICharacter
+{
+    string Name { get; }
+}
+
+public class Character
+    : ICharacter
+{
+    public string Name { get; set; }
+}
+
+public interface ICharacterConnection
+{
+    IReadOnlyList<Character> Nodes { get; }
+}
+
+public class CharacterConnection
+    : ICharacterConnection
+{
+    public List<Character> Nodes { get; set; }
+    IReadOnlyList<Character> ICharacterConnection.Nodes  => Nodes;
+}
+
+public interface ICharacter0
+{
+    string Name { get; }
+    CharacterConnection Friends { get; }
+}
+
+public class Character0
+    : ICharacter0
+{
+    public string Name { get; set; }
+    public CharacterConnection Friends { get; set; }
+}
+
+public interface IQuery
+{
+    Character0 Hero { get; }
+}
+
+public class Query
+    : IQuery
+{
+    public Character0 Hero { get; set; }
+}
+

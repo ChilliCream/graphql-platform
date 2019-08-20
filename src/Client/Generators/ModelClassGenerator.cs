@@ -1,7 +1,5 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -11,10 +9,9 @@ namespace StrawberryShake.Generators
     {
         public async Task WriteAsync(
             CodeWriter writer,
-            ISchema schema,
-            INamedType type,
             string targetName,
-            IReadOnlyList<InterfaceDescriptor> implements)
+            IReadOnlyList<InterfaceDescriptor> implements,
+            ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync();
             await writer.WriteAsync("public class ");
@@ -55,7 +52,7 @@ namespace StrawberryShake.Generators
                 {
                     foreach (FieldInfo fieldInfo in implements[i].Fields)
                     {
-                        string typeName = "string"; // typeLookup.GetTypeName(selectionSet, fieldSelection);
+                        string typeName = typeLookup.GetTypeName(fieldInfo.Selection, fieldInfo.Type, false);
                         string propertyName = NameUtils.GetPropertyName(fieldInfo.ResponseName);
                         bool isListType = fieldInfo.Type.IsListType();
 
@@ -71,6 +68,8 @@ namespace StrawberryShake.Generators
 
                         if (isListType)
                         {
+                            typeName = typeLookup.GetTypeName(fieldInfo.Selection, fieldInfo.Type, true);
+
                             await writer.WriteIndentAsync();
                             await writer.WriteAsync(typeName);
                             await writer.WriteSpaceAsync();

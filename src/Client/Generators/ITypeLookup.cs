@@ -1,9 +1,10 @@
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace StrawberryShake.Generators
 {
     public interface ITypeLookup
     {
-        string GetTypeName(SelectionSetNode selectionSet, FieldNode field, bool readOnly);
+        string GetTypeName(FieldNode field, IType fieldType, bool readOnly);
     }
 }

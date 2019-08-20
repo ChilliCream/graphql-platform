@@ -11,8 +11,8 @@ namespace StrawberryShake.Generators
     {
         public async Task WriteAsync(
             CodeWriter writer,
-            ISchema schema,
-            InterfaceDescriptor interfaceDescriptor)
+            InterfaceDescriptor interfaceDescriptor,
+            ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync();
             await writer.WriteAsync("public interface ");
@@ -32,7 +32,7 @@ namespace StrawberryShake.Generators
                     if (complexType.Fields.ContainsField(
                         fieldInfo.Selection.Name.Value))
                     {
-                        string typeName = "string"; // typeLookup.GetTypeName(selectionSet, fieldSelection);
+                        string typeName = typeLookup.GetTypeName(fieldInfo.Selection, fieldInfo.Type, true);
                         string propertyName = NameUtils.GetPropertyName(fieldInfo.ResponseName);
 
                         await writer.WriteIndentAsync();
