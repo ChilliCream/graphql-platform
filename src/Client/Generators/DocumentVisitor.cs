@@ -5,7 +5,6 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using System.Linq;
-using System.Threading.Tasks;
 using WithDirectives = HotChocolate.Language.IHasDirectives;
 
 namespace StrawberryShake.Generators
@@ -22,9 +21,12 @@ namespace StrawberryShake.Generators
         private readonly ModelClassGenerator _modelClassGenerator =
             new ModelClassGenerator();
         private readonly Stack<IType> _types = new Stack<IType>();
-        private readonly HashSet<string> _typeNames = new HashSet<string>();
+        private readonly Dictionary<SelectionSetNode, string> _typeNames =
+            new Dictionary<SelectionSetNode, string>();
         private readonly Stack<List<SelectionSetNode>> _grouped =
             new Stack<List<SelectionSetNode>>();
+        private readonly Dictionary<FieldNode, IType> _fieldTypes =
+            new Dictionary<FieldNode, IType>();
         private readonly Stack<FieldInfo> _field = new Stack<FieldInfo>();
         private readonly ISchema _schema;
         private readonly IFileHandler _fileHandler;
@@ -75,7 +77,7 @@ namespace StrawberryShake.Generators
                 && complexType.Fields.TryGetField(node.Name.Value, out IOutputField field))
             {
                 _types.Push(field.Type);
-                _field.Push(new FieldInfo(field, node));
+                _field.Push(new FieldInfo(field, node, field.Type));
 
                 return VisitorAction.Continue;
             }
@@ -169,21 +171,19 @@ namespace StrawberryShake.Generators
         {
             if (node.Selections.Count == 1
                 && node.Selections[0] is NamedSyntaxNode n
-                && (IsRemoved(n) || n is FragmentSpreadNode))
+                && (Spread(n) || n is FragmentSpreadNode))
             {
                 return VisitorAction.Continue;
             }
 
-            string name = GetName(node, ancestors);
-
-            var descriptor = new InterfaceCodeDescriptor(
-                _types.Peek().NamedType(),
-                NameUtils.GetInterfaceName(name),
-                node.Selections.OfType<FieldNode>().ToList());
+            ChangeType(node, ancestors, _types.Peek());
+            string typeName = GetName(node, ancestors);
+            InterfaceDescriptor descriptor =
+                CreateInterfaceDescriptor(typeName, node);
 
             GenerateModelInterface(descriptor);
             GenerateModelClass(
-                NameUtils.GetClassName(name),
+                NameUtils.GetClassName(typeName),
                 new[] { descriptor });
             return VisitorAction.Continue;
         }
@@ -192,13 +192,16 @@ namespace StrawberryShake.Generators
             SelectionSetNode node,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            string name = null;
+            if (_typeNames.TryGetValue(node, out string name))
+            {
+                return name;
+            }
 
             int last = ancestors.Count - 1;
             for (int i = last; i >= 0; i--)
             {
                 if (ancestors[i] is NamedSyntaxNode n
-                    && IsRemoved(n))
+                    && Spread(n))
                 {
                     i--;
                 }
@@ -221,12 +224,12 @@ namespace StrawberryShake.Generators
                 }
             }
 
-            if (!_typeNames.Add(name))
+            if (_typeNames.ContainsValue(name))
             {
                 for (int i = 0; i < int.MaxValue; i++)
                 {
                     string n = name + i;
-                    if (_typeNames.Add(n))
+                    if (!_typeNames.ContainsValue(n))
                     {
                         name = n;
                         break;
@@ -234,14 +237,15 @@ namespace StrawberryShake.Generators
                 }
             }
 
+            _typeNames[node] = name;
             return name;
         }
 
-        private bool IsRemoved(NamedSyntaxNode node)
+        private bool Spread(NamedSyntaxNode node)
         {
             return node.Directives.Any(t =>
                 t.Name.Value.Equals(
-                    "remove",
+                    GeneratorDirectives.Spread,
                     StringComparison.InvariantCulture));
         }
 
@@ -249,8 +253,9 @@ namespace StrawberryShake.Generators
             WithDirectives withDirectives,
             out string typeName)
         {
-            DirectiveNode directive = withDirectives.Directives.FirstOrDefault(t =>
-                t.Name.Value.Equals("type", StringComparison.InvariantCulture));
+            DirectiveNode directive =
+                withDirectives.Directives.FirstOrDefault(t =>
+                    t.Name.Value.EqualsOrdinal(GeneratorDirectives.Type));
 
             if (directive is null)
             {
@@ -259,14 +264,39 @@ namespace StrawberryShake.Generators
             }
 
             typeName = (string)directive.Arguments.Single(a =>
-                a.Name.Value.Equals("name", StringComparison.InvariantCulture)).Value.Value;
+                a.Name.Value.EqualsOrdinal("name")).Value.Value;
             return true;
         }
 
-        private void GenerateModelInterface(
-            InterfaceCodeDescriptor descriptor)
+        private void ChangeType(
+            SelectionSetNode node,
+            IReadOnlyList<ISyntaxNode> ancestors,
+            IType type)
         {
-            string fileName = descriptor.Name + ".cs";
+            var types = new Stack<IType>(_types);
+
+            int last = ancestors.Count - 1;
+            for (int i = last; i >= 0; i--)
+            {
+                if (ancestors[i] is NamedSyntaxNode n
+                    && Spread(n))
+                {
+                    i--;
+                    types.Pop();
+                }
+                else
+                {
+
+                    break;
+                }
+            }
+
+        }
+
+        private void GenerateModelInterface(
+            InterfaceDescriptor descriptor)
+        {
+            string fileName = descriptor.Name + FileExtensions.CSharp;
 
             _fileHandler.WriteTo(fileName, async stream =>
             {
@@ -285,9 +315,9 @@ namespace StrawberryShake.Generators
 
         private void GenerateModelClass(
             string name,
-            IReadOnlyList<InterfaceCodeDescriptor> implements)
+            IReadOnlyList<InterfaceDescriptor> implements)
         {
-            string fileName = name + ".cs";
+            string fileName = name + FileExtensions.CSharp;
             INamedType type = _types.Peek().NamedType();
 
             _fileHandler.WriteTo(fileName, async stream =>
@@ -306,28 +336,32 @@ namespace StrawberryShake.Generators
                 await sw.FlushAsync();
             });
         }
-    }
 
-
-    public interface IFileHandler
-    {
-        void WriteTo(string fileName, Func<Stream, Task> write);
-    }
-
-    public class InterfaceCodeDescriptor
-    {
-        public InterfaceCodeDescriptor(
-            INamedType type,
-            string name,
-            IReadOnlyList<FieldNode> fields)
+        private InterfaceDescriptor CreateInterfaceDescriptor(
+            string typeName,
+            SelectionSetNode selectionSet)
         {
-            Type = type;
-            Name = name;
-            Fields = fields;
-        }
+            if (_types.Peek() is IComplexOutputType type)
+            {
+                var fields = new List<FieldInfo>();
+                foreach (FieldNode selection in selectionSet.Selections.OfType<FieldNode>())
+                {
+                    IOutputField field = type.Fields[selection.Name.Value];
+                    if (!_fieldTypes.TryGetValue(selection, out IType fieldType))
+                    {
+                        fieldType = field.Type;
+                    }
 
-        public INamedType Type { get; }
-        public string Name { get; }
-        public IReadOnlyList<FieldNode> Fields { get; }
+                    fields.Add(new FieldInfo(field, selection, fieldType));
+                }
+
+                var descriptor = new InterfaceDescriptor(
+                    _types.Peek().NamedType(),
+                    NameUtils.GetInterfaceName(typeName),
+                    fields);
+            }
+
+            throw new InvalidOperationException();
+        }
     }
 }
