@@ -3,12 +3,13 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.Generators
 {
-    public class InterfaceDescriptor
+    public class ClassDescriptor
+        : IClassDescriptor
     {
-        public InterfaceDescriptor(
+        public ClassDescriptor(
             INamedType type,
             string name,
-            IReadOnlyList<FieldInfo> fields)
+            IReadOnlyList<IInterfaceDescriptor> fields)
         {
             Type = type;
             Name = name;
@@ -17,6 +18,6 @@ namespace StrawberryShake.Generators
 
         public INamedType Type { get; }
         public string Name { get; }
-        public IReadOnlyList<FieldInfo> Fields { get; }
+        public IReadOnlyList<IInterfaceDescriptor> Fields { get; }
     }
 }

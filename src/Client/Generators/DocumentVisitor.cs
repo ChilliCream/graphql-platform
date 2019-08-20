@@ -17,10 +17,6 @@ namespace StrawberryShake.Generators
         , ISyntaxNodeVisitor<SelectionSetNode>
         , ITypeLookup
     {
-        private readonly ModelInterfaceGenerator _modelInterfaceGenerator =
-            new ModelInterfaceGenerator();
-        private readonly ModelClassGenerator _modelClassGenerator =
-            new ModelClassGenerator();
         private readonly Stack<IType> _types = new Stack<IType>();
         private readonly Dictionary<SelectionSetNode, string> _typeNames =
             new Dictionary<SelectionSetNode, string>();
@@ -30,7 +26,7 @@ namespace StrawberryShake.Generators
             new Dictionary<FieldNode, IType>();
         private readonly Dictionary<FieldNode, SelectionSetNode> _fieldSelectionSets =
             new Dictionary<FieldNode, SelectionSetNode>();
-        private readonly Stack<FieldInfo> _field = new Stack<FieldInfo>();
+        private readonly List<IClassDescriptor> _classDescriptors = new List<IClassDescriptor>();
         private readonly ISchema _schema;
         private readonly IFileHandler _fileHandler;
 
@@ -80,7 +76,6 @@ namespace StrawberryShake.Generators
                 && complexType.Fields.TryGetField(node.Name.Value, out IOutputField field))
             {
                 _types.Push(field.Type);
-                _field.Push(new FieldInfo(field, node, field.Type));
 
                 return VisitorAction.Continue;
             }
@@ -96,7 +91,6 @@ namespace StrawberryShake.Generators
             IReadOnlyList<ISyntaxNode> ancestors)
         {
             _types.Pop();
-            _field.Pop();
 
             return VisitorAction.Continue;
         }
@@ -170,22 +164,18 @@ namespace StrawberryShake.Generators
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-             if (node.Selections.Count == 1
-                && node.Selections[0] is NamedSyntaxNode n
-                && (Spread(n) || n is FragmentSpreadNode))
+            if (node.Selections.Count == 1
+               && node.Selections[0] is NamedSyntaxNode n
+               && (Spread(n) || n is FragmentSpreadNode))
             {
                 return VisitorAction.Continue;
             }
 
-            ChangeType(node, ancestors, _types.Peek());
             string typeName = GetName(node, ancestors);
+            PushType(node, ancestors, typeName);
             InterfaceDescriptor descriptor =
                 CreateInterfaceDescriptor(typeName, node);
 
-            GenerateModelInterface(descriptor);
-            GenerateModelClass(
-                NameUtils.GetClassName(typeName),
-                new[] { descriptor });
             return VisitorAction.Continue;
         }
 
@@ -269,10 +259,10 @@ namespace StrawberryShake.Generators
             return true;
         }
 
-        private void ChangeType(
+        private void PushType(
             SelectionSetNode node,
             IReadOnlyList<ISyntaxNode> ancestors,
-            IType type)
+            string typeName)
         {
             var types = new Stack<IType>(_types.Reverse());
             types.Pop();
@@ -280,77 +270,12 @@ namespace StrawberryShake.Generators
             int last = ancestors.Count - 1;
             for (int i = last; i >= 0; i--)
             {
-                if (ancestors[i] is NamedSyntaxNode n
-                    && Spread(n))
+                if (ancestors[i] is SelectionSetNode n)
                 {
-                    i--;
-                    types.Pop();
-                }
-                else
-                {
-                    if (ancestors[i] is FieldNode field)
-                    {
-                        _fieldTypes[field] = type;
-                        _fieldSelectionSets[field] = node;
-                    }
-                    else if (ancestors[i] is FragmentDefinitionNode)
-                    {
-                        if (ancestors[i - 2] is SelectionSetNode selectionSet
-                            && selectionSet.Selections.Count == 1
-                            && ancestors[i - 3] is FieldNode field2)
-                        {
-                            _fieldTypes[field2] = type;
-                            _fieldSelectionSets[field2] = node;
-                        }
-                    }
-
+                    _typeNames[n] = typeName;
                     break;
                 }
             }
-
-        }
-
-        private void GenerateModelInterface(
-            InterfaceDescriptor descriptor)
-        {
-            string fileName = descriptor.Name + FileExtensions.CSharp;
-
-            _fileHandler.WriteTo(fileName, async stream =>
-            {
-                var sw = new StreamWriter(stream);
-                var cw = new CodeWriter(sw);
-
-                await _modelInterfaceGenerator.WriteAsync(
-                    cw,
-                    descriptor,
-                    this);
-
-                await cw.FlushAsync();
-                await sw.FlushAsync();
-            });
-        }
-
-        private void GenerateModelClass(
-            string name,
-            IReadOnlyList<InterfaceDescriptor> implements)
-        {
-            string fileName = name + FileExtensions.CSharp;
-            INamedType type = _types.Peek().NamedType();
-
-            _fileHandler.WriteTo(fileName, async stream =>
-            {
-                var sw = new StreamWriter(stream);
-                var cw = new CodeWriter(sw);
-
-                await _modelClassGenerator.WriteAsync(
-                    cw,                    
-                    name,
-                    implements,
-                    this);
-
-                await cw.FlushAsync();
-                await sw.FlushAsync();
-            });
         }
 
         private InterfaceDescriptor CreateInterfaceDescriptor(
@@ -359,7 +284,7 @@ namespace StrawberryShake.Generators
         {
             if (_types.Peek().NamedType() is IComplexOutputType type)
             {
-                var fields = new List<FieldInfo>();
+                var fields = new List<IFieldDescriptor>();
                 foreach (FieldNode selection in selectionSet.Selections.OfType<FieldNode>())
                 {
                     IOutputField field = type.Fields[selection.Name.Value];
@@ -368,7 +293,7 @@ namespace StrawberryShake.Generators
                         fieldType = field.Type;
                     }
 
-                    fields.Add(new FieldInfo(field, selection, fieldType));
+                    fields.Add(new FieldSelection(field, selection, fieldType));
                 }
 
                 return new InterfaceDescriptor(

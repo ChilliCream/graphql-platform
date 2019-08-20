@@ -3,7 +3,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 
-namespace StrawberryShake.Generators
+namespace StrawberryShake.Generators.Utilities
 {
     public class CodeWriter
         : TextWriter

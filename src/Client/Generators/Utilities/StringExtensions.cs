@@ -1,6 +1,6 @@
 using System;
 
-namespace StrawberryShake.Generators
+namespace StrawberryShake.Generators.Utilities
 {
     internal static class StringExtensions
     {

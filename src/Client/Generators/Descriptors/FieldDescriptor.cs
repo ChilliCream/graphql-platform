@@ -4,9 +4,11 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.Generators
 {
-    public class FieldInfo
+
+    public class FieldSelection
+        : IFieldDescriptor
     {
-        public FieldInfo(IOutputField field, FieldNode selection, IType type)
+        public FieldSelection(IOutputField field, FieldNode selection, IType type)
         {
             Field = field ?? throw new ArgumentNullException(nameof(field));
             Selection = selection ?? throw new ArgumentNullException(nameof(selection));
