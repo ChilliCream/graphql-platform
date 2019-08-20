@@ -13,7 +13,7 @@
 
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <PackageId>HotChocolate.StarWars</PackageId>
     <AssemblyName>HotChocolate.StarWars</AssemblyName>
     <RootNamespace>HotChocolate.StarWars</RootNamespace>

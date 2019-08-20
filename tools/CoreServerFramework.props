@@ -1,7 +1,7 @@
 <Project>
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.0; netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.2; netstandard2.0</TargetFrameworks>
   </PropertyGroup>
 
 </Project>

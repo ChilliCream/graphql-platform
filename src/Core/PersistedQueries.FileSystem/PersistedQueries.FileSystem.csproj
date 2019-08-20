@@ -11,7 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <PackageId>HotChocolate.PersistedQueries.FileSystem</PackageId>
     <AssemblyName>HotChocolate.PersistedQueries.FileSystem</AssemblyName>
     <RootNamespace>HotChocolate.PersistedQueries.FileSystem</RootNamespace>

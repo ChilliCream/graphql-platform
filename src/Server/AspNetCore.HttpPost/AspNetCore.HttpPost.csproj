@@ -11,7 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <PackageId>HotChocolate.AspNetCore.HttpPost</PackageId>
     <AssemblyName>HotChocolate.AspNetCore.HttpPost</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.HttpPost</RootNamespace>
