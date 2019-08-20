@@ -11,6 +11,10 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFrameworks Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <AssemblyName>GreenDonut.DiagnosticSource.Tests</AssemblyName>
     <RootNamespace>GreenDonut</RootNamespace>
   </PropertyGroup>

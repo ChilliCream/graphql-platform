@@ -11,6 +11,10 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFrameworks Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <PackageId>HotChocolate.Subscriptions.Redis</PackageId>
     <AssemblyName>HotChocolate.Subscriptions.Redis</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions.Redis</RootNamespace>

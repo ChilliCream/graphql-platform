@@ -11,6 +11,10 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFrameworks Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <PackageId>HotChocolate.PersistedQueries.FileSystem</PackageId>
     <AssemblyName>HotChocolate.PersistedQueries.FileSystem</AssemblyName>
     <RootNamespace>HotChocolate.PersistedQueries.FileSystem</RootNamespace>

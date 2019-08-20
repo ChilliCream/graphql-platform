@@ -11,6 +11,10 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFrameworks Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <AssemblyName>StrawberryShake.Generators.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.Generators</RootNamespace>
   </PropertyGroup>
@@ -22,5 +26,5 @@
   <ItemGroup>
     <None Include="InterfaceGeneratorTests.txt" Condition=" '$(EnableDefaultCompileItems)' == 'true' " />
   </ItemGroup>
-  
+
 </Project>
