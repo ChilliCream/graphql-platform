@@ -7,7 +7,7 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Types.Sorting
 {
     public class SortFieldDescriptor
-        : DescriptorBase<SortFieldDefintion>,
+        : DescriptorBase<SortFieldDefinition>,
           ISortFieldDescriptor
 
     {
@@ -30,14 +30,14 @@ namespace HotChocolate.Types.Sorting
             Filters.Add(field);
         }
 
-        protected sealed override SortFieldDefintion Definition { get; } =
-            new SortFieldDefintion();
+        protected sealed override SortFieldDefinition Definition { get; } =
+            new SortFieldDefinition();
 
         protected ICollection<SortOperationDescriptor> Filters { get; } =
             new List<SortOperationDescriptor>();
 
         protected override void OnCreateDefinition(
-            SortFieldDefintion definition)
+            SortFieldDefinition definition)
         {
             var fields = new Dictionary<NameString, SortOperationDefintion>();
             AddImplicitSorters(fields);

@@ -99,7 +99,7 @@ namespace HotChocolate.Types.Sorting
                 .OfType<PropertyInfo>())
             {
                 if (handledProperties.Contains(property)
-                    || !TryCreateImplicitSorting(property, out SortFieldDefintion definition))
+                    || !TryCreateImplicitSorting(property, out SortFieldDefinition definition))
                 {
                     continue;
                 }
@@ -117,7 +117,7 @@ namespace HotChocolate.Types.Sorting
 
         private bool TryCreateImplicitSorting(
             PropertyInfo property,
-            out SortFieldDefintion definition)
+            out SortFieldDefinition definition)
         {
             if (typeof(IComparable).IsAssignableFrom(property.PropertyType))
             {

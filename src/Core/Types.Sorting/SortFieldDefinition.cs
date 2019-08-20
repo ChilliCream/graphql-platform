@@ -2,7 +2,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Sorting
 {
-    public class SortFieldDefintion
+    public class SortFieldDefinition
         : InputFieldDefinition
     {
         public IBindableList<SortOperationDefintion> Sorts { get; } =

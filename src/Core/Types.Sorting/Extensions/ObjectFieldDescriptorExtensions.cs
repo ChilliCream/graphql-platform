@@ -11,8 +11,8 @@ namespace HotChocolate.Types
 {
     public static class ObjectFieldDescriptorExtensions
     {
-        internal const string OrderByArgumentName = "order_by";
-        private static readonly Type MiddlewareDefinition =
+        internal const string _orderByArgumentName = "order_by";
+        private static readonly Type _middlewareDefinition =
             typeof(SortMiddleware<>);
 
         public static IObjectFieldDescriptor UseSorting(
@@ -84,7 +84,7 @@ namespace HotChocolate.Types
 
                     var argumentDefinition = new ArgumentDefinition
                     {
-                        Name = OrderByArgumentName,
+                        Name = _orderByArgumentName,
                         Type = new ClrTypeReference(
                             argumentType, TypeContext.Input)
                     };
@@ -154,7 +154,7 @@ namespace HotChocolate.Types
         {
             ISortInputType type =
                 context.GetType<ISortInputType>(argumentTypeReference);
-            Type middlewareType = MiddlewareDefinition
+            Type middlewareType = _middlewareDefinition
                 .MakeGenericType(type.EntityType);
             FieldMiddleware middleware =
                 FieldClassMiddlewareFactory.Create(middlewareType);
