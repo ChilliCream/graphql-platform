@@ -98,8 +98,8 @@ namespace StrawberryShake.Generators.Utilities
             }
         }
 
-        private void ResolveFieldSelection(
-            ObjectType type,
+        internal static void ResolveFieldSelection(
+            IComplexOutputType type,
             FieldNode fieldSelection,
             Path path,
             IDictionary<string, FieldSelection> fields)
@@ -109,7 +109,7 @@ namespace StrawberryShake.Generators.Utilities
                 ? fieldSelection.Name.Value
                 : fieldSelection.Alias.Value;
 
-            if (type.Fields.TryGetField(fieldName, out ObjectField field))
+            if (type.Fields.TryGetField(fieldName, out IOutputField field))
             {
                 if (!fields.TryGetValue(responseName, out FieldSelection f))
                 {

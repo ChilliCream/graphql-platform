@@ -7,7 +7,7 @@ namespace StrawberryShake.Generators.Utilities
     public interface IFieldSelection
     {
         string ResponseName { get; }
-        ObjectField Field { get; }
+        IOutputField Field { get; }
         FieldNode Selection { get; }
         Path Path { get; }
     }

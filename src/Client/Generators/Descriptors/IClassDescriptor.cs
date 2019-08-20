@@ -7,6 +7,6 @@ namespace StrawberryShake.Generators
     {
         INamedType Type { get; }
         string Name { get; }
-        IReadOnlyList<IInterfaceDescriptor> Fields { get; }
+        IReadOnlyList<IInterfaceDescriptor> Implements { get; }
     }
 }

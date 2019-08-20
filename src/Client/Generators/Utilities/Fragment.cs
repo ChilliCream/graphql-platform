@@ -7,7 +7,7 @@ namespace StrawberryShake.Generators.Utilities
     internal sealed class Fragment
         : IFragment
     {
-        public Fragment(string name, IType typeCondition, SelectionSetNode selectionSet)
+        public Fragment(string name, INamedType typeCondition, SelectionSetNode selectionSet)
         {
             Name = name;
             TypeCondition = typeCondition ?? throw new ArgumentNullException(nameof(typeCondition));
@@ -16,7 +16,7 @@ namespace StrawberryShake.Generators.Utilities
 
         public string Name { get; }
 
-        public IType TypeCondition { get; }
+        public INamedType TypeCondition { get; }
 
         public SelectionSetNode SelectionSet { get; }
     }

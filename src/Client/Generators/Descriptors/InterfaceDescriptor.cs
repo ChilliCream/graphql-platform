@@ -7,17 +7,19 @@ namespace StrawberryShake.Generators
         : IInterfaceDescriptor
     {
         public InterfaceDescriptor(
-            INamedType type,
             string name,
-            IReadOnlyList<IFieldDescriptor> fields)
+            INamedType type,
+            IReadOnlyList<IFieldDescriptor> fields,
+            IReadOnlyList<IInterfaceDescriptor> implements)
         {
             Type = type;
             Name = name;
             Fields = fields;
         }
 
-        public INamedType Type { get; }
         public string Name { get; }
+        public INamedType Type { get; }
         public IReadOnlyList<IFieldDescriptor> Fields { get; }
+        public IReadOnlyList<IInterfaceDescriptor> Implements { get; }
     }
 }

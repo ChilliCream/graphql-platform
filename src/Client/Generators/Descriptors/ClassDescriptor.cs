@@ -9,15 +9,15 @@ namespace StrawberryShake.Generators
         public ClassDescriptor(
             INamedType type,
             string name,
-            IReadOnlyList<IInterfaceDescriptor> fields)
+            IReadOnlyList<IInterfaceDescriptor> implements)
         {
             Type = type;
             Name = name;
-            Fields = fields;
+            Implements = implements;
         }
 
         public INamedType Type { get; }
         public string Name { get; }
-        public IReadOnlyList<IInterfaceDescriptor> Fields { get; }
+        public IReadOnlyList<IInterfaceDescriptor> Implements { get; }
     }
 }

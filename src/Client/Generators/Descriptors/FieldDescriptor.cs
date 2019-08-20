@@ -5,10 +5,10 @@ using HotChocolate.Types;
 namespace StrawberryShake.Generators
 {
 
-    public class FieldSelection
+    public class FieldDescriptor
         : IFieldDescriptor
     {
-        public FieldSelection(IOutputField field, FieldNode selection, IType type)
+        public FieldDescriptor(IOutputField field, FieldNode selection, IType type)
         {
             Field = field ?? throw new ArgumentNullException(nameof(field));
             Selection = selection ?? throw new ArgumentNullException(nameof(selection));

@@ -8,7 +8,7 @@ namespace StrawberryShake.Generators.Utilities
     public class FieldSelection
         : IFieldSelection
     {
-        public FieldSelection(ObjectField field, FieldNode selection, Path path)
+        public FieldSelection(IOutputField field, FieldNode selection, Path path)
         {
             Field = field ?? throw new ArgumentNullException(nameof(field));
             Selection = selection ?? throw new ArgumentNullException(nameof(selection));
@@ -19,7 +19,7 @@ namespace StrawberryShake.Generators.Utilities
 
         public string ResponseName { get; }
 
-        public ObjectField Field { get; }
+        public IOutputField Field { get; }
 
         public FieldNode Selection { get; }
 
