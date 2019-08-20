@@ -27,6 +27,8 @@ namespace StrawberryShake.Generators
             new Stack<List<SelectionSetNode>>();
         private readonly Dictionary<FieldNode, IType> _fieldTypes =
             new Dictionary<FieldNode, IType>();
+        private readonly Dictionary<FieldNode, SelectionSetNode> _fieldSelectionSets =
+            new Dictionary<FieldNode, SelectionSetNode>();
         private readonly Stack<FieldInfo> _field = new Stack<FieldInfo>();
         private readonly ISchema _schema;
         private readonly IFileHandler _fileHandler;
@@ -290,6 +292,7 @@ namespace StrawberryShake.Generators
                     if (ancestors[i] is FieldNode field)
                     {
                         _fieldTypes[field] = type;
+                        _fieldSelectionSets[field2] = selectionSet;
                     }
                     else if (ancestors[i] is FragmentDefinitionNode)
                     {
@@ -298,6 +301,7 @@ namespace StrawberryShake.Generators
                             && ancestors[i - 3] is FieldNode field2)
                         {
                             _fieldTypes[field2] = type;
+                            _fieldSelectionSets[field2] = selectionSet;
                         }
                         else
                         {
