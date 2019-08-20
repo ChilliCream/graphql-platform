@@ -1,0 +1,11 @@
+﻿public interface IHasName
+{
+    string Name { get; }
+}
+
+public class HasName
+    : IHasName
+{
+    public string Name { get; set; }
+}
+

@@ -98,8 +98,6 @@ namespace StrawberryShake.Generators
             _types.Pop();
             _field.Pop();
 
-
-
             return VisitorAction.Continue;
         }
 
@@ -172,7 +170,7 @@ namespace StrawberryShake.Generators
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            if (node.Selections.Count == 1
+             if (node.Selections.Count == 1
                 && node.Selections[0] is NamedSyntaxNode n
                 && (Spread(n) || n is FragmentSpreadNode))
             {
@@ -303,12 +301,6 @@ namespace StrawberryShake.Generators
                         {
                             _fieldTypes[field2] = type;
                             _fieldSelectionSets[field2] = node;
-                        }
-                        else
-                        {
-                            // TODO : resources
-                            // TODO : exception type
-                            throw new InvalidOperationException();
                         }
                     }
 

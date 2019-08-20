@@ -9,12 +9,6 @@ fragment Hero on Character {
   ... HasFriends
 }
 
-fragment HasFriends on CharacterConnection {
-  friends {
-    ...Friend
-  }
-}
-
 fragment Friend on CharacterConnection {
   nodes @spread {
     ... HasName
@@ -23,4 +17,10 @@ fragment Friend on CharacterConnection {
 
 fragment HasName on Character {
   name
+}
+
+fragment HasFriends on Character {
+  friends {
+    ...Friend
+  }
 }
