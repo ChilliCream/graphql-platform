@@ -72,12 +72,20 @@ namespace HotChocolate.Types.Sorting
             var fields = new Dictionary<NameString, SortOperationDefintion>();
             var handledProperties = new HashSet<PropertyInfo>();
 
+            List<SortFieldDefinition> explicitFields =
+                Fields.Select(t => t.CreateDefinition()).ToList();
+
             FieldDescriptorUtilities.AddExplicitFields(
                 Fields.Select(t => t.CreateDefinition())
                         .SelectMany(t => t.Sorts),
                     f => f.Operation.Property,
                     fields,
                     handledProperties);
+
+            foreach (SortFieldDefinition field in explicitFields.Where(t => t.Ignore))
+            {
+                handledProperties.Add(field.Property);
+            }
 
             OnCompleteFields(fields, handledProperties);
 

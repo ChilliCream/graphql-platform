@@ -27,13 +27,13 @@ namespace HotChocolate.Types.Sorting
             SortOperationDescriptor field =
                 CreateOperation(
                     new[] { SortOperationKind.Asc, SortOperationKind.Desc });
-            Filters.Add(field);
+            SortOperations.Add(field);
         }
 
         protected sealed override SortFieldDefinition Definition { get; } =
             new SortFieldDefinition();
 
-        protected ICollection<SortOperationDescriptor> Filters { get; } =
+        protected ICollection<SortOperationDescriptor> SortOperations { get; } =
             new List<SortOperationDescriptor>();
 
         protected override void OnCreateDefinition(
@@ -48,12 +48,12 @@ namespace HotChocolate.Types.Sorting
         private void AddImplicitSorters(
             IDictionary<NameString, SortOperationDefintion> fields)
         {
-            foreach (SortOperationDefintion filterDefinition in
-                Filters.Select(t => t.CreateDefinition()))
+            foreach (SortOperationDefintion sortDefinition in
+                SortOperations.Select(t => t.CreateDefinition()))
             {
-                if (!filterDefinition.Ignore)
+                if (!sortDefinition.Ignore)
                 {
-                    fields[filterDefinition.Name] = filterDefinition;
+                    fields[sortDefinition.Name] = sortDefinition;
                 }
             }
         }

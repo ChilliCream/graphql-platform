@@ -8,10 +8,8 @@ using Xunit;
 namespace HotChocolate.Types.Sorting
 {
     public class ObjectFieldDescriptorExtensionsTests
+        : DescriptorTestBase
     {
-        public IDescriptorContext Context { get; } =
-            DescriptorContext.Create();
-
         [Fact]
         public void UseSorting_WithoutParams_ShouldRegisterPlaceholderMiddleware()
         {

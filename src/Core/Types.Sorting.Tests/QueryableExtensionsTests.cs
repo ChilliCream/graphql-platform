@@ -13,7 +13,7 @@ namespace HotChocolate.Types.Sorting
             IQueryable<Foo> source = new Foo[0].AsQueryable();
             var operation = new SortOperationInvocation(
                 SortOperationKind.Asc,
-                typeof(Foo).GetProperties().First(p => p.Name == nameof(Foo.Bar)));
+                typeof(Foo).GetProperty(nameof(Foo.Bar)));
             ParameterExpression parameter = Expression.Parameter(typeof(Foo));
 
             // act
@@ -33,7 +33,7 @@ namespace HotChocolate.Types.Sorting
             IQueryable<Foo> source = new Foo[0].AsQueryable();
             var operation = new SortOperationInvocation(
                 SortOperationKind.Desc,
-                typeof(Foo).GetProperties().First(p => p.Name == nameof(Foo.Bar)));
+                typeof(Foo).GetProperty(nameof(Foo.Bar)));
             ParameterExpression parameter = Expression.Parameter(typeof(Foo));
 
             // act
@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Sorting
             IOrderedQueryable<Foo> source = new Foo[0].AsQueryable().OrderBy(f => f.Bar);
             var operation = new SortOperationInvocation(
                 SortOperationKind.Asc,
-                typeof(Foo).GetProperties().First(p => p.Name == nameof(Foo.Bar)));
+                typeof(Foo).GetProperty(nameof(Foo.Bar)));
             ParameterExpression parameter = Expression.Parameter(typeof(Foo));
 
             // act
@@ -73,7 +73,7 @@ namespace HotChocolate.Types.Sorting
             IOrderedQueryable<Foo> source = new Foo[0].AsQueryable().OrderBy(f => f.Bar);
             var operation = new SortOperationInvocation(
                 SortOperationKind.Desc,
-                typeof(Foo).GetProperties().First(p => p.Name == nameof(Foo.Bar)));
+                typeof(Foo).GetProperty(nameof(Foo.Bar)));
             ParameterExpression parameter = Expression.Parameter(typeof(Foo));
 
             // act
