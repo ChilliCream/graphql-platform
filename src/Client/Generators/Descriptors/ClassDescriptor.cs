@@ -7,25 +7,27 @@ namespace StrawberryShake.Generators
         : IClassDescriptor
     {
         public ClassDescriptor(
-            INamedType type,
             string name,
+            INamedType type,
             IInterfaceDescriptor implements)
-            : this(type, name, new[] { implements })
+            : this(name, type, new[] { implements })
         {
         }
 
         public ClassDescriptor(
-            INamedType type,
             string name,
+            INamedType type,
             IReadOnlyList<IInterfaceDescriptor> implements)
         {
-            Type = type;
             Name = name;
+            Type = type;
             Implements = implements;
         }
 
-        public INamedType Type { get; }
         public string Name { get; }
+
+        public INamedType Type { get; }
+
         public IReadOnlyList<IInterfaceDescriptor> Implements { get; }
     }
 }

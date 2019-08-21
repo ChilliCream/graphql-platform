@@ -1,3 +1,6 @@
+using System.Runtime.CompilerServices;
+using System.IO.Pipes;
+using System.Xml;
 using System.Xml.XPath;
 using System.Reflection.Metadata;
 using System;
@@ -8,6 +11,7 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.Generators.Utilities;
 using WithDirectives = HotChocolate.Language.IHasDirectives;
+using static StrawberryShake.Generators.Utilities.NameUtils;
 
 namespace StrawberryShake.Generators
 {
@@ -18,6 +22,8 @@ namespace StrawberryShake.Generators
         private readonly HashSet<string> _names = new HashSet<string>();
         private readonly Dictionary<string, ICodeDescriptor> _descriptors =
             new Dictionary<string, ICodeDescriptor>();
+        private readonly Dictionary<FieldNode, ICodeDescriptor> _fieldTypes =
+            new Dictionary<FieldNode, ICodeDescriptor>();
         private FieldCollector _fieldCollector;
         private readonly ISchema _schema;
         private readonly DocumentNode _document;
@@ -30,34 +36,54 @@ namespace StrawberryShake.Generators
                 new FragmentCollection(schema, document));
         }
 
-        public void GenerateField(
+        public void GenerateModels()
+        {
+
+        }
+
+        private void GenerateFieldModel(
             IType parent,
             FieldNode fieldSelection,
-            HotChocolate.Path path,
-            SelectionSetNode selectionSet)
+            Path path,
+            Queue<FieldSelection> backlog)
         {
             INamedType namedType = parent.NamedType();
 
-            var results = new Dictionary<ObjectType, FieldCollectionResult>();
+            var typeCases = new Dictionary<ObjectType, FieldCollectionResult>();
 
             foreach (ObjectType objectType in
                 _schema.GetPossibleTypes(namedType))
             {
-                FieldCollectionResult result =
-                    _fieldCollector.CollectFields(
-                        objectType, selectionSet, path);
-                results[objectType] = result;
+                FieldCollectionResult result = _fieldCollector.CollectFields(
+                    objectType,
+                    fieldSelection.SelectionSet,
+                    path);
+
+                typeCases[objectType] = result;
+            }
+
+            if (namedType is UnionType unionType)
+            {
+                GenerateUnionTypeModels(
+                    fieldSelection,
+                    unionType,
+                    typeCases,
+                    path);
+            }
+            else
+            {
+                throw new NotSupportedException();
             }
         }
 
-        private InterfaceDescriptor GenerateUnionTypeModels(
+        private void GenerateUnionTypeModels(
             FieldNode fieldSelection,
             UnionType unionType,
-            IReadOnlyDictionary<ObjectType, FieldCollectionResult> results,
+            IReadOnlyDictionary<ObjectType, FieldCollectionResult> typeCases,
             Path path)
         {
             IFragmentNode returnType = null;
-            FieldCollectionResult result = results.Values.First();
+            FieldCollectionResult result = typeCases.Values.First();
             IReadOnlyList<IFragmentNode> fragments = result.Fragments;
 
             while (fragments.Count == 1)
@@ -74,7 +100,6 @@ namespace StrawberryShake.Generators
             }
 
             InterfaceDescriptor unionInterface;
-            var modelInterfaces = new List<IInterfaceDescriptor>();
 
             if (returnType is null)
             {
@@ -83,38 +108,57 @@ namespace StrawberryShake.Generators
                     unionType,
                     Utilities.NameUtils.GetInterfaceName);
                 unionInterface = new InterfaceDescriptor(name, unionType);
-                modelInterfaces.AddRange(CreateInterfaces(fragments, path));
             }
             else
             {
                 unionInterface = CreateInterface(returnType, path);
-                modelInterfaces.AddRange(unionInterface.Implements);
                 unionInterface = unionInterface.RemoveAllImplements();
                 _interfaces[returnType.Fragment] = unionInterface;
             }
 
-            var models = new List<ClassDescriptor>();
-
-            for (int i = 0; i < modelInterfaces.Count; i++)
+            foreach (var typeCase in typeCases.Select(t => t.Value))
             {
-                var modelInterface =
-                    modelInterfaces[i].TryAddImplements(unionInterface);
+                IFragmentNode fragment = typeCase.Fragments.FirstOrDefault(
+                    t => t.Fragment.TypeCondition == typeCase.Type);
 
-                string className = modelInterface.Name.Length > 1
-                    ? modelInterface.Name.Substring(1)
-                    : modelInterface.Name;
-                className = CreateName(className);
+                string className;
+                string interfaceName;
 
-                RegisterDescriptor(modelInterface);
-                RegisterDescriptor(new ClassDescriptor(
-                    modelInterface.Type,
-                    className,
-                    modelInterface));
+                if (fragment is null)
+                {
+                    className = CreateName(typeCase.Type.Name);
+                    interfaceName = CreateName(GetInterfaceName(className));
+                }
+                else
+                {
+                    className = CreateName(fragment.Fragment.Name);
+                    interfaceName = CreateName(GetInterfaceName(fragment.Fragment.Name));
+                }
+
+                var modelInterfaces = new List<IInterfaceDescriptor>();
+                modelInterfaces.Add(
+                    new InterfaceDescriptor(
+                        interfaceName,
+                        typeCase.Type,
+                        typeCase.Fields.Select(t =>
+                            new FieldDescriptor(
+                                t.Field,
+                                t.Selection,
+                                t.Field.Type))
+                            .ToList(),
+                        new[] { unionInterface }));
+                modelInterfaces.AddRange(CreateInterfaces(typeCase.Fragments, path));
+
+                var modelClass = new ClassDescriptor(
+                    className, typeCase.Type, modelInterfaces);
+
+                RegisterDescriptors(modelInterfaces);
+                RegisterDescriptor(modelClass);
             }
 
             RegisterDescriptor(unionInterface);
 
-            return unionInterface;
+            _fieldTypes[fieldSelection] = unionInterface;
         }
 
         private IReadOnlyList<InterfaceDescriptor> CreateInterfaces(
@@ -163,32 +207,24 @@ namespace StrawberryShake.Generators
 
             levels.Pop();
 
-            var fieldDescriptors = new List<IFieldDescriptor>();
+            IReadOnlyList<IFieldDescriptor> fieldDescriptors =
+                Array.Empty<IFieldDescriptor>();
 
             if (fragmentNode.Fragment.TypeCondition is IComplexOutputType type)
             {
-                var fields = new Dictionary<string, FieldSelection>();
-
-                foreach (FieldNode selection in
-                    fragmentNode.Fragment.SelectionSet.Selections.OfType<FieldNode>())
-                {
-                    NameString responseName = selection.Alias == null
-                        ? selection.Name.Value
-                        : selection.Alias.Value;
-
-                    if (implementedByChildren.Add(responseName))
+                fieldDescriptors = CreateFields(
+                    type,
+                    fragmentNode.Fragment.SelectionSet.Selections,
+                    name =>
                     {
-                        implementedFields.Add(responseName);
-                        FieldCollector.ResolveFieldSelection(
-                            type,
-                            selection,
-                            path,
-                            fields);
-                    }
-                }
-
-                fieldDescriptors.AddRange(fields.Values.Select(t =>
-                    new FieldDescriptor(t.Field, t.Selection, t.Field.Type)));
+                        if (implementedByChildren.Add(name))
+                        {
+                            implementedFields.Add(name);
+                            return true;
+                        }
+                        return false;
+                    },
+                    path);
             }
 
             string typeName = CreateName(
@@ -200,6 +236,35 @@ namespace StrawberryShake.Generators
                 fragmentNode.Fragment.TypeCondition,
                 fieldDescriptors,
                 implements);
+        }
+
+        private IReadOnlyList<IFieldDescriptor> CreateFields(
+            IComplexOutputType type,
+            IEnumerable<ISelectionNode> selections,
+            Func<string, bool> addField,
+            Path path)
+        {
+            var fields = new Dictionary<string, FieldSelection>();
+
+            foreach (FieldNode selection in selections.OfType<FieldNode>())
+            {
+                NameString responseName = selection.Alias == null
+                    ? selection.Name.Value
+                    : selection.Alias.Value;
+
+                if (addField(responseName))
+                {
+                    FieldCollector.ResolveFieldSelection(
+                        type,
+                        selection,
+                        path,
+                        fields);
+                }
+            }
+
+            return fields.Values.Select(t =>
+                new FieldDescriptor(t.Field, t.Selection, t.Field.Type))
+                .ToList();
         }
 
         private string CreateName(string name)
@@ -251,6 +316,14 @@ namespace StrawberryShake.Generators
             typeName = (string)directive.Arguments.Single(a =>
                 a.Name.Value.EqualsOrdinal("name")).Value.Value;
             return true;
+        }
+
+        private void RegisterDescriptors(IEnumerable<ICodeDescriptor> descriptors)
+        {
+            foreach (ICodeDescriptor descriptor in descriptors)
+            {
+                RegisterDescriptor(descriptor);
+            }
         }
 
         private void RegisterDescriptor(ICodeDescriptor descriptor)

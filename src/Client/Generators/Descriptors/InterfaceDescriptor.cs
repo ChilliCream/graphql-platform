@@ -20,6 +20,18 @@ namespace StrawberryShake.Generators
         public InterfaceDescriptor(
             string name,
             INamedType type,
+            IReadOnlyList<IFieldDescriptor> fields)
+            : this(
+                name,
+                type,
+                fields,
+                Array.Empty<IInterfaceDescriptor>())
+        {
+        }
+
+        public InterfaceDescriptor(
+            string name,
+            INamedType type,
             IReadOnlyList<IFieldDescriptor> fields,
             IReadOnlyList<IInterfaceDescriptor> implements)
         {
