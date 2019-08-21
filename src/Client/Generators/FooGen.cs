@@ -1,3 +1,4 @@
+using System.Xml.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,6 +18,8 @@ namespace StrawberryShake.Generators
         private readonly HashSet<string> _names = new HashSet<string>();
         private readonly Dictionary<string, ICodeDescriptor> _descriptors =
             new Dictionary<string, ICodeDescriptor>();
+        private readonly Dictionary<OperationDefinitionNode, ICodeDescriptor> _operationTypes =
+            new Dictionary<OperationDefinitionNode, ICodeDescriptor>();
         private readonly Dictionary<FieldNode, ICodeDescriptor> _fieldTypes =
             new Dictionary<FieldNode, ICodeDescriptor>();
         private FieldCollector _fieldCollector;
@@ -33,32 +36,64 @@ namespace StrawberryShake.Generators
 
         public void GenerateModels()
         {
+            var backlog = new Queue<FieldSelection>();
+            Path root = Path.New("root");
+
             foreach (var operation in _document.Definitions.OfType<OperationDefinitionNode>())
             {
                 ObjectType operationType = _schema.GetOperationType(operation.Operation);
+                GenerateOperationModel(operationType, operation, root, backlog);
+            }
 
+            while (backlog.Any())
+            {
+                FieldSelection current = backlog.Dequeue();
+                Path path = root.Append(current.ResponseName);
+                GenerateFieldModel(current.Field.Type, current.Selection, path, backlog);
             }
         }
 
+        private void GenerateOperationModel(
+           ObjectType operationType,
+           OperationDefinitionNode operation,
+           Path path,
+           Queue<FieldSelection> backlog)
+        {
+            FieldCollectionResult typeCase = _fieldCollector.CollectFields(
+                operationType,
+                operation.SelectionSet,
+                path);
+
+            EnqueueFields(backlog, typeCase.Fields);
+
+            _operationTypes[operation] = GenerateObjectTypeModels(
+                operation,
+                operationType,
+                typeCase,
+                path);
+        }
+
         private void GenerateFieldModel(
-            IType parent,
+            IType fieldType,
             FieldNode fieldSelection,
             Path path,
             Queue<FieldSelection> backlog)
         {
-            INamedType namedType = parent.NamedType();
+            INamedType namedType = fieldType.NamedType();
 
             var typeCases = new Dictionary<ObjectType, FieldCollectionResult>();
 
             foreach (ObjectType objectType in
                 _schema.GetPossibleTypes(namedType))
             {
-                FieldCollectionResult result = _fieldCollector.CollectFields(
+                FieldCollectionResult typeCase = _fieldCollector.CollectFields(
                     objectType,
                     fieldSelection.SelectionSet,
                     path);
 
-                typeCases[objectType] = result;
+                EnqueueFields(backlog, typeCase.Fields);
+
+                typeCases[objectType] = typeCase;
             }
 
             if (namedType is UnionType unionType)
@@ -80,6 +115,16 @@ namespace StrawberryShake.Generators
             else
             {
                 throw new NotSupportedException();
+            }
+        }
+
+        private static void EnqueueFields(
+            Queue<FieldSelection> backlog,
+            IEnumerable<FieldSelection> fieldSelections)
+        {
+            foreach (FieldSelection fieldSelection in fieldSelections)
+            {
+                backlog.Enqueue(fieldSelection);
             }
         }
 
@@ -199,14 +244,11 @@ namespace StrawberryShake.Generators
 
             if (returnType is null)
             {
-                className = CreateName(typeCase.Type.Name);
-                interfaceName = CreateName(GetInterfaceName(className));
+                className = CreateName(fieldOrOperation, objectType, GetClassName);
             }
             else
             {
-                className = CreateName(returnType.Fragment.Name);
-                interfaceName = CreateName(GetInterfaceName(
-                    returnType.Fragment.Name));
+                className = CreateName(GetClassName(returnType.Fragment.Name));
             }
 
             var modelSelectionSet = new SelectionSetNode(
@@ -220,14 +262,12 @@ namespace StrawberryShake.Generators
                 CreateInterface(modelFragment, path);
 
             var modelClass = new ClassDescriptor(
-                className, typeCase.Type, modelInterfaces);
+                className, typeCase.Type, modelInterface);
 
-            RegisterDescriptors(modelInterfaces);
+            RegisterDescriptor(modelInterface);
             RegisterDescriptor(modelClass);
 
-            RegisterDescriptor(unionInterface);
-
-            return unionInterface;
+            return modelInterface;
         }
 
         private IReadOnlyList<InterfaceDescriptor> CreateInterfaces(
@@ -343,7 +383,7 @@ namespace StrawberryShake.Generators
                 for (int i = 0; i < int.MaxValue; i++)
                 {
                     string n = name + i;
-                    if (!_names.Add(n))
+                    if (_names.Add(n))
                     {
                         return name;
                     }
@@ -361,7 +401,7 @@ namespace StrawberryShake.Generators
             IType returnType,
             Func<string, string> nameFormatter)
         {
-            if (!TryGetTypeName(withDirectives, out string typeName))
+            if (TryGetTypeName(withDirectives, out string typeName))
             {
                 return CreateName(nameFormatter(typeName));
             }

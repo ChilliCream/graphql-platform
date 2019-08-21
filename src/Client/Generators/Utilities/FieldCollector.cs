@@ -41,6 +41,7 @@ namespace StrawberryShake.Generators.Utilities
 
             return new FieldCollectionResult(
                 type,
+                selectionSet,
                 fields.Values.ToList(),
                 root.Children);
         }

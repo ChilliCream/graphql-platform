@@ -1,3 +1,4 @@
+using StrawberryShake.Generators.Utilities;
 using Xunit;
 
 namespace StrawberryShake.Generators

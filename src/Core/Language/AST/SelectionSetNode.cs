@@ -7,7 +7,7 @@ namespace HotChocolate.Language
         : ISyntaxNode
     {
         public SelectionSetNode(IReadOnlyList<ISelectionNode> selections)
-            : base(null, selections)
+            : this(null, selections)
         {
         }
 
