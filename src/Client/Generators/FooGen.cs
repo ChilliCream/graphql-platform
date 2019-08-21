@@ -1,8 +1,3 @@
-using System.Runtime.CompilerServices;
-using System.IO.Pipes;
-using System.Xml;
-using System.Xml.XPath;
-using System.Reflection.Metadata;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -38,7 +33,11 @@ namespace StrawberryShake.Generators
 
         public void GenerateModels()
         {
+            foreach (var operation in _document.Definitions.OfType<OperationDefinitionNode>())
+            {
+                ObjectType operationType = _schema.GetOperationType(operation.Operation);
 
+            }
         }
 
         private void GenerateFieldModel(
@@ -64,10 +63,18 @@ namespace StrawberryShake.Generators
 
             if (namedType is UnionType unionType)
             {
-                GenerateUnionTypeModels(
+                _fieldTypes[fieldSelection] = GenerateUnionTypeModels(
                     fieldSelection,
                     unionType,
                     typeCases,
+                    path);
+            }
+            else if (namedType is ObjectType objectType)
+            {
+                _fieldTypes[fieldSelection] = GenerateObjectTypeModels(
+                    fieldSelection,
+                    objectType,
+                    typeCases.Values.Single(),
                     path);
             }
             else
@@ -76,7 +83,7 @@ namespace StrawberryShake.Generators
             }
         }
 
-        private void GenerateUnionTypeModels(
+        private ICodeDescriptor GenerateUnionTypeModels(
             FieldNode fieldSelection,
             UnionType unionType,
             IReadOnlyDictionary<ObjectType, FieldCollectionResult> typeCases,
@@ -158,7 +165,69 @@ namespace StrawberryShake.Generators
 
             RegisterDescriptor(unionInterface);
 
-            _fieldTypes[fieldSelection] = unionInterface;
+            return unionInterface;
+        }
+
+        private ICodeDescriptor GenerateObjectTypeModels(
+            WithDirectives fieldOrOperation,
+            ObjectType objectType,
+            FieldCollectionResult typeCase,
+            Path path)
+        {
+            IFragmentNode returnType = null;
+            IReadOnlyList<IFragmentNode> fragments = typeCase.Fragments;
+
+            if (!typeCase.SelectionSet.Selections.OfType<FieldNode>().Any()
+                && fragments.Count == 1)
+            {
+                while (fragments.Count == 1)
+                {
+                    if (fragments[0].Fragment.TypeCondition == objectType)
+                    {
+                        returnType = fragments[0];
+                        fragments = fragments[0].Children;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+            }
+
+            string className;
+            string interfaceName;
+
+            if (returnType is null)
+            {
+                className = CreateName(typeCase.Type.Name);
+                interfaceName = CreateName(GetInterfaceName(className));
+            }
+            else
+            {
+                className = CreateName(returnType.Fragment.Name);
+                interfaceName = CreateName(GetInterfaceName(
+                    returnType.Fragment.Name));
+            }
+
+            var modelSelectionSet = new SelectionSetNode(
+                typeCase.Fields.Select(t => t.Selection).ToList());
+
+            var modelFragment = new FragmentNode(new Fragment(
+                className, objectType, modelSelectionSet));
+            modelFragment.Children.AddRange(typeCase.Fragments);
+
+            IInterfaceDescriptor modelInterface =
+                CreateInterface(modelFragment, path);
+
+            var modelClass = new ClassDescriptor(
+                className, typeCase.Type, modelInterfaces);
+
+            RegisterDescriptors(modelInterfaces);
+            RegisterDescriptor(modelClass);
+
+            RegisterDescriptor(unionInterface);
+
+            return unionInterface;
         }
 
         private IReadOnlyList<InterfaceDescriptor> CreateInterfaces(
@@ -295,6 +364,10 @@ namespace StrawberryShake.Generators
             if (!TryGetTypeName(withDirectives, out string typeName))
             {
                 return CreateName(nameFormatter(typeName));
+            }
+            else if (withDirectives is OperationDefinitionNode operation)
+            {
+                return CreateName(nameFormatter(operation.Name.Value));
             }
             return CreateName(nameFormatter(returnType.NamedType().Name));
         }
