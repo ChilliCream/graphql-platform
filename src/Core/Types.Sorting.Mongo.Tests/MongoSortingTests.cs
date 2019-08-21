@@ -178,10 +178,8 @@ namespace HotChocolate.Types.Sorting
                 descriptor.Field("items")
                     .Type<ListType<ModelType>>()
                     .UseSorting<ModelSortInputType>()
-                    .Resolver(async ctx =>
-                        (await ctx.Service<IMongoCollection<Model>>()
-                            .FindAsync(_ => true))
-                        .ToList());
+                    .Resolver(ctx =>
+                        ctx.Service<IMongoCollection<Model>>().AsQueryable());
 
                 descriptor.Field("paging")
                     .UsePaging<ModelType>()
