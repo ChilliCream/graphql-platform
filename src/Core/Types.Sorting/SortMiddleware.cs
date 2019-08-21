@@ -18,13 +18,12 @@ namespace HotChocolate.Types.Sorting
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }
 
-
         public async Task InvokeAsync(IMiddlewareContext context)
         {
             await _next(context).ConfigureAwait(false);
 
             IValueNode sortArgument = context.Argument<IValueNode>(
-                ObjectFieldDescriptorExtensions._orderByArgumentName);
+                ObjectFieldDescriptorExtensions.OrderByArgumentName);
 
             if (sortArgument is null || sortArgument is NullValueNode)
             {
@@ -53,7 +52,7 @@ namespace HotChocolate.Types.Sorting
 
             if (source != null
                 && context.Field
-                    .Arguments[ObjectFieldDescriptorExtensions._orderByArgumentName]
+                    .Arguments[ObjectFieldDescriptorExtensions.OrderByArgumentName]
                     .Type is InputObjectType iot
                 && iot is ISortInputType fit)
             {

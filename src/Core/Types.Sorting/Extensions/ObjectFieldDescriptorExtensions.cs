@@ -11,7 +11,7 @@ namespace HotChocolate.Types
 {
     public static class ObjectFieldDescriptorExtensions
     {
-        internal const string _orderByArgumentName = "order_by";
+        internal const string OrderByArgumentName = "order_by";
         private static readonly Type _middlewareDefinition =
             typeof(SortMiddleware<>);
 
@@ -84,7 +84,7 @@ namespace HotChocolate.Types
 
                     var argumentDefinition = new ArgumentDefinition
                     {
-                        Name = _orderByArgumentName,
+                        Name = OrderByArgumentName,
                         Type = new ClrTypeReference(
                             argumentType, TypeContext.Input)
                     };

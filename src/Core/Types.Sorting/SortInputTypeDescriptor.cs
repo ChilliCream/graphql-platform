@@ -76,8 +76,7 @@ namespace HotChocolate.Types.Sorting
                 Fields.Select(t => t.CreateDefinition()).ToList();
 
             FieldDescriptorUtilities.AddExplicitFields(
-                Fields.Select(t => t.CreateDefinition())
-                        .SelectMany(t => t.Sorts),
+                explicitFields.Where(t => !t.Ignore).SelectMany(t => t.Sorts),
                     f => f.Operation.Property,
                     fields,
                     handledProperties);

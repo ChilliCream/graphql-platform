@@ -6,7 +6,7 @@ using Xunit;
 namespace HotChocolate.Types.Sorting
 {
     public class SortFieldDescriptorTests
-    : DescriptorTestBase
+        : DescriptorTestBase
     {
         [Fact]
         public void Ctor_PropertyNull_ShouldThrowArgumentNullException()
@@ -40,6 +40,34 @@ namespace HotChocolate.Types.Sorting
             Assert.Equal(
                 descriptor.DefinitionAccessor.Type,
                 new ClrTypeReference(typeof(string), TypeContext.Input));
+        }
+
+        [Fact]
+        public void Ignore_ShouldSetIgnoreFlag()
+        {
+            // arrange
+            PropertyInfo property = typeof(Foo).GetProperty(nameof(Foo.Bar));
+            var descriptor = new SortFieldDescriptorInternal(Context, property);
+
+            // act
+            descriptor.Ignore();
+
+            // assert
+            Assert.True(descriptor.DefinitionAccessor.Ignore);
+        }
+
+        [Fact]
+        public void Name_ShouldSetName()
+        {
+            // arrange
+            PropertyInfo property = typeof(Foo).GetProperty(nameof(Foo.Bar));
+            var descriptor = new SortFieldDescriptorInternal(Context, property);
+
+            // act
+            descriptor.Name("qux");
+
+            // assert
+            Assert.Equal("qux", descriptor.DefinitionAccessor.Name);
         }
 
         private class SortFieldDescriptorInternal : SortFieldDescriptor

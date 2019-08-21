@@ -85,7 +85,7 @@ namespace HotChocolate.Types.Sorting
             if (!(Types.Peek().NamedType() is InputObjectType inputType))
             {
                 // TODO : resources - invalid type
-                throw new InvalidOperationException();
+                throw new NotSupportedException();
             }
 
             if (!inputType.Fields.TryGetField(node.Name.Value,

@@ -130,6 +130,46 @@ namespace HotChocolate.Types.Sorting
             result.MatchSnapshot();
         }
 
+
+        [Fact]
+        public async Task GetItems_OnRenamedField_DescSorting_AllItems_Are_Returned_DescSorted()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton(sp =>
+            {
+                var client = new MongoClient();
+                IMongoDatabase database = client.GetDatabase(
+                    "db_" + Guid.NewGuid().ToString("N"));
+
+                IMongoCollection<Model> collection = database.GetCollection<Model>("col");
+                collection.InsertMany(new[]
+                {
+                    new Model { Foo = "abc", Bar = 1, Baz = true },
+                    new Model { Foo = "def", Bar = 2, Baz = false },
+                });
+                return collection;
+            });
+
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddServices(serviceCollection.BuildServiceProvider())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("{ items(order_by: { qux: DESC }) { bar } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            Assert.Empty(result.Errors);
+            result.MatchSnapshot();
+        }
+
         public class QueryType : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
@@ -137,7 +177,7 @@ namespace HotChocolate.Types.Sorting
                 descriptor.Name("Query");
                 descriptor.Field("items")
                     .Type<ListType<ModelType>>()
-                    .UseSorting<SortInputType<Model>>()
+                    .UseSorting<ModelSortInputType>()
                     .Resolver(async ctx =>
                         (await ctx.Service<IMongoCollection<Model>>()
                             .FindAsync(_ => true))
@@ -145,9 +185,17 @@ namespace HotChocolate.Types.Sorting
 
                 descriptor.Field("paging")
                     .UsePaging<ModelType>()
-                    .UseSorting<SortInputType<Model>>()
+                    .UseSorting<ModelSortInputType>()
                     .Resolver(ctx =>
                         ctx.Service<IMongoCollection<Model>>().AsQueryable());
+            }
+        }
+
+        public class ModelSortInputType : SortInputType<Model>
+        {
+            protected override void Configure(ISortInputTypeDescriptor<Model> descriptor)
+            {
+                descriptor.SortField(m => m.Bar).Name("qux");
             }
         }
 

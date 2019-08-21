@@ -30,6 +30,32 @@ namespace HotChocolate.Types.Sorting
         }
 
         [Fact]
+        public void Create_Implicit_Sorting_WithIgnoredField()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new SortInputType<Foo>(d => d.BindFieldsImplicitly()
+                    .SortField(f => f.Baz).Ignore()));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Implicit_Sorting_WithRenamedField()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new SortInputType<Foo>(d => d.BindFieldsImplicitly()
+                    .SortField(f => f.Baz).Name("quux")));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Create_Explicit_Sorting()
         {
             // arrange

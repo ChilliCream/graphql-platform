@@ -32,5 +32,10 @@ namespace HotChocolate
             public const string InvalidArgument = "TS_INVALID_ARG";
             public const string NonNullArgument = "TS_ARG_NON_NULL";
         }
+
+        public static class Sorting
+        {
+            public const string SortingObjectType = "SORTING_OBJECT_TYPE";
+        }
     }
 }

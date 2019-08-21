@@ -7,9 +7,8 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Types.Sorting
 {
     public class SortFieldDescriptor
-        : DescriptorBase<SortFieldDefinition>,
-          ISortFieldDescriptor
-
+        : DescriptorBase<SortFieldDefinition>
+        , ISortFieldDescriptor
     {
         public SortFieldDescriptor(
             IDescriptorContext context,
@@ -23,11 +22,18 @@ namespace HotChocolate.Types.Sorting
             Definition.Description = context.Naming.GetMemberDescription(
                 property, MemberKind.InputObjectField);
             Definition.Type = context.Inspector.GetInputReturnType(property);
+        }
 
-            SortOperationDescriptor field =
-                CreateOperation(
-                    new[] { SortOperationKind.Asc, SortOperationKind.Desc });
-            SortOperations.Add(field);
+        public ISortFieldDescriptor Ignore()
+        {
+            Definition.Ignore = true;
+            return this;
+        }
+
+        public ISortFieldDescriptor Name(NameString value)
+        {
+            Definition.Name = value;
+            return this;
         }
 
         protected sealed override SortFieldDefinition Definition { get; } =
@@ -39,6 +45,11 @@ namespace HotChocolate.Types.Sorting
         protected override void OnCreateDefinition(
             SortFieldDefinition definition)
         {
+            SortOperationDescriptor field =
+                CreateOperation(
+                    new[] { SortOperationKind.Asc, SortOperationKind.Desc });
+            SortOperations.Add(field);
+
             var fields = new Dictionary<NameString, SortOperationDefintion>();
             AddImplicitSorters(fields);
 

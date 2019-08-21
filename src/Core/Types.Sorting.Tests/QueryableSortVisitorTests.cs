@@ -7,7 +7,7 @@ using Xunit;
 namespace HotChocolate.Types.Sorting
 {
     public class QueryableSortVisitorTests
-    : TypeTestBase
+        : TypeTestBase
     {
         [Fact]
         public void Ctor_InitialTypeNull_ShouldThrowArgumentNullException()

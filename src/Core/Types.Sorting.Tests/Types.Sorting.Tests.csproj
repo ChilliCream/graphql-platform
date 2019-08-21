@@ -18,7 +18,4 @@
     <ProjectReference Include="..\Types.Sorting\Types.Sorting.csproj" />
     <ProjectReference Include="..\Types.Tests\Types.Tests.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="__snapshots__\" />
-  </ItemGroup>
 </Project>

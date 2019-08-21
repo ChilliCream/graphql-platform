@@ -6,9 +6,9 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Sorting
 {
-    public class SortInputType<T>:
-        InputObjectType,
-        ISortInputType
+    public class SortInputType<T>
+        : InputObjectType
+        , ISortInputType
     {
         private readonly Action<ISortInputTypeDescriptor<T>> _configure;
 
