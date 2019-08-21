@@ -36,10 +36,13 @@ namespace StrawberryShake.Generators
             }
         }
 
-        private InterfaceDescriptor CreateInterfaces(
+        private InterfaceDescriptor CreateInterface(
             IFragmentNode fragmentNode,
-            HotChocolate.Path path)
+            Path path,
+            Stack<HashSet<string>> fields)
         {
+            
+
             if (_interfaces.TryGetValue(
                 fragmentNode.Fragment,
                 out InterfaceDescriptor descriptor))
@@ -51,7 +54,7 @@ namespace StrawberryShake.Generators
 
             foreach (IFragmentNode child in fragmentNode.Children)
             {
-                implements.Add(CreateInterfaces(child, path));
+                implements.Add(CreateInterface(child, path, fields));
             }
 
             var fieldDescriptors = new List<IFieldDescriptor>();
