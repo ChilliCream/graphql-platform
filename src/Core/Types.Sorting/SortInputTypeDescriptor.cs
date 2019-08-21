@@ -34,7 +34,7 @@ namespace HotChocolate.Types.Sorting
         protected sealed override SortInputTypeDefinition Definition { get; } =
             new SortInputTypeDefinition();
 
-        protected List<SortFieldDescriptor> Fields { get; } =
+        protected ICollection<SortFieldDescriptor> Fields { get; } =
             new List<SortFieldDescriptor>();
 
         public ISortInputTypeDescriptor<T> BindFields(

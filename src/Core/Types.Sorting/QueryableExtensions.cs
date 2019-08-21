@@ -15,13 +15,12 @@ namespace HotChocolate.Types.Sorting
             Expression<Func<TSource, object>> lambda
                 = HandleProperty<TSource>(operation, parameter);
 
-            switch (operation.Kind)
+            if (operation.Kind == SortOperationKind.Desc)
             {
-                case SortOperationKind.Desc:
-                    return source.OrderByDescending(lambda);
-                default:
-                    return source.OrderBy(lambda);
+                return source.OrderByDescending(lambda);
             }
+
+            return source.OrderBy(lambda);
         }
 
         internal static IOrderedQueryable<TSource> AddSortOperation<TSource>(
@@ -32,13 +31,12 @@ namespace HotChocolate.Types.Sorting
             Expression<Func<TSource, object>> lambda
                 = HandleProperty<TSource>(operation, parameter);
 
-            switch (operation.Kind)
+            if (operation.Kind == SortOperationKind.Desc)
             {
-                case SortOperationKind.Desc:
-                    return source.ThenByDescending(lambda);
-                default:
-                    return source.ThenBy(lambda);
+                return source.ThenByDescending(lambda);
             }
+
+            return source.ThenBy(lambda);
         }
 
         internal static Expression<Func<TSource, object>> HandleProperty<TSource>(
