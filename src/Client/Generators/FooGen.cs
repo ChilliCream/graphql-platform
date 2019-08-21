@@ -1,4 +1,3 @@
-using System.Xml.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,6 +33,8 @@ namespace StrawberryShake.Generators
                 new FragmentCollection(schema, document));
         }
 
+        public IReadOnlyCollection<ICodeDescriptor> Descriptors => _descriptors.Values;
+
         public void GenerateModels()
         {
             var backlog = new Queue<FieldSelection>();
@@ -67,8 +68,8 @@ namespace StrawberryShake.Generators
             EnqueueFields(backlog, typeCase.Fields);
 
             _operationTypes[operation] = GenerateObjectTypeModels(
-                operation,
                 operationType,
+                operation,
                 typeCase,
                 path);
         }
@@ -81,10 +82,14 @@ namespace StrawberryShake.Generators
         {
             INamedType namedType = fieldType.NamedType();
 
+            IReadOnlyCollection<ObjectType> possibleTypes =
+                namedType is ObjectType ot
+                    ? new ObjectType[] { ot }
+                    : _schema.GetPossibleTypes(namedType);
+
             var typeCases = new Dictionary<ObjectType, FieldCollectionResult>();
 
-            foreach (ObjectType objectType in
-                _schema.GetPossibleTypes(namedType))
+            foreach (ObjectType objectType in possibleTypes)
             {
                 FieldCollectionResult typeCase = _fieldCollector.CollectFields(
                     objectType,
@@ -99,22 +104,26 @@ namespace StrawberryShake.Generators
             if (namedType is UnionType unionType)
             {
                 _fieldTypes[fieldSelection] = GenerateUnionTypeModels(
-                    fieldSelection,
                     unionType,
-                    typeCases,
+                    fieldSelection,
+                    typeCases.Values,
+                    path);
+            }
+            else if (namedType is InterfaceType interfaceType)
+            {
+                _fieldTypes[fieldSelection] = GenerateInterfaceTypeModels(
+                    interfaceType,
+                    fieldSelection,
+                    typeCases.Values,
                     path);
             }
             else if (namedType is ObjectType objectType)
             {
                 _fieldTypes[fieldSelection] = GenerateObjectTypeModels(
-                    fieldSelection,
                     objectType,
+                    fieldSelection,
                     typeCases.Values.Single(),
                     path);
-            }
-            else
-            {
-                throw new NotSupportedException();
             }
         }
 
@@ -129,13 +138,13 @@ namespace StrawberryShake.Generators
         }
 
         private ICodeDescriptor GenerateUnionTypeModels(
-            FieldNode fieldSelection,
             UnionType unionType,
-            IReadOnlyDictionary<ObjectType, FieldCollectionResult> typeCases,
+            FieldNode fieldSelection,
+            IReadOnlyCollection<FieldCollectionResult> typeCases,
             Path path)
         {
             IFragmentNode returnType = null;
-            FieldCollectionResult result = typeCases.Values.First();
+            FieldCollectionResult result = typeCases.First();
             IReadOnlyList<IFragmentNode> fragments = result.Fragments;
 
             while (fragments.Count == 1)
@@ -168,7 +177,7 @@ namespace StrawberryShake.Generators
                 _interfaces[returnType.Fragment] = unionInterface;
             }
 
-            foreach (var typeCase in typeCases.Select(t => t.Value))
+            foreach (var typeCase in typeCases)
             {
                 IFragmentNode fragment = typeCase.Fragments.FirstOrDefault(
                     t => t.Fragment.TypeCondition == typeCase.Type);
@@ -213,41 +222,102 @@ namespace StrawberryShake.Generators
             return unionInterface;
         }
 
-        private ICodeDescriptor GenerateObjectTypeModels(
-            WithDirectives fieldOrOperation,
-            ObjectType objectType,
-            FieldCollectionResult typeCase,
+        private ICodeDescriptor GenerateInterfaceTypeModels(
+            InterfaceType interfaceType,
+            FieldNode fieldSelection,
+            IReadOnlyCollection<FieldCollectionResult> typeCases,
             Path path)
         {
-            IFragmentNode returnType = null;
-            IReadOnlyList<IFragmentNode> fragments = typeCase.Fragments;
+            FieldCollectionResult firstCase = typeCases.First();
 
-            if (!typeCase.SelectionSet.Selections.OfType<FieldNode>().Any()
-                && fragments.Count == 1)
-            {
-                while (fragments.Count == 1)
-                {
-                    if (fragments[0].Fragment.TypeCondition == objectType)
-                    {
-                        returnType = fragments[0];
-                        fragments = fragments[0].Children;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
-            }
+            IFragmentNode returnType = HoistFragment(
+                interfaceType, firstCase.SelectionSet, firstCase.Fragments);
 
-            string className;
-            string interfaceName;
+            InterfaceDescriptor interfaceDescriptor;
 
             if (returnType is null)
             {
+                firstCase = _fieldCollector.CollectFields(
+                    interfaceType, firstCase.SelectionSet, path);
+                string name = CreateName(fieldSelection, interfaceType, GetClassName);
+
+                var interfaceSelectionSet = new SelectionSetNode(
+                    firstCase.Fields.Select(t => t.Selection).ToList());
+
+                returnType = new FragmentNode(new Fragment(
+                    name, interfaceType, interfaceSelectionSet));
+                _names.Remove(name);
+            }
+
+            interfaceDescriptor = CreateInterface(returnType, path);
+
+            foreach (var typeCase in typeCases)
+            {
+                string className;
+                IReadOnlyList<IFragmentNode> fragments;
+
+                returnType = HoistFragment(
+                    (ObjectType)typeCase.Type,
+                    typeCase.SelectionSet,
+                    typeCase.Fragments);
+
+                if (returnType is null)
+                {
+                    fragments = typeCase.Fragments;
+                    className = CreateName(GetClassName(typeCase.Type.Name));
+                }
+                else
+                {
+                    fragments = returnType.Children;
+                    className = CreateName(GetClassName(returnType.Fragment.Name));
+                }
+
+                var modelSelectionSet = new SelectionSetNode(
+                    typeCase.Fields.Select(t => t.Selection).ToList());
+
+                var modelFragment = new FragmentNode(new Fragment(
+                    className, typeCase.Type, modelSelectionSet));
+                modelFragment.Children.AddRange(fragments);
+
+                IInterfaceDescriptor modelInterface =
+                    CreateInterface(modelFragment, path);
+
+                var modelClass = new ClassDescriptor(
+                    className, typeCase.Type, new[]
+                    {
+                        modelInterface,
+                        interfaceDescriptor
+                    });
+
+                RegisterDescriptor(modelInterface);
+                RegisterDescriptor(modelClass);
+            }
+
+            RegisterDescriptor(interfaceDescriptor);
+
+            return interfaceDescriptor;
+        }
+
+        private ICodeDescriptor GenerateObjectTypeModels(
+            ObjectType objectType,
+            WithDirectives fieldOrOperation,
+            FieldCollectionResult typeCase,
+            Path path)
+        {
+            IFragmentNode returnType = HoistFragment(
+                objectType, typeCase.SelectionSet, typeCase.Fragments);
+
+            IReadOnlyList<IFragmentNode> fragments;
+            string className;
+
+            if (returnType is null)
+            {
+                fragments = typeCase.Fragments;
                 className = CreateName(fieldOrOperation, objectType, GetClassName);
             }
             else
             {
+                fragments = returnType.Children;
                 className = CreateName(GetClassName(returnType.Fragment.Name));
             }
 
@@ -256,7 +326,7 @@ namespace StrawberryShake.Generators
 
             var modelFragment = new FragmentNode(new Fragment(
                 className, objectType, modelSelectionSet));
-            modelFragment.Children.AddRange(typeCase.Fragments);
+            modelFragment.Children.AddRange(fragments);
 
             IInterfaceDescriptor modelInterface =
                 CreateInterface(modelFragment, path);
@@ -268,6 +338,26 @@ namespace StrawberryShake.Generators
             RegisterDescriptor(modelClass);
 
             return modelInterface;
+        }
+
+        private IFragmentNode HoistFragment(
+            INamedType typeContext,
+            SelectionSetNode selectionSet,
+            IReadOnlyList<IFragmentNode> fragments)
+        {
+            (SelectionSetNode s, IReadOnlyList<IFragmentNode> f) current =
+                (selectionSet, fragments);
+            IFragmentNode selected = null;
+
+            while (!current.s.Selections.OfType<FieldNode>().Any()
+                && current.f.Count == 0
+                && current.f[0].Fragment.TypeCondition == typeContext)
+            {
+                selected = current.f[0];
+                current = (selected.Fragment.SelectionSet, selected.Children);
+            }
+
+            return selected;
         }
 
         private IReadOnlyList<InterfaceDescriptor> CreateInterfaces(
@@ -441,7 +531,7 @@ namespace StrawberryShake.Generators
 
         private void RegisterDescriptor(ICodeDescriptor descriptor)
         {
-            if (_descriptors.ContainsKey(descriptor.Name))
+            if (!_descriptors.ContainsKey(descriptor.Name))
             {
                 _descriptors.Add(descriptor.Name, descriptor);
             }

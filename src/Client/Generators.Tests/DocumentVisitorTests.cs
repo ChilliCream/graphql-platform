@@ -10,6 +10,7 @@ using HotChocolate.Language;
 using Moq;
 using Snapshooter;
 using Snapshooter.Xunit;
+using StrawberryShake.Generators.Utilities;
 using Xunit;
 
 namespace StrawberryShake.Generators
@@ -44,9 +45,18 @@ namespace StrawberryShake.Generators
             // act
             generator.GenerateModels();
 
-
-
             // assert
+            var builder = new StringBuilder();
+            using (var writer = new CodeWriter(builder))
+            {
+                var codeGen = new ModelInterfaceGenerator();
+                foreach (InterfaceDescriptor descriptor in generator.Descriptors.OfType<InterfaceDescriptor>())
+                {
+                    await codeGen.WriteAsync(writer, descriptor, null);
+                }
+            }
+
+            builder.ToString().MatchSnapshot();
 
         }
     }

@@ -21,7 +21,7 @@ namespace StrawberryShake.Generators.Utilities
         }
 
         public FieldCollectionResult CollectFields(
-            ObjectType type,
+            INamedOutputType type,
             SelectionSetNode selectionSet,
             Path path)
         {
@@ -47,7 +47,7 @@ namespace StrawberryShake.Generators.Utilities
         }
 
         private void CollectFields(
-            ObjectType type,
+            INamedOutputType type,
             SelectionSetNode selectionSet,
             Path path,
             IDictionary<string, FieldSelection> fields,
@@ -65,16 +65,16 @@ namespace StrawberryShake.Generators.Utilities
         }
 
         private void ResolveFields(
-            ObjectType type,
+            INamedOutputType type,
             ISelectionNode selection,
             Path path,
             IDictionary<string, FieldSelection> fields,
             FragmentNode parent)
         {
-            if (selection is FieldNode fs)
+            if (selection is FieldNode fs && type is IComplexOutputType ct)
             {
                 ResolveFieldSelection(
-                    type,
+                    ct,
                     fs,
                     path,
                     fields);
@@ -127,7 +127,7 @@ namespace StrawberryShake.Generators.Utilities
         }
 
         private void ResolveFragmentSpread(
-            ObjectType type,
+            INamedOutputType type,
             FragmentSpreadNode fragmentSpread,
             Path path,
             IDictionary<string, FieldSelection> fields,
@@ -149,7 +149,7 @@ namespace StrawberryShake.Generators.Utilities
         }
 
         private void ResolveInlineFragment(
-            ObjectType type,
+            INamedOutputType type,
             InlineFragmentNode inlineFragment,
             Path path,
             IDictionary<string, FieldSelection> fields,
@@ -170,15 +170,16 @@ namespace StrawberryShake.Generators.Utilities
 
         private static bool DoesTypeApply(
             IType typeCondition,
-            ObjectType current)
+            INamedOutputType current)
         {
             if (typeCondition is ObjectType ot)
             {
                 return ot == current;
             }
-            else if (typeCondition is InterfaceType it)
+            else if (typeCondition is InterfaceType it
+                && current is ObjectType cot)
             {
-                return current.Interfaces.ContainsKey(it.Name);
+                return cot.Interfaces.ContainsKey(it.Name);
             }
             else if (typeCondition is UnionType ut)
             {

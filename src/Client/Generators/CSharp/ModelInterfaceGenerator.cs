@@ -1,9 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using StrawberryShake.Generators.Utilities;
+using static StrawberryShake.Generators.Utilities.NameUtils;
 
 namespace StrawberryShake.Generators
 {
@@ -27,13 +27,19 @@ namespace StrawberryShake.Generators
 
             if (interfaceDescriptor.Type is IComplexOutputType complexType)
             {
-                foreach (FieldInfo fieldInfo in interfaceDescriptor.Fields)
+                foreach (FieldDescriptor fieldDescriptor in interfaceDescriptor.Fields)
                 {
                     if (complexType.Fields.ContainsField(
-                        fieldInfo.Selection.Name.Value))
+                        fieldDescriptor.Selection.Name.Value))
                     {
-                        string typeName = typeLookup.GetTypeName(fieldInfo.Selection, fieldInfo.Type, true);
-                        string propertyName = NameUtils.GetPropertyName(fieldInfo.ResponseName);
+                        string typeName = "string";
+
+                            /* typeLookup.GetTypeName(
+                            fieldDescriptor.Selection,
+                            fieldDescriptor.Type,
+                            true); */
+
+                        string propertyName = GetPropertyName(fieldDescriptor.ResponseName);
 
                         await writer.WriteIndentAsync();
                         await writer.WriteAsync(typeName);

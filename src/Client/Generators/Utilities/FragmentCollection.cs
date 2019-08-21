@@ -72,7 +72,7 @@ namespace StrawberryShake.Generators.Utilities
         }
 
         public Fragment GetFragment(
-            ObjectType parentType,
+            INamedOutputType parentType,
             InlineFragmentNode inlineFragment)
         {
             if (parentType == null)
@@ -98,7 +98,7 @@ namespace StrawberryShake.Generators.Utilities
         }
 
         private Fragment CreateFragment(
-            ObjectType parentType,
+            INamedOutputType parentType,
             InlineFragmentNode inlineFragment)
         {
             INamedType type;

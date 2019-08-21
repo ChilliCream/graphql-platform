@@ -1,0 +1,19 @@
+﻿public interface IGetHero
+{
+    string Hero { get; }
+}public interface IDroid
+{
+    string Name { get; }
+    string Friends { get; }
+}public interface IHuman
+{
+    string Name { get; }
+    string Friends { get; }
+}public interface ICharacter
+{
+    string Name { get; }
+    string Friends { get; }
+}public interface ICharacterConnection
+{
+    string Nodes { get; }
+}

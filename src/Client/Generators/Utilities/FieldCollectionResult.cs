@@ -8,7 +8,7 @@ namespace StrawberryShake.Generators.Utilities
     internal sealed class FieldCollectionResult
     {
         public FieldCollectionResult(
-            ObjectType type,
+            INamedType type,
             SelectionSetNode selectionSet,
             IReadOnlyList<FieldSelection> fields,
             IReadOnlyList<IFragmentNode> fragments)
@@ -19,7 +19,7 @@ namespace StrawberryShake.Generators.Utilities
             Fragments = fragments ?? throw new ArgumentNullException(nameof(fragments));
         }
 
-        public ObjectType Type { get; }
+        public INamedType Type { get; }
 
         public SelectionSetNode SelectionSet { get; }
 
