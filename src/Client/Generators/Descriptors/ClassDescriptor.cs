@@ -9,6 +9,14 @@ namespace StrawberryShake.Generators
         public ClassDescriptor(
             INamedType type,
             string name,
+            IInterfaceDescriptor implements)
+            : this(type, name, new[] { implements })
+        {
+        }
+
+        public ClassDescriptor(
+            INamedType type,
+            string name,
             IReadOnlyList<IInterfaceDescriptor> implements)
         {
             Type = type;

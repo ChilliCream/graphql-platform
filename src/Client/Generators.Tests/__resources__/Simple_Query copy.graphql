@@ -1,0 +1,18 @@
+query getHero {
+  hero {
+    ...Bar
+    ...Foo
+  }
+}
+
+fragment Foo on Human {
+  friends {
+    nodes {
+      name
+    }
+  }
+}
+
+fragment Bar on Character {
+  name
+}

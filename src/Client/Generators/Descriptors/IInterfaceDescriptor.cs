@@ -4,9 +4,14 @@ using HotChocolate.Types;
 namespace StrawberryShake.Generators
 {
     public interface IInterfaceDescriptor
+        : ICodeDescriptor
     {
         INamedType Type { get; }
-        string Name { get; }
+
         IReadOnlyList<IFieldDescriptor> Fields { get; }
+
+        IInterfaceDescriptor TryAddImplements(IInterfaceDescriptor descriptor);
+
+        IInterfaceDescriptor RemoveAllImplements();
     }
 }
