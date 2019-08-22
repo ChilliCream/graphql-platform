@@ -15,9 +15,9 @@ namespace HotChocolate.Types.Sorting
         {
             Definition.Name = name.EnsureNotEmpty(nameof(name));
             Definition.Type = type
-                              ?? throw new ArgumentNullException(nameof(type));
+                ?? throw new ArgumentNullException(nameof(type));
             Definition.Operation = operation
-                                   ?? throw new ArgumentNullException(nameof(operation));
+                ?? throw new ArgumentNullException(nameof(operation));
         }
 
         protected sealed override SortOperationDefintion Definition { get; } =

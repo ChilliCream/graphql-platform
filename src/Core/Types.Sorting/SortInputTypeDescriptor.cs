@@ -76,7 +76,7 @@ namespace HotChocolate.Types.Sorting
                 Fields.Select(t => t.CreateDefinition()).ToList();
 
             FieldDescriptorUtilities.AddExplicitFields(
-                explicitFields.Where(t => !t.Ignore).SelectMany(t => t.Sorts),
+                explicitFields.Where(t => !t.Ignore).SelectMany(t => t.SortableFields),
                     f => f.Operation.Property,
                     fields,
                     handledProperties);
@@ -112,7 +112,7 @@ namespace HotChocolate.Types.Sorting
                 }
 
                 foreach (SortOperationDefintion sortOperation in
-                    definition.Sorts)
+                    definition.SortableFields)
                 {
                     if (!fields.ContainsKey(sortOperation.Name))
                     {

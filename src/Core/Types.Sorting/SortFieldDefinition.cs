@@ -5,7 +5,7 @@ namespace HotChocolate.Types.Sorting
     public class SortFieldDefinition
         : InputFieldDefinition
     {
-        public IBindableList<SortOperationDefintion> Sorts { get; } =
+        public IBindableList<SortOperationDefintion> SortableFields { get; } =
             new BindableList<SortOperationDefintion>();
     }
 }

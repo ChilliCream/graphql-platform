@@ -13,7 +13,7 @@ namespace HotChocolate.Types
     {
         internal const string OrderByArgumentName = "order_by";
         private static readonly Type _middlewareDefinition =
-            typeof(SortMiddleware<>);
+            typeof(QueryableSortMiddleware<>);
 
         public static IObjectFieldDescriptor UseSorting(
             this IObjectFieldDescriptor descriptor)

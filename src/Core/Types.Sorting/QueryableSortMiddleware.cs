@@ -8,14 +8,24 @@ using HotChocolate.Types.Relay;
 
 namespace HotChocolate.Types.Sorting
 {
-    public class SortMiddleware<T>
+    public class QueryableSortMiddleware<T>
     {
         private readonly FieldDelegate _next;
 
-        public SortMiddleware(
+        public QueryableSortMiddleware(
             FieldDelegate next)
         {
             _next = next ?? throw new ArgumentNullException(nameof(next));
+        }
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
 
         public async Task InvokeAsync(IMiddlewareContext context)
@@ -66,6 +76,11 @@ namespace HotChocolate.Types.Sorting
                     ? (object)source
                     : new PageableData<T>(source, p.Properties);
             }
+        }
+
+        public override string ToString()
+        {
+            return base.ToString();
         }
     }
 }

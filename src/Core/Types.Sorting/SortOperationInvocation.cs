@@ -11,7 +11,7 @@ namespace HotChocolate.Types.Sorting
         {
             Kind = kind;
             Property = property
-                       ?? throw new ArgumentNullException(nameof(property));
+                ?? throw new ArgumentNullException(nameof(property));
         }
 
         public SortOperationKind Kind { get; }

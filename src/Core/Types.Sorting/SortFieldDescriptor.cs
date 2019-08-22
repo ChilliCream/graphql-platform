@@ -53,7 +53,7 @@ namespace HotChocolate.Types.Sorting
             var fields = new Dictionary<NameString, SortOperationDefintion>();
             AddImplicitSorters(fields);
 
-            Definition.Sorts.AddRange(fields.Values);
+            Definition.SortableFields.AddRange(fields.Values);
         }
 
         private void AddImplicitSorters(
