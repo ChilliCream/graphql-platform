@@ -127,7 +127,7 @@ namespace HotChocolate.Language
             }
 
             if (request.IsQueryNull
-                && request.NamedQuery == null)
+                && request.QueryName == null)
             {
                 // TODO : resources
                 throw new SyntaxException(
@@ -142,15 +142,15 @@ namespace HotChocolate.Language
             {
                 if (_useCache)
                 {
-                    if (request.NamedQuery is null)
+                    if (request.QueryName is null)
                     {
-                        request.NamedQuery =
+                        request.QueryName =
                             request.QueryHash =
                             _hashProvider.ComputeHash(request.Query);
                     }
 
                     if (!_cache.TryGetDocument(
-                        request.NamedQuery,
+                        request.QueryName,
                         out document))
                     {
                         document = ParseQuery(in request);
@@ -171,7 +171,7 @@ namespace HotChocolate.Language
             return new GraphQLRequest
             (
                 document,
-                request.NamedQuery,
+                request.QueryName,
                 request.QueryHash,
                 request.OperationName,
                 request.Variables,
@@ -197,7 +197,29 @@ namespace HotChocolate.Language
                 case _n:
                     if (fieldName.SequenceEqual(_queryName))
                     {
-                        request.NamedQuery = ParseStringOrNull();
+                        if (request.QueryName is null)
+                        {
+                            request.QueryName = ParseStringOrNull();
+                        }
+                        else
+                        {
+                            SkipValue();
+                        }
+                        return;
+                    }
+                    break;
+
+                case _i:
+                    if (fieldName.SequenceEqual(_id))
+                    {
+                        if (request.QueryName is null)
+                        {
+                            request.QueryName = ParseStringOrNull();
+                        }
+                        else
+                        {
+                            SkipValue();
+                        }
                         return;
                     }
                     break;
@@ -235,15 +257,11 @@ namespace HotChocolate.Language
                         return;
                     }
                     break;
-            }
 
-            // TODO : resources
-            throw new SyntaxException(
-                _reader,
-                string.Format(
-                    CultureInfo.InvariantCulture,
-                    "Unexpected request property name `{0}` found.",
-                    Utf8GraphQLReader.GetString(fieldName, false)));
+                default:
+                    SkipValue();
+                    break;
+            }
         }
 
         private void ParseMessageProperty(ref Message message)
