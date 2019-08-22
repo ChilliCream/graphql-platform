@@ -18,16 +18,6 @@ namespace HotChocolate.Types.Sorting
             _next = next ?? throw new ArgumentNullException(nameof(next));
         }
 
-        public override bool Equals(object obj)
-        {
-            return base.Equals(obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
-
         public async Task InvokeAsync(IMiddlewareContext context)
         {
             await _next(context).ConfigureAwait(false);
@@ -76,11 +66,6 @@ namespace HotChocolate.Types.Sorting
                     ? (object)source
                     : new PageableData<T>(source, p.Properties);
             }
-        }
-
-        public override string ToString()
-        {
-            return base.ToString();
         }
     }
 }
