@@ -12,8 +12,6 @@ namespace StrawberryShake.Generators
 {
     internal class CodeModelGenerator
     {
-        private readonly Dictionary<IFragment, InterfaceDescriptor> _interfaces =
-            new Dictionary<IFragment, InterfaceDescriptor>();
         private readonly HashSet<string> _names = new HashSet<string>();
         private readonly Dictionary<string, ICodeDescriptor> _descriptors =
             new Dictionary<string, ICodeDescriptor>();
@@ -72,8 +70,6 @@ namespace StrawberryShake.Generators
                 operationType,
                 operation.SelectionSet,
                 path);
-
-            //typeCase.Fields.Where(t => t.)
 
             EnqueueFields(backlog, typeCase.Fields);
 
@@ -184,7 +180,6 @@ namespace StrawberryShake.Generators
             {
                 unionInterface = CreateInterface(returnType, path);
                 unionInterface = unionInterface.RemoveAllImplements();
-                _interfaces[returnType.Fragment] = unionInterface;
             }
 
             foreach (var typeCase in typeCases)
@@ -293,11 +288,7 @@ namespace StrawberryShake.Generators
                     CreateInterface(modelFragment, path);
 
                 var modelClass = new ClassDescriptor(
-                    className, typeCase.Type, new[]
-                    {
-                        modelInterface,
-                        interfaceDescriptor
-                    });
+                    className, typeCase.Type, modelInterface);
 
                 RegisterDescriptor(modelInterface);
                 RegisterDescriptor(modelClass);
@@ -396,14 +387,8 @@ namespace StrawberryShake.Generators
             Path path,
             Stack<HashSet<string>> levels)
         {
-            if (_interfaces.TryGetValue(
-                fragmentNode.Fragment,
-                out InterfaceDescriptor descriptor))
-            {
-                return descriptor;
-            }
-
             HashSet<string> implementedFields = levels.Peek();
+
             var implementedByChildren = new HashSet<string>();
             levels.Push(implementedByChildren);
 
@@ -415,6 +400,11 @@ namespace StrawberryShake.Generators
             }
 
             levels.Pop();
+
+            foreach (string fieldName in implementedByChildren)
+            {
+                implementedFields.Add(fieldName);
+            }
 
             IReadOnlyList<IFieldDescriptor> fieldDescriptors =
                 Array.Empty<IFieldDescriptor>();

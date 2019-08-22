@@ -1,3 +1,7 @@
+using System;
+using System.IO;
+using System.Text.Json;
+
 namespace StrawberryShake
 {
     public interface IScalarSerializer
@@ -7,5 +11,100 @@ namespace StrawberryShake
         object Serialize(object value);
 
         object Deserialize(object serialized);
+    }
+
+    public class ResultParser<T>
+    {
+        private static readonly byte[] _data = new byte[]
+        {
+            (byte)'d',
+            (byte)'a',
+            (byte)'t',
+            (byte)'a'
+        };
+
+        private static readonly byte[] _error = new byte[]
+        {
+            (byte)'e',
+            (byte)'r',
+            (byte)'r',
+            (byte)'o',
+            (byte)'r'
+        };
+
+        private static readonly byte[] _typename = new byte[]
+        {
+            (byte)'t',
+            (byte)'y',
+            (byte)'p',
+            (byte)'e',
+            (byte)'n',
+            (byte)'a',
+            (byte)'m',
+            (byte)'e',
+        };
+
+        private static readonly byte[] _hero = new byte[]
+        {
+            (byte)'h',
+            (byte)'e',
+            (byte)'r',
+            (byte)'o'
+        };
+
+        public T Parse(Stream stream)
+        {
+            using (JsonDocument document = JsonDocument.Parse(stream))
+            {
+                if (document.RootElement.TryGetProperty(
+                    _data, out JsonElement element))
+                {
+
+                }
+            }
+        }
+
+        private static object ParseRoot(
+            JsonElement parent,
+            ReadOnlySpan<byte> field)
+        {
+            if (parent.TryGetProperty(field, out JsonElement obj))
+            {
+                return new GetHero
+                {
+                    Hero = DeserializeHero(obj, _hero)
+                };
+            }
+
+            return null;
+        }
+
+        private static IHero ParseRootHero(
+            JsonElement parent,
+            ReadOnlySpan<byte> field)
+        {
+            if (parent.TryGetProperty(field, out JsonElement obj))
+            {
+                string typeName = (string)data["__typename"];
+
+                switch (typeName)
+                {
+                    case "Droid":
+                        return new Droid
+                        {
+
+                        };
+
+                    case "Human":
+                        return new Human
+                        {
+
+                        };
+
+                    default:
+                        throw new NotSupportedException();
+                }
+            }
+        }
     }
 }
