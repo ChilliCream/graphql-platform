@@ -29,5 +29,8 @@ namespace StrawberryShake.Generators
         public INamedType Type { get; }
 
         public IReadOnlyList<IInterfaceDescriptor> Implements { get; }
+
+        IEnumerable<ICodeDescriptor> ICodeDescriptor.GetChildren() =>
+            Implements;
     }
 }

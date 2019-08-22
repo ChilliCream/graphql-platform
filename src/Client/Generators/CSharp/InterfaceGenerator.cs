@@ -18,6 +18,28 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteAsync(interfaceDescriptor.Name);
             await writer.WriteLineAsync();
 
+            writer.IncreaseIndent();
+
+            for (int i = 0; i < interfaceDescriptor.Implements.Count; i++)
+            {
+                await writer.WriteIndentAsync();
+
+                if (i == 0)
+                {
+                    await writer.WriteAsync(':');
+                }
+                else
+                {
+                    await writer.WriteAsync(',');
+                }
+
+                await writer.WriteSpaceAsync();
+                await writer.WriteAsync(interfaceDescriptor.Implements[i].Name);
+                await writer.WriteLineAsync();
+            }
+
+            writer.DecreaseIndent();
+
             await writer.WriteIndentAsync();
             await writer.WriteAsync("{");
             await writer.WriteLineAsync();

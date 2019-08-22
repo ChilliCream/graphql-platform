@@ -73,6 +73,8 @@ namespace StrawberryShake.Generators
                 operation.SelectionSet,
                 path);
 
+            //typeCase.Fields.Where(t => t.)
+
             EnqueueFields(backlog, typeCase.Fields);
 
             _operationTypes[operation] = GenerateObjectTypeModels(
@@ -529,6 +531,12 @@ namespace StrawberryShake.Generators
             return true;
         }
 
+        private bool Spread(FieldNode field)
+        {
+            return field.Directives.Any(t =>
+                t.Name.Value.EqualsOrdinal(GeneratorDirectives.Spread));
+        }
+
         private void RegisterDescriptors(IEnumerable<ICodeDescriptor> descriptors)
         {
             foreach (ICodeDescriptor descriptor in descriptors)
@@ -539,9 +547,22 @@ namespace StrawberryShake.Generators
 
         private void RegisterDescriptor(ICodeDescriptor descriptor)
         {
-            if (!_descriptors.ContainsKey(descriptor.Name))
+            var queue = new Queue<ICodeDescriptor>();
+            queue.Enqueue(descriptor);
+
+            while (queue.Count > 0)
             {
-                _descriptors.Add(descriptor.Name, descriptor);
+                ICodeDescriptor current = queue.Dequeue();
+
+                if (!_descriptors.ContainsKey(current.Name))
+                {
+                    _descriptors.Add(current.Name, current);
+
+                    foreach (ICodeDescriptor child in current.GetChildren())
+                    {
+                        queue.Enqueue(child);
+                    }
+                }
             }
         }
     }

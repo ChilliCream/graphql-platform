@@ -82,5 +82,8 @@ namespace StrawberryShake.Generators
 
         IInterfaceDescriptor IInterfaceDescriptor.RemoveAllImplements() =>
             RemoveAllImplements();
+
+        IEnumerable<ICodeDescriptor> ICodeDescriptor.GetChildren() =>
+            Implements;
     }
 }
