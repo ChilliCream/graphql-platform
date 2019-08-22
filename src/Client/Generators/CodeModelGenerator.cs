@@ -360,7 +360,7 @@ namespace StrawberryShake.Generators
             IFragmentNode selected = null;
 
             while (!current.s.Selections.OfType<FieldNode>().Any()
-                && current.f.Count == 0
+                && current.f.Count == 1
                 && current.f[0].Fragment.TypeCondition == typeContext)
             {
                 selected = current.f[0];
