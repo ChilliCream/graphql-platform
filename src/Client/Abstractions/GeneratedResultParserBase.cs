@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake
 {
+    // generate field names
+    // TODO : ParseMethodPerObject (CASES->FIELDS)
+
     public abstract class GeneratedResultParserBase<T>
         : IResultParser<T>
     {
