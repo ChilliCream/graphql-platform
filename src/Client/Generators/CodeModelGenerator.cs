@@ -10,7 +10,7 @@ using static StrawberryShake.Generators.Utilities.NameUtils;
 
 namespace StrawberryShake.Generators
 {
-    internal class FooGen
+    internal class CodeModelGenerator
     {
         private readonly Dictionary<IFragment, InterfaceDescriptor> _interfaces =
             new Dictionary<IFragment, InterfaceDescriptor>();
@@ -25,17 +25,22 @@ namespace StrawberryShake.Generators
         private readonly ISchema _schema;
         private readonly DocumentNode _document;
 
-        public FooGen(ISchema schema, DocumentNode document)
+        public CodeModelGenerator(ISchema schema, DocumentNode document)
         {
             _schema = schema;
             _document = document;
             _fieldCollector = new FieldCollector(
                 new FragmentCollection(schema, document));
+
+            Descriptors = Array.Empty<ICodeDescriptor>();
+            FieldTypes = new Dictionary<FieldNode, string>();
         }
 
-        public IReadOnlyCollection<ICodeDescriptor> Descriptors => _descriptors.Values;
+        public IReadOnlyCollection<ICodeDescriptor> Descriptors { get; private set; }
 
-        public void GenerateModels()
+        public IReadOnlyDictionary<FieldNode, string> FieldTypes { get; private set; }
+
+        public void Generate()
         {
             var backlog = new Queue<FieldSelection>();
             Path root = Path.New("root");
@@ -52,6 +57,9 @@ namespace StrawberryShake.Generators
                 Path path = root.Append(current.ResponseName);
                 GenerateFieldModel(current.Field.Type, current.Selection, path, backlog);
             }
+
+            FieldTypes = _fieldTypes.ToDictionary(t => t.Key, t => t.Value.Name);
+            Descriptors = _descriptors.Values;
         }
 
         private void GenerateOperationModel(

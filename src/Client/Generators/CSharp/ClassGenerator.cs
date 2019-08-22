@@ -2,25 +2,26 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using StrawberryShake.Generators.Utilities;
+using static StrawberryShake.Generators.Utilities.NameUtils;
 
-namespace StrawberryShake.Generators
+namespace StrawberryShake.Generators.CSharp
 {
-    public class ModelClassGenerator
+    public class ClassGenerator
     {
         public async Task WriteAsync(
             CodeWriter writer,
-            string targetName,
-            IReadOnlyList<InterfaceDescriptor> implements,
+            ClassDescriptor classDescriptor,
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync();
             await writer.WriteAsync("public class ");
-            await writer.WriteAsync(targetName);
+            await writer.WriteAsync(classDescriptor.Name);
             await writer.WriteLineAsync();
 
             writer.IncreaseIndent();
 
-            for (int i = 0; i < implements.Count; i++)
+            for (int i = 0; i < classDescriptor.Implements.Count; i++)
             {
                 await writer.WriteIndentAsync();
 
@@ -34,7 +35,7 @@ namespace StrawberryShake.Generators
                 }
 
                 await writer.WriteSpaceAsync();
-                await writer.WriteAsync(implements[i].Name);
+                await writer.WriteAsync(classDescriptor.Implements[i].Name);
                 await writer.WriteLineAsync();
             }
 
@@ -46,15 +47,19 @@ namespace StrawberryShake.Generators
 
             writer.IncreaseIndent();
 
-            for (int i = 0; i < implements.Count; i++)
+            for (int i = 0; i < classDescriptor.Implements.Count; i++)
             {
-                if (implements[i].Type is IComplexOutputType complexType)
+                if (classDescriptor.Implements[i].Type is IComplexOutputType complexType)
                 {
-                    foreach (FieldInfo fieldInfo in implements[i].Fields)
+                    foreach (FieldDescriptor fieldDescriptor in classDescriptor.Implements[i].Fields)
                     {
-                        string typeName = typeLookup.GetTypeName(fieldInfo.Selection, fieldInfo.Type, false);
-                        string propertyName = NameUtils.GetPropertyName(fieldInfo.ResponseName);
-                        bool isListType = fieldInfo.Type.IsListType();
+                        string typeName = typeLookup.GetTypeName(
+                            fieldDescriptor.Selection,
+                            fieldDescriptor.Type,
+                            false);
+
+                        string propertyName = GetPropertyName(fieldDescriptor.ResponseName);
+                        bool isListType = fieldDescriptor.Type.IsListType();
 
                         await writer.WriteIndentAsync();
                         await writer.WriteAsync("public");
@@ -68,12 +73,15 @@ namespace StrawberryShake.Generators
 
                         if (isListType)
                         {
-                            typeName = typeLookup.GetTypeName(fieldInfo.Selection, fieldInfo.Type, true);
+                            typeName = typeLookup.GetTypeName(
+                                fieldDescriptor.Selection,
+                                fieldDescriptor.Type,
+                                true);
 
                             await writer.WriteIndentAsync();
                             await writer.WriteAsync(typeName);
                             await writer.WriteSpaceAsync();
-                            await writer.WriteAsync(implements[i].Name);
+                            await writer.WriteAsync(classDescriptor.Implements[i].Name);
                             await writer.WriteAsync('.');
                             await writer.WriteAsync(propertyName);
                             await writer.WriteSpaceAsync();
@@ -85,8 +93,6 @@ namespace StrawberryShake.Generators
                     }
                 }
             }
-
-
 
             writer.DecreaseIndent();
 

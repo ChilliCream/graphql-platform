@@ -1,13 +1,12 @@
 using System;
 using System.Threading.Tasks;
-using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.Generators.Utilities;
 using static StrawberryShake.Generators.Utilities.NameUtils;
 
-namespace StrawberryShake.Generators
+namespace StrawberryShake.Generators.CSharp
 {
-    public class ModelInterfaceGenerator
+    public class InterfaceGenerator
     {
         public async Task WriteAsync(
             CodeWriter writer,
@@ -32,12 +31,10 @@ namespace StrawberryShake.Generators
                     if (complexType.Fields.ContainsField(
                         fieldDescriptor.Selection.Name.Value))
                     {
-                        string typeName = "string";
-
-                            /* typeLookup.GetTypeName(
+                        string typeName = typeLookup.GetTypeName(
                             fieldDescriptor.Selection,
                             fieldDescriptor.Type,
-                            true); */
+                            true);
 
                         string propertyName = GetPropertyName(fieldDescriptor.ResponseName);
 

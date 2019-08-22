@@ -1,0 +1,44 @@
+﻿public interface IGetHero
+{
+    ICharacter Hero { get; }
+}
+
+public class GetHero
+    : IGetHero
+{
+    public ICharacter Hero { get; set; }
+}
+
+public interface IDroid
+{
+}
+
+public class Droid
+    : IDroid
+    , ICharacter
+{
+}
+
+public interface IHuman
+{
+}
+
+public class Human
+    : IHuman
+    , ICharacter
+{
+}
+
+public interface ICharacter
+{
+}
+
+public interface ICharacterConnection
+{
+}
+
+public class CharacterConnection
+    : ICharacterConnection
+{
+}
+

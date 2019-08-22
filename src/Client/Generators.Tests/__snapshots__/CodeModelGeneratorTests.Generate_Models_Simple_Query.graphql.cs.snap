@@ -1,0 +1,61 @@
+﻿public interface IGetHero
+{
+    ICharacter Hero { get; }
+}
+
+public class GetHero
+    : IGetHero
+{
+    public ICharacter Hero { get; set; }
+}
+
+public interface IDroid
+{
+    string Name { get; }
+    ICharacterConnection Friends { get; }
+}
+
+public class Droid
+    : IDroid
+    , ICharacter
+{
+    public string Name { get; set; }
+    public ICharacterConnection Friends { get; set; }
+    public string Name { get; set; }
+    public ICharacterConnection Friends { get; set; }
+}
+
+public interface IHuman
+{
+    string Name { get; }
+    ICharacterConnection Friends { get; }
+}
+
+public class Human
+    : IHuman
+    , ICharacter
+{
+    public string Name { get; set; }
+    public ICharacterConnection Friends { get; set; }
+    public string Name { get; set; }
+    public ICharacterConnection Friends { get; set; }
+}
+
+public interface ICharacter
+{
+    string Name { get; }
+    ICharacterConnection Friends { get; }
+}
+
+public interface ICharacterConnection
+{
+    System.Collections.Generic.IReadOnlyList<ICharacter> Nodes { get; }
+}
+
+public class CharacterConnection
+    : ICharacterConnection
+{
+    public System.Collections.Generic.List<ICharacter> Nodes { get; set; }
+    System.Collections.Generic.IReadOnlyList<ICharacter> ICharacterConnection.Nodes  => Nodes;
+}
+

@@ -49,8 +49,6 @@ namespace StrawberryShake.Generators
 
         public IReadOnlyList<IInterfaceDescriptor> Implements { get; }
 
-        IReadOnlyList<IFieldDescriptor> IInterfaceDescriptor.Fields => throw new NotImplementedException();
-
         public InterfaceDescriptor TryAddImplements(IInterfaceDescriptor descriptor)
         {
             var implements = new Dictionary<string, IInterfaceDescriptor>();
