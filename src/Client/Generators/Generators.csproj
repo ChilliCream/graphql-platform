@@ -10,8 +10,6 @@
   <Import Project="$(ChilliFramework)" />
   <Import Project="$(ChilliBuild)" />
 
-
-
   <PropertyGroup>
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <PackageId>StrawberryShake.Generators</PackageId>
@@ -19,8 +17,6 @@
     <RootNamespace>StrawberryShake.Generators</RootNamespace>
     <AllowUnsafeBlocks Condition="'$(TargetFramework)' == 'netstandard2.0'">true</AllowUnsafeBlocks>
   </PropertyGroup>
-
-
 
   <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netcoreapp2.2|AnyCPU'">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>

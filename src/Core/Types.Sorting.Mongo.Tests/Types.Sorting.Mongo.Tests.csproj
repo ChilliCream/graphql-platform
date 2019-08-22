@@ -12,6 +12,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <AssemblyName>HotChocolate.Types.Sorting.Mongo.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Types.Sorting</RootNamespace>
   </PropertyGroup>
