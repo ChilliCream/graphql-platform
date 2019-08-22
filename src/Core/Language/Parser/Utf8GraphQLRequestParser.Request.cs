@@ -9,7 +9,7 @@ namespace HotChocolate.Language
         {
             public string OperationName { get; set; }
 
-            public string NamedQuery { get; set; }
+            public string QueryName { get; set; }
 
             public string QueryHash { get; set; }
 

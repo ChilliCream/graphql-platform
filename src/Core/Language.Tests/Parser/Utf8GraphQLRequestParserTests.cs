@@ -152,6 +152,83 @@ namespace HotChocolate.Language
         }
 
         [Fact]
+        public void Parse_Skip_Custom_Property()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes(
+                JsonConvert.SerializeObject(
+                    new CustomGraphQLRequestDto
+                    {
+                        CustomProperty = "FooBar",
+                        Query = FileResource.Open("kitchen-sink.graphql")
+                            .NormalizeLineBreaks()
+                    }).NormalizeLineBreaks());
+
+            var cache = new DocumentCache();
+
+            var requestParser = new Utf8GraphQLRequestParser(
+                source,
+                new ParserOptions(),
+                cache,
+                new Sha1DocumentHashProvider());
+
+            // act
+            IReadOnlyList<GraphQLRequest> result = requestParser.Parse();
+
+            // assert
+            Assert.Collection(result,
+                r =>
+                {
+                    Assert.Null(r.OperationName);
+                    Assert.Null(r.Variables);
+                    Assert.Null(r.Extensions);
+
+                    Assert.Equal("KwPz8bJWrVDRrtFPjW2sh5CUQwE=", r.QueryName);
+                    QuerySyntaxSerializer.Serialize(r.Query, true)
+                        .MatchSnapshot();
+                });
+        }
+
+        [Fact]
+        public void Parse_Id_As_Name()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes(
+                JsonConvert.SerializeObject(
+                    new RelayGraphQLRequestDto
+                    {
+                        Id = "FooBar",
+                        Query = FileResource.Open("kitchen-sink.graphql")
+                            .NormalizeLineBreaks()
+                    }).NormalizeLineBreaks());
+
+            var cache = new DocumentCache();
+
+            var requestParser = new Utf8GraphQLRequestParser(
+                source,
+                new ParserOptions(),
+                cache,
+                new Sha1DocumentHashProvider());
+
+            // act
+            IReadOnlyList<GraphQLRequest> result = requestParser.Parse();
+
+            // assert
+            Assert.Collection(result,
+                r =>
+                {
+                    Assert.Null(r.OperationName);
+                    Assert.Null(r.Variables);
+                    Assert.Null(r.Extensions);
+
+                    Assert.Equal("FooBar", r.QueryName);
+                    Assert.Equal("KwPz8bJWrVDRrtFPjW2sh5CUQwE=", r.QueryHash);
+                    QuerySyntaxSerializer.Serialize(r.Query, true)
+                        .MatchSnapshot();
+                });
+        }
+
+        [Fact]
         public void Parse_Kitchen_Sink_Query_AllProps_No_Cache()
         {
             // arrange
@@ -352,6 +429,19 @@ namespace HotChocolate.Language
 
             [JsonProperty("extensions")]
             public IReadOnlyDictionary<string, object> Extensions { get; set; }
+        }
+
+        private class CustomGraphQLRequestDto
+            : GraphQLRequestDto
+        {
+            public string CustomProperty { get; set; }
+        }
+
+        private class RelayGraphQLRequestDto
+            : GraphQLRequestDto
+        {
+            [JsonProperty("id")]
+            public string Id { get; set; }
         }
 
         private class DocumentCache
