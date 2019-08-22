@@ -50,7 +50,7 @@ namespace HotChocolate.Types.Sorting
         public ISortInputTypeDescriptor<T> BindFieldsExplicitly() =>
             BindFields(BindingBehavior.Explicit);
 
-        public ISortFieldDescriptor SortField(
+        public ISortFieldDescriptor Sortable(
             Expression<Func<T, IComparable>> property)
         {
             if (property.ExtractMember() is PropertyInfo p)

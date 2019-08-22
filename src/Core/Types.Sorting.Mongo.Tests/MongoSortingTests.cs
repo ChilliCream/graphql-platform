@@ -193,7 +193,7 @@ namespace HotChocolate.Types.Sorting
         {
             protected override void Configure(ISortInputTypeDescriptor<Model> descriptor)
             {
-                descriptor.SortField(m => m.Bar).Name("qux");
+                descriptor.Sortable(m => m.Bar).Name("qux");
             }
         }
 

@@ -119,7 +119,7 @@ namespace HotChocolate.Types.Sorting
             protected override void Configure(
                 ISortInputTypeDescriptor<Foo> descriptor)
             {
-                descriptor.SortField(t => t.Bar);
+                descriptor.Sortable(t => t.Bar);
             }
         }
 

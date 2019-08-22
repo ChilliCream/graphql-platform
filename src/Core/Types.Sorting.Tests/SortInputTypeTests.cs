@@ -36,7 +36,7 @@ namespace HotChocolate.Types.Sorting
             // act
             ISchema schema = CreateSchema(
                 new SortInputType<Foo>(d => d.BindFieldsImplicitly()
-                    .SortField(f => f.Baz).Ignore()));
+                    .Sortable(f => f.Baz).Ignore()));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -49,7 +49,7 @@ namespace HotChocolate.Types.Sorting
             // act
             ISchema schema = CreateSchema(
                 new SortInputType<Foo>(d => d.BindFieldsImplicitly()
-                    .SortField(f => f.Baz).Name("quux")));
+                    .Sortable(f => f.Baz).Name("quux")));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -63,7 +63,7 @@ namespace HotChocolate.Types.Sorting
             ISchema schema = CreateSchema(
                 new SortInputType<Foo>(d => d
                     .BindFieldsExplicitly()
-                    .SortField(f => f.Bar)
+                    .Sortable(f => f.Bar)
                 ));
 
             // assert

@@ -23,7 +23,7 @@ namespace HotChocolate.Types.Sorting
             await _next(context).ConfigureAwait(false);
 
             IValueNode sortArgument = context.Argument<IValueNode>(
-                ObjectFieldDescriptorExtensions.OrderByArgumentName);
+                SortObjectFieldDescriptorExtensions.OrderByArgumentName);
 
             if (sortArgument is null || sortArgument is NullValueNode)
             {
@@ -52,7 +52,7 @@ namespace HotChocolate.Types.Sorting
 
             if (source != null
                 && context.Field
-                    .Arguments[ObjectFieldDescriptorExtensions.OrderByArgumentName]
+                    .Arguments[SortObjectFieldDescriptorExtensions.OrderByArgumentName]
                     .Type is InputObjectType iot
                 && iot is ISortInputType fit)
             {

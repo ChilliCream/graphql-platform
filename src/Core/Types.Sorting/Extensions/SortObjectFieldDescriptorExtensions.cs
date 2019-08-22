@@ -9,7 +9,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
-    public static class ObjectFieldDescriptorExtensions
+    public static class SortObjectFieldDescriptorExtensions
     {
         internal const string OrderByArgumentName = "order_by";
         private static readonly Type _middlewareDefinition =
@@ -139,7 +139,7 @@ namespace HotChocolate.Types
                         .SetMessage(
                             "The sort type cannot be " +
                             "infered from `System.Object`.")
-                        .SetCode("FILTER_OBJECT_TYPE")
+                        .SetCode(ErrorCodes.Filtering.FilterObjectType)
                         .Build());
             }
 

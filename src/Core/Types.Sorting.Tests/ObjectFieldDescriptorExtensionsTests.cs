@@ -50,7 +50,7 @@ namespace HotChocolate.Types.Sorting
 
             // act
             Action action = () =>
-                ObjectFieldDescriptorExtensions
+                SortObjectFieldDescriptorExtensions
                     .UseSorting<object>(null, config);
 
             // assert
@@ -65,7 +65,7 @@ namespace HotChocolate.Types.Sorting
 
             // act
             Action action = () =>
-                ObjectFieldDescriptorExtensions
+                SortObjectFieldDescriptorExtensions
                     .UseSorting<object>(desc, null);
 
             // assert
