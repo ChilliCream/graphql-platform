@@ -104,7 +104,7 @@ namespace HotChocolate.Types
                                 .SetMessage(
                                     "The filter type cannot be " +
                                     "infered from `System.Object`.")
-                                .SetCode("FILTER_OBJECT_TYPE")
+                                .SetCode(ErrorCodes.Filtering.FilterObjectType)
                                 .Build());
                     }
 
