@@ -55,15 +55,5 @@ namespace HotChocolate
             public const string RequestInvalid = "INVALID_REQUEST";
             public const string MaxRequestSize = "MAX_REQUEST_SIZE";
         }
-
-        public static class Filtering
-        {
-            public const string FilterObjectType = "FILTER_OBJECT_TYPE";
-        }
-
-        public static class Sorting
-        {
-            public const string SortObjectType = "SORT_OBJECT_TYPE";
-        }
     }
 }
