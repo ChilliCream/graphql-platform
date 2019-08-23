@@ -8,6 +8,8 @@ namespace StrawberryShake.Generators
     {
         INamedType Type { get; }
 
+        IReadOnlyList<IInterfaceDescriptor> Implements { get; }
+
         IReadOnlyList<IFieldDescriptor> Fields { get; }
 
         IInterfaceDescriptor TryAddImplements(IInterfaceDescriptor descriptor);

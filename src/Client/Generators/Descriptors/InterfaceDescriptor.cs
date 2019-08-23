@@ -45,9 +45,9 @@ namespace StrawberryShake.Generators
 
         public INamedType Type { get; }
 
-        public IReadOnlyList<IFieldDescriptor> Fields { get; }
-
         public IReadOnlyList<IInterfaceDescriptor> Implements { get; }
+
+        public IReadOnlyList<IFieldDescriptor> Fields { get; }
 
         public InterfaceDescriptor TryAddImplements(IInterfaceDescriptor descriptor)
         {

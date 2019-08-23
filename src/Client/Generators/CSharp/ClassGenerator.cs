@@ -47,51 +47,25 @@ namespace StrawberryShake.Generators.CSharp
 
             writer.IncreaseIndent();
 
-            for (int i = 0; i < classDescriptor.Implements.Count; i++)
+            foreach (IFieldDescriptor fieldDescriptor in classDescriptor.Fields)
             {
-                if (classDescriptor.Implements[i].Type is IComplexOutputType complexType)
-                {
-                    foreach (FieldDescriptor fieldDescriptor in classDescriptor.Implements[i].Fields)
-                    {
-                        string typeName = typeLookup.GetTypeName(
-                            fieldDescriptor.Selection,
-                            fieldDescriptor.Type,
-                            false);
+                string typeName = typeLookup.GetTypeName(
+                    fieldDescriptor.Selection,
+                    fieldDescriptor.Type,
+                    true);
 
-                        string propertyName = GetPropertyName(fieldDescriptor.ResponseName);
-                        bool isListType = fieldDescriptor.Type.IsListType();
+                string propertyName = GetPropertyName(fieldDescriptor.ResponseName);
+                bool isListType = fieldDescriptor.Type.IsListType();
 
-                        await writer.WriteIndentAsync();
-                        await writer.WriteAsync("public");
-                        await writer.WriteSpaceAsync();
-                        await writer.WriteAsync(typeName);
-                        await writer.WriteSpaceAsync();
-                        await writer.WriteAsync(propertyName);
-                        await writer.WriteSpaceAsync();
-                        await writer.WriteAsync("{ get; set; }");
-                        await writer.WriteLineAsync();
-
-                        if (isListType)
-                        {
-                            typeName = typeLookup.GetTypeName(
-                                fieldDescriptor.Selection,
-                                fieldDescriptor.Type,
-                                true);
-
-                            await writer.WriteIndentAsync();
-                            await writer.WriteAsync(typeName);
-                            await writer.WriteSpaceAsync();
-                            await writer.WriteAsync(classDescriptor.Implements[i].Name);
-                            await writer.WriteAsync('.');
-                            await writer.WriteAsync(propertyName);
-                            await writer.WriteSpaceAsync();
-                            await writer.WriteAsync(" => ");
-                            await writer.WriteAsync(propertyName);
-                            await writer.WriteAsync(';');
-                            await writer.WriteLineAsync();
-                        }
-                    }
-                }
+                await writer.WriteIndentAsync();
+                await writer.WriteAsync("public");
+                await writer.WriteSpaceAsync();
+                await writer.WriteAsync(typeName);
+                await writer.WriteSpaceAsync();
+                await writer.WriteAsync(propertyName);
+                await writer.WriteSpaceAsync();
+                await writer.WriteAsync("{ get; set; }");
+                await writer.WriteLineAsync();
             }
 
             writer.DecreaseIndent();

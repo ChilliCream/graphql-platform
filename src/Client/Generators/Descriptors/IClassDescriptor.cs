@@ -7,6 +7,9 @@ namespace StrawberryShake.Generators
         : ICodeDescriptor
     {
         INamedType Type { get; }
+
+        IReadOnlyList<IFieldDescriptor> Fields { get; }
+
         IReadOnlyList<IInterfaceDescriptor> Implements { get; }
     }
 }
