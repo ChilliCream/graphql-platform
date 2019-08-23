@@ -66,7 +66,7 @@ namespace HotChocolate.Server
                         throw new QueryException(
                             ErrorBuilder.New()
                                 .SetMessage("Max request size reached.")
-                                .SetCode("MAX_REQUEST_SIZE")
+                                .SetCode(ErrorCodes.Server.MaxRequestSize)
                                 .Build());
                     }
                 },

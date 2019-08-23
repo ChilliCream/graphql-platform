@@ -153,7 +153,7 @@ namespace HotChocolate.Execution
                 context.Result = QueryResult.CreateError(
                     _errorHandler.Handle(ErrorBuilder.New()
                         .SetMessage("CachedQueryNotFound")
-                        .SetCode("CACHED_QUERY_NOT_FOUND")
+                        .SetCode(ErrorCodes.Execution.CachedQueryNotFound)
                         .Build()));
                 return Task.CompletedTask;
             }
