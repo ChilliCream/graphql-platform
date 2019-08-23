@@ -131,7 +131,7 @@ namespace HotChocolate.AspNetCore
                     var result = QueryResult.CreateError(
                         ErrorBuilder.New()
                             .SetMessage("Invalid GraphQL Request.")
-                            .SetCode("INVALID_REQUEST")
+                            .SetCode(ErrorCodes.Server.RequestInvalid)
                             .Build());
 
                     SetResponseHeaders(
