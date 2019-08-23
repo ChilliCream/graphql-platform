@@ -14,10 +14,12 @@ namespace StrawberryShake.Generators.CSharp
             IResultParserMethodDescriptor methodDescriptor,
             ITypeLookup typeLookup)
         {
-            string resultTypeName = "string"; /* typeLookup.GetTypeName(
-                methodDescriptor.ResultSelection,
-                methodDescriptor.ResultType,
-                true);*/
+            string resultTypeName = methodDescriptor.ResultSelection is null
+                ? methodDescriptor.ResultSelection.Name.Value
+                : typeLookup.GetTypeName(
+                    methodDescriptor.ResultSelection,
+                    methodDescriptor.ResultType,
+                    true);
 
             await writer.WriteIndentAsync();
             await writer.WriteAsync("private ");

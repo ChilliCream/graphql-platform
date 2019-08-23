@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Collections.Generic;
 using HotChocolate;
 using HotChocolate.Language;
@@ -16,6 +15,8 @@ namespace StrawberryShake.Generators
         Path Path { get; }
 
         IInterfaceDescriptor ResultDescriptor { get; }
+
+        IResultParserTypeDescriptor UnknownType { get; }
 
         IReadOnlyList<IResultParserTypeDescriptor> PossibleTypes { get; }
     }

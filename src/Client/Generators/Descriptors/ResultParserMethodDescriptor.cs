@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
@@ -17,6 +16,18 @@ namespace StrawberryShake.Generators
             Path path,
             IInterfaceDescriptor resultDescriptor,
             IReadOnlyList<IResultParserTypeDescriptor> possibleTypes)
+            : this(name, resultType, resultSelection,
+                path, resultDescriptor, possibleTypes, null)
+        { }
+
+        public ResultParserMethodDescriptor(
+            string name,
+            IType resultType,
+            FieldNode resultSelection,
+            Path path,
+            IInterfaceDescriptor resultDescriptor,
+            IReadOnlyList<IResultParserTypeDescriptor> possibleTypes,
+            IResultParserTypeDescriptor unknownType)
         {
             Name = name;
             ResultType = resultType;
@@ -24,6 +35,7 @@ namespace StrawberryShake.Generators
             Path = path;
             ResultDescriptor = resultDescriptor;
             PossibleTypes = possibleTypes;
+            UnknownType = unknownType;
         }
 
         public string Name { get; }
@@ -38,9 +50,12 @@ namespace StrawberryShake.Generators
 
         public IReadOnlyList<IResultParserTypeDescriptor> PossibleTypes { get; }
 
+        public IResultParserTypeDescriptor UnknownType { get; }
+
         public IEnumerable<ICodeDescriptor> GetChildren()
         {
-            yield return ResultDescriptor; ;
+            yield return ResultDescriptor;
+            ;
 
             foreach (IClassDescriptor possibleType in
                 PossibleTypes.Select(t => t.ResultDescriptor))
