@@ -95,7 +95,7 @@ namespace StrawberryShake
         {
             if (parent.TryGetProperty(field, out JsonElement obj))
             {
-                string typeName = (string)data["__typename"];
+                string typeName = obj.GetProperty(_typename).GetString();
 
                 switch (typeName)
                 {

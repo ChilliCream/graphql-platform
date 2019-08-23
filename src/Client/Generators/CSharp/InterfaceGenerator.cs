@@ -10,7 +10,7 @@ namespace StrawberryShake.Generators.CSharp
     {
         public async Task WriteAsync(
             CodeWriter writer,
-            InterfaceDescriptor interfaceDescriptor,
+            IInterfaceDescriptor interfaceDescriptor,
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync();

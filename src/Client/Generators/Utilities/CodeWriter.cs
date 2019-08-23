@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -58,8 +59,11 @@ namespace StrawberryShake.Generators.Utilities
                 TaskCreationOptions.DenyChildAttach,
                 TaskScheduler.Default);
 
-        public void IncreaseIndent() =>
+        public IDisposable IncreaseIndent()
+        {
             _indent++;
+            return new Block(DecreaseIndent);
+        }
 
         public void DecreaseIndent()
         {
@@ -68,6 +72,39 @@ namespace StrawberryShake.Generators.Utilities
                 _indent--;
             }
         }
+
+        public IDisposable WriteBraces()
+        {
+            WriteLeftBrace();
+            WriteLine();
+            IncreaseIndent();
+
+            return new Block(() =>
+            {
+                WriteLine();
+                DecreaseIndent();
+                WriteIndent();
+                WriteRightBrace();
+            });
+        }
+
+        public void WriteLeftBrace() => Write('{');
+
+        public Task WriteLeftBraceAsync() =>
+            Task.Factory.StartNew(
+                WriteLeftBrace,
+                CancellationToken.None,
+                TaskCreationOptions.DenyChildAttach,
+                TaskScheduler.Default);
+
+        public void WriteRightBrace() => Write('}');
+
+        public Task WriteRightBraceAsync() =>
+            Task.Factory.StartNew(
+                WriteRightBrace,
+                CancellationToken.None,
+                TaskCreationOptions.DenyChildAttach,
+                TaskScheduler.Default);
 
         public override void Flush()
         {
@@ -85,6 +122,19 @@ namespace StrawberryShake.Generators.Utilities
                 }
                 _disposed = true;
             }
+        }
+
+        private class Block
+            : IDisposable
+        {
+            private Action _decrease;
+
+            public Block(Action close)
+            {
+                _decrease = close;
+            }
+
+            public void Dispose() => _decrease();
         }
     }
 }

@@ -1,16 +1,25 @@
+using System.Collections.Generic;
+using HotChocolate;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace StrawberryShake.Generators
 {
-    public interface IParseMethodDescriptor
+    public interface IResultParseMethodDescriptor
         : ICodeDescriptor
     {
         IType ResultType { get; }
 
+        FieldNode ResultSelection { get; }
+
+        Path Path { get; }
+
         IInterfaceDescriptor ResultDescriptor { get; }
+
+        IReadOnlyCollection<IResultParseTypeDescriptor> PossibleTypes { get; }
     }
 
-    public interface IParseTypeDescriptor
+    public interface IResultParseTypeDescriptor
     {
         IClassDescriptor ResultDescriptor { get; }
     }
