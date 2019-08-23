@@ -43,7 +43,7 @@ namespace HotChocolate.Configuration.Validation
                         CultureInfo.InvariantCulture,
                         "There is no object type implementing interface `{0}`.",
                         interfaceType.Name.Value))
-                    .SetCode("SCHEMA_INTERFACE_NO_IMPL")
+                    .SetCode(ErrorCodes.Schema.InterfaceNotImplemented)
                     .SetTypeSystemObject(interfaceType)
                     .AddSyntaxNode(interfaceType.SyntaxNode)
                     .Build();

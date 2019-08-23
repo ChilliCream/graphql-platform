@@ -18,6 +18,7 @@ namespace HotChocolate
             public const string Timeout = "EXEC_TIMEOUT";
             public const string QueryNotFound = "PERSISTED_QUERY_NOT_FOUND";
             public const string NonNullViolation = "EXEC_NON_NULL_VIOLATION";
+            public const string CachedQueryNotFound = "CACHED_QUERY_NOT_FOUND";
         }
 
         internal static class Schema
@@ -31,6 +32,31 @@ namespace HotChocolate
             public const string ArgumentValueTypeWrong = "TS_ARG_VALUE_TYPE_WRONG";
             public const string InvalidArgument = "TS_INVALID_ARG";
             public const string NonNullArgument = "TS_ARG_NON_NULL";
+            public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
         }
+<<<<<<< Updated upstream
+=======
+
+        public static class Filtering
+        {
+            public const string FilterObjectType = "FILTER_OBJECT_TYPE";
+        }
+
+        public static class Sorting
+        {
+            public const string SortObjectType = "SORT_OBJECT_TYPE";
+        }
+
+        public static class Serialization
+        {
+            public const string ResultTypeNotSupported = "RESULT_TYPE_NOT_SUPPORTED";
+        }
+
+        public static class Server
+        {
+            public const string RequestInvalid = "INVALID_REQUEST";
+            public const string MaxRequestSize = "MAX_REQUEST_SIZE";
+        }
+>>>>>>> Stashed changes
     }
 }
