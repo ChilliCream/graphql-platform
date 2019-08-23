@@ -6,42 +6,42 @@ namespace HotChocolate.Types
 {
     public class ScalarsTests
     {
-        [InlineData(Foo.Bar, ScalarValueKind.Enum)]
-        [InlineData("foo", ScalarValueKind.String)]
-        [InlineData((short)1, ScalarValueKind.Integer)]
-        [InlineData((int)1, ScalarValueKind.Integer)]
-        [InlineData((long)1, ScalarValueKind.Integer)]
-        [InlineData((ushort)1, ScalarValueKind.Integer)]
-        [InlineData((uint)1, ScalarValueKind.Integer)]
-        [InlineData((ulong)1, ScalarValueKind.Integer)]
-        [InlineData((float)1, ScalarValueKind.Float)]
-        [InlineData((double)1, ScalarValueKind.Float)]
-        [InlineData(null, ScalarValueKind.Null)]
+        [InlineData(Foo.Bar, ValueKind.Enum)]
+        [InlineData("foo", ValueKind.String)]
+        [InlineData((short)1, ValueKind.Integer)]
+        [InlineData((int)1, ValueKind.Integer)]
+        [InlineData((long)1, ValueKind.Integer)]
+        [InlineData((ushort)1, ValueKind.Integer)]
+        [InlineData((uint)1, ValueKind.Integer)]
+        [InlineData((ulong)1, ValueKind.Integer)]
+        [InlineData((float)1, ValueKind.Float)]
+        [InlineData((double)1, ValueKind.Float)]
+        [InlineData(null, ValueKind.Null)]
         [Theory]
-        public void TryGetKind(object value, ScalarValueKind expectedKind)
+        public void TryGetKind(object value, ValueKind expectedKind)
         {
             // arrange
             // act
-            bool isScalar = Scalars.TryGetKind(value, out ScalarValueKind kind);
+            bool isScalar = Scalars.TryGetKind(value, out ValueKind kind);
 
             // assert
             Assert.True(isScalar);
             Assert.Equal(expectedKind, kind);
         }
 
-        [InlineData(Foo.Bar, ScalarValueKind.Enum)]
-        [InlineData((short)1, ScalarValueKind.Integer)]
-        [InlineData((int)1, ScalarValueKind.Integer)]
-        [InlineData((long)1, ScalarValueKind.Integer)]
-        [InlineData((ushort)1, ScalarValueKind.Integer)]
-        [InlineData((uint)1, ScalarValueKind.Integer)]
-        [InlineData((ulong)1, ScalarValueKind.Integer)]
-        [InlineData((float)1, ScalarValueKind.Float)]
-        [InlineData((double)1, ScalarValueKind.Float)]
+        [InlineData(Foo.Bar, ValueKind.Enum)]
+        [InlineData((short)1, ValueKind.Integer)]
+        [InlineData((int)1, ValueKind.Integer)]
+        [InlineData((long)1, ValueKind.Integer)]
+        [InlineData((ushort)1, ValueKind.Integer)]
+        [InlineData((uint)1, ValueKind.Integer)]
+        [InlineData((ulong)1, ValueKind.Integer)]
+        [InlineData((float)1, ValueKind.Float)]
+        [InlineData((double)1, ValueKind.Float)]
         [Theory]
         public void TryGetKind_From_Nullable(
             object value,
-            ScalarValueKind expectedKind)
+            ValueKind expectedKind)
         {
             // arrange
             Type type = typeof(Nullable<>).MakeGenericType(value.GetType());
@@ -51,7 +51,7 @@ namespace HotChocolate.Types
 
             // act
             bool isScalar = Scalars.TryGetKind(
-                nullableValue, out ScalarValueKind kind);
+                nullableValue, out ValueKind kind);
 
             // assert
             Assert.True(isScalar);
@@ -65,11 +65,11 @@ namespace HotChocolate.Types
             decimal d = 123.123M;
 
             // act
-            bool isScalar = Scalars.TryGetKind(d, out ScalarValueKind kind);
+            bool isScalar = Scalars.TryGetKind(d, out ValueKind kind);
 
             // assert
             Assert.True(isScalar);
-            Assert.Equal(ScalarValueKind.Float, kind);
+            Assert.Equal(ValueKind.Float, kind);
         }
 
         [Fact]
@@ -79,11 +79,11 @@ namespace HotChocolate.Types
             decimal? d = 123.123M;
 
             // act
-            bool isScalar = Scalars.TryGetKind(d, out ScalarValueKind kind);
+            bool isScalar = Scalars.TryGetKind(d, out ValueKind kind);
 
             // assert
             Assert.True(isScalar);
-            Assert.Equal(ScalarValueKind.Float, kind);
+            Assert.Equal(ValueKind.Float, kind);
         }
 
         [Fact]

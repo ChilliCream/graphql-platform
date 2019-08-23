@@ -1,4 +1,4 @@
-namespace HotChocolate.Types
+namespace StrawberryShake
 {
     public enum ValueKind
     {
@@ -6,7 +6,6 @@ namespace HotChocolate.Types
         Integer,
         Float,
         Boolean,
-        Enum,
-        Null
+        Enum
     }
 }

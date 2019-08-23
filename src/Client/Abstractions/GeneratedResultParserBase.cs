@@ -5,9 +5,6 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake
 {
-    // generate field names
-    // TODO : ParseMethodPerObject (CASES->FIELDS)
-
     public abstract class GeneratedResultParserBase<T>
         : IResultParser<T>
     {
@@ -40,13 +37,7 @@ namespace StrawberryShake
             (byte)'e',
         };
 
-        private static readonly byte[] _hero = new byte[]
-        {
-            (byte)'h',
-            (byte)'e',
-            (byte)'r',
-            (byte)'o'
-        };
+        protected ReadOnlySpan<byte> TypeName => _typename;
 
         public Task<T> ParseAsync(Stream stream)
         {
@@ -73,48 +64,5 @@ namespace StrawberryShake
         }
 
         protected abstract T ParserData(JsonElement parent);
-
-        private static object ParseRoot(
-            JsonElement parent,
-            ReadOnlySpan<byte> field)
-        {
-            if (parent.TryGetProperty(field, out JsonElement obj))
-            {
-                return new GetHero
-                {
-                    Hero = DeserializeHero(obj, _hero)
-                };
-            }
-
-            return null;
-        }
-
-        private static IHero ParseRootHero(
-            JsonElement parent,
-            ReadOnlySpan<byte> field)
-        {
-            if (parent.TryGetProperty(field, out JsonElement obj))
-            {
-                string typeName = obj.GetProperty(_typename).GetString();
-
-                switch (typeName)
-                {
-                    case "Droid":
-                        return new Droid
-                        {
-
-                        };
-
-                    case "Human":
-                        return new Human
-                        {
-
-                        };
-
-                    default:
-                        throw new NotSupportedException();
-                }
-            }
-        }
     }
 }

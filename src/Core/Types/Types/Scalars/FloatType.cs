@@ -136,8 +136,8 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (TryConvertSerialized(serialized, ScalarValueKind.Float, out double c)
-                || TryConvertSerialized(serialized, ScalarValueKind.Integer, out c))
+            if (TryConvertSerialized(serialized, ValueKind.Float, out double c)
+                || TryConvertSerialized(serialized, ValueKind.Integer, out c))
             {
                 value = c;
                 return true;

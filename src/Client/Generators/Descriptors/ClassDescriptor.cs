@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Collections.Generic;
 using HotChocolate.Types;
 
@@ -62,7 +61,8 @@ namespace StrawberryShake.Generators
                                 list.Add(new FieldDescriptor(
                                     field,
                                     descriptor.Selection,
-                                    descriptor.Type));
+                                    descriptor.Type,
+                                    descriptor.Path));
                             }
                         }
 

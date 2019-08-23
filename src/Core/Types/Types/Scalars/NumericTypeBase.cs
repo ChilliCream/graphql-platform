@@ -106,7 +106,7 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (TryConvertSerialized(serialized, ScalarValueKind.Integer, out T c))
+            if (TryConvertSerialized(serialized, ValueKind.Integer, out T c))
             {
                 value = c;
                 return true;
