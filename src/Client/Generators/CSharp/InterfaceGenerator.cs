@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using HotChocolate.Types;
+using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
 using static StrawberryShake.Generators.Utilities.NameUtils;
 

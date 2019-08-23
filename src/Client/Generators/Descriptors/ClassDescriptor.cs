@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using HotChocolate.Types;
 
-namespace StrawberryShake.Generators
+namespace StrawberryShake.Generators.Descriptors
 {
     public class ClassDescriptor
         : IClassDescriptor

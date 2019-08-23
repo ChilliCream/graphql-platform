@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using HotChocolate.Types;
 using System;
 
-namespace StrawberryShake.Generators
+namespace StrawberryShake.Generators.Descriptors
 {
     public class InterfaceDescriptor
         : IInterfaceDescriptor

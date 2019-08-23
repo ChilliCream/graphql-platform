@@ -4,6 +4,7 @@ using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
 using WithDirectives = HotChocolate.Language.IHasDirectives;
 using static StrawberryShake.Generators.Utilities.NameUtils;

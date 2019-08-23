@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace StrawberryShake.Generators
+namespace StrawberryShake.Generators.Descriptors
 {
     public interface ICodeDescriptor
     {

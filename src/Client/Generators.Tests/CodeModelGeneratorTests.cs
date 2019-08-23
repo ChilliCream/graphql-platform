@@ -10,6 +10,7 @@ using Moq;
 using Snapshooter;
 using Snapshooter.Xunit;
 using StrawberryShake.Generators.CSharp;
+using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
 using Xunit;
 

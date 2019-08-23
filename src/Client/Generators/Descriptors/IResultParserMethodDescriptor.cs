@@ -3,7 +3,7 @@ using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
-namespace StrawberryShake.Generators
+namespace StrawberryShake.Generators.Descriptors
 {
     public interface IResultParserMethodDescriptor
         : ICodeDescriptor

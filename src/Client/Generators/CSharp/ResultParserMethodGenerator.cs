@@ -2,6 +2,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HotChocolate;
 using HotChocolate.Types;
+using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
 using static StrawberryShake.Generators.Utilities.NameUtils;
 

@@ -1,4 +1,4 @@
-namespace StrawberryShake.Generators
+namespace StrawberryShake.Generators.Descriptors
 {
     public interface IResultParserTypeDescriptor
     {
