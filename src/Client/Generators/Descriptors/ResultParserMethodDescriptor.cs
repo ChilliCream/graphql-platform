@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
@@ -39,7 +40,7 @@ namespace StrawberryShake.Generators
 
         public IEnumerable<ICodeDescriptor> GetChildren()
         {
-            yield return ResultDescriptor;
+            yield return ResultDescriptor; ;
 
             foreach (IClassDescriptor possibleType in
                 PossibleTypes.Select(t => t.ResultDescriptor))

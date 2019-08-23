@@ -112,7 +112,7 @@ namespace StrawberryShake.Generators.CSharp
                 await writer.WriteLineAsync();
 
                 await writer.WriteIndentAsync();
-                await writer.WriteAsync("throw new NotImplementedException(");
+                await writer.WriteAsync("throw new NotSupported(");
                 await writer.WriteStringValueAsync("Handle not exhausted objects");
                 await writer.WriteAsync(");");
                 await writer.WriteLineAsync();
