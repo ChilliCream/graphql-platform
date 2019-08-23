@@ -34,8 +34,6 @@ namespace HotChocolate
             public const string NonNullArgument = "TS_ARG_NON_NULL";
             public const string InterfaceNotImplemented = "SCHEMA_INTERFACE_NO_IMPL";
         }
-<<<<<<< Updated upstream
-=======
 
         public static class Filtering
         {
@@ -57,6 +55,5 @@ namespace HotChocolate
             public const string RequestInvalid = "INVALID_REQUEST";
             public const string MaxRequestSize = "MAX_REQUEST_SIZE";
         }
->>>>>>> Stashed changes
     }
 }
