@@ -31,6 +31,20 @@ namespace StrawberryShake.Generators.Utilities
         public override void Write(char value) =>
             _writer.Write(value);
 
+        public void WriteStringValue(string value)
+        {
+            Write('"');
+            Write(value);
+            Write('"');
+        }
+
+        public Task WriteStringValueAsync(string value) =>
+            Task.Factory.StartNew(
+                () => WriteStringValue(value),
+                CancellationToken.None,
+                TaskCreationOptions.DenyChildAttach,
+                TaskScheduler.Default);
+
         public void WriteIndent()
         {
             if (_indent > 0)

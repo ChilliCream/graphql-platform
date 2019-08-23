@@ -15,7 +15,7 @@ namespace StrawberryShake.Generators
             FieldNode resultSelection,
             Path path,
             IInterfaceDescriptor resultDescriptor,
-            IReadOnlyCollection<IResultParserTypeDescriptor> possibleTypes)
+            IReadOnlyList<IResultParserTypeDescriptor> possibleTypes)
         {
             Name = name;
             ResultType = resultType;
@@ -35,7 +35,7 @@ namespace StrawberryShake.Generators
 
         public IInterfaceDescriptor ResultDescriptor { get; }
 
-        public IReadOnlyCollection<IResultParserTypeDescriptor> PossibleTypes { get; }
+        public IReadOnlyList<IResultParserTypeDescriptor> PossibleTypes { get; }
 
         public IEnumerable<ICodeDescriptor> GetChildren()
         {

@@ -31,7 +31,7 @@ namespace StrawberryShake.Generators.Utilities
 
             while (current != null)
             {
-                builder.Insert(0, current.Name);
+                builder.Insert(0, GetPropertyName(current.Name));
                 current = current.Parent;
             }
 
