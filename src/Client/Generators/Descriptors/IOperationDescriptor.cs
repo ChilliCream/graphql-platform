@@ -18,6 +18,8 @@ namespace StrawberryShake.Generators.Descriptors
 
         IType Type { get; }
 
+        IInputClassDescriptor InputObjectType { get; }
+
         VariableDefinitionNode VariableDefinition { get; }
     }
 
@@ -36,5 +38,22 @@ namespace StrawberryShake.Generators.Descriptors
         IInputField Field { get; }
 
         IType Type { get; }
+    }
+
+    public class InputFieldDescriptor
+        : IInputFieldDescriptor
+    {
+        public InputFieldDescriptor(string name, IInputField field, IType type)
+        {
+            Name = name;
+            Field = field;
+            Type = type;
+        }
+
+        public string Name { get; }
+
+        public IInputField Field { get; }
+
+        public IType Type { get; }
     }
 }
