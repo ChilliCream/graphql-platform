@@ -13,6 +13,7 @@ using StrawberryShake.Generators.CSharp;
 using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
 using Xunit;
+using static System.IO.Path;
 
 namespace StrawberryShake.Generators
 {
@@ -30,9 +31,6 @@ namespace StrawberryShake.Generators
                 .Use(next => context => Task.CompletedTask)
                 .Create();
 
-            DocumentNode query = Utf8GraphQLParser.Parse(
-                FileResource.Open(queryFile));
-
             var fileActions = new List<Func<Stream, Task>>();
 
             var fileHandler = new Mock<IFileHandler>();
@@ -40,6 +38,14 @@ namespace StrawberryShake.Generators
                 It.IsAny<string>(), It.IsAny<Func<Stream, Task>>()))
                 .Callback(new Action<string, Func<Stream, Task>>(
                     (s, d) => fileActions.Add(d)));
+
+            string queryName = GetFileNameWithoutExtension(queryFile);
+
+            var queryCollection = new QueryCollection();
+            IQueryDescriptor query =
+                await queryCollection.LoadFromStringAsync(
+                    queryName,
+                    FileResource.Open(queryFile));
 
             // act
             var generator = new CodeModelGenerator(schema, query);

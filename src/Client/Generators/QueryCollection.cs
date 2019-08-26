@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using StrawberryShake.Generators.Descriptors;
@@ -27,21 +28,53 @@ namespace StrawberryShake.Generators
                 ?? throw new ArgumentNullException(nameof(hashProvider));
         }
 
-        public Task<IQueryDescriptor> LoadQuery(string file)
+        public Task<IQueryDescriptor> LoadFromFileAsync(string file)
         {
             if (file is null)
             {
                 throw new ArgumentNullException(nameof(file));
             }
 
-            return LoadInternalAsync(file);
+            return LoadFileAsync(file);
         }
 
-        public async Task<IQueryDescriptor> LoadInternalAsync(string file)
+        private async Task<IQueryDescriptor> LoadFileAsync(string file)
         {
+            if (file is null)
+            {
+                throw new ArgumentNullException(nameof(file));
+            }
+
             byte[] documentBuffer = await File.ReadAllBytesAsync(file);
+
+            return await LoadAsync(
+                Path.GetFileNameWithoutExtension(file),
+                documentBuffer);
+        }
+
+        public Task<IQueryDescriptor> LoadFromStringAsync(
+            string name, string query)
+        {
+            if (name is null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (query is null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+
+            byte[] documentBuffer = Encoding.UTF8.GetBytes(query);
+            return LoadAsync(name, documentBuffer);
+        }
+
+        private async Task<IQueryDescriptor> LoadAsync(
+            string name, byte[] documentBuffer)
+        {
             DocumentNode document = Utf8GraphQLParser.Parse(documentBuffer);
             DocumentNode rewritten = AddTypeNameQueryRewriter.Rewrite(document);
+            byte[] rewrittenBuffer;
 
             var serializer = new QuerySyntaxSerializer(false);
 
@@ -56,16 +89,16 @@ namespace StrawberryShake.Generators
                 }
 
                 await stream.FlushAsync();
-                documentBuffer = stream.ToArray();
+                rewrittenBuffer = stream.ToArray();
             }
 
             string hash = _hashProvider.ComputeHash(documentBuffer);
 
             var descriptor = new QueryDescriptor(
-                Path.GetFileNameWithoutExtension(file),
+                name,
                 _hashProvider.Name,
                 hash,
-                documentBuffer,
+                rewrittenBuffer,
                 document);
             _descriptors.Add(descriptor);
             return descriptor;

@@ -8,6 +8,6 @@ namespace StrawberryShake.Generators.Descriptors
     {
         InputObjectType Type { get; }
 
-        IReadOnlyList<IInputFieldDescriptor> Arguments { get; }
+        IReadOnlyList<IInputFieldDescriptor> Fields { get; }
     }
 }

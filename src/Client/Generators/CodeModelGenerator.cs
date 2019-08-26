@@ -50,9 +50,16 @@ namespace StrawberryShake.Generators
             foreach (var operation in _document.Definitions.OfType<OperationDefinitionNode>())
             {
                 ObjectType operationType = _schema.GetOperationType(operation.Operation);
+
                 ICodeDescriptor resultDescriptor =
                     GenerateOperationSelectionSet(
                         operationType, operation, root, backlog);
+
+                RegisterDescriptor(
+                    CreateResultParserDescriptor(operation, resultDescriptor));
+
+                RegisterDescriptor(
+                    GenerateOperation(operationType, operation));
 
                 while (backlog.Any())
                 {
@@ -63,11 +70,6 @@ namespace StrawberryShake.Generators
                         operation, current.Field.Type,
                         current.Selection, path, backlog);
                 }
-
-                RegisterDescriptor(
-                    CreateResultParserDescriptor(operation, resultDescriptor));
-                RegisterDescriptor(
-                    GenerateOperation(operationType, operation));
             }
 
             FieldTypes = _fieldTypes.ToDictionary(t => t.Key, t => t.Value.Name);
@@ -141,7 +143,26 @@ namespace StrawberryShake.Generators
         private IInputClassDescriptor GenerateInputObjectType(
             InputObjectType inputObjectType)
         {
-            throw new NotImplementedException();
+            return GenerateInputObjectType(
+                inputObjectType,
+                new Dictionary<string, IInputClassDescriptor>());
+        }
+
+        private IInputClassDescriptor GenerateInputObjectType(
+            InputObjectType inputObjectType,
+            IDictionary<string, IInputClassDescriptor> knownTypes)
+        {
+            if(knownTypes.TryGetValue(
+                inputObjectType.Name,
+                out IInputClassDescriptor descriptor))
+            {
+                return descriptor;
+            }
+
+            string typeName = CreateName(GetClassName(inputObjectType.Name));
+            descriptor = new InputClassDescriptor()
+
+
         }
 
         private ICodeDescriptor GenerateOperationSelectionSet(
