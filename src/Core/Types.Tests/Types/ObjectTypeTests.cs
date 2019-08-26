@@ -1454,6 +1454,19 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Model_With_Nullables()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<FooWithNullable>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1581,6 +1594,13 @@ namespace HotChocolate.Types
         public class MyListQuery
         {
             public MyList List { get; set; }
+        }
+
+        public class FooWithNullable
+        {
+            public bool? Bar { get; set; }
+
+            public List<bool?> Bars { get; set; }
         }
     }
 }
