@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Types;
 
 namespace StrawberryShake.Generators.Descriptors
 {
@@ -7,6 +8,10 @@ namespace StrawberryShake.Generators.Descriptors
         : ICodeDescriptor
     {
         OperationDefinitionNode Operation { get; }
+
+        ObjectType OperationType { get; }
+
+        IQueryDescriptor Query { get; }
 
         IReadOnlyList<IArgumentDescriptor> Arguments { get; }
     }

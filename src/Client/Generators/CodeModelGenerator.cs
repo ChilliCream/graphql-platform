@@ -23,6 +23,7 @@ namespace StrawberryShake.Generators
         private FieldCollector _fieldCollector;
         private readonly ISchema _schema;
         private readonly DocumentNode _document;
+        private readonly IQueryDescriptor _query = null;
 
         public CodeModelGenerator(ISchema schema, DocumentNode document)
         {
@@ -63,6 +64,8 @@ namespace StrawberryShake.Generators
 
                 RegisterDescriptor(
                     CreateResultParserDescriptor(operation, resultDescriptor));
+                RegisterDescriptor(
+                    GenerateOperation(operationType, operation));
             }
 
             FieldTypes = _fieldTypes.ToDictionary(t => t.Key, t => t.Value.Name);
@@ -87,6 +90,56 @@ namespace StrawberryShake.Generators
                     .OfType<IResultParserMethodDescriptor>()
                     .Where(t => t.Operation == operation).ToList()
             );
+        }
+
+        private ICodeDescriptor GenerateOperation(
+            ObjectType operationType,
+            OperationDefinitionNode operation)
+        {
+            var arguments = new List<Descriptors.IArgumentDescriptor>();
+
+            foreach (VariableDefinitionNode variableDefinition in
+                operation.VariableDefinitions)
+            {
+                string typeName = variableDefinition.Type.NamedType().Name.Value;
+
+                if (!_schema.TryGetType(typeName, out INamedType namedType))
+                {
+                    throw new InvalidOperationException(
+                        $"The variable type `{typeName}` is not supported by the schema.");
+                }
+
+                IType type = variableDefinition.Type.ToType(namedType);
+                IInputClassDescriptor inputClassDescriptor = null;
+
+                if (namedType is InputObjectType inputObjectType)
+                {
+                    inputClassDescriptor =
+                        GenerateInputObjectType(inputObjectType);
+                }
+
+                arguments.Add(new ArgumentDescriptor(
+                    variableDefinition.Variable.Name.Value,
+                    type,
+                    variableDefinition,
+                    inputClassDescriptor));
+            }
+
+            string operationName =
+                CreateName(GetClassName(operation.Name.Value) + "Request");
+
+            return new OperationDescriptor(
+                operationName,
+                operationType,
+                operation,
+                arguments,
+                _query);
+        }
+
+        private IInputClassDescriptor GenerateInputObjectType(
+            InputObjectType inputObjectType)
+        {
+            throw new NotImplementedException();
         }
 
         private ICodeDescriptor GenerateOperationSelectionSet(
@@ -655,6 +708,39 @@ namespace StrawberryShake.Generators
                     }
                 }
             }
+        }
+
+        // TODO : move into separate class
+        private static IQueryDescriptor CreateQuery(
+            string documentName,
+            DocumentNode document,
+            IDocumentHashProvider hashProvider)
+        {
+            DocumentNode rewritten = AddTypeNameQueryRewriter.Rewrite(document);
+            byte[] documentBuffer;
+
+            var serializer = new QuerySyntaxSerializer(false);
+
+            using (var stream = new MemoryStream())
+            {
+                using (var sw = new StreamWriter(stream))
+                {
+                    using (var writer = new DocumentWriter(sw))
+                    {
+                        serializer.Visit(rewritten, writer);
+                    }
+                }
+                stream.Flush();
+                documentBuffer = stream.ToArray();
+            }
+
+            string hash = hashProvider.ComputeHash(documentBuffer);
+            return new QueryDescriptor(
+                documentName,
+                hashProvider.Name,
+                hash,
+                documentBuffer,
+                document);
         }
     }
 }
