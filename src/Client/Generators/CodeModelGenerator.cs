@@ -152,7 +152,7 @@ namespace StrawberryShake.Generators
             InputObjectType inputObjectType,
             IDictionary<string, IInputClassDescriptor> knownTypes)
         {
-            if(knownTypes.TryGetValue(
+            if (knownTypes.TryGetValue(
                 inputObjectType.Name,
                 out IInputClassDescriptor descriptor))
             {
@@ -160,9 +160,28 @@ namespace StrawberryShake.Generators
             }
 
             string typeName = CreateName(GetClassName(inputObjectType.Name));
-            descriptor = new InputClassDescriptor()
 
+            var fields = new List<Descriptors.IInputFieldDescriptor>();
+            descriptor = new InputClassDescriptor(
+                typeName, inputObjectType, fields);
+            knownTypes[inputObjectType.Name] = descriptor;
 
+            foreach (InputField field in inputObjectType.Fields)
+            {
+                if (field.Type.NamedType() is InputObjectType fieldType)
+                {
+                    fields.Add(new InputFieldDescriptor(
+                        field.Name, field.Type, field,
+                        GenerateInputObjectType(fieldType, knownTypes)));
+                }
+                else
+                {
+                    fields.Add(new InputFieldDescriptor(
+                        field.Name, field.Type, field, null));
+                }
+            }
+
+            return descriptor;
         }
 
         private ICodeDescriptor GenerateOperationSelectionSet(

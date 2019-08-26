@@ -9,7 +9,11 @@ namespace StrawberryShake
     public class JsonOperationSerializer
         : IOperationSerializer
     {
-        public Task SerializeAsync(IOperation operation, Stream requestStream)
+        public Task SerializeAsync(
+            IOperation operation,
+            IReadOnlyDictionary<string, object> extensions,
+            bool includeDocument,
+            Stream requestStream)
         {
             if (operation is null)
             {
@@ -33,13 +37,21 @@ namespace StrawberryShake
             writer.WritePropertyName("operationName");
             writer.WriteStringValue(operation.Name);
 
-            if (operation.Variables.Count != 0)
+            if (operation.Variables != null && operation.Variables.Count != 0)
             {
                 writer.WritePropertyName("variables");
                 WriteValue(operation.Variables, writer);
             }
 
+            if (extensions != null && extensions.Count != 0)
+            {
+                writer.WritePropertyName("extensions");
+                WriteValue(operation.Variables, writer);
+            }
+
             writer.WriteEndObject();
+
+            return writer.FlushAsync();
         }
 
         private static void WriteValue(
