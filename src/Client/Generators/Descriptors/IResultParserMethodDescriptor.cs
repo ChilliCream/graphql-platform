@@ -8,6 +8,8 @@ namespace StrawberryShake.Generators.Descriptors
     public interface IResultParserMethodDescriptor
         : ICodeDescriptor
     {
+        OperationDefinitionNode Operation { get; }
+
         IType ResultType { get; }
 
         FieldNode ResultSelection { get; }

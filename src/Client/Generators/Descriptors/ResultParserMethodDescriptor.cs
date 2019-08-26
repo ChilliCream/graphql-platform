@@ -11,17 +11,19 @@ namespace StrawberryShake.Generators.Descriptors
     {
         public ResultParserMethodDescriptor(
             string name,
+            OperationDefinitionNode operation,
             IType resultType,
             FieldNode resultSelection,
             Path path,
             IInterfaceDescriptor resultDescriptor,
             IReadOnlyList<IResultParserTypeDescriptor> possibleTypes)
-            : this(name, resultType, resultSelection,
+            : this(name, operation, resultType, resultSelection,
                 path, resultDescriptor, possibleTypes, null)
         { }
 
         public ResultParserMethodDescriptor(
             string name,
+            OperationDefinitionNode operation,
             IType resultType,
             FieldNode resultSelection,
             Path path,
@@ -30,6 +32,7 @@ namespace StrawberryShake.Generators.Descriptors
             IResultParserTypeDescriptor unknownType)
         {
             Name = name;
+            Operation = operation;
             ResultType = resultType;
             ResultSelection = resultSelection;
             Path = path;
@@ -37,6 +40,8 @@ namespace StrawberryShake.Generators.Descriptors
             PossibleTypes = possibleTypes;
             UnknownType = unknownType;
         }
+
+        public OperationDefinitionNode Operation { get; }
 
         public string Name { get; }
 

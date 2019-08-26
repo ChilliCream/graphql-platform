@@ -1,14 +1,13 @@
 using System.Collections.Generic;
 using HotChocolate.Language;
-using HotChocolate.Types;
 
 namespace StrawberryShake.Generators.Descriptors
 {
-    public interface IOperationDescriptor
+    public interface IResultParserDescriptor
         : ICodeDescriptor
     {
         OperationDefinitionNode Operation { get; }
 
-        IReadOnlyList<IArgumentDescriptor> Arguments { get; }
+        IReadOnlyList<IResultParserMethodDescriptor> ParseMethods { get; }
     }
 }

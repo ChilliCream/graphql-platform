@@ -47,21 +47,43 @@ namespace StrawberryShake.Generators
             foreach (var operation in _document.Definitions.OfType<OperationDefinitionNode>())
             {
                 ObjectType operationType = _schema.GetOperationType(operation.Operation);
-                GenerateOperationModel(operationType, operation, root, backlog);
-            }
+                ICodeDescriptor resultDescriptor =
+                    GenerateOperationSelectionSet(
+                        operationType, operation, root, backlog);
 
-            while (backlog.Any())
-            {
-                FieldSelection current = backlog.Dequeue();
-                Path path = root.Append(current.ResponseName);
-                GenerateFieldModel(current.Field.Type, current.Selection, path, backlog);
+                while (backlog.Any())
+                {
+                    FieldSelection current = backlog.Dequeue();
+                    Path path = current.Path.Append(current.ResponseName);
+
+                    GenerateFieldSelectionSet(
+                        operation, current.Field.Type,
+                        current.Selection, path, backlog);
+                }
+
+                RegisterDescriptor(
+                    CreateResultParserDescriptor(operation, resultDescriptor));
             }
 
             FieldTypes = _fieldTypes.ToDictionary(t => t.Key, t => t.Value.Name);
             Descriptors = _descriptors.Values;
         }
 
-        private void GenerateOperationModel(
+        private IResultParserDescriptor CreateResultParserDescriptor(
+            OperationDefinitionNode operation,
+            ICodeDescriptor resultDescriptor)
+        {
+            return new ResultParserDescriptor
+            (
+                resultDescriptor.Name + "ResultParser",
+                operation,
+                _descriptors.Values
+                    .OfType<IResultParserMethodDescriptor>()
+                    .Where(t => t.Operation == operation).ToList()
+            );
+        }
+
+        private ICodeDescriptor GenerateOperationSelectionSet(
            ObjectType operationType,
            OperationDefinitionNode operation,
            Path path,
@@ -74,15 +96,18 @@ namespace StrawberryShake.Generators
 
             EnqueueFields(backlog, typeCase.Fields);
 
-            _operationTypes[operation] = GenerateObjectTypeModels(
-                operationType,
-                operationType,
-                operation,
-                typeCase,
-                path);
+            return _operationTypes[operation] =
+                GenerateObjectSelectionSet(
+                    operation,
+                    operationType,
+                    operationType,
+                    operation,
+                    typeCase,
+                    path);
         }
 
-        private void GenerateFieldModel(
+        private void GenerateFieldSelectionSet(
+            OperationDefinitionNode operation,
             IType fieldType,
             FieldNode fieldSelection,
             Path path,
@@ -111,7 +136,8 @@ namespace StrawberryShake.Generators
 
             if (namedType is UnionType unionType)
             {
-                _fieldTypes[fieldSelection] = GenerateUnionTypeModels(
+                _fieldTypes[fieldSelection] = GenerateUnionSelectionSet(
+                    operation,
                     unionType,
                     fieldType,
                     fieldSelection,
@@ -120,7 +146,8 @@ namespace StrawberryShake.Generators
             }
             else if (namedType is InterfaceType interfaceType)
             {
-                _fieldTypes[fieldSelection] = GenerateInterfaceTypeModels(
+                _fieldTypes[fieldSelection] = GenerateInterfaceSelectionSet(
+                    operation,
                     interfaceType,
                     fieldType,
                     fieldSelection,
@@ -129,7 +156,8 @@ namespace StrawberryShake.Generators
             }
             else if (namedType is ObjectType objectType)
             {
-                _fieldTypes[fieldSelection] = GenerateObjectTypeModels(
+                _fieldTypes[fieldSelection] = GenerateObjectSelectionSet(
+                    operation,
                     objectType,
                     fieldType,
                     fieldSelection,
@@ -148,7 +176,8 @@ namespace StrawberryShake.Generators
             }
         }
 
-        private ICodeDescriptor GenerateUnionTypeModels(
+        private ICodeDescriptor GenerateUnionSelectionSet(
+            OperationDefinitionNode operation,
             UnionType unionType,
             IType fieldType,
             FieldNode fieldSelection,
@@ -192,11 +221,11 @@ namespace StrawberryShake.Generators
 
             foreach (var typeCase in typeCases)
             {
-                IFragmentNode fragment = typeCase.Fragments.FirstOrDefault(
-                    t => t.Fragment.TypeCondition == typeCase.Type);
-
                 string className;
                 string interfaceName;
+
+                IFragmentNode fragment = typeCase.Fragments.FirstOrDefault(
+                    t => t.Fragment.TypeCondition == typeCase.Type);
 
                 if (fragment is null)
                 {
@@ -240,6 +269,7 @@ namespace StrawberryShake.Generators
             RegisterDescriptor(
                 new ResultParserMethodDescriptor(
                     GetPathName(path),
+                    operation,
                     fieldType,
                     fieldSelection,
                     path,
@@ -249,7 +279,8 @@ namespace StrawberryShake.Generators
             return unionInterface;
         }
 
-        private ICodeDescriptor GenerateInterfaceTypeModels(
+        private ICodeDescriptor GenerateInterfaceSelectionSet(
+            OperationDefinitionNode operation,
             InterfaceType interfaceType,
             IType fieldType,
             FieldNode fieldSelection,
@@ -281,44 +312,10 @@ namespace StrawberryShake.Generators
 
             var resultParserTypes = new List<ResultParserTypeDescriptor>();
 
-            foreach (var typeCase in typeCases)
+            foreach (FieldCollectionResult typeCase in typeCases)
             {
-                string className;
-                IReadOnlyList<IFragmentNode> fragments;
-
-                returnType = HoistFragment(
-                    (ObjectType)typeCase.Type,
-                    typeCase.SelectionSet,
-                    typeCase.Fragments);
-
-                if (returnType is null)
-                {
-                    fragments = typeCase.Fragments;
-                    className = CreateName(GetClassName(typeCase.Type.Name));
-                }
-                else
-                {
-                    fragments = returnType.Children;
-                    className = CreateName(GetClassName(returnType.Fragment.Name));
-                }
-
-                var modelSelectionSet = new SelectionSetNode(
-                    typeCase.Fields.Select(t => t.Selection).ToList());
-
-                var modelFragment = new FragmentNode(new Fragment(
-                    className, typeCase.Type, modelSelectionSet));
-                modelFragment.Children.AddRange(fragments);
-
-                IInterfaceDescriptor modelInterface =
-                    CreateInterface(modelFragment, path);
-
-                var modelClass = new ClassDescriptor(
-                    className, typeCase.Type, modelInterface);
-
-                RegisterDescriptor(modelInterface);
-                RegisterDescriptor(modelClass);
-
-                resultParserTypes.Add(new ResultParserTypeDescriptor(modelClass));
+                GenerateInterfaceTypeCaseModel(
+                    typeCase, resultParserTypes, path);
             }
 
             RegisterDescriptor(interfaceDescriptor);
@@ -326,6 +323,7 @@ namespace StrawberryShake.Generators
             RegisterDescriptor(
                 new ResultParserMethodDescriptor(
                     GetPathName(path),
+                    operation,
                     fieldType,
                     fieldSelection,
                     path,
@@ -335,7 +333,51 @@ namespace StrawberryShake.Generators
             return interfaceDescriptor;
         }
 
-        private ICodeDescriptor GenerateObjectTypeModels(
+        private void GenerateInterfaceTypeCaseModel(
+            FieldCollectionResult typeCase,
+            ICollection<ResultParserTypeDescriptor> resultParser,
+            Path path)
+        {
+            string className;
+            IReadOnlyList<IFragmentNode> fragments;
+
+            IFragmentNode returnType = HoistFragment(
+                (ObjectType)typeCase.Type,
+                typeCase.SelectionSet,
+                typeCase.Fragments);
+
+            if (returnType is null)
+            {
+                fragments = typeCase.Fragments;
+                className = CreateName(GetClassName(typeCase.Type.Name));
+            }
+            else
+            {
+                fragments = returnType.Children;
+                className = CreateName(GetClassName(returnType.Fragment.Name));
+            }
+
+            var modelSelectionSet = new SelectionSetNode(
+                typeCase.Fields.Select(t => t.Selection).ToList());
+
+            var modelFragment = new FragmentNode(new Fragment(
+                className, typeCase.Type, modelSelectionSet));
+            modelFragment.Children.AddRange(fragments);
+
+            IInterfaceDescriptor modelInterface =
+                CreateInterface(modelFragment, path);
+
+            var modelClass = new ClassDescriptor(
+                className, typeCase.Type, modelInterface);
+
+            RegisterDescriptor(modelInterface);
+            RegisterDescriptor(modelClass);
+
+            resultParser.Add(new ResultParserTypeDescriptor(modelClass));
+        }
+
+        private ICodeDescriptor GenerateObjectSelectionSet(
+            OperationDefinitionNode operation,
             ObjectType objectType,
             IType fieldType,
             WithDirectives fieldOrOperation,
@@ -378,6 +420,7 @@ namespace StrawberryShake.Generators
             RegisterDescriptor(
                 new ResultParserMethodDescriptor(
                     GetPathName(path),
+                    operation,
                     fieldType,
                     fieldOrOperation as FieldNode,
                     path,

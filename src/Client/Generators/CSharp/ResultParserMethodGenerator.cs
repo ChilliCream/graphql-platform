@@ -1,6 +1,4 @@
-using System.Text;
 using System.Threading.Tasks;
-using HotChocolate;
 using HotChocolate.Types;
 using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
@@ -16,7 +14,7 @@ namespace StrawberryShake.Generators.CSharp
             ITypeLookup typeLookup)
         {
             string resultTypeName = methodDescriptor.ResultSelection is null
-                ? methodDescriptor.ResultSelection.Name.Value
+                ? methodDescriptor.ResultDescriptor.Name
                 : typeLookup.GetTypeName(
                     methodDescriptor.ResultSelection,
                     methodDescriptor.ResultType,
