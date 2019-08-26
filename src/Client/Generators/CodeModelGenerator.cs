@@ -23,14 +23,16 @@ namespace StrawberryShake.Generators
         private FieldCollector _fieldCollector;
         private readonly ISchema _schema;
         private readonly DocumentNode _document;
-        private readonly IQueryDescriptor _query = null;
+        private readonly IQueryDescriptor _query;
 
-        public CodeModelGenerator(ISchema schema, DocumentNode document)
+        public CodeModelGenerator(ISchema schema, IQueryDescriptor query)
         {
-            _schema = schema;
-            _document = document;
+            _schema = schema ?? throw new ArgumentNullException(nameof(schema));
+            _query = query ?? throw new ArgumentNullException(nameof(query));
+
+            _document = query.OriginalDocument;
             _fieldCollector = new FieldCollector(
-                new FragmentCollection(schema, document));
+                new FragmentCollection(schema, query.OriginalDocument));
 
             Descriptors = Array.Empty<ICodeDescriptor>();
             FieldTypes = new Dictionary<FieldNode, string>();
@@ -708,39 +710,6 @@ namespace StrawberryShake.Generators
                     }
                 }
             }
-        }
-
-        // TODO : move into separate class
-        private static IQueryDescriptor CreateQuery(
-            string documentName,
-            DocumentNode document,
-            IDocumentHashProvider hashProvider)
-        {
-            DocumentNode rewritten = AddTypeNameQueryRewriter.Rewrite(document);
-            byte[] documentBuffer;
-
-            var serializer = new QuerySyntaxSerializer(false);
-
-            using (var stream = new MemoryStream())
-            {
-                using (var sw = new StreamWriter(stream))
-                {
-                    using (var writer = new DocumentWriter(sw))
-                    {
-                        serializer.Visit(rewritten, writer);
-                    }
-                }
-                stream.Flush();
-                documentBuffer = stream.ToArray();
-            }
-
-            string hash = hashProvider.ComputeHash(documentBuffer);
-            return new QueryDescriptor(
-                documentName,
-                hashProvider.Name,
-                hash,
-                documentBuffer,
-                document);
         }
     }
 }
