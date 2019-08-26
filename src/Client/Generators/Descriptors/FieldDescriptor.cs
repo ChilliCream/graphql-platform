@@ -14,7 +14,7 @@ namespace StrawberryShake.Generators.Descriptors
             Field = field ?? throw new ArgumentNullException(nameof(field));
             Selection = selection ?? throw new ArgumentNullException(nameof(selection));
             Type = type ?? throw new ArgumentNullException(nameof(type));
-            Path = path;
+            Path = path ?? throw new ArgumentNullException(nameof(path));
 
             NameNode responseName = selection.Alias ?? selection.Name;
             ResponseName = responseName.Value;

@@ -4,9 +4,8 @@ using HotChocolate.Types;
 namespace StrawberryShake.Generators.Descriptors
 {
     public interface IArgumentDescriptor
+        : ICodeDescriptor
     {
-        string Name { get; }
-
         IType Type { get; }
 
         IInputClassDescriptor InputObjectType { get; }

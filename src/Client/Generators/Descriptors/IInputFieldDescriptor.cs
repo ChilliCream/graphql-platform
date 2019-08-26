@@ -3,11 +3,12 @@ using HotChocolate.Types;
 namespace StrawberryShake.Generators.Descriptors
 {
     public interface IInputFieldDescriptor
+        : ICodeDescriptor
     {
-        string Name { get; }
-
         IInputField Field { get; }
 
         IType Type { get; }
+
+        IInputClassDescriptor InputObjectType { get; }
     }
 }

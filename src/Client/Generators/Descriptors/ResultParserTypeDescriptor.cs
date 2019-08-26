@@ -1,3 +1,5 @@
+using System;
+
 namespace StrawberryShake.Generators.Descriptors
 {
     public class ResultParserTypeDescriptor
@@ -5,7 +7,8 @@ namespace StrawberryShake.Generators.Descriptors
     {
         public ResultParserTypeDescriptor(IClassDescriptor resultDescriptor)
         {
-            ResultDescriptor = resultDescriptor;
+            ResultDescriptor = resultDescriptor
+                ?? throw new ArgumentNullException(nameof(resultDescriptor));
         }
 
         public IClassDescriptor ResultDescriptor { get; }

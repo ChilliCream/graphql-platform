@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HotChocolate.Types;
 
@@ -19,9 +20,10 @@ namespace StrawberryShake.Generators.Descriptors
             INamedType type,
             IReadOnlyList<IInterfaceDescriptor> implements)
         {
-            Name = name;
-            Type = type;
-            Implements = implements;
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Type = type ?? throw new ArgumentNullException(nameof(type));
+            Implements = implements ?? throw new ArgumentNullException(nameof(implements));
+
             Fields = CreateFields(type, implements);
         }
 

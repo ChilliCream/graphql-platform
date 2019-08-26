@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -14,10 +15,15 @@ namespace StrawberryShake.Generators.Descriptors
             ICodeDescriptor resultDescriptor,
             IReadOnlyList<IResultParserMethodDescriptor> parseMethods)
         {
-            Name = name;
-            Operation = operation;
-            ResultDescriptor = resultDescriptor;
-            ParseMethods = parseMethods;
+            Name = name
+                ?? throw new ArgumentNullException(nameof(name));
+            Operation = operation
+                ?? throw new ArgumentNullException(nameof(operation));
+            ResultDescriptor = resultDescriptor
+                ?? throw new ArgumentNullException(nameof(resultDescriptor));
+            ParseMethods = parseMethods
+                ?? throw new ArgumentNullException(nameof(parseMethods));
+
             InvolvedLeafTypes = CollectLeafTypes(parseMethods);
         }
 

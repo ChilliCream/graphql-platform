@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
@@ -31,19 +32,25 @@ namespace StrawberryShake.Generators.Descriptors
             IReadOnlyList<IResultParserTypeDescriptor> possibleTypes,
             IResultParserTypeDescriptor unknownType)
         {
-            Name = name;
-            Operation = operation;
-            ResultType = resultType;
+            Name = name
+                ?? throw new ArgumentNullException(nameof(name));
+            Operation = operation
+                ?? throw new ArgumentNullException(nameof(operation));
+            ResultType = resultType
+                ?? throw new ArgumentNullException(nameof(resultType));
             ResultSelection = resultSelection;
-            Path = path;
-            ResultDescriptor = resultDescriptor;
-            PossibleTypes = possibleTypes;
+            Path = path
+                ?? throw new ArgumentNullException(nameof(path));
+            ResultDescriptor = resultDescriptor
+                ?? throw new ArgumentNullException(nameof(resultDescriptor));
+            PossibleTypes = possibleTypes
+                ?? throw new ArgumentNullException(nameof(possibleTypes));
             UnknownType = unknownType;
         }
 
-        public OperationDefinitionNode Operation { get; }
-
         public string Name { get; }
+
+        public OperationDefinitionNode Operation { get; }
 
         public IType ResultType { get; }
 
