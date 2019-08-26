@@ -73,10 +73,16 @@ namespace StrawberryShake.Generators
             OperationDefinitionNode operation,
             ICodeDescriptor resultDescriptor)
         {
+            string name = resultDescriptor is IInterfaceDescriptor
+                ? resultDescriptor.Name.Substring(1)
+                : resultDescriptor.Name;
+            name += "ResultParser";
+
             return new ResultParserDescriptor
             (
-                resultDescriptor.Name + "ResultParser",
+                name,
                 operation,
+                resultDescriptor,
                 _descriptors.Values
                     .OfType<IResultParserMethodDescriptor>()
                     .Where(t => t.Operation == operation).ToList()

@@ -53,7 +53,11 @@ namespace StrawberryShake.Generators
             {
                 var interfaceGenerator = new InterfaceGenerator();
                 var classGenerator = new ClassGenerator();
-                var resultParserGenerator = new ResultParserMethodGenerator();
+                var resultParserGenerator = new ResultParserGenerator(
+                    new Dictionary<string, string>
+                    {
+                        { "String", "StringValueSerializer" }
+                    });
 
                 foreach (ICodeDescriptor descriptor in generator.Descriptors)
                 {
@@ -67,12 +71,10 @@ namespace StrawberryShake.Generators
                             // await classGenerator.WriteAsync(
                             //    writer, c, typeLookup);
                             break;
-                        case ResultParserMethodDescriptor m:
+                        case ResultParserDescriptor m:
                             await resultParserGenerator.WriteAsync(
                                 writer, m, typeLookup);
                             break;
-                        default:
-                            throw new NotSupportedException();
                     }
 
                     await writer.WriteLineAsync();

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.IO;
 using System.Text.Json;
@@ -64,5 +65,26 @@ namespace StrawberryShake
         }
 
         protected abstract T ParserData(JsonElement parent);
+
+        protected static IReadOnlyDictionary<string, IValueSerializer> SerializersToDictionary(
+            IEnumerable<IValueSerializer> serializers)
+        {
+            if (serializers is null)
+            {
+                throw new ArgumentNullException(nameof(serializers));
+            }
+
+            var map = new Dictionary<string, IValueSerializer>();
+
+            foreach (IValueSerializer serializer in serializers)
+            {
+                if (!map.ContainsKey(serializer.Name))
+                {
+                    map.Add(serializer.Name, serializer);
+                }
+            }
+
+            return map;
+        }
     }
 }

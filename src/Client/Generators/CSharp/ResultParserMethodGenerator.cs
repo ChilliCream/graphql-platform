@@ -41,6 +41,7 @@ namespace StrawberryShake.Generators.CSharp
                 await writer.WriteLineAsync();
             }
 
+            await writer.WriteIndentAsync();
             await writer.WriteAsync('{');
             await writer.WriteLineAsync();
 
@@ -64,65 +65,113 @@ namespace StrawberryShake.Generators.CSharp
                 await writer.WriteLineAsync();
                 await writer.WriteLineAsync();
 
-                int last = methodDescriptor.PossibleTypes.Count - 1;
-
-                for (int i = 0; i <= last; i++)
+                if (methodDescriptor.ResultType.NamedType().IsAbstractType())
                 {
-                    var possibleType = methodDescriptor.PossibleTypes[i];
+                    await WriteParserForMultipleResultTypes(
+                        writer, methodDescriptor, typeLookup);
+                }
+                else
+                {
+                    await WriteParserForSingleResultType(
+                        writer, methodDescriptor, typeLookup);
+                }
+            }
 
-                    await writer.WriteIndentAsync();
-                    await writer.WriteAsync("if (string.Equals(TypeName, ");
-                    await writer.WriteStringValueAsync(possibleType.ResultDescriptor.Name);
-                    await writer.WriteAsync(", StringComparison.Ordinal)");
-                    await writer.WriteLineAsync();
+            await writer.WriteIndentAsync();
+            await writer.WriteAsync('}');
+            await writer.WriteLineAsync();
+        }
 
-                    await writer.WriteIndentAsync();
-                    using (writer.WriteBraces())
+        private async Task WriteParserForMultipleResultTypes(
+            CodeWriter writer,
+            IResultParserMethodDescriptor methodDescriptor,
+            ITypeLookup typeLookup)
+        {
+            int last = methodDescriptor.PossibleTypes.Count - 1;
+
+            for (int i = 0; i <= last; i++)
+            {
+                var possibleType = methodDescriptor.PossibleTypes[i];
+
+                await writer.WriteIndentAsync();
+                await writer.WriteAsync("if (string.Equals(TypeName, ");
+                await writer.WriteStringValueAsync(possibleType.ResultDescriptor.Name);
+                await writer.WriteAsync(", StringComparison.Ordinal))");
+                await writer.WriteLineAsync();
+
+                await writer.WriteIndentAsync();
+                using (writer.WriteBraces())
+                {
+                    if (methodDescriptor.ResultType.IsListType())
                     {
-                        if (methodDescriptor.ResultType.IsListType())
-                        {
-                            await WriteListAsync(
-                                writer,
-                                methodDescriptor,
-                                possibleType,
-                                "obj",
-                                "element",
-                                "list",
-                                "entity",
-                                typeLookup);
-                        }
-                        else
-                        {
-                            await WriteCreateObjectAsync(
-                                writer,
-                                methodDescriptor,
-                                possibleType,
-                                "obj",
-                                typeLookup);
-                        }
+                        await WriteListAsync(
+                            writer,
+                            methodDescriptor,
+                            possibleType,
+                            "obj",
+                            "element",
+                            "list",
+                            "entity",
+                            typeLookup);
                     }
-
-                    await writer.WriteLineAsync();
-
-                    if (i < last)
+                    else
                     {
-                        await writer.WriteLineAsync();
+                        await WriteCreateObjectAsync(
+                            writer,
+                            methodDescriptor,
+                            possibleType,
+                            "obj",
+                            typeLookup);
                     }
                 }
 
                 await writer.WriteLineAsync();
 
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync("throw new NotSupported(");
-                await writer.WriteStringValueAsync("Handle not exhausted objects");
-                await writer.WriteAsync(");");
-                await writer.WriteLineAsync();
-
-                writer.DecreaseIndent();
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync('}');
-                await writer.WriteLineAsync();
+                if (i < last)
+                {
+                    await writer.WriteLineAsync();
+                }
             }
+
+            await writer.WriteLineAsync();
+
+            await writer.WriteIndentAsync();
+            await writer.WriteAsync("throw new NotSupported(");
+            await writer.WriteStringValueAsync("Handle not exhausted objects");
+            await writer.WriteAsync(");");
+            await writer.WriteLineAsync();
+        }
+
+        private async Task WriteParserForSingleResultType(
+            CodeWriter writer,
+            IResultParserMethodDescriptor methodDescriptor,
+            ITypeLookup typeLookup)
+        {
+            var possibleType = methodDescriptor.PossibleTypes[0];
+
+            if (methodDescriptor.ResultType.IsListType())
+            {
+                await WriteListAsync(
+                    writer,
+                    methodDescriptor,
+                    possibleType,
+                    "obj",
+                    "element",
+                    "list",
+                    "entity",
+                    typeLookup);
+            }
+            else
+            {
+                await WriteCreateObjectAsync(
+                    writer,
+                    methodDescriptor,
+                    possibleType,
+                    "obj",
+                    typeLookup);
+            }
+
+            await writer.WriteLineAsync();
         }
 
         private async Task WriteListAsync(
@@ -265,7 +314,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteIndentAsync();
             await writer.WriteAsync("return ");
             await writer.WriteAsync(entityField);
-            await writer.WriteAsync('.');
+            await writer.WriteAsync(';');
         }
 
         private async Task WriteObjectPropertyDeserializationAsync(
