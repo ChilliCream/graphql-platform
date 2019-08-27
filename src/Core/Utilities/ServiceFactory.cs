@@ -18,32 +18,42 @@ namespace HotChocolate.Utilities
             }
 
             object service = Services?.GetService(type);
+
             if (service != null)
             {
                 return service;
             }
 
+            try
+            {
 #if NETSTANDARD1_4
-            if (type.GetTypeInfo().IsInterface || type.GetTypeInfo().IsAbstract)
+                TypeInfo typeInfo = type.GetTypeInfo();
+                if (typeInfo.IsInterface || typeInfo.IsAbstract)
 #else
-            if (type.IsInterface || type.IsAbstract)
+                if (type.IsInterface || type.IsAbstract)
 #endif
-            {
-                return null;
+                {
+                    return null;
+                }
+
+                FactoryInfo factoryInfo = CreateFactoryInfo(Services, type);
+                ParameterInfo[] parameters = factoryInfo.Constructor.GetParameters();
+                object[] arguments = new object[parameters.Length];
+
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    arguments[i] = factoryInfo.Arguments[parameters[i].ParameterType];
+                }
+
+                return factoryInfo.Constructor.Invoke(arguments);
             }
-
-            FactoryInfo factoryInfo = CreateFactoryInfo(Services, type);
-            ParameterInfo[] parameters =
-                factoryInfo.Constructor.GetParameters();
-            object[] arguments = new object[parameters.Length];
-
-            for (int i = 0; i < parameters.Length; i++)
+            catch (Exception ex)
             {
-                arguments[i] =
-                    factoryInfo.Arguments[parameters[i].ParameterType];
+                throw new InvalidOperationException(
+                    $"Unable to create service `{type.AssemblyQualifiedName}`" +
+                    " see inner exception for more details.",
+                    ex);
             }
-
-            return factoryInfo.Constructor.Invoke(arguments);
         }
 
         object IServiceProvider.GetService(Type serviceType) =>
