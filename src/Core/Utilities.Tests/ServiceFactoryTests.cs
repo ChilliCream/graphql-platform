@@ -57,6 +57,20 @@ namespace HotChocolate.Utilities
             Assert.NotNull(classWithDependencies.Dependency);
         }
 
+        [Fact]
+        public void Catch_Exception_On_Create()
+        {
+            // arrange
+            var factory = new ServiceFactory();
+            var type = typeof(ClassWithNoException);
+
+            // act
+            Action action = () => factory.CreateInstance(type);
+
+            // assert
+            var s = Assert.Throws<InvalidOperationException>(action).Message;
+        }
+
         private class ClassWithNoDependencies
         {
         }
@@ -69,6 +83,14 @@ namespace HotChocolate.Utilities
             }
 
             public ClassWithNoDependencies Dependency { get; }
+        }
+
+        private class ClassWithNoException
+        {
+            public ClassWithNoException()
+            {
+                throw new NullReferenceException();
+            }
         }
     }
 }
