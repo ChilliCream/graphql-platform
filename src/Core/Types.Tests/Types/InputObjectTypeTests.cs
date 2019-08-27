@@ -960,6 +960,24 @@ namespace HotChocolate.Types
             Assert.IsType<Dictionary<string, object>>(value);
         }
 
+        [Fact]
+        public void Ignore_Fields_With_GraphQLIgnoreAttribute()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType<InputObjectType<FooIgnored>>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class SimpleInput
         {
             public int Id { get; set; }
@@ -1026,6 +1044,14 @@ namespace HotChocolate.Types
         public class Foo
         {
             public Bar Bar { get; set; }
+        }
+
+        public class FooIgnored
+        {
+            [GraphQLIgnore]
+            public Bar Bar { get; set; }
+
+            public Bar Baz { get; set; }
         }
 
         public class Bar
