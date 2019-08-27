@@ -4,7 +4,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace StrawberryShake
+namespace StrawberryShake.Http
 {
     public class JsonOperationSerializer
         : IOperationSerializer
@@ -31,12 +31,16 @@ namespace StrawberryShake
             writer.WritePropertyName("id");
             writer.WriteStringValue(operation.Document.Hash);
 
-            writer.WritePropertyName("query");
-            writer.WriteStringValue(operation.Document.Content);
+            if (includeDocument)
+            {
+                writer.WritePropertyName("query");
+                writer.WriteStringValue(operation.Document.Content);
+            }
 
             writer.WritePropertyName("operationName");
             writer.WriteStringValue(operation.Name);
 
+            /*
             if (operation.Variables != null && operation.Variables.Count != 0)
             {
                 writer.WritePropertyName("variables");
@@ -48,6 +52,7 @@ namespace StrawberryShake
                 writer.WritePropertyName("extensions");
                 WriteValue(operation.Variables, writer);
             }
+             */
 
             writer.WriteEndObject();
 

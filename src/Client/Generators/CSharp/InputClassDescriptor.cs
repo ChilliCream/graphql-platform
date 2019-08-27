@@ -71,6 +71,11 @@ namespace StrawberryShake.Generators.CSharp
 
                 using (writer.IncreaseIndent())
                 {
+                    await writer.WriteIndentAsync();
+                    await writer.WriteAsync("var map = new Dictionary<string, object>();");
+                    await writer.WriteLineAsync();
+                    await writer.WriteIndentAsync();
+
                     foreach (IInputFieldDescriptor fieldDescriptor in descriptor.Fields)
                     {
                         string typeName = typeLookup.GetTypeName(
@@ -79,26 +84,11 @@ namespace StrawberryShake.Generators.CSharp
                             false);
 
                         await writer.WriteIndentAsync();
-                        await writer.WriteAsync("var map = new Dictionary<string, object>();");
+                        await writer.WriteAsync("map");
                         await writer.WriteLineAsync();
                         await writer.WriteIndentAsync();
 
-                        await writer.WriteAsync(typeName);
-                        await writer.WriteSpaceAsync();
-                        await writer.WriteAsync(GetPropertyName(fieldDescriptor.Name));
-                        await writer.WriteSpaceAsync();
-                        await writer.WriteAsync("{ get; set; }");
 
-                        if (fieldDescriptor.Type.IsListType())
-                        {
-                            await writer.WriteSpaceAsync();
-                            await writer.WriteAsync(" = new ");
-                            await writer.WriteAsync(typeName);
-                            await writer.WriteAsync("();");
-                        }
-
-                        await writer.WriteLineAsync();
-                        await writer.WriteLineAsync();
                     }
                 }
 
@@ -109,5 +99,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteRightBraceAsync();
             await writer.WriteLineAsync();
         }
+
+        private void WriteSerializeLeaf
     }
 }
