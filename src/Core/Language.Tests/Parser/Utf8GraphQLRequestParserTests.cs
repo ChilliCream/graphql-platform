@@ -413,6 +413,66 @@ namespace HotChocolate.Language
             Utf8GraphQLRequestParser.ParseJson(message.Payload).MatchSnapshot();
         }
 
+        [Fact]
+        public void Parse_Apollo_AQP_SignatureQuery()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes(
+                FileResource.Open("Apollo_AQP_QuerySignature_1.json")
+                    .NormalizeLineBreaks());
+
+            // act
+            var parserOptions = new ParserOptions();
+            var requestParser = new Utf8GraphQLRequestParser(
+                source,
+                parserOptions,
+                new DocumentCache(),
+                new Sha256DocumentHashProvider());
+            IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+
+            // assert
+            Assert.Collection(batch,
+                r =>
+                {
+                    Assert.Equal("MyQuery", r.OperationName);
+                    Assert.Equal("hashOfQuery", r.QueryName);
+                    Assert.Null(r.Variables);
+                    Assert.True(r.Extensions.ContainsKey("persistedQuery"));
+                    Assert.Null(r.Query);
+                    Assert.Null(r.QueryHash);
+                });
+        }
+
+        [Fact]
+        public void Parse_Apollo_AQP_SignatureQuery_Variables_Without_Values()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes(
+                FileResource.Open("Apollo_AQP_QuerySignature_2.json")
+                    .NormalizeLineBreaks());
+
+            // act
+            var parserOptions = new ParserOptions();
+            var requestParser = new Utf8GraphQLRequestParser(
+                source,
+                parserOptions,
+                new DocumentCache(),
+                new Sha256DocumentHashProvider());
+            IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+
+            // assert
+            Assert.Collection(batch,
+                r =>
+                {
+                    Assert.Null(r.OperationName);
+                    Assert.Equal("hashOfQuery", r.QueryName);
+                    Assert.Empty(r.Variables);
+                    Assert.True(r.Extensions.ContainsKey("persistedQuery"));
+                    Assert.Null(r.Query);
+                    Assert.Null(r.QueryHash);
+                });
+        }
+
         private class GraphQLRequestDto
         {
             [JsonProperty("operationName")]
