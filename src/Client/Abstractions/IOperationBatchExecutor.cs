@@ -7,6 +7,4 @@ namespace StrawberryShake
     {
         Task<IResponseStream> ExecuteAsync(IEnumerable<IOperation> batch);
     }
-
-
 }
