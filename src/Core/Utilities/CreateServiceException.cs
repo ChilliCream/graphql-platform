@@ -2,6 +2,9 @@ using System;
 
 namespace HotChocolate.Utilities
 {
+#if !NETSTANDARD1_4
+    [Serializable]
+#endif
     public class CreateServiceException
         : Exception
     {
