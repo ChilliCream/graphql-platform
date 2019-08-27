@@ -1454,6 +1454,19 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Ignore_Fields_With_GraphQLIgnoreAttribute()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<FooIgnore>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
@@ -1517,6 +1530,13 @@ namespace HotChocolate.Types
         {
             [Obsolete("Baz")]
             public string Bar() => "foo";
+        }
+
+        public class FooIgnore
+        {
+            [GraphQLIgnore]
+            public string Bar() => "foo";
+            public string Baz() => "foo";
         }
 
         public class FooDeprecated
