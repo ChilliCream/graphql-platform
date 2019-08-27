@@ -7,17 +7,18 @@ using static StrawberryShake.Generators.Utilities.NameUtils;
 namespace StrawberryShake.Generators.CSharp
 {
     public class ResultParserMethodGenerator
+        : ICodeGenerator<IResultParserMethodDescriptor>
     {
         public async Task WriteAsync(
             CodeWriter writer,
-            IResultParserMethodDescriptor methodDescriptor,
+            IResultParserMethodDescriptor descriptor,
             ITypeLookup typeLookup)
         {
-            string resultTypeName = methodDescriptor.ResultSelection is null
-                ? methodDescriptor.ResultDescriptor.Name
+            string resultTypeName = descriptor.ResultSelection is null
+                ? descriptor.ResultDescriptor.Name
                 : typeLookup.GetTypeName(
-                    methodDescriptor.ResultSelection,
-                    methodDescriptor.ResultType,
+                    descriptor.ResultSelection,
+                    descriptor.ResultType,
                     true);
 
             await writer.WriteIndentAsync();
@@ -25,7 +26,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteAsync(resultTypeName);
             await writer.WriteSpaceAsync();
             await writer.WriteAsync("Parse");
-            await writer.WriteAsync(methodDescriptor.Name);
+            await writer.WriteAsync(descriptor.Name);
 
             await writer.WriteAsync('(');
             await writer.WriteLineAsync();
@@ -65,15 +66,15 @@ namespace StrawberryShake.Generators.CSharp
                 await writer.WriteLineAsync();
                 await writer.WriteLineAsync();
 
-                if (methodDescriptor.ResultType.NamedType().IsAbstractType())
+                if (descriptor.ResultType.NamedType().IsAbstractType())
                 {
                     await WriteParserForMultipleResultTypes(
-                        writer, methodDescriptor, typeLookup);
+                        writer, descriptor, typeLookup);
                 }
                 else
                 {
                     await WriteParserForSingleResultType(
-                        writer, methodDescriptor, typeLookup);
+                        writer, descriptor, typeLookup);
                 }
             }
 

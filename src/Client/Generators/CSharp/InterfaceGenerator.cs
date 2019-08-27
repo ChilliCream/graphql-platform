@@ -8,20 +8,21 @@ using static StrawberryShake.Generators.Utilities.NameUtils;
 namespace StrawberryShake.Generators.CSharp
 {
     public class InterfaceGenerator
+        : ICodeGenerator<IInterfaceDescriptor>
     {
         public async Task WriteAsync(
             CodeWriter writer,
-            IInterfaceDescriptor interfaceDescriptor,
+            IInterfaceDescriptor descriptor,
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync();
             await writer.WriteAsync("public interface ");
-            await writer.WriteAsync(interfaceDescriptor.Name);
+            await writer.WriteAsync(descriptor.Name);
             await writer.WriteLineAsync();
 
             writer.IncreaseIndent();
 
-            for (int i = 0; i < interfaceDescriptor.Implements.Count; i++)
+            for (int i = 0; i < descriptor.Implements.Count; i++)
             {
                 await writer.WriteIndentAsync();
 
@@ -35,7 +36,7 @@ namespace StrawberryShake.Generators.CSharp
                 }
 
                 await writer.WriteSpaceAsync();
-                await writer.WriteAsync(interfaceDescriptor.Implements[i].Name);
+                await writer.WriteAsync(descriptor.Implements[i].Name);
                 await writer.WriteLineAsync();
             }
 
@@ -47,9 +48,9 @@ namespace StrawberryShake.Generators.CSharp
 
             writer.IncreaseIndent();
 
-            if (interfaceDescriptor.Type is IComplexOutputType complexType)
+            if (descriptor.Type is IComplexOutputType complexType)
             {
-                foreach (FieldDescriptor fieldDescriptor in interfaceDescriptor.Fields)
+                foreach (FieldDescriptor fieldDescriptor in descriptor.Fields)
                 {
                     if (complexType.Fields.ContainsField(
                         fieldDescriptor.Selection.Name.Value))

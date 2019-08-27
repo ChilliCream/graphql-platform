@@ -56,9 +56,6 @@ namespace StrawberryShake.Generators
                         operationType, operation, root, backlog);
 
                 RegisterDescriptor(
-                    CreateResultParserDescriptor(operation, resultDescriptor));
-
-                RegisterDescriptor(
                     GenerateOperation(operationType, operation));
 
                 while (backlog.Any())
@@ -70,6 +67,9 @@ namespace StrawberryShake.Generators
                         operation, current.Field.Type,
                         current.Selection, path, backlog);
                 }
+
+                RegisterDescriptor(
+                    CreateResultParserDescriptor(operation, resultDescriptor));
             }
 
             FieldTypes = _fieldTypes.ToDictionary(t => t.Key, t => t.Value.Name);

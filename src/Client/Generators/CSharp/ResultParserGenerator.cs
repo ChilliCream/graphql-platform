@@ -10,6 +10,7 @@ using static StrawberryShake.Generators.Utilities.NameUtils;
 namespace StrawberryShake.Generators.CSharp
 {
     public class ResultParserGenerator
+        : ICodeGenerator<IResultParserDescriptor>
     {
         private static readonly ResultParserMethodGenerator _methodGenerator =
             new ResultParserMethodGenerator();
@@ -24,29 +25,29 @@ namespace StrawberryShake.Generators.CSharp
 
         public async Task WriteAsync(
             CodeWriter writer,
-            IResultParserDescriptor parserDescriptor,
+            IResultParserDescriptor descriptor,
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync();
             await writer.WriteAsync("public class ");
-            await writer.WriteAsync(parserDescriptor.Name);
+            await writer.WriteAsync(descriptor.Name);
             await writer.WriteLineAsync();
 
-            await WriteImplementsAsync(writer, parserDescriptor);
+            await WriteImplementsAsync(writer, descriptor);
             await writer.WriteAsync("{");
             await writer.WriteLineAsync();
 
             using (writer.IncreaseIndent())
             {
-                await WriteSerializerFieldsAsync(writer, parserDescriptor);
+                await WriteSerializerFieldsAsync(writer, descriptor);
                 await writer.WriteLineAsync();
 
-                await WriteConstructorAsync(writer, parserDescriptor);
+                await WriteConstructorAsync(writer, descriptor);
                 await writer.WriteLineAsync();
 
 
                 foreach (IResultParserMethodDescriptor method in
-                    parserDescriptor.ParseMethods)
+                    descriptor.ParseMethods)
                 {
                     await _methodGenerator.WriteAsync(writer, method, typeLookup);
                     await writer.WriteLineAsync();

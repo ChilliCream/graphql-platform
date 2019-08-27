@@ -9,20 +9,21 @@ using static StrawberryShake.Generators.Utilities.NameUtils;
 namespace StrawberryShake.Generators.CSharp
 {
     public class ClassGenerator
+        : ICodeGenerator<IClassDescriptor>
     {
         public async Task WriteAsync(
             CodeWriter writer,
-            IClassDescriptor classDescriptor,
+            IClassDescriptor descriptor,
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync();
             await writer.WriteAsync("public class ");
-            await writer.WriteAsync(classDescriptor.Name);
+            await writer.WriteAsync(descriptor.Name);
             await writer.WriteLineAsync();
 
             writer.IncreaseIndent();
 
-            for (int i = 0; i < classDescriptor.Implements.Count; i++)
+            for (int i = 0; i < descriptor.Implements.Count; i++)
             {
                 await writer.WriteIndentAsync();
 
@@ -36,7 +37,7 @@ namespace StrawberryShake.Generators.CSharp
                 }
 
                 await writer.WriteSpaceAsync();
-                await writer.WriteAsync(classDescriptor.Implements[i].Name);
+                await writer.WriteAsync(descriptor.Implements[i].Name);
                 await writer.WriteLineAsync();
             }
 
@@ -48,7 +49,7 @@ namespace StrawberryShake.Generators.CSharp
 
             writer.IncreaseIndent();
 
-            foreach (IFieldDescriptor fieldDescriptor in classDescriptor.Fields)
+            foreach (IFieldDescriptor fieldDescriptor in descriptor.Fields)
             {
                 string typeName = typeLookup.GetTypeName(
                     fieldDescriptor.Selection,
