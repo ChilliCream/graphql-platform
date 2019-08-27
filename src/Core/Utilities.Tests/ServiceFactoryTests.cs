@@ -1,4 +1,5 @@
 ﻿using System;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Utilities
@@ -68,7 +69,24 @@ namespace HotChocolate.Utilities
             Action action = () => factory.CreateInstance(type);
 
             // assert
-            var s = Assert.Throws<InvalidOperationException>(action).Message;
+            Assert.Throws<CreateServiceException>(action)
+                .Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Cannot_Resolve_Dependencies()
+        {
+            // arrange
+            var factory = new ServiceFactory();
+            factory.Services = new EmptyServiceProvider();
+            var type = typeof(ClassWithDependencies);
+
+            // act
+            Action action = () => factory.CreateInstance(type);
+
+            // assert
+            Assert.Throws<CreateServiceException>(action)
+                .Message.MatchSnapshot();
         }
 
         private class ClassWithNoDependencies

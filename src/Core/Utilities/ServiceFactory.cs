@@ -106,8 +106,8 @@ namespace HotChocolate.Utilities
                 throw new CreateServiceException(
                     $"Unable to find a constructor on type `{type.FullName}` " +
                     "that can be fulfilled with the currently " +
-                    "available set services. Check if you have registered " +
-                    "all dependent services for this type.");
+                    "available set of services. Check if " +
+                    "all dependent services for this type are registered.");
             }
 
             return factoryInfo;
