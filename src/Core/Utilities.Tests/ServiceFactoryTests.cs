@@ -89,6 +89,21 @@ namespace HotChocolate.Utilities
                 .Message.MatchSnapshot();
         }
 
+        [Fact]
+        public void No_Services_Available()
+        {
+            // arrange
+            var factory = new ServiceFactory();
+            var type = typeof(ClassWithDependencies);
+
+            // act
+            Action action = () => factory.CreateInstance(type);
+
+            // assert
+            Assert.Throws<CreateServiceException>(action)
+                .Message.MatchSnapshot();
+        }
+
         private class ClassWithNoDependencies
         {
         }
