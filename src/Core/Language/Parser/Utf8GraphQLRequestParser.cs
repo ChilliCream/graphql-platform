@@ -8,6 +8,7 @@ namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLRequestParser
     {
+        private const string _persistedQuery = "persistedQuery";
         private readonly IDocumentHashProvider _hashProvider;
         private readonly IDocumentCache _cache;
         private readonly bool _useCache;
@@ -126,19 +127,31 @@ namespace HotChocolate.Language
                 ParseRequestProperty(ref request);
             }
 
-            if (request.IsQueryNull
+            if (!request.HasQuery
                 && request.QueryName == null)
             {
-                // TODO : resources
-                throw new SyntaxException(
-                    _reader,
-                    "Either the query `property` or the `namedQuery` " +
-                    "property have to have a value.");
+                if (_useCache
+                    && request.Extensions != null
+                    && request.Extensions.TryGetValue(_persistedQuery, out object obj)
+                    && obj is IReadOnlyDictionary<string, object> persistedQuery
+                    && persistedQuery.TryGetValue(_hashProvider.Name, out obj)
+                    && obj is string hash)
+                {
+                    request.QueryName = hash;
+                }
+                else
+                {
+                    // TODO : resources
+                    throw new SyntaxException(
+                        _reader,
+                        "Either the query `property` or the `namedQuery` " +
+                        "property have to have a value.");
+                }
             }
 
             DocumentNode document = null;
 
-            if (!request.IsQueryNull)
+            if (request.HasQuery)
             {
                 if (_useCache)
                 {
@@ -227,15 +240,16 @@ namespace HotChocolate.Language
                 case _q:
                     if (fieldName.SequenceEqual(_query))
                     {
-                        request.IsQueryNull = IsNullToken();
-                        if (!request.IsQueryNull
-                            && _reader.Kind != TokenKind.String)
+                        request.HasQuery = !IsNullToken();
+
+                        if (request.HasQuery && _reader.Kind != TokenKind.String)
                         {
                             // TODO : resources
                             throw new SyntaxException(
                                 _reader,
                                 "The query field must be a string or null.");
                         }
+
                         request.Query = _reader.Value;
                         _reader.MoveNext();
                         return;
