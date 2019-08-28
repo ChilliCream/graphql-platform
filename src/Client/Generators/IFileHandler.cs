@@ -7,5 +7,7 @@ namespace StrawberryShake.Generators
     public interface IFileHandler
     {
         void WriteTo(string fileName, Func<Stream, Task> write);
+
+        Task WriteAllAsync();
     }
 }

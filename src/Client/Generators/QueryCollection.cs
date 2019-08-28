@@ -69,6 +69,24 @@ namespace StrawberryShake.Generators
             return LoadAsync(name, documentBuffer);
         }
 
+        public Task<IQueryDescriptor> LoadFromDocumentAsync(
+            string name, DocumentNode query)
+        {
+            if (name is null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (query is null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+
+            byte[] documentBuffer = Encoding.UTF8.GetBytes(
+                QuerySyntaxSerializer.Serialize(query));
+            return LoadAsync(name, documentBuffer);
+        }
+
         private async Task<IQueryDescriptor> LoadAsync(
             string name, byte[] documentBuffer)
         {
