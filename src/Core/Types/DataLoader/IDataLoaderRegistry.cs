@@ -10,13 +10,12 @@ namespace HotChocolate.DataLoader
     public delegate FetchBatch<TKey, TValue> FetchBatchFactory<TKey, TValue>(
         IServiceProvider services);
 
-    public delegate Task<IReadOnlyDictionary<TKey, TValue>>
-        FetchBatch<TKey, TValue>(IReadOnlyList<TKey> keys);
+    public delegate Task<IReadOnlyDictionary<TKey, TValue>> FetchBatch<TKey, TValue>(
+        IReadOnlyList<TKey> keys);
 
-    public delegate Task<IReadOnlyDictionary<TKey, TValue>>
-        FetchBatchCt<TKey, TValue>(
-            IReadOnlyList<TKey> keys,
-            CancellationToken cancellationToken);
+    public delegate Task<IReadOnlyDictionary<TKey, TValue>> FetchBatchCt<TKey, TValue>(
+        IReadOnlyList<TKey> keys,
+        CancellationToken cancellationToken);
 
     public delegate FetchGroup<TKey, TValue> FetchGroupeFactory<TKey, TValue>(
         IServiceProvider services);
