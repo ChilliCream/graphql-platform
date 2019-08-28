@@ -126,8 +126,8 @@ namespace StrawberryShake.Generators.CSharp
                 string elementType = BuildType(typeName, lt.ElementType, readOnly);
 
                 return readOnly
-                    ? $"System.Collections.Generic.IReadOnlyList<{elementType}>"
-                    : $"System.Collections.Generic.List<{elementType}>";
+                    ? $"IReadOnlyList<{elementType}>"
+                    : $"List<{elementType}>";
             }
 
             return typeName;

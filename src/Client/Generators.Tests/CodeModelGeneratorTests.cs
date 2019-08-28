@@ -25,71 +25,15 @@ namespace StrawberryShake.Generators
         [Theory]
         public async Task Generate_Models(string queryFile)
         {
-            // arrange
-            ISchema schema = SchemaBuilder.New()
-                .AddDocumentFromString(FileResource.Open("StarWars.graphql"))
-                .Use(next => context => Task.CompletedTask)
-                .Create();
-
-            var fileActions = new List<Func<Stream, Task>>();
-
-            var fileHandler = new Mock<IFileHandler>();
-            fileHandler.Setup(t => t.WriteTo(
-                It.IsAny<string>(), It.IsAny<Func<Stream, Task>>()))
-                .Callback(new Action<string, Func<Stream, Task>>(
-                    (s, d) => fileActions.Add(d)));
-
-            string queryName = GetFileNameWithoutExtension(queryFile);
-
-            var queryCollection = new QueryCollection();
-            IQueryDescriptor query =
-                await queryCollection.LoadFromStringAsync(
-                    queryName,
-                    FileResource.Open(queryFile));
-
-            // act
-            var generator = new CodeModelGenerator(schema, query);
-            generator.Generate();
-
-            // assert
-            var typeLookup = new TypeLookup(generator.FieldTypes);
-
-            var builder = new StringBuilder();
-            using (var writer = new CodeWriter(builder))
-            {
-                var interfaceGenerator = new InterfaceGenerator();
-                var classGenerator = new ClassGenerator();
-                var resultParserGenerator = new ResultParserGenerator(
-                    new Dictionary<string, string>
-                    {
-                        { "String", "StringValueSerializer" }
-                    });
-
-                foreach (ICodeDescriptor descriptor in generator.Descriptors)
-                {
-                    switch (descriptor)
-                    {
-                        case InterfaceDescriptor i:
-                            // await interfaceGenerator.WriteAsync(
-                            //    writer, i, typeLookup);
-                            break;
-                        case ClassDescriptor c:
-                            // await classGenerator.WriteAsync(
-                            //    writer, c, typeLookup);
-                            break;
-                        case ResultParserDescriptor m:
-                            await resultParserGenerator.WriteAsync(
-                                writer, m, typeLookup);
-                            break;
-                    }
-
-                    await writer.WriteLineAsync();
-                    await writer.WriteLineAsync();
-                }
-            }
-
-            builder.ToString().MatchSnapshot(
-                new SnapshotNameExtension(queryFile + ".cs"));
+            await ClientGenerator.New()
+                .AddSchemaDocumentFromString(
+                    "StarWars",
+                    FileResource.Open("StarWars.graphql"))
+                .AddQueryDocumentFromString(
+                    GetFileNameWithoutExtension(queryFile),
+                    FileResource.Open(queryFile))
+                .SetOutput("./generated")
+                .CreateAsync();
         }
     }
 }

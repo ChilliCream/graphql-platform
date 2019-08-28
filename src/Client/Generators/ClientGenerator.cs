@@ -50,7 +50,13 @@ namespace StrawberryShake.Generators
                 { "Url", typeof(Uri) },
             };
         private IDocumentHashProvider _hashProvider;
-        private readonly IFileHandler _output;
+        private IFileHandler _output;
+
+        private ClientGenerator()
+        {
+        }
+
+        public static ClientGenerator New() => new ClientGenerator();
 
         public ClientGenerator SetOutput(string directoryName)
         {
@@ -59,7 +65,7 @@ namespace StrawberryShake.Generators
                 throw new ArgumentNullException(nameof(directoryName));
             }
 
-            throw new NotImplementedException();
+            return SetOutput(new DirectoryFileHandler(directoryName));
         }
 
         public ClientGenerator SetOutput(IFileHandler output)
@@ -69,7 +75,8 @@ namespace StrawberryShake.Generators
                 throw new ArgumentNullException(nameof(output));
             }
 
-            throw new NotImplementedException();
+            _output = output;
+            return this;
         }
 
         public ClientGenerator SetHashProvider(
@@ -95,7 +102,7 @@ namespace StrawberryShake.Generators
             return this;
         }
 
-        public ClientGenerator AddSchemaDocument(string fileName)
+        public ClientGenerator AddSchemaDocumentFromFile(string fileName)
         {
             if (fileName is null)
             {
@@ -106,6 +113,24 @@ namespace StrawberryShake.Generators
                 IOPath.GetFileNameWithoutExtension(fileName),
                 Utf8GraphQLParser.Parse(
                     File.ReadAllBytes(fileName)));
+        }
+
+        public ClientGenerator AddSchemaDocumentFromString(
+            string name, string schema)
+        {
+            if (name is null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (schema is null)
+            {
+                throw new ArgumentNullException(nameof(schema));
+            }
+
+            return AddSchemaDocument(
+                name,
+                Utf8GraphQLParser.Parse(schema));
         }
 
         public ClientGenerator AddSchemaDocument(
@@ -143,7 +168,7 @@ namespace StrawberryShake.Generators
             return this;
         }
 
-        public ClientGenerator AddQueryDocument(string fileName)
+        public ClientGenerator AddQueryDocumentFromFile(string fileName)
         {
             if (fileName is null)
             {
@@ -154,6 +179,24 @@ namespace StrawberryShake.Generators
                 IOPath.GetFileNameWithoutExtension(fileName),
                 Utf8GraphQLParser.Parse(
                     File.ReadAllBytes(fileName)));
+        }
+
+        public ClientGenerator AddQueryDocumentFromString(
+            string name, string query)
+        {
+            if (name is null)
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+
+            if (query is null)
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+
+            return AddQueryDocument(
+                name,
+                Utf8GraphQLParser.Parse(query));
         }
 
         public ClientGenerator AddQueryDocument(
@@ -222,11 +265,14 @@ namespace StrawberryShake.Generators
             foreach (ICodeDescriptor descriptor in descriptors)
             {
                 ICodeGenerator generator =
-                    _codeGenerators.First(t => t.CanHandle(descriptor));
+                    _codeGenerators.FirstOrDefault(t => t.CanHandle(descriptor));
 
-                _output.WriteTo(
-                    descriptor.Name + ".cs",
-                    w => generator.WriteAsync(w, descriptor, typeLookup));
+                if (generator != null)
+                {
+                    _output.WriteTo(
+                        descriptor.Name + ".cs",
+                        w => generator.WriteAsync(w, descriptor, typeLookup));
+                }
             }
 
             await _output.WriteAllAsync();
@@ -234,6 +280,11 @@ namespace StrawberryShake.Generators
 
         private DocumentNode MergeSchema()
         {
+            if (_schemas.Count == 1)
+            {
+                return _schemas.First().Value;
+            }
+
             SchemaMerger merger = SchemaMerger.New();
 
             foreach (KeyValuePair<string, DocumentNode> schema in _schemas)
@@ -246,6 +297,11 @@ namespace StrawberryShake.Generators
 
         private DocumentNode MergeSchemaExtensions(DocumentNode schema)
         {
+            if (_extensions.Count == 0)
+            {
+                return schema;
+            }
+
             var rewriter = new AddSchemaExtensionRewriter();
             DocumentNode currentSchema = schema;
 

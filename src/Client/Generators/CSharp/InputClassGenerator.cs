@@ -1,5 +1,3 @@
-
-using System;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 using StrawberryShake.Generators.Descriptors;

@@ -1,12 +1,9 @@
-using System.Diagnostics;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
 using IInputFieldDescriptor = StrawberryShake.Generators.Descriptors.IInputFieldDescriptor;
 using static StrawberryShake.Generators.Utilities.NameUtils;
-using System.Collections.Generic;
-using System;
 
 namespace StrawberryShake.Generators.CSharp
 {
