@@ -10,12 +10,12 @@ using static StrawberryShake.Generators.Utilities.NameUtils;
 namespace StrawberryShake.Generators.CSharp
 {
     public class ResultParserGenerator
-        : ICodeGenerator<IResultParserDescriptor>
+        : CodeGenerator<IResultParserDescriptor>
     {
         private static readonly ResultParserMethodGenerator _methodGenerator =
             new ResultParserMethodGenerator();
 
-        public async Task WriteAsync(
+        protected override async Task WriteAsync(
             CodeWriter writer,
             IResultParserDescriptor descriptor,
             ITypeLookup typeLookup)

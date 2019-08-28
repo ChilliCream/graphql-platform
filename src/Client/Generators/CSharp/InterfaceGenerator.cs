@@ -8,9 +8,9 @@ using static StrawberryShake.Generators.Utilities.NameUtils;
 namespace StrawberryShake.Generators.CSharp
 {
     public class InterfaceGenerator
-        : ICodeGenerator<IInterfaceDescriptor>
+        : CodeGenerator<IInterfaceDescriptor>
     {
-        public async Task WriteAsync(
+        protected override async Task WriteAsync(
             CodeWriter writer,
             IInterfaceDescriptor descriptor,
             ITypeLookup typeLookup)

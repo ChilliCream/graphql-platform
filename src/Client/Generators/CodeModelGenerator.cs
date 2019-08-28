@@ -13,7 +13,6 @@ namespace StrawberryShake.Generators
 {
     internal class CodeModelGenerator
     {
-        private readonly HashSet<string> _names = new HashSet<string>();
         private readonly Dictionary<string, ICodeDescriptor> _descriptors =
             new Dictionary<string, ICodeDescriptor>();
         private readonly Dictionary<OperationDefinitionNode, ICodeDescriptor> _operationTypes =
@@ -22,13 +21,18 @@ namespace StrawberryShake.Generators
             new Dictionary<FieldNode, ICodeDescriptor>();
         private FieldCollector _fieldCollector;
         private readonly ISchema _schema;
-        private readonly DocumentNode _document;
         private readonly IQueryDescriptor _query;
+        private readonly ISet<string> _usedNames;
+        private readonly DocumentNode _document;
 
-        public CodeModelGenerator(ISchema schema, IQueryDescriptor query)
+        public CodeModelGenerator(
+            ISchema schema,
+            IQueryDescriptor query,
+            ISet<string> usedNames)
         {
             _schema = schema ?? throw new ArgumentNullException(nameof(schema));
             _query = query ?? throw new ArgumentNullException(nameof(query));
+            _usedNames = usedNames ?? throw new ArgumentNullException(nameof(usedNames));
 
             _document = query.OriginalDocument;
             _fieldCollector = new FieldCollector(
@@ -406,7 +410,7 @@ namespace StrawberryShake.Generators
 
                 returnType = new FragmentNode(new Fragment(
                     name, interfaceType, interfaceSelectionSet));
-                _names.Remove(name);
+                _usedNames.Remove(name);
             }
 
             interfaceDescriptor = CreateInterface(returnType, path);
@@ -664,12 +668,12 @@ namespace StrawberryShake.Generators
 
         private string CreateName(string name)
         {
-            if (!_names.Add(name))
+            if (!_usedNames.Add(name))
             {
                 for (int i = 0; i < int.MaxValue; i++)
                 {
                     string n = name + i;
-                    if (_names.Add(n))
+                    if (_usedNames.Add(n))
                     {
                         return name;
                     }

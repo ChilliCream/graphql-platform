@@ -2,14 +2,15 @@ using System.Threading.Tasks;
 using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
 
-namespace StrawberryShake.Generators.CSharp
+namespace StrawberryShake.Generators
 {
-    public interface ICodeGenerator<T>
-        where T : ICodeDescriptor
+    public interface ICodeGenerator
     {
+        bool CanHandle(ICodeDescriptor descriptor);
+
         Task WriteAsync(
             CodeWriter writer,
-            T descriptor,
+            ICodeDescriptor descriptor,
             ITypeLookup typeLookup);
     }
 }

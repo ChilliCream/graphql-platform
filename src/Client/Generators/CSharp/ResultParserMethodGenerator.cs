@@ -7,9 +7,9 @@ using static StrawberryShake.Generators.Utilities.NameUtils;
 namespace StrawberryShake.Generators.CSharp
 {
     public class ResultParserMethodGenerator
-        : ICodeGenerator<IResultParserMethodDescriptor>
+        : CodeGenerator<IResultParserMethodDescriptor>
     {
-        public async Task WriteAsync(
+        protected override async Task WriteAsync(
             CodeWriter writer,
             IResultParserMethodDescriptor descriptor,
             ITypeLookup typeLookup)

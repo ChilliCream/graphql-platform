@@ -11,9 +11,9 @@ using System;
 namespace StrawberryShake.Generators.CSharp
 {
     public class InputClassSerializerGenerator
-        : ICodeGenerator<IInputClassDescriptor>
+        : CodeGenerator<IInputClassDescriptor>
     {
-        public async Task WriteAsync(
+        protected override async Task WriteAsync(
             CodeWriter writer,
             IInputClassDescriptor descriptor,
             ITypeLookup typeLookup)

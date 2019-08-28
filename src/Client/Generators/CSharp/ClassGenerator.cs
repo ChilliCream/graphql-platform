@@ -9,9 +9,9 @@ using static StrawberryShake.Generators.Utilities.NameUtils;
 namespace StrawberryShake.Generators.CSharp
 {
     public class ClassGenerator
-        : ICodeGenerator<IClassDescriptor>
+        : CodeGenerator<IClassDescriptor>
     {
-        public async Task WriteAsync(
+        protected override async Task WriteAsync(
             CodeWriter writer,
             IClassDescriptor descriptor,
             ITypeLookup typeLookup)
