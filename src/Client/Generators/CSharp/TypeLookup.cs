@@ -88,6 +88,21 @@ namespace StrawberryShake.Generators.CSharp
             return BuildType(typeName, fieldType, readOnly);
         }
 
+        public string GetTypeName(IType fieldType, string typeName, bool readOnly)
+        {
+             if (fieldType.NamedType() is ScalarType scalarType)
+            {
+                if (!_scalarTypes.TryGetValue(scalarType.Name, out Type type))
+                {
+                    throw new NotSupportedException(
+                        $"Scalar type `{scalarType.Name}` is not supported.");
+                }
+                return BuildType(type, fieldType, readOnly);
+            }
+
+            return BuildType(typeName, fieldType, readOnly);
+        }
+
         private static string BuildType(Type type, IType fieldType, bool readOnly)
         {
             return GetTypeName(BuildType(type, fieldType, true, readOnly));
@@ -176,11 +191,6 @@ namespace StrawberryShake.Generators.CSharp
                 return $"{GetNamespace(type.DeclaringType)}.{type.DeclaringType.Name}";
             }
             return type.Namespace;
-        }
-
-        public string GetTypeName(IType fieldType, string typeName, bool readOnly)
-        {
-            throw new NotImplementedException();
         }
     }
 }

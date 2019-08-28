@@ -12,5 +12,7 @@ namespace StrawberryShake.Generators
             CodeWriter writer,
             ICodeDescriptor descriptor,
             ITypeLookup typeLookup);
+
+        string CreateFileName(ICodeDescriptor descriptor);
     }
 }

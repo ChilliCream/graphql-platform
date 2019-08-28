@@ -14,6 +14,23 @@ namespace StrawberryShake.Generators
             return descriptor is T;
         }
 
+        public string CreateFileName(ICodeDescriptor descriptor)
+        {
+            if (descriptor is null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            if (descriptor is T t)
+            {
+                return CreateFileName(t);
+            }
+
+            throw new ArgumentException(
+                "The code generator expected " +
+                $"descriptor type `{typeof(T).FullName}`.");
+        }
+
         public Task WriteAsync(
             CodeWriter writer,
             ICodeDescriptor descriptor,
@@ -48,5 +65,10 @@ namespace StrawberryShake.Generators
             CodeWriter writer,
             T descriptor,
             ITypeLookup typeLookup);
+
+        protected virtual string CreateFileName(T descriptor)
+        {
+            return descriptor.Name + ".cs";
+        }
     }
 }

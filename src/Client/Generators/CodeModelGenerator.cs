@@ -134,7 +134,7 @@ namespace StrawberryShake.Generators
             }
 
             string operationName =
-                CreateName(GetClassName(operation.Name.Value) + "Request");
+                CreateName(GetClassName(operation.Name.Value) + "Operation");
 
             return new OperationDescriptor(
                 operationName,

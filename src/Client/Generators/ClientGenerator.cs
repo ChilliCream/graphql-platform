@@ -264,14 +264,16 @@ namespace StrawberryShake.Generators
             // generate code from models
             foreach (ICodeDescriptor descriptor in descriptors)
             {
-                ICodeGenerator generator =
-                    _codeGenerators.FirstOrDefault(t => t.CanHandle(descriptor));
-
-                if (generator != null)
+                foreach (ICodeGenerator generator in
+                    _codeGenerators.Where(t => t.CanHandle(descriptor)))
                 {
-                    _output.WriteTo(
-                        descriptor.Name + ".cs",
-                        w => generator.WriteAsync(w, descriptor, typeLookup));
+                    string fieldName = generator.CreateFileName(descriptor);
+                    if (generator != null)
+                    {
+                        _output.WriteTo(
+                            fieldName,
+                            w => generator.WriteAsync(w, descriptor, typeLookup));
+                    }
                 }
             }
 

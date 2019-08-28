@@ -10,6 +10,12 @@ namespace StrawberryShake.Generators.CSharp
     public class InputClassSerializerGenerator
         : CodeGenerator<IInputClassDescriptor>
     {
+        protected override string CreateFileName(
+            IInputClassDescriptor descriptor)
+        {
+            return descriptor.Name + "Serializer.cs";
+        }
+
         protected override async Task WriteAsync(
             CodeWriter writer,
             IInputClassDescriptor descriptor,
