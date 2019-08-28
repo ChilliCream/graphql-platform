@@ -9,7 +9,7 @@ using static StrawberryShake.Generators.Utilities.NameUtils;
 
 namespace StrawberryShake.Generators.CSharp
 {
-    public class InputClassDescriptor
+    public class InputClassGenerator
         : ICodeGenerator<IInputClassDescriptor>
     {
         public async Task WriteAsync(
@@ -22,13 +22,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteAsync(descriptor.Name);
             await writer.WriteLineAsync();
 
-            using (writer.IncreaseIndent())
-            {
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync(": IInputObject");
-                await writer.WriteLineAsync();
-            }
-
+            await writer.WriteIndentAsync();
             await writer.WriteLeftBraceAsync();
             await writer.WriteLineAsync();
 
@@ -61,37 +55,6 @@ namespace StrawberryShake.Generators.CSharp
                     await writer.WriteLineAsync();
                 }
 
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync("public ");
-                await writer.WriteAsync("IReadOnlyDictionary<string, object> ");
-                await writer.WriteAsync("ToDictionary()");
-                await writer.WriteLineAsync();
-                await writer.WriteLeftBraceAsync();
-                await writer.WriteLineAsync();
-
-                using (writer.IncreaseIndent())
-                {
-                    await writer.WriteIndentAsync();
-                    await writer.WriteAsync("var map = new Dictionary<string, object>();");
-                    await writer.WriteLineAsync();
-                    await writer.WriteIndentAsync();
-
-                    foreach (IInputFieldDescriptor fieldDescriptor in descriptor.Fields)
-                    {
-                        string typeName = typeLookup.GetTypeName(
-                            fieldDescriptor.Type,
-                            fieldDescriptor.InputObjectType?.Name,
-                            false);
-
-                        await writer.WriteIndentAsync();
-                        await writer.WriteAsync("map");
-                        await writer.WriteLineAsync();
-                        await writer.WriteIndentAsync();
-
-
-                    }
-                }
-
                 await writer.WriteRightBraceAsync();
                 await writer.WriteLineAsync();
             }
@@ -99,7 +62,5 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteRightBraceAsync();
             await writer.WriteLineAsync();
         }
-
-        private void WriteSerializeLeaf
     }
 }

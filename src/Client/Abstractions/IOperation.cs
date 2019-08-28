@@ -8,12 +8,6 @@ namespace StrawberryShake
 
         IDocument Document { get; }
 
-        IReadOnlyDictionary<string, object> GetVariables(
-            IEnumerable<IValueSerializer> serializers);
-    }
-
-    public interface IOperation<out T>
-        : IOperation
-    {
+        IReadOnlyList<VariableValue> GetVariableValues();
     }
 }

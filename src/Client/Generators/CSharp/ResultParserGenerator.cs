@@ -14,14 +14,6 @@ namespace StrawberryShake.Generators.CSharp
     {
         private static readonly ResultParserMethodGenerator _methodGenerator =
             new ResultParserMethodGenerator();
-        private readonly IReadOnlyDictionary<string, string> _valueSerializers;
-
-        public ResultParserGenerator(
-            IReadOnlyDictionary<string, string> valueSerializers)
-        {
-            _valueSerializers = valueSerializers
-                ?? throw new ArgumentNullException(nameof(valueSerializers));
-        }
 
         public async Task WriteAsync(
             CodeWriter writer,
@@ -80,12 +72,6 @@ namespace StrawberryShake.Generators.CSharp
         {
             foreach (INamedType leafType in parserDescriptor.InvolvedLeafTypes)
             {
-                if (!_valueSerializers.TryGetValue(leafType.Name, out string typeName))
-                {
-                    throw new InvalidOperationException(
-                        $"There is no serializer specified for `{leafType.Name}`.");
-                }
-
                 await writer.WriteIndentAsync();
                 await writer.WriteAsync("private readonly IValueSerializer");
                 await writer.WriteAsync('_');
@@ -114,7 +100,7 @@ namespace StrawberryShake.Generators.CSharp
             {
                 await writer.WriteIndentAsync();
                 await writer.WriteAsync("IReadOnlyDictionary<string, IValueSerializer> map = ");
-                await writer.WriteAsync("SerializersToDictionary(serializers);");
+                await writer.WriteAsync("serializers.ToDictionary();");
                 await writer.WriteLineAsync();
 
                 foreach (INamedType leafType in parserDescriptor.InvolvedLeafTypes)
@@ -122,8 +108,8 @@ namespace StrawberryShake.Generators.CSharp
                     await writer.WriteLineAsync();
                     await writer.WriteIndentAsync();
                     await writer.WriteAsync(
-                        "if (!_valueSerializers.TryGetValue" +
-                        "(leafType.Name, out string typeName))");
+                        "if (!map.TryGetValue" +
+                        $"(\"{leafType.Name}\", out IValueSerializer serializer))");
                     await writer.WriteAsync('{');
                     await writer.WriteLineAsync();
 
@@ -137,8 +123,8 @@ namespace StrawberryShake.Generators.CSharp
                         {
                             await writer.WriteIndentAsync();
                             await writer.WriteAsync(
-                                "$\"There is no serializer specified for " +
-                                "`{leafType.Name}`.\",");
+                                "\"There is no serializer specified for " +
+                                $"`{leafType.Name}`.\",");
                             await writer.WriteLineAsync();
 
                             await writer.WriteIndentAsync();
@@ -154,9 +140,7 @@ namespace StrawberryShake.Generators.CSharp
                     await writer.WriteIndentAsync();
                     await writer.WriteAsync('_');
                     await writer.WriteAsync(GetFieldName(leafType.Name));
-                    await writer.WriteAsync("Serializer = map[\"");
-                    await writer.WriteAsync(leafType.Name);
-                    await writer.WriteAsync("\"];");
+                    await writer.WriteAsync("Serializer = serializer;");
                     await writer.WriteLineAsync();
                 }
             }

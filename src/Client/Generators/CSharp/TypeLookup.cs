@@ -177,5 +177,10 @@ namespace StrawberryShake.Generators.CSharp
             }
             return type.Namespace;
         }
+
+        public string GetTypeName(IType fieldType, string typeName, bool readOnly)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
