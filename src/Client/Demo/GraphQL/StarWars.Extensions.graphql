@@ -1,0 +1,3 @@
+extend scalar String
+  @clrType(type: "System.String")
+  @serializationType(type: "System.String")

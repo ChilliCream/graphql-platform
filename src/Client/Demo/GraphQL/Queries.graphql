@@ -1,0 +1,26 @@
+query getHero($foo: ReviewInput!) {
+  hero @spread {
+    ...Hero
+  }
+}
+
+fragment Hero on Character {
+  ... HasName
+  ... HasFriends
+}
+
+fragment Friend on CharacterConnection {
+  nodes @spread {
+    ... HasName
+  }
+}
+
+fragment HasName on Character {
+  name
+}
+
+fragment HasFriends on Character {
+  friends {
+    ...Friend
+  }
+}
