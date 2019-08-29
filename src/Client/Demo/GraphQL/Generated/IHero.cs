@@ -8,5 +8,6 @@ namespace Foo
         : IHasName
         , IHasFriends
     {
+        double? Height { get; }
     }
 }

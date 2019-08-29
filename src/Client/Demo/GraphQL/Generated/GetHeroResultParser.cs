@@ -9,11 +9,19 @@ namespace Foo
     public class GetHeroResultParser
         : GeneratedResultParserBase<IGetHero>
     {
+        private readonly IValueSerializer _floatSerializer;
         private readonly IValueSerializer _stringSerializer;
 
         public GetHeroResultParser(IEnumerable<IValueSerializer> serializers)
         {
             IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
+
+            if (!map.TryGetValue("Float", out IValueSerializer serializer)){
+                throw new ArgumentException(
+                    "There is no serializer specified for `Float`.",
+                    nameof(serializers));
+            }
+            _floatSerializer = serializer;
 
             if (!map.TryGetValue("String", out IValueSerializer serializer)){
                 throw new ArgumentException(
@@ -44,6 +52,7 @@ namespace Foo
             if (string.Equals(type, "Droid", StringComparison.Ordinal))
             {
                 var droid = new Droid();
+                droid.Height = (double?)DeserializeFloat(obj, "height");
                 droid.Name = (string)DeserializeString(obj, "name");
                 droid.Friends = ParseRootHeroFriends(obj, "friends");
                 return droid;
@@ -52,6 +61,7 @@ namespace Foo
             if (string.Equals(type, "Human", StringComparison.Ordinal))
             {
                 var human = new Human();
+                human.Height = (double?)DeserializeFloat(obj, "height");
                 human.Name = (string)DeserializeString(obj, "name");
                 human.Friends = ParseRootHeroFriends(obj, "friends");
                 return human;
@@ -120,6 +130,15 @@ namespace Foo
             throw new UnknownSchemaTypeException(type);
         }
 
+        private double? DeserializeFloat(JsonElement obj, string fieldName)
+        {
+            if (!obj.TryGetProperty(fieldName, out JsonElement value))
+            {
+                return null;
+            }
+
+            return (double?)_floatSerializer.Serialize(value.GetDouble());
+        }
         private string DeserializeString(JsonElement obj, string fieldName)
         {
             if (!obj.TryGetProperty(fieldName, out JsonElement value))
