@@ -1,7 +1,7 @@
 using System;
 using HotChocolate.Language;
 
-namespace HotChocolate.Execution
+namespace HotChocolate
 {
     public static class ErrorBuilderExtensions
     {

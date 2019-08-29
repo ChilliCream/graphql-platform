@@ -1,4 +1,6 @@
-﻿namespace HotChocolate.Validation
+using HotChocolate.Language;
+
+namespace HotChocolate.Validation
 {
     /// <summary>
     /// Fragments must be specified on types that exist in the schema.
