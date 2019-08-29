@@ -182,19 +182,39 @@ namespace StrawberryShake.Generators.CSharp
 
             await writer.WriteLineAsync();
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("throw new NotSupportedException(");
-            await writer.WriteStringValueAsync("Handle not exhausted objects");
-            await writer.WriteAsync(");");
-            await writer.WriteLineAsync();
+            if (methodDescriptor.UnknownType is null)
+            {
+                await writer.WriteIndentAsync();
+                await writer.WriteAsync(
+                    "throw new UnknownSchemaTypeException(type);");
+                await writer.WriteLineAsync();
+            }
+            else
+            {
+                await WriteParserForSingleResultType(
+                    writer,
+                    methodDescriptor,
+                    methodDescriptor.UnknownType,
+                    typeLookup);
+            }
         }
+
+        private Task WriteParserForSingleResultType(
+            CodeWriter writer,
+            IResultParserMethodDescriptor methodDescriptor,
+            ITypeLookup typeLookup) =>
+            WriteParserForSingleResultType(
+                writer,
+                methodDescriptor,
+                methodDescriptor.PossibleTypes[0],
+                typeLookup);
 
         private async Task WriteParserForSingleResultType(
             CodeWriter writer,
             IResultParserMethodDescriptor methodDescriptor,
+            IResultParserTypeDescriptor possibleType,
             ITypeLookup typeLookup)
         {
-            var possibleType = methodDescriptor.PossibleTypes[0];
 
             if (methodDescriptor.ResultType.IsListType())
             {
@@ -382,17 +402,18 @@ namespace StrawberryShake.Generators.CSharp
 
                 if (fieldDescriptor.Type.NamedType().IsLeafType())
                 {
-                    string typeName = typeLookup.GetTypeName(
+                    ITypeInfo typeInfo = typeLookup.GetTypeInfo(
                         fieldDescriptor.Selection,
                         fieldDescriptor.Type,
                         true);
 
+                    string deserializeMethod =
+                        ResultParserDeserializeMethodGenerator.CreateDeserializerName(typeInfo);
+
                     await writer.WriteAsync('(');
-                    await writer.WriteAsync(typeName);
+                    await writer.WriteAsync(typeInfo.ClrTypeName);
                     await writer.WriteAsync(')');
-                    await writer.WriteAsync("Deserialize");
-                    await writer.WriteAsync(fieldDescriptor.Type.NamedType().Name);
-                    await writer.WriteAsync("Value");
+                    await writer.WriteAsync(deserializeMethod);
                     await writer.WriteAsync('(');
                     await writer.WriteAsync(jsonElement);
                     await writer.WriteAsync(", \"");

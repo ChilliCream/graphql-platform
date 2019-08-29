@@ -7,5 +7,4 @@ namespace Foo
     public interface IHasName
     {
         string Name { get; }
-    }
-}
+    }}

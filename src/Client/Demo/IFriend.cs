@@ -7,5 +7,4 @@ namespace Foo
     public interface IFriend
     {
         IReadOnlyList<IHasName> Nodes { get; }
-    }
-}
+    }}

@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Text;
 using System.Collections.Generic;
@@ -5,7 +6,7 @@ using System.Threading.Tasks;
 using HotChocolate.Types;
 using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
-using System;
+using static StrawberryShake.Generators.Utilities.NameUtils;
 
 namespace StrawberryShake.Generators.CSharp
 {
@@ -63,11 +64,13 @@ namespace StrawberryShake.Generators.CSharp
            ITypeLookup typeLookup,
            ISet<string> generatedMethods)
         {
+            bool first = true;
+
             foreach (IFieldDescriptor fieldDescriptor in possibleType.ResultDescriptor.Fields)
             {
                 if (fieldDescriptor.Type.NamedType().IsLeafType())
                 {
-                    TypeInfo typeInfo = typeLookup.GetTypeInfo(
+                    ITypeInfo typeInfo = typeLookup.GetTypeInfo(
                         fieldDescriptor.Selection,
                         fieldDescriptor.Type,
                         false);
@@ -78,21 +81,33 @@ namespace StrawberryShake.Generators.CSharp
                     {
                         string serializerMethod = _jsonMethod[typeInfo.SerializationType];
 
-                        if (fieldDescriptor.Type.ListType().ElementType.IsListType())
+                        if (fieldDescriptor.Type.IsListType()
+                            && fieldDescriptor.Type.ListType().ElementType.IsListType())
                         {
-                            await writer.WriteLineAsync();
+                            if (!first)
+                            {
+                                await writer.WriteLineAsync();
+                            }
                             await WriteDeserializeNestedLeafList(
                                 writer, methodName, typeInfo, serializerMethod);
+
                         }
-                        else if (fieldDescriptor.Type.ListType().ElementType.IsLeafType())
+                        else if (fieldDescriptor.Type.IsListType()
+                            && fieldDescriptor.Type.ListType().ElementType.IsLeafType())
                         {
-                            await writer.WriteLineAsync();
+                            if (!first)
+                            {
+                                await writer.WriteLineAsync();
+                            }
                             await WriteDeserializeLeafList(
                                 writer, methodName, typeInfo, serializerMethod);
                         }
                         else
                         {
-                            await writer.WriteLineAsync();
+                            if (!first)
+                            {
+                                await writer.WriteLineAsync();
+                            }
                             await WriteDeserializeLeaf(
                                 writer, methodName, typeInfo, serializerMethod);
                         }
@@ -104,7 +119,7 @@ namespace StrawberryShake.Generators.CSharp
         private async Task WriteDeserializeLeaf(
             CodeWriter writer,
             string methodName,
-            TypeInfo typeInfo,
+            ITypeInfo typeInfo,
             string serializerMethod)
         {
             await writer.WriteIndentAsync();
@@ -129,12 +144,8 @@ namespace StrawberryShake.Generators.CSharp
 
                 await writer.WriteIndentAsync();
                 await writer.WriteAsync(
-                    $"return (${typeInfo.ClrTypeName})_${typeInfo.SchemaTypeName}Serializer" +
-                    $".Serialize(value.{serializerMethod}());");
-                await writer.WriteLineAsync();
-
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync('}');
+                    $"return ({typeInfo.ClrTypeName})_{GetFieldName(typeInfo.SchemaTypeName)}" +
+                    $"Serializer.Serialize(value.{serializerMethod}());");
                 await writer.WriteLineAsync();
             }
 
@@ -146,12 +157,13 @@ namespace StrawberryShake.Generators.CSharp
         private async Task WriteDeserializeLeafList(
             CodeWriter writer,
             string methodName,
-            TypeInfo typeInfo,
+            ITypeInfo typeInfo,
             string serializerMethod)
         {
             await writer.WriteIndentAsync();
             await writer.WriteAsync(
-                $"private {typeInfo.ClrTypeName} {methodName}(JsonElement obj, string fieldName)");
+                $"private {typeInfo.ClrTypeName} {methodName}" +
+                "(JsonElement obj, string fieldName)");
             await writer.WriteLineAsync();
 
             await writer.WriteIndentAsync();
@@ -167,16 +179,19 @@ namespace StrawberryShake.Generators.CSharp
                 await writer.WriteLineAsync();
 
                 await writer.WriteIndentAsync();
-                await writer.WriteAsync("int arrayLength = value.GetArrayLength();");
+                await writer.WriteAsync(
+                    "int arrayLength = value.GetArrayLength();");
                 await writer.WriteLineAsync();
 
                 await writer.WriteIndentAsync();
-                await writer.WriteAsync("var list = new List<string>(arrayLength);");
+                await writer.WriteAsync(
+                    "var list = new List<string>(arrayLength);");
                 await writer.WriteLineAsync();
                 await writer.WriteLineAsync();
 
                 await writer.WriteIndentAsync();
-                await writer.WriteAsync("for (int i = 0; i < arrayLength; i++)");
+                await writer.WriteAsync(
+                    "for (int i = 0; i < arrayLength; i++)");
                 await writer.WriteLineAsync();
 
                 await writer.WriteIndentAsync();
@@ -219,12 +234,13 @@ namespace StrawberryShake.Generators.CSharp
         private async Task WriteDeserializeNestedLeafList(
             CodeWriter writer,
             string methodName,
-            TypeInfo typeInfo,
+            ITypeInfo typeInfo,
             string serializerMethod)
         {
             await writer.WriteIndentAsync();
             await writer.WriteAsync(
-                $"private {typeInfo.ClrTypeName} {methodName}(JsonElement obj, string fieldName)");
+                $"private {typeInfo.ClrTypeName} {methodName}" +
+                "(JsonElement obj, string fieldName)");
             await writer.WriteLineAsync();
 
             await writer.WriteIndentAsync();
@@ -240,16 +256,19 @@ namespace StrawberryShake.Generators.CSharp
                 await writer.WriteLineAsync();
 
                 await writer.WriteIndentAsync();
-                await writer.WriteAsync("int arrayLength = value.GetArrayLength();");
+                await writer.WriteAsync(
+                    "int arrayLength = value.GetArrayLength();");
                 await writer.WriteLineAsync();
 
                 await writer.WriteIndentAsync();
-                await writer.WriteAsync("var list = new List<string>(arrayLength);");
+                await writer.WriteAsync(
+                    "var list = new List<string>(arrayLength);");
                 await writer.WriteLineAsync();
                 await writer.WriteLineAsync();
 
                 await writer.WriteIndentAsync();
-                await writer.WriteAsync("for (int i = 0; i < arrayLength; i++)");
+                await writer.WriteAsync(
+                    "for (int i = 0; i < arrayLength; i++)");
                 await writer.WriteLineAsync();
 
                 await writer.WriteIndentAsync();
@@ -290,7 +309,8 @@ namespace StrawberryShake.Generators.CSharp
         {
             await writer.WriteIndentAsync();
             await writer.WriteAsync(
-                $"if (!{objectName}.TryGetProperty(fieldName, out JsonElement {elementName}))");
+                $"if (!{objectName}.TryGetProperty(fieldName, " +
+                $"out JsonElement {elementName}))");
             await writer.WriteLineAsync();
 
             await writer.WriteIndentAsync();
@@ -342,7 +362,8 @@ namespace StrawberryShake.Generators.CSharp
             Func<CodeWriter, Task> writeAddValue)
         {
             await writer.WriteIndentAsync();
-            await writer.WriteAsync($"if ({elementName}.ValueKind == JsonValueKind.Null)");
+            await writer.WriteAsync(
+                $"if ({elementName}.ValueKind == JsonValueKind.Null)");
             await writer.WriteLineAsync();
 
             await writer.WriteIndentAsync();
@@ -393,7 +414,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync();
         }
 
-        private string CreateDeserializerName(TypeInfo typeInfo)
+        internal static string CreateDeserializerName(ITypeInfo typeInfo)
         {
             var sb = new StringBuilder();
             sb.Append("Deserialize");

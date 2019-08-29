@@ -9,5 +9,4 @@ namespace Foo
     {
         public string Name { get; set; }
         public IFriend Friends { get; set; }
-    }
-}
+    }}

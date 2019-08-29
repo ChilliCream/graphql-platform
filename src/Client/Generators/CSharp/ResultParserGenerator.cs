@@ -35,6 +35,8 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync();
 
             await WriteImplementsAsync(writer, descriptor);
+
+            await writer.WriteIndentAsync();
             await writer.WriteAsync("{");
             await writer.WriteLineAsync();
 
@@ -58,6 +60,7 @@ namespace StrawberryShake.Generators.CSharp
                     writer, descriptor, typeLookup);
             }
 
+            await writer.WriteIndentAsync();
             await writer.WriteAsync("}");
             await writer.WriteLineAsync();
         }

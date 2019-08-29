@@ -44,5 +44,4 @@ namespace Foo
             map["stars"] = _intSerializer.Serialize(input.stars);
         }
 }
-
 }

@@ -8,5 +8,4 @@ namespace Foo
         : IHasName
         , IHasFriends
     {
-    }
-}
+    }}

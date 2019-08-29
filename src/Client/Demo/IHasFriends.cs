@@ -7,5 +7,4 @@ namespace Foo
     public interface IHasFriends
     {
         IFriend Friends { get; }
-    }
-}
+    }}

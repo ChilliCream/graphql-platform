@@ -68,7 +68,6 @@ namespace StrawberryShake.Generators
                             {
                                 await task.Generator.WriteAsync(
                                     cw, task.Descriptor, typeLookup);
-                                await cw.WriteLineAsync();
                             }
 
                             await cw.WriteAsync('}');

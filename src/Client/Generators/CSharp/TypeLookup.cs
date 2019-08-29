@@ -99,7 +99,7 @@ namespace StrawberryShake.Generators.CSharp
             return BuildType(typeName, fieldType, readOnly);
         }
 
-        public TypeInfo GetTypeInfo(FieldNode field, IType fieldType, bool readOnly)
+        public ITypeInfo GetTypeInfo(FieldNode field, IType fieldType, bool readOnly)
         {
             INamedType namedType = fieldType.NamedType();
 
@@ -117,6 +117,8 @@ namespace StrawberryShake.Generators.CSharp
                 typeInfo.SerializationType = type.SerializationType;
 
                 BuildTypeInfo(type.ClrType, fieldType, readOnly, typeInfo);
+
+                return typeInfo;
             }
 
             throw new NotSupportedException(
@@ -258,7 +260,20 @@ namespace StrawberryShake.Generators.CSharp
             }
             return type.Namespace;
         }
+
+        private class TypeInfo : ITypeInfo
+        {
+            public string ClrTypeName { get; set; }
+
+            public string SchemaTypeName { get; set; }
+
+            public Type SerializationType { get; set; }
+
+            public int ListLevel { get; set; }
+
+            public bool IsNullable { get; set; }
+
+            public IType Type { get; set; }
+        }
     }
-
-
 }

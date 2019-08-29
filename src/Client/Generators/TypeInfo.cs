@@ -3,18 +3,20 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.Generators
 {
-    public class TypeInfo
+    public interface ITypeInfo
     {
-        public string ClrTypeName { get; set; }
+        string ClrTypeName { get; }
 
-        public string SchemaTypeName { get; set; }
+        string SchemaTypeName { get; }
 
-        public Type SerializationType { get; set; }
+        IType Type { get; }
 
-        public int ListLevel { get; set; }
+        Type SerializationType { get; }
 
-        public bool IsNullable { get; set; }
+        int ListLevel { get; }
 
-        public IType Type { get; set; }
+        bool IsNullable { get; }
     }
+
+
 }

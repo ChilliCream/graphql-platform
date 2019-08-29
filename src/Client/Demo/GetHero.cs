@@ -8,5 +8,4 @@ namespace Foo
         : IGetHero
     {
         public IHero Hero { get; set; }
-    }
-}
+    }}
