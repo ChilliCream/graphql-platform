@@ -10,6 +10,8 @@ namespace StrawberryShake
 
         Type ClrType { get; }
 
+        Type SerializationType { get; }
+
         object Serialize(object value);
 
         object Deserialize(object serialized);

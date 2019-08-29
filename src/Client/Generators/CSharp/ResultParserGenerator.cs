@@ -13,6 +13,8 @@ namespace StrawberryShake.Generators.CSharp
         : CodeGenerator<IResultParserDescriptor>
         , IUsesComponents
     {
+        private static readonly ResultParserDeserializeMethodGenerator _desMethodGenerator =
+            new ResultParserDeserializeMethodGenerator();
         private static readonly ResultParserMethodGenerator _methodGenerator =
             new ResultParserMethodGenerator();
 
@@ -44,7 +46,6 @@ namespace StrawberryShake.Generators.CSharp
                 await WriteConstructorAsync(writer, descriptor);
                 await writer.WriteLineAsync();
 
-
                 foreach (IResultParserMethodDescriptor method in
                     descriptor.ParseMethods)
                 {
@@ -52,6 +53,9 @@ namespace StrawberryShake.Generators.CSharp
                         writer, method, typeLookup);
                     await writer.WriteLineAsync();
                 }
+
+                await _desMethodGenerator.WriteAsync(
+                    writer, descriptor, typeLookup);
             }
 
             await writer.WriteAsync("}");

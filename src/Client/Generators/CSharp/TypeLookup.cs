@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Reflection.Metadata;
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
@@ -35,10 +37,9 @@ namespace StrawberryShake.Generators.CSharp
                 { typeof(decimal?), "decimal?" },
                 { typeof(float?), "float?" },
                 { typeof(double?), "double?" }
-
             };
 
-        private readonly IReadOnlyDictionary<string, Type> _scalarTypes;
+        private readonly IReadOnlyDictionary<string, LeafTypeInfo> _leafTypes;
         private readonly IReadOnlyDictionary<FieldNode, string> _generatedTypes;
 
         public TypeLookup(IReadOnlyDictionary<FieldNode, string> generatedTypes)
@@ -46,22 +47,32 @@ namespace StrawberryShake.Generators.CSharp
             _generatedTypes = generatedTypes
                 ?? throw new ArgumentNullException(nameof(generatedTypes));
 
-            _scalarTypes = new Dictionary<string, Type>
+            _leafTypes = new[]
             {
-                { "String", typeof(string) },
-                { "Int", typeof(int) },
-                { "Float", typeof(double) },
-                { "Boolean", typeof(bool) },
-                { "ID", typeof(string) }
-            };
+                new LeafTypeInfo("String", typeof(string), typeof(string)),
+                new LeafTypeInfo("Byte", typeof(byte), typeof(byte)),
+                new LeafTypeInfo("Short", typeof(short), typeof(short)),
+                new LeafTypeInfo("Int", typeof(int), typeof(int)),
+                new LeafTypeInfo("Long", typeof(long), typeof(long)),
+                new LeafTypeInfo("Float", typeof(double), typeof(double)),
+                new LeafTypeInfo("Boolean", typeof(bool), typeof(bool)),
+                new LeafTypeInfo("ID", typeof(string), typeof(string)),
+                new LeafTypeInfo("Url", typeof(Uri), typeof(string)),
+                new LeafTypeInfo("Date", typeof(DateTime), typeof(string)),
+                new LeafTypeInfo("DateTime", typeof(DateTimeOffset), typeof(string)),
+            }.ToDictionary(t => t.TypeName);
         }
 
         public TypeLookup(
-            IReadOnlyDictionary<string, Type> scalarTypes,
+            IEnumerable<LeafTypeInfo> leafTypes,
             IReadOnlyDictionary<FieldNode, string> generatedTypes)
         {
-            _scalarTypes = scalarTypes
-                ?? throw new ArgumentNullException(nameof(scalarTypes));
+            if (leafTypes is null)
+            {
+                throw new ArgumentNullException(nameof(leafTypes));
+            }
+
+            _leafTypes = leafTypes.ToDictionary(t => t.TypeName);
             _generatedTypes = generatedTypes
                 ?? throw new ArgumentNullException(nameof(generatedTypes));
         }
@@ -70,12 +81,12 @@ namespace StrawberryShake.Generators.CSharp
         {
             if (fieldType.NamedType() is ScalarType scalarType)
             {
-                if (!_scalarTypes.TryGetValue(scalarType.Name, out Type type))
+                if (!_leafTypes.TryGetValue(scalarType.Name, out LeafTypeInfo type))
                 {
                     throw new NotSupportedException(
                         $"Scalar type `{scalarType.Name}` is not supported.");
                 }
-                return BuildType(type, fieldType, readOnly);
+                return BuildType(type.ClrType, fieldType, readOnly);
             }
 
             if (!_generatedTypes.TryGetValue(field, out string typeName))
@@ -88,16 +99,40 @@ namespace StrawberryShake.Generators.CSharp
             return BuildType(typeName, fieldType, readOnly);
         }
 
+        public TypeInfo GetTypeInfo(FieldNode field, IType fieldType, bool readOnly)
+        {
+            INamedType namedType = fieldType.NamedType();
+
+            if (namedType.IsLeafType())
+            {
+                if (!_leafTypes.TryGetValue(namedType.Name, out LeafTypeInfo type))
+                {
+                    throw new NotSupportedException(
+                        $"Leaf type `{namedType.Name}` is not supported.");
+                }
+
+                var typeInfo = new TypeInfo();
+                typeInfo.Type = fieldType;
+                typeInfo.SchemaTypeName = namedType.Name;
+                typeInfo.SerializationType = type.SerializationType;
+
+                BuildTypeInfo(type.ClrType, fieldType, readOnly, typeInfo);
+            }
+
+            throw new NotSupportedException(
+                "Type infos are only supported for leaf types.");
+        }
+
         public string GetTypeName(IType fieldType, string typeName, bool readOnly)
         {
-             if (fieldType.NamedType() is ScalarType scalarType)
+            if (fieldType.NamedType() is ScalarType scalarType)
             {
-                if (!_scalarTypes.TryGetValue(scalarType.Name, out Type type))
+                if (!_leafTypes.TryGetValue(scalarType.Name, out LeafTypeInfo type))
                 {
                     throw new NotSupportedException(
                         $"Scalar type `{scalarType.Name}` is not supported.");
                 }
-                return BuildType(type, fieldType, readOnly);
+                return BuildType(type.ClrType, fieldType, readOnly);
             }
 
             return BuildType(typeName, fieldType, readOnly);
@@ -127,6 +162,37 @@ namespace StrawberryShake.Generators.CSharp
             return nullable && type.IsValueType
                 ? typeof(Nullable<>).MakeGenericType(type)
                 : type;
+        }
+
+        private static void BuildTypeInfo(
+            Type type,
+            IType fieldType,
+            bool readOnly,
+            TypeInfo typeInfo)
+        {
+            typeInfo.ClrTypeName = BuildType(type, fieldType, readOnly);
+            BuildType(type, fieldType, true, readOnly);
+        }
+
+        private static void BuildTypeInfo(
+            Type type,
+            IType fieldType,
+            bool nullable,
+            bool readOnly,
+            TypeInfo typeInfo)
+        {
+            if (fieldType is NonNullType nnt)
+            {
+                BuildTypeInfo(type, nnt.Type, false, readOnly, typeInfo);
+            }
+
+            if (fieldType is ListType lt)
+            {
+                typeInfo.ListLevel++;
+                BuildTypeInfo(type, lt.ElementType, true, readOnly, typeInfo);
+            }
+
+            typeInfo.IsNullable = nullable;
         }
 
         private static string BuildType(string typeName, IType fieldType, bool readOnly)
@@ -193,4 +259,6 @@ namespace StrawberryShake.Generators.CSharp
             return type.Namespace;
         }
     }
+
+
 }

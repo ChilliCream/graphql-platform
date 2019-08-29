@@ -8,14 +8,15 @@ namespace Foo
 {
     public class GetHeroResultParser
         : GeneratedResultParserBase<IGetHero>
-{
+    {
         private readonly IValueSerializer _stringSerializer;
 
         public GetHeroResultParser(IEnumerable<IValueSerializer> serializers)
         {
             IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
 
-            if (!map.TryGetValue("String", out IValueSerializer serializer)){
+            if (!map.TryGetValue("String", out IValueSerializer serializer))
+            {
                 throw new ArgumentException(
                     "There is no serializer specified for `String`.",
                     nameof(serializers));
@@ -120,6 +121,113 @@ namespace Foo
             throw new NotSupportedException("Handle not exhausted objects");
         }
 
-}
+        private int? DeserializeNullableInt(JsonElement obj, string fieldName)
+        {
+            if (!obj.TryGetProperty(fieldName, out JsonElement value))
+            {
+                return null;
+            }
+
+            if (value.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            return (int?)_stringSerializer.Serialize(value.GetSingle()());
+        }
+
+
+        private string DeserializeString(JsonElement obj, string fieldName)
+        {
+            if (!obj.TryGetProperty(fieldName, out JsonElement value))
+            {
+                return null;
+            }
+
+            if (value.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            return (string)_stringSerializer.Serialize(value.GetString());
+        }
+
+        private List<string> DeserializeStringList(JsonElement obj, string fieldName)
+        {
+            if (!obj.TryGetProperty(fieldName, out JsonElement value))
+            {
+                return null;
+            }
+
+            if (value.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            int arrayLength = value.GetArrayLength();
+            var list = new List<string>(arrayLength);
+
+            for (int i = 0; i < arrayLength; i++)
+            {
+                if (value[i].ValueKind == JsonValueKind.Null)
+                {
+                    list.Add(null);
+                }
+                else
+                {
+                    list.Add((string)_stringSerializer.Serialize(value[i].GetString()));
+                }
+            }
+
+            return list;
+        }
+
+        private List<List<string>> DeserializeNestedStringList(JsonElement obj, string fieldName)
+        {
+            if (!obj.TryGetProperty(fieldName, out JsonElement value))
+            {
+                return null;
+            }
+
+            if (value.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            int arrayLength = value.GetArrayLength();
+            var list = new List<List<string>>(arrayLength);
+
+            for (int i = 0; i < arrayLength; i++)
+            {
+                JsonElement element = value[i];
+
+                if (element.ValueKind == JsonValueKind.Null)
+                {
+                    list.Add(null);
+                }
+                else
+                {
+                    int nestedArrayLength = element.GetArrayLength();
+                    var nestedList = new List<string>(nestedArrayLength);
+                    list.Add(nestedList);
+
+                    for (int j = 0; j < nestedArrayLength; j++)
+                    {
+                        if (element[j].ValueKind == JsonValueKind.Null)
+                        {
+                            nestedList.Add(null);
+                        }
+                        else
+                        {
+                            nestedList.Add((string)_stringSerializer.Serialize(element[j].GetString()));
+                        }
+                    }
+                }
+            }
+
+            return list;
+        }
+
+    }
 
 }
