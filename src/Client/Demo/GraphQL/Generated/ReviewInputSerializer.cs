@@ -31,14 +31,13 @@ namespace Foo
             _intSerializer = serializer;
         }
 
-        public string Name { get; } ="ReviewInput";
+        public string Name { get; } = "ReviewInput";
 
         public ValueKind Kind { get; } = ValueKind.InputObject;
 
         public Type ClrType => typeof(ReviewInput);
-        public Type SerializationType => 
-        typeof(IReadOnlyDictionary<string, object>);
 
+        public Type SerializationType => typeof(IReadOnlyDictionary<string, object>);
 
         public object Serialize(object value)
         {

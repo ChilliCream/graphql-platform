@@ -168,7 +168,7 @@ namespace StrawberryShake.Generators.CSharp
            IInputClassDescriptor descriptor)
         {
             await writer.WriteIndentAsync();
-            await writer.WriteAsync("public string Name { get; } =");
+            await writer.WriteAsync("public string Name { get; } = ");
             await writer.WriteStringValueAsync(descriptor.Name);
             await writer.WriteAsync(';');
             await writer.WriteLineAsync();
@@ -187,14 +187,11 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteAsync(descriptor.Name);
             await writer.WriteAsync(");");
             await writer.WriteLineAsync();
+            await writer.WriteLineAsync();
 
             await writer.WriteIndentAsync();
             await writer.WriteAsync("public Type SerializationType => ");
-            await writer.WriteLineAsync();
-
-            await writer.WriteIndentAsync();
             await writer.WriteAsync("typeof(IReadOnlyDictionary<string, object>);");
-            await writer.WriteLineAsync();
             await writer.WriteLineAsync();
         }
 
