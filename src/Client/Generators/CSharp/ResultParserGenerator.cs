@@ -11,9 +11,16 @@ namespace StrawberryShake.Generators.CSharp
 {
     public class ResultParserGenerator
         : CodeGenerator<IResultParserDescriptor>
+        , IUsesComponents
     {
         private static readonly ResultParserMethodGenerator _methodGenerator =
             new ResultParserMethodGenerator();
+
+        public IReadOnlyList<string> Components { get; } = new[]
+        {
+            WellKnownComponents.Json,
+            WellKnownComponents.Http,
+        };
 
         protected override async Task WriteAsync(
             CodeWriter writer,
@@ -41,7 +48,8 @@ namespace StrawberryShake.Generators.CSharp
                 foreach (IResultParserMethodDescriptor method in
                     descriptor.ParseMethods)
                 {
-                    await _methodGenerator.WriteAsync(writer, method, typeLookup);
+                    await _methodGenerator.WriteAsync(
+                        writer, method, typeLookup);
                     await writer.WriteLineAsync();
                 }
             }
@@ -74,6 +82,7 @@ namespace StrawberryShake.Generators.CSharp
             {
                 await writer.WriteIndentAsync();
                 await writer.WriteAsync("private readonly IValueSerializer");
+                await writer.WriteSpaceAsync();
                 await writer.WriteAsync('_');
                 await writer.WriteAsync(GetFieldName(leafType.Name));
                 await writer.WriteAsync("Serializer");

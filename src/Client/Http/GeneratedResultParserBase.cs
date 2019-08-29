@@ -4,7 +4,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace StrawberryShake
+namespace StrawberryShake.Http
 {
     public abstract class GeneratedResultParserBase<T>
         : IResultParser<T>

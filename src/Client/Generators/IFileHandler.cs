@@ -1,13 +1,11 @@
-using System;
 using System.Threading.Tasks;
-using StrawberryShake.Generators.Utilities;
 
 namespace StrawberryShake.Generators
 {
     public interface IFileHandler
     {
-        void WriteTo(string fileName, Func<CodeWriter, Task> write);
+        void Register(ICodeDescriptor descriptor, ICodeGenerator generator);
 
-        Task WriteAllAsync();
+        Task WriteAllAsync(ITypeLookup typeLookup);
     }
 }

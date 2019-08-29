@@ -9,7 +9,7 @@ namespace StrawberryShake.Generators.CSharp
     public class ResultParserMethodGenerator
         : CodeGenerator<IResultParserMethodDescriptor>
     {
-        protected override async Task WriteAsync(
+        protected override Task WriteAsync(
             CodeWriter writer,
             IResultParserMethodDescriptor descriptor,
             ITypeLookup typeLookup)
@@ -21,6 +21,52 @@ namespace StrawberryShake.Generators.CSharp
                     descriptor.ResultType,
                     true);
 
+            if (descriptor.ResultSelection is null)
+            {
+                return WriteOperationSelectionSet(
+                    writer, descriptor, typeLookup, resultTypeName);
+            }
+
+            return WriteFieldSelectionSet(
+                writer, descriptor, typeLookup, resultTypeName);
+        }
+
+        private async Task WriteOperationSelectionSet(
+           CodeWriter writer,
+           IResultParserMethodDescriptor descriptor,
+           ITypeLookup typeLookup,
+           string resultTypeName)
+        {
+            await writer.WriteIndentAsync();
+            await writer.WriteAsync("protected override ");
+            await writer.WriteAsync(resultTypeName);
+            await writer.WriteSpaceAsync();
+            await writer.WriteAsync("ParserData(JsonElement data)");
+            await writer.WriteLineAsync();
+
+            await writer.WriteIndentAsync();
+            await writer.WriteAsync('{');
+            await writer.WriteLineAsync();
+
+            using (writer.IncreaseIndent())
+            {
+                await WriteCreateObjectAsync(
+                    writer, descriptor, descriptor.PossibleTypes[0],
+                    "data", typeLookup);
+                await writer.WriteLineAsync();
+            }
+
+            await writer.WriteIndentAsync();
+            await writer.WriteAsync('}');
+            await writer.WriteLineAsync();
+        }
+
+        private async Task WriteFieldSelectionSet(
+            CodeWriter writer,
+            IResultParserMethodDescriptor descriptor,
+            ITypeLookup typeLookup,
+            string resultTypeName)
+        {
             await writer.WriteIndentAsync();
             await writer.WriteAsync("private ");
             await writer.WriteAsync(resultTypeName);
@@ -38,7 +84,7 @@ namespace StrawberryShake.Generators.CSharp
                 await writer.WriteLineAsync();
 
                 await writer.WriteIndentAsync();
-                await writer.WriteAsync("ReadOnlySpan<byte> field)");
+                await writer.WriteAsync("string field)");
                 await writer.WriteLineAsync();
             }
 
@@ -58,11 +104,6 @@ namespace StrawberryShake.Generators.CSharp
                     await writer.WriteIndentAsync();
                     await writer.WriteAsync("return null;");
                 }
-                await writer.WriteLineAsync();
-                await writer.WriteLineAsync();
-
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync("string type = obj.GetProperty(_typename).GetString();");
                 await writer.WriteLineAsync();
                 await writer.WriteLineAsync();
 
@@ -88,6 +129,11 @@ namespace StrawberryShake.Generators.CSharp
             IResultParserMethodDescriptor methodDescriptor,
             ITypeLookup typeLookup)
         {
+            await writer.WriteIndentAsync();
+            await writer.WriteAsync("string type = obj.GetProperty(TypeName).GetString();");
+            await writer.WriteLineAsync();
+            await writer.WriteLineAsync();
+
             int last = methodDescriptor.PossibleTypes.Count - 1;
 
             for (int i = 0; i <= last; i++)
@@ -95,7 +141,7 @@ namespace StrawberryShake.Generators.CSharp
                 var possibleType = methodDescriptor.PossibleTypes[i];
 
                 await writer.WriteIndentAsync();
-                await writer.WriteAsync("if (string.Equals(TypeName, ");
+                await writer.WriteAsync("if (string.Equals(type, ");
                 await writer.WriteStringValueAsync(possibleType.ResultDescriptor.Name);
                 await writer.WriteAsync(", StringComparison.Ordinal))");
                 await writer.WriteLineAsync();
@@ -137,7 +183,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync();
 
             await writer.WriteIndentAsync();
-            await writer.WriteAsync("throw new NotSupported(");
+            await writer.WriteAsync("throw new NotSupportedException(");
             await writer.WriteStringValueAsync("Handle not exhausted objects");
             await writer.WriteAsync(");");
             await writer.WriteLineAsync();
@@ -220,7 +266,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteAsync(indexField);
             await writer.WriteAsync(" = 0; ");
             await writer.WriteAsync(indexField);
-            await writer.WriteAsync(" < arrayLength; ");
+            await writer.WriteAsync($" < {lengthField}; ");
             await writer.WriteAsync(indexField);
             await writer.WriteAsync("++)");
             await writer.WriteLineAsync();

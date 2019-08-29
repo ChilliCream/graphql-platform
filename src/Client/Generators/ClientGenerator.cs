@@ -267,17 +267,11 @@ namespace StrawberryShake.Generators
                 foreach (ICodeGenerator generator in
                     _codeGenerators.Where(t => t.CanHandle(descriptor)))
                 {
-                    string fieldName = generator.CreateFileName(descriptor);
-                    if (generator != null)
-                    {
-                        _output.WriteTo(
-                            fieldName,
-                            w => generator.WriteAsync(w, descriptor, typeLookup));
-                    }
+                    _output.Register(descriptor, generator);
                 }
             }
 
-            await _output.WriteAllAsync();
+            await _output.WriteAllAsync(typeLookup);
         }
 
         private DocumentNode MergeSchema()

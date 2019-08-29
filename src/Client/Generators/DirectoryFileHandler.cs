@@ -10,8 +10,9 @@ namespace StrawberryShake.Generators
     public class DirectoryFileHandler
         : IFileHandler
     {
-        private readonly Dictionary<string, Func<CodeWriter, Task>> _tasks =
-            new Dictionary<string, Func<CodeWriter, Task>>();
+        private readonly List<GeneratorTask> _tasks = new List<GeneratorTask>();
+
+
         private readonly string _directoryName;
 
         public DirectoryFileHandler(string directoryName)
@@ -20,44 +21,42 @@ namespace StrawberryShake.Generators
                 ?? throw new ArgumentNullException(nameof(directoryName));
         }
 
-        public void WriteTo(string fileName, Func<CodeWriter, Task> write)
+        public void Register(ICodeDescriptor descriptor, ICodeGenerator generator)
         {
-            if (fileName is null)
+            _tasks.Add(new GeneratorTask
             {
-                throw new ArgumentNullException(nameof(fileName));
-            }
-
-            if (write is null)
-            {
-                throw new ArgumentNullException(nameof(write));
-            }
-
-            _tasks.Add(fileName, write);
+                Descriptor = descriptor,
+                Generator = generator
+            });
         }
 
-        public async Task WriteAllAsync()
+        public async Task WriteAllAsync(ITypeLookup typeLookup)
         {
             if (!Directory.Exists(_directoryName))
             {
                 Directory.CreateDirectory(_directoryName);
             }
 
-            foreach (KeyValuePair<string, Func<CodeWriter, Task>> task in _tasks)
-            {
-                string fielName = Path.Combine(_directoryName, task.Key);
+            var usedNames = new HashSet<string>();
 
-                using (FileStream stream = File.Create(fielName))
+            foreach (GeneratorTask task in _tasks)
+            {
+                string fileName = task.Generator.CreateFileName(task.Descriptor);
+                fileName = Path.Combine(_directoryName, fileName);
+
+                if (!usedNames.Add(fileName))
+                {
+                    throw new InvalidOperationException(
+                        $"The file name `{fileName}` was already used.");
+                }
+
+                using (FileStream stream = File.Create(fileName))
                 {
                     using (var sw = new StreamWriter(stream, Encoding.UTF8))
                     {
                         using (var cw = new CodeWriter(sw))
                         {
-                            await cw.WriteAsync("using System;");
-                            await cw.WriteLineAsync();
-                            await cw.WriteAsync("using System.Collections.Generic;");
-                            await cw.WriteLineAsync();
-                            await cw.WriteAsync("using StrawberryShake;");
-                            await cw.WriteLineAsync();
+                            await WriteUsings(cw, task.Generator);
                             await cw.WriteLineAsync();
 
                             await cw.WriteAsync("namespace Foo");
@@ -67,7 +66,8 @@ namespace StrawberryShake.Generators
 
                             using (cw.IncreaseIndent())
                             {
-                                await task.Value.Invoke(cw);
+                                await task.Generator.WriteAsync(
+                                    cw, task.Descriptor, typeLookup);
                                 await cw.WriteLineAsync();
                             }
 
@@ -78,5 +78,40 @@ namespace StrawberryShake.Generators
                 }
             }
         }
+
+        private async Task WriteUsings(CodeWriter writer, ICodeGenerator generator)
+        {
+            var components = generator is IUsesComponents c
+                ? new HashSet<string>(c.Components)
+                : new HashSet<string>();
+
+            await WriteUsing(writer, "System");
+            await WriteUsing(writer, "System.Collections.Generic");
+
+            if (components.Contains(WellKnownComponents.Json))
+            {
+                await WriteUsing(writer, "System.Text.Json");
+            }
+
+            await WriteUsing(writer, "StrawberryShake");
+
+            if (components.Contains(WellKnownComponents.Http))
+            {
+                await WriteUsing(writer, "StrawberryShake.Http");
+            }
+        }
+
+        private async Task WriteUsing(CodeWriter writer, string ns)
+        {
+            await writer.WriteAsync($"using {ns};");
+            await writer.WriteLineAsync();
+        }
+
+        private class GeneratorTask
+        {
+            public ICodeDescriptor Descriptor { get; set; }
+            public ICodeGenerator Generator { get; set; }
+        }
+
     }
 }

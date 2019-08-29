@@ -32,7 +32,7 @@ namespace StrawberryShake.Generators
                 .AddQueryDocumentFromString(
                     GetFileNameWithoutExtension(queryFile),
                     FileResource.Open(queryFile))
-                .SetOutput("./generated")
+                .SetOutput("../../../../Demo")
                 .CreateAsync();
         }
     }
