@@ -8,4 +8,5 @@ namespace Foo
         : IFriend
     {
         public IReadOnlyList<IHasName> Nodes { get; set; }
-    }}
+    }
+}

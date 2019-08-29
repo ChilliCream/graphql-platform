@@ -7,4 +7,5 @@ namespace Foo
     public interface IGetHero
     {
         IHero Hero { get; }
-    }}
+    }
+}

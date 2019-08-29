@@ -74,6 +74,7 @@ namespace StrawberryShake.Generators.CSharp
 
             await writer.WriteIndentAsync();
             await writer.WriteAsync("}");
+            await writer.WriteLineAsync();
         }
     }
 }

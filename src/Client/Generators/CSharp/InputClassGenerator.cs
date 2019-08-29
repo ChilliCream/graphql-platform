@@ -26,12 +26,19 @@ namespace StrawberryShake.Generators.CSharp
 
             using (writer.IncreaseIndent())
             {
-                foreach (IInputFieldDescriptor fieldDescriptor in descriptor.Fields)
+                for (int i = 0; i < descriptor.Fields.Count; i++)
                 {
+                    IInputFieldDescriptor fieldDescriptor = descriptor.Fields[i];
+
                     string typeName = typeLookup.GetTypeName(
                         fieldDescriptor.Type,
                         fieldDescriptor.InputObjectType?.Name,
                         false);
+
+                    if (i > 0)
+                    {
+                        await writer.WriteLineAsync();
+                    }
 
                     await writer.WriteIndentAsync();
                     await writer.WriteAsync("public ");
@@ -50,13 +57,10 @@ namespace StrawberryShake.Generators.CSharp
                     }
 
                     await writer.WriteLineAsync();
-                    await writer.WriteLineAsync();
                 }
-
-                await writer.WriteRightBraceAsync();
-                await writer.WriteLineAsync();
             }
 
+            await writer.WriteIndentAsync();
             await writer.WriteRightBraceAsync();
             await writer.WriteLineAsync();
         }

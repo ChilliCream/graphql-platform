@@ -9,7 +9,5 @@ namespace Foo
         public string Commentary { get; set; }
 
         public int Stars { get; set; }
-
-}
-}
+    }
 }
