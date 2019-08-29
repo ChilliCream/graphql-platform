@@ -9,6 +9,19 @@ namespace StrawberryShake.Http
     public class JsonOperationSerializer
         : IOperationSerializer
     {
+        private IReadOnlyDictionary<string, IValueSerializer> _serializers;
+
+        public JsonOperationSerializer(
+            IEnumerable<IValueSerializer> serializers)
+        {
+            if (serializers is null)
+            {
+                throw new ArgumentNullException(nameof(serializers));
+            }
+
+            _serializers = serializers.ToDictionary();
+        }
+
         public Task SerializeAsync(
             IOperation operation,
             IReadOnlyDictionary<string, object> extensions,
@@ -40,23 +53,56 @@ namespace StrawberryShake.Http
             writer.WritePropertyName("operationName");
             writer.WriteStringValue(operation.Name);
 
-            /*
-            if (operation.Variables != null && operation.Variables.Count != 0)
+            IReadOnlyDictionary<string, object> variables =
+                SerializeVariables(operation);
+            if (variables != null)
             {
-                writer.WritePropertyName("variables");
-                WriteValue(operation.Variables, writer);
+                WriteValue(variables, writer);
             }
 
-            if (extensions != null && extensions.Count != 0)
-            {
-                writer.WritePropertyName("extensions");
-                WriteValue(operation.Variables, writer);
-            }
-             */
+
+            /*
+                        if (extensions != null && extensions.Count != 0)
+                        {
+                            writer.WritePropertyName("extensions");
+                            WriteValue(operation.Variables, writer);
+                        }
+                         */
 
             writer.WriteEndObject();
 
             return writer.FlushAsync();
+        }
+
+        private IReadOnlyDictionary<string, object> SerializeVariables(
+            IOperation operation)
+        {
+            IReadOnlyList<VariableValue> variableValues =
+                operation.GetVariableValues();
+
+            if (variableValues.Count > 0)
+            {
+                var map = new Dictionary<string, object>();
+
+                foreach (VariableValue variableValue in variableValues)
+                {
+                    if (!_serializers.TryGetValue(
+                        variableValue.TypeName,
+                        out IValueSerializer serializer))
+                    {
+                        throw new SerializerNotFoundException(
+                            variableValue.TypeName);
+                    }
+
+                    map.Add(
+                        variableValue.Name,
+                        serializer.Serialize(variableValue.Value));
+                }
+
+                return map;
+            }
+
+            return null;
         }
 
         private static void WriteValue(
