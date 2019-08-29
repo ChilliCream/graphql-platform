@@ -50,8 +50,10 @@ namespace StrawberryShake.Generators.CSharp
 
             if (descriptor.Type is IComplexOutputType complexType)
             {
-                foreach (FieldDescriptor fieldDescriptor in descriptor.Fields)
+                for (int i = 0; i < descriptor.Fields.Count; i++)
                 {
+                    IFieldDescriptor fieldDescriptor = descriptor.Fields[i];
+
                     if (complexType.Fields.ContainsField(
                         fieldDescriptor.Selection.Name.Value))
                     {
@@ -61,6 +63,11 @@ namespace StrawberryShake.Generators.CSharp
                             true);
 
                         string propertyName = GetPropertyName(fieldDescriptor.ResponseName);
+
+                        if (i > 0)
+                        {
+                            await writer.WriteLineAsync();
+                        }
 
                         await writer.WriteIndentAsync();
                         await writer.WriteAsync(typeName);

@@ -8,6 +8,7 @@ namespace Foo
         : IDroid
     {
         public string Name { get; set; }
+
         public IFriend Friends { get; set; }
     }
 }

@@ -49,8 +49,10 @@ namespace StrawberryShake.Generators.CSharp
 
             writer.IncreaseIndent();
 
-            foreach (IFieldDescriptor fieldDescriptor in descriptor.Fields)
+            for (int i = 0; i < descriptor.Fields.Count; i++)
             {
+                IFieldDescriptor fieldDescriptor = descriptor.Fields[i];
+
                 string typeName = typeLookup.GetTypeName(
                     fieldDescriptor.Selection,
                     fieldDescriptor.Type,
@@ -58,6 +60,11 @@ namespace StrawberryShake.Generators.CSharp
 
                 string propertyName = GetPropertyName(fieldDescriptor.ResponseName);
                 bool isListType = fieldDescriptor.Type.IsListType();
+
+                if (i > 0)
+                {
+                    await writer.WriteLineAsync();
+                }
 
                 await writer.WriteIndentAsync();
                 await writer.WriteAsync("public");
