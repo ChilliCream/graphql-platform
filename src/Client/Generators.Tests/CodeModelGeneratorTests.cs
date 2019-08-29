@@ -26,13 +26,12 @@ namespace StrawberryShake.Generators
         public async Task Generate_Models(string queryFile)
         {
             await ClientGenerator.New()
-                .AddSchemaDocumentFromString(
-                    "StarWars",
-                    FileResource.Open("StarWars.graphql"))
-                .AddQueryDocumentFromString(
-                    GetFileNameWithoutExtension(queryFile),
-                    FileResource.Open(queryFile))
-                .SetOutput("../../../../Demo")
+                .AddSchemaDocumentFromFile(
+                    "../../../../Demo/GraphQL/StarWars.graphql")
+                .AddQueryDocumentFromFile(
+                    "../../../../Demo/GraphQL/Queries.graphql")
+                .SetOutput(
+                    "../../../../Demo/GraphQL/Generated")
                 .CreateAsync();
         }
     }
