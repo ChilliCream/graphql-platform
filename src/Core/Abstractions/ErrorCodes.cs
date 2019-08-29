@@ -55,5 +55,10 @@ namespace HotChocolate
             public const string RequestInvalid = "INVALID_REQUEST";
             public const string MaxRequestSize = "MAX_REQUEST_SIZE";
         }
+
+        public static class Validation
+        {
+            public const string UnknownType = "VALIDATION_UNKNOWN_TYPE";
+        }
     }
 }
