@@ -1,3 +1,4 @@
+﻿using System;
 using System.Collections.Generic;
 using StrawberryShake;
 
@@ -6,10 +7,11 @@ namespace Foo
     public class GetHeroOperation
         : IOperation<IGetHero>
     {
-        private bool _fooSet;
+        private bool _isSet_foo;
+
         private ReviewInput _foo;
 
-        public string Name => "GetHero";
+        public string Name => "getHero";
 
         public IDocument Document => Queries.Default;
 
@@ -19,7 +21,7 @@ namespace Foo
             set
             {
                 _foo = value;
-                _fooSet = true;
+                _isSet_foo = true;
             }
         }
 
@@ -27,7 +29,7 @@ namespace Foo
         {
             var variables = new List<VariableValue>();
 
-            if (_fooSet)
+            if(_isSet_foo)
             {
                 variables.Add(new VariableValue("foo", "ReviewInput", Foo));
             }

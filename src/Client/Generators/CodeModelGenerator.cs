@@ -59,8 +59,8 @@ namespace StrawberryShake.Generators
                     GenerateOperationSelectionSet(
                         operationType, operation, root, backlog);
 
-                RegisterDescriptor(
-                    GenerateOperation(operationType, operation));
+                RegisterDescriptor(GenerateOperation(
+                    operationType, operation, resultDescriptor));
 
                 while (backlog.Any())
                 {
@@ -102,7 +102,8 @@ namespace StrawberryShake.Generators
 
         private ICodeDescriptor GenerateOperation(
             ObjectType operationType,
-            OperationDefinitionNode operation)
+            OperationDefinitionNode operation,
+            ICodeDescriptor resultType)
         {
             var arguments = new List<Descriptors.IArgumentDescriptor>();
 
@@ -141,7 +142,8 @@ namespace StrawberryShake.Generators
                 operationType,
                 operation,
                 arguments,
-                _query);
+                _query,
+                resultType);
         }
 
         private IInputClassDescriptor GenerateInputObjectType(

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
@@ -96,13 +97,32 @@ namespace StrawberryShake.Http
 
                     map.Add(
                         variableValue.Name,
-                        serializer.Serialize(variableValue.Value));
+                        SerializeVariable(variableValue.Value, serializer));
                 }
 
                 return map;
             }
 
             return null;
+        }
+
+        private object SerializeVariable(
+            object obj,
+            IValueSerializer serializer)
+        {
+            if (obj is IList list)
+            {
+                var serialized = new List<object>();
+
+                foreach (object element in list)
+                {
+                    serialized.Add(SerializeVariable(element, serializer));
+                }
+
+                return serializer;
+            }
+
+            return serializer.Serialize(obj);
         }
 
         private static void WriteValue(

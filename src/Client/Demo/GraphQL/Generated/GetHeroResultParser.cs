@@ -16,16 +16,14 @@ namespace Foo
         {
             IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
 
-            if (!map.TryGetValue("Float", out IValueSerializer serializer))
-            {
+            if (!map.TryGetValue("Float", out IValueSerializer serializer)){
                 throw new ArgumentException(
                     "There is no serializer specified for `Float`.",
                     nameof(serializers));
             }
             _floatSerializer = serializer;
 
-            if (!map.TryGetValue("String", out serializer))
-            {
+            if (!map.TryGetValue("String", out IValueSerializer serializer)){
                 throw new ArgumentException(
                     "There is no serializer specified for `String`.",
                     nameof(serializers));

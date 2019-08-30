@@ -23,7 +23,8 @@ namespace StrawberryShake.Generators
                 new InputClassGenerator(),
                 new InputClassSerializerGenerator(),
                 new InterfaceGenerator(),
-                new ResultParserGenerator()
+                new ResultParserGenerator(),
+                new OperationGenerator()
             };
         private readonly Dictionary<string, DocumentNode> _schemas =
             new Dictionary<string, DocumentNode>();

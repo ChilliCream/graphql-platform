@@ -13,7 +13,8 @@ namespace StrawberryShake.Generators.Descriptors
             ObjectType operationType,
             OperationDefinitionNode operation,
             IReadOnlyList<IArgumentDescriptor> arguments,
-            IQueryDescriptor query)
+            IQueryDescriptor query,
+            ICodeDescriptor resultType)
         {
             Name = name
                 ?? throw new ArgumentNullException(nameof(name));
@@ -25,6 +26,8 @@ namespace StrawberryShake.Generators.Descriptors
                 ?? throw new ArgumentNullException(nameof(arguments));
             Query = query
                 ?? throw new ArgumentNullException(nameof(query));
+            ResultType = resultType
+                ?? throw new ArgumentNullException(nameof(resultType));
         }
 
         public string Name { get; }
@@ -36,6 +39,8 @@ namespace StrawberryShake.Generators.Descriptors
         public IReadOnlyList<IArgumentDescriptor> Arguments { get; }
 
         public IQueryDescriptor Query { get; }
+
+        public ICodeDescriptor ResultType { get; }
 
         public IEnumerable<ICodeDescriptor> GetChildren()
         {

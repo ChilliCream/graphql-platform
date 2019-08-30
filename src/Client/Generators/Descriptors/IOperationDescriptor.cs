@@ -14,5 +14,7 @@ namespace StrawberryShake.Generators.Descriptors
         IQueryDescriptor Query { get; }
 
         IReadOnlyList<IArgumentDescriptor> Arguments { get; }
+
+        ICodeDescriptor ResultType { get; }
     }
 }
