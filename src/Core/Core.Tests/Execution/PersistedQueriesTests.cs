@@ -4,6 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using Microsoft.Extensions.DependencyInjection;
+using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -305,8 +306,11 @@ namespace HotChocolate.Execution
             result.ToJson().MatchSnapshot();
         }
 
-        [Fact]
-        public async Task ActivePersistedQueries_SaveQuery_InvalidHash()
+        [InlineData(HashRepresentation.Base64)]
+        [InlineData(HashRepresentation.Hex)]
+        [Theory]
+        public async Task ActivePersistedQueries_SaveQuery_InvalidHash_Sha1(
+            HashRepresentation representation)
         {
             // arrange
             var serviceCollection = new ServiceCollection();
@@ -316,7 +320,232 @@ namespace HotChocolate.Execution
                 .AddDocumentFromString("type Query { foo: String }")
                 .AddResolver("Query", "foo", "bar"));
             serviceCollection.AddQueryExecutor(b => b
-                .AddSha256DocumentHashProvider()
+                .AddSha1DocumentHashProvider(representation)
+                .UseActivePersistedQueryPipeline());
+
+            // add in-memory query storage
+            serviceCollection.AddSingleton<InMemoryQueryStorage>();
+            serviceCollection.AddSingleton<IReadStoredQueries>(sp =>
+                sp.GetRequiredService<InMemoryQueryStorage>());
+            serviceCollection.AddSingleton<IWriteStoredQueries>(sp =>
+                sp.GetRequiredService<InMemoryQueryStorage>());
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor =
+                services.GetRequiredService<IQueryExecutor>();
+
+            var hashProvider =
+                services.GetRequiredService<IDocumentHashProvider>();
+            var storage = services.GetRequiredService<InMemoryQueryStorage>();
+
+            var query = new QuerySourceText("{ foo }");
+            string hash = hashProvider.ComputeHash(query.ToSpan());
+
+            // act and assert
+            IExecutionResult result = await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQueryName(hash)
+                    .AddExtension("persistedQuery",
+                        new Dictionary<string, object>
+                        {
+                            { hashProvider.Name, hash }
+                        })
+                    .Create());
+            result.MatchSnapshot(new SnapshotNameExtension(
+                "Query_Not_Found_" + representation));
+
+            result = await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQueryName(hash)
+                    .SetQuery("{ foo }")
+                    .AddExtension("persistedQuery",
+                        new Dictionary<string, object>
+                        {
+                            { hashProvider.Name, hash }
+                        })
+                    .Create());
+            result.MatchSnapshot(new SnapshotNameExtension(
+                "Query_Stored_" + representation));
+
+            result = await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQueryName(hash)
+                    .AddExtension("persistedQuery",
+                        new Dictionary<string, object>
+                        {
+                            { hashProvider.Name, hash }
+                        })
+                    .Create());
+            result.MatchSnapshot(new SnapshotNameExtension(
+                "Query_Loaded_From_Cache_" + representation));
+        }
+
+        [InlineData(HashRepresentation.Base64)]
+        [InlineData(HashRepresentation.Hex)]
+        [Theory]
+        public async Task ActivePersistedQueries_SaveQuery_InvalidHash_Sha256(
+            HashRepresentation representation)
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+
+            // configure presistence
+            serviceCollection.AddGraphQLSchema(b => b
+                .AddDocumentFromString("type Query { foo: String }")
+                .AddResolver("Query", "foo", "bar"));
+            serviceCollection.AddQueryExecutor(b => b
+                .AddSha256DocumentHashProvider(representation)
+                .UseActivePersistedQueryPipeline());
+
+            // add in-memory query storage
+            serviceCollection.AddSingleton<InMemoryQueryStorage>();
+            serviceCollection.AddSingleton<IReadStoredQueries>(sp =>
+                sp.GetRequiredService<InMemoryQueryStorage>());
+            serviceCollection.AddSingleton<IWriteStoredQueries>(sp =>
+                sp.GetRequiredService<InMemoryQueryStorage>());
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor =
+                services.GetRequiredService<IQueryExecutor>();
+
+            var hashProvider =
+                services.GetRequiredService<IDocumentHashProvider>();
+            var storage = services.GetRequiredService<InMemoryQueryStorage>();
+
+            var query = new QuerySourceText("{ foo }");
+            string hash = hashProvider.ComputeHash(query.ToSpan());
+
+            // act and assert
+            IExecutionResult result = await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQueryName(hash)
+                    .AddExtension("persistedQuery",
+                        new Dictionary<string, object>
+                        {
+                            { hashProvider.Name, hash }
+                        })
+                    .Create());
+            result.MatchSnapshot(new SnapshotNameExtension(
+                "Query_Not_Found_" + representation));
+
+            result = await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQueryName(hash)
+                    .SetQuery("{ foo }")
+                    .AddExtension("persistedQuery",
+                        new Dictionary<string, object>
+                        {
+                            { hashProvider.Name, hash }
+                        })
+                    .Create());
+            result.MatchSnapshot(new SnapshotNameExtension(
+                "Query_Stored_" + representation));
+
+            result = await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQueryName(hash)
+                    .AddExtension("persistedQuery",
+                        new Dictionary<string, object>
+                        {
+                            { hashProvider.Name, hash }
+                        })
+                    .Create());
+            result.MatchSnapshot(new SnapshotNameExtension(
+                "Query_Loaded_From_Cache_" + representation));
+        }
+
+        [InlineData(HashRepresentation.Base64)]
+        [InlineData(HashRepresentation.Hex)]
+        [Theory]
+        public async Task ActivePersistedQueries_SaveQuery_InvalidHash_MD5(
+            HashRepresentation representation)
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+
+            // configure presistence
+            serviceCollection.AddGraphQLSchema(b => b
+                .AddDocumentFromString("type Query { foo: String }")
+                .AddResolver("Query", "foo", "bar"));
+            serviceCollection.AddQueryExecutor(b => b
+                .AddMD5DocumentHashProvider(representation)
+                .UseActivePersistedQueryPipeline());
+
+            // add in-memory query storage
+            serviceCollection.AddSingleton<InMemoryQueryStorage>();
+            serviceCollection.AddSingleton<IReadStoredQueries>(sp =>
+                sp.GetRequiredService<InMemoryQueryStorage>());
+            serviceCollection.AddSingleton<IWriteStoredQueries>(sp =>
+                sp.GetRequiredService<InMemoryQueryStorage>());
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor =
+                services.GetRequiredService<IQueryExecutor>();
+
+            var hashProvider =
+                services.GetRequiredService<IDocumentHashProvider>();
+            var storage = services.GetRequiredService<InMemoryQueryStorage>();
+
+            var query = new QuerySourceText("{ foo }");
+            string hash = hashProvider.ComputeHash(query.ToSpan());
+
+            // act and assert
+            IExecutionResult result = await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQueryName(hash)
+                    .AddExtension("persistedQuery",
+                        new Dictionary<string, object>
+                        {
+                            { hashProvider.Name, hash }
+                        })
+                    .Create());
+            result.MatchSnapshot(new SnapshotNameExtension(
+                "Query_Not_Found_" + representation));
+
+            result = await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQueryName(hash)
+                    .SetQuery("{ foo }")
+                    .AddExtension("persistedQuery",
+                        new Dictionary<string, object>
+                        {
+                            { hashProvider.Name, hash }
+                        })
+                    .Create());
+            result.MatchSnapshot(new SnapshotNameExtension(
+                "Query_Stored_" + representation));
+
+            result = await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQueryName(hash)
+                    .AddExtension("persistedQuery",
+                        new Dictionary<string, object>
+                        {
+                            { hashProvider.Name, hash }
+                        })
+                    .Create());
+            result.MatchSnapshot(new SnapshotNameExtension(
+                "Query_Loaded_From_Cache_" + representation));
+        }
+
+        [Fact]
+        public async Task ActivePersistedQueries_Full_Flow()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+
+            // configure presistence
+            serviceCollection.AddGraphQLSchema(b => b
+                .AddDocumentFromString("type Query { foo: String }")
+                .AddResolver("Query", "foo", "bar"));
+            serviceCollection.AddQueryExecutor(b => b
+                .AddSha256DocumentHashProvider(HashRepresentation.Hex)
                 .UseActivePersistedQueryPipeline());
 
             // add in-memory query storage
