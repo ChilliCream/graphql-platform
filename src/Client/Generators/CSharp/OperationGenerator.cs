@@ -82,7 +82,7 @@ namespace StrawberryShake.Generators.CSharp
                     string typeName = typeLookup.GetTypeName(
                         argument.Type,
                         argument.Type.NamedType().Name,
-                        false);
+                        true);
 
                     await writer.WriteIndentAsync();
                     await writer.WriteAsync("private ");
@@ -143,7 +143,7 @@ namespace StrawberryShake.Generators.CSharp
             string typeName = typeLookup.GetTypeName(
                 argument.Type,
                 argument.Type.NamedType().Name,
-                false);
+                true);
 
             await writer.WriteIndentAsync();
             await writer.WriteAsync("public ");

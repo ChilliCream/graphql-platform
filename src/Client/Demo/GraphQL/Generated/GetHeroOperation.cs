@@ -9,13 +9,13 @@ namespace Foo
     {
         private bool _isSet_foo;
 
-        private ReviewInput _foo;
+        private IReadOnlyList<ReviewInput> _foo;
 
         public string Name => "getHero";
 
         public IDocument Document => Queries.Default;
 
-        public ReviewInput Foo
+        public IReadOnlyList<ReviewInput> Foo
         {
             get => _foo;
             set
