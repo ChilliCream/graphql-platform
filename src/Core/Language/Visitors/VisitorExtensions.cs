@@ -105,8 +105,8 @@ namespace HotChocolate.Language
             while (level.Count != 0)
             {
                 bool isLeaving = level[index].Count == 0;
-                VisitorAction action = default;
-                SyntaxNodeInfo current = default;
+                SyntaxNodeInfo current;
+                VisitorAction action;
 
                 if (isLeaving)
                 {

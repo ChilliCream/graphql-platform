@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace HotChocolate.Validation
 {
@@ -10,8 +10,8 @@ namespace HotChocolate.Validation
         {
         }
 
-        public ICollection<ValidationError> Errors { get; } =
-            new List<ValidationError>();
+        public ICollection<IError> Errors { get; } =
+            new List<IError>();
     }
 
 }
