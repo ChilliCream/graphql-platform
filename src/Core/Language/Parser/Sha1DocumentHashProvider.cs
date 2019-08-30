@@ -1,34 +1,29 @@
-using System;
-using System.Buffers;
 using System.Threading;
 using System.Security.Cryptography;
 
 namespace HotChocolate.Language
 {
     public class Sha1DocumentHashProvider
-        : IDocumentHashProvider
+        : DocumentHashProviderBase
     {
         private readonly ThreadLocal<SHA1> _sha =
             new ThreadLocal<SHA1>(() => SHA1.Create());
 
-        public string Name => "sha1Hash";
-
-        public string ComputeHash(ReadOnlySpan<byte> document)
+        public Sha1DocumentHashProvider()
+            : this(HashRepresentation.Base64)
         {
-            // TODO : with netcoreapp 3.0 we do not need that anymore.
-            byte[] rented = ArrayPool<byte>.Shared.Rent(document.Length);
-            document.CopyTo(rented);
+        }
 
-            try
-            {
-                byte[] hash = _sha.Value.ComputeHash(
-                    rented, 0, document.Length);
-                return Convert.ToBase64String(hash);
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(rented);
-            }
+        public Sha1DocumentHashProvider(HashRepresentation representation)
+            : base(representation)
+        {
+        }
+
+        public override string Name => "sha1Hash";
+
+        protected override byte[] ComputeHash(byte[] document, int length)
+        {
+            return _sha.Value.ComputeHash(document, 0, length);
         }
     }
 }

@@ -473,6 +473,42 @@ namespace HotChocolate.Language
                 });
         }
 
+        [Fact]
+        public void Parse_Apollo_AQP_FullRequest_And_Verify_Hash()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes(
+                FileResource.Open("Apollo_AQP_FullRequest.json")
+                    .NormalizeLineBreaks());
+
+            // act
+            var parserOptions = new ParserOptions();
+            var requestParser = new Utf8GraphQLRequestParser(
+                source,
+                parserOptions,
+                new DocumentCache(),
+                new Sha256DocumentHashProvider(HashRepresentation.Hex));
+            IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
+
+            // assert
+            Assert.Collection(batch,
+                r =>
+                {
+                    Assert.Null(r.OperationName);
+                    Assert.Empty(r.Variables);
+                    Assert.True(r.Extensions.ContainsKey("persistedQuery"));
+                    Assert.NotNull(r.Query);
+
+                    if (r.Extensions.TryGetValue("persistedQuery", out object o)
+                        && o is IReadOnlyDictionary<string, object> persistedQuery
+                        && persistedQuery.TryGetValue("sha256Hash", out o)
+                        && o is string hash)
+                    {
+                        Assert.Equal(hash, r.QueryHash);
+                    }
+                });
+        }
+
         private class GraphQLRequestDto
         {
             [JsonProperty("operationName")]
