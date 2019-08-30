@@ -65,7 +65,5 @@ namespace StrawberryShake.Http
         }
 
         protected abstract T ParserData(JsonElement parent);
-
-
     }
 }

@@ -9,5 +9,7 @@ namespace StrawberryShake
         IReadOnlyList<IError> Errors { get; }
 
         IReadOnlyDictionary<string, object> Extensions { get; }
+
+        void EnsureNoErrors();
     }
 }
