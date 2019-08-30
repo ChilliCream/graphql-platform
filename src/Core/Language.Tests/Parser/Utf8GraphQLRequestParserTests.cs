@@ -1,3 +1,5 @@
+using System;
+using System.Security.Cryptography;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -107,13 +109,19 @@ namespace HotChocolate.Language
         public void Parse_Kitchen_Sink_Query_With_Cache()
         {
             // arrange
+            var request = new GraphQLRequestDto
+            {
+                Query = FileResource.Open("kitchen-sink.graphql")
+                    .NormalizeLineBreaks()
+            };
+
+            byte[] buffer = Encoding.UTF8.GetBytes(request.Query);
+            string expectedHash = Convert.ToBase64String(
+                SHA1.Create().ComputeHash(buffer));
+
             byte[] source = Encoding.UTF8.GetBytes(
-                JsonConvert.SerializeObject(
-                    new GraphQLRequestDto
-                    {
-                        Query = FileResource.Open("kitchen-sink.graphql")
-                            .NormalizeLineBreaks()
-                    }).NormalizeLineBreaks());
+                JsonConvert.SerializeObject(request
+                    ).NormalizeLineBreaks());
 
             var cache = new DocumentCache();
 
@@ -145,7 +153,7 @@ namespace HotChocolate.Language
                     Assert.Null(r.Variables);
                     Assert.Null(r.Extensions);
 
-                    Assert.Equal("KwPz8bJWrVDRrtFPjW2sh5CUQwE=", r.QueryName);
+                    Assert.Equal(expectedHash, r.QueryName);
                     QuerySyntaxSerializer.Serialize(r.Query, true)
                         .MatchSnapshot();
                 });
@@ -155,14 +163,20 @@ namespace HotChocolate.Language
         public void Parse_Skip_Custom_Property()
         {
             // arrange
+            var request = new CustomGraphQLRequestDto
+            {
+                CustomProperty = "FooBar",
+                Query = FileResource.Open("kitchen-sink.graphql")
+                    .NormalizeLineBreaks()
+            };
+
             byte[] source = Encoding.UTF8.GetBytes(
-                JsonConvert.SerializeObject(
-                    new CustomGraphQLRequestDto
-                    {
-                        CustomProperty = "FooBar",
-                        Query = FileResource.Open("kitchen-sink.graphql")
-                            .NormalizeLineBreaks()
-                    }).NormalizeLineBreaks());
+                JsonConvert.SerializeObject(request
+                    ).NormalizeLineBreaks());
+
+            byte[] buffer = Encoding.UTF8.GetBytes(request.Query);
+            string expectedHash = Convert.ToBase64String(
+                SHA1.Create().ComputeHash(buffer));
 
             var cache = new DocumentCache();
 
@@ -183,7 +197,7 @@ namespace HotChocolate.Language
                     Assert.Null(r.Variables);
                     Assert.Null(r.Extensions);
 
-                    Assert.Equal("KwPz8bJWrVDRrtFPjW2sh5CUQwE=", r.QueryName);
+                    Assert.Equal(expectedHash, r.QueryName);
                     QuerySyntaxSerializer.Serialize(r.Query, true)
                         .MatchSnapshot();
                 });
@@ -193,14 +207,20 @@ namespace HotChocolate.Language
         public void Parse_Id_As_Name()
         {
             // arrange
+            var request = new RelayGraphQLRequestDto
+            {
+                Id = "FooBar",
+                Query = FileResource.Open("kitchen-sink.graphql")
+                    .NormalizeLineBreaks()
+            };
+
             byte[] source = Encoding.UTF8.GetBytes(
-                JsonConvert.SerializeObject(
-                    new RelayGraphQLRequestDto
-                    {
-                        Id = "FooBar",
-                        Query = FileResource.Open("kitchen-sink.graphql")
-                            .NormalizeLineBreaks()
-                    }).NormalizeLineBreaks());
+                JsonConvert.SerializeObject(request
+                    ).NormalizeLineBreaks());
+
+            byte[] buffer = Encoding.UTF8.GetBytes(request.Query);
+            string expectedHash = Convert.ToBase64String(
+                SHA1.Create().ComputeHash(buffer));
 
             var cache = new DocumentCache();
 
@@ -222,7 +242,7 @@ namespace HotChocolate.Language
                     Assert.Null(r.Extensions);
 
                     Assert.Equal("FooBar", r.QueryName);
-                    Assert.Equal("KwPz8bJWrVDRrtFPjW2sh5CUQwE=", r.QueryHash);
+                    Assert.Equal(expectedHash, r.QueryHash);
                     QuerySyntaxSerializer.Serialize(r.Query, true)
                         .MatchSnapshot();
                 });
