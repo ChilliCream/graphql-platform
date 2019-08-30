@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
@@ -9,13 +10,13 @@ namespace Foo
     {
         private bool _isSet_foo;
 
-        private IReadOnlyList<ReviewInput> _foo;
+        private ReviewInput _foo;
 
         public string Name => "getHero";
 
         public IDocument Document => Queries.Default;
 
-        public IReadOnlyList<ReviewInput> Foo
+        public ReviewInput Foo
         {
             get => _foo;
             set

@@ -85,6 +85,7 @@ namespace StrawberryShake.Generators
                 : new HashSet<string>();
 
             await WriteUsing(writer, "System");
+            await WriteUsing(writer, "System.Collections");
             await WriteUsing(writer, "System.Collections.Generic");
 
             if (components.Contains(WellKnownComponents.Json))

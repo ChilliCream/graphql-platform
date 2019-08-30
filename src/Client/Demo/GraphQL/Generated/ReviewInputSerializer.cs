@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
@@ -49,9 +50,26 @@ namespace Foo
             var input = (ReviewInput)value;
 
             var map = new Dictionary<string, object>();
-            map["commentary"] = _stringSerializer.Serialize(input.Commentary);
-            map["stars"] = _intSerializer.Serialize(input.Stars);
+            map["commentary"] = Serialize(input.Commentary, _stringSerializer);
+            map["stars"] = Serialize(input.Stars, _intSerializer);
             return map;
+        }
+
+        public object Serialize(object value, IValueSerializer serializer)
+        {
+            if (value is IList list)
+            {
+                var serializedList = new List<object>();
+
+                foreach (object element in list)
+                {
+                    serializedList.Add(Serialize(value, serializer));
+                }
+
+                return serializedList;
+            }
+
+            return serializer.Serialize(value);
         }
 
         public object Deserialize(object value)

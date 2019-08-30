@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Text.Json;
 using StrawberryShake;
@@ -23,7 +24,7 @@ namespace Foo
             }
             _floatSerializer = serializer;
 
-            if (!map.TryGetValue("String", out IValueSerializer serializer)){
+            if (!map.TryGetValue("String", out  serializer)){
                 throw new ArgumentException(
                     "There is no serializer specified for `String`.",
                     nameof(serializers));

@@ -119,13 +119,22 @@ namespace StrawberryShake.Generators.CSharp
                 await writer.WriteAsync("serializers.ToDictionary();");
                 await writer.WriteLineAsync();
 
-                foreach (INamedType leafType in parserDescriptor.InvolvedLeafTypes)
+                for (int i = 0; i < parserDescriptor.InvolvedLeafTypes.Count; i++)
                 {
+                    INamedType leafType = parserDescriptor.InvolvedLeafTypes[i];
+
                     await writer.WriteLineAsync();
                     await writer.WriteIndentAsync();
                     await writer.WriteAsync(
                         "if (!map.TryGetValue" +
-                        $"(\"{leafType.Name}\", out IValueSerializer serializer))");
+                        $"(\"{leafType.Name}\", out ");
+
+                    if (i == 0)
+                    {
+                        await writer.WriteAsync("IValueSerializer");
+                    }
+
+                    await writer.WriteAsync(" serializer))");
                     await writer.WriteAsync('{');
                     await writer.WriteLineAsync();
 

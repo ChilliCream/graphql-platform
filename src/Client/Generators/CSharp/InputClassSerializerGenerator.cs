@@ -247,15 +247,81 @@ namespace StrawberryShake.Generators.CSharp
 
                     await writer.WriteIndentAsync();
                     await writer.WriteAsync($"map[\"{field.Field.Name}\"] = ");
+                    await writer.WriteAsync("Serialize(");
+                    await writer.WriteAsync($"input.{GetPropertyName(field.Name)}, ");
                     await writer.WriteAsync('_');
                     await writer.WriteAsync(GetFieldName(typeName));
-                    await writer.WriteAsync("Serializer.Serialize(");
-                    await writer.WriteAsync($"input.{GetPropertyName(field.Name)});");
+                    await writer.WriteAsync("Serializer);");
                     await writer.WriteLineAsync();
                 }
 
                 await writer.WriteIndentAsync();
                 await writer.WriteAsync("return map;");
+                await writer.WriteLineAsync();
+            }
+
+            await writer.WriteIndentAsync();
+            await writer.WriteAsync('}');
+            await writer.WriteLineAsync();
+            await writer.WriteLineAsync();
+
+            await writer.WriteIndentAsync();
+            await writer.WriteAsync("public object Serialize(object value, IValueSerializer serializer)");
+            await writer.WriteLineAsync();
+
+            await writer.WriteIndentAsync();
+            await writer.WriteAsync('{');
+            await writer.WriteLineAsync();
+
+            using (writer.IncreaseIndent())
+            {
+                await writer.WriteIndentAsync();
+                await writer.WriteAsync("if (value is IList list)");
+                await writer.WriteLineAsync();
+
+                await writer.WriteIndentAsync();
+                await writer.WriteAsync('{');
+                await writer.WriteLineAsync();
+
+                using (writer.IncreaseIndent())
+                {
+                    await writer.WriteIndentAsync();
+                    await writer.WriteAsync("var serializedList = new List<object>();");
+                    await writer.WriteLineAsync();
+                    await writer.WriteLineAsync();
+
+                    await writer.WriteIndentAsync();
+                    await writer.WriteAsync("foreach (object element in list)");
+                    await writer.WriteLineAsync();
+
+                    await writer.WriteIndentAsync();
+                    await writer.WriteAsync('{');
+                    await writer.WriteLineAsync();
+
+                    using (writer.IncreaseIndent())
+                    {
+                        await writer.WriteIndentAsync();
+                        await writer.WriteAsync("serializedList.Add(Serialize(value, serializer));");
+                        await writer.WriteLineAsync();
+                    }
+
+                    await writer.WriteIndentAsync();
+                    await writer.WriteAsync('}');
+                    await writer.WriteLineAsync();
+                    await writer.WriteLineAsync();
+
+                    await writer.WriteIndentAsync();
+                    await writer.WriteAsync("return serializedList;");
+                    await writer.WriteLineAsync();
+                }
+
+                await writer.WriteIndentAsync();
+                await writer.WriteAsync('}');
+                await writer.WriteLineAsync();
+                await writer.WriteLineAsync();
+
+                await writer.WriteIndentAsync();
+                await writer.WriteAsync("return serializer.Serialize(value);");
                 await writer.WriteLineAsync();
             }
 
