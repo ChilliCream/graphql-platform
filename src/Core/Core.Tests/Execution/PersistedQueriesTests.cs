@@ -535,7 +535,7 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
-        public async Task ActivePersistedQueries_Full_Flow()
+        public async Task ActivePersistedQueries_Invalid_Hash()
         {
             // arrange
             var serviceCollection = new ServiceCollection();
@@ -578,6 +578,103 @@ namespace HotChocolate.Execution
                         {
                             { "sha256Hash", "123" }
                         })
+                    .Create());
+
+            // assert
+            Assert.False(storage.WrittenQuery.HasValue);
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ActivePersistedQueries_Invalid_Hash_Type()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+
+            // configure presistence
+            serviceCollection.AddGraphQLSchema(b => b
+                .AddDocumentFromString("type Query { foo: String }")
+                .AddResolver("Query", "foo", "bar"));
+            serviceCollection.AddQueryExecutor(b => b
+                .AddSha256DocumentHashProvider(HashFormat.Hex)
+                .UseActivePersistedQueryPipeline());
+
+            // add in-memory query storage
+            serviceCollection.AddSingleton<InMemoryQueryStorage>();
+            serviceCollection.AddSingleton<IReadStoredQueries>(sp =>
+                sp.GetRequiredService<InMemoryQueryStorage>());
+            serviceCollection.AddSingleton<IWriteStoredQueries>(sp =>
+                sp.GetRequiredService<InMemoryQueryStorage>());
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor =
+                services.GetRequiredService<IQueryExecutor>();
+
+            var hashProvider =
+                services.GetRequiredService<IDocumentHashProvider>();
+            var storage = services.GetRequiredService<InMemoryQueryStorage>();
+
+            var query = new QuerySourceText("{ foo }");
+            string hash = hashProvider.ComputeHash(query.ToSpan());
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(query.Text)
+                    .SetQueryName(hash)
+                    .AddExtension("persistedQuery",
+                        new Dictionary<string, object>
+                        {
+                            { "sha1Hash", "123" }
+                        })
+                    .Create());
+
+            // assert
+            Assert.False(storage.WrittenQuery.HasValue);
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ActivePersistedQueries_No_PersistedQuery_Section_In_Request()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+
+            // configure presistence
+            serviceCollection.AddGraphQLSchema(b => b
+                .AddDocumentFromString("type Query { foo: String }")
+                .AddResolver("Query", "foo", "bar"));
+            serviceCollection.AddQueryExecutor(b => b
+                .AddSha256DocumentHashProvider(HashFormat.Hex)
+                .UseActivePersistedQueryPipeline());
+
+            // add in-memory query storage
+            serviceCollection.AddSingleton<InMemoryQueryStorage>();
+            serviceCollection.AddSingleton<IReadStoredQueries>(sp =>
+                sp.GetRequiredService<InMemoryQueryStorage>());
+            serviceCollection.AddSingleton<IWriteStoredQueries>(sp =>
+                sp.GetRequiredService<InMemoryQueryStorage>());
+
+            IServiceProvider services =
+                serviceCollection.BuildServiceProvider();
+
+            IQueryExecutor executor =
+                services.GetRequiredService<IQueryExecutor>();
+
+            var hashProvider =
+                services.GetRequiredService<IDocumentHashProvider>();
+            var storage = services.GetRequiredService<InMemoryQueryStorage>();
+
+            var query = new QuerySourceText("{ foo }");
+            string hash = hashProvider.ComputeHash(query.ToSpan());
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(query.Text)
+                    .SetQueryName(hash)
                     .Create());
 
             // assert
