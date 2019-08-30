@@ -20,6 +20,8 @@ namespace HotChocolate.Language
             public IReadOnlyDictionary<string, object> Variables { get; set; }
 
             public IReadOnlyDictionary<string, object> Extensions { get; set; }
+
+            public DocumentNode Document { get; set; }
         }
     }
 }
