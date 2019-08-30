@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Buffers;
 using HotChocolate.Language.Properties;
+using System.Text;
 
 namespace HotChocolate.Language
 {
@@ -149,41 +150,14 @@ namespace HotChocolate.Language
                 }
             }
 
-            DocumentNode document = null;
-
             if (request.HasQuery)
             {
-                if (_useCache)
-                {
-                    if (request.QueryName is null)
-                    {
-                        request.QueryName =
-                            request.QueryHash =
-                            _hashProvider.ComputeHash(request.Query);
-                    }
-
-                    if (!_cache.TryGetDocument(
-                        request.QueryName,
-                        out document))
-                    {
-                        document = ParseQuery(in request);
-
-                        if (request.QueryHash is null)
-                        {
-                            request.QueryHash =
-                                _hashProvider.ComputeHash(request.Query);
-                        }
-                    }
-                }
-                else
-                {
-                    document = ParseQuery(in request);
-                }
+                ParseQuery(ref request);
             }
 
             return new GraphQLRequest
             (
-                document,
+                request.Document,
                 request.QueryName,
                 request.QueryHash,
                 request.OperationName,
@@ -324,7 +298,7 @@ namespace HotChocolate.Language
             }
         }
 
-        private DocumentNode ParseQuery(in Request request)
+        private void ParseQuery(ref Request request)
         {
             int length = checked(request.Query.Length);
             bool useStackalloc =
@@ -336,10 +310,40 @@ namespace HotChocolate.Language
                 ? stackalloc byte[length]
                 : (unescapedArray = ArrayPool<byte>.Shared.Rent(length));
 
+            DocumentNode document = null;
+
             try
             {
                 Utf8Helper.Unescape(request.Query, ref unescapedSpan, false);
-                return Utf8GraphQLParser.Parse(unescapedSpan, _options);
+
+                if (_useCache)
+                {
+                    if (request.QueryName is null)
+                    {
+                        request.QueryName =
+                            request.QueryHash =
+                            _hashProvider.ComputeHash(unescapedSpan);
+                    }
+
+                    if (!_cache.TryGetDocument(
+                        request.QueryName,
+                        out document))
+                    {
+                        document = Utf8GraphQLParser.Parse(unescapedSpan, _options);
+
+                        if (request.QueryHash is null)
+                        {
+                            request.QueryHash =
+                                _hashProvider.ComputeHash(unescapedSpan);
+                        }
+                    }
+                }
+                else
+                {
+                    document = Utf8GraphQLParser.Parse(unescapedSpan, _options);
+                }
+
+                request.Document = document;
             }
             finally
             {

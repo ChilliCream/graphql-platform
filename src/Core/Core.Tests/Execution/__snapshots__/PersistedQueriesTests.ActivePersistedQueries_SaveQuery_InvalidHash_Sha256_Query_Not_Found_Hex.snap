@@ -1,0 +1,17 @@
+﻿{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "PersistedQueryNotFound",
+      "Code": "PERSISTED_QUERY_NOT_FOUND",
+      "Path": null,
+      "Locations": [],
+      "Exception": null,
+      "Extensions": {
+        "code": "PERSISTED_QUERY_NOT_FOUND"
+      }
+    }
+  ],
+  "ContextData": {}
+}

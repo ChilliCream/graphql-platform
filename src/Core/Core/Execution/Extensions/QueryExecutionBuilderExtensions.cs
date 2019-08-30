@@ -709,32 +709,44 @@ namespace HotChocolate.Execution
         }
 
         public static IQueryExecutionBuilder AddSha1DocumentHashProvider(
-            this IQueryExecutionBuilder builder)
+            this IQueryExecutionBuilder builder) =>
+            builder.AddSha1DocumentHashProvider(HashFormat.Base64);
+
+        public static IQueryExecutionBuilder AddSha256DocumentHashProvider(
+            this IQueryExecutionBuilder builder) =>
+            builder.AddSha256DocumentHashProvider(HashFormat.Base64);
+
+        public static IQueryExecutionBuilder AddMD5DocumentHashProvider(
+            this IQueryExecutionBuilder builder) =>
+            builder.AddMD5DocumentHashProvider(HashFormat.Base64);
+
+        public static IQueryExecutionBuilder AddSha1DocumentHashProvider(
+            this IQueryExecutionBuilder builder,
+            HashFormat format)
         {
             builder.RemoveService<IDocumentHashProvider>();
-            builder.Services.AddSingleton<
-                IDocumentHashProvider,
-                Sha1DocumentHashProvider>();
+            builder.Services.AddSingleton<IDocumentHashProvider>(
+                new Sha1DocumentHashProvider(format));
             return builder;
         }
 
         public static IQueryExecutionBuilder AddSha256DocumentHashProvider(
-            this IQueryExecutionBuilder builder)
+            this IQueryExecutionBuilder builder,
+            HashFormat format)
         {
             builder.RemoveService<IDocumentHashProvider>();
-            builder.Services.AddSingleton<
-                IDocumentHashProvider,
-                Sha256DocumentHashProvider>();
+            builder.Services.AddSingleton<IDocumentHashProvider>(
+                new Sha256DocumentHashProvider(format));
             return builder;
         }
 
         public static IQueryExecutionBuilder AddMD5DocumentHashProvider(
-            this IQueryExecutionBuilder builder)
+            this IQueryExecutionBuilder builder,
+            HashFormat format)
         {
             builder.RemoveService<IDocumentHashProvider>();
-            builder.Services.AddSingleton<
-                IDocumentHashProvider,
-                MD5DocumentHashProvider>();
+            builder.Services.AddSingleton<IDocumentHashProvider>(
+                new MD5DocumentHashProvider(format));
             return builder;
         }
 
