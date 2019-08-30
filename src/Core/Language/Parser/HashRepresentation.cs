@@ -1,6 +1,6 @@
 namespace HotChocolate.Language
 {
-    public enum HashRepresentation
+    public enum HashFormat
     {
         Base64,
         Hex

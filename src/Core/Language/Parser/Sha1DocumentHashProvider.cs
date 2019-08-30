@@ -10,12 +10,12 @@ namespace HotChocolate.Language
             new ThreadLocal<SHA1>(() => SHA1.Create());
 
         public Sha1DocumentHashProvider()
-            : this(HashRepresentation.Base64)
+            : this(HashFormat.Base64)
         {
         }
 
-        public Sha1DocumentHashProvider(HashRepresentation representation)
-            : base(representation)
+        public Sha1DocumentHashProvider(HashFormat format)
+            : base(format)
         {
         }
 

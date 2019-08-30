@@ -6,14 +6,14 @@ namespace HotChocolate.Language
     public abstract class DocumentHashProviderBase
         : IDocumentHashProvider
     {
-        private readonly HashRepresentation _representation;
-
-        internal DocumentHashProviderBase(HashRepresentation representation)
+        internal DocumentHashProviderBase(HashFormat format)
         {
-            _representation = representation;
+            Format = format;
         }
 
         public abstract string Name { get; }
+
+        public HashFormat Format { get; }
 
         public string ComputeHash(ReadOnlySpan<byte> document)
         {
@@ -25,17 +25,17 @@ namespace HotChocolate.Language
             {
                 byte[] hash = ComputeHash(rented, document.Length);
 
-                switch (_representation)
+                switch (Format)
                 {
-                    case HashRepresentation.Base64:
+                    case HashFormat.Base64:
                         return Convert.ToBase64String(hash);
-                    case HashRepresentation.Hex:
+                    case HashFormat.Hex:
                         return BitConverter.ToString(hash)
                             .ToLowerInvariant()
                             .Replace("-", string.Empty);
                     default:
                         throw new NotSupportedException(
-                            "The specified has representation is not supported.");
+                            "The specified has format is not supported.");
                 }
             }
             finally

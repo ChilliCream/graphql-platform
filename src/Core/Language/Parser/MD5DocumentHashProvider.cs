@@ -10,12 +10,12 @@ namespace HotChocolate.Language
             new ThreadLocal<MD5>(() => MD5.Create());
 
         public MD5DocumentHashProvider()
-            : this(HashRepresentation.Base64)
+            : this(HashFormat.Base64)
         {
         }
 
-        public MD5DocumentHashProvider(HashRepresentation representation)
-            : base(representation)
+        public MD5DocumentHashProvider(HashFormat format)
+            : base(format)
         {
         }
 

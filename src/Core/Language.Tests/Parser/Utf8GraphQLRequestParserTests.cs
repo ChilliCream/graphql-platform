@@ -507,7 +507,7 @@ namespace HotChocolate.Language
                 source,
                 parserOptions,
                 new DocumentCache(),
-                new Sha256DocumentHashProvider(HashRepresentation.Hex));
+                new Sha256DocumentHashProvider(HashFormat.Hex));
             IReadOnlyList<GraphQLRequest> batch = requestParser.Parse();
 
             // assert

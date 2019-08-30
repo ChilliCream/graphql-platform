@@ -306,11 +306,11 @@ namespace HotChocolate.Execution
             result.ToJson().MatchSnapshot();
         }
 
-        [InlineData(HashRepresentation.Base64)]
-        [InlineData(HashRepresentation.Hex)]
+        [InlineData(HashFormat.Base64)]
+        [InlineData(HashFormat.Hex)]
         [Theory]
         public async Task ActivePersistedQueries_SaveQuery_InvalidHash_Sha1(
-            HashRepresentation representation)
+            HashFormat format)
         {
             // arrange
             var serviceCollection = new ServiceCollection();
@@ -320,7 +320,7 @@ namespace HotChocolate.Execution
                 .AddDocumentFromString("type Query { foo: String }")
                 .AddResolver("Query", "foo", "bar"));
             serviceCollection.AddQueryExecutor(b => b
-                .AddSha1DocumentHashProvider(representation)
+                .AddSha1DocumentHashProvider(format)
                 .UseActivePersistedQueryPipeline());
 
             // add in-memory query storage
@@ -354,7 +354,7 @@ namespace HotChocolate.Execution
                         })
                     .Create());
             result.MatchSnapshot(new SnapshotNameExtension(
-                "Query_Not_Found_" + representation));
+                "Query_Not_Found_" + format));
 
             result = await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -367,7 +367,7 @@ namespace HotChocolate.Execution
                         })
                     .Create());
             result.MatchSnapshot(new SnapshotNameExtension(
-                "Query_Stored_" + representation));
+                "Query_Stored_" + format));
 
             result = await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -379,14 +379,14 @@ namespace HotChocolate.Execution
                         })
                     .Create());
             result.MatchSnapshot(new SnapshotNameExtension(
-                "Query_Loaded_From_Cache_" + representation));
+                "Query_Loaded_From_Cache_" + format));
         }
 
-        [InlineData(HashRepresentation.Base64)]
-        [InlineData(HashRepresentation.Hex)]
+        [InlineData(HashFormat.Base64)]
+        [InlineData(HashFormat.Hex)]
         [Theory]
         public async Task ActivePersistedQueries_SaveQuery_InvalidHash_Sha256(
-            HashRepresentation representation)
+            HashFormat format)
         {
             // arrange
             var serviceCollection = new ServiceCollection();
@@ -396,7 +396,7 @@ namespace HotChocolate.Execution
                 .AddDocumentFromString("type Query { foo: String }")
                 .AddResolver("Query", "foo", "bar"));
             serviceCollection.AddQueryExecutor(b => b
-                .AddSha256DocumentHashProvider(representation)
+                .AddSha256DocumentHashProvider(format)
                 .UseActivePersistedQueryPipeline());
 
             // add in-memory query storage
@@ -430,7 +430,7 @@ namespace HotChocolate.Execution
                         })
                     .Create());
             result.MatchSnapshot(new SnapshotNameExtension(
-                "Query_Not_Found_" + representation));
+                "Query_Not_Found_" + format));
 
             result = await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -443,7 +443,7 @@ namespace HotChocolate.Execution
                         })
                     .Create());
             result.MatchSnapshot(new SnapshotNameExtension(
-                "Query_Stored_" + representation));
+                "Query_Stored_" + format));
 
             result = await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -455,14 +455,14 @@ namespace HotChocolate.Execution
                         })
                     .Create());
             result.MatchSnapshot(new SnapshotNameExtension(
-                "Query_Loaded_From_Cache_" + representation));
+                "Query_Loaded_From_Cache_" + format));
         }
 
-        [InlineData(HashRepresentation.Base64)]
-        [InlineData(HashRepresentation.Hex)]
+        [InlineData(HashFormat.Base64)]
+        [InlineData(HashFormat.Hex)]
         [Theory]
         public async Task ActivePersistedQueries_SaveQuery_InvalidHash_MD5(
-            HashRepresentation representation)
+            HashFormat format)
         {
             // arrange
             var serviceCollection = new ServiceCollection();
@@ -472,7 +472,7 @@ namespace HotChocolate.Execution
                 .AddDocumentFromString("type Query { foo: String }")
                 .AddResolver("Query", "foo", "bar"));
             serviceCollection.AddQueryExecutor(b => b
-                .AddMD5DocumentHashProvider(representation)
+                .AddMD5DocumentHashProvider(format)
                 .UseActivePersistedQueryPipeline());
 
             // add in-memory query storage
@@ -506,7 +506,7 @@ namespace HotChocolate.Execution
                         })
                     .Create());
             result.MatchSnapshot(new SnapshotNameExtension(
-                "Query_Not_Found_" + representation));
+                "Query_Not_Found_" + format));
 
             result = await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -519,7 +519,7 @@ namespace HotChocolate.Execution
                         })
                     .Create());
             result.MatchSnapshot(new SnapshotNameExtension(
-                "Query_Stored_" + representation));
+                "Query_Stored_" + format));
 
             result = await executor.ExecuteAsync(
                 QueryRequestBuilder.New()
@@ -531,7 +531,7 @@ namespace HotChocolate.Execution
                         })
                     .Create());
             result.MatchSnapshot(new SnapshotNameExtension(
-                "Query_Loaded_From_Cache_" + representation));
+                "Query_Loaded_From_Cache_" + format));
         }
 
         [Fact]
@@ -545,7 +545,7 @@ namespace HotChocolate.Execution
                 .AddDocumentFromString("type Query { foo: String }")
                 .AddResolver("Query", "foo", "bar"));
             serviceCollection.AddQueryExecutor(b => b
-                .AddSha256DocumentHashProvider(HashRepresentation.Hex)
+                .AddSha256DocumentHashProvider(HashFormat.Hex)
                 .UseActivePersistedQueryPipeline());
 
             // add in-memory query storage
