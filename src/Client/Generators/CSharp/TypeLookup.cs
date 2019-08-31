@@ -1,10 +1,8 @@
-using System.Collections;
-using System.Reflection.Metadata;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using System.Linq;
 
 namespace StrawberryShake.Generators.CSharp
 {
@@ -99,7 +97,7 @@ namespace StrawberryShake.Generators.CSharp
             return BuildType(typeName, fieldType, readOnly);
         }
 
-        public ITypeInfo GetTypeInfo(FieldNode field, IType fieldType, bool readOnly)
+        public ITypeInfo GetTypeInfo(IType fieldType, bool readOnly)
         {
             INamedType namedType = fieldType.NamedType();
 
@@ -192,9 +190,11 @@ namespace StrawberryShake.Generators.CSharp
             {
                 typeInfo.ListLevel++;
                 BuildTypeInfo(type, lt.ElementType, true, readOnly, typeInfo);
+                typeInfo.IsValueType = false;
             }
 
             typeInfo.IsNullable = nullable;
+            typeInfo.IsValueType = type.IsValueType;
         }
 
         private static string BuildType(string typeName, IType fieldType, bool readOnly)
@@ -274,6 +274,8 @@ namespace StrawberryShake.Generators.CSharp
             public bool IsNullable { get; set; }
 
             public IType Type { get; set; }
+
+            public bool IsValueType { get; set; }
         }
     }
 }

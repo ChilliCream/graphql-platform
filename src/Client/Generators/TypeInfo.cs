@@ -16,7 +16,7 @@ namespace StrawberryShake.Generators
         int ListLevel { get; }
 
         bool IsNullable { get; }
+
+        bool IsValueType { get; }
     }
-
-
 }
