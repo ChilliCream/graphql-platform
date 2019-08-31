@@ -76,6 +76,10 @@ namespace StrawberryShake.Generators
                     CreateResultParserDescriptor(operation, resultDescriptor));
             }
 
+            RegisterDescriptor(new ClientDescriptor(
+                _query.Name,
+                _descriptors.Values.OfType<IOperationDescriptor>().ToList()));
+
             FieldTypes = _fieldTypes.ToDictionary(t => t.Key, t => t.Value.Name);
             Descriptors = _descriptors.Values;
         }

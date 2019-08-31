@@ -1,5 +1,7 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
@@ -20,77 +22,186 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteAsync(descriptor.Name);
             await writer.WriteLineAsync();
 
-            writer.IncreaseIndent();
-
-            for (int i = 0; i < descriptor.Implements.Count; i++)
+            using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentAsync();
-
-                if (i == 0)
+                for (int i = 0; i < descriptor.Implements.Count; i++)
                 {
-                    await writer.WriteAsync(':');
-                }
-                else
-                {
-                    await writer.WriteAsync(',');
-                }
+                    await writer.WriteIndentAsync();
 
-                await writer.WriteSpaceAsync();
-                await writer.WriteAsync(descriptor.Implements[i].Name);
-                await writer.WriteLineAsync();
+                    if (i == 0)
+                    {
+                        await writer.WriteAsync(':');
+                    }
+                    else
+                    {
+                        await writer.WriteAsync(',');
+                    }
+
+                    await writer.WriteSpaceAsync();
+                    await writer.WriteAsync(descriptor.Implements[i].Name);
+                    await writer.WriteLineAsync();
+                }
             }
-
-            writer.DecreaseIndent();
 
             await writer.WriteIndentAsync();
             await writer.WriteAsync("{");
             await writer.WriteLineAsync();
 
-            writer.IncreaseIndent();
-
-            if (descriptor.Type is IComplexOutputType complexType)
+            using (writer.IncreaseIndent())
             {
-                for (int i = 0; i < descriptor.Fields.Count; i++)
+                if (descriptor.Type is IComplexOutputType complexType)
                 {
-                    IFieldDescriptor fieldDescriptor = descriptor.Fields[i];
-
-                    if (complexType.Fields.ContainsField(
-                        fieldDescriptor.Selection.Name.Value))
+                    for (int i = 0; i < descriptor.Fields.Count; i++)
                     {
-                        string typeName = typeLookup.GetTypeName(
-                            fieldDescriptor.Selection,
-                            fieldDescriptor.Type,
-                            true);
+                        IFieldDescriptor fieldDescriptor = descriptor.Fields[i];
 
-                        string propertyName = GetPropertyName(fieldDescriptor.ResponseName);
-
-                        if (i > 0)
+                        if (complexType.Fields.ContainsField(
+                            fieldDescriptor.Selection.Name.Value))
                         {
+                            string typeName = typeLookup.GetTypeName(
+                                fieldDescriptor.Selection,
+                                fieldDescriptor.Type,
+                                true);
+
+                            string propertyName = GetPropertyName(fieldDescriptor.ResponseName);
+
+                            if (i > 0)
+                            {
+                                await writer.WriteLineAsync();
+                            }
+
+                            await writer.WriteIndentAsync();
+                            await writer.WriteAsync(typeName);
+                            await writer.WriteSpaceAsync();
+                            await writer.WriteAsync(propertyName);
+                            await writer.WriteSpaceAsync();
+                            await writer.WriteAsync("{ get; }");
                             await writer.WriteLineAsync();
                         }
-
-                        await writer.WriteIndentAsync();
-                        await writer.WriteAsync(typeName);
-                        await writer.WriteSpaceAsync();
-                        await writer.WriteAsync(propertyName);
-                        await writer.WriteSpaceAsync();
-                        await writer.WriteAsync("{ get; }");
-                        await writer.WriteLineAsync();
-                    }
-                    else
-                    {
-                        // TODO : exception
-                        // TODO : resources
-                        throw new Exception("Unknown field.");
+                        else
+                        {
+                            // TODO : exception
+                            // TODO : resources
+                            throw new Exception("Unknown field.");
+                        }
                     }
                 }
             }
-
-            writer.DecreaseIndent();
 
             await writer.WriteIndentAsync();
             await writer.WriteAsync("}");
             await writer.WriteLineAsync();
         }
+    }
+
+    public class ClientInterfaceGenerator
+        : CodeGenerator<IClientDescriptor>
+    {
+        protected override async Task WriteAsync(
+            CodeWriter writer,
+            IClientDescriptor descriptor,
+            ITypeLookup typeLookup)
+        {
+            await writer.WriteIndentAsync();
+            await writer.WriteAsync("public interface ");
+            await writer.WriteAsync(GetInterfaceName(descriptor.Name));
+            await writer.WriteLineAsync();
+
+            await writer.WriteIndentAsync();
+            await writer.WriteAsync("{");
+            await writer.WriteLineAsync();
+
+            using (writer.IncreaseIndent())
+            {
+                for (int i = 0; i < descriptor.Operations.Count; i++)
+                {
+                    IOperationDescriptor operation = descriptor.Operations[i];
+
+                    string typeName = typeLookup.GetTypeName(
+                        operation.OperationType,
+                        operation.ResultType.Name,
+                        true);
+
+                    if (i > 0)
+                    {
+                        await writer.WriteLineAsync();
+                    }
+
+                    await WriteOperationAsync(
+                        writer, operation, typeName, false, typeLookup);
+                    await WriteOperationAsync(
+                        writer, operation, typeName, true, typeLookup);
+                }
+            }
+
+            await writer.WriteIndentAsync();
+            await writer.WriteAsync("}");
+            await writer.WriteLineAsync();
+        }
+
+        private async Task WriteOperationAsync(
+            CodeWriter writer,
+            IOperationDescriptor operation,
+            string operationTypeName,
+            bool cancellationToken,
+            ITypeLookup typeLookup)
+        {
+            await writer.WriteIndentAsync();
+            if (operation.Operation.Operation == OperationType.Subscription)
+            {
+                await writer.WriteAsync(
+                    $"Task<IResponseStream<{operationTypeName}>> ");
+            }
+            else
+            {
+                await writer.WriteAsync(
+                    $"Task<IOperationResult<{operationTypeName}>> ");
+            }
+            await writer.WriteAsync(
+                $"{operation.Operation.Name.Value}Async(");
+
+            using (writer.IncreaseIndent())
+            {
+                for (int j = 0; j < operation.Arguments.Count; j++)
+                {
+                    Descriptors.IArgumentDescriptor argument =
+                        operation.Arguments[j];
+
+                    if (j > 0)
+                    {
+                        await writer.WriteAsync(',');
+                    }
+
+                    await writer.WriteLineAsync();
+
+                    string argumentType = typeLookup.GetTypeName(
+                        argument.Type,
+                        argument.Type.NamedType().Name,
+                        true);
+
+                    await writer.WriteIndentAsync();
+                    await writer.WriteAsync(argumentType);
+                    await writer.WriteSpaceAsync();
+                    await writer.WriteAsync(GetFieldName(argument.Name));
+                }
+
+                if (cancellationToken)
+                {
+                    if (operation.Arguments.Count > 0)
+                    {
+                        await writer.WriteAsync(',');
+                    }
+
+                    await writer.WriteLineAsync();
+                    await writer.WriteIndentAsync();
+                    await writer.WriteAsync("CancellationToken cancellationToken");
+                }
+
+                await writer.WriteAsync(')');
+                await writer.WriteAsync(';');
+                await writer.WriteLineAsync();
+            }
+        }
+
     }
 }
