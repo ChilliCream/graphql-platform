@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
 
 namespace StrawberryShake.Generators

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -9,7 +11,14 @@ namespace StrawberryShake.Generators.CSharp
 {
     public class ClientClassGenerator
         : CodeGenerator<IClientDescriptor>
+        , IUsesComponents
     {
+        public IReadOnlyList<string> Components { get; } =
+            new List<string>
+            {
+                WellKnownComponents.Task
+            };
+
         protected override async Task WriteAsync(
             CodeWriter writer,
             IClientDescriptor descriptor,
@@ -34,6 +43,11 @@ namespace StrawberryShake.Generators.CSharp
 
             using (writer.IncreaseIndent())
             {
+                await WriteFieldsAsync(writer, descriptor);
+                await writer.WriteLineAsync();
+
+                await WriteConstructorAsync(writer, descriptor);
+
                 for (int i = 0; i < descriptor.Operations.Count; i++)
                 {
                     IOperationDescriptor operation = descriptor.Operations[i];
@@ -43,13 +57,11 @@ namespace StrawberryShake.Generators.CSharp
                         operation.ResultType.Name,
                         true);
 
-                    if (i > 0)
-                    {
-                        await writer.WriteLineAsync();
-                    }
+                    await writer.WriteLineAsync();
 
                     await WriteOperationOverloadAsync(
                         writer, operation, typeName, typeLookup);
+                    await writer.WriteLineAsync();
 
                     await WriteOperationAsync(
                         writer, operation, typeName, typeLookup);
@@ -57,7 +69,93 @@ namespace StrawberryShake.Generators.CSharp
             }
 
             await writer.WriteIndentAsync();
-            await writer.WriteAsync("}");
+            await writer.WriteAsync('}');
+            await writer.WriteLineAsync();
+        }
+
+        private async Task WriteFieldsAsync(
+            CodeWriter writer,
+            IClientDescriptor descriptor)
+        {
+            if (descriptor.Operations.Any(
+                t => t.Operation.Operation != OperationType.Subscription))
+            {
+                await writer.WriteIndentAsync();
+                await writer.WriteAsync(
+                    "private readonly IOperationExecutor _executor;");
+                await writer.WriteLineAsync();
+            }
+
+            if (descriptor.Operations.Any(
+                t => t.Operation.Operation == OperationType.Subscription))
+            {
+                await writer.WriteIndentAsync();
+                await writer.WriteAsync(
+                    "private readonly IOperationStreamExecutor _streamExecutor;");
+                await writer.WriteLineAsync();
+            }
+        }
+
+        private async Task WriteConstructorAsync(
+            CodeWriter writer,
+            IClientDescriptor descriptor)
+        {
+            await writer.WriteIndentAsync();
+            await writer.WriteAsync("public ");
+            await writer.WriteAsync(GetClassName(descriptor.Name));
+            await writer.WriteAsync("(");
+
+            bool executor = false;
+            bool streamExecutor = false;
+
+            if (descriptor.Operations.Any(
+                t => t.Operation.Operation != OperationType.Subscription))
+            {
+                executor = true;
+
+                await writer.WriteAsync("IOperationExecutor executor");
+            }
+
+            if (descriptor.Operations.Any(
+                t => t.Operation.Operation == OperationType.Subscription))
+            {
+                streamExecutor = true;
+
+                if (executor)
+                {
+                    await writer.WriteAsync(", ");
+                }
+                await writer.WriteAsync("IOperationStreamExecutor streamExecutor");
+            }
+
+            await writer.WriteAsync(')');
+            await writer.WriteLineAsync();
+
+            await writer.WriteIndentAsync();
+            await writer.WriteAsync('{');
+            await writer.WriteLineAsync();
+
+            using (writer.IncreaseIndent())
+            {
+                if (executor)
+                {
+                    await writer.WriteIndentAsync();
+                    await writer.WriteAsync("_executor = executor" +
+                        "?? throw new ArgumentNullException(nameof(executor));");
+                    await writer.WriteLineAsync();
+                }
+
+                if (streamExecutor)
+                {
+                    await writer.WriteIndentAsync();
+                    await writer.WriteAsync("_streamExecutor = streamExecutor" +
+                        "?? throw new ArgumentNullException(nameof(streamExecutor));");
+                    await writer.WriteLineAsync();
+                }
+            }
+
+            await writer.WriteIndentAsync();
+            await writer.WriteAsync('}');
             await writer.WriteLineAsync();
         }
 
@@ -68,12 +166,13 @@ namespace StrawberryShake.Generators.CSharp
             ITypeLookup typeLookup)
         {
             await WriteOperationSignature(
-                writer, operation, operationTypeName, true, typeLookup);
+                writer, operation, operationTypeName, false, typeLookup);
 
             using (writer.IncreaseIndent())
             {
                 await writer.WriteIndentAsync();
-                await writer.WriteAsync($"{operation.Operation.Name.Value}Async(");
+                await writer.WriteAsync(
+                    $"{GetPropertyName(operation.Operation.Name.Value)}Async(");
 
                 for (int j = 0; j < operation.Arguments.Count; j++)
                 {
@@ -83,28 +182,18 @@ namespace StrawberryShake.Generators.CSharp
                     if (j > 0)
                     {
                         await writer.WriteAsync(',');
+                        await writer.WriteSpaceAsync();
                     }
 
-                    await writer.WriteLineAsync();
-
-                    string argumentType = typeLookup.GetTypeName(
-                        argument.Type,
-                        argument.Type.NamedType().Name,
-                        true);
-
-                    await writer.WriteIndentAsync();
-                    await writer.WriteAsync(argumentType);
-                    await writer.WriteSpaceAsync();
                     await writer.WriteAsync(GetFieldName(argument.Name));
                 }
 
                 if (operation.Arguments.Count > 0)
                 {
                     await writer.WriteAsync(',');
+                    await writer.WriteSpaceAsync();
                 }
-                await writer.WriteLineAsync();
 
-                await writer.WriteIndentAsync();
                 await writer.WriteAsync("CancellationToken.None");
                 await writer.WriteAsync(')');
                 await writer.WriteAsync(';');
@@ -140,6 +229,8 @@ namespace StrawberryShake.Generators.CSharp
                 {
                     await writer.WriteAsync("return _executor.ExecuteAsync(");
                 }
+                await writer.WriteLineAsync();
+
                 using (writer.IncreaseIndent())
                 {
                     await WriteCreateOperationAsync(
@@ -176,7 +267,7 @@ namespace StrawberryShake.Generators.CSharp
                     $"Task<IOperationResult<{operationTypeName}>> ");
             }
             await writer.WriteAsync(
-                $"{operation.Operation.Name.Value}Async(");
+                $"{GetPropertyName(operation.Operation.Name.Value)}Async(");
 
             using (writer.IncreaseIndent())
             {

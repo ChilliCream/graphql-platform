@@ -93,6 +93,12 @@ namespace StrawberryShake.Generators
                 await WriteUsing(writer, "System.Text.Json");
             }
 
+            if (components.Contains(WellKnownComponents.Task))
+            {
+                await WriteUsing(writer, "System.Threading");
+                await WriteUsing(writer, "System.Threading.Tasks");
+            }
+
             await WriteUsing(writer, "StrawberryShake");
 
             if (components.Contains(WellKnownComponents.Http))

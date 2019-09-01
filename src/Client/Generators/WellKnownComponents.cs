@@ -5,5 +5,7 @@ namespace StrawberryShake.Generators
         public const string Json = "JSON";
 
         public const string Http = "HTTP";
+
+        public const string Task = "TASK";
     }
 }

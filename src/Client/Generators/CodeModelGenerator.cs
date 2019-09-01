@@ -51,9 +51,11 @@ namespace StrawberryShake.Generators
             var backlog = new Queue<FieldSelection>();
             Path root = Path.New("root");
 
-            foreach (var operation in _document.Definitions.OfType<OperationDefinitionNode>())
+            foreach (var operation in
+                _document.Definitions.OfType<OperationDefinitionNode>())
             {
-                ObjectType operationType = _schema.GetOperationType(operation.Operation);
+                ObjectType operationType =
+                    _schema.GetOperationType(operation.Operation);
 
                 ICodeDescriptor resultDescriptor =
                     GenerateOperationSelectionSet(
@@ -77,7 +79,7 @@ namespace StrawberryShake.Generators
             }
 
             RegisterDescriptor(new ClientDescriptor(
-                _query.Name,
+                _query.Name + "Client",
                 _descriptors.Values.OfType<IOperationDescriptor>().ToList()));
 
             FieldTypes = _fieldTypes.ToDictionary(t => t.Key, t => t.Value.Name);

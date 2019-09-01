@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -9,7 +10,19 @@ namespace StrawberryShake.Generators.CSharp
 {
     public class ClientInterfaceGenerator
         : CodeGenerator<IClientDescriptor>
+        , IUsesComponents
     {
+        public IReadOnlyList<string> Components { get; } =
+            new List<string>
+            {
+                WellKnownComponents.Task
+            };
+
+        protected override string CreateFileName(IClientDescriptor descriptor)
+        {
+            return GetInterfaceName(descriptor.Name) + ".cs";
+        }
+
         protected override async Task WriteAsync(
             CodeWriter writer,
             IClientDescriptor descriptor,
@@ -42,6 +55,9 @@ namespace StrawberryShake.Generators.CSharp
 
                     await WriteOperationAsync(
                         writer, operation, typeName, false, typeLookup);
+
+                    await writer.WriteLineAsync();
+
                     await WriteOperationAsync(
                         writer, operation, typeName, true, typeLookup);
                 }
@@ -71,7 +87,7 @@ namespace StrawberryShake.Generators.CSharp
                     $"Task<IOperationResult<{operationTypeName}>> ");
             }
             await writer.WriteAsync(
-                $"{operation.Operation.Name.Value}Async(");
+                $"{GetPropertyName(operation.Operation.Name.Value)}Async(");
 
             using (writer.IncreaseIndent())
             {
