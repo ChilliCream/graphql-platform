@@ -1,6 +1,4 @@
-using System.Threading;
 using System.IO;
-using System.Globalization;
 using System.Linq;
 using System;
 using System.Collections.Generic;
@@ -25,7 +23,8 @@ namespace StrawberryShake.Generators
                 new InterfaceGenerator(),
                 new ResultParserGenerator(),
                 new OperationGenerator(),
-                new ClientInterfaceGenerator()
+                new ClientInterfaceGenerator(),
+                new ClientClassGenerator()
             };
         private readonly Dictionary<string, DocumentNode> _schemas =
             new Dictionary<string, DocumentNode>();

@@ -71,7 +71,6 @@ namespace StrawberryShake.Generators.CSharp
                 if (fieldDescriptor.Type.NamedType().IsLeafType())
                 {
                     ITypeInfo typeInfo = typeLookup.GetTypeInfo(
-                        fieldDescriptor.Selection,
                         fieldDescriptor.Type,
                         false);
 
