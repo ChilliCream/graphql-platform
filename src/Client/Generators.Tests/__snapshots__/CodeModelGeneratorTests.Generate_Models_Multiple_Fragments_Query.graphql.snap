@@ -402,28 +402,28 @@ namespace Foo
 
         public static MultipleFragmentsQuery.graphql Default { get; } = new MultipleFragmentsQuery.graphql();
 
-        public override string ToString() =>
+        public override string ToString() => 
             @"query getHero {
               hero {
                 ... Hero
               }
             }
-
+            
             fragment Hero on Character {
               ... HasName
               ... HasFriends
             }
-
+            
             fragment Friend on CharacterConnection {
               nodes {
                 ... HasName
               }
             }
-
+            
             fragment HasName on Character {
               name
             }
-
+            
             fragment HasFriends on Character {
               friends {
                 ... Friend
