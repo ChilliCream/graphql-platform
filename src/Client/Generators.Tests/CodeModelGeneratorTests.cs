@@ -30,7 +30,7 @@ namespace StrawberryShake.Generators
 
             // act
             await ClientGenerator.New()
-                .AddQueryDocumentFromString(queryFile,
+                .AddQueryDocumentFromString("Queries",
                     FileResource.Open(queryFile))
                 .AddSchemaDocumentFromString("StarWars",
                     FileResource.Open("StarWars.graphql"))
@@ -72,7 +72,7 @@ namespace StrawberryShake.Generators
                         {
                             foreach (GeneratorTask task in _tasks)
                             {
-                                if (task.Descriptor is IQueryDescriptor)
+                                if (task.Descriptor.GetType() != typeof(QueryDescriptor))
                                 {
                                     await task.Generator.WriteAsync(
                                         cw, task.Descriptor, typeLookup);
