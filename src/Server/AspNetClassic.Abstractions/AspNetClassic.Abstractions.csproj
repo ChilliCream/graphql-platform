@@ -11,7 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net462</TargetFramework>
     <PackageId>HotChocolate.AspNetClassic.Abstractions</PackageId>
     <AssemblyName>HotChocolate.AspNetClassic.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic</RootNamespace>

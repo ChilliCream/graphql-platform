@@ -11,7 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFramework>net462</TargetFramework>
     <AssemblyName>HotChocolate.AspNetClassic.Tests</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic</RootNamespace>
     <OutputType>Library</OutputType>
