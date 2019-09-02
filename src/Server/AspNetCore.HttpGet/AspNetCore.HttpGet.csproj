@@ -11,7 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp2.2</TargetFramework>
     <PackageId>HotChocolate.AspNetCore.HttpGet</PackageId>
     <AssemblyName>HotChocolate.AspNetCore.HttpGet</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.HttpGet</RootNamespace>

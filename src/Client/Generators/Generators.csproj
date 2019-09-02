@@ -11,7 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp2.2</TargetFramework>
     <PackageId>StrawberryShake.Generators</PackageId>
     <AssemblyName>StrawberryShake.Generators</AssemblyName>
     <RootNamespace>StrawberryShake.Generators</RootNamespace>

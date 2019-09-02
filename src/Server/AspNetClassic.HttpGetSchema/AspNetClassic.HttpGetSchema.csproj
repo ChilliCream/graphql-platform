@@ -11,7 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">net462</TargetFramework>
     <AssemblyName>HotChocolate.AspNetClassic.HttpGetSchema</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic.HttpGetSchema</RootNamespace>
     <PackageId>HotChocolate.AspNetClassic.HttpGetSchema</PackageId>

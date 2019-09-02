@@ -13,7 +13,7 @@
 
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp2.2</TargetFramework>
     <AssemblyName>HotChocolate.Core.Diagnostics.ApolloTracing.Tests</AssemblyName>
     <RootNamespace>HotChocolate</RootNamespace>
   </PropertyGroup>

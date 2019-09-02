@@ -13,7 +13,7 @@
 
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp2.2</TargetFramework>
     <PackageId>HotChocolate.PersistedQueries.Redis</PackageId>
     <AssemblyName>HotChocolate.PersistedQueries.Redis</AssemblyName>
     <RootNamespace>HotChocolate.PersistedQueries.Redis</RootNamespace>

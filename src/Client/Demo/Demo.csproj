@@ -12,7 +12,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp2.2</TargetFramework>
     <AssemblyName>Demo</AssemblyName>
     <RootNamespace>Demo</RootNamespace>
     <IsPackable>false</IsPackable>
