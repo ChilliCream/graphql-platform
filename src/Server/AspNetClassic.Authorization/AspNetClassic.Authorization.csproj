@@ -11,7 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework Condition="'$(TargetFrameworks)'==''">net462</TargetFramework>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">net461</TargetFramework>
     <PackageId>HotChocolate.AspNetClassic.Authorization</PackageId>
     <AssemblyName>HotChocolate.AspNetClassic.Authorization</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic.Authorization</RootNamespace>

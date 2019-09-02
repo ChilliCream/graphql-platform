@@ -11,7 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework Condition="'$(TargetFrameworks)'==''">net462</TargetFramework>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">net461</TargetFramework>
     <AssemblyName>HotChocolate.AspNetClassic.HttpPost</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic.HttpPost</RootNamespace>
     <PackageId>HotChocolate.AspNetClassic.HttpPost</PackageId>
