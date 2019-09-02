@@ -211,11 +211,22 @@ namespace StrawberryShake.Generators
 
         public ClientGenerator AddQueryDocument(
             string name,
+            DocumentNode document) =>
+            AddQueryDocument(name, name, document);
+
+        public ClientGenerator AddQueryDocument(
+            string name,
+            string fileName,
             DocumentNode document)
         {
             if (name is null)
             {
                 throw new ArgumentNullException(nameof(name));
+            }
+
+            if (fileName is null)
+            {
+                throw new ArgumentNullException(nameof(fileName));
             }
 
             if (document is null)

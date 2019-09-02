@@ -15,6 +15,7 @@
     <PackageId>StrawberryShake.Abstractions</PackageId>
     <AssemblyName>StrawberryShake.Abstractions</AssemblyName>
     <RootNamespace>StrawberryShake</RootNamespace>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

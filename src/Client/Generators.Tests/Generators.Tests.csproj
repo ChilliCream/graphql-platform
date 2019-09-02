@@ -14,6 +14,7 @@
     <TargetFramework>netcoreapp2.2</TargetFramework>
     <AssemblyName>StrawberryShake.Generators.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.Generators</RootNamespace>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>

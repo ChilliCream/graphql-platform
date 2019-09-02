@@ -20,28 +20,28 @@ namespace Foo
         };
         private readonly byte[] _hash = new byte[]
         {
-            106,
-            104,
-            55,
-            117,
-            119,
-            68,
-            81,
-            84,
-            122,
-            56,
-            47,
-            78,
-            105,
             112,
-            43,
-            120,
-            76,
+            114,
+            78,
+            67,
+            52,
+            74,
+            85,
+            50,
+            111,
+            107,
             80,
+            99,
+            79,
             89,
+            56,
+            57,
+            51,
             55,
-            121,
-            81,
+            109,
+            67,
+            55,
+            119,
             61,
             61
         };
@@ -60,26 +60,6 @@ namespace Foo
             101,
             114,
             111,
-            40,
-            36,
-            102,
-            111,
-            111,
-            58,
-            32,
-            82,
-            101,
-            118,
-            105,
-            101,
-            119,
-            73,
-            110,
-            112,
-            117,
-            116,
-            33,
-            41,
             32,
             123,
             32,
@@ -87,14 +67,6 @@ namespace Foo
             101,
             114,
             111,
-            32,
-            64,
-            115,
-            112,
-            114,
-            101,
-            97,
-            100,
             32,
             123,
             32,
@@ -255,14 +227,6 @@ namespace Foo
             100,
             101,
             115,
-            32,
-            64,
-            115,
-            112,
-            114,
-            101,
-            97,
-            100,
             32,
             123,
             32,
@@ -446,8 +410,8 @@ namespace Foo
         public static Queries Default { get; } = new Queries();
 
         public override string ToString() => 
-            @"query getHero($foo: ReviewInput!) {
-              hero @spread {
+            @"query getHero {
+              hero {
                 ... Hero
               }
             }
@@ -459,7 +423,7 @@ namespace Foo
             }
             
             fragment Friend on CharacterConnection {
-              nodes @spread {
+              nodes {
                 ... HasName
               }
             }

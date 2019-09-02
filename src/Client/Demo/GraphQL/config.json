@@ -3,5 +3,6 @@
     "name": "StarWars",
     "type": "local",
     "file": "StarWars.graphql"
-  }]
+  }],
+  "clientName": "StarWarsClient"
 }

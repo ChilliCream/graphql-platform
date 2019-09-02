@@ -9,11 +9,9 @@ namespace Foo
 {
     public interface IStarWarsClient
     {
-        Task<IOperationResult<IGetHero>> GetHeroAsync(
-            ReviewInput foo);
+        Task<IOperationResult<IGetHero>> GetHeroAsync();
 
         Task<IOperationResult<IGetHero>> GetHeroAsync(
-            ReviewInput foo,
             CancellationToken cancellationToken);
     }
 }
