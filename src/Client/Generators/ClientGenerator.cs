@@ -1,18 +1,18 @@
-using System.IO;
-using System.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using HotChocolate;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Merge;
-using System.Threading.Tasks;
-using HotChocolate;
+using HotChocolate.Validation;
 using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.CSharp;
-using Microsoft.Extensions.DependencyInjection;
-using HotChocolate.Validation;
 using IOPath = System.IO.Path;
 using HCError = HotChocolate.IError;
-using HotChocolate.Execution.Configuration;
 
 namespace StrawberryShake.Generators
 {
@@ -234,7 +234,7 @@ namespace StrawberryShake.Generators
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _queries.Add(name, new DocumentInfo(name, name, document));
+            _queries.Add(name, new DocumentInfo(name, fileName, document));
             return this;
         }
 

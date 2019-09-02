@@ -37,31 +37,20 @@ namespace StrawberryShake.Tools
                 generator.SetClientName(config.ClientName);
             }
 
-            try
+            if (await LoadGraphQLDocumentsAsync(generator))
             {
-                await LoadGraphQLDocumentsAsync(generator);
-            }
-            catch (SyntaxException ex)
-            {
-                HCError error = ErrorBuilder.New()
-                    .SetMessage(ex.Message)
-                    .AddLocation(new HotChocolate.Location(ex.Line, ex.Column))
-                    .SetCode("SYNTAX_ERROR")
-                    .Build();
+                IReadOnlyList<HCError> validationErrors = generator.Validate();
+                if (validationErrors.Count > 0)
+                {
+                    WriteErrors(validationErrors);
+                    return 1;
+                }
 
-                WriteErrors(new[] { error });
-                return 1;
+                await generator.BuildAsync();
+                return 0;
             }
 
-            IReadOnlyList<HCError> validationErrors = generator.Validate();
-            if (validationErrors.Count > 0)
-            {
-                WriteErrors(validationErrors);
-                return 1;
-            }
-
-            await generator.BuildAsync();
-            return 0;
+            return 1;
         }
 
         private async Task<Configuration> LoadConfig()
@@ -81,12 +70,19 @@ namespace StrawberryShake.Tools
             return config;
         }
 
-        private async Task LoadGraphQLDocumentsAsync(ClientGenerator generator)
+        private async Task<bool> LoadGraphQLDocumentsAsync(ClientGenerator generator)
         {
             Dictionary<string, SchemaFile> schemaConfigs =
                 (await LoadConfig()).Schemas.ToDictionary(t => t.Name);
 
-            foreach (DocumentInfo document in await GetGraphQLFiles())
+            IReadOnlyList<DocumentInfo> documents = await GetGraphQLFiles();
+
+            if (documents.Count == 0)
+            {
+                return false;
+            }
+
+            foreach (DocumentInfo document in documents)
             {
                 if (document.Kind == DocumentKind.Query)
                 {
@@ -112,6 +108,8 @@ namespace StrawberryShake.Tools
                         document.Document);
                 }
             }
+
+            return true;
         }
 
         private async Task<IReadOnlyList<DocumentInfo>> GetGraphQLFiles()
@@ -121,21 +119,37 @@ namespace StrawberryShake.Tools
             foreach (string file in Directory.GetFiles(Path, "*.graphql"))
             {
                 byte[] buffer = await File.ReadAllBytesAsync(file);
-                DocumentNode document = Utf8GraphQLParser.Parse(buffer);
 
-                if (document.Definitions.Count > 0)
+                try
                 {
-                    DocumentKind kind =
-                        document.Definitions.Any(t => t is ITypeSystemDefinitionNode)
-                            ? DocumentKind.Schema
-                            : DocumentKind.Query;
+                    DocumentNode document = Utf8GraphQLParser.Parse(buffer);
 
-                    documents.Add(new DocumentInfo
+                    if (document.Definitions.Count > 0)
                     {
-                        Kind = kind,
-                        FileName = file,
-                        Document = document
-                    });
+                        DocumentKind kind =
+                            document.Definitions.Any(t => t is ITypeSystemDefinitionNode)
+                                ? DocumentKind.Schema
+                                : DocumentKind.Query;
+
+                        documents.Add(new DocumentInfo
+                        {
+                            Kind = kind,
+                            FileName = file,
+                            Document = document
+                        });
+                    }
+                }
+                catch (SyntaxException ex)
+                {
+                    HCError error = ErrorBuilder.New()
+                        .SetMessage(ex.Message)
+                        .AddLocation(new HotChocolate.Location(ex.Line, ex.Column))
+                        .SetCode("SYNTAX_ERROR")
+                        .SetExtension("fileName", file)
+                        .Build();
+
+                    WriteErrors(new[] { error });
+                    return Array.Empty<DocumentInfo>();
                 }
             }
 
@@ -151,7 +165,7 @@ namespace StrawberryShake.Tools
                     HotChocolate.Location location = error.Locations[0];
                     string code = error.Code ?? "GQL";
                     Console.WriteLine(
-                        $"{error.Extensions["fileName"]}" +
+                        $"{IOPath.GetFullPath((string)error.Extensions["fileName"])}" +
                         $"({location.Line},{location.Column}): " +
                         $"error {code}: {error.Message}");
                 }

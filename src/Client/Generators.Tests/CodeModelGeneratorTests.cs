@@ -21,11 +21,11 @@ namespace StrawberryShake.Generators
     {
         // [InlineData("Simple_Query.graphql")]
         //[InlineData("Spread_Query.graphql")]
-        // [InlineData("Multiple_Fragments_Query.graphql")]
-        // [Theory]
+        [InlineData("Multiple_Fragments_Query.graphql")]
+        [Theory]
         public async Task Generate_Models(string queryFile)
         {
-           
+
             await ClientGenerator.New()
                 .AddSchemaDocumentFromFile(
                     "../../../../Demo/GraphQL/StarWars.graphql")
@@ -34,7 +34,7 @@ namespace StrawberryShake.Generators
                 .SetOutput(
                     "../../../../Demo/GraphQL/Generated")
                 .BuildAsync();
-               
+
 
         }
     }
