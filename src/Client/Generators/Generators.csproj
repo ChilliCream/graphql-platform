@@ -15,7 +15,7 @@
     <PackageId>StrawberryShake.Generators</PackageId>
     <AssemblyName>StrawberryShake.Generators</AssemblyName>
     <RootNamespace>StrawberryShake.Generators</RootNamespace>
-    <AllowUnsafeBlocks Condition="'$(TargetFramework)' == 'netstandard2.0'">true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>

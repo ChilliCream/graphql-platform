@@ -82,7 +82,7 @@ namespace StrawberryShake.Generators.Utilities
 #if NETCOREAPP3_0 || NETCOREAPP2_2
         public static string GetFieldName(string fieldName)
 #else
-        public unsafe static string GetPropertyName(string fieldName)
+        public unsafe static string GetFieldName(string fieldName)
 #endif
         {
             var buffered = 0;
