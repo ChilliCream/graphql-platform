@@ -24,7 +24,8 @@ namespace StrawberryShake.Generators
                 new ResultParserGenerator(),
                 new OperationGenerator(),
                 new ClientInterfaceGenerator(),
-                new ClientClassGenerator()
+                new ClientClassGenerator(),
+                new QueryGenerator()
             };
         private readonly Dictionary<string, DocumentNode> _schemas =
             new Dictionary<string, DocumentNode>();
