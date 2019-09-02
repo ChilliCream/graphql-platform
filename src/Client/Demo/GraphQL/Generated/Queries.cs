@@ -443,7 +443,7 @@ namespace Foo
 
         public ReadOnlySpan<byte> Content => _content;
 
-        public Queries Default { get; } = new Queries();
+        public static Queries Default { get; } = new Queries();
 
         public override string ToString() => 
             @"query getHero($foo: ReviewInput!) {
