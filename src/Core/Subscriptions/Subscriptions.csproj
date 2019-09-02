@@ -18,11 +18,11 @@
     <Description>Contains Hot Chocolate GraphQL subscriptions abstractions.</Description>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != 'net47'">
+  <ItemGroup Condition="'$(TargetFramework)' != 'net461'">
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net47'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <PackageReference Include="Newtonsoft.Json" Version="6.0.4" />
   </ItemGroup>
 

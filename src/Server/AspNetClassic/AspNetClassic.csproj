@@ -11,7 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework>net47</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <PackageId>HotChocolate.AspNetClassic</PackageId>
     <AssemblyName>HotChocolate.AspNetClassic</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic</RootNamespace>

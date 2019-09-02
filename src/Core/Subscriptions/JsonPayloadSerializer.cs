@@ -11,7 +11,7 @@ namespace HotChocolate.Subscriptions
         private static readonly JsonSerializerSettings _settings =
             new JsonSerializerSettings
             {
-#if NET47
+#if NET461
                 TypeNameAssemblyFormat = FormatterAssemblyStyle.Full,
 #else
                 TypeNameAssemblyFormatHandling =

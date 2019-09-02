@@ -11,7 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework>net47</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <PackageId>HotChocolate.AspNetClassic.HttpGet</PackageId>
     <AssemblyName>HotChocolate.AspNetClassic.HttpGet</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic.HttpGet</RootNamespace>
