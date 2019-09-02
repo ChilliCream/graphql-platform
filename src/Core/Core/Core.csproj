@@ -36,12 +36,21 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>CoreResources.resx</DependentUpon>
     </Compile>
+    <Compile Update="Properties\ValidationResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ValidationResources.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Update="Properties\CoreResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CoreResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Properties\ValidationResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>ValidationResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 

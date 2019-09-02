@@ -10,9 +10,14 @@ namespace HotChocolate.Execution
     {
         private const string _persistedQuery = "persistedQuery";
         private const string _persisted = "persisted";
+        private const string _expectedValue = "expectedHashValue";
+        private const string _expectedType = "expectedHashType";
+        private const string _expectedFormat = "expectedHashFormat";
+        private const string _hash = "hash";
         private readonly QueryDelegate _next;
         private readonly IWriteStoredQueries _writeStoredQueries;
         private readonly string _hashName;
+        private readonly HashFormat _hashFormat;
 
         public WritePersistedQueryMiddleware(
             QueryDelegate next,
@@ -29,6 +34,7 @@ namespace HotChocolate.Execution
             _writeStoredQueries = writeStoredQueries
                 ?? throw new ArgumentNullException(nameof(writeStoredQueries));
             _hashName = documentHashProvider.Name;
+            _hashFormat = documentHashProvider.Format;
         }
 
         public async Task InvokeAsync(IQueryContext context)
@@ -45,31 +51,42 @@ namespace HotChocolate.Execution
             if (_writeStoredQueries != null
                 && context.Request.Query != null
                 && context.QueryKey != null
-                && DoHashesMatch(context, _hashName))
+                && context.Result is QueryResult result
+                && context.Request.Extensions != null
+                && context.Request.Extensions.TryGetValue(_persistedQuery, out var s)
+                && s is IReadOnlyDictionary<string, object> settings)
             {
-                // save the  query
-                await _writeStoredQueries.WriteQueryAsync(
-                    context.QueryKey,
-                    context.Request.Query)
-                    .ConfigureAwait(false);
+                // hash is found and matches the query key -> store the query
+                if (DoHashesMatch(settings, context.QueryKey, _hashName, out string userHash))
+                {
+                    // save the  query
+                    await _writeStoredQueries.WriteQueryAsync(
+                        context.QueryKey,
+                        context.Request.Query)
+                        .ConfigureAwait(false);
 
-                // add persistence receipt to the result
-                if (context.Result is QueryResult result
-                    && context.Request.Extensions.TryGetValue(
-                        _persistedQuery, out var s)
-                    && s is IReadOnlyDictionary<string, object> settings
-                    && settings.TryGetValue(_hashName, out object h)
-                    && h is string hash)
+                    // add persistence receipt to the result
+                    result.Extensions[_persistedQuery] =
+                        new Dictionary<string, object>
+                        {
+                                { _hashName, userHash },
+                                { _persisted, true }
+                        };
+
+                    context.ContextData[ContextDataKeys.DocumentSaved] = true;
+                }
+                else
                 {
                     result.Extensions[_persistedQuery] =
                         new Dictionary<string, object>
                         {
-                            { _hashName, hash },
-                            { _persisted, true }
+                            { _hashName, userHash },
+                            { _expectedValue, context.QueryKey },
+                            { _expectedType, _hashName },
+                            { _expectedFormat, _hashFormat.ToString() },
+                            { _persisted, false }
                         };
                 }
-
-                context.ContextData[ContextDataKeys.DocumentSaved] = true;
             }
 
             await _next(context).ConfigureAwait(false);
@@ -81,17 +98,19 @@ namespace HotChocolate.Execution
         }
 
         private static bool DoHashesMatch(
-            IQueryContext context,
-            string hashName)
+            IReadOnlyDictionary<string, object> settings,
+            string expectedHash,
+            string hashName,
+            out string userHash)
         {
-            if (context.Request.Extensions.TryGetValue(
-                _persistedQuery, out var s)
-                && s is IReadOnlyDictionary<string, object> settings
-                && settings.TryGetValue(hashName, out object h)
+            if (settings.TryGetValue(hashName, out object h)
                 && h is string hash)
             {
-                return hash.Equals(context.QueryKey, StringComparison.Ordinal);
+                userHash = hash;
+                return hash.Equals(expectedHash, StringComparison.Ordinal);
             }
+
+            userHash = null;
             return false;
         }
     }

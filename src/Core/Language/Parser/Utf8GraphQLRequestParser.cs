@@ -3,11 +3,13 @@ using System;
 using System.Collections.Generic;
 using System.Buffers;
 using HotChocolate.Language.Properties;
+using System.Text;
 
 namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLRequestParser
     {
+        private const string _persistedQuery = "persistedQuery";
         private readonly IDocumentHashProvider _hashProvider;
         private readonly IDocumentCache _cache;
         private readonly bool _useCache;
@@ -126,51 +128,36 @@ namespace HotChocolate.Language
                 ParseRequestProperty(ref request);
             }
 
-            if (request.IsQueryNull
+            if (!request.HasQuery
                 && request.QueryName == null)
             {
-                // TODO : resources
-                throw new SyntaxException(
-                    _reader,
-                    "Either the query `property` or the `namedQuery` " +
-                    "property have to have a value.");
-            }
-
-            DocumentNode document = null;
-
-            if (!request.IsQueryNull)
-            {
-                if (_useCache)
+                if (_useCache
+                    && request.Extensions != null
+                    && request.Extensions.TryGetValue(_persistedQuery, out object obj)
+                    && obj is IReadOnlyDictionary<string, object> persistedQuery
+                    && persistedQuery.TryGetValue(_hashProvider.Name, out obj)
+                    && obj is string hash)
                 {
-                    if (request.QueryName is null)
-                    {
-                        request.QueryName =
-                            request.QueryHash =
-                            _hashProvider.ComputeHash(request.Query);
-                    }
-
-                    if (!_cache.TryGetDocument(
-                        request.QueryName,
-                        out document))
-                    {
-                        document = ParseQuery(in request);
-
-                        if (request.QueryHash is null)
-                        {
-                            request.QueryHash =
-                                _hashProvider.ComputeHash(request.Query);
-                        }
-                    }
+                    request.QueryName = hash;
                 }
                 else
                 {
-                    document = ParseQuery(in request);
+                    // TODO : resources
+                    throw new SyntaxException(
+                        _reader,
+                        "Either the query `property` or the `namedQuery` " +
+                        "property have to have a value.");
                 }
+            }
+
+            if (request.HasQuery)
+            {
+                ParseQuery(ref request);
             }
 
             return new GraphQLRequest
             (
-                document,
+                request.Document,
                 request.QueryName,
                 request.QueryHash,
                 request.OperationName,
@@ -227,15 +214,16 @@ namespace HotChocolate.Language
                 case _q:
                     if (fieldName.SequenceEqual(_query))
                     {
-                        request.IsQueryNull = IsNullToken();
-                        if (!request.IsQueryNull
-                            && _reader.Kind != TokenKind.String)
+                        request.HasQuery = !IsNullToken();
+
+                        if (request.HasQuery && _reader.Kind != TokenKind.String)
                         {
                             // TODO : resources
                             throw new SyntaxException(
                                 _reader,
                                 "The query field must be a string or null.");
                         }
+
                         request.Query = _reader.Value;
                         _reader.MoveNext();
                         return;
@@ -310,7 +298,7 @@ namespace HotChocolate.Language
             }
         }
 
-        private DocumentNode ParseQuery(in Request request)
+        private void ParseQuery(ref Request request)
         {
             int length = checked(request.Query.Length);
             bool useStackalloc =
@@ -322,10 +310,40 @@ namespace HotChocolate.Language
                 ? stackalloc byte[length]
                 : (unescapedArray = ArrayPool<byte>.Shared.Rent(length));
 
+            DocumentNode document = null;
+
             try
             {
                 Utf8Helper.Unescape(request.Query, ref unescapedSpan, false);
-                return Utf8GraphQLParser.Parse(unescapedSpan, _options);
+
+                if (_useCache)
+                {
+                    if (request.QueryName is null)
+                    {
+                        request.QueryName =
+                            request.QueryHash =
+                            _hashProvider.ComputeHash(unescapedSpan);
+                    }
+
+                    if (!_cache.TryGetDocument(
+                        request.QueryName,
+                        out document))
+                    {
+                        document = Utf8GraphQLParser.Parse(unescapedSpan, _options);
+
+                        if (request.QueryHash is null)
+                        {
+                            request.QueryHash =
+                                _hashProvider.ComputeHash(unescapedSpan);
+                        }
+                    }
+                }
+                else
+                {
+                    document = Utf8GraphQLParser.Parse(unescapedSpan, _options);
+                }
+
+                request.Document = document;
             }
             finally
             {

@@ -6,6 +6,8 @@ namespace HotChocolate.Language
     {
         string Name { get; }
 
+        HashFormat Format { get; }
+
         string ComputeHash(ReadOnlySpan<byte> document);
     }
 }

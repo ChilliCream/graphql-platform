@@ -1455,12 +1455,12 @@ namespace HotChocolate.Types
         }
 
         [Fact]
-        public void Model_With_Nullables()
+        public void Ignore_Fields_With_GraphQLIgnoreAttribute()
         {
             // arrange
             // act
             ISchema schema = SchemaBuilder.New()
-                .AddQueryType<FooWithNullable>()
+                .AddQueryType<FooIgnore>()
                 .Create();
 
             // assert
@@ -1530,6 +1530,13 @@ namespace HotChocolate.Types
         {
             [Obsolete("Baz")]
             public string Bar() => "foo";
+        }
+
+        public class FooIgnore
+        {
+            [GraphQLIgnore]
+            public string Bar() => "foo";
+            public string Baz() => "foo";
         }
 
         public class FooDeprecated
