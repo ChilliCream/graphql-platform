@@ -29,6 +29,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http", "Http\Http.csproj", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo", "Demo\Demo.csproj", "{C2BAE857-1FFF-4BD7-A4A3-E94820A1A68D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnet-graphql", "dotnet-graphql\dotnet-graphql.csproj", "{77B58A25-3B54-4E00-B034-D1BEDBE25FA6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -183,6 +185,18 @@ Global
 		{C2BAE857-1FFF-4BD7-A4A3-E94820A1A68D}.Release|x64.Build.0 = Release|Any CPU
 		{C2BAE857-1FFF-4BD7-A4A3-E94820A1A68D}.Release|x86.ActiveCfg = Release|Any CPU
 		{C2BAE857-1FFF-4BD7-A4A3-E94820A1A68D}.Release|x86.Build.0 = Release|Any CPU
+		{77B58A25-3B54-4E00-B034-D1BEDBE25FA6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77B58A25-3B54-4E00-B034-D1BEDBE25FA6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77B58A25-3B54-4E00-B034-D1BEDBE25FA6}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{77B58A25-3B54-4E00-B034-D1BEDBE25FA6}.Debug|x64.Build.0 = Debug|Any CPU
+		{77B58A25-3B54-4E00-B034-D1BEDBE25FA6}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{77B58A25-3B54-4E00-B034-D1BEDBE25FA6}.Debug|x86.Build.0 = Debug|Any CPU
+		{77B58A25-3B54-4E00-B034-D1BEDBE25FA6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77B58A25-3B54-4E00-B034-D1BEDBE25FA6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77B58A25-3B54-4E00-B034-D1BEDBE25FA6}.Release|x64.ActiveCfg = Release|Any CPU
+		{77B58A25-3B54-4E00-B034-D1BEDBE25FA6}.Release|x64.Build.0 = Release|Any CPU
+		{77B58A25-3B54-4E00-B034-D1BEDBE25FA6}.Release|x86.ActiveCfg = Release|Any CPU
+		{77B58A25-3B54-4E00-B034-D1BEDBE25FA6}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

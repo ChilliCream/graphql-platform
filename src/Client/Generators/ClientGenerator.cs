@@ -8,7 +8,11 @@ using System.Threading.Tasks;
 using HotChocolate;
 using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.CSharp;
+using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Validation;
 using IOPath = System.IO.Path;
+using HCError = HotChocolate.IError;
+using HotChocolate.Execution.Configuration;
 
 namespace StrawberryShake.Generators
 {
@@ -31,8 +35,8 @@ namespace StrawberryShake.Generators
             new Dictionary<string, DocumentNode>();
         private readonly List<DocumentNode> _extensions =
             new List<DocumentNode>();
-        private readonly Dictionary<string, DocumentNode> _queries =
-            new Dictionary<string, DocumentNode>();
+        private readonly Dictionary<string, DocumentInfo> _queries =
+            new Dictionary<string, DocumentInfo>();
         private readonly Dictionary<string, LeafTypeInfo> _leafTypes =
             new[]
             {
@@ -181,10 +185,10 @@ namespace StrawberryShake.Generators
                 throw new ArgumentNullException(nameof(fileName));
             }
 
-            return AddQueryDocument(
-                IOPath.GetFileNameWithoutExtension(fileName),
-                Utf8GraphQLParser.Parse(
-                    File.ReadAllBytes(fileName)));
+            string name = IOPath.GetFileNameWithoutExtension(fileName);
+            var document = Utf8GraphQLParser.Parse(File.ReadAllBytes(fileName));
+            _queries.Add(name, new DocumentInfo(name, fileName, document));
+            return this;
         }
 
         public ClientGenerator AddQueryDocumentFromString(
@@ -219,7 +223,7 @@ namespace StrawberryShake.Generators
                 throw new ArgumentNullException(nameof(document));
             }
 
-            _queries.Add(name, document);
+            _queries.Add(name, new DocumentInfo(name, name, document));
             return this;
         }
 
@@ -228,6 +232,41 @@ namespace StrawberryShake.Generators
             _clientName = clientName
                 ?? throw new ArgumentNullException(nameof(clientName));
             return this;
+        }
+
+        public IReadOnlyList<HCError> Validate()
+        {
+            if (_output is null)
+            {
+                throw new InvalidOperationException(
+                    "You have to specify a field output handler before you " +
+                    "can generate any client APIs.");
+            }
+
+            if (_schemas.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "You have to specify at least one schema file before you " +
+                    "can generate any client APIs.");
+            }
+
+            if (_queries.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "You have to specify at least one query file before you " +
+                    "can generate any client APIs.");
+            }
+
+            IDocumentHashProvider hashProvider = _hashProvider
+                ?? new MD5DocumentHashProvider();
+
+            // create schema
+            DocumentNode mergedSchema = MergeSchema();
+            mergedSchema = MergeSchemaExtensions(mergedSchema);
+            ISchema schema = CreateSchema(mergedSchema);
+
+            // parse queries
+            return ValidateQueryDocuments(schema);
         }
 
         public async Task BuildAsync()
@@ -262,8 +301,14 @@ namespace StrawberryShake.Generators
             ISchema schema = CreateSchema(mergedSchema);
 
             // parse queries
+            var errors = ValidateQueryDocuments(schema);
+            if (errors.Count > 0)
+            {
+                throw new GeneratorException(errors);
+            }
+
             IReadOnlyList<IQueryDescriptor> queries =
-                await ParseQueriesAsync(hashProvider);
+                await ParseQueriesAsync(schema, hashProvider);
 
             // generate abstarct client models
             var usedNames = new HashSet<string>();
@@ -332,14 +377,14 @@ namespace StrawberryShake.Generators
         }
 
         private async Task<IReadOnlyList<IQueryDescriptor>> ParseQueriesAsync(
-            IDocumentHashProvider hashProvider)
+            ISchema schema, IDocumentHashProvider hashProvider)
         {
             var queryCollection = new QueryCollection(hashProvider);
 
-            foreach (KeyValuePair<string, DocumentNode> query in _queries)
+            foreach (DocumentInfo documentInfo in _queries.Values)
             {
                 await queryCollection.LoadFromDocumentAsync(
-                    query.Key, query.Value);
+                    documentInfo.Name, documentInfo.Document);
             }
 
             return queryCollection.ToList();
@@ -366,6 +411,66 @@ namespace StrawberryShake.Generators
                     fieldTypes[fieldType.Key] = fieldType.Value;
                 }
             }
+        }
+
+        private IReadOnlyList<HCError> ValidateQueryDocuments(ISchema schema)
+        {
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddQueryValidation();
+            serviceCollection.AddDefaultValidationRules();
+            serviceCollection.AddSingleton<IValidateQueryOptionsAccessor, ValidationOptions>();
+            var validator = serviceCollection.BuildServiceProvider()
+                .GetService<IQueryValidator>();
+
+            var errors = new List<HCError>();
+
+            foreach (DocumentInfo documentInfo in _queries.Values)
+            {
+                QueryValidationResult validationResult =
+                    validator.Validate(schema, documentInfo.Document);
+
+                if (validationResult.HasErrors)
+                {
+                    foreach (HCError error in validationResult.Errors)
+                    {
+                        errors.Add(ErrorBuilder.FromError(error)
+                            .SetExtension("fileName", documentInfo.FileName)
+                            .SetExtension("document", documentInfo.Document)
+                            .Build());
+                    }
+                }
+            }
+
+            return errors;
+        }
+
+        private class DocumentInfo
+        {
+            public DocumentInfo(
+                string name,
+                string fileName,
+                DocumentNode document)
+            {
+                Name = name;
+                FileName = fileName;
+                Document = document;
+            }
+
+            public string Name { get; }
+
+            public string FileName { get; }
+
+            public DocumentNode Document { get; }
+        }
+
+        private class ValidationOptions
+            : IValidateQueryOptionsAccessor
+        {
+            public int? MaxExecutionDepth => null;
+
+            public int? MaxOperationComplexity => null;
+
+            public bool? UseComplexityMultipliers => null;
         }
     }
 }

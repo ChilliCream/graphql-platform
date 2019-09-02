@@ -1,3 +1,7 @@
 {
-  "schemas": [{ "StarWars": { "type": "local", "file": "StarWars.graphql" } }]
+  "schemas": [{
+    "name": "StarWars",
+    "type": "local",
+    "file": "StarWars.graphql"
+  }]
 }
