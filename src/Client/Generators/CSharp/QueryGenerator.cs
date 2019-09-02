@@ -128,7 +128,7 @@ namespace StrawberryShake.Generators.CSharp
             string name)
         {
             await writer.WriteIndentAsync();
-            await writer.WriteAsync("public ");
+            await writer.WriteAsync("public static ");
             await writer.WriteAsync(GetClassName(name));
             await writer.WriteAsync(" Default");
             await writer.WriteAsync(" { get; } = new ");
