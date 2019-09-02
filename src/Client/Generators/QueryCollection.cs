@@ -45,7 +45,8 @@ namespace StrawberryShake.Generators
                 throw new ArgumentNullException(nameof(file));
             }
 
-            byte[] documentBuffer = await File.ReadAllBytesAsync(file);
+            byte[] documentBuffer =
+                await Task.Run(() => File.ReadAllBytes(file));
 
             return await LoadAsync(
                 Path.GetFileNameWithoutExtension(file),
