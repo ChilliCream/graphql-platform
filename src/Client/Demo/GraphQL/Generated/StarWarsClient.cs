@@ -1,26 +1,24 @@
-using System;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake;
 
 namespace Foo
 {
-    public class StarWarsServiceClient
-        : IStarWarsServiceClient
+    public class StarWarsClient
+        : IStarWarsClient
     {
-        private IOperationExecutor _executor;
+        private readonly IOperationExecutor _executor;
 
-        public StarWarsServiceClient(IOperationExecutor executor)
+        public StarWarsClient(IOperationExecutor executor)
         {
-            if (executor is null)
-            {
-                throw new ArgumentNullException(nameof(executor));
-            }
-
-            _executor = executor;
+            _executor = executor ?? throw new ArgumentNullException(nameof(executor));
         }
 
-        public Task<IOperationResult<IGetHero>> GetHeroAsync(ReviewInput foo) =>
+        public Task<IOperationResult<IGetHero>> GetHeroAsync(
+            ReviewInput foo) =>
             GetHeroAsync(foo, CancellationToken.None);
 
         public Task<IOperationResult<IGetHero>> GetHeroAsync(
@@ -33,7 +31,7 @@ namespace Foo
             }
 
             return _executor.ExecuteAsync(
-                new GetHeroOperation { Foo = foo },
+                new GetHeroOperation {Foo = foo },
                 cancellationToken);
         }
     }

@@ -24,15 +24,18 @@ namespace StrawberryShake.Generators
         private readonly IQueryDescriptor _query;
         private readonly ISet<string> _usedNames;
         private readonly DocumentNode _document;
+        private readonly string _clientName;
 
         public CodeModelGenerator(
             ISchema schema,
             IQueryDescriptor query,
-            ISet<string> usedNames)
+            ISet<string> usedNames,
+            string clientName)
         {
             _schema = schema ?? throw new ArgumentNullException(nameof(schema));
             _query = query ?? throw new ArgumentNullException(nameof(query));
             _usedNames = usedNames ?? throw new ArgumentNullException(nameof(usedNames));
+            _clientName = clientName ?? throw new ArgumentNullException(nameof(clientName));
 
             _document = query.OriginalDocument;
             _fieldCollector = new FieldCollector(
@@ -79,7 +82,7 @@ namespace StrawberryShake.Generators
             }
 
             RegisterDescriptor(new ClientDescriptor(
-                _query.Name + "Client",
+                _clientName,
                 _descriptors.Values.OfType<IOperationDescriptor>().ToList()));
 
             FieldTypes = _fieldTypes.ToDictionary(t => t.Key, t => t.Value.Name);

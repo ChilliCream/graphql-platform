@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using StrawberryShake.Generators.CSharp;
 using StrawberryShake.Generators.Utilities;
 
 namespace StrawberryShake.Generators
@@ -12,7 +13,6 @@ namespace StrawberryShake.Generators
     {
         private readonly List<GeneratorTask> _tasks = new List<GeneratorTask>();
 
-
         private readonly string _directoryName;
 
         public DirectoryFileHandler(string directoryName)
@@ -21,12 +21,14 @@ namespace StrawberryShake.Generators
                 ?? throw new ArgumentNullException(nameof(directoryName));
         }
 
-        public void Register(ICodeDescriptor descriptor, ICodeGenerator generator)
+        public void Register(
+            ICodeDescriptor descriptor,
+            ICodeGenerator generator)
         {
             _tasks.Add(new GeneratorTask
             {
                 Descriptor = descriptor,
-                Generator = generator
+                Generator = new NamespaceGenerator(generator)
             });
         }
 
@@ -35,6 +37,11 @@ namespace StrawberryShake.Generators
             if (!Directory.Exists(_directoryName))
             {
                 Directory.CreateDirectory(_directoryName);
+            }
+
+            foreach (string fielName in Directory.GetFiles(_directoryName, "*.cs"))
+            {
+                File.Delete(fielName);
             }
 
             var usedNames = new HashSet<string>();
@@ -56,68 +63,20 @@ namespace StrawberryShake.Generators
                     {
                         using (var cw = new CodeWriter(sw))
                         {
-                            await WriteUsings(cw, task.Generator);
-                            await cw.WriteLineAsync();
-
-                            await cw.WriteAsync("namespace Foo");
-                            await cw.WriteLineAsync();
-                            await cw.WriteAsync('{');
-                            await cw.WriteLineAsync();
-
-                            using (cw.IncreaseIndent())
-                            {
-                                await task.Generator.WriteAsync(
-                                    cw, task.Descriptor, typeLookup);
-                            }
-
-                            await cw.WriteAsync('}');
-                            await cw.WriteLineAsync();
+                            await task.Generator.WriteAsync(
+                                cw, task.Descriptor, typeLookup);
                         }
                     }
                 }
             }
         }
 
-        private async Task WriteUsings(CodeWriter writer, ICodeGenerator generator)
-        {
-            var components = generator is IUsesComponents c
-                ? new HashSet<string>(c.Components)
-                : new HashSet<string>();
 
-            await WriteUsing(writer, "System");
-            await WriteUsing(writer, "System.Collections");
-            await WriteUsing(writer, "System.Collections.Generic");
-
-            if (components.Contains(WellKnownComponents.Json))
-            {
-                await WriteUsing(writer, "System.Text.Json");
-            }
-
-            if (components.Contains(WellKnownComponents.Task))
-            {
-                await WriteUsing(writer, "System.Threading");
-                await WriteUsing(writer, "System.Threading.Tasks");
-            }
-
-            await WriteUsing(writer, "StrawberryShake");
-
-            if (components.Contains(WellKnownComponents.Http))
-            {
-                await WriteUsing(writer, "StrawberryShake.Http");
-            }
-        }
-
-        private async Task WriteUsing(CodeWriter writer, string ns)
-        {
-            await writer.WriteAsync($"using {ns};");
-            await writer.WriteLineAsync();
-        }
 
         private class GeneratorTask
         {
             public ICodeDescriptor Descriptor { get; set; }
             public ICodeGenerator Generator { get; set; }
         }
-
     }
 }

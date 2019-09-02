@@ -140,7 +140,7 @@ namespace StrawberryShake.Generators.CSharp
                 if (executor)
                 {
                     await writer.WriteIndentAsync();
-                    await writer.WriteAsync("_executor = executor" +
+                    await writer.WriteAsync("_executor = executor " +
                         "?? throw new ArgumentNullException(nameof(executor));");
                     await writer.WriteLineAsync();
                 }
@@ -148,7 +148,7 @@ namespace StrawberryShake.Generators.CSharp
                 if (streamExecutor)
                 {
                     await writer.WriteIndentAsync();
-                    await writer.WriteAsync("_streamExecutor = streamExecutor" +
+                    await writer.WriteAsync("_streamExecutor = streamExecutor " +
                         "?? throw new ArgumentNullException(nameof(streamExecutor));");
                     await writer.WriteLineAsync();
                 }

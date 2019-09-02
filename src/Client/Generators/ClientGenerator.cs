@@ -50,8 +50,12 @@ namespace StrawberryShake.Generators
                 new LeafTypeInfo("Guid", typeof(Guid), typeof(string)),
                 new LeafTypeInfo("Url", typeof(Uri), typeof(string))
             }.ToDictionary(t => t.TypeName);
+
         private IDocumentHashProvider _hashProvider;
+
         private IFileHandler _output;
+
+        private string _clientName;
 
         private ClientGenerator()
         {
@@ -143,6 +147,11 @@ namespace StrawberryShake.Generators
                 throw new ArgumentNullException(nameof(document));
             }
 
+            if (_clientName is null)
+            {
+                _clientName = name + "Client";
+            }
+
             var extensions = new HashSet<IDefinitionNode>(
                 document.Definitions.OfType<ITypeExtensionNode>());
 
@@ -213,7 +222,14 @@ namespace StrawberryShake.Generators
             return this;
         }
 
-        public async Task CreateAsync()
+        public ClientGenerator SetClientName(string clientName)
+        {
+            _clientName = clientName
+                ?? throw new ArgumentNullException(nameof(clientName));
+            return this;
+        }
+
+        public async Task BuildAsync()
         {
             if (_output is null)
             {
@@ -328,7 +344,7 @@ namespace StrawberryShake.Generators
             return queryCollection.ToList();
         }
 
-        private static void GenerateModels(
+        private void GenerateModels(
             ISchema schema,
             IEnumerable<IQueryDescriptor> queries,
             ISet<string> usedNames,
@@ -338,7 +354,7 @@ namespace StrawberryShake.Generators
             foreach (IQueryDescriptor query in queries)
             {
                 var modelGenerator = new CodeModelGenerator(
-                    schema, query, usedNames);
+                    schema, query, usedNames, _clientName);
                 modelGenerator.Generate();
 
                 descriptors.AddRange(modelGenerator.Descriptors);

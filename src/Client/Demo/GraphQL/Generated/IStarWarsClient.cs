@@ -7,7 +7,7 @@ using StrawberryShake;
 
 namespace Foo
 {
-    public interface IQueriesClient
+    public interface IStarWarsClient
     {
         Task<IOperationResult<IGetHero>> GetHeroAsync(
             ReviewInput foo);

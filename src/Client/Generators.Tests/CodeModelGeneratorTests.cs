@@ -32,7 +32,7 @@ namespace StrawberryShake.Generators
                     "../../../../Demo/GraphQL/Queries.graphql")
                 .SetOutput(
                     "../../../../Demo/GraphQL/Generated")
-                .CreateAsync();
+                .BuildAsync();
         }
     }
 }
