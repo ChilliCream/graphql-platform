@@ -43,7 +43,7 @@ namespace StrawberryShake.Generators.CSharp
                     descriptor.Hash);
                 await WriteArrayField(
                     writer,
-                    nameof(descriptor.Document),
+                    "Content",
                     descriptor.Document);
                 await writer.WriteLineAsync();
 
@@ -53,11 +53,13 @@ namespace StrawberryShake.Generators.CSharp
                 await WritePropertyFieldAsync(writer, nameof(descriptor.Hash));
                 await writer.WriteLineAsync();
 
-                await WritePropertyFieldAsync(writer, nameof(descriptor.Document));
+                await WritePropertyFieldAsync(writer, "Content");
                 await writer.WriteLineAsync();
 
                 await WriteDefaultPropertyFieldAsync(writer, descriptor.Name);
                 await writer.WriteLineAsync();
+
+                await WriteToStringAsync(writer, descriptor.OriginalDocument);
             }
 
             await writer.WriteIndentAsync();
@@ -84,7 +86,6 @@ namespace StrawberryShake.Generators.CSharp
 
             await writer.WriteIndentAsync();
             await writer.WriteAsync('{');
-            await writer.WriteLineAsync();
 
             using (writer.IncreaseIndent())
             {
@@ -93,12 +94,15 @@ namespace StrawberryShake.Generators.CSharp
                     if (i > 0)
                     {
                         await writer.WriteAsync(',');
-                        await writer.WriteSpaceAsync();
                     }
+                    await writer.WriteLineAsync();
 
+                    await writer.WriteIndentAsync();
                     await writer.WriteAsync(bytes[i].ToString());
                 }
             }
+
+            await writer.WriteLineAsync();
 
             await writer.WriteIndentAsync();
             await writer.WriteAsync('}');
@@ -113,8 +117,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteIndentAsync();
             await writer.WriteAsync("public ReadOnlySpan<byte> ");
             await writer.WriteAsync(GetPropertyName(name));
-            await writer.WriteAsync(" => ");
-            await writer.WriteAsync(" _");
+            await writer.WriteAsync(" => _");
             await writer.WriteAsync(GetFieldName(name));
             await writer.WriteAsync(';');
             await writer.WriteLineAsync();
@@ -130,7 +133,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteAsync(" Default");
             await writer.WriteAsync(" { get; } = new ");
             await writer.WriteAsync(GetClassName(name));
-            await writer.WriteAsync(';');
+            await writer.WriteAsync("();");
             await writer.WriteLineAsync();
         }
 
@@ -138,20 +141,24 @@ namespace StrawberryShake.Generators.CSharp
             CodeWriter writer,
             DocumentNode document)
         {
-            string documentString =
-                QuerySyntaxSerializer.Serialize(document, true)
-                    .Replace("\"", "\"\"");
-
             await writer.WriteIndentAsync();
             await writer.WriteAsync("public override string ToString() => ");
             await writer.WriteLineAsync();
 
-            using (writer.WriteIndentAsync())
+            using (writer.IncreaseIndent())
             {
+                string documentString =
+                    QuerySyntaxSerializer.Serialize(document, true)
+                        .Replace("\"", "\"\"")
+                        .Replace("\r\n", "\n")
+                        .Replace("\n\r", "\n")
+                        .Replace("\r", "\n")
+                        .Replace("\n", "\n" + writer.GetIndentString());
+
                 await writer.WriteIndentAsync();
                 await writer.WriteAsync("@\"");
                 await writer.WriteAsync(documentString);
-                await writer.WriteAsync("\"");
+                await writer.WriteAsync("\";");
                 await writer.WriteLineAsync();
             }
         }

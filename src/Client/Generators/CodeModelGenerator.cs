@@ -51,6 +51,8 @@ namespace StrawberryShake.Generators
 
         public void Generate()
         {
+            RegisterDescriptor(_query);
+
             var backlog = new Queue<FieldSelection>();
             Path root = Path.New("root");
 

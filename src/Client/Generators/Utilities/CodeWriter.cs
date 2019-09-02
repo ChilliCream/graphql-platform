@@ -57,6 +57,15 @@ namespace StrawberryShake.Generators.Utilities
             }
         }
 
+        public string GetIndentString()
+        {
+            if (_indent > 0)
+            {
+                return new string(' ', _indent * 4);
+            }
+            return string.Empty;
+        }
+
         public Task WriteIndentAsync() =>
             Task.Factory.StartNew(
                 WriteIndent,
