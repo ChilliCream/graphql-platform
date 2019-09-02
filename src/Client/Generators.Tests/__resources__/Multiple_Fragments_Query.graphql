@@ -1,5 +1,5 @@
-query getHero($foo: ReviewInput!) {
-  hero @spread {
+query getHero {
+  hero {
     ...Hero
   }
 }
@@ -10,7 +10,7 @@ fragment Hero on Character {
 }
 
 fragment Friend on CharacterConnection {
-  nodes @spread {
+  nodes {
     ... HasName
   }
 }
