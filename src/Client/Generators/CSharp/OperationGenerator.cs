@@ -66,7 +66,7 @@ namespace StrawberryShake.Generators.CSharp
                         descriptor.Arguments[i];
 
                     await writer.WriteIndentAsync();
-                    await writer.WriteAsync("private bool _isSet_");
+                    await writer.WriteAsync("private bool _modified_");
                     await writer.WriteAsync(GetFieldName(argument.Name));
                     await writer.WriteAsync(';');
                     await writer.WriteLineAsync();
@@ -88,7 +88,7 @@ namespace StrawberryShake.Generators.CSharp
                     await writer.WriteAsync("private ");
                     await writer.WriteAsync(typeName);
                     await writer.WriteSpaceAsync();
-                    await writer.WriteAsync('_');
+                    await writer.WriteAsync("_value_");
                     await writer.WriteAsync(GetFieldName(argument.Name));
                     await writer.WriteAsync(';');
                     await writer.WriteLineAsync();
@@ -160,7 +160,7 @@ namespace StrawberryShake.Generators.CSharp
             {
                 await writer.WriteIndentAsync();
                 await writer.WriteAsync("get => ");
-                await writer.WriteAsync('_');
+                await writer.WriteAsync("_value_");
                 await writer.WriteAsync(GetFieldName(argument.Name));
                 await writer.WriteAsync(';');
                 await writer.WriteLineAsync();
@@ -176,13 +176,13 @@ namespace StrawberryShake.Generators.CSharp
                 using (writer.IncreaseIndent())
                 {
                     await writer.WriteIndentAsync();
-                    await writer.WriteAsync('_');
+                    await writer.WriteAsync("_value_");
                     await writer.WriteAsync(GetFieldName(argument.Name));
                     await writer.WriteAsync(" = value;");
                     await writer.WriteLineAsync();
 
                     await writer.WriteIndentAsync();
-                    await writer.WriteAsync("_isSet_");
+                    await writer.WriteAsync("_modified_");
                     await writer.WriteAsync(GetFieldName(argument.Name));
                     await writer.WriteAsync(" = true;");
                     await writer.WriteLineAsync();
@@ -251,7 +251,7 @@ namespace StrawberryShake.Generators.CSharp
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync();
-            await writer.WriteAsync("if(_isSet_");
+            await writer.WriteAsync("if(_modified_");
             await writer.WriteAsync(GetFieldName(argument.Name));
             await writer.WriteAsync(')');
             await writer.WriteLineAsync();

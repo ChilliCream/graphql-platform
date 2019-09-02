@@ -8,9 +8,9 @@ namespace Foo
     public class GetHeroOperation
         : IOperation<IGetHero>
     {
-        private bool _isSet_foo;
+        private bool _modified_foo;
 
-        private ReviewInput _foo;
+        private ReviewInput _value_foo;
 
         public string Name => "getHero";
 
@@ -18,11 +18,11 @@ namespace Foo
 
         public ReviewInput Foo
         {
-            get => _foo;
+            get => _value_foo;
             set
             {
-                _foo = value;
-                _isSet_foo = true;
+                _value_foo = value;
+                _modified_foo = true;
             }
         }
 
@@ -30,7 +30,7 @@ namespace Foo
         {
             var variables = new List<VariableValue>();
 
-            if(_isSet_foo)
+            if (_modified_foo)
             {
                 variables.Add(new VariableValue("foo", "ReviewInput", Foo));
             }
