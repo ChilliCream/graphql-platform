@@ -22,6 +22,20 @@ namespace HotChocolate.Utilities
             return dict;
         }
 
+        public List<object> Convert(ListValueNode listValue)
+        {
+            if (listValue == null)
+            {
+                throw new ArgumentNullException(nameof(listValue));
+            }
+
+            List<object> list = null;
+            Action<object> setValue =
+                value => list = (List<object>)value;
+            VisitListValue(listValue, setValue);
+            return list;
+        }
+
         protected override void VisitObjectValue(
             ObjectValueNode node,
             Action<object> setValue)
