@@ -10,6 +10,7 @@ namespace StrawberryShake.Generators.Descriptors
     {
         public OperationDescriptor(
             string name,
+            string ns,
             ObjectType operationType,
             OperationDefinitionNode operation,
             IReadOnlyList<IArgumentDescriptor> arguments,
@@ -18,6 +19,7 @@ namespace StrawberryShake.Generators.Descriptors
         {
             Name = name
                 ?? throw new ArgumentNullException(nameof(name));
+            Namespace = ns ?? throw new ArgumentNullException(nameof(ns));
             OperationType = operationType
                 ?? throw new ArgumentNullException(nameof(operationType));
             Operation = operation
@@ -31,6 +33,8 @@ namespace StrawberryShake.Generators.Descriptors
         }
 
         public string Name { get; }
+
+        public string Namespace { get; }
 
         public ObjectType OperationType { get; }
 

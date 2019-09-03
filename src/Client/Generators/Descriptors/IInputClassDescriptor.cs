@@ -5,6 +5,7 @@ namespace StrawberryShake.Generators.Descriptors
 {
     public interface IInputClassDescriptor
         : ICodeDescriptor
+        , IHasNamespace
     {
         InputObjectType Type { get; }
 

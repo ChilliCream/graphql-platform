@@ -9,6 +9,7 @@ namespace StrawberryShake.Generators.Descriptors
     {
         public QueryDescriptor(
             string name,
+            string ns,
             string hashName,
             string hash,
             byte[] document,
@@ -16,6 +17,7 @@ namespace StrawberryShake.Generators.Descriptors
         {
             Name = name
                 ?? throw new ArgumentNullException(nameof(name));
+            Namespace = ns ?? throw new ArgumentNullException(nameof(ns));
             HashName = hashName
                 ?? throw new ArgumentNullException(nameof(hashName));
             Hash = hash
@@ -27,6 +29,8 @@ namespace StrawberryShake.Generators.Descriptors
         }
 
         public string Name { get; }
+
+        public string Namespace { get; }
 
         public string HashName { get; }
 

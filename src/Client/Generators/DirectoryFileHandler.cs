@@ -28,7 +28,9 @@ namespace StrawberryShake.Generators
             _tasks.Add(new GeneratorTask
             {
                 Descriptor = descriptor,
-                Generator = new NamespaceGenerator(generator)
+                Generator = new NamespaceGenerator(
+                    generator,
+                    ((IHasNamespace)descriptor).Namespace)
             });
         }
 
@@ -49,7 +51,8 @@ namespace StrawberryShake.Generators
 
             foreach (GeneratorTask task in _tasks)
             {
-                tasks.Add(ExecuteGeneratorAsync(task, typeLookup, usedNames));
+                tasks.Add(Task.Run(() =>
+                    ExecuteGeneratorAsync(task, typeLookup, usedNames)));
             }
 
             await Task.WhenAll(tasks);

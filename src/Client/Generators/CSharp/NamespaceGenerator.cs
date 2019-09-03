@@ -8,12 +8,14 @@ namespace StrawberryShake.Generators.CSharp
     public class NamespaceGenerator
         : ICodeGenerator
     {
-        private ICodeGenerator _innerGenerator;
+        private readonly ICodeGenerator _innerGenerator;
+        private readonly string _namespace;
 
-        public NamespaceGenerator(ICodeGenerator innerGenerator)
+        public NamespaceGenerator(ICodeGenerator innerGenerator, string ns)
         {
             _innerGenerator = innerGenerator
                 ?? throw new ArgumentNullException(nameof(innerGenerator));
+            _namespace = ns ?? throw new ArgumentNullException(nameof(ns));
         }
 
         public bool CanHandle(ICodeDescriptor descriptor) =>
@@ -30,7 +32,7 @@ namespace StrawberryShake.Generators.CSharp
             await WriteUsings(writer, _innerGenerator);
             await writer.WriteLineAsync();
 
-            await writer.WriteAsync("namespace Foo");
+            await writer.WriteAsync($"namespace {_namespace}");
             await writer.WriteLineAsync();
             await writer.WriteAsync('{');
             await writer.WriteLineAsync();

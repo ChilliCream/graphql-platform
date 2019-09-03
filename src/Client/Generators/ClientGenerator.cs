@@ -61,6 +61,7 @@ namespace StrawberryShake.Generators
         private IFileHandler _output;
 
         private string _clientName;
+        private string _namespace;
 
         private ClientGenerator()
         {
@@ -245,6 +246,13 @@ namespace StrawberryShake.Generators
             return this;
         }
 
+        public ClientGenerator SetNamespace(string ns)
+        {
+            _namespace = ns
+                ?? throw new ArgumentNullException(nameof(ns));
+            return this;
+        }
+
         public IReadOnlyList<HCError> Validate()
         {
             if (_output is null)
@@ -305,6 +313,7 @@ namespace StrawberryShake.Generators
 
             IDocumentHashProvider hashProvider = _hashProvider
                 ?? new MD5DocumentHashProvider();
+            _namespace = _namespace ?? "StrawberryShake.Client";
 
             // create schema
             DocumentNode mergedSchema = MergeSchema();
@@ -390,7 +399,7 @@ namespace StrawberryShake.Generators
         private async Task<IReadOnlyList<IQueryDescriptor>> ParseQueriesAsync(
             ISchema schema, IDocumentHashProvider hashProvider)
         {
-            var queryCollection = new QueryCollection(hashProvider);
+            var queryCollection = new QueryCollection(hashProvider, _namespace);
 
             foreach (DocumentInfo documentInfo in _queries.Values)
             {
@@ -411,7 +420,7 @@ namespace StrawberryShake.Generators
             foreach (IQueryDescriptor query in queries)
             {
                 var modelGenerator = new CodeModelGenerator(
-                    schema, query, usedNames, _clientName);
+                    schema, query, usedNames, _clientName, _namespace);
                 modelGenerator.Generate();
 
                 descriptors.AddRange(modelGenerator.Descriptors);

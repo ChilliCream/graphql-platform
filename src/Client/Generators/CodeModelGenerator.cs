@@ -25,17 +25,21 @@ namespace StrawberryShake.Generators
         private readonly ISet<string> _usedNames;
         private readonly DocumentNode _document;
         private readonly string _clientName;
+        private readonly string _namespace;
+
 
         public CodeModelGenerator(
             ISchema schema,
             IQueryDescriptor query,
             ISet<string> usedNames,
-            string clientName)
+            string clientName,
+            string ns)
         {
             _schema = schema ?? throw new ArgumentNullException(nameof(schema));
             _query = query ?? throw new ArgumentNullException(nameof(query));
             _usedNames = usedNames ?? throw new ArgumentNullException(nameof(usedNames));
             _clientName = clientName ?? throw new ArgumentNullException(nameof(clientName));
+            _namespace = ns ?? throw new ArgumentNullException(nameof(ns));
 
             _document = query.OriginalDocument;
             _fieldCollector = new FieldCollector(
@@ -85,6 +89,7 @@ namespace StrawberryShake.Generators
 
             RegisterDescriptor(new ClientDescriptor(
                 _clientName,
+                _namespace,
                 _descriptors.Values.OfType<IOperationDescriptor>().ToList()));
 
             FieldTypes = _fieldTypes.ToDictionary(t => t.Key, t => t.Value.Name);
@@ -103,6 +108,7 @@ namespace StrawberryShake.Generators
             return new ResultParserDescriptor
             (
                 name,
+                _namespace,
                 operation,
                 resultDescriptor,
                 _descriptors.Values
@@ -150,6 +156,7 @@ namespace StrawberryShake.Generators
 
             return new OperationDescriptor(
                 operationName,
+                _namespace,
                 operationType,
                 operation,
                 arguments,
@@ -180,7 +187,7 @@ namespace StrawberryShake.Generators
 
             var fields = new List<Descriptors.IInputFieldDescriptor>();
             descriptor = new InputClassDescriptor(
-                typeName, inputObjectType, fields);
+                typeName, _namespace, inputObjectType, fields);
             knownTypes[inputObjectType.Name] = descriptor;
 
             foreach (InputField field in inputObjectType.Fields)
@@ -327,7 +334,8 @@ namespace StrawberryShake.Generators
                     fieldSelection,
                     unionType,
                     Utilities.NameUtils.GetInterfaceName);
-                unionInterface = new InterfaceDescriptor(name, unionType);
+                unionInterface = new InterfaceDescriptor(
+                    name, _namespace, unionType);
             }
             else
             {
@@ -360,6 +368,7 @@ namespace StrawberryShake.Generators
                 modelInterfaces.Add(
                     new InterfaceDescriptor(
                         interfaceName,
+                        _namespace,
                         typeCase.Type,
                         typeCase.Fields.Select(t =>
                         {
@@ -374,7 +383,7 @@ namespace StrawberryShake.Generators
                 modelInterfaces.AddRange(CreateInterfaces(typeCase.Fragments, path));
 
                 var modelClass = new ClassDescriptor(
-                    className, typeCase.Type, modelInterfaces);
+                    className, _namespace, typeCase.Type, modelInterfaces);
 
                 RegisterDescriptors(modelInterfaces);
                 RegisterDescriptor(modelClass);
@@ -492,7 +501,7 @@ namespace StrawberryShake.Generators
                 CreateInterface(modelFragment, path);
 
             var modelClass = new ClassDescriptor(
-                className, typeCase.Type, modelInterface);
+                className, _namespace, typeCase.Type, modelInterface);
 
 
             RegisterDescriptor(modelInterface);
@@ -537,7 +546,7 @@ namespace StrawberryShake.Generators
                 CreateInterface(modelFragment, path);
 
             var modelClass = new ClassDescriptor(
-                className, typeCase.Type, modelInterface);
+                className, _namespace, typeCase.Type, modelInterface);
 
             RegisterDescriptor(modelInterface);
             RegisterDescriptor(modelClass);
@@ -646,6 +655,7 @@ namespace StrawberryShake.Generators
 
             return new InterfaceDescriptor(
                 typeName,
+                _namespace,
                 fragmentNode.Fragment.TypeCondition,
                 fieldDescriptors,
                 implements);

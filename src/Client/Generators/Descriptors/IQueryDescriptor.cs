@@ -4,6 +4,7 @@ namespace StrawberryShake.Generators.Descriptors
 {
     public interface IQueryDescriptor
         : ICodeDescriptor
+        , IHasNamespace
     {
         string HashName { get; }
 

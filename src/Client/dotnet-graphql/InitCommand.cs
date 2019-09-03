@@ -1,15 +1,16 @@
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using System.Text.Json;
 using HotChocolate.Stitching.Introspection;
 using McMaster.Extensions.CommandLineUtils;
 using HotChocolate.Language;
-using System.Net.Http.Headers;
 using IOPath = System.IO.Path;
-using System.Text.Json;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace StrawberryShake.Tools
 {
@@ -17,18 +18,20 @@ namespace StrawberryShake.Tools
         : ICommand
     {
         [Argument(0, "path", "The directory where the client shall be located.")]
+        [Required]
         public string Path { get; set; }
 
-        [Argument(2, "uri", "The URL to the GraphQL endpoint.")]
+        [Argument(1, "uri", "The URL to the GraphQL endpoint.")]
+        [Required]
         public string Url { get; set; }
 
-        [Argument(3, "schemaName", "The name of the schema.")]
+        [Option("-n|--schemaName")]
         public string SchemaName { get; set; }
 
-        [Argument(4, "token", "The authorization token.")]
+        [Option]
         public string Token { get; set; }
 
-        [Argument(5, "schema", "The authorization scheme (default: bearer).")]
+        [Option]
         public string Scheme { get; set; }
 
         public async Task<int> OnExecute()
@@ -40,13 +43,14 @@ namespace StrawberryShake.Tools
             {
                 httpClient.DefaultRequestHeaders.Authorization =
                     new AuthenticationHeaderValue(
-                        Scheme, Token);
+                        Scheme ?? "bearer", Token);
             }
 
             var stopwatch = Stopwatch.StartNew();
 
             Console.WriteLine("Download schema started.");
             DocumentNode schema = await IntrospectionClient.LoadSchemaAsync(httpClient);
+            schema = IntrospectionClient.RemoveBuiltInTypes(schema);
             Console.WriteLine(
                 "Download schema completed in " +
                 $"{stopwatch.ElapsedMilliseconds} ms.");

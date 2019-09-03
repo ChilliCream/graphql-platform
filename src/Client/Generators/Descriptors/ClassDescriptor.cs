@@ -9,18 +9,21 @@ namespace StrawberryShake.Generators.Descriptors
     {
         public ClassDescriptor(
             string name,
+            string ns,
             INamedType type,
             IInterfaceDescriptor implements)
-            : this(name, type, new[] { implements })
+            : this(name, ns, type, new[] { implements })
         {
         }
 
         public ClassDescriptor(
             string name,
+            string ns,
             INamedType type,
             IReadOnlyList<IInterfaceDescriptor> implements)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
+            Namespace = ns ?? throw new ArgumentNullException(nameof(ns));
             Type = type ?? throw new ArgumentNullException(nameof(type));
             Implements = implements ?? throw new ArgumentNullException(nameof(implements));
 
@@ -34,6 +37,8 @@ namespace StrawberryShake.Generators.Descriptors
         public IReadOnlyList<IInterfaceDescriptor> Implements { get; }
 
         public IReadOnlyList<IFieldDescriptor> Fields { get; }
+
+        public string Namespace { get; }
 
         IEnumerable<ICodeDescriptor> ICodeDescriptor.GetChildren() =>
             Implements;

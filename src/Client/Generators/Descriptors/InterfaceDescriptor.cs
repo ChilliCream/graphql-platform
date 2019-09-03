@@ -8,9 +8,10 @@ namespace StrawberryShake.Generators.Descriptors
     public class InterfaceDescriptor
         : IInterfaceDescriptor
     {
-        public InterfaceDescriptor(string name, INamedType type)
+        public InterfaceDescriptor(string name, string ns, INamedType type)
             : this(
                 name,
+                ns,
                 type,
                 Array.Empty<IFieldDescriptor>(),
                 Array.Empty<IInterfaceDescriptor>())
@@ -19,10 +20,12 @@ namespace StrawberryShake.Generators.Descriptors
 
         public InterfaceDescriptor(
             string name,
+            string ns,
             INamedType type,
             IReadOnlyList<IFieldDescriptor> fields)
             : this(
                 name,
+                ns,
                 type,
                 fields,
                 Array.Empty<IInterfaceDescriptor>())
@@ -31,17 +34,21 @@ namespace StrawberryShake.Generators.Descriptors
 
         public InterfaceDescriptor(
             string name,
+            string ns,
             INamedType type,
             IReadOnlyList<IFieldDescriptor> fields,
             IReadOnlyList<IInterfaceDescriptor> implements)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
+            Namespace = ns ?? throw new ArgumentNullException(nameof(ns));
             Type = type ?? throw new ArgumentNullException(nameof(type));
             Fields = fields ?? throw new ArgumentNullException(nameof(fields));
             Implements = implements ?? throw new ArgumentNullException(nameof(implements));
         }
 
         public string Name { get; }
+
+        public string Namespace { get; }
 
         public INamedType Type { get; }
 
@@ -62,6 +69,7 @@ namespace StrawberryShake.Generators.Descriptors
 
             return new InterfaceDescriptor(
                 Name,
+                Namespace,
                 Type,
                 Fields,
                 implements.Values.ToList());
@@ -71,6 +79,7 @@ namespace StrawberryShake.Generators.Descriptors
         {
             return new InterfaceDescriptor(
                 Name,
+                Namespace,
                 Type,
                 Fields,
                 Array.Empty<InterfaceDescriptor>());

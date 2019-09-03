@@ -9,15 +9,19 @@ namespace StrawberryShake.Generators.Descriptors
     {
         public InputClassDescriptor(
             string name,
+            string ns,
             InputObjectType type,
             IReadOnlyList<IInputFieldDescriptor> fields)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
+            Namespace = ns ?? throw new ArgumentNullException(nameof(ns));
             Type = type ?? throw new ArgumentNullException(nameof(type));
             Fields = fields ?? throw new ArgumentNullException(nameof(fields));
         }
 
         public string Name { get; }
+
+        public string Namespace { get; }
 
         public InputObjectType Type { get; }
 

@@ -6,6 +6,7 @@ namespace StrawberryShake.Generators.Descriptors
 {
     public interface IOperationDescriptor
         : ICodeDescriptor
+        , IHasNamespace
     {
         OperationDefinitionNode Operation { get; }
 

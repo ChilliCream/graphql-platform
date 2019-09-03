@@ -11,12 +11,14 @@ namespace StrawberryShake.Generators.Descriptors
     {
         public ResultParserDescriptor(
             string name,
+            string ns,
             OperationDefinitionNode operation,
             ICodeDescriptor resultDescriptor,
             IReadOnlyList<IResultParserMethodDescriptor> parseMethods)
         {
             Name = name
                 ?? throw new ArgumentNullException(nameof(name));
+            Namespace = ns ?? throw new ArgumentNullException(nameof(ns));
             Operation = operation
                 ?? throw new ArgumentNullException(nameof(operation));
             ResultDescriptor = resultDescriptor
@@ -28,6 +30,8 @@ namespace StrawberryShake.Generators.Descriptors
         }
 
         public string Name { get; }
+
+        public string Namespace { get; }
 
         public OperationDefinitionNode Operation { get; }
 

@@ -16,16 +16,19 @@ namespace StrawberryShake.Generators
         private readonly List<IQueryDescriptor> _descriptors =
             new List<IQueryDescriptor>();
         private readonly IDocumentHashProvider _hashProvider;
+        private readonly string _namespace;
 
-        public QueryCollection()
+        public QueryCollection(string ns)
         {
             _hashProvider = new MD5DocumentHashProvider();
+            _namespace = ns ?? throw new ArgumentNullException(nameof(ns));
         }
 
-        public QueryCollection(IDocumentHashProvider hashProvider)
+        public QueryCollection(IDocumentHashProvider hashProvider, string ns)
         {
             _hashProvider = hashProvider
                 ?? throw new ArgumentNullException(nameof(hashProvider));
+            _namespace = ns ?? throw new ArgumentNullException(nameof(ns));
         }
 
         public Task<IQueryDescriptor> LoadFromFileAsync(string file)
@@ -115,6 +118,7 @@ namespace StrawberryShake.Generators
 
             var descriptor = new QueryDescriptor(
                 name,
+                _namespace,
                 _hashProvider.Name,
                 hash,
                 rewrittenBuffer,

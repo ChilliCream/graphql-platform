@@ -5,6 +5,7 @@ namespace StrawberryShake.Generators.Descriptors
 {
     public interface IInterfaceDescriptor
         : ICodeDescriptor
+        , IHasNamespace
     {
         INamedType Type { get; }
 

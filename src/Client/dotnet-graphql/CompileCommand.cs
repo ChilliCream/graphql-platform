@@ -1,6 +1,7 @@
-using System.Diagnostics;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.Diagnostics;
 using System.Linq;
 using System.IO;
 using System.Text.Json;
@@ -18,6 +19,7 @@ namespace StrawberryShake.Tools
         : ICommand
     {
         [Argument(0, "path")]
+        [Required]
         public string Path { get; set; }
 
         public async Task<int> OnExecute()

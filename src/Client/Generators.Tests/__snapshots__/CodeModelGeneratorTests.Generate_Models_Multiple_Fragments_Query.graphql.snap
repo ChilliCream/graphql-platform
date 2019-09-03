@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public interface IGetHero
     {
@@ -17,7 +17,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public class GetHero
         : IGetHero
@@ -32,7 +32,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public class GetHeroOperation
         : IOperation<IGetHero>
@@ -59,7 +59,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public interface IDroid
         : IHero
@@ -73,7 +73,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public interface IHero
         : IHasName
@@ -88,7 +88,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public interface IHasName
     {
@@ -102,7 +102,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public interface IHasFriends
     {
@@ -116,7 +116,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public class Droid
         : IDroid
@@ -133,7 +133,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public interface IHuman
         : IHero
@@ -147,7 +147,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public class Human
         : IHuman
@@ -164,7 +164,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public interface IFriend
     {
@@ -178,7 +178,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public class Friend
         : IFriend
@@ -195,7 +195,7 @@ using System.Text.Json;
 using StrawberryShake;
 using StrawberryShake.Http;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public class GetHeroResultParser
         : GeneratedResultParserBase<IGetHero>
@@ -331,7 +331,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public interface IStarWarsClient
     {
@@ -350,7 +350,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public class StarWarsClient
         : IStarWarsClient
