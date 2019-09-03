@@ -17,7 +17,7 @@ namespace StrawberryShake.Tools
     public class CompileCommand
         : ICommand
     {
-        [Argument(0)]
+        [Argument(0, "path")]
         public string Path { get; set; }
 
         public async Task<int> OnExecute()

@@ -9,7 +9,7 @@
       "request": "launch",
       "preLaunchTask": "build",
       "program": "${workspaceFolder}/dotnet-graphql/bin/Debug/netcoreapp2.2/dotnet-graphql.dll",
-      "args": ["compile", "../Demo/GraphQL"],
+      "args": ["init", "../Demo/GraphQL", "http://localhost:5000/graphql"],
       "cwd": "${workspaceFolder}/dotnet-graphql",
       "console": "internalConsole",
       "stopAtEntry": false
