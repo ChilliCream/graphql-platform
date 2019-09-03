@@ -19,9 +19,9 @@ namespace StrawberryShake.Generators
 {
     public class CodeModelGeneratorTests
     {
-        // [InlineData("Simple_Query.graphql")]
+        [InlineData("Simple_Query.graphql")]
         //[InlineData("Spread_Query.graphql")]
-        [InlineData("Multiple_Fragments_Query.graphql")]
+        // [InlineData("Multiple_Fragments_Query.graphql")]
         [Theory]
         public async Task Generate_Models(string queryFile)
         {

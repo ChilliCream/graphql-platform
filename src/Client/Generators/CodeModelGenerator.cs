@@ -433,7 +433,7 @@ namespace StrawberryShake.Generators
             foreach (FieldCollectionResult typeCase in typeCases)
             {
                 GenerateInterfaceTypeCaseModel(
-                    typeCase, resultParserTypes, path);
+                    typeCase, returnType, resultParserTypes, path);
             }
 
             RegisterDescriptor(interfaceDescriptor);
@@ -453,26 +453,27 @@ namespace StrawberryShake.Generators
 
         private void GenerateInterfaceTypeCaseModel(
             FieldCollectionResult typeCase,
+            IFragmentNode returnType,
             ICollection<ResultParserTypeDescriptor> resultParser,
             Path path)
         {
             string className;
             IReadOnlyList<IFragmentNode> fragments;
 
-            IFragmentNode returnType = HoistFragment(
+            IFragmentNode modelType = HoistFragment(
                 (ObjectType)typeCase.Type,
                 typeCase.SelectionSet,
                 typeCase.Fragments);
 
-            if (returnType is null)
+            if (modelType is null)
             {
                 fragments = typeCase.Fragments;
                 className = CreateName(GetClassName(typeCase.Type.Name));
             }
             else
             {
-                fragments = returnType.Children;
-                className = CreateName(GetClassName(returnType.Fragment.Name));
+                fragments = modelType.Children;
+                className = CreateName(GetClassName(modelType.Fragment.Name));
             }
 
             var modelSelectionSet = new SelectionSetNode(
@@ -481,12 +482,14 @@ namespace StrawberryShake.Generators
             var modelFragment = new FragmentNode(new Fragment(
                 className, typeCase.Type, modelSelectionSet));
             modelFragment.Children.AddRange(fragments);
+            modelFragment.Children.Add(returnType);
 
             IInterfaceDescriptor modelInterface =
                 CreateInterface(modelFragment, path);
 
             var modelClass = new ClassDescriptor(
                 className, typeCase.Type, modelInterface);
+
 
             RegisterDescriptor(modelInterface);
             RegisterDescriptor(modelClass);
