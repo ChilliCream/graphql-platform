@@ -7,6 +7,7 @@ namespace Foo
 {
     public interface IDroid
         : IHero
+        , IHero
     {
     }
 }

@@ -44,28 +44,45 @@ namespace StrawberryShake.Generators
                 File.Delete(fielName);
             }
 
-            var usedNames = new HashSet<string>();
-
-            foreach (GeneratorTask task in _tasks)
+            await Task.Factory.StartNew(() =>
             {
-                string fileName = task.Generator.CreateFileName(task.Descriptor);
-                fileName = Path.Combine(_directoryName, fileName);
+                var usedNames = new HashSet<string>();
 
+                foreach (GeneratorTask task in _tasks)
+                {
+                    Task.Factory.StartNew(
+                        () => ExecuteGeneratorAsync(task, typeLookup, usedNames),
+                        TaskCreationOptions.AttachedToParent);
+
+                }
+            }, TaskCreationOptions.None);
+        }
+
+        private async Task ExecuteGeneratorAsync(
+            GeneratorTask task,
+            ITypeLookup typeLookup,
+            ISet<string> usedNames)
+        {
+            string fileName = task.Generator.CreateFileName(task.Descriptor);
+            fileName = Path.Combine(_directoryName, fileName);
+
+            lock (usedNames)
+            {
                 if (!usedNames.Add(fileName))
                 {
                     throw new InvalidOperationException(
                         $"The file name `{fileName}` was already used.");
                 }
+            }
 
-                using (FileStream stream = File.Create(fileName))
+            using (FileStream stream = File.Create(fileName))
+            {
+                using (var sw = new StreamWriter(stream, Encoding.UTF8))
                 {
-                    using (var sw = new StreamWriter(stream, Encoding.UTF8))
+                    using (var cw = new CodeWriter(sw))
                     {
-                        using (var cw = new CodeWriter(sw))
-                        {
-                            await task.Generator.WriteAsync(
-                                cw, task.Descriptor, typeLookup);
-                        }
+                        await task.Generator.WriteAsync(
+                            cw, task.Descriptor, typeLookup);
                     }
                 }
             }
