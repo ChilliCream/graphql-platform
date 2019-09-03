@@ -5,7 +5,7 @@ using System.Text.Json;
 using StrawberryShake;
 using StrawberryShake.Http;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public class GetHeroResultParser
         : GeneratedResultParserBase<IGetHero>

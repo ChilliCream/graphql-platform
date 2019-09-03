@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using HotChocolate.Language;
 using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
+using HotChocolate;
 
 namespace StrawberryShake.Generators
 {
@@ -31,70 +33,47 @@ namespace StrawberryShake.Generators
             _namespace = ns ?? throw new ArgumentNullException(nameof(ns));
         }
 
-        public Task<IQueryDescriptor> LoadFromFileAsync(string file)
-        {
-            if (file is null)
-            {
-                throw new ArgumentNullException(nameof(file));
-            }
-
-            return LoadFileAsync(file);
-        }
-
-        private async Task<IQueryDescriptor> LoadFileAsync(string file)
-        {
-            if (file is null)
-            {
-                throw new ArgumentNullException(nameof(file));
-            }
-
-            byte[] documentBuffer =
-                await Task.Run(() => File.ReadAllBytes(file));
-
-            return await LoadAsync(
-                Path.GetFileNameWithoutExtension(file),
-                documentBuffer);
-        }
-
-        public Task<IQueryDescriptor> LoadFromStringAsync(
-            string name, string query)
-        {
-            if (name is null)
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
-
-            if (query is null)
-            {
-                throw new ArgumentNullException(nameof(query));
-            }
-
-            byte[] documentBuffer = Encoding.UTF8.GetBytes(query);
-            return LoadAsync(name, documentBuffer);
-        }
-
         public Task<IQueryDescriptor> LoadFromDocumentAsync(
-            string name, DocumentNode query)
+            string name, string fileName, DocumentNode document)
         {
             if (name is null)
             {
                 throw new ArgumentNullException(nameof(name));
             }
 
-            if (query is null)
+            if (fileName is null)
             {
-                throw new ArgumentNullException(nameof(query));
+                throw new ArgumentNullException(nameof(fileName));
             }
 
-            byte[] documentBuffer = Encoding.UTF8.GetBytes(
-                QuerySyntaxSerializer.Serialize(query));
-            return LoadAsync(name, documentBuffer);
+            if (document is null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
+            return LoadAsync(name, fileName, document);
         }
 
         private async Task<IQueryDescriptor> LoadAsync(
-            string name, byte[] documentBuffer)
+            string name, string fileName, DocumentNode document)
         {
-            DocumentNode document = Utf8GraphQLParser.Parse(documentBuffer);
+            OperationDefinitionNode operation =
+                document.Definitions.OfType<OperationDefinitionNode>()
+                    .FirstOrDefault(t => t.Name is null);
+
+            if (operation != null)
+            {
+                throw new GeneratorException(ErrorBuilder.New()
+                    .SetMessage("All operations have to have a name in order " +
+                        "to work with Strawberry Shake. Check the specified " +
+                        "operation and give it a name, then retry generating " +
+                        "the client.")
+                    .SetCode("OPERATION_NO_NAME")
+                    .AddLocation(operation)
+                    .SetExtension("fileName", fileName)
+                    .Build());
+            }
+
             DocumentNode rewritten = AddTypeNameQueryRewriter.Rewrite(document);
             byte[] rewrittenBuffer;
 
@@ -114,7 +93,7 @@ namespace StrawberryShake.Generators
                 rewrittenBuffer = stream.ToArray();
             }
 
-            string hash = _hashProvider.ComputeHash(documentBuffer);
+            string hash = _hashProvider.ComputeHash(rewrittenBuffer);
 
             var descriptor = new QueryDescriptor(
                 name,

@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public interface IStarWarsClient
     {

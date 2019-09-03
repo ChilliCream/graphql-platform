@@ -404,7 +404,9 @@ namespace StrawberryShake.Generators
             foreach (DocumentInfo documentInfo in _queries.Values)
             {
                 await queryCollection.LoadFromDocumentAsync(
-                    documentInfo.Name, documentInfo.Document);
+                    documentInfo.Name,
+                    documentInfo.FileName,
+                    documentInfo.Document);
             }
 
             return queryCollection.ToList();
@@ -435,30 +437,37 @@ namespace StrawberryShake.Generators
 
         private IReadOnlyList<HCError> ValidateQueryDocuments(ISchema schema)
         {
-            var serviceCollection = new ServiceCollection();
-            serviceCollection.AddQueryValidation();
-            serviceCollection.AddDefaultValidationRules();
-            serviceCollection.AddSingleton<IValidateQueryOptionsAccessor, ValidationOptions>();
-            var validator = serviceCollection.BuildServiceProvider()
-                .GetService<IQueryValidator>();
-
             var errors = new List<HCError>();
 
-            foreach (DocumentInfo documentInfo in _queries.Values)
+            try
             {
-                QueryValidationResult validationResult =
-                    validator.Validate(schema, documentInfo.Document);
+                var serviceCollection = new ServiceCollection();
+                serviceCollection.AddQueryValidation();
+                serviceCollection.AddDefaultValidationRules();
+                serviceCollection.AddSingleton<IValidateQueryOptionsAccessor, ValidationOptions>();
+                var validator = serviceCollection.BuildServiceProvider()
+                    .GetService<IQueryValidator>();
 
-                if (validationResult.HasErrors)
+                foreach (DocumentInfo documentInfo in _queries.Values)
                 {
-                    foreach (HCError error in validationResult.Errors)
+                    QueryValidationResult validationResult =
+                        validator.Validate(schema, documentInfo.Document);
+
+                    if (validationResult.HasErrors)
                     {
-                        errors.Add(ErrorBuilder.FromError(error)
-                            .SetExtension("fileName", documentInfo.FileName)
-                            .SetExtension("document", documentInfo.Document)
-                            .Build());
+                        foreach (HCError error in validationResult.Errors)
+                        {
+                            errors.Add(ErrorBuilder.FromError(error)
+                                .SetExtension("fileName", documentInfo.FileName)
+                                .SetExtension("document", documentInfo.Document)
+                                .Build());
+                        }
                     }
                 }
+            }
+            catch (GeneratorException ex)
+            {
+                errors.AddRange(ex.Errors);
             }
 
             return errors;

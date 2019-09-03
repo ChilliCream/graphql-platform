@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public class GetHeroOperation
         : IOperation<IGetHero>

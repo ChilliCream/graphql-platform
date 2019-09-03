@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace Foo
+namespace StrawberryShake.Client
 {
     public class Queries
         : IDocument
@@ -20,27 +20,27 @@ namespace Foo
         };
         private readonly byte[] _hash = new byte[]
         {
-            112,
-            114,
-            78,
-            67,
+            77,
+            66,
+            87,
+            86,
             52,
-            74,
-            85,
-            50,
-            111,
-            107,
-            80,
-            99,
-            79,
+            53,
+            86,
+            48,
             89,
-            56,
-            57,
-            51,
-            55,
-            109,
-            67,
-            55,
+            115,
+            104,
+            115,
+            68,
+            98,
+            119,
+            119,
+            81,
+            87,
+            43,
+            113,
+            52,
             119,
             61,
             61

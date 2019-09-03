@@ -19,24 +19,61 @@ namespace StrawberryShake.Tools
         : ICommand
     {
         [Argument(0, "path")]
-        [Required]
         public string Path { get; set; }
 
         public async Task<int> OnExecute()
         {
             if (Path is null)
             {
-                Path = Environment.CurrentDirectory;
+                foreach (string configFile in Directory.GetFiles(
+                    Environment.CurrentDirectory,
+                    "config.json",
+                    SearchOption.AllDirectories))
+                {
+                    string directory = IOPath.GetDirectoryName(configFile);
+                    if (Directory.GetFiles(
+                        directory,
+                        "*.graphql").Length > 0)
+                    {
+                        try
+                        {
+                            Configuration config = await LoadConfig(directory);
+                            if (config.Schemas.Count > 0)
+                            {
+                                if (!(await Compile(directory, config)))
+                                {
+                                    return 1;
+                                }
+                            }
+                        }
+                        catch
+                        {
+                            // ignore invalid configs
+                        }
+                    }
+                }
+                return 0;
             }
+            else
+            {
+                return (await Compile(Path)) ? 0 : 1;
+            }
+        }
 
+        private async Task<bool> Compile(string path)
+        {
+            Configuration config = await LoadConfig(path);
+            return await Compile(path, config); ;
+        }
+
+        private async Task<bool> Compile(string path, Configuration config)
+        {
             var stopwatch = Stopwatch.StartNew();
             Console.WriteLine("Compile started.");
 
-            Configuration config = await LoadConfig();
-
             var schemaFiles = new HashSet<string>();
             ClientGenerator generator = ClientGenerator.New();
-            generator.SetOutput(IOPath.Combine(Path, "Generated"));
+            generator.SetOutput(IOPath.Combine(path, "Generated"));
 
             if (!string.IsNullOrEmpty(config.ClientName))
             {
@@ -44,32 +81,32 @@ namespace StrawberryShake.Tools
             }
 
             var errors = new List<HCError>();
-            await LoadGraphQLDocumentsAsync(generator, errors);
+            await LoadGraphQLDocumentsAsync(path, generator, errors);
             if (errors.Count > 0)
             {
                 WriteErrors(errors);
-                return 1;
+                return false;
             }
 
             IReadOnlyList<HCError> validationErrors = generator.Validate();
             if (validationErrors.Count > 0)
             {
                 WriteErrors(validationErrors);
-                return 1;
+                return false;
             }
 
             await generator.BuildAsync();
             Console.WriteLine(
                 $"Compile completed in {stopwatch.ElapsedMilliseconds} ms " +
-                $"for {Path}.");
-            return 0;
+                $"for {path}.");
+            return true;
         }
 
-        private async Task<Configuration> LoadConfig()
+        private async Task<Configuration> LoadConfig(string path)
         {
             Configuration config;
 
-            using (var stream = File.OpenRead(IOPath.Combine(Path, "config.json")))
+            using (var stream = File.OpenRead(IOPath.Combine(path, "config.json")))
             {
                 config = await JsonSerializer.DeserializeAsync<Configuration>(
                     stream,
@@ -83,13 +120,14 @@ namespace StrawberryShake.Tools
         }
 
         private async Task LoadGraphQLDocumentsAsync(
+            string path,
             ClientGenerator generator,
             ICollection<HCError> errors)
         {
             Dictionary<string, SchemaFile> schemaConfigs =
-                (await LoadConfig()).Schemas.ToDictionary(t => t.Name);
+                (await LoadConfig(path)).Schemas.ToDictionary(t => t.Name);
 
-            foreach (DocumentInfo document in await GetGraphQLFiles(errors))
+            foreach (DocumentInfo document in await GetGraphQLFiles(path, errors))
             {
                 if (document.Kind == DocumentKind.Query)
                 {
@@ -118,11 +156,11 @@ namespace StrawberryShake.Tools
         }
 
         private async Task<IReadOnlyList<DocumentInfo>> GetGraphQLFiles(
-            ICollection<HCError> errors)
+            string path, ICollection<HCError> errors)
         {
             var documents = new List<DocumentInfo>();
 
-            foreach (string file in Directory.GetFiles(Path, "*.graphql"))
+            foreach (string file in Directory.GetFiles(path, "*.graphql"))
             {
                 byte[] buffer = await File.ReadAllBytesAsync(file);
 
