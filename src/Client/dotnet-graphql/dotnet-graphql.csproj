@@ -7,7 +7,7 @@
     <AssemblyName>dotnet-graphql</AssemblyName>
     <RootNamespace>StrawberryShake.Tools</RootNamespace>
     <IsPackable>true</IsPackable>
-    <PackAsTool>true</PackAsTool>
+    <!--PackAsTool>true</PackAsTool-->
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,6 +16,13 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Generators\Generators.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Label="dotnet pack instructions">
+    <Content Include="*.targets">
+      <Pack>true</Pack>
+      <PackagePath>build\</PackagePath>
+    </Content>
   </ItemGroup>
 
 </Project>

@@ -4,6 +4,7 @@
   </PropertyGroup>
 
   <Target Name="StrawberryShakeQueryCompile" BeforeTargets="CoreCompile">
-
+    <Exec Command="dotnet graphql compile"/>
+    <Error Text="Foo" />
   </Target>
 </Project>
