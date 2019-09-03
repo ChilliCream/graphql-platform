@@ -41,7 +41,6 @@ namespace StrawberryShake.Generators.CSharp
                 { typeof(double?), "GetDouble" }
             };
 
-
         protected override async Task WriteAsync(
             CodeWriter writer,
             IResultParserDescriptor descriptor,
@@ -56,7 +55,6 @@ namespace StrawberryShake.Generators.CSharp
                     writer, possibleType, typeLookup, generatedMethods);
             }
         }
-
 
         private async Task WriteDeserializeMethodAsync(
            CodeWriter writer,
@@ -87,6 +85,7 @@ namespace StrawberryShake.Generators.CSharp
                             {
                                 await writer.WriteLineAsync();
                             }
+                            first = false;
                             await WriteDeserializeNestedLeafList(
                                 writer, methodName, typeInfo, serializerMethod);
 
@@ -98,6 +97,7 @@ namespace StrawberryShake.Generators.CSharp
                             {
                                 await writer.WriteLineAsync();
                             }
+                            first = false;
                             await WriteDeserializeLeafList(
                                 writer, methodName, typeInfo, serializerMethod);
                         }
@@ -107,6 +107,7 @@ namespace StrawberryShake.Generators.CSharp
                             {
                                 await writer.WriteLineAsync();
                             }
+                            first = false;
                             await WriteDeserializeLeaf(
                                 writer, methodName, typeInfo, serializerMethod);
                         }
