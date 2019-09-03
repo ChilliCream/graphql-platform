@@ -23,9 +23,14 @@ namespace HotChocolate.Server.Template
 
             // Add GraphQL Services
             services.AddGraphQL(sp => SchemaBuilder.New()
+                 .AddServices(sp)
                 // enable for authorization support
                 // .AddDirectiveType<AuthorizeDirectiveType>()
-                .AddQueryType<Query>());
+                // "Query" is your base class, take a look at Query.cs
+                .AddQueryType<Query>()
+                // This creates a new GraphQL type based on the class specified
+                // This can be done automatically but we do this because we have a resolver
+                .AddType<GreetingsModelType>().Create());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -36,7 +41,7 @@ namespace HotChocolate.Server.Template
                 app.UseDeveloperExceptionPage();
             }
 
-            // enable this if you want tu support subscription.
+            // enable this if you want to support subscription.
             // app.UseWebSockets();
             app.UseGraphQL();
             // enable this if you want to use graphiql instead of playground.
