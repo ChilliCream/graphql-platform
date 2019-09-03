@@ -61,14 +61,11 @@ namespace StrawberryShake.Http
                 WriteValue(variables, writer);
             }
 
-
-            /*
-                        if (extensions != null && extensions.Count != 0)
-                        {
-                            writer.WritePropertyName("extensions");
-                            WriteValue(operation.Variables, writer);
-                        }
-                         */
+            if (extensions != null && extensions.Count != 0)
+            {
+                writer.WritePropertyName("extensions");
+                WriteValue(extensions, writer);
+            }
 
             writer.WriteEndObject();
 

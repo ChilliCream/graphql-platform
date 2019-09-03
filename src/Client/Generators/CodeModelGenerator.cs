@@ -482,7 +482,11 @@ namespace StrawberryShake.Generators
             var modelFragment = new FragmentNode(new Fragment(
                 className, typeCase.Type, modelSelectionSet));
             modelFragment.Children.AddRange(fragments);
-            modelFragment.Children.Add(returnType);
+            if (modelFragment.Children.All(t =>
+                t.Fragment.SelectionSet != returnType.Fragment.SelectionSet))
+            {
+                modelFragment.Children.Add(returnType);
+            }
 
             IInterfaceDescriptor modelInterface =
                 CreateInterface(modelFragment, path);

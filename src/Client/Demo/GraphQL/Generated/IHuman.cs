@@ -7,7 +7,6 @@ namespace Foo
 {
     public interface IHuman
         : IHero
-        , IHero
     {
     }
 }
