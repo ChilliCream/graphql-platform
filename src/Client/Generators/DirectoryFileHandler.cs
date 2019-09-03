@@ -49,10 +49,7 @@ namespace StrawberryShake.Generators
 
             foreach (GeneratorTask task in _tasks)
             {
-                tasks.Add(Task.Factory.StartNew(
-                    () => ExecuteGeneratorAsync(task, typeLookup, usedNames),
-                    TaskCreationOptions.AttachedToParent));
-
+                tasks.Add(ExecuteGeneratorAsync(task, typeLookup, usedNames));
             }
 
             await Task.WhenAll(tasks);
@@ -87,8 +84,6 @@ namespace StrawberryShake.Generators
                 }
             }
         }
-
-
 
         private class GeneratorTask
         {
