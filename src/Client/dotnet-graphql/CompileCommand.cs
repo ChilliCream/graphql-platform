@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,6 +27,9 @@ namespace StrawberryShake.Tools
                 Path = Environment.CurrentDirectory;
             }
 
+            var stopwatch = Stopwatch.StartNew();
+            Console.WriteLine("Compile started.");
+
             Configuration config = await LoadConfig();
 
             var schemaFiles = new HashSet<string>();
@@ -37,20 +41,26 @@ namespace StrawberryShake.Tools
                 generator.SetClientName(config.ClientName);
             }
 
-            if (await LoadGraphQLDocumentsAsync(generator))
+            var errors = new List<HCError>();
+            await LoadGraphQLDocumentsAsync(generator, errors);
+            if (errors.Count > 0)
             {
-                IReadOnlyList<HCError> validationErrors = generator.Validate();
-                if (validationErrors.Count > 0)
-                {
-                    WriteErrors(validationErrors);
-                    return 1;
-                }
-
-                await generator.BuildAsync();
-                return 0;
+                WriteErrors(errors);
+                return 1;
             }
 
-            return 1;
+            IReadOnlyList<HCError> validationErrors = generator.Validate();
+            if (validationErrors.Count > 0)
+            {
+                WriteErrors(validationErrors);
+                return 1;
+            }
+
+            await generator.BuildAsync();
+            Console.WriteLine(
+                $"Compile completed in {stopwatch.ElapsedMilliseconds} ms " +
+                $"for {Path}.");
+            return 0;
         }
 
         private async Task<Configuration> LoadConfig()
@@ -70,19 +80,14 @@ namespace StrawberryShake.Tools
             return config;
         }
 
-        private async Task<bool> LoadGraphQLDocumentsAsync(ClientGenerator generator)
+        private async Task LoadGraphQLDocumentsAsync(
+            ClientGenerator generator,
+            ICollection<HCError> errors)
         {
             Dictionary<string, SchemaFile> schemaConfigs =
                 (await LoadConfig()).Schemas.ToDictionary(t => t.Name);
 
-            IReadOnlyList<DocumentInfo> documents = await GetGraphQLFiles();
-
-            if (documents.Count == 0)
-            {
-                return false;
-            }
-
-            foreach (DocumentInfo document in documents)
+            foreach (DocumentInfo document in await GetGraphQLFiles(errors))
             {
                 if (document.Kind == DocumentKind.Query)
                 {
@@ -108,11 +113,10 @@ namespace StrawberryShake.Tools
                         document.Document);
                 }
             }
-
-            return true;
         }
 
-        private async Task<IReadOnlyList<DocumentInfo>> GetGraphQLFiles()
+        private async Task<IReadOnlyList<DocumentInfo>> GetGraphQLFiles(
+            ICollection<HCError> errors)
         {
             var documents = new List<DocumentInfo>();
 
@@ -148,7 +152,7 @@ namespace StrawberryShake.Tools
                         .SetExtension("fileName", file)
                         .Build();
 
-                    WriteErrors(new[] { error });
+                    errors.Add(error);
                     return Array.Empty<DocumentInfo>();
                 }
             }

@@ -44,18 +44,18 @@ namespace StrawberryShake.Generators
                 File.Delete(fielName);
             }
 
-            await Task.Factory.StartNew(() =>
+            var usedNames = new HashSet<string>();
+            var tasks = new List<Task>();
+
+            foreach (GeneratorTask task in _tasks)
             {
-                var usedNames = new HashSet<string>();
+                tasks.Add(Task.Factory.StartNew(
+                    () => ExecuteGeneratorAsync(task, typeLookup, usedNames),
+                    TaskCreationOptions.AttachedToParent));
 
-                foreach (GeneratorTask task in _tasks)
-                {
-                    Task.Factory.StartNew(
-                        () => ExecuteGeneratorAsync(task, typeLookup, usedNames),
-                        TaskCreationOptions.AttachedToParent);
+            }
 
-                }
-            }, TaskCreationOptions.None);
+            await Task.WhenAll(tasks);
         }
 
         private async Task ExecuteGeneratorAsync(
