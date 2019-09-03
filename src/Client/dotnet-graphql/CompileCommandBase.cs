@@ -38,7 +38,7 @@ namespace StrawberryShake.Tools
                         {
                             try
                             {
-                                Configuration config = await LoadConfig(directory);
+                                Configuration config = await Configuration.LoadConfig(directory);
                                 if (config.Schemas.Count > 0)
                                 {
                                     if (!(await Compile(directory, config)))
@@ -70,7 +70,7 @@ namespace StrawberryShake.Tools
 
         private async Task<bool> Compile(string path)
         {
-            Configuration config = await LoadConfig(path);
+            Configuration config = await Configuration.LoadConfig(path);
             return await Compile(path, config); ;
         }
 
@@ -121,30 +121,13 @@ namespace StrawberryShake.Tools
                 $"for {path}.");
         }
 
-        protected async Task<Configuration> LoadConfig(string path)
-        {
-            Configuration config;
-
-            using (var stream = File.OpenRead(IOPath.Combine(path, "config.json")))
-            {
-                config = await JsonSerializer.DeserializeAsync<Configuration>(
-                    stream,
-                    new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true,
-                    });
-            }
-
-            return config;
-        }
-
         private async Task LoadGraphQLDocumentsAsync(
             string path,
             ClientGenerator generator,
             ICollection<HCError> errors)
         {
             Dictionary<string, SchemaFile> schemaConfigs =
-                (await LoadConfig(path)).Schemas.ToDictionary(t => t.Name);
+                (await Configuration.LoadConfig(path)).Schemas.ToDictionary(t => t.Name);
 
             foreach (DocumentInfo document in await GetGraphQLFiles(path, errors))
             {

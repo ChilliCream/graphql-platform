@@ -93,7 +93,7 @@ namespace StrawberryShake.Tools
             Console.WriteLine(
                 "Client configuration completed in " +
                 $"{stopwatch.ElapsedMilliseconds} ms for {Path}.");
-            return 1;
+            return 0;
         }
     }
 }

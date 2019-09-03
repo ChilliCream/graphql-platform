@@ -22,7 +22,13 @@ namespace StrawberryShake.Tools
                 case Command.Init:
                     return ExecuteAsync<InitCommand>(RemainingArgs);
 
+                case Command.Update:
+                    return ExecuteAsync<UpdateCommand>(RemainingArgs);
+
                 case Command.Compile:
+                    return ExecuteAsync<CompileCommand>(RemainingArgs);
+
+                case Command.Generate:
                     return ExecuteAsync<GenerateCommand>(RemainingArgs);
 
                 default:
