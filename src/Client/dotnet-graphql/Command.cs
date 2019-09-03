@@ -3,6 +3,8 @@ namespace StrawberryShake.Tools
     public enum Command
     {
         Init,
-        Compile
+        Update,
+        Compile,
+        Generate,
     }
 }

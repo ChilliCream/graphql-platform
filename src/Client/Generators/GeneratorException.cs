@@ -41,6 +41,6 @@ namespace StrawberryShake.Generators
         {
         }
 
-        public IReadOnlyCollection<HotChocolate.IError> Errors { get; }
+        public IReadOnlyList<HotChocolate.IError> Errors { get; }
     }
 }

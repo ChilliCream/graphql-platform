@@ -23,7 +23,7 @@ namespace StrawberryShake.Tools
                     return ExecuteAsync<InitCommand>(RemainingArgs);
 
                 case Command.Compile:
-                    return ExecuteAsync<CompileCommand>(RemainingArgs);
+                    return ExecuteAsync<GenerateCommand>(RemainingArgs);
 
                 default:
                     return Task.FromResult(1);
