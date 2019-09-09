@@ -185,17 +185,18 @@ namespace HotChocolate.Types.Descriptors
                 if (resultType.IsGenericType)
                 {
                     Type resultTypeDef = resultType.GetGenericTypeDefinition();
-                    
+
                     Type clrResultType = resultTypeDef == typeof(NativeType<>)
                         ? resultType.GetGenericArguments()[0]
                         : resultType;
-                        
+
                     if (!BaseTypes.IsSchemaType(clrResultType))
                     {
                         Definition.ResultType = clrResultType;
                     }
                 }
             }
+
             return this;
         }
 
