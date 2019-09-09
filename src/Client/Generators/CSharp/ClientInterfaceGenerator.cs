@@ -28,14 +28,14 @@ namespace StrawberryShake.Generators.CSharp
             IClientDescriptor descriptor,
             ITypeLookup typeLookup)
         {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("public interface ");
-            await writer.WriteAsync(GetInterfaceName(descriptor.Name));
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync("public interface ").ConfigureAwait(false);
+            await writer.WriteAsync(GetInterfaceName(descriptor.Name)).ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("{");
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync("{").ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
@@ -50,22 +50,24 @@ namespace StrawberryShake.Generators.CSharp
 
                     if (i > 0)
                     {
-                        await writer.WriteLineAsync();
+                        await writer.WriteLineAsync().ConfigureAwait(false);
                     }
 
                     await WriteOperationAsync(
-                        writer, operation, typeName, false, typeLookup);
+                        writer, operation, typeName, false, typeLookup)
+                        .ConfigureAwait(false);
 
-                    await writer.WriteLineAsync();
+                    await writer.WriteLineAsync().ConfigureAwait(false);
 
                     await WriteOperationAsync(
-                        writer, operation, typeName, true, typeLookup);
+                        writer, operation, typeName, true, typeLookup)
+                        .ConfigureAwait(false);
                 }
             }
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("}");
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync("}").ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
         private async Task WriteOperationAsync(
@@ -75,19 +77,22 @@ namespace StrawberryShake.Generators.CSharp
             bool cancellationToken,
             ITypeLookup typeLookup)
         {
-            await writer.WriteIndentAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
             if (operation.Operation.Operation == OperationType.Subscription)
             {
                 await writer.WriteAsync(
-                    $"Task<IResponseStream<{operationTypeName}>> ");
+                    $"Task<IResponseStream<{operationTypeName}>> ")
+                    .ConfigureAwait(false);
             }
             else
             {
                 await writer.WriteAsync(
-                    $"Task<IOperationResult<{operationTypeName}>> ");
+                    $"Task<IOperationResult<{operationTypeName}>> ")
+                    .ConfigureAwait(false);
             }
             await writer.WriteAsync(
-                $"{GetPropertyName(operation.Operation.Name.Value)}Async(");
+                $"{GetPropertyName(operation.Operation.Name.Value)}Async(")
+                .ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
@@ -98,37 +103,40 @@ namespace StrawberryShake.Generators.CSharp
 
                     if (j > 0)
                     {
-                        await writer.WriteAsync(',');
+                        await writer.WriteAsync(',').ConfigureAwait(false);
                     }
 
-                    await writer.WriteLineAsync();
+                    await writer.WriteLineAsync().ConfigureAwait(false);
 
                     string argumentType = typeLookup.GetTypeName(
                         argument.Type,
                         argument.Type.NamedType().Name,
                         true);
 
-                    await writer.WriteIndentAsync();
-                    await writer.WriteAsync(argumentType);
-                    await writer.WriteSpaceAsync();
-                    await writer.WriteAsync(GetFieldName(argument.Name));
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync(argumentType).ConfigureAwait(false);
+                    await writer.WriteSpaceAsync().ConfigureAwait(false);
+                    await writer.WriteAsync(GetFieldName(argument.Name))
+                        .ConfigureAwait(false);
                 }
 
                 if (cancellationToken)
                 {
                     if (operation.Arguments.Count > 0)
                     {
-                        await writer.WriteAsync(',');
+                        await writer.WriteAsync(',').ConfigureAwait(false);
                     }
 
-                    await writer.WriteLineAsync();
-                    await writer.WriteIndentAsync();
-                    await writer.WriteAsync("CancellationToken cancellationToken");
+                    await writer.WriteLineAsync().ConfigureAwait(false);
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync(
+                        "CancellationToken cancellationToken")
+                        .ConfigureAwait(false);
                 }
 
-                await writer.WriteAsync(')');
-                await writer.WriteAsync(';');
-                await writer.WriteLineAsync();
+                await writer.WriteAsync(')').ConfigureAwait(false);
+                await writer.WriteAsync(';').ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
             }
         }
     }
