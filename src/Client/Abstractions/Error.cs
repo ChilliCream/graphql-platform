@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StrawberryShake
 {
-    internal class Error
+    internal sealed class Error
         : IError
     {
         private string _message;

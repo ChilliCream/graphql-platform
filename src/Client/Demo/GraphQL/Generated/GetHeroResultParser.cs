@@ -8,7 +8,7 @@ using StrawberryShake.Http;
 namespace StrawberryShake.Client
 {
     public class GetHeroResultParser
-        : GeneratedResultParserBase<IGetHero>
+        : JsonResultParserBase<IGetHero>
     {
         private readonly IValueSerializer _floatSerializer;
         private readonly IValueSerializer _stringSerializer;
@@ -17,14 +17,16 @@ namespace StrawberryShake.Client
         {
             IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
 
-            if (!map.TryGetValue("Float", out IValueSerializer serializer)){
+            if (!map.TryGetValue("Float", out IValueSerializer serializer))
+            {
                 throw new ArgumentException(
                     "There is no serializer specified for `Float`.",
                     nameof(serializers));
             }
             _floatSerializer = serializer;
 
-            if (!map.TryGetValue("String", out  serializer)){
+            if (!map.TryGetValue("String", out serializer))
+            {
                 throw new ArgumentException(
                     "There is no serializer specified for `String`.",
                     nameof(serializers));

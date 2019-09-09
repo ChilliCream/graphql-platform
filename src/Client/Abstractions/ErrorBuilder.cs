@@ -7,12 +7,9 @@ namespace StrawberryShake
     public class ErrorBuilder
     {
         private Error _error = new Error();
-
-        public List<Location> _locations;
-
-        public Dictionary<string, object> _extensions;
-
-        private bool _dirty = false;
+        private List<Location> _locations;
+        private Dictionary<string, object> _extensions;
+        private bool _dirty;
 
         public ErrorBuilder()
         {

@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Runtime.Serialization;
+using System.Text;
 
 namespace StrawberryShake
 {
@@ -7,6 +9,20 @@ namespace StrawberryShake
     public class GraphQLException
         : Exception
     {
+        public GraphQLException(IError error)
+            : base(CreateErrorMessage(error))
+        {
+            Errors = error == null
+                ? Array.Empty<IError>()
+                : new[] { error };
+        }
+
+        public GraphQLException(IReadOnlyList<IError> errors)
+            : base(CreateErrorMessage(errors))
+        {
+            Errors = errors;
+        }
+
         public GraphQLException() { }
 
         public GraphQLException(string message)
@@ -19,5 +35,42 @@ namespace StrawberryShake
             SerializationInfo info,
             StreamingContext context)
             : base(info, context) { }
+
+        public IReadOnlyList<IError> Errors { get; }
+
+        private static string CreateErrorMessage(IReadOnlyList<IError> errors)
+        {
+            if (errors is null || errors.Count == 0)
+            {
+                // TODO : resources
+                return "Unexpected GraphQL exception occured.";
+            }
+
+            if (errors.Count == 1)
+            {
+                return errors[0].Message;
+            }
+
+            var message = new StringBuilder();
+
+            // TODO : resources
+            message.AppendLine("Multiple GraphQL errors occured:");
+            foreach (IError error in errors)
+            {
+                message.AppendLine(error.Message);
+            }
+
+            return message.ToString();
+        }
+
+        private static string CreateErrorMessage(IError error)
+        {
+            if (error is null)
+            {
+                // TODO : resources
+                return "Unexpected GraphQL exception occured.";
+            }
+            return error.Message;
+        }
     }
 }

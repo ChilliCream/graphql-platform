@@ -6,7 +6,7 @@ using System.Threading;
 
 namespace StrawberryShake.Http
 {
-    public abstract class GeneratedResultParserBase<T>
+    public abstract class JsonResultParserBase<T>
         : IResultParser<T>
     {
         private static readonly byte[] _data = new byte[]
