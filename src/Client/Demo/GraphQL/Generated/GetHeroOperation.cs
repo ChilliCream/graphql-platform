@@ -8,18 +8,15 @@ namespace StrawberryShake.Client
     public class GetHeroOperation
         : IOperation<IGetHero>
     {
-
         public string Name => "getHero";
 
         public IDocument Document => Queries.Default;
 
+        public Type ResultType => typeof(IGetHero);
 
         public IReadOnlyList<VariableValue> GetVariableValues()
         {
-            var variables = new List<VariableValue>();
-
-
-            return variables;
+            return Array.Empty<VariableValue>();
         }
     }
 }

@@ -14,43 +14,55 @@ namespace StrawberryShake.Generators.CSharp
             IOperationDescriptor descriptor,
             ITypeLookup typeLookup)
         {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("public class ");
-            await writer.WriteAsync(descriptor.Name);
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync("public class ").ConfigureAwait(false);
+            await writer.WriteAsync(descriptor.Name).ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync($": IOperation<{descriptor.ResultType.Name}>");
-                await writer.WriteLineAsync();
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                await writer.WriteAsync(
+                    $": IOperation<{descriptor.ResultType.Name}>")
+                    .ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
             }
 
-            await writer.WriteIndentAsync();
-            await writer.WriteLeftBraceAsync();
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteLeftBraceAsync().ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
-                await WriteFieldsAsync(
-                    writer, descriptor, typeLookup);
-                await writer.WriteLineAsync();
+                if (descriptor.Arguments.Count > 0)
+                {
+                    await WriteFieldsAsync(
+                        writer, descriptor, typeLookup)
+                        .ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
+                }
 
                 await WriteOperationPropertiesAsync(
-                    writer, descriptor, typeLookup);
-                await writer.WriteLineAsync();
+                    writer, descriptor, typeLookup)
+                    .ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
-                await WriteArgumentsAsync(
-                    writer, descriptor, typeLookup);
-                await writer.WriteLineAsync();
+                if (descriptor.Arguments.Count > 0)
+                {
+                    await WriteArgumentsAsync(
+                        writer, descriptor, typeLookup)
+                        .ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
+                }
 
                 await WriteVariablesAsync(
-                    writer, descriptor, typeLookup);
+                    writer, descriptor, typeLookup)
+                    .ConfigureAwait(false);
             }
 
-            await writer.WriteIndentAsync();
-            await writer.WriteRightBraceAsync();
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteRightBraceAsync().ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
         private async Task WriteFieldsAsync(
@@ -65,14 +77,14 @@ namespace StrawberryShake.Generators.CSharp
                     Descriptors.IArgumentDescriptor argument =
                         descriptor.Arguments[i];
 
-                    await writer.WriteIndentAsync();
-                    await writer.WriteAsync("private bool _modified_");
-                    await writer.WriteAsync(GetFieldName(argument.Name));
-                    await writer.WriteAsync(';');
-                    await writer.WriteLineAsync();
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync("private bool _modified_").ConfigureAwait(false);
+                    await writer.WriteAsync(GetFieldName(argument.Name)).ConfigureAwait(false);
+                    await writer.WriteAsync(';').ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
                 }
 
-                await writer.WriteLineAsync();
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
                 for (int i = 0; i < descriptor.Arguments.Count; i++)
                 {
@@ -84,14 +96,14 @@ namespace StrawberryShake.Generators.CSharp
                         argument.Type.NamedType().Name,
                         true);
 
-                    await writer.WriteIndentAsync();
-                    await writer.WriteAsync("private ");
-                    await writer.WriteAsync(typeName);
-                    await writer.WriteSpaceAsync();
-                    await writer.WriteAsync("_value_");
-                    await writer.WriteAsync(GetFieldName(argument.Name));
-                    await writer.WriteAsync(';');
-                    await writer.WriteLineAsync();
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync("private ").ConfigureAwait(false);
+                    await writer.WriteAsync(typeName).ConfigureAwait(false);
+                    await writer.WriteSpaceAsync().ConfigureAwait(false);
+                    await writer.WriteAsync("_value_").ConfigureAwait(false);
+                    await writer.WriteAsync(GetFieldName(argument.Name)).ConfigureAwait(false);
+                    await writer.WriteAsync(';').ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
                 }
             }
         }
@@ -101,19 +113,29 @@ namespace StrawberryShake.Generators.CSharp
             IOperationDescriptor descriptor,
             ITypeLookup typeLookup)
         {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("public string Name => ");
-            await writer.WriteStringValueAsync(descriptor.Operation.Name.Value);
-            await writer.WriteAsync(';');
-            await writer.WriteLineAsync();
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync("public string Name => ").ConfigureAwait(false);
+            await writer.WriteStringValueAsync(
+                descriptor.Operation.Name.Value)
+                .ConfigureAwait(false);
+            await writer.WriteAsync(';').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("public IDocument Document => ");
-            await writer.WriteAsync(descriptor.Query.Name);
-            await writer.WriteAsync(".Default");
-            await writer.WriteAsync(';');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync("public IDocument Document => ").ConfigureAwait(false);
+            await writer.WriteAsync(descriptor.Query.Name).ConfigureAwait(false);
+            await writer.WriteAsync(".Default").ConfigureAwait(false);
+            await writer.WriteAsync(';').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
+
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync("public Type ResultType => ").ConfigureAwait(false);
+            await writer.WriteAsync(
+                $"typeof({descriptor.ResultType.Name});")
+                .ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
         private async Task WriteArgumentsAsync(
@@ -125,13 +147,14 @@ namespace StrawberryShake.Generators.CSharp
             {
                 if (i > 0)
                 {
-                    await writer.WriteLineAsync();
+                    await writer.WriteLineAsync().ConfigureAwait(false);
                 }
 
                 await WriteArgumentAsync(
                     writer,
                     descriptor.Arguments[i],
-                    typeLookup);
+                    typeLookup)
+                    .ConfigureAwait(false);
             }
         }
 
@@ -145,57 +168,57 @@ namespace StrawberryShake.Generators.CSharp
                 argument.Type.NamedType().Name,
                 true);
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("public ");
-            await writer.WriteAsync(typeName);
-            await writer.WriteSpaceAsync();
-            await writer.WriteAsync(GetPropertyName(argument.Name));
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync("public ").ConfigureAwait(false);
+            await writer.WriteAsync(typeName).ConfigureAwait(false);
+            await writer.WriteSpaceAsync().ConfigureAwait(false);
+            await writer.WriteAsync(GetPropertyName(argument.Name)).ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('{');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync('{').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync("get => ");
-                await writer.WriteAsync("_value_");
-                await writer.WriteAsync(GetFieldName(argument.Name));
-                await writer.WriteAsync(';');
-                await writer.WriteLineAsync();
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                await writer.WriteAsync("get => ").ConfigureAwait(false);
+                await writer.WriteAsync("_value_").ConfigureAwait(false);
+                await writer.WriteAsync(GetFieldName(argument.Name)).ConfigureAwait(false);
+                await writer.WriteAsync(';').ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync("set");
-                await writer.WriteLineAsync();
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                await writer.WriteAsync("set").ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync('{');
-                await writer.WriteLineAsync();
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                await writer.WriteAsync('{').ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
                 using (writer.IncreaseIndent())
                 {
-                    await writer.WriteIndentAsync();
-                    await writer.WriteAsync("_value_");
-                    await writer.WriteAsync(GetFieldName(argument.Name));
-                    await writer.WriteAsync(" = value;");
-                    await writer.WriteLineAsync();
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync("_value_").ConfigureAwait(false);
+                    await writer.WriteAsync(GetFieldName(argument.Name)).ConfigureAwait(false);
+                    await writer.WriteAsync(" = value;").ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
 
-                    await writer.WriteIndentAsync();
-                    await writer.WriteAsync("_modified_");
-                    await writer.WriteAsync(GetFieldName(argument.Name));
-                    await writer.WriteAsync(" = true;");
-                    await writer.WriteLineAsync();
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync("_modified_").ConfigureAwait(false);
+                    await writer.WriteAsync(GetFieldName(argument.Name)).ConfigureAwait(false);
+                    await writer.WriteAsync(" = true;").ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
                 }
 
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync('}');
-                await writer.WriteLineAsync();
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                await writer.WriteAsync('}').ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
             }
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('}');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync('}').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
         private async Task WriteVariablesAsync(
@@ -203,46 +226,60 @@ namespace StrawberryShake.Generators.CSharp
             IOperationDescriptor descriptor,
             ITypeLookup typeLookup)
         {
-            await writer.WriteIndentAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
             await writer.WriteAsync(
-                "public IReadOnlyList<VariableValue> GetVariableValues()");
-            await writer.WriteLineAsync();
+                "public IReadOnlyList<VariableValue> GetVariableValues()")
+                .ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('{');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync('{').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync(
-                    "var variables = new List<VariableValue>();");
-                await writer.WriteLineAsync();
-                await writer.WriteLineAsync();
-
-                for (int i = 0; i < descriptor.Arguments.Count; i++)
+                if (descriptor.Arguments.Count == 0)
                 {
-                    if (i > 0)
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync(
+                        "return Array.Empty<VariableValue>();")
+                        .ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
+                }
+                else
+                {
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync(
+                        "var variables = new List<VariableValue>();")
+                        .ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
+
+                    for (int i = 0; i < descriptor.Arguments.Count; i++)
                     {
-                        await writer.WriteLineAsync();
+                        if (i > 0)
+                        {
+                            await writer.WriteLineAsync().ConfigureAwait(false);
+                        }
+
+                        await WriteVariableAsync(
+                            writer,
+                            descriptor.Arguments[i],
+                            typeLookup)
+                            .ConfigureAwait(false);
                     }
 
-                    await WriteVariableAsync(
-                        writer,
-                        descriptor.Arguments[i],
-                        typeLookup);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
+
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync("return variables;").ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
                 }
-
-                await writer.WriteLineAsync();
-
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync("return variables;");
-                await writer.WriteLineAsync();
             }
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('}');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync('}').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
         private async Task WriteVariableAsync(
@@ -250,36 +287,36 @@ namespace StrawberryShake.Generators.CSharp
             Descriptors.IArgumentDescriptor argument,
             ITypeLookup typeLookup)
         {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("if(_modified_");
-            await writer.WriteAsync(GetFieldName(argument.Name));
-            await writer.WriteAsync(')');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync("if(_modified_").ConfigureAwait(false);
+            await writer.WriteAsync(GetFieldName(argument.Name)).ConfigureAwait(false);
+            await writer.WriteAsync(')').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('{');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync('{').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync("variables.Add(new VariableValue(");
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                await writer.WriteAsync("variables.Add(new VariableValue(").ConfigureAwait(false);
+                await writer.WriteStringValueAsync(argument.Name).ConfigureAwait(false);
+                await writer.WriteAsync(", ").ConfigureAwait(false);
                 await writer.WriteStringValueAsync(
-                    argument.Name);
-                await writer.WriteAsync(", ");
-                await writer.WriteStringValueAsync(
-                    argument.Type.NamedType().Name);
-                await writer.WriteAsync(", ");
-                await writer.WriteAsync(GetPropertyName(argument.Name));
-                await writer.WriteAsync(')');
-                await writer.WriteAsync(')');
-                await writer.WriteAsync(';');
-                await writer.WriteLineAsync();
+                    argument.Type.NamedType().Name)
+                    .ConfigureAwait(false);
+                await writer.WriteAsync(", ").ConfigureAwait(false);
+                await writer.WriteAsync(GetPropertyName(argument.Name)).ConfigureAwait(false);
+                await writer.WriteAsync(')').ConfigureAwait(false);
+                await writer.WriteAsync(')').ConfigureAwait(false);
+                await writer.WriteAsync(';').ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
             }
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('}');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync('}').ConfigureAwait(false);
+            await writer.WriteLineAsync().ConfigureAwait(false);
         }
     }
 }

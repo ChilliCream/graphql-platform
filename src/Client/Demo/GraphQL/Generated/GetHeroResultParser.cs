@@ -17,16 +17,14 @@ namespace StrawberryShake.Client
         {
             IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
 
-            if (!map.TryGetValue("Float", out IValueSerializer serializer))
-            {
+            if (!map.TryGetValue("Float", out IValueSerializer serializer)){
                 throw new ArgumentException(
                     "There is no serializer specified for `Float`.",
                     nameof(serializers));
             }
             _floatSerializer = serializer;
 
-            if (!map.TryGetValue("String", out serializer))
-            {
+            if (!map.TryGetValue("String", out  serializer)){
                 throw new ArgumentException(
                     "There is no serializer specified for `String`.",
                     nameof(serializers));
@@ -142,6 +140,7 @@ namespace StrawberryShake.Client
 
             return (double?)_floatSerializer.Serialize(value.GetDouble());
         }
+
         private string DeserializeString(JsonElement obj, string fieldName)
         {
             if (!obj.TryGetProperty(fieldName, out JsonElement value))
