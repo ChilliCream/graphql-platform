@@ -25,5 +25,26 @@ namespace StrawberryShake
 
             return map;
         }
+
+        public static IReadOnlyDictionary<Type, IResultParser> ToDictionary(
+            this IEnumerable<IResultParser> resultParsers)
+        {
+            if (resultParsers is null)
+            {
+                throw new ArgumentNullException(nameof(resultParsers));
+            }
+
+            var map = new Dictionary<Type, IResultParser>();
+
+            foreach (IResultParser resultParser in resultParsers)
+            {
+                if (!map.ContainsKey(resultParser.ResultType))
+                {
+                    map.Add(resultParser.ResultType, resultParser);
+                }
+            }
+
+            return map;
+        }
     }
 }

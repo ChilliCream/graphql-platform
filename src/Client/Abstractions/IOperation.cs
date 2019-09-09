@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace StrawberryShake
@@ -7,6 +8,8 @@ namespace StrawberryShake
         string Name { get; }
 
         IDocument Document { get; }
+
+        Type ResultType { get; }
 
         IReadOnlyList<VariableValue> GetVariableValues();
     }
