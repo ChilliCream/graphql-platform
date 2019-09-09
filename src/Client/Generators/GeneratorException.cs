@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using HotChocolate;
+using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
 namespace StrawberryShake.Generators
 {
@@ -10,7 +10,7 @@ namespace StrawberryShake.Generators
         : Exception
     {
         public GeneratorException(string message)
-            : this(ErrorBuilder.New().SetMessage(message).Build())
+            : this(HCErrorBuilder.New().SetMessage(message).Build())
         {
         }
 

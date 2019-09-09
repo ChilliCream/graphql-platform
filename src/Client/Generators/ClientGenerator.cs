@@ -13,6 +13,7 @@ using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.CSharp;
 using IOPath = System.IO.Path;
 using HCError = HotChocolate.IError;
+using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
 namespace StrawberryShake.Generators
 {
@@ -457,7 +458,7 @@ namespace StrawberryShake.Generators
                     {
                         foreach (HCError error in validationResult.Errors)
                         {
-                            errors.Add(ErrorBuilder.FromError(error)
+                            errors.Add(HCErrorBuilder.FromError(error)
                                 .SetExtension("fileName", documentInfo.FileName)
                                 .SetExtension("document", documentInfo.Document)
                                 .Build());

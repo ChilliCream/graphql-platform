@@ -3,12 +3,12 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
 using HotChocolate;
+using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
 namespace StrawberryShake.Generators
 {
@@ -63,7 +63,7 @@ namespace StrawberryShake.Generators
 
             if (operation != null)
             {
-                throw new GeneratorException(ErrorBuilder.New()
+                throw new GeneratorException(HCErrorBuilder.New()
                     .SetMessage("All operations have to have a name in order " +
                         "to work with Strawberry Shake. Check the specified " +
                         "operation and give it a name, then retry generating " +

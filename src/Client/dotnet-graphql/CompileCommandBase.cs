@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.IO;
-using System.Text.Json;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
-using HotChocolate;
 using HotChocolate.Language;
 using StrawberryShake.Generators;
 using IOPath = System.IO.Path;
 using HCError = HotChocolate.IError;
+using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
 namespace StrawberryShake.Tools
 {
@@ -187,9 +186,9 @@ namespace StrawberryShake.Tools
                 }
                 catch (SyntaxException ex)
                 {
-                    HCError error = ErrorBuilder.New()
+                    HCError error = HCErrorBuilder.New()
                         .SetMessage(ex.Message)
-                        .AddLocation(new HotChocolate.Location(ex.Line, ex.Column))
+                        .AddLocation(ex.Line, ex.Column)
                         .SetCode("SYNTAX_ERROR")
                         .SetExtension("fileName", file)
                         .Build();
