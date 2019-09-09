@@ -1,15 +1,13 @@
-﻿using System;
+﻿using System.Threading;
 using System.IO;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace StrawberryShake
 {
-    public interface IResultParser
+    public interface IResultParser<T>
+        : IResultParser
     {
-        Type ResultType { get; }
-
-        Task<IOperationResult> ParseAsync(
+        new Task<IOperationResult<T>> ParseAsync(
             Stream stream,
             CancellationToken cancellationToken);
     }

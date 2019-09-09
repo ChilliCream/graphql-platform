@@ -1,8 +1,8 @@
-using System.Collections.Generic;
 using System;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace StrawberryShake.Http
 {
@@ -26,6 +26,20 @@ namespace StrawberryShake.Http
             (byte)'r'
         };
 
+        private static readonly byte[] _extensions = new byte[]
+        {
+            (byte)'e',
+            (byte)'x',
+            (byte)'t',
+            (byte)'e',
+            (byte)'n',
+            (byte)'s',
+            (byte)'i',
+            (byte)'o',
+            (byte)'n',
+            (byte)'s',
+        };
+
         private static readonly byte[] _typename = new byte[]
         {
             (byte)'t',
@@ -40,24 +54,46 @@ namespace StrawberryShake.Http
 
         protected ReadOnlySpan<byte> TypeName => _typename;
 
-        public Task<T> ParseAsync(Stream stream)
+        public Type ResultType => typeof(T);
+
+        public Task<IOperationResult<T>> ParseAsync(
+            Stream stream,
+            CancellationToken cancellationToken)
         {
             if (stream is null)
             {
                 throw new ArgumentNullException(nameof(stream));
             }
 
-            return ParseInternalAsync(stream);
+            return ParseInternalAsync(stream, cancellationToken);
         }
 
-        private async Task<T> ParseInternalAsync(Stream stream)
+        async Task<IOperationResult> IResultParser.ParseAsync(
+            Stream stream,
+            CancellationToken cancellationToken) =>
+            await ParseAsync(stream, cancellationToken).ConfigureAwait(false);
+
+        private async Task<IOperationResult<T>> ParseInternalAsync(
+            Stream stream,
+            CancellationToken cancellationToken)
         {
-            using (JsonDocument document = await JsonDocument.ParseAsync(stream))
+            using (JsonDocument document = await JsonDocument.ParseAsync(stream)
+                .ConfigureAwait(false))
             {
                 if (document.RootElement.TryGetProperty(
                     _data, out JsonElement data))
                 {
-                    return ParserData(data);
+                    ParserData(data);
+                }
+
+                if (document.RootElement.TryGetProperty(
+                    _error, out JsonElement errors))
+                {
+                }
+
+                if (document.RootElement.TryGetProperty(
+                    _extensions, out JsonElement extensions))
+                {
                 }
             }
 
