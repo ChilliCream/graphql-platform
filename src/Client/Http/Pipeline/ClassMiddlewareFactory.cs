@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.Http.Middleware
+namespace StrawberryShake.Http.Pipeline
 {
     internal static class ClassMiddlewareFactory
     {

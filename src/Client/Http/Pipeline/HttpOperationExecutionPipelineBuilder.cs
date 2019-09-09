@@ -2,15 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.Http
+namespace StrawberryShake.Http.Pipeline
 {
-    public class HttpOperationExecutorBuilder
-        : IHttpOperationExecutorBuilder
+    public class HttpOperationExecutionPipelineBuilder
+        : IHttpOperationExecutionPipelineBuilder
     {
         private readonly Stack<OperationMiddleware> _components =
             new Stack<OperationMiddleware>();
 
-        public IHttpOperationExecutorBuilder Use(
+        public IHttpOperationExecutionPipelineBuilder Use(
             Func<OperationDelegate, OperationDelegate> middleware)
         {
             if (middleware is null)
@@ -22,7 +22,7 @@ namespace StrawberryShake.Http
             return this;
         }
 
-        public IHttpOperationExecutorBuilder Use(
+        public IHttpOperationExecutionPipelineBuilder Use(
             OperationMiddleware middleware)
         {
             if (middleware is null)

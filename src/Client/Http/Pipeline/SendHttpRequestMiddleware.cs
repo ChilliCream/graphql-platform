@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.Http.Middleware
+namespace StrawberryShake.Http.Pipeline
 {
     public class SendHttpRequestMiddleware
     {
