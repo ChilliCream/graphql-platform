@@ -1,7 +1,4 @@
-using System.Linq;
-using System.Collections.Generic;
 using System;
-using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,17 +9,20 @@ namespace StrawberryShake.Http
         : IOperationExecutor
     {
         private readonly HttpClient _client;
-        private readonly IOperationSerializer _serializer;
-        private readonly IReadOnlyDictionary<Type, IResultParser> _resultParsers;
+        private readonly OperationDelegate _executeOperation;
+        private readonly IServiceProvider _services;
 
         public HttpOperationExecutor(
             HttpClient client,
-            IOperationSerializer serializer,
-            IEnumerable<IResultParser> resultParsers)
+            OperationDelegate executeOperation,
+            IServiceProvider services)
         {
-            _client = client ?? throw new ArgumentNullException(nameof(client));
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
-            _resultParsers = resultParsers.ToDictionary();
+            _client = client
+                ?? throw new ArgumentNullException(nameof(client));
+            _executeOperation = executeOperation
+                ?? throw new ArgumentNullException(nameof(executeOperation));
+            _services = services
+                ?? throw new ArgumentNullException(nameof(services));
         }
 
         public Task<IOperationResult> ExecuteAsync(
@@ -63,42 +63,25 @@ namespace StrawberryShake.Http
             IOperation operation,
             CancellationToken cancellationToken)
         {
-            using (var request = new HttpRequestMessage(
-                HttpMethod.Post,
-                _client.BaseAddress))
+            var context = new HttpOperationContext(
+                operation, _client, _services, cancellationToken);
+
+            try
             {
-                using (var stream = new MemoryStream())
+                await _executeOperation(context).ConfigureAwait(false);
+                return context.Result;
+            }
+            finally
+            {
+                if (context.HttpResponse != null)
                 {
-                    await _serializer.SerializeAsync(operation, null, true, stream)
-                        .ConfigureAwait(false);
-                    request.Content = new ByteArrayContent(stream.ToArray());
+                    context.HttpResponse.Dispose();
                 }
 
-                request.Content.Headers.Add("Content-Type", "application/json");
-
-                HttpResponseMessage response = await _client.SendAsync(request)
-                    .ConfigureAwait(false);
-
-                return await HandleResult(operation.ResultType, response, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-        }
-
-        private async Task<IOperationResult> HandleResult(
-            Type resultType,
-            HttpResponseMessage response,
-            CancellationToken cancellationToken)
-        {
-            response.EnsureSuccessStatusCode();
-
-            // TOOD : throw error if not exists
-            IResultParser resultParser = _resultParsers[resultType];
-
-            using (var stream = await response.Content.ReadAsStreamAsync()
-                .ConfigureAwait(false))
-            {
-                return await resultParser.ParseAsync(stream, cancellationToken)
-                    .ConfigureAwait(false);
+                if (context.HttpRequest != null)
+                {
+                    context.HttpRequest.Dispose();
+                }
             }
         }
     }
