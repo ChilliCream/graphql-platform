@@ -1467,6 +1467,117 @@ namespace HotChocolate.Types
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Declare_Resolver_With_Result_Type_String()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(t => t
+                    .Name("Query")
+                    .Field("test")
+                    .Resolver(
+                        ctx => Task.FromResult<object>("abc"),
+                        typeof(string)))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Declare_Resolver_With_Result_Type_NativeTypeListOfInt()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(t => t
+                    .Name("Query")
+                    .Field("test")
+                    .Resolver(
+                        ctx => Task.FromResult<object>("abc"),
+                        typeof(NativeType<List<int>>)))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Declare_Resolver_With_Result_Type_ListTypeOfIntType()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(t => t
+                    .Name("Query")
+                    .Field("test")
+                    .Resolver(
+                        ctx => Task.FromResult<object>("abc"),
+                        typeof(ListType<IntType>)))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Declare_Resolver_With_Result_Type_Override_ListTypeOfIntType()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(t => t
+                    .Name("Query")
+                    .Field("test")
+                    .Type<StringType>()
+                    .Resolver(
+                        ctx => Task.FromResult<object>("abc"),
+                        typeof(ListType<IntType>)))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Declare_Resolver_With_Result_Type_Weak_Override_ListTypeOfIntType()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(t => t
+                    .Name("Query")
+                    .Field("test")
+                    .Type<StringType>()
+                    .Resolver(
+                        ctx => Task.FromResult<object>("abc"),
+                        typeof(int)))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Declare_Resolver_With_Result_Type_Is_Null()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(t => t
+                    .Name("Query")
+                    .Field("test")
+                    .Type<StringType>()
+                    .Resolver(
+                        ctx => Task.FromResult<object>("abc"),
+                        null))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public class GenericFoo<T>
         {
             public T Value { get; }
