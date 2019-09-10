@@ -37,18 +37,15 @@ namespace StrawberryShake.Client
     public class GetHeroOperation
         : IOperation<IGetHero>
     {
-
         public string Name => "getHero";
 
         public IDocument Document => Queries.Default;
 
+        public Type ResultType => typeof(IGetHero);
 
         public IReadOnlyList<VariableValue> GetVariableValues()
         {
-            var variables = new List<VariableValue>();
-
-
-            return variables;
+            return Array.Empty<VariableValue>();
         }
     }
 }
@@ -171,7 +168,7 @@ using StrawberryShake.Http;
 namespace StrawberryShake.Client
 {
     public class GetHeroResultParser
-        : GeneratedResultParserBase<IGetHero>
+        : JsonResultParserBase<IGetHero>
     {
         private readonly IValueSerializer _stringSerializer;
 
