@@ -3,7 +3,7 @@ jobs:
   pull-request:
     working_directory: /work
     docker:
-      - image: chillicream/dotnet-build:3.0
+      - image: chillicream/dotnet-build:4.0
     steps:
       - checkout
       - run:
