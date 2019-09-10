@@ -7,11 +7,11 @@ RUN wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsof
 
 RUN ls \
   && export PATH="$PATH:/root/.dotnet/tools" \
-  && dotnet tool install Cake.Tool -g --version 0.32.1
+  && dotnet tool install Cake.Tool -g --version 0.34.1
 
 FROM Build AS Finished
 
 COPY ./ /hc
 WORKDIR /hc
-RUN dotnet cake -target=SonarSlim
-
+RUN export PATH="$PATH:/root/.dotnet/tools" \
+  && dotnet cake -target=SonarSlim
