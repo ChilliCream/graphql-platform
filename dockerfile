@@ -14,4 +14,4 @@ FROM Build AS Finished
 COPY ./ /hc
 WORKDIR /hc
 RUN export PATH="$PATH:/root/.dotnet/tools" \
-  && dotnet cake -target=SonarSlim
+  && dotnet cake -target=CoreTests
