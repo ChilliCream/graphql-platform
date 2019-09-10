@@ -2,9 +2,13 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using HotChocolate;
+using HotChocolate.Types;
 using HotChocolate.AspNetCore.Tests.Utilities;
 using HotChocolate.Language;
-using Microsoft.AspNetCore.TestHost;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -801,6 +805,61 @@ namespace HotChocolate.AspNetCore
             Assert.Equal(HttpStatusCode.OK, message.StatusCode);
             byte[] json = await message.Content.ReadAsByteArrayAsync();
             Utf8GraphQLRequestParser.ParseJson(json).MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpPost_Ensure_Scoped_Services_Work()
+        {
+            // arrange
+            TestServer server = ServerFactory.Create(
+                services =>
+                {
+                    services.AddScoped<ScopedService>();
+                    services.AddGraphQL(SchemaBuilder.New()
+                        .AddQueryType(c => c
+                            .Name("Query")
+                            .Field("foo")
+                            .Resolver(ctx =>
+                            {
+                                ScopedService service = ctx.Service<ScopedService>();
+                                service.Increase();
+                                return service.Count;
+                            })));
+                },
+                app => app
+                    .Use(next => ctx =>
+                    {
+                        ScopedService service = ctx.RequestServices.GetService<ScopedService>();
+                        service.Increase();
+                        return next(ctx);
+                    })
+                    .UseGraphQL());
+
+            var request =
+                @"
+                    {
+                        foo
+                    }
+                ";
+            var contentType = "application/graphql";
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request, contentType, null);
+
+            // assert
+            ClientQueryResult result = await DeserializeAsync(message);
+            result.MatchSnapshot();
+        }
+
+        public class ScopedService
+        {
+            public int Count { get; private set; }
+
+            public void Increase()
+            {
+                Count += 1;
+            }
         }
     }
 }
