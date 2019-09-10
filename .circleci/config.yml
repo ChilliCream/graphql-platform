@@ -9,12 +9,12 @@ jobs:
       - run:
           name: Check that Templates Compile
           command: |
-            export PATH="$PATH:/root/.dotnet/tools" |
+            export PATH="$PATH:/root/.dotnet/tools"
             dotnet cake -target=TemplatesCompile
       - run:
           name: Pull Request Build
           command: |
-            export PATH="$PATH:/root/.dotnet/tools" |
+            export PATH="$PATH:/root/.dotnet/tools"
             dotnet cake -target=CoreTests
       - store_test_results:
           path: /work/testoutput
