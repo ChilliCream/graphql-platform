@@ -1,4 +1,4 @@
-﻿using HotChocolate.Language;
+using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Validation
@@ -110,9 +110,15 @@ namespace HotChocolate.Validation
             // assert
             Assert.True(result.HasErrors);
             Assert.Collection(result.Errors,
-                t => Assert.Equal(t.Message,
-                    "The type of fragment `notOnExistingType` " +
-                    "does not exist in the current schema."));
+                t =>
+                {
+                    Assert.Equal(
+                        "Unknown type `NotInSchema`.",
+                        t.Message);
+                    Assert.Equal(
+                        ErrorCodes.Validation.UnknownType,
+                        t.Code);
+                });
         }
 
         [Fact]
@@ -140,9 +146,15 @@ namespace HotChocolate.Validation
             // assert
             Assert.True(result.HasErrors);
             Assert.Collection(result.Errors,
-                t => Assert.Equal(t.Message,
-                    "The specified inline fragment " +
-                    "does not exist in the current schema."));
+                t =>
+                {
+                    Assert.Equal(
+                        "Unknown type `NotInSchema`.",
+                        t.Message);
+                    Assert.Equal(
+                        ErrorCodes.Validation.UnknownType,
+                        t.Code);
+                });
         }
     }
 }
