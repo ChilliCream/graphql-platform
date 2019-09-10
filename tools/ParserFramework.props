@@ -1,8 +1,8 @@
 <Project>
 
   <PropertyGroup>
-    <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">netcoreapp2.2; netstandard2.0; netstandard1.4;</TargetFrameworks>
-    <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">netcoreapp2.2; netstandard2.0; netstandard1.4; net462</TargetFrameworks>
+    <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">netcoreapp3.0; netcoreapp2.2; netstandard2.0; netstandard1.4;</TargetFrameworks>
+    <TargetFrameworks Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">netcoreapp3.0; netcoreapp2.2; netstandard2.0; netstandard1.4; net462</TargetFrameworks>
   </PropertyGroup>
 
 </Project>

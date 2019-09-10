@@ -5,7 +5,7 @@
   "Extensions": {},
   "Errors": [
     {
-      "Message": "Value cannot be null.\nParameter name: Error14",
+      "Message": "Value cannot be null. (Parameter 'Error14')",
       "Code": null,
       "Path": [
         "error14"

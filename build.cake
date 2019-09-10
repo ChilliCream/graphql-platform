@@ -1,7 +1,6 @@
-#addin "nuget:?package=Cake.Sonar&version=1.1.18"
-#addin "nuget:?package=Cake.FileHelpers&version=3.1.0"
-#addin "nuget:?package=Cake.NuGet&version=0.30.0"
-#tool "nuget:?package=MSBuild.SonarQube.Runner.Tool&version=4.3.1"
+#addin "nuget:?package=Cake.Sonar&version=1.1.22"
+#addin "nuget:?package=Cake.FileHelpers&version=3.2.1"
+#tool "nuget:?package=MSBuild.SonarQube.Runner.Tool&version=4.6.0"
 
 
 //////////////////////////////////////////////////////////////////////
@@ -113,19 +112,19 @@ Task("Publish")
     .Does(() =>
 {
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "./tools/Build.sln /t:restore /p:configuration=" + configuration }))
+        new ProcessSettings{ Arguments = "./tools/Build.Core.sln /t:restore /p:configuration=" + configuration }))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "./tools/Build.sln /t:build /p:configuration=" + configuration }))
+        new ProcessSettings{ Arguments = "./tools/Build.Core.sln /t:build /p:configuration=" + configuration }))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "./tools/Build.sln /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
+        new ProcessSettings{ Arguments = "./tools/Build.Core.sln /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
     {
         process.WaitForExit();
     }

@@ -11,7 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp2.2</TargetFramework>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
     <PackageId>StrawberryShake.Abstractions</PackageId>
     <AssemblyName>StrawberryShake.Abstractions</AssemblyName>
     <RootNamespace>StrawberryShake</RootNamespace>

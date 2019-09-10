@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp2.2</TargetFramework>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
     <RootNamespace>GreenDonut.Benchmarks</RootNamespace>
     <IsPackable>false</IsPackable>
     <AssemblyName>GreenDonut.Benchmarks</AssemblyName>
