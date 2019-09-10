@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.Http.Pipeline
+namespace StrawberryShake.Http.Pipelines
 {
     public class ParseSingleResultMiddleware
     {

@@ -3,7 +3,7 @@ using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.Http.Pipeline
+namespace StrawberryShake.Http.Pipelines
 {
     public class CreateStandardRequestMiddleware
     {

@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.Http.Pipeline
+namespace StrawberryShake.Http.Pipelines
 {
     public delegate Task OperationDelegate(IHttpOperationContext context);
 
