@@ -11,6 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp2.2</TargetFramework>
     <PackageId>HotChocolate.Types.Sorting</PackageId>
     <AssemblyName>HotChocolate.Types.Sorting</AssemblyName>
     <RootNamespace>HotChocolate.Types.Sorting</RootNamespace>

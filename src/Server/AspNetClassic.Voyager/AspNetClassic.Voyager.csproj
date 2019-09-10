@@ -11,6 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">net461</TargetFramework>
     <AssemblyName>HotChocolate.AspNetClassic.Voyager</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic.Voyager</RootNamespace>
     <PackageId>HotChocolate.AspNetClassic.Voyager</PackageId>

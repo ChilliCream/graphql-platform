@@ -8,7 +8,7 @@ using HotChocolate.Stitching.Properties;
 
 namespace HotChocolate.Stitching.Merge
 {
-    internal class AddSchemaExtensionRewriter
+    public class AddSchemaExtensionRewriter
         : SchemaSyntaxRewriter<AddSchemaExtensionRewriter.MergeContext>
     {
         public DocumentNode AddExtensions(

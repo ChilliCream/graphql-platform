@@ -1,0 +1,27 @@
+query getHero {
+  hero {
+    ...Hero
+  }
+}
+
+fragment Hero on Character {
+  ...HasName
+  ...HasFriends
+  height
+}
+
+fragment Friend on CharacterConnection {
+  nodes {
+    ...HasName
+  }
+}
+
+fragment HasName on Character {
+  name
+}
+
+fragment HasFriends on Character {
+  friends {
+    ...Friend
+  }
+}

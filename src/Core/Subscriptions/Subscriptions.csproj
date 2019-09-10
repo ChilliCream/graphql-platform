@@ -11,13 +11,14 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp2.2</TargetFramework>
     <PackageId>HotChocolate.Subscriptions</PackageId>
     <AssemblyName>HotChocolate.Subscriptions</AssemblyName>
     <RootNamespace>HotChocolate.Subscriptions</RootNamespace>
     <Description>Contains Hot Chocolate GraphQL subscriptions abstractions.</Description>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+  <ItemGroup Condition="'$(TargetFramework)' != 'net461'">
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
   </ItemGroup>
 

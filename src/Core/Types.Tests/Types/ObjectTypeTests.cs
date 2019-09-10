@@ -1713,5 +1713,12 @@ namespace HotChocolate.Types
         {
             public MyList List { get; set; }
         }
+
+        public class FooWithNullable
+        {
+            public bool? Bar { get; set; }
+
+            public List<bool?> Bars { get; set; }
+        }
     }
 }

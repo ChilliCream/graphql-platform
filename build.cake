@@ -399,6 +399,34 @@ Task("HC_Stitching_Tests")
     }
 });
 
+Task("HC_Client_Tests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/hc_stitching_{i++}\" --blame")
+    };
+
+    foreach(var file in GetFiles("./src/Client/**/*.Tests.csproj"))
+    {
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
 Task("SonarBegin")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>

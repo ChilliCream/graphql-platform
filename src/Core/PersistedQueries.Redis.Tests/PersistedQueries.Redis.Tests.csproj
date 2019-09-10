@@ -10,7 +10,10 @@
   <Import Project="$(ChilliFramework)" />
   <Import Project="$(ChilliBuild)" />
 
+
+
   <PropertyGroup>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp2.2</TargetFramework>
     <AssemblyName>HotChocolate.PersistedQueries.Redis.Tests</AssemblyName>
     <RootNamespace>HotChocolate.PersistedQueries.Redis</RootNamespace>
   </PropertyGroup>
