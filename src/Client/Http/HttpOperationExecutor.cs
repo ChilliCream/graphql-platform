@@ -86,4 +86,22 @@ namespace StrawberryShake.Http
             }
         }
     }
+
+    public class HttpOperationExecutorBuilder
+    {
+        public HttpOperationExecutorBuilder SetClient()
+        {
+
+        }
+
+        public HttpOperationExecutorBuilder SetServices(IServiceProvider services)
+        {
+
+        }
+
+        public HttpOperationExecutorBuilder Use(Func<OperationDelegate, OperationDelegate> middleware);
+
+        HttpOperationExecutorBuilder Use(OperationMiddleware middleware);
+
+    }
 }
