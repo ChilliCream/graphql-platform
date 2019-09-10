@@ -7,14 +7,15 @@ jobs:
     steps:
       - checkout
       - run:
-          name: Export Tools Path
-          command: export PATH="$PATH:/root/.dotnet/tools"
-      - run:
           name: Check that Templates Compile
-          command: dotnet cake -target=TemplatesCompile
+          command: |
+            export PATH="$PATH:/root/.dotnet/tools" |
+            dotnet cake -target=TemplatesCompile
       - run:
           name: Pull Request Build
-          command: dotnet cake -target=CoreTests
+          command: |
+            export PATH="$PATH:/root/.dotnet/tools" |
+            dotnet cake -target=CoreTests
       - store_test_results:
           path: /work/testoutput
       - store_artifacts:
