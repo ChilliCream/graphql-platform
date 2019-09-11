@@ -46,9 +46,9 @@ namespace StrawberryShake.Http.Utilities
             _services = services.ToDictionary(t => t.Key, t => t.Value);
         }
 
-        public object GetService(Type serviceType)
+        public object? GetService(Type serviceType)
         {
-            if (_services.TryGetValue(serviceType, out object service))
+            if (_services.TryGetValue(serviceType, out object? service))
             {
                 return service;
             }

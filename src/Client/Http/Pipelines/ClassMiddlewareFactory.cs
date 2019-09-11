@@ -26,7 +26,7 @@ namespace StrawberryShake.Http.Pipelines
             }
 
             TypeInfo classMiddlewareTypeInfo = classMiddlewareType.GetTypeInfo();
-            MethodInfo invokeMethod = classMiddlewareTypeInfo.GetDeclaredMethod("InvokeAsync")
+            MethodInfo? invokeMethod = classMiddlewareTypeInfo.GetDeclaredMethod("InvokeAsync")
                 ?? classMiddlewareTypeInfo.GetDeclaredMethod("Invoke");
 
             if (invokeMethod is null)
@@ -139,7 +139,7 @@ namespace StrawberryShake.Http.Pipelines
             foreach (ParameterInfo parameter in parameters)
             {
                 if (custom.TryGetValue(parameter.ParameterType,
-                    out Expression expression))
+                    out Expression? expression))
                 {
                     yield return expression;
                 }

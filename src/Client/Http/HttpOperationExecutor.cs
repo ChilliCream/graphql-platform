@@ -70,6 +70,13 @@ namespace StrawberryShake.Http
             try
             {
                 await _executeOperation(context).ConfigureAwait(false);
+
+                if (context.Result is null)
+                {
+                    // todo : resources
+                    throw new InvalidOperationException();
+                }
+
                 return context.Result;
             }
             finally

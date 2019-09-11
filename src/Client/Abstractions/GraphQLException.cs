@@ -23,18 +23,30 @@ namespace StrawberryShake
             Errors = errors;
         }
 
-        public GraphQLException() { }
+        public GraphQLException()
+        {
+            Errors = Array.Empty<IError>();
+        }
 
         public GraphQLException(string message)
-            : base(message) { }
+            : base(message)
+        {
+            Errors = Array.Empty<IError>();
+        }
 
         public GraphQLException(string message, Exception inner)
-            : base(message, inner) { }
+            : base(message, inner)
+        {
+            Errors = Array.Empty<IError>();
+        }
 
         protected GraphQLException(
             SerializationInfo info,
             StreamingContext context)
-            : base(info, context) { }
+            : base(info, context)
+        {
+            Errors = Array.Empty<IError>();
+        }
 
         public IReadOnlyList<IError> Errors { get; }
 

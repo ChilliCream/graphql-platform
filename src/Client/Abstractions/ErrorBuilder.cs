@@ -7,8 +7,8 @@ namespace StrawberryShake
     public class ErrorBuilder
     {
         private Error _error = new Error();
-        private List<Location> _locations;
-        private Dictionary<string, object> _extensions;
+        private List<Location>? _locations;
+        private Dictionary<string, object?>? _extensions;
         private bool _dirty;
 
         public ErrorBuilder()
@@ -39,14 +39,14 @@ namespace StrawberryShake
             return this;
         }
 
-        public ErrorBuilder SetCode(string code)
+        public ErrorBuilder SetCode(string? code)
         {
             return code is null
                 ? RemoveExtension(ErrorFields.Code)
                 : SetExtension(ErrorFields.Code, code);
         }
 
-        public ErrorBuilder SetPath(IReadOnlyList<object> path)
+        public ErrorBuilder SetPath(IReadOnlyList<object>? path)
         {
             CheckIfDirty();
             _error.Path = path;
@@ -64,7 +64,7 @@ namespace StrawberryShake
 
             CheckIfDirty();
             InitializeLocations();
-            _locations.Add(location);
+            _locations!.Add(location);
             return this;
         }
 
@@ -96,18 +96,18 @@ namespace StrawberryShake
         }
 
 
-        public ErrorBuilder SetException(Exception exception)
+        public ErrorBuilder SetException(Exception? exception)
         {
             CheckIfDirty();
             _error.Exception = exception;
             return this;
         }
 
-        public ErrorBuilder SetExtension(string key, object value)
+        public ErrorBuilder SetExtension(string key, object? value)
         {
             CheckIfDirty();
             InitializeExtensions();
-            _extensions[key] = value;
+            _extensions![key] = value;
             return this;
         }
 
@@ -115,7 +115,7 @@ namespace StrawberryShake
         {
             CheckIfDirty();
             InitializeExtensions();
-            _extensions.Remove(key);
+            _extensions!.Remove(key);
             return this;
         }
 
@@ -157,7 +157,7 @@ namespace StrawberryShake
             var builder = ErrorBuilder.New();
             builder.SetMessage((string)dict[ErrorFields.Message]);
 
-            if (dict.TryGetValue(ErrorFields.Extensions, out object obj)
+            if (dict.TryGetValue(ErrorFields.Extensions, out object? obj)
                 && obj is IDictionary<string, object> extensions)
             {
                 foreach (var item in extensions)
@@ -203,7 +203,7 @@ namespace StrawberryShake
             if (_extensions is null)
             {
                 _extensions = _error.Extensions is null
-                    ? new Dictionary<string, object>()
+                    ? new Dictionary<string, object?>()
                     : _error.Extensions.ToDictionary(t => t.Key, t => t.Value);
                 _error.Extensions = _extensions;
             }

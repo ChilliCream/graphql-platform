@@ -8,7 +8,7 @@ namespace StrawberryShake.Http
     public class HttpOperationContext
         : IHttpOperationContext
     {
-        private Dictionary<string, object> _contextData;
+        private Dictionary<string, object>? _contextData;
 
         public HttpOperationContext(
             IOperation operation,
@@ -24,11 +24,11 @@ namespace StrawberryShake.Http
 
         public IOperation Operation { get; }
 
-        public IOperationResult Result { get; set; }
+        public IOperationResult? Result { get; set; }
 
-        public HttpRequestMessage HttpRequest { get; set; }
+        public HttpRequestMessage? HttpRequest { get; set; }
 
-        public HttpResponseMessage HttpResponse { get; set; }
+        public HttpResponseMessage? HttpResponse { get; set; }
 
         public IDictionary<string, object> ContextData
         {

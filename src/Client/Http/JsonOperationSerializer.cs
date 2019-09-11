@@ -86,7 +86,7 @@ namespace StrawberryShake.Http
                 {
                     if (!_serializers.TryGetValue(
                         variableValue.TypeName,
-                        out IValueSerializer serializer))
+                        out IValueSerializer? serializer))
                     {
                         throw new SerializerNotFoundException(
                             variableValue.TypeName);
@@ -103,15 +103,15 @@ namespace StrawberryShake.Http
             return null;
         }
 
-        private object SerializeVariable(
-            object obj,
+        private object? SerializeVariable(
+            object? obj,
             IValueSerializer serializer)
         {
             if (obj is IList list)
             {
-                var serialized = new List<object>();
+                var serialized = new List<object?>();
 
-                foreach (object element in list)
+                foreach (object? element in list)
                 {
                     serialized.Add(SerializeVariable(element, serializer));
                 }

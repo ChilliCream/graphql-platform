@@ -19,29 +19,29 @@ namespace StrawberryShake
         /// process an error.
         /// This property is optional and can be null.
         /// </summary>
-        string Code { get; }
+        string? Code { get; }
 
         /// <summary>
         /// Gets the path to the object that caused the error.
         /// This property is optional and can be null.
         /// </summary>
-        IReadOnlyList<object> Path { get; }
+        IReadOnlyList<object>? Path { get; }
 
         /// <summary>
         /// Gets the source text positions to which this error refers to.
         /// This property is optional and can be null.
         /// </summary>
-        IReadOnlyList<Location> Locations { get; }
+        IReadOnlyList<Location>? Locations { get; }
 
         /// <summary>
         /// Gets the exception associated with this error.
         /// </summary>
-        Exception Exception { get; }
+        Exception? Exception { get; }
 
         /// <summary>
         /// Gets non-spec error properties.
         /// This property is optional and can be null.
         /// </summary>
-        IReadOnlyDictionary<string, object> Extensions { get; }
+        IReadOnlyDictionary<string, object?>? Extensions { get; }
     }
 }

@@ -9,7 +9,7 @@ namespace StrawberryShake
 
         public IReadOnlyList<IError> Errors { get; set; }
 
-        public IReadOnlyDictionary<string, object> Extensions { get; set; }
+        public IReadOnlyDictionary<string, object?> Extensions { get; set; }
 
         object IOperationResult.Data => Data;
 
