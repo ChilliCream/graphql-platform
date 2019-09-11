@@ -15,6 +15,7 @@
     <PackageId>StrawberryShake.Http</PackageId>
     <AssemblyName>StrawberryShake.Http</AssemblyName>
     <RootNamespace>StrawberryShake.Http</RootNamespace>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

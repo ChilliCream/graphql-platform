@@ -16,12 +16,12 @@ namespace HotChocolate.Language
         }
 
         public GraphQLRequest(
-            DocumentNode query,
-            string queryName,
-            string queryHash,
-            string operationName,
-            IReadOnlyDictionary<string, object> variables,
-            IReadOnlyDictionary<string, object> extensions)
+            DocumentNode? query,
+            string? queryName,
+            string? queryHash,
+            string? operationName,
+            IReadOnlyDictionary<string, object>? variables,
+            IReadOnlyDictionary<string, object>? extensions)
         {
             if (query is null && queryName is null)
             {
@@ -36,16 +36,16 @@ namespace HotChocolate.Language
             Extensions = extensions;
         }
 
-        public DocumentNode Query { get; }
+        public DocumentNode? Query { get; }
 
-        public string QueryName { get; }
+        public string? QueryName { get; }
 
-        public string QueryHash { get; }
+        public string? QueryHash { get; }
 
-        public string OperationName { get; }
+        public string? OperationName { get; }
 
-        public IReadOnlyDictionary<string, object> Variables { get; }
+        public IReadOnlyDictionary<string, object>? Variables { get; }
 
-        public IReadOnlyDictionary<string, object> Extensions { get; }
+        public IReadOnlyDictionary<string, object>? Extensions { get; }
     }
 }
