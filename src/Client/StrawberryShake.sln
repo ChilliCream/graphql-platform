@@ -3,33 +3,33 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29209.62
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Generators", "Generators\Generators.csproj", "{B612718F-C1B9-46BC-BC0C-2BA1B7D1E7EE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Generators", "Generators\Generators.csproj", "{B612718F-C1B9-46BC-BC0C-2BA1B7D1E7EE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Generators.Tests", "Generators.Tests\Generators.Tests.csproj", "{7773E0E5-E30F-4E19-813F-4C786DA73E84}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Generators.Tests", "Generators.Tests\Generators.Tests.csproj", "{7773E0E5-E30F-4E19-813F-4C786DA73E84}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "referenced", "referenced", "{221C2F3F-C438-446F-AB2F-DA35447FC69F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Language", "..\Core\Language\Language.csproj", "{4F515CD7-6A42-4140-AB66-CFB14A1A26EF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Language", "..\Core\Language\Language.csproj", "{4F515CD7-6A42-4140-AB66-CFB14A1A26EF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Types", "..\Core\Types\Types.csproj", "{F2EFEA97-FE45-4FB5-9854-7B2254221531}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Types", "..\Core\Types\Types.csproj", "{F2EFEA97-FE45-4FB5-9854-7B2254221531}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GreenDonut", "..\DataLoader\Core\GreenDonut.csproj", "{F8990120-CA95-4DA6-B0FA-158AF4E58633}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut", "..\DataLoader\Core\GreenDonut.csproj", "{F8990120-CA95-4DA6-B0FA-158AF4E58633}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Utilities", "..\Core\Utilities\Utilities.csproj", "{CBBD223D-BC08-4F57-A2EB-603837ADD9F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Utilities", "..\Core\Utilities\Utilities.csproj", "{CBBD223D-BC08-4F57-A2EB-603837ADD9F0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Abstractions", "..\Core\Abstractions\Abstractions.csproj", "{820D1C91-5F64-44BE-A980-58BC0A4F830B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Abstractions", "..\Core\Abstractions\Abstractions.csproj", "{820D1C91-5F64-44BE-A980-58BC0A4F830B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Subscriptions", "..\Core\Subscriptions\Subscriptions.csproj", "{0069628F-D881-4053-904B-075A1BD27692}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Subscriptions", "..\Core\Subscriptions\Subscriptions.csproj", "{0069628F-D881-4053-904B-075A1BD27692}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "..\Core\Core\Core.csproj", "{37E8CC3C-A52F-429D-BA6E-CBB1BE7057D1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "..\Core\Core\Core.csproj", "{37E8CC3C-A52F-429D-BA6E-CBB1BE7057D1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Abstractions", "Abstractions\Abstractions.csproj", "{81D2B39A-F400-4EF0-9D5F-AC939BBB6372}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Abstractions", "Abstractions\Abstractions.csproj", "{81D2B39A-F400-4EF0-9D5F-AC939BBB6372}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http", "Http\Http.csproj", "{3421F7FF-5562-4F4E-B8D1-F7ED984FC2E6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Http", "Http\Http.csproj", "{3421F7FF-5562-4F4E-B8D1-F7ED984FC2E6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo", "Demo\Demo.csproj", "{C2BAE857-1FFF-4BD7-A4A3-E94820A1A68D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Demo", "Demo\Demo.csproj", "{C2BAE857-1FFF-4BD7-A4A3-E94820A1A68D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "dotnet-graphql", "dotnet-graphql\dotnet-graphql.csproj", "{77B58A25-3B54-4E00-B034-D1BEDBE25FA6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-graphql", "dotnet-graphql\dotnet-graphql.csproj", "{77B58A25-3B54-4E00-B034-D1BEDBE25FA6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
