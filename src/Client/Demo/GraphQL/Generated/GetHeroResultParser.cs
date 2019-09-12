@@ -55,8 +55,8 @@ namespace StrawberryShake.Client
             if (string.Equals(type, "Droid", StringComparison.Ordinal))
             {
                 var droid = new Droid();
-                droid.Height = DeserializeFloat(obj, "height");
-                droid.Name = DeserializeString(obj, "name");
+                droid.Height = DeserializeNullableFloat(obj, "height");
+                droid.Name = DeserializeNullableString(obj, "name");
                 droid.Friends = ParseRootHeroFriends(obj, "friends");
                 return droid;
             }
@@ -64,8 +64,8 @@ namespace StrawberryShake.Client
             if (string.Equals(type, "Human", StringComparison.Ordinal))
             {
                 var human = new Human();
-                human.Height = DeserializeFloat(obj, "height");
-                human.Name = DeserializeString(obj, "name");
+                human.Height = DeserializeNullableFloat(obj, "height");
+                human.Name = DeserializeNullableString(obj, "name");
                 human.Friends = ParseRootHeroFriends(obj, "friends");
                 return human;
             }
@@ -107,7 +107,7 @@ namespace StrawberryShake.Client
                 {
                     JsonElement element = obj[objIndex];
                     var entity = new Droid();
-                    entity.Name = DeserializeString(element, "name");
+                    entity.Name = DeserializeNullableString(element, "name");
                     list[objIndex] = entity;
                 }
 
@@ -123,7 +123,7 @@ namespace StrawberryShake.Client
                 {
                     JsonElement element = obj[objIndex];
                     var entity = new Human();
-                    entity.Name = DeserializeString(element, "name");
+                    entity.Name = DeserializeNullableString(element, "name");
                     list[objIndex] = entity;
                 }
 
@@ -133,24 +133,36 @@ namespace StrawberryShake.Client
             throw new UnknownSchemaTypeException(type);
         }
 
-        private double? DeserializeFloat(JsonElement obj, string fieldName)
+        private double? DeserializeNullableFloat(JsonElement obj, string fieldName)
         {
             if (!obj.TryGetProperty(fieldName, out JsonElement value))
             {
                 return null;
             }
+
+            if (value.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
 
             return (double?)_floatSerializer.Serialize(value.GetDouble());
         }
 
-        private string DeserializeString(JsonElement obj, string fieldName)
+        private string? DeserializeNullableString(JsonElement obj, string fieldName)
         {
             if (!obj.TryGetProperty(fieldName, out JsonElement value))
             {
                 return null;
             }
 
-            return (string)_stringSerializer.Serialize(value.GetString());
+            if (value.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
+
+            return (string?)_stringSerializer.Serialize(value.GetString());
         }
     }
 }

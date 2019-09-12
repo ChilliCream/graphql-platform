@@ -23,18 +23,7 @@ namespace StrawberryShake.Generators.CSharp
                 { typeof(ulong), "ulong" },
                 { typeof(decimal), "decimal" },
                 { typeof(float), "float" },
-                { typeof(double), "double" },
-                { typeof(bool?), "bool?" },
-                { typeof(byte?), "byte?" },
-                { typeof(short?), "short?" },
-                { typeof(int?), "int?" },
-                { typeof(long?), "long?" },
-                { typeof(ushort?), "ushort?" },
-                { typeof(uint?), "uint?" },
-                { typeof(ulong?), "ulong?" },
-                { typeof(decimal?), "decimal?" },
-                { typeof(float?), "float?" },
-                { typeof(double?), "double?" }
+                { typeof(double), "double" }
             };
 
         private readonly IReadOnlyDictionary<string, LeafTypeInfo> _leafTypes;
@@ -104,37 +93,11 @@ namespace StrawberryShake.Generators.CSharp
             return BuildType(typeName, fieldType, readOnly);
         }
 
-        public ITypeInfo GetTypeInfo(IType fieldType, bool readOnly)
-        {
-            INamedType namedType = fieldType.NamedType();
-
-            if (namedType.IsLeafType())
-            {
-                if (!_leafTypes.TryGetValue(namedType.Name, out LeafTypeInfo type))
-                {
-                    throw new NotSupportedException(
-                        $"Leaf type `{namedType.Name}` is not supported.");
-                }
-
-                var typeInfo = new TypeInfo();
-                typeInfo.Type = fieldType;
-                typeInfo.SchemaTypeName = namedType.Name;
-                typeInfo.SerializationType = type.SerializationType;
-
-                BuildTypeInfo(type.ClrType, fieldType, readOnly, typeInfo);
-
-                return typeInfo;
-            }
-
-            throw new NotSupportedException(
-                "Type infos are only supported for leaf types.");
-        }
-
         public string GetTypeName(IType fieldType, string typeName, bool readOnly)
         {
             if (fieldType.NamedType() is ScalarType scalarType)
             {
-                if (!_leafTypes.TryGetValue(scalarType.Name, out LeafTypeInfo type))
+                if (!_leafTypes.TryGetValue(scalarType.Name, out LeafTypeInfo? type))
                 {
                     throw new NotSupportedException(
                         $"Scalar type `{scalarType.Name}` is not supported.");
@@ -145,12 +108,41 @@ namespace StrawberryShake.Generators.CSharp
             return BuildType(typeName, fieldType, readOnly);
         }
 
-        private static string BuildType(Type type, IType fieldType, bool readOnly)
+        public ITypeInfo GetTypeInfo(IType fieldType, bool readOnly)
         {
-            return GetTypeName(BuildType(type, fieldType, true, readOnly));
+            INamedType namedType = fieldType.NamedType();
+
+            if (namedType.IsLeafType())
+            {
+                if (!_leafTypes.TryGetValue(namedType.Name, out LeafTypeInfo? type))
+                {
+                    throw new NotSupportedException(
+                        $"Leaf type `{namedType.Name}` is not supported.");
+                }
+
+                var typeInfo = new TypeInfo
+                (
+                    BuildType(type.ClrType, fieldType, readOnly),
+                    namedType.Name,
+                    type.SerializationType,
+                    fieldType
+                );
+
+                BuildTypeInfo(type.ClrType, fieldType, readOnly, typeInfo);
+
+                return typeInfo;
+            }
+
+            throw new NotSupportedException(
+                "Type infos are only supported for leaf types.");
         }
 
-        private static Type BuildType(Type type, IType fieldType, bool nullable, bool readOnly)
+        private string BuildType(Type type, IType fieldType, bool readOnly)
+        {
+            return BuildType(type, fieldType, true, readOnly);
+        }
+
+        private string BuildType(Type type, IType fieldType, bool nullable, bool readOnly)
         {
             if (fieldType is NonNullType nnt)
             {
@@ -159,27 +151,31 @@ namespace StrawberryShake.Generators.CSharp
 
             if (fieldType is ListType lt)
             {
-                Type elementType = BuildType(type, lt.ElementType, true, readOnly);
+                string elementType = BuildType(type, lt.ElementType, true, readOnly);
 
                 return readOnly
-                    ? typeof(IReadOnlyList<>).MakeGenericType(elementType)
-                    : typeof(List<>).MakeGenericType(elementType);
+                    ? string.Format("IReadOnlyList<{0}>", elementType)
+                    : string.Format("List<{0}>", elementType);
             }
 
-            return nullable && type.IsValueType
-                ? typeof(Nullable<>).MakeGenericType(type)
-                : type;
+            if (_languageVersion == LanguageVersion.CSharp_7_3)
+            {
+                return nullable && type.IsValueType
+                    ? GetTypeName(type) + "?"
+                    : GetTypeName(type);
+            }
+
+            return nullable
+                ? GetTypeName(type) + "?"
+                : GetTypeName(type);
         }
 
-        private static void BuildTypeInfo(
+        private void BuildTypeInfo(
             Type type,
             IType fieldType,
             bool readOnly,
-            TypeInfo typeInfo)
-        {
-            typeInfo.ClrTypeName = BuildType(type, fieldType, readOnly);
-            BuildType(type, fieldType, true, readOnly);
-        }
+            TypeInfo typeInfo) =>
+            BuildTypeInfo(type, fieldType, true, readOnly, typeInfo);
 
         private static void BuildTypeInfo(
             Type type,
@@ -225,12 +221,7 @@ namespace StrawberryShake.Generators.CSharp
 
         private static string GetTypeName(Type type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (_aliases.TryGetValue(type, out string alias))
+            if (_aliases.TryGetValue(type, out string? alias))
             {
                 return alias;
             }
@@ -251,7 +242,7 @@ namespace StrawberryShake.Generators.CSharp
 
         private static string CreateTypeName(Type type, string typeName)
         {
-            string ns = GetNamespace(type);
+            string? ns = GetNamespace(type);
             if (ns == null)
             {
                 return typeName;
@@ -259,28 +250,42 @@ namespace StrawberryShake.Generators.CSharp
             return $"{ns}.{typeName}";
         }
 
-        private static string GetNamespace(Type type)
+        private static string? GetNamespace(Type type)
         {
             if (type.IsNested)
             {
-                return $"{GetNamespace(type.DeclaringType)}.{type.DeclaringType.Name}";
+                Type declaringType = type.DeclaringType!;
+                return $"{GetNamespace(declaringType!)}.{declaringType.Name}";
             }
             return type.Namespace;
         }
 
-        private class TypeInfo : ITypeInfo
+        private class TypeInfo
+            : ITypeInfo
         {
-            public string ClrTypeName { get; set; }
+            public TypeInfo(
+                string clrTypeName,
+                string schemaTypeName,
+                Type serializationType,
+                IType type)
+            {
+                ClrTypeName = clrTypeName;
+                SchemaTypeName = schemaTypeName;
+                SerializationType = serializationType;
+                Type = type;
+            }
 
-            public string SchemaTypeName { get; set; }
+            public string ClrTypeName { get; }
 
-            public Type SerializationType { get; set; }
+            public string SchemaTypeName { get; }
+
+            public Type SerializationType { get; }
+
+            public IType Type { get; }
 
             public int ListLevel { get; set; }
 
             public bool IsNullable { get; set; }
-
-            public IType Type { get; set; }
 
             public bool IsValueType { get; set; }
         }

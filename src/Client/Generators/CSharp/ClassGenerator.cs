@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -47,37 +46,36 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteAsync("{").ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
 
-            writer.IncreaseIndent();
-
-            for (int i = 0; i < descriptor.Fields.Count; i++)
+            using (writer.IncreaseIndent())
             {
-                IFieldDescriptor fieldDescriptor = descriptor.Fields[i];
-
-                string typeName = typeLookup.GetTypeName(
-                    fieldDescriptor.Selection,
-                    fieldDescriptor.Type,
-                    true);
-
-                string propertyName = GetPropertyName(fieldDescriptor.ResponseName);
-                bool isListType = fieldDescriptor.Type.IsListType();
-
-                if (i > 0)
+                for (int i = 0; i < descriptor.Fields.Count; i++)
                 {
+                    IFieldDescriptor fieldDescriptor = descriptor.Fields[i];
+
+                    string typeName = typeLookup.GetTypeName(
+                        fieldDescriptor.Selection,
+                        fieldDescriptor.Type,
+                        true);
+
+                    string propertyName = GetPropertyName(fieldDescriptor.ResponseName);
+                    bool isListType = fieldDescriptor.Type.IsListType();
+
+                    if (i > 0)
+                    {
+                        await writer.WriteLineAsync().ConfigureAwait(false);
+                    }
+
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync("public").ConfigureAwait(false);
+                    await writer.WriteSpaceAsync().ConfigureAwait(false);
+                    await writer.WriteAsync(typeName).ConfigureAwait(false);
+                    await writer.WriteSpaceAsync().ConfigureAwait(false);
+                    await writer.WriteAsync(propertyName).ConfigureAwait(false);
+                    await writer.WriteSpaceAsync().ConfigureAwait(false);
+                    await writer.WriteAsync("{ get; set; }").ConfigureAwait(false);
                     await writer.WriteLineAsync().ConfigureAwait(false);
                 }
-
-                await writer.WriteIndentAsync().ConfigureAwait(false);
-                await writer.WriteAsync("public").ConfigureAwait(false);
-                await writer.WriteSpaceAsync().ConfigureAwait(false);
-                await writer.WriteAsync(typeName).ConfigureAwait(false);
-                await writer.WriteSpaceAsync().ConfigureAwait(false);
-                await writer.WriteAsync(propertyName).ConfigureAwait(false);
-                await writer.WriteSpaceAsync().ConfigureAwait(false);
-                await writer.WriteAsync("{ get; set; }").ConfigureAwait(false);
-                await writer.WriteLineAsync().ConfigureAwait(false);
             }
-
-            writer.DecreaseIndent();
 
             await writer.WriteIndentAsync().ConfigureAwait(false);
             await writer.WriteAsync("}").ConfigureAwait(false);

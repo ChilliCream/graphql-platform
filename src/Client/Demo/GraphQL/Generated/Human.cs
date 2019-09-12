@@ -10,7 +10,7 @@ namespace StrawberryShake.Client
     {
         public double? Height { get; set; }
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         public IFriend Friends { get; set; }
     }
