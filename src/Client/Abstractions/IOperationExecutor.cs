@@ -11,6 +11,7 @@ namespace StrawberryShake
 
         Task<IOperationResult<T>> ExecuteAsync<T>(
             IOperation<T> operation,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken)
+            where T : class;
     }
 }

@@ -409,9 +409,6 @@ namespace StrawberryShake.Generators.CSharp
                     string deserializeMethod =
                         ResultParserDeserializeMethodGenerator.CreateDeserializerName(typeInfo);
 
-                    await writer.WriteAsync('(');
-                    await writer.WriteAsync(typeInfo.ClrTypeName);
-                    await writer.WriteAsync(')');
                     await writer.WriteAsync(deserializeMethod);
                     await writer.WriteAsync('(');
                     await writer.WriteAsync(jsonElement);

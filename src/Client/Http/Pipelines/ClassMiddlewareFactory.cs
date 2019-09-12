@@ -134,7 +134,7 @@ namespace StrawberryShake.Http.Pipelines
         {
             MethodInfo getService = typeof(IServiceProvider)
                 .GetTypeInfo()
-                .GetDeclaredMethod("GetService");
+                .GetDeclaredMethod("GetService")!;
 
             foreach (ParameterInfo parameter in parameters)
             {

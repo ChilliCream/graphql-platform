@@ -6,6 +6,7 @@ namespace StrawberryShake
 {
     public interface IResultParser<T>
         : IResultParser
+        where T : class
     {
         new Task<IOperationResult<T>> ParseAsync(
             Stream stream,

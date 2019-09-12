@@ -41,6 +41,7 @@ namespace StrawberryShake.Http
         public Task<IOperationResult<T>> ExecuteAsync<T>(
             IOperation<T> operation,
             CancellationToken cancellationToken)
+            where T : class
         {
             if (operation is null)
             {
@@ -53,6 +54,7 @@ namespace StrawberryShake.Http
         public async Task<IOperationResult<T>> ExecuteAndCastAsync<T>(
            IOperation<T> operation,
            CancellationToken cancellationToken)
+           where T : class
         {
             IOperationResult result =
                 await ExecuteOperationAsync(operation, cancellationToken)

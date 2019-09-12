@@ -8,7 +8,7 @@ namespace StrawberryShake
     {
         Task SerializeAsync(
             IOperation operation,
-            IReadOnlyDictionary<string, object> extensions,
+            IReadOnlyDictionary<string, object?>? extensions,
             bool includeDocument,
             Stream requestStream);
     }

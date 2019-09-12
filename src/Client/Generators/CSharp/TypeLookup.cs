@@ -39,9 +39,14 @@ namespace StrawberryShake.Generators.CSharp
 
         private readonly IReadOnlyDictionary<string, LeafTypeInfo> _leafTypes;
         private readonly IReadOnlyDictionary<FieldNode, string> _generatedTypes;
+        private readonly LanguageVersion _languageVersion;
 
-        public TypeLookup(IReadOnlyDictionary<FieldNode, string> generatedTypes)
+        public TypeLookup(
+            LanguageVersion languageVersion,
+            IReadOnlyDictionary<FieldNode, string> generatedTypes)
         {
+            _languageVersion = languageVersion;
+
             _generatedTypes = generatedTypes
                 ?? throw new ArgumentNullException(nameof(generatedTypes));
 
@@ -62,6 +67,7 @@ namespace StrawberryShake.Generators.CSharp
         }
 
         public TypeLookup(
+            LanguageVersion languageVersion,
             IEnumerable<LeafTypeInfo> leafTypes,
             IReadOnlyDictionary<FieldNode, string> generatedTypes)
         {
@@ -70,6 +76,7 @@ namespace StrawberryShake.Generators.CSharp
                 throw new ArgumentNullException(nameof(leafTypes));
             }
 
+            _languageVersion = languageVersion;
             _leafTypes = leafTypes.ToDictionary(t => t.TypeName);
             _generatedTypes = generatedTypes
                 ?? throw new ArgumentNullException(nameof(generatedTypes));
@@ -79,7 +86,7 @@ namespace StrawberryShake.Generators.CSharp
         {
             if (fieldType.NamedType() is ScalarType scalarType)
             {
-                if (!_leafTypes.TryGetValue(scalarType.Name, out LeafTypeInfo type))
+                if (!_leafTypes.TryGetValue(scalarType.Name, out LeafTypeInfo? type))
                 {
                     throw new NotSupportedException(
                         $"Scalar type `{scalarType.Name}` is not supported.");
@@ -87,7 +94,7 @@ namespace StrawberryShake.Generators.CSharp
                 return BuildType(type.ClrType, fieldType, readOnly);
             }
 
-            if (!_generatedTypes.TryGetValue(field, out string typeName))
+            if (!_generatedTypes.TryGetValue(field, out string? typeName))
             {
                 throw new NotSupportedException(
                     $"Could not resolve type for field `{field.Name.Value}` " +

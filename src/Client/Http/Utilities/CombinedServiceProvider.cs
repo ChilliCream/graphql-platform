@@ -54,6 +54,7 @@ namespace StrawberryShake.Http.Utilities
                 .GetTypeInfo()
                 .GenericTypeArguments
                 .First();
+
             MethodInfo info = _enumerableTypeInfo
                 .DeclaredMethods
                 .First(m => m.Name == _methodNameAny && m.IsStatic)

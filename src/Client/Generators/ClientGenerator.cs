@@ -57,10 +57,9 @@ namespace StrawberryShake.Generators
                 new LeafTypeInfo("Url", typeof(Uri), typeof(string))
             }.ToDictionary(t => t.TypeName);
 
+        private ClientGeneratorOptions _options = new ClientGeneratorOptions();
         private IDocumentHashProvider _hashProvider;
-
         private IFileHandler _output;
-
         private string _clientName;
         private string _namespace;
 
@@ -338,7 +337,10 @@ namespace StrawberryShake.Generators
 
             GenerateModels(schema, queries, usedNames, descriptors, fieldTypes);
 
-            var typeLookup = new TypeLookup(_leafTypes.Values, fieldTypes);
+            var typeLookup = new TypeLookup(
+                _options.LanguageVersion,
+                _leafTypes.Values,
+                fieldTypes);
 
             // generate code from models
             foreach (ICodeDescriptor descriptor in descriptors)

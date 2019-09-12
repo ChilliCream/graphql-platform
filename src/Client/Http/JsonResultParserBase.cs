@@ -8,6 +8,7 @@ namespace StrawberryShake.Http
 {
     public abstract class JsonResultParserBase<T>
         : IResultParser<T>
+        where T : class
     {
         private static readonly byte[] _data = new byte[]
         {
