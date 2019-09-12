@@ -361,7 +361,9 @@ namespace HotChocolate.Execution
             {
                 object coerced = CoerceArgumentValue(argument, literal);
                 fieldInfo.Arguments[argument.Name] =
-                    new ArgumentValue(argument, coerced);
+                    coerced is IValueNode coercedLiteral
+                        ? new ArgumentValue(argument, coercedLiteral)
+                        : new ArgumentValue(argument, coerced);
             }
         }
 

@@ -49,7 +49,7 @@ namespace HotChocolate.Execution
                 fragments,
                 requestContext.ResolveMiddleware,
                 Converter,
-                services.GetServices<IArgumentCoercionHandler>());
+                services.GetService<IEnumerable<IArgumentCoercionHandler>>());
 
             Activator = new Activator(services);
         }
