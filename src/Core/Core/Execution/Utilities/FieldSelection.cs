@@ -23,7 +23,6 @@ namespace HotChocolate.Execution
         private readonly IReadOnlyList<FieldVisibility> _visibility;
         private readonly Path _path;
         private readonly bool _hasArgumentErrors;
-        private readonly Func<IInputField, object, object> _coerceArgumentValue;
 
         internal FieldSelection(FieldInfo fieldInfo)
         {
