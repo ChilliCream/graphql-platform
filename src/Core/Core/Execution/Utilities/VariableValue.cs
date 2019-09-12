@@ -1,23 +1,33 @@
+using System;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
     internal readonly struct VariableValue
     {
+        private readonly Func<IInputField, object, object> _coerceArgumentValue;
+
         public VariableValue(
-            IInputType type,
+            IInputField argument,
             NameString variableName,
-            object defaultValue)
+            object defaultValue,
+            Func<IInputField, object, object> coerceArgumentValue)
         {
-            Type = type;
+            Argument = argument;
             VariableName = variableName;
             DefaultValue = defaultValue;
+            _coerceArgumentValue = coerceArgumentValue;
         }
 
-        public IInputType Type { get; }
+        public IInputField Argument { get; }
+
+        public IInputType Type => Argument.Type;
 
         public NameString VariableName { get; }
 
         public object DefaultValue { get; }
+
+        public object CoerceValue(object value) =>
+            _coerceArgumentValue(Argument, value);
     }
 }

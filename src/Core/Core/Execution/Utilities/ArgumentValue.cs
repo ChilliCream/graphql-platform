@@ -6,32 +6,34 @@ namespace HotChocolate.Execution
 {
     public readonly struct ArgumentValue
     {
-        public ArgumentValue(IInputType type, object value)
+        public ArgumentValue(IInputField argument, object value)
         {
-            Type = type ?? throw new ArgumentNullException(nameof(type));
+            Argument = argument ?? throw new ArgumentNullException(nameof(argument));
             Value = value;
             Error = null;
             Literal = null;
         }
 
-        public ArgumentValue(IInputType type, IError error)
+        public ArgumentValue(IInputField argument, IError error)
         {
-            Type = type ?? throw new ArgumentNullException(nameof(type));
+            Argument = argument ?? throw new ArgumentNullException(nameof(argument));
             Error = error ?? throw new ArgumentNullException(nameof(error));
             Value = null;
             Literal = null;
         }
 
-        public ArgumentValue(IInputType type, IValueNode literal)
+        public ArgumentValue(IInputField argument, IValueNode literal)
         {
-            Type = type ?? throw new ArgumentNullException(nameof(type));
+            Argument = argument ?? throw new ArgumentNullException(nameof(argument));
             Literal = literal
                 ?? throw new ArgumentNullException(nameof(literal));
             Value = null;
             Error = null;
         }
 
-        public IInputType Type { get; }
+        public IInputField Argument { get; }
+
+        public IInputType Type => Argument.Type;
 
         public object Value { get; }
 

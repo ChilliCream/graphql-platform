@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Immutable;
 using System.Collections.Generic;
 using System.Globalization;
@@ -22,6 +23,7 @@ namespace HotChocolate.Execution
         private readonly IReadOnlyList<FieldVisibility> _visibility;
         private readonly Path _path;
         private readonly bool _hasArgumentErrors;
+        private readonly Func<IInputField, object, object> _coerceArgumentValue;
 
         internal FieldSelection(FieldInfo fieldInfo)
         {
@@ -81,6 +83,7 @@ namespace HotChocolate.Execution
                     var.Value.VariableName,
                     out object value))
                 {
+                    // value = var.Value.CoerceValue(value);
                     value = var.Value.DefaultValue is IValueNode literal
                         ? var.Value.Type.ParseLiteral(literal)
                         : value = var.Value.DefaultValue;
@@ -102,7 +105,7 @@ namespace HotChocolate.Execution
 
                 if (error is null)
                 {
-                    args[var.Key] = new ArgumentValue(var.Value.Type, value);
+                    args[var.Key] = new ArgumentValue(var.Value.Argument, value);
                 }
                 else
                 {
