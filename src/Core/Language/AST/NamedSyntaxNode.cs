@@ -7,7 +7,7 @@ namespace HotChocolate.Language
         : INamedSyntaxNode
     {
         protected NamedSyntaxNode(
-            Location location,
+            Location? location,
             NameNode name,
             IReadOnlyList<DirectiveNode> directives)
         {
@@ -20,7 +20,7 @@ namespace HotChocolate.Language
 
         public abstract NodeKind Kind { get; }
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public NameNode Name { get; }
 

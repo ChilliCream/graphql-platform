@@ -20,7 +20,7 @@ namespace HotChocolate.Language
         {
         }
 
-        public ArgumentNode(Location location, NameNode name, IValueNode value)
+        public ArgumentNode(Location? location, NameNode name, IValueNode value)
         {
             Location = location;
             Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -29,13 +29,13 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.Argument;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public NameNode Name { get; }
 
         public IValueNode Value { get; }
 
-        public ArgumentNode WithLocation(Location location)
+        public ArgumentNode WithLocation(Location? location)
         {
             return new ArgumentNode(location, Name, Value);
         }

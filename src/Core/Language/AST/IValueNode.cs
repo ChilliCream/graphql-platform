@@ -4,9 +4,11 @@ namespace HotChocolate.Language
 {
     public interface IValueNode
         : ISyntaxNode
-        , IEquatable<IValueNode>
+        , IEquatable<IValueNode?>
     {
-        object Value { get; }
+        object? Value { get; }
+
+        Span<byte> AsSpan();
     }
 
     public interface IValueNode<out T>
