@@ -17,7 +17,7 @@ namespace StrawberryShake.Tools
         : ICommand
     {
         [Argument(0, "path")]
-        public string Path { get; set; }
+        public string? Path { get; set; }
 
         public async Task<int> OnExecute()
         {
@@ -30,15 +30,15 @@ namespace StrawberryShake.Tools
                         "config.json",
                         SearchOption.AllDirectories))
                     {
-                        string directory = IOPath.GetDirectoryName(configFile);
-                        if (Directory.GetFiles(
-                            directory,
-                            "*.graphql").Length > 0)
+                        string directory = IOPath.GetDirectoryName(configFile)!;
+                        if (Directory.GetFiles(directory, "*.graphql").Length > 0)
                         {
                             try
                             {
-                                Configuration config = await Configuration.LoadConfig(directory);
-                                if (config.Schemas.Count > 0)
+                                Configuration? config = await Configuration.LoadConfig(directory);
+                                if (config != null
+                                    && config.Schemas != null
+                                    && config.Schemas.Count > 0)
                                 {
                                     if (!(await Compile(directory, config)))
                                     {
@@ -69,8 +69,14 @@ namespace StrawberryShake.Tools
 
         private async Task<bool> Compile(string path)
         {
-            Configuration config = await Configuration.LoadConfig(path);
-            return await Compile(path, config); ;
+            Configuration? config = await Configuration.LoadConfig(path);
+
+            if (config is null)
+            {
+                return false;
+            }
+
+            return await Compile(path, config);
         }
 
         private async Task<bool> Compile(string path, Configuration config)
@@ -125,8 +131,22 @@ namespace StrawberryShake.Tools
             ClientGenerator generator,
             ICollection<HCError> errors)
         {
-            Dictionary<string, SchemaFile> schemaConfigs =
-                (await Configuration.LoadConfig(path)).Schemas.ToDictionary(t => t.Name);
+            Configuration? configuration = await Configuration.LoadConfig(path);
+            if (configuration is null)
+            {
+                throw new InvalidOperationException(
+                    "The configuration does not exist.");
+            }
+
+            if (configuration.Schemas is null)
+            {
+                throw new InvalidOperationException(
+                    "The configuration has no schemas defined.");
+            }
+
+            Dictionary<string, SchemaFile> schemas =
+                configuration.Schemas.Where(t => t.Name != null)
+                    .ToDictionary(t => t.Name!);
 
             foreach (DocumentInfo document in await GetGraphQLFiles(path, errors))
             {
@@ -142,11 +162,11 @@ namespace StrawberryShake.Tools
                     string name = IOPath.GetFileNameWithoutExtension(
                         document.FileName);
 
-                    if (schemaConfigs.TryGetValue(
+                    if (schemas.TryGetValue(
                         IOPath.GetFileName(document.FileName),
-                        out SchemaFile file))
+                        out SchemaFile? file))
                     {
-                        name = file.Name;
+                        name = file.Name!;
                     }
 
                     generator.AddSchemaDocument(

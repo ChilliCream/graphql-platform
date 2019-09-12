@@ -17,8 +17,8 @@ namespace StrawberryShake.Generators.CSharp
             string resultTypeName = descriptor.ResultSelection is null
                 ? descriptor.ResultDescriptor.Name
                 : typeLookup.GetTypeName(
-                    descriptor.ResultSelection,
                     descriptor.ResultType,
+                    descriptor.ResultSelection,
                     true);
 
             if (descriptor.ResultSelection is null)
@@ -254,8 +254,8 @@ namespace StrawberryShake.Generators.CSharp
             IType elementType = methodDescriptor.ResultType.ElementType();
 
             string resultTypeName = typeLookup.GetTypeName(
-                methodDescriptor.ResultSelection,
                 elementType,
+                methodDescriptor.ResultSelection,
                 true);
 
             string lengthField = jsonElement + "Length";

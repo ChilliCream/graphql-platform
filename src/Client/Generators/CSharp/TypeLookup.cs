@@ -71,7 +71,7 @@ namespace StrawberryShake.Generators.CSharp
                 ?? throw new ArgumentNullException(nameof(generatedTypes));
         }
 
-        public string GetTypeName(FieldNode field, IType fieldType, bool readOnly)
+        public string GetTypeName(IType fieldType, FieldNode? field, bool readOnly)
         {
             if (fieldType.NamedType() is ScalarType scalarType)
             {
@@ -81,6 +81,13 @@ namespace StrawberryShake.Generators.CSharp
                         $"Scalar type `{scalarType.Name}` is not supported.");
                 }
                 return BuildType(type.ClrType, fieldType, readOnly);
+            }
+
+             if (field is null)
+            {
+                throw new InvalidOperationException(
+                    "The type cannot be null if the field type " +
+                    "is not a scalar type.");
             }
 
             if (!_generatedTypes.TryGetValue(field, out string? typeName))
@@ -93,7 +100,7 @@ namespace StrawberryShake.Generators.CSharp
             return BuildType(typeName, fieldType, readOnly);
         }
 
-        public string GetTypeName(IType fieldType, string typeName, bool readOnly)
+        public string GetTypeName(IType fieldType, string? typeName, bool readOnly)
         {
             if (fieldType.NamedType() is ScalarType scalarType)
             {
@@ -103,6 +110,13 @@ namespace StrawberryShake.Generators.CSharp
                         $"Scalar type `{scalarType.Name}` is not supported.");
                 }
                 return BuildType(type.ClrType, fieldType, readOnly);
+            }
+
+            if (typeName is null)
+            {
+                throw new InvalidOperationException(
+                    "The type name cannot be null if the field type " +
+                    "is not a scalar type.");
             }
 
             return BuildType(typeName, fieldType, readOnly);
