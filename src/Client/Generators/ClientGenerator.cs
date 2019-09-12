@@ -19,19 +19,6 @@ namespace StrawberryShake.Generators
 {
     public class ClientGenerator
     {
-        private static readonly ICodeGenerator[] _codeGenerators =
-            new ICodeGenerator[]
-            {
-                new ClassGenerator(),
-                new InputClassGenerator(),
-                new InputClassSerializerGenerator(),
-                new InterfaceGenerator(),
-                new ResultParserGenerator(),
-                new OperationGenerator(),
-                new ClientInterfaceGenerator(),
-                new ClientClassGenerator(),
-                new QueryGenerator()
-            };
         private readonly Dictionary<string, DocumentNode> _schemas =
             new Dictionary<string, DocumentNode>();
         private readonly List<DocumentNode> _extensions =
@@ -58,10 +45,10 @@ namespace StrawberryShake.Generators
             }.ToDictionary(t => t.TypeName);
 
         private ClientGeneratorOptions _options = new ClientGeneratorOptions();
-        private IDocumentHashProvider _hashProvider;
-        private IFileHandler _output;
-        private string _clientName;
-        private string _namespace;
+        private IDocumentHashProvider? _hashProvider;
+        private IFileHandler? _output;
+        private string? _clientName;
+        private string? _namespace;
 
         private ClientGenerator()
         {
@@ -343,12 +330,14 @@ namespace StrawberryShake.Generators
                 fieldTypes);
 
             // generate code from models
-            foreach (ICodeDescriptor descriptor in descriptors)
+            foreach (ICodeGenerator generator in CreateGenerators(_options))
             {
-                foreach (ICodeGenerator generator in
-                    _codeGenerators.Where(t => t.CanHandle(descriptor)))
+                foreach (ICodeDescriptor descriptor in descriptors)
                 {
-                    _output.Register(descriptor, generator);
+                    if (generator.CanHandle(descriptor))
+                    {
+                        _output.Register(descriptor, generator);
+                    }
                 }
             }
 
@@ -474,6 +463,20 @@ namespace StrawberryShake.Generators
             }
 
             return errors;
+        }
+
+        private static IEnumerable<ICodeGenerator> CreateGenerators(
+            ClientGeneratorOptions options)
+        {
+            yield return new ClassGenerator();
+            yield return new InputClassGenerator();
+            yield return new InputClassSerializerGenerator();
+            yield return new InterfaceGenerator();
+            yield return new ResultParserGenerator(options);
+            yield return new OperationGenerator();
+            yield return new ClientInterfaceGenerator();
+            yield return new ClientClassGenerator();
+            yield return new QueryGenerator();
         }
 
         private class DocumentInfo

@@ -17,6 +17,13 @@ namespace StrawberryShake.Generators.CSharp
             new ResultParserDeserializeMethodGenerator();
         private static readonly ResultParserMethodGenerator _methodGenerator =
             new ResultParserMethodGenerator();
+        private readonly ClientGeneratorOptions _options;
+
+        public ResultParserGenerator(ClientGeneratorOptions options)
+        {
+            _options = options
+                ?? throw new ArgumentNullException(nameof(options));
+        }
 
         public IReadOnlyList<string> Components { get; } = new[]
         {
@@ -141,9 +148,16 @@ namespace StrawberryShake.Generators.CSharp
                     if (i == 0)
                     {
                         await writer.WriteAsync("IValueSerializer").ConfigureAwait(false);
+                        if (_options.LanguageVersion == LanguageVersion.CSharp_8_0)
+                        {
+                            await writer.WriteAsync('?').ConfigureAwait(false);
+                        }
                     }
 
                     await writer.WriteAsync(" serializer))").ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
+
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
                     await writer.WriteAsync('{').ConfigureAwait(false);
                     await writer.WriteLineAsync().ConfigureAwait(false);
 

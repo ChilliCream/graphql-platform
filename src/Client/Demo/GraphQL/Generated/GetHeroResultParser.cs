@@ -17,7 +17,7 @@ namespace StrawberryShake.Client
         {
             IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
 
-            if (!map.TryGetValue("Float", out IValueSerializer serializer))
+            if (!map.TryGetValue("Float", out IValueSerializer? serializer))
             {
                 throw new ArgumentException(
                     "There is no serializer specified for `Float`.",
@@ -25,7 +25,7 @@ namespace StrawberryShake.Client
             }
             _floatSerializer = serializer;
 
-            if (!map.TryGetValue("String", out serializer))
+            if (!map.TryGetValue("String", out  serializer))
             {
                 throw new ArgumentException(
                     "There is no serializer specified for `String`.",
@@ -55,8 +55,8 @@ namespace StrawberryShake.Client
             if (string.Equals(type, "Droid", StringComparison.Ordinal))
             {
                 var droid = new Droid();
-                droid.Height = (double?)DeserializeFloat(obj, "height");
-                droid.Name = (string)DeserializeString(obj, "name");
+                droid.Height = DeserializeFloat(obj, "height");
+                droid.Name = DeserializeString(obj, "name");
                 droid.Friends = ParseRootHeroFriends(obj, "friends");
                 return droid;
             }
@@ -64,8 +64,8 @@ namespace StrawberryShake.Client
             if (string.Equals(type, "Human", StringComparison.Ordinal))
             {
                 var human = new Human();
-                human.Height = (double?)DeserializeFloat(obj, "height");
-                human.Name = (string)DeserializeString(obj, "name");
+                human.Height = DeserializeFloat(obj, "height");
+                human.Name = DeserializeString(obj, "name");
                 human.Friends = ParseRootHeroFriends(obj, "friends");
                 return human;
             }
@@ -107,7 +107,7 @@ namespace StrawberryShake.Client
                 {
                     JsonElement element = obj[objIndex];
                     var entity = new Droid();
-                    entity.Name = (string)DeserializeString(element, "name");
+                    entity.Name = DeserializeString(element, "name");
                     list[objIndex] = entity;
                 }
 
@@ -123,7 +123,7 @@ namespace StrawberryShake.Client
                 {
                     JsonElement element = obj[objIndex];
                     var entity = new Human();
-                    entity.Name = (string)DeserializeString(element, "name");
+                    entity.Name = DeserializeString(element, "name");
                     list[objIndex] = entity;
                 }
 

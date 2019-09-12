@@ -136,7 +136,7 @@ namespace StrawberryShake.Generators
                 }
 
                 IType type = variableDefinition.Type.ToType(namedType);
-                IInputClassDescriptor inputClassDescriptor = null;
+                IInputClassDescriptor? inputClassDescriptor = null;
 
                 if (namedType is InputObjectType inputObjectType)
                 {
@@ -178,7 +178,7 @@ namespace StrawberryShake.Generators
         {
             if (knownTypes.TryGetValue(
                 inputObjectType.Name,
-                out IInputClassDescriptor descriptor))
+                out IInputClassDescriptor? descriptor))
             {
                 return descriptor;
             }
@@ -309,7 +309,7 @@ namespace StrawberryShake.Generators
             IReadOnlyCollection<FieldCollectionResult> typeCases,
             Path path)
         {
-            IFragmentNode returnType = null;
+            IFragmentNode? returnType = null;
             FieldCollectionResult result = typeCases.First();
             IReadOnlyList<IFragmentNode> fragments = result.Fragments;
 
@@ -416,7 +416,7 @@ namespace StrawberryShake.Generators
         {
             FieldCollectionResult firstCase = typeCases.First();
 
-            IFragmentNode returnType = HoistFragment(
+            IFragmentNode? returnType = HoistFragment(
                 interfaceType, firstCase.SelectionSet, firstCase.Fragments);
 
             InterfaceDescriptor interfaceDescriptor;
@@ -469,7 +469,7 @@ namespace StrawberryShake.Generators
             string className;
             IReadOnlyList<IFragmentNode> fragments;
 
-            IFragmentNode modelType = HoistFragment(
+            IFragmentNode? modelType = HoistFragment(
                 (ObjectType)typeCase.Type,
                 typeCase.SelectionSet,
                 typeCase.Fragments);
@@ -518,7 +518,7 @@ namespace StrawberryShake.Generators
             FieldCollectionResult typeCase,
             Path path)
         {
-            IFragmentNode returnType = HoistFragment(
+            IFragmentNode? returnType = HoistFragment(
                 objectType, typeCase.SelectionSet, typeCase.Fragments);
 
             IReadOnlyList<IFragmentNode> fragments;
@@ -564,14 +564,14 @@ namespace StrawberryShake.Generators
             return modelInterface;
         }
 
-        private IFragmentNode HoistFragment(
+        private IFragmentNode? HoistFragment(
             INamedType typeContext,
             SelectionSetNode selectionSet,
             IReadOnlyList<IFragmentNode> fragments)
         {
             (SelectionSetNode s, IReadOnlyList<IFragmentNode> f) current =
                 (selectionSet, fragments);
-            IFragmentNode selected = null;
+            IFragmentNode? selected = null;
 
             while (!current.s.Selections.OfType<FieldNode>().Any()
                 && current.f.Count == 1
@@ -721,9 +721,9 @@ namespace StrawberryShake.Generators
             IType returnType,
             Func<string, string> nameFormatter)
         {
-            if (TryGetTypeName(withDirectives, out string typeName))
+            if (TryGetTypeName(withDirectives, out string? typeName))
             {
-                return CreateName(nameFormatter(typeName));
+                return CreateName(nameFormatter(typeName!));
             }
             else if (withDirectives is OperationDefinitionNode operation)
             {
@@ -734,7 +734,7 @@ namespace StrawberryShake.Generators
 
         private bool TryGetTypeName(
             WithDirectives withDirectives,
-            out string typeName)
+            out string? typeName)
         {
             DirectiveNode directive =
                 withDirectives.Directives.FirstOrDefault(t =>

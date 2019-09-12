@@ -3,12 +3,13 @@
   // Hover to view descriptions of existing attributes.
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
-  "configurations": [{
+  "configurations": [
+    {
       "name": ".NET Core Launch (console)",
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/dotnet-graphql/bin/Debug/netcoreapp2.2/dotnet-graphql.dll",
+      "program": "${workspaceFolder}/dotnet-graphql/bin/Debug/netcoreapp3.0/dotnet-graphql.dll",
       "args": ["generate"],
       "cwd": "${workspaceFolder}/Demo",
       "console": "internalConsole",

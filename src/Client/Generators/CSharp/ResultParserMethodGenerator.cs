@@ -385,11 +385,11 @@ namespace StrawberryShake.Generators.CSharp
         }
 
         private async Task WriteObjectPropertyDeserializationAsync(
-           CodeWriter writer,
-           IResultParserTypeDescriptor possibleType,
-           string jsonElement,
-           string entityField,
-           ITypeLookup typeLookup)
+            CodeWriter writer,
+            IResultParserTypeDescriptor possibleType,
+            string jsonElement,
+            string entityField,
+            ITypeLookup typeLookup)
         {
             foreach (IFieldDescriptor fieldDescriptor in possibleType.ResultDescriptor.Fields)
             {

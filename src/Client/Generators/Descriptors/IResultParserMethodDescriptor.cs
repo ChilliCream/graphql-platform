@@ -12,13 +12,13 @@ namespace StrawberryShake.Generators.Descriptors
 
         IType ResultType { get; }
 
-        FieldNode ResultSelection { get; }
+        FieldNode? ResultSelection { get; }
 
         Path Path { get; }
 
         IInterfaceDescriptor ResultDescriptor { get; }
 
-        IResultParserTypeDescriptor UnknownType { get; }
+        IResultParserTypeDescriptor? UnknownType { get; }
 
         IReadOnlyList<IResultParserTypeDescriptor> PossibleTypes { get; }
     }
