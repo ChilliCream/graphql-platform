@@ -289,12 +289,10 @@ namespace HotChocolate.Execution
                             new Dictionary<NameString, VariableValue>();
                     }
 
-                    IValueNode defaultValueLiteral = PrepareArgumentValue(
-                        argument, argument.DefaultValue);
-
                     object defaultValue = argument.Type.IsLeafType()
-                        ? ParseLiteral(argument, argument.DefaultValue)
+                        ? ParseLiteral(argument.Type, argument.DefaultValue)
                         : argument.DefaultValue;
+                    defaultValue = CoerceArgumentValue(argument, defaultValue);
 
                     fieldInfo.VarArguments[argument.Name] =
                         new VariableValue(
@@ -325,8 +323,6 @@ namespace HotChocolate.Execution
             IInputField argument,
             IValueNode literal)
         {
-            IValueNode current = PrepareArgumentValue(argument, literal);
-
             if (fieldInfo.Arguments == null)
             {
                 fieldInfo.Arguments = new Dictionary<NameString, ArgumentValue>();
@@ -334,7 +330,7 @@ namespace HotChocolate.Execution
 
             Report report = ArgumentNonNullValidator.Validate(
                 argument.Type,
-                current,
+                literal,
                 Path.New(argument.Name));
 
             if (report.HasErrors)
@@ -356,14 +352,14 @@ namespace HotChocolate.Execution
             }
             else if (argument.Type.IsLeafType())
             {
+                object coerced = CoerceArgumentValue(argument,
+                    ParseLiteral(argument.Type, literal));
                 fieldInfo.Arguments[argument.Name] =
-                    new ArgumentValue(
-                        argument,
-                        ParseLiteral(argument, current));
+                    new ArgumentValue(argument, coerced);
             }
             else
             {
-                object coerced = CoerceArgumentValue(argument, current);
+                object coerced = CoerceArgumentValue(argument, literal);
                 fieldInfo.Arguments[argument.Name] =
                     new ArgumentValue(argument, coerced);
             }
@@ -396,30 +392,13 @@ namespace HotChocolate.Execution
         }
 
         private object ParseLiteral(
-            IInputField argument,
+            IInputType argumentType,
             IValueNode value)
         {
-            IInputType type = (argument.Type is NonNullType)
-                ? (IInputType)argument.Type.InnerType()
-                : argument.Type;
-            return CoerceArgumentValue(argument, type.ParseLiteral(value));
-        }
-
-        private IValueNode PrepareArgumentValue(IInputField argument, IValueNode value)
-        {
-            if (_coercionHandlers.Count == 0)
-            {
-                return value;
-            }
-
-            IValueNode current = value;
-
-            for (int i = 0; i < _coercionHandlers.Count; i++)
-            {
-                current = _coercionHandlers[i].PrepareValue(argument, current);
-            }
-
-            return current;
+            IInputType type = (argumentType is NonNullType)
+                ? (IInputType)argumentType.InnerType()
+                : argumentType;
+            return type.ParseLiteral(value);
         }
 
         private object CoerceArgumentValue(IInputField argument, object value)

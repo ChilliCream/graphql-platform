@@ -254,6 +254,101 @@ namespace HotChocolate.Execution
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Extend_Argument_Coercion_DefaultValue_String()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            services.AddSingleton<IArgumentCoercionHandler, ModifyStringHandler>();
+            services.AddGraphQLSchema(builder => builder
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("bar")
+                    .Argument("baz", a => a.Type<StringType>().DefaultValue("abc"))
+                    .Resolver(ctx => ctx.Argument<string>("baz"))));
+
+            QueryExecutionBuilder
+                .New()
+                .UseDefaultPipeline()
+                .Populate(services);
+
+            IQueryExecutor executor = services.BuildServiceProvider()
+                .GetRequiredService<IQueryExecutor>();
+
+            // act
+            IExecutionResult result =
+                await executor.ExecuteAsync("{ bar }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Extend_Argument_Coercion_With_Variables()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            services.AddSingleton<IArgumentCoercionHandler, ModifyStringHandler>();
+            services.AddGraphQLSchema(builder => builder
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("bar")
+                    .Argument("baz", a => a.Type<StringType>())
+                    .Resolver(ctx => ctx.Argument<string>("baz"))));
+
+            QueryExecutionBuilder
+                .New()
+                .UseDefaultPipeline()
+                .Populate(services);
+
+            IQueryExecutor executor = services.BuildServiceProvider()
+                .GetRequiredService<IQueryExecutor>();
+
+            // act
+            IExecutionResult result =
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery("query foo($a: String) { bar(baz: $a) }")
+                        .SetVariableValue("a", "abc")
+                        .Create());
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Extend_Argument_Coercion_With_Variables_DefaultValue()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            services.AddSingleton<IArgumentCoercionHandler, ModifyStringHandler>();
+            services.AddGraphQLSchema(builder => builder
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("bar")
+                    .Argument("baz", a => a.Type<StringType>())
+                    .Resolver(ctx => ctx.Argument<string>("baz"))));
+
+            QueryExecutionBuilder
+                .New()
+                .UseDefaultPipeline()
+                .Populate(services);
+
+            IQueryExecutor executor = services.BuildServiceProvider()
+                .GetRequiredService<IQueryExecutor>();
+
+            // act
+            IExecutionResult result =
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery(
+                            "query foo($a: String = \"def\") { bar(baz: $a) }")
+                        .Create());
+
+            // assert
+            result.MatchSnapshot();
+        }
+
         public class Query
         {
             public Bar SingleFoo(Foo foo)
@@ -301,20 +396,11 @@ namespace HotChocolate.Execution
         public class ModifyStringHandler
             : IArgumentCoercionHandler
         {
-            public IValueNode PrepareValue(IInputField argument, IValueNode literal)
-            {
-                if (argument.Type is StringType && literal is StringValueNode s)
-                {
-                    return s.WithValue(s.Value + "123");
-                }
-                return literal;
-            }
-
             public object CoerceValue(IInputField argument, object value)
             {
                 if (argument.Type is StringType && value is string s)
                 {
-                    return s + "456";
+                    return s + "123";
                 }
                 return value;
             }
