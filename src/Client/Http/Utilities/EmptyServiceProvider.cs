@@ -5,6 +5,6 @@ namespace StrawberryShake.Http.Utilities
     internal sealed class EmptyServiceProvider
         : IServiceProvider
     {
-        public object GetService(Type serviceType) => null;
+        public object? GetService(Type serviceType) => null;
     }
 }

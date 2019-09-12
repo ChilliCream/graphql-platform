@@ -17,6 +17,7 @@
     <RootNamespace>HotChocolate.Language</RootNamespace>
     <Description>Contains the Hot Chocolate GraphQL parser and lexer. Also included are syntax visitor and syntax rewriter base classes.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

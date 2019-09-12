@@ -8,6 +8,7 @@
     <RootNamespace>StrawberryShake.Tools</RootNamespace>
     <IsPackable>true</IsPackable>
     <!--PackAsTool>true</PackAsTool-->
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

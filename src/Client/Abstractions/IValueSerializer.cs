@@ -12,8 +12,8 @@ namespace StrawberryShake
 
         Type SerializationType { get; }
 
-        object Serialize(object value);
+        object? Serialize(object? value);
 
-        object Deserialize(object serialized);
+        object? Deserialize(object? serialized);
     }
 }

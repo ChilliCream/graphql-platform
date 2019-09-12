@@ -6,11 +6,19 @@ namespace StrawberryShake
     internal sealed class Error
         : IError
     {
-        private string _message;
+        private string? _message;
 
         public string Message
         {
-            get => _message;
+            get
+            {
+                if (_message is null)
+                {
+                    throw new InvalidOperationException(
+                        "Message is a non-null property and is null.");
+                }
+                return _message;
+            }
             internal set
             {
                 if (string.IsNullOrEmpty(value))
@@ -23,11 +31,12 @@ namespace StrawberryShake
             }
         }
 
-        public string Code
+        public string? Code
         {
             get
             {
-                if (Extensions.TryGetValue(ErrorFields.Code, out object code)
+                if (Extensions != null
+                    && Extensions.TryGetValue(ErrorFields.Code, out object? code)
                     && code is string s)
                 {
                     return s;
@@ -37,12 +46,12 @@ namespace StrawberryShake
             }
         }
 
-        public IReadOnlyList<object> Path { get; set; }
+        public IReadOnlyList<object>? Path { get; set; }
 
-        public IReadOnlyList<Location> Locations { get; set; }
+        public IReadOnlyList<Location>? Locations { get; set; }
 
-        public IReadOnlyDictionary<string, object> Extensions { get; set; }
+        public IReadOnlyDictionary<string, object?>? Extensions { get; set; }
 
-        public Exception Exception { get; set; }
+        public Exception? Exception { get; set; }
     }
 }

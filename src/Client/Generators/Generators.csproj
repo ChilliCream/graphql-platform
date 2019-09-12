@@ -16,6 +16,7 @@
     <AssemblyName>StrawberryShake.Generators</AssemblyName>
     <RootNamespace>StrawberryShake.Generators</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

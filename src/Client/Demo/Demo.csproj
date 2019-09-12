@@ -15,6 +15,7 @@
     <AssemblyName>Demo</AssemblyName>
     <RootNamespace>Demo</RootNamespace>
     <IsPackable>false</IsPackable>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
