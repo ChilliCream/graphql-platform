@@ -31,7 +31,7 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives =
                 ParseDirectives(context, false);
             SelectionSetNode selectionSet = ParseSelectionSet(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new OperationDefinitionNode
             (
@@ -56,7 +56,7 @@ namespace HotChocolate.Language
                 SyntaxToken start)
         {
             SelectionSetNode selectionSet = ParseSelectionSet(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new OperationDefinitionNode
             (
@@ -127,7 +127,7 @@ namespace HotChocolate.Language
                 : null;
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new VariableDefinitionNode
             (
@@ -149,7 +149,7 @@ namespace HotChocolate.Language
         {
             SyntaxToken start = context.ExpectDollar();
             NameNode name = ParseName(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new VariableNode
             (
@@ -171,7 +171,7 @@ namespace HotChocolate.Language
                 TokenKind.LeftBrace,
                 ParseSelection,
                 TokenKind.RightBrace);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new SelectionSetNode
             (
@@ -226,7 +226,7 @@ namespace HotChocolate.Language
             SelectionSetNode selectionSet = context.Current.IsLeftBrace()
                 ? ParseSelectionSet(context)
                 : null;
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new FieldNode
             (
@@ -313,7 +313,7 @@ namespace HotChocolate.Language
             NameNode name = ParseName(context);
             context.ExpectColon();
             IValueNode value = parseValue(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new ArgumentNode
             (

@@ -7,7 +7,7 @@ namespace HotChocolate.Language
        : NamedSyntaxNode
     {
         protected UnionTypeDefinitionNodeBase(
-            Location location,
+            Location? location,
             NameNode name,
             IReadOnlyList<DirectiveNode> directives,
             IReadOnlyList<NamedTypeNode> types)

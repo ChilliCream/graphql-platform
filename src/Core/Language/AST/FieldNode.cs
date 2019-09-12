@@ -8,7 +8,7 @@ namespace HotChocolate.Language
         , ISelectionNode
     {
         public FieldNode(
-            Location location,
+            Location? location,
             NameNode name,
             NameNode alias,
             IReadOnlyList<DirectiveNode> directives,
@@ -31,7 +31,7 @@ namespace HotChocolate.Language
         public SelectionSetNode SelectionSet { get; }
 
 
-        public FieldNode WithLocation(Location location)
+        public FieldNode WithLocation(Location? location)
         {
             return new FieldNode(location, Name, Alias,
                 Directives, Arguments, SelectionSet);

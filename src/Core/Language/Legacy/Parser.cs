@@ -66,7 +66,7 @@ namespace HotChocolate.Language
                 definitions.Add(ParseDefinition(context));
             }
 
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new DocumentNode(location, definitions.AsReadOnly());
         }

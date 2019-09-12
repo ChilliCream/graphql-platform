@@ -7,9 +7,9 @@ namespace HotChocolate.Language
         : NamedSyntaxNode
     {
         public InputValueDefinitionNode(
-            Location location,
+            Location? location,
             NameNode name,
-            StringValueNode description,
+            StringValueNode? description,
             ITypeNode type,
             IValueNode defaultValue,
             IReadOnlyList<DirectiveNode> directives)
@@ -22,13 +22,13 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.InputValueDefinition;
 
-        public StringValueNode Description { get; }
+        public StringValueNode? Description { get; }
 
         public ITypeNode Type { get; }
 
         public IValueNode DefaultValue { get; }
 
-        public InputValueDefinitionNode WithLocation(Location location)
+        public InputValueDefinitionNode WithLocation(Location? location)
         {
             return new InputValueDefinitionNode(
                 location, Name, Description,

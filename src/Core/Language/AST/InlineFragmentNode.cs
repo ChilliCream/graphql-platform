@@ -7,7 +7,7 @@ namespace HotChocolate.Language
         : ISelectionNode
     {
         public InlineFragmentNode(
-            Location location,
+            Location? location,
             NamedTypeNode typeCondition,
             IReadOnlyList<DirectiveNode> directives,
             SelectionSetNode selectionSet)
@@ -22,7 +22,7 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.InlineFragment;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public NamedTypeNode TypeCondition { get; }
 
@@ -30,7 +30,7 @@ namespace HotChocolate.Language
 
         public SelectionSetNode SelectionSet { get; }
 
-        public InlineFragmentNode WithLocation(Location location)
+        public InlineFragmentNode WithLocation(Location? location)
         {
             return new InlineFragmentNode(
                 location, TypeCondition,

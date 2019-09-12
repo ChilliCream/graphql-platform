@@ -14,7 +14,7 @@ namespace HotChocolate.Language
         {
             TokenInfo start = Start();
             string name = ExpectName();
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new NameNode
             (

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Language.Properties;
@@ -68,7 +67,7 @@ namespace HotChocolate.Language
 
             bool isBlock = _reader.Kind == TokenKind.BlockString;
             string value = ExpectString();
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new StringValueNode(location, value, isBlock);
         }
@@ -112,7 +111,7 @@ namespace HotChocolate.Language
             // skip closing token
             Expect(TokenKind.RightBracket);
 
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new ListValueNode
             (
@@ -160,7 +159,7 @@ namespace HotChocolate.Language
             // skip closing token
             Expect(TokenKind.RightBrace);
 
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new ObjectValueNode
             (
@@ -178,7 +177,7 @@ namespace HotChocolate.Language
             ExpectColon();
             IValueNode value = ParseValueLiteral(isConstant);
 
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new ObjectFieldNode
             (
@@ -199,7 +198,7 @@ namespace HotChocolate.Language
             TokenInfo start = Start();
             TokenKind kind = _reader.Kind;
             string value = ExpectScalarValue();
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             if (kind == TokenKind.Float)
             {
@@ -227,7 +226,7 @@ namespace HotChocolate.Language
         {
             TokenInfo start = Start();
 
-            Location location;
+            Location? location;
 
             if (_reader.Value.SequenceEqual(GraphQLKeywords.True))
             {
@@ -250,7 +249,7 @@ namespace HotChocolate.Language
                 return new NullValueNode(location);
             }
 
-            string value = _reader.GetScalarValue();
+            Memory<byte> value = _reader.Value.ToArray();
             MoveNext();
             location = CreateLocation(in start);
 

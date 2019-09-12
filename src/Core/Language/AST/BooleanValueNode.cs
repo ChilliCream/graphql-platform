@@ -141,7 +141,7 @@ namespace HotChocolate.Language
         /// A <see cref="string"/> that represents the current
         /// <see cref="BooleanValueNode"/>.
         /// </returns>
-        public override string ToString()
+        public override string? ToString()
         {
 #if NETSTANDARD1_4
             return Value.ToString();

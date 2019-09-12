@@ -58,7 +58,7 @@ namespace HotChocolate.Language
                 throw context.Unexpected(start);
             }
 
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new SchemaExtensionNode
             (
@@ -95,7 +95,7 @@ namespace HotChocolate.Language
             {
                 throw context.Unexpected(start);
             }
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new ScalarTypeExtensionNode
             (
@@ -118,7 +118,7 @@ namespace HotChocolate.Language
                 ParseDirectives(context, true);
             List<FieldDefinitionNode> fields =
                 ParseFieldsDefinition(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             if (interfaces.Count == 0
                 && directives.Count == 0
@@ -148,7 +148,7 @@ namespace HotChocolate.Language
                 ParseDirectives(context, true);
             List<FieldDefinitionNode> fields =
                 ParseFieldsDefinition(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             if (directives.Count == 0
                 && fields.Count == 0)
@@ -176,7 +176,7 @@ namespace HotChocolate.Language
                 ParseDirectives(context, true);
             List<NamedTypeNode> types =
                 ParseUnionMemberTypes(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             if (directives.Count == 0 && types.Count == 0)
             {
@@ -203,7 +203,7 @@ namespace HotChocolate.Language
                 ParseDirectives(context, true);
             List<EnumValueDefinitionNode> values =
                 ParseEnumValuesDefinition(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             if (directives.Count == 0 && values.Count == 0)
             {
@@ -231,7 +231,7 @@ namespace HotChocolate.Language
                 ParseDirectives(context, true);
             List<InputValueDefinitionNode> fields =
                 ParseInputFieldsDefinition(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             if (directives.Count == 0 && fields.Count == 0)
             {

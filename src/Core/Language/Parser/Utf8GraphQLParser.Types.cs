@@ -14,7 +14,7 @@
         private ITypeNode ParseTypeReference()
         {
             ITypeNode type;
-            Location location;
+            Location? location;
 
             if (_reader.Kind == TokenKind.LeftBracket)
             {
@@ -64,7 +64,7 @@
         {
             TokenInfo start = Start();
             NameNode name = ParseName();
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new NamedTypeNode
             (

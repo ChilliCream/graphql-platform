@@ -4,6 +4,6 @@
         : ITypeSystemDefinitionNode
         , INamedSyntaxNode
     {
-        StringValueNode Description { get; }
+        StringValueNode? Description { get; }
     }
 }

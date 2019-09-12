@@ -35,7 +35,7 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives =
                 ParseDirectives(false);
             SelectionSetNode selectionSet = ParseSelectionSet();
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new OperationDefinitionNode
             (
@@ -59,7 +59,7 @@ namespace HotChocolate.Language
         {
             TokenInfo start = Start();
             SelectionSetNode selectionSet = ParseSelectionSet();
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new OperationDefinitionNode
             (
@@ -153,7 +153,7 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives =
                 ParseDirectives(true);
 
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new VariableDefinitionNode
             (
@@ -177,7 +177,7 @@ namespace HotChocolate.Language
             TokenInfo start = Start();
             ExpectDollar();
             NameNode name = ParseName();
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new VariableNode
             (
@@ -220,7 +220,7 @@ namespace HotChocolate.Language
             // skip closing token
             ExpectRightBrace();
 
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new SelectionSetNode
             (
@@ -273,7 +273,7 @@ namespace HotChocolate.Language
                 ? ParseSelectionSet()
                 : null;
 
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new FieldNode
             (
@@ -331,7 +331,7 @@ namespace HotChocolate.Language
             ExpectColon();
             IValueNode value = ParseValueLiteral(isConstant);
 
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new ArgumentNode
             (

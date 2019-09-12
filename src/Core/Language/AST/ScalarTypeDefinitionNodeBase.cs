@@ -6,7 +6,7 @@ namespace HotChocolate.Language
         : NamedSyntaxNode
     {
         protected ScalarTypeDefinitionNodeBase(
-            Location location,
+            Location? location,
             NameNode name,
             IReadOnlyList<DirectiveNode> directives)
             : base(location, name, directives)

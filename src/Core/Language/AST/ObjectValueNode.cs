@@ -23,7 +23,7 @@ namespace HotChocolate.Language
         }
 
         public ObjectValueNode(
-            Location location,
+            Location? location,
             IReadOnlyList<ObjectFieldNode> fields)
         {
             Location = location;
@@ -32,7 +32,7 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.ObjectValue;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public IReadOnlyList<ObjectFieldNode> Fields { get; }
 
@@ -177,7 +177,7 @@ namespace HotChocolate.Language
             }
         }
 
-        public ObjectValueNode WithLocation(Location location)
+        public ObjectValueNode WithLocation(Location? location)
         {
             return new ObjectValueNode(location, Fields);
         }

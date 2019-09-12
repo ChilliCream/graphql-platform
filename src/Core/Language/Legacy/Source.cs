@@ -112,7 +112,7 @@ namespace HotChocolate.Language
         /// A <see cref="T:System.String"/> that represents the current
         /// <see cref="T:HotChocolate.Language.Source"/>.
         /// </returns>
-        public override string ToString()
+        public override string? ToString()
         {
             return Text;
         }

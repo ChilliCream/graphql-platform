@@ -35,7 +35,7 @@ namespace HotChocolate.Language
         }
 
         public ObjectFieldNode(
-            Location location,
+            Location? location,
             NameNode name,
             IValueNode value)
         {
@@ -46,7 +46,7 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.ObjectField;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public NameNode Name { get; }
 
@@ -130,7 +130,7 @@ namespace HotChocolate.Language
             }
         }
 
-        public ObjectFieldNode WithLocation(Location location)
+        public ObjectFieldNode WithLocation(Location? location)
         {
             return new ObjectFieldNode(location, Name, Value);
         }

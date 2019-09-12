@@ -7,7 +7,7 @@ namespace HotChocolate.Language
         , ISelectionNode
     {
         public FragmentSpreadNode(
-            Location location,
+            Location? location,
             NameNode name,
             IReadOnlyList<DirectiveNode> directives)
             : base(location, name, directives)
@@ -15,7 +15,7 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.FragmentSpread;
 
-        public FragmentSpreadNode WithLocation(Location location)
+        public FragmentSpreadNode WithLocation(Location? location)
         {
             return new FragmentSpreadNode(location, Name, Directives);
         }

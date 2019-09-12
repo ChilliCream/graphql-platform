@@ -15,7 +15,7 @@
         {
             SyntaxToken start = context.Current;
             ITypeNode type;
-            Location location;
+            Location? location;
 
             if (context.Skip(TokenKind.LeftBracket))
             {
@@ -56,7 +56,7 @@
         {
             SyntaxToken start = context.Current;
             NameNode name = ParseName(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new NamedTypeNode
             (

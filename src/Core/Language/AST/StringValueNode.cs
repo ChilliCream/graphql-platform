@@ -37,7 +37,7 @@ namespace HotChocolate.Language
         /// <paramref name="value"/> is <c>null</c>.
         /// </exception>
         public StringValueNode(
-            Location location,
+            Location? location,
             string value,
             bool block)
         {
@@ -48,7 +48,7 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.StringValue;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public string Value { get; }
 
@@ -177,12 +177,12 @@ namespace HotChocolate.Language
         /// A <see cref="string"/> that represents the current
         /// <see cref="StringValueNode"/>.
         /// </returns>
-        public override string ToString()
+        public override string? ToString()
         {
             return Value;
         }
 
-        public StringValueNode WithLocation(Location location)
+        public StringValueNode WithLocation(Location? location)
         {
             return new StringValueNode(location, Value, Block);
         }

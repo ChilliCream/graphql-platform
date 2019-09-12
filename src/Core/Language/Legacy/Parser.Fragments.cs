@@ -58,7 +58,7 @@ namespace HotChocolate.Language
                 List<DirectiveNode> directives =
                     ParseDirectives(context, false);
                 SelectionSetNode selectionSet = ParseSelectionSet(context);
-                Location location = context.CreateLocation(start);
+                Location? location = context.CreateLocation(start);
 
                 return new FragmentDefinitionNode
                 (
@@ -78,7 +78,7 @@ namespace HotChocolate.Language
                 List<DirectiveNode> directives =
                     ParseDirectives(context, false);
                 SelectionSetNode selectionSet = ParseSelectionSet(context);
-                Location location = context.CreateLocation(start);
+                Location? location = context.CreateLocation(start);
 
                 return new FragmentDefinitionNode
                 (
@@ -107,7 +107,7 @@ namespace HotChocolate.Language
             NameNode name = ParseFragmentName(context);
             List<DirectiveNode> directives =
                 ParseDirectives(context, false);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new FragmentSpreadNode
             (
@@ -137,7 +137,7 @@ namespace HotChocolate.Language
             List<DirectiveNode> directives =
                 ParseDirectives(context, false);
             SelectionSetNode selectionSet = ParseSelectionSet(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new InlineFragmentNode
             (

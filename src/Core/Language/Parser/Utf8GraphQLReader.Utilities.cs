@@ -52,6 +52,9 @@ namespace HotChocolate.Language
             }
         }
 
+        internal static string GetScalarValue(ReadOnlySpan<byte> unescapedValue) =>
+            GetString(unescapedValue);
+
         public unsafe static string GetString(ReadOnlySpan<byte> unescapedValue)
         {
             if (unescapedValue.Length == 0)
@@ -115,7 +118,8 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool MoveNext()
         {
-            while (Read() && _kind == TokenKind.Comment) { }
+            while (Read() && _kind == TokenKind.Comment)
+            { }
             return !IsEndOfStream();
         }
 

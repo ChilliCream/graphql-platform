@@ -7,7 +7,7 @@ namespace HotChocolate.Language
         : NamedSyntaxNode
     {
         protected EnumTypeDefinitionNodeBase(
-            Location location,
+            Location? location,
             NameNode name,
             IReadOnlyList<DirectiveNode> directives,
             IReadOnlyList<EnumValueDefinitionNode> values)

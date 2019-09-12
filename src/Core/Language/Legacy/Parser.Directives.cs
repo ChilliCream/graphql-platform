@@ -18,7 +18,7 @@ namespace HotChocolate.Language
             context.ExpectOnKeyword();
             List<NameNode> locations =
                 ParseDirectiveLocations(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new DirectiveDefinitionNode
             (
@@ -80,7 +80,7 @@ namespace HotChocolate.Language
             NameNode name = ParseName(context);
             List<ArgumentNode> arguments =
                 ParseArguments(context, isConstant);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new DirectiveNode
             (

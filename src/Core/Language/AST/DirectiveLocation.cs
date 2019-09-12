@@ -66,7 +66,7 @@ namespace HotChocolate.Language
             }
         }
 
-        public override string ToString()
+        public override string? ToString()
         {
             return _value;
         }

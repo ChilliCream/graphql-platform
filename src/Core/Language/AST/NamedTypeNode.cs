@@ -16,7 +16,7 @@ namespace HotChocolate.Language
         {
         }
 
-        public NamedTypeNode(Location location, NameNode name)
+        public NamedTypeNode(Location? location, NameNode name)
         {
             Location = location;
             Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -24,11 +24,11 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.NamedType;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public NameNode Name { get; }
 
-        public NamedTypeNode WithLocation(Location location)
+        public NamedTypeNode WithLocation(Location? location)
         {
             return new NamedTypeNode(location, Name);
         }
@@ -78,7 +78,7 @@ namespace HotChocolate.Language
             }
         }
 
-        public override string ToString()
+        public override string? ToString()
         {
             return Name.Value;
         }

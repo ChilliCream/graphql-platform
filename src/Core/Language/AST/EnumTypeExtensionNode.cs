@@ -7,7 +7,7 @@ namespace HotChocolate.Language
         , INamedTypeExtensionNode
     {
         public EnumTypeExtensionNode(
-            Location location,
+            Location? location,
             NameNode name,
             IReadOnlyList<DirectiveNode> directives,
             IReadOnlyList<EnumValueDefinitionNode> values)
@@ -17,7 +17,7 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.EnumTypeExtension;
 
-        public EnumTypeExtensionNode WithLocation(Location location)
+        public EnumTypeExtensionNode WithLocation(Location? location)
         {
             return new EnumTypeExtensionNode(
                 location, Name,

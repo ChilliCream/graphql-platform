@@ -10,7 +10,7 @@ namespace HotChocolate.Language
         internal static NameNode ParseName(ParserContext context)
         {
             SyntaxToken token = context.ExpectName();
-            Location location = context.CreateLocation(token);
+            Location? location = context.CreateLocation(token);
 
             return new NameNode
             (

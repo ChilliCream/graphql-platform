@@ -7,9 +7,9 @@ namespace HotChocolate.Language
         , ITypeDefinitionNode
     {
         public UnionTypeDefinitionNode(
-            Location location,
+            Location? location,
             NameNode name,
-            StringValueNode description,
+            StringValueNode? description,
             IReadOnlyList<DirectiveNode> directives,
             IReadOnlyList<NamedTypeNode> types)
             : base(location, name, directives, types)
@@ -19,9 +19,9 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.UnionTypeDefinition;
 
-        public StringValueNode Description { get; }
+        public StringValueNode? Description { get; }
 
-        public UnionTypeDefinitionNode WithLocation(Location location)
+        public UnionTypeDefinitionNode WithLocation(Location? location)
         {
             return new UnionTypeDefinitionNode(
                 location, Name, Description,

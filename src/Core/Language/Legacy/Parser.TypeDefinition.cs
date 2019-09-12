@@ -98,7 +98,7 @@ namespace HotChocolate.Language
                     ParseOperationTypeDefinition,
                     TokenKind.RightBrace);
 
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new SchemaDefinitionNode
             (
@@ -122,7 +122,7 @@ namespace HotChocolate.Language
             OperationType operation = ParseOperationType(context);
             context.ExpectColon();
             NamedTypeNode type = ParseNamedType(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new OperationTypeDefinitionNode
             (
@@ -148,7 +148,7 @@ namespace HotChocolate.Language
             NameNode name = ParseName(context);
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new ScalarTypeDefinitionNode
             (
@@ -179,7 +179,7 @@ namespace HotChocolate.Language
                 ParseDirectives(context, true);
             List<FieldDefinitionNode> fields =
                 ParseFieldsDefinition(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new ObjectTypeDefinitionNode
             (
@@ -256,7 +256,7 @@ namespace HotChocolate.Language
             ITypeNode type = ParseTypeReference(context);
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new FieldDefinitionNode
             (
@@ -309,7 +309,7 @@ namespace HotChocolate.Language
             }
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new InputValueDefinitionNode
             (
@@ -340,7 +340,7 @@ namespace HotChocolate.Language
                 ParseDirectives(context, true);
             List<FieldDefinitionNode> fields =
                 ParseFieldsDefinition(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new InterfaceTypeDefinitionNode
             (
@@ -370,7 +370,7 @@ namespace HotChocolate.Language
                 ParseDirectives(context, true);
             List<NamedTypeNode> types =
                 ParseUnionMemberTypes(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new UnionTypeDefinitionNode
             (
@@ -425,7 +425,7 @@ namespace HotChocolate.Language
                 ParseDirectives(context, true);
             List<EnumValueDefinitionNode> values =
                 ParseEnumValuesDefinition(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new EnumTypeDefinitionNode
             (
@@ -471,7 +471,7 @@ namespace HotChocolate.Language
             NameNode name = ParseName(context);
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new EnumValueDefinitionNode
             (
@@ -493,7 +493,7 @@ namespace HotChocolate.Language
                 ParseDirectives(context, true);
             List<InputValueDefinitionNode> fields =
                 ParseInputFieldsDefinition(context);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new InputObjectTypeDefinitionNode
             (

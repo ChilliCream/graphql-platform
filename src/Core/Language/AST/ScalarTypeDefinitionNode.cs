@@ -7,9 +7,9 @@ namespace HotChocolate.Language
         , ITypeDefinitionNode
     {
         public ScalarTypeDefinitionNode(
-            Location location,
+            Location? location,
             NameNode name,
-            StringValueNode description,
+            StringValueNode? description,
             IReadOnlyList<DirectiveNode> directives)
             : base(location, name, directives)
         {
@@ -18,9 +18,9 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.ScalarTypeDefinition;
 
-        public StringValueNode Description { get; }
+        public StringValueNode? Description { get; }
 
-        public ScalarTypeDefinitionNode WithLocation(Location location)
+        public ScalarTypeDefinitionNode WithLocation(Location? location)
         {
             return new ScalarTypeDefinitionNode(
                 location, Name, Description,

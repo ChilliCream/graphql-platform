@@ -6,7 +6,7 @@ namespace HotChocolate.Language
         : ISyntaxNode
     {
         public OperationTypeDefinitionNode(
-            Location location,
+            Location? location,
             OperationType operation,
             NamedTypeNode type)
         {
@@ -22,14 +22,14 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.OperationTypeDefinition;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public OperationType Operation { get; }
 
         public NamedTypeNode Type { get; }
 
 
-        public OperationTypeDefinitionNode WithLocation(Location location)
+        public OperationTypeDefinitionNode WithLocation(Location? location)
         {
             return new OperationTypeDefinitionNode(
                 location, Operation, Type);

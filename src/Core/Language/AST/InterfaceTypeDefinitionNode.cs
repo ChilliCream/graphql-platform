@@ -7,9 +7,9 @@ namespace HotChocolate.Language
         , ITypeDefinitionNode
     {
         public InterfaceTypeDefinitionNode(
-            Location location,
+            Location? location,
             NameNode name,
-            StringValueNode description,
+            StringValueNode? description,
             IReadOnlyList<DirectiveNode> directives,
             IReadOnlyList<FieldDefinitionNode> fields)
             : base(location, name, directives, fields)
@@ -20,9 +20,9 @@ namespace HotChocolate.Language
         public override NodeKind Kind { get; } =
             NodeKind.InterfaceTypeDefinition;
 
-        public StringValueNode Description { get; }
+        public StringValueNode? Description { get; }
 
-        public InterfaceTypeDefinitionNode WithLocation(Location location)
+        public InterfaceTypeDefinitionNode WithLocation(Location? location)
         {
             return new InterfaceTypeDefinitionNode(
                 location, Name, Description,

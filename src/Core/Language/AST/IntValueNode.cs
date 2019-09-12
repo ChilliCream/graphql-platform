@@ -18,7 +18,7 @@ namespace HotChocolate.Language
         }
 
         public IntValueNode(
-            Location location,
+            Location? location,
             string value)
         {
             if (string.IsNullOrEmpty(value))
@@ -34,7 +34,7 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.IntValue;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public string Value { get; }
 
@@ -153,12 +153,12 @@ namespace HotChocolate.Language
         /// A <see cref="string"/> that represents the current
         /// <see cref="IntValueNode"/>.
         /// </returns>
-        public override string ToString()
+        public override string? ToString()
         {
             return Value;
         }
 
-        public IntValueNode WithLocation(Location location)
+        public IntValueNode WithLocation(Location? location)
         {
             return new IntValueNode(location, Value);
         }

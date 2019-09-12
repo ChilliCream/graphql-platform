@@ -98,19 +98,19 @@
         public int End { get; }
 
         /// <summary>
-        /// Gets the 1-indexed line number on which this 
+        /// Gets the 1-indexed line number on which this
         /// <see cref="SyntaxToken" /> appears.
         /// </summary>
         public int Line { get; }
 
         /// <summary>
-        /// Gets the 1-indexed column number at which this 
+        /// Gets the 1-indexed column number at which this
         /// <see cref="SyntaxToken" /> begins.
         /// </summary>
         public int Column { get; }
 
         /// <summary>
-        /// For non-punctuation tokens, represents the interpreted 
+        /// For non-punctuation tokens, represents the interpreted
         /// value of the token.
         /// </summary>
         public string Value { get; }
@@ -141,7 +141,7 @@
         /// that represents the current
         /// <see cref="T:HotChocolate.Language.Token"/>.
         /// </returns>
-        public override string ToString()
+        public override string? ToString()
         {
             return TokenVisualizer.Visualize(this);
         }

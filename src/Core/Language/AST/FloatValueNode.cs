@@ -18,7 +18,7 @@ namespace HotChocolate.Language
         }
 
         public FloatValueNode(
-            Location location,
+            Location? location,
             string value)
         {
             if (string.IsNullOrEmpty(value))
@@ -34,11 +34,16 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.FloatValue;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public string Value { get; }
 
         object IValueNode.Value => Value;
+
+        public Span<byte> AsSpan()
+        {
+            throw new NotImplementedException();
+        }
 
         /// <summary>
         /// Determines whether the specified <see cref="FloatValueNode"/>
@@ -153,12 +158,12 @@ namespace HotChocolate.Language
         /// A <see cref="string"/> that represents the current
         /// <see cref="FloatValueNode"/>.
         /// </returns>
-        public override string ToString()
+        public override string? ToString()
         {
             return Value;
         }
 
-        public FloatValueNode WithLocation(Location location)
+        public FloatValueNode WithLocation(Location? location)
         {
             return new FloatValueNode(location, Value);
         }

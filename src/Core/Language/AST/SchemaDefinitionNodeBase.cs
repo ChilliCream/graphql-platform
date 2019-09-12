@@ -7,7 +7,7 @@ namespace HotChocolate.Language
         : IHasDirectives
     {
         protected SchemaDefinitionNodeBase(
-            Location location,
+            Location? location,
             IReadOnlyList<DirectiveNode> directives,
             IReadOnlyList<OperationTypeDefinitionNode> operationTypes)
         {
@@ -20,7 +20,7 @@ namespace HotChocolate.Language
 
         public abstract NodeKind Kind { get; }
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public IReadOnlyList<DirectiveNode> Directives { get; }
 

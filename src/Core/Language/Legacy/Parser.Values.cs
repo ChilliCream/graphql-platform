@@ -64,7 +64,7 @@ namespace HotChocolate.Language
         {
             SyntaxToken start = context.ExpectString();
             bool isBlock = start.Kind == TokenKind.BlockString;
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new StringValueNode(location, start.Value, isBlock);
         }
@@ -94,7 +94,7 @@ namespace HotChocolate.Language
                     ParseConstantValue, TokenKind.RightBracket)
                 : ParseMany(context, TokenKind.LeftBracket,
                     c => ParseValueLiteral(c, false), TokenKind.RightBracket);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new ListValueNode
             (
@@ -122,7 +122,7 @@ namespace HotChocolate.Language
                 TokenKind.LeftBrace,
                 c => ParseObjectField(c, isConstant),
                 TokenKind.RightBrace);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new ObjectValueNode
             (
@@ -138,7 +138,7 @@ namespace HotChocolate.Language
             NameNode name = ParseName(context);
             context.ExpectColon();
             IValueNode value = ParseValueLiteral(context, isConstant);
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             return new ObjectFieldNode
             (
@@ -156,7 +156,7 @@ namespace HotChocolate.Language
             }
 
             SyntaxToken start = context.ExpectScalarValue();
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
 
             if (start.Kind == TokenKind.Float)
             {
@@ -182,7 +182,7 @@ namespace HotChocolate.Language
         private static IValueNode ParseEnumValue(ParserContext context)
         {
             SyntaxToken start = context.Current;
-            Location location = context.CreateLocation(start);
+            Location? location = context.CreateLocation(start);
             context.MoveNext();
 
             switch (start.Value)

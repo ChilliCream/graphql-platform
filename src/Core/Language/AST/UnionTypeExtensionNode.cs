@@ -7,7 +7,7 @@ namespace HotChocolate.Language
         , INamedTypeExtensionNode
     {
         public UnionTypeExtensionNode(
-            Location location,
+            Location? location,
             NameNode name,
             IReadOnlyList<DirectiveNode> directives,
             IReadOnlyList<NamedTypeNode> types)
@@ -17,7 +17,7 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.UnionTypeExtension;
 
-        public UnionTypeExtensionNode WithLocation(Location location)
+        public UnionTypeExtensionNode WithLocation(Location? location)
         {
             return new UnionTypeExtensionNode(
                 location, Name, Directives, Types);

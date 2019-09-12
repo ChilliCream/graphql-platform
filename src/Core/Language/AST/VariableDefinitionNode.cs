@@ -8,7 +8,7 @@ namespace HotChocolate.Language
         , IHasDirectives
     {
         public VariableDefinitionNode(
-            Location location,
+            Location? location,
             VariableNode variable,
             ITypeNode type,
             IValueNode defaultValue,
@@ -26,7 +26,7 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.VariableDefinition;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public VariableNode Variable { get; }
 
@@ -36,7 +36,7 @@ namespace HotChocolate.Language
 
         public IReadOnlyList<DirectiveNode> Directives { get; }
 
-        public VariableDefinitionNode WithLocation(Location location)
+        public VariableDefinitionNode WithLocation(Location? location)
         {
             return new VariableDefinitionNode(
                 location, Variable, Type,
