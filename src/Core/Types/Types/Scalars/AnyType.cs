@@ -64,8 +64,40 @@ namespace HotChocolate.Types
 
         public override IValueNode ParseValue(object value)
         {
-            throw new NotImplementedException();
+            if (value is null)
+            {
+                return NullValueNode.Default;
+            }
+
+            switch (value)
+            {
+                case string s:
+                    return new StringValueNode(s);
+                case short s:
+                    return new IntValueNode(s);
+                case ushort s:
+                    return new IntValueNode(s);
+                case int i:
+                    return new IntValueNode(i);
+                case uint i:
+                    return new IntValueNode(i);
+                case long l:
+                    return new IntValueNode(l);
+                case ulong l:
+                    return new IntValueNode(l);
+                case float f:
+                    return new FloatValueNode(f);
+                case double d:
+                    return new FloatValueNode(d);
+                case decimal d:
+                    return new FloatValueNode(d);
+                case bool b:
+                    return new BooleanValueNode(b);
+            }
+
+            throw new  NotImplementedException();
         }
+
 
         public override object Serialize(object value)
         {
