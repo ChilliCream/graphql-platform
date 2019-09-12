@@ -325,9 +325,7 @@ namespace HotChocolate.Execution
             IInputField argument,
             IValueNode literal)
         {
-            IValueNode current = literal;
-
-            PrepareArgumentValue(argument, literal);
+            IValueNode current = PrepareArgumentValue(argument, literal);
 
             if (fieldInfo.Arguments == null)
             {
