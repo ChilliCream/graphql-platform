@@ -77,15 +77,18 @@ namespace HotChocolate.Execution
             {
                 IError error = null;
 
-                if (!variables.TryGetVariable(
+                if (variables.TryGetVariable(
                     var.Value.VariableName,
                     out object value))
                 {
-                    value = var.Value.DefaultValue is IValueNode literal
-                        ? var.Value.Type.ParseLiteral(literal)
-                        : value = var.Value.DefaultValue;
+                    value = var.Value.CoerceValue(value);
+                }
+                else
+                {
+                    value = var.Value.DefaultValue;
 
-                    if (var.Value.Type.IsNonNullType() && value is null)
+                    if (var.Value.Type.IsNonNullType()
+                        && (value is null || value is NullValueNode))
                     {
                         error = ErrorBuilder.New()
                             .SetMessage(string.Format(
@@ -102,7 +105,9 @@ namespace HotChocolate.Execution
 
                 if (error is null)
                 {
-                    args[var.Key] = new ArgumentValue(var.Value.Type, value);
+                    args[var.Key] = value is IValueNode literal
+                        ? new ArgumentValue(var.Value.Argument, literal)
+                        : new ArgumentValue(var.Value.Argument, value);
                 }
                 else
                 {

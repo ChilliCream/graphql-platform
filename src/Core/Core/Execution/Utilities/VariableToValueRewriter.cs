@@ -99,7 +99,7 @@ namespace HotChocolate.Execution
             throw new QueryException(
                 ErrorBuilder.New()
                     .SetMessage(CoreResources.VarRewriter_UnknownField)
-                    .SetCode(UtilityErrorCodes.UnknownField)
+                    .SetCode(ErrorCodes.Utilities.UnknownField)
                     .Build());
         }
 
@@ -176,7 +176,7 @@ namespace HotChocolate.Execution
                     throw new QueryException(
                         ErrorBuilder.New()
                             .SetMessage(CoreResources.VarRewriter_CannotConvert)
-                            .SetCode(UtilityErrorCodes.NoConverter)
+                            .SetCode(ErrorCodes.Utilities.NoConverter)
                             .AddLocation(variable)
                             .Build());
                 }
