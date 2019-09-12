@@ -317,6 +317,39 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
+        public async Task Extend_Argument_Coercion_With_Variables_And_ObjectValue()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            services.AddSingleton<IArgumentCoercionHandler, ModifyStringHandler>();
+            services.AddGraphQLSchema(builder => builder
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("bar")
+                    .Argument("baz", a => a.Type<InputObjectType<Foo>>())
+                    .Resolver(ctx => ctx.Argument<Foo>("baz").Bar)));
+
+            QueryExecutionBuilder
+                .New()
+                .UseDefaultPipeline()
+                .Populate(services);
+
+            IQueryExecutor executor = services.BuildServiceProvider()
+                .GetRequiredService<IQueryExecutor>();
+
+            // act
+            IExecutionResult result =
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery("query foo($a: String) { bar(baz: { bar: $a }) }")
+                        .SetVariableValue("a", "abc")
+                        .Create());
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Extend_Argument_Coercion_With_Variables_DefaultValue()
         {
             // arrange

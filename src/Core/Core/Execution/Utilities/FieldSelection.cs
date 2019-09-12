@@ -105,7 +105,9 @@ namespace HotChocolate.Execution
 
                 if (error is null)
                 {
-                    args[var.Key] = new ArgumentValue(var.Value.Argument, value);
+                    args[var.Key] = value is IValueNode literal
+                        ? new ArgumentValue(var.Value.Argument, literal)
+                        : new ArgumentValue(var.Value.Argument, value);
                 }
                 else
                 {
