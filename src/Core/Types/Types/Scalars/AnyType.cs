@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
@@ -32,14 +33,20 @@ namespace HotChocolate.Types
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
+            if (literal == null)
+            {
+                throw new ArgumentNullException(nameof(literal));
+            }
+
             switch (literal)
             {
-                case StringValueNode svn:
-                case IntValueNode ivn:
-                case FloatValueNode fvn:
-                case BooleanValueNode bvn:
-                case ListValueNode lvn:
-                case ObjectValueNode ovn:
+                case StringValueNode _:
+                case IntValueNode _:
+                case FloatValueNode _:
+                case BooleanValueNode _:
+                case ListValueNode _:
+                case ObjectValueNode _:
+                case NullValueNode _:
                     return true;
 
                 default:
@@ -69,8 +76,13 @@ namespace HotChocolate.Types
                 case ObjectValueNode ovn:
                     return _objectValueToDictConverter.Convert(ovn);
 
+                case NullValueNode _:
+                    return null;
+
                 default:
-                    return false;
+                    throw new ScalarSerializationException(
+                        TypeResourceHelper.Scalar_Cannot_ParseLiteral(
+                            Name, literal.GetType()));
             }
         }
 
@@ -152,8 +164,9 @@ namespace HotChocolate.Types
                 return ParseValue(_objectToDictConverter.Convert(value), set);
             }
 
+            // TODO : resources
             throw new ScalarSerializationException(
-                "Cycle detected in graph detected.");
+                "Cycle in object graph detected.");
         }
 
 
