@@ -745,10 +745,15 @@ namespace HotChocolate.Validation
             // assert
             Assert.True(result.HasErrors);
             Assert.Collection(result.Errors,
-                t => Assert.Equal(
-                    "The specified inline fragment " +
-                    "does not exist in the current schema.",
-                    t.Message));
+                t =>
+                {
+                    Assert.Equal(
+                        "Unknown type `NotInSchema`.",
+                        t.Message);
+                    Assert.Equal(
+                        ErrorCodes.Validation.UnknownType,
+                        t.Code);
+                });
         }
 
         [Fact]

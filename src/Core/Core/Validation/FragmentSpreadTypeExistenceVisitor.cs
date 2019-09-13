@@ -1,5 +1,7 @@
-﻿using System.Collections.Immutable;
+using System.Collections.Immutable;
+using System.Globalization;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Validation
@@ -22,10 +24,14 @@ namespace HotChocolate.Validation
                             fragmentDefinition.TypeCondition.Name.Value,
                             out INamedOutputType typeCondition)))
             {
-                Errors.Add(new ValidationError(
-                    $"The type of fragment `{fragmentDefinition.Name.Value}` " +
-                    "does not exist in the current schema.",
-                    fragmentDefinition));
+                Errors.Add(ErrorBuilder.New()
+                    .SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        ValidationResources.UnknownType,
+                        fragmentDefinition.TypeCondition.Name.Value))
+                    .SetCode(ErrorCodes.Validation.UnknownType)
+                    .AddLocation(fragmentDefinition.TypeCondition)
+                    .Build());
             }
 
             base.VisitFragmentDefinition(fragmentDefinition, path);
@@ -39,10 +45,14 @@ namespace HotChocolate.Validation
         {
             if (typeCondition == null)
             {
-                Errors.Add(new ValidationError(
-                    "The specified inline fragment " +
-                    "does not exist in the current schema.",
-                    inlineFragment));
+                Errors.Add(ErrorBuilder.New()
+                    .SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        ValidationResources.UnknownType,
+                        inlineFragment.TypeCondition.Name.Value))
+                    .SetCode(ErrorCodes.Validation.UnknownType)
+                    .AddLocation(inlineFragment.TypeCondition)
+                    .Build());
             }
 
             base.VisitInlineFragment(
@@ -52,4 +62,6 @@ namespace HotChocolate.Validation
                 path);
         }
     }
+
+    
 }
