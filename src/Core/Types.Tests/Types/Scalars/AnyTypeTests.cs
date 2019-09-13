@@ -756,6 +756,172 @@ namespace HotChocolate.Types
             Assert.Throws<ArgumentNullException>(action);
         }
 
+        [InlineData("abc", typeof(StringValueNode))]
+        [InlineData((short)1, typeof(IntValueNode))]
+        [InlineData((int)1, typeof(IntValueNode))]
+        [InlineData((long)1, typeof(IntValueNode))]
+        [InlineData((ushort)1, typeof(IntValueNode))]
+        [InlineData((uint)1, typeof(IntValueNode))]
+        [InlineData((ulong)1, typeof(IntValueNode))]
+        [InlineData((float)1, typeof(FloatValueNode))]
+        [InlineData((double)1, typeof(FloatValueNode))]
+        [InlineData(true, typeof(BooleanValueNode))]
+        [InlineData(false, typeof(BooleanValueNode))]
+        [Theory]
+        public void ParseValue_ScalarValues(object value, Type expectedType)
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            // act
+            IValueNode literal = type.ParseValue(value);
+
+            // assert
+            Assert.IsType(expectedType, literal);
+        }
+
+        [Fact]
+        public void ParseValue_Decimal()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            // act
+            IValueNode literal = type.ParseValue((decimal)1);
+
+            // assert
+            Assert.IsType<FloatValueNode>(literal);
+        }
+
+        [Fact]
+        public void ParseValue_List_Of_Object()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            // act
+            IValueNode literal = type.ParseValue(new List<object>());
+
+            // assert
+            Assert.IsType<ListValueNode>(literal);
+        }
+
+        [Fact]
+        public void ParseValue_List_Of_String()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            // act
+            IValueNode literal = type.ParseValue(new List<string>());
+
+            // assert
+            Assert.IsType<ListValueNode>(literal);
+        }
+
+        [Fact]
+        public void ParseValue_List_Of_Foo()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            // act
+            IValueNode literal = type.ParseValue(new List<Foo>());
+
+            // assert
+            Assert.IsType<ListValueNode>(literal);
+        }
+
+        [Fact]
+        public void ParseValue_Foo()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            // act
+            IValueNode literal = type.ParseValue(new Foo());
+
+            // assert
+            Assert.IsType<ObjectValueNode>(literal);
+        }
+
+        [Fact]
+        public void ParseValue_Dictionary()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            // act
+            IValueNode literal = type.ParseValue(
+                new Dictionary<string, object>());
+
+            // assert
+            Assert.IsType<ObjectValueNode>(literal);
+        }
+
         public class Foo
         {
             public Bar Bar { get; set; } = new Bar();

@@ -137,7 +137,7 @@ namespace HotChocolate.Types
                 return new StringValueNode(c);
             }
 
-            if (set.Contains(value))
+            if (set.Add(value))
             {
                 if (value is IReadOnlyDictionary<string, object> dict)
                 {
