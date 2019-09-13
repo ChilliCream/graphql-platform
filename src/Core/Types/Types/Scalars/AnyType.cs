@@ -127,16 +127,6 @@ namespace HotChocolate.Types
 
             if (set.Contains(value))
             {
-                if (value is IReadOnlyList<object> list)
-                {
-                    var valueList = new List<IValueNode>();
-                    foreach (object element in list)
-                    {
-                        valueList.Add(ParseValue(element, set));
-                    }
-                    return new ListValueNode(valueList);
-                }
-
                 if (value is IReadOnlyDictionary<string, object> dict)
                 {
                     var fields = new List<ObjectFieldNode>();
@@ -149,6 +139,16 @@ namespace HotChocolate.Types
                     return new ObjectValueNode(fields);
                 }
 
+                if (value is IReadOnlyList<object> list)
+                {
+                    var valueList = new List<IValueNode>();
+                    foreach (object element in list)
+                    {
+                        valueList.Add(ParseValue(element, set));
+                    }
+                    return new ListValueNode(valueList);
+                }
+
                 return ParseValue(_objectToDictConverter.Convert(value), set);
             }
 
@@ -159,7 +159,40 @@ namespace HotChocolate.Types
 
         public override object Serialize(object value)
         {
-            return _objectToDictConverter.Convert(value);
+            if (value is null)
+            {
+                return null;
+            }
+
+            switch (value)
+            {
+                case string _:
+                case short _:
+                case ushort _:
+                case int _:
+                case uint _:
+                case long _:
+                case ulong _:
+                case float _:
+                case double _:
+                case decimal _:
+                case bool _:
+                case IReadOnlyDictionary<string, object> _:
+                case IReadOnlyList<object> _:
+                    return value;
+
+                default:
+                    Type type = value.GetType();
+
+                    if (type.IsValueType && _converter.TryConvert(
+                        type, typeof(string), value, out object converted)
+                        && converted is string c)
+                    {
+                        return c;
+                    }
+
+                    return _objectToDictConverter.Convert(value);
+            }
         }
 
         public override bool TryDeserialize(object serialized, out object value)

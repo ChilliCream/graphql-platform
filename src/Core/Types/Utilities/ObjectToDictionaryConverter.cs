@@ -27,7 +27,7 @@ namespace HotChocolate.Utilities
 
             object value = null;
             Action<object> setValue = v => value = v;
-
+            VisitValue(obj, setValue, new HashSet<object>());
             return value;
         }
 
