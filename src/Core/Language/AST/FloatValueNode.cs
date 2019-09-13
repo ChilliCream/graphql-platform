@@ -190,7 +190,7 @@ namespace HotChocolate.Language
         {
             if (_memory.IsEmpty)
             {
-                int length = checked(_value.Length * 4);
+                int length = checked(_value!.Length * 4);
                 Memory<byte> memory = new byte[length];
                 Span<byte> span = memory.Span;
                 int buffered = Utf8GraphQLParser.ConvertToBytes(_value, ref span);
@@ -219,11 +219,5 @@ namespace HotChocolate.Language
         {
             return new FloatValueNode(Location, Value, format);
         }
-    }
-
-    public enum FloatFormat
-    {
-        FixedPoint = 0,
-        Exponential = 1
     }
 }

@@ -197,7 +197,19 @@ namespace HotChocolate.Language
 
             TokenInfo start = Start();
             TokenKind kind = _reader.Kind;
-            string value = ExpectScalarValue();
+
+            if (!TokenHelper.IsScalarValue(in _reader))
+            {
+                throw new SyntaxException(_reader,
+                    string.Format(CultureInfo.InvariantCulture,
+                        LangResources.Parser_InvalidScalarToken,
+                        _reader.Kind));
+            }
+
+            Memory<byte> value = _reader.Value.ToArray();
+            FloatFormat? format = _reader.FloatFormat;
+            MoveNext();
+
             Location? location = CreateLocation(in start);
 
             if (kind == TokenKind.Float)
@@ -205,7 +217,8 @@ namespace HotChocolate.Language
                 return new FloatValueNode
                 (
                     location,
-                    value
+                    value,
+                    format
                 );
             }
 

@@ -7,6 +7,9 @@ namespace HotChocolate.Language
         : IValueNode<string>
         , IEquatable<IntValueNode>
     {
+        private string? _value;
+        private Memory<byte> _memory;
+
         public IntValueNode(int value)
             : this(null, value.ToString("D", CultureInfo.InvariantCulture))
         {
@@ -18,6 +21,19 @@ namespace HotChocolate.Language
         }
 
         public IntValueNode(Location? location, string value)
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                throw new ArgumentException(
+                    "The value of an int value node cannot be null or empty.",
+                    nameof(value));
+            }
+
+            Location = location;
+            Value = value;
+        }
+
+        public IntValueNode(Location? location, Memory<byte> value)
         {
             if (string.IsNullOrEmpty(value))
             {

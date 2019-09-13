@@ -93,11 +93,11 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private string ExpectScalarValue()
+        private Memory<byte> ExpectScalarValue()
         {
             if (TokenHelper.IsScalarValue(in _reader))
             {
-                string value = _reader.GetScalarValue();
+                Memory<byte> value = _reader.Value.ToArray();
                 MoveNext();
                 return value;
             }
