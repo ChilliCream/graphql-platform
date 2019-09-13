@@ -1,19 +1,9 @@
 ﻿{
-  "errors": [
-    {
-      "message": "Could not convert argument `input` from `System.Object` to `HotChocolate.Types.AnyTypeTests+Foo`.",
-      "locations": [
-        {
-          "line": 1,
-          "column": 3
-        }
-      ],
-      "path": [
-        "foo"
-      ]
-    }
-  ],
   "data": {
-    "foo": null
+    "foo": {
+      "bar": {
+        "baz": "FooBar"
+      }
+    }
   }
 }

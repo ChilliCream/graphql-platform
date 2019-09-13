@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -33,7 +35,7 @@ namespace HotChocolate.Execution
 
             if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
             {
-                IValueNode literal =  (argumentValue.Literal == null)
+                IValueNode literal = (argumentValue.Literal == null)
                     ? argumentValue.Type.ParseValue(value)
                     : argumentValue.Literal;
 
@@ -70,6 +72,15 @@ namespace HotChocolate.Execution
                 value, out resolved))
             {
                 return resolved;
+            }
+
+            if (typeof(T).IsClass
+                && (value is IReadOnlyDictionary<string, object>
+                || value is IReadOnlyList<object>))
+            {
+                var dictToObjConverter =
+                    new DictionaryToObjectConverter(Converter);
+                return (T)dictToObjConverter.Convert(value, typeof(T));
             }
 
             IError error = ErrorBuilder.New()
