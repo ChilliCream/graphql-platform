@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {},
   "Extensions": {},
   "Errors": [
@@ -7,14 +7,15 @@
       "message": "The query exceded the maximum allowed execution depth of 3.",
       "locations": [
         {
-          "line": 21,
-          "column": 34
+          "Line": 21,
+          "Column": 33
         },
         {
-          "line": 28,
-          "column": 34
+          "Line": 28,
+          "Column": 33
         }
       ]
     }
-  ]
+  ],
+  "ContextData": {}
 }

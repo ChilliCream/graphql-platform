@@ -1,7 +1,9 @@
 ﻿type Query {
   consultant(id: ID!): Consultant @delegate(schema: "customer")
   customer(id: ID!): Customer @delegate(schema: "customer")
+  customerByKind(kind: CustomerKind!): Customer @delegate(schema: "customer")
   customerOrConsultant(id: ID!): CustomerOrConsultant @delegate(schema: "customer")
+  customers(ids: [ID!]!): [Customer] @delegate(schema: "customer")
   contract(contractId: ID!): Contract @delegate(schema: "contract")
   contracts(customerId: ID!): [Contract!] @delegate(schema: "contract")
   extendedScalar(d: DateTime): DateTime @delegate(schema: "contract")
@@ -27,6 +29,7 @@ type CreateCustomerPayload @source(name: "CreateCustomerPayload", schema: "custo
 type Customer @source(name: "Customer", schema: "customer") {
   consultant(customer: CustomerInput): Consultant
   id: ID!
+  kind: CustomerKind!
   name: String!
   say(input: SayInput!): String
   someGuid: Uuid!
@@ -38,6 +41,8 @@ type Customer @source(name: "Customer", schema: "customer") {
 type CustomerConnection @source(name: "CustomerConnection", schema: "customer") {
   "A list of edges."
   edges: [CustomerEdge!]
+  "A flattened list of the nodes."
+  nodes: [Customer]
   "Information to aid in pagination."
   pageInfo: PageInfo!
   totalCount: Int!
@@ -74,6 +79,7 @@ input CreateCustomerInput @source(name: "CreateCustomerInput", schema: "customer
 input CustomerInput @source(name: "CustomerInput", schema: "customer") {
   consultantId: String
   id: String
+  kind: CustomerKind!
   name: String
   someGuid: Uuid!
   someInt: Int!
@@ -84,17 +90,31 @@ input SayInput @source(name: "SayInput", schema: "customer") {
   words: [String]
 }
 
+enum CustomerKind @source(name: "CustomerKind", schema: "customer") {
+  STANDARD
+  PREMIUM
+}
+
 interface Contract @source(name: "Contract", schema: "contract") {
   customerId: ID!
   id: ID!
 }
 
 type LifeInsuranceContract implements Contract @source(name: "LifeInsuranceContract", schema: "contract") {
+  byte_field: Byte
   customerId: ID!
+  date_field: Date
+  date_time_field: DateTime
+  decimal_field: Decimal
   error: String
+  float_field: Float
   foo(bar: String): String
   id: ID!
+  id_field: ID
+  int_field: Int
+  long_field: Long
   premium: Float!
+  string_field: String
 }
 
 type SomeOtherContract implements Contract @source(name: "SomeOtherContract", schema: "contract") {

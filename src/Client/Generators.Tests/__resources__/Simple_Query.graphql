@@ -1,0 +1,10 @@
+query getHero {
+  hero {
+    name
+    friends {
+      nodes {
+        name
+      }
+    }
+  }
+}

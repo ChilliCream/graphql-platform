@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Numerics;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types
@@ -86,6 +87,34 @@ namespace HotChocolate.Types
                     typeof(UploadType), TypeContext.None) }
            };
 
+        private static readonly Dictionary<Type, ValueKind> _scalarKinds =
+            new Dictionary<Type, ValueKind>
+            {
+                { typeof(string), ValueKind.String },
+                { typeof(long), ValueKind.Integer },
+                { typeof(int), ValueKind.Integer },
+                { typeof(short), ValueKind.Integer },
+                { typeof(long?), ValueKind.Integer },
+                { typeof(int?), ValueKind.Integer },
+                { typeof(short?), ValueKind.Integer },
+                { typeof(ulong), ValueKind.Integer },
+                { typeof(uint), ValueKind.Integer },
+                { typeof(ushort), ValueKind.Integer },
+                { typeof(ulong?), ValueKind.Integer },
+                { typeof(uint?), ValueKind.Integer },
+                { typeof(ushort?), ValueKind.Integer },
+                { typeof(byte), ValueKind.Integer },
+                { typeof(byte?), ValueKind.Integer },
+                { typeof(float), ValueKind.Float },
+                { typeof(double), ValueKind.Float },
+                { typeof(decimal), ValueKind.Float },
+                { typeof(float?), ValueKind.Float },
+                { typeof(double?), ValueKind.Float },
+                { typeof(decimal?), ValueKind.Float },
+                { typeof(bool), ValueKind.Float },
+                { typeof(bool?), ValueKind.Float }
+            };
+
         internal static bool TryGetScalar(
             Type clrType,
             out IClrTypeReference schemaType)
@@ -110,6 +139,25 @@ namespace HotChocolate.Types
         public static bool IsBuiltIn(NameString typeName)
         {
             return typeName.HasValue && _nameLookup.ContainsKey(typeName);
+        }
+
+        public static bool TryGetKind(object value, out ValueKind kind)
+        {
+            if (value is null)
+            {
+                kind = ValueKind.Null;
+                return true;
+            }
+
+            Type valueType = value.GetType();
+
+            if (valueType.IsEnum)
+            {
+                kind = ValueKind.Enum;
+                return true;
+            }
+
+            return _scalarKinds.TryGetValue(valueType, out kind);
         }
     }
 }

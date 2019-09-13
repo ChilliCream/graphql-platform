@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 
 namespace HotChocolate.Resolvers
 {
@@ -8,7 +8,6 @@ namespace HotChocolate.Resolvers
     public delegate FieldDelegate FieldMiddleware(
         FieldDelegate next);
 
-    // TODO : naming
     public delegate Task FieldDelegate(
         IMiddlewareContext context);
 }

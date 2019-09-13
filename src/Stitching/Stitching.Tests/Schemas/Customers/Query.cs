@@ -22,6 +22,18 @@ namespace HotChocolate.Stitching.Schemas.Customers
                 .FirstOrDefault(t => t.Id.Equals(value.Value));
         }
 
+        public Customer[] GetCustomers(string[] ids)
+        {
+            var customers = new Customer[ids.Length];
+
+            for(int i = 0; i < ids.Length; i++)
+            {
+                customers[i] = GetCustomer(ids[i]);
+            }
+
+            return customers;
+        }
+
         public Consultant GetConsultant(string id)
         {
             IdValue value = _idSerializer.Deserialize(id);
@@ -37,6 +49,11 @@ namespace HotChocolate.Stitching.Schemas.Customers
                 return GetConsultant(id);
             }
             return GetCustomer(id);
+        }
+
+        public Customer GetCustomer(CustomerKind kind)
+        {
+            return _repository.Customers.FirstOrDefault(t => t.Kind == kind);
         }
     }
 }

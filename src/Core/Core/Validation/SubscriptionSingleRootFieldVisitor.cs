@@ -61,7 +61,8 @@ namespace HotChocolate.Validation
 
                 if (fragment != null)
                 {
-                    VisitFragmentDefinition(fragment, path.Push(fragmentSpread));
+                    VisitFragmentDefinition(fragment,
+                        path.Push(fragmentSpread));
                 }
             }
         }

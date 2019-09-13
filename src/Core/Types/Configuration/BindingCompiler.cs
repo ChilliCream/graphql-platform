@@ -12,14 +12,16 @@ namespace HotChocolate.Configuration
     internal class BindingCompiler
         : IBindingCompiler
     {
-        private static HashSet<Type> _supportedBindings = new HashSet<Type>
-        {
-            typeof(ComplexTypeBindingInfo),
-            typeof(ResolverBindingInfo),
-            typeof(ResolverTypeBindingInfo),
-        };
+        private readonly HashSet<Type> _supportedBindings =
+            new HashSet<Type>
+            {
+                typeof(ComplexTypeBindingInfo),
+                typeof(ResolverBindingInfo),
+                typeof(ResolverTypeBindingInfo),
+            };
 
-        private List<IBindingInfo> _bindings = new List<IBindingInfo>();
+        private readonly List<IBindingInfo> _bindings =
+            new List<IBindingInfo>();
 
         public bool CanHandle(IBindingInfo binding)
         {
@@ -147,7 +149,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void AddImplicitResolverBindings(
+        private static void AddImplicitResolverBindings(
             ITypeInspector inspector,
             INamingConventions naming,
             ResolverTypeBindingInfo binding)
@@ -155,7 +157,8 @@ namespace HotChocolate.Configuration
             var names = new HashSet<NameString>(
                 binding.Fields.Select(t => t.FieldName));
 
-            foreach (MemberInfo member in inspector.GetMembers(binding.ResolverType))
+            foreach (MemberInfo member in
+                inspector.GetMembers(binding.ResolverType))
             {
                 NameString fieldName =
                     naming.GetMemberName(member, MemberKind.ObjectField);
@@ -224,7 +227,6 @@ namespace HotChocolate.Configuration
             var registerdResolvers =
                 new Dictionary<NameString, RegisteredResolver>();
             var members = new Dictionary<NameString, MemberInfo>();
-            var processed = new HashSet<MemberInfo>();
 
             RegisterResolvers(binding, registerdResolvers);
 
@@ -248,18 +250,19 @@ namespace HotChocolate.Configuration
                 members);
         }
 
-        private void RegisterResolverFields(
+        private static void RegisterResolverFields(
             NameString typeName,
             ResolverTypeBindingInfo resolverBinding,
-            Dictionary<NameString, RegisteredResolver> registerdResolvers,
-            Dictionary<NameString, MemberInfo> members)
+            IDictionary<NameString, RegisteredResolver> registerdResolvers,
+            IDictionary<NameString, MemberInfo> members)
         {
             foreach (ResolverFieldBindingInfo field in
                 resolverBinding.Fields)
             {
                 if (!registerdResolvers.ContainsKey(field.FieldName))
                 {
-                    IFieldReference fieldReference = field.ResolverMember == null
+                    IFieldReference fieldReference =
+                        field.ResolverMember == null
                         ? (IFieldReference)new FieldResolver(
                             typeName,
                             field.FieldName,
@@ -284,7 +287,7 @@ namespace HotChocolate.Configuration
 
         private void RegisterResolvers(
             ComplexTypeBindingInfo binding,
-            Dictionary<NameString, RegisteredResolver> registerdResolvers)
+            IDictionary<NameString, RegisteredResolver> registerdResolvers)
         {
             foreach (ResolverBindingInfo resolver in
                 _bindings.OfType<ResolverBindingInfo>()
@@ -303,7 +306,7 @@ namespace HotChocolate.Configuration
             }
         }
 
-        private void RegisterFields(
+        private static void RegisterFields(
             ComplexTypeBindingInfo binding,
             Dictionary<NameString, RegisteredResolver> registerdResolvers,
             Dictionary<NameString, MemberInfo> members)

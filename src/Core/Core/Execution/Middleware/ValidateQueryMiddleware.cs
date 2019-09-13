@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Runtime;
+using HotChocolate.Utilities;
 using HotChocolate.Validation;
 
 namespace HotChocolate.Execution
@@ -34,14 +34,13 @@ namespace HotChocolate.Execution
 
         public async Task InvokeAsync(IQueryContext context)
         {
-
             if (context.Document == null)
             {
-                context.Result = QueryResult.CreateError(new Error
-                {
-                    Message = CoreResources
-                        .ValidateQueryMiddleware_NoDocument
-                });
+                context.Result = QueryResult.CreateError(
+                    ErrorBuilder.New()
+                        .SetMessage(CoreResources.ValidateQueryMiddleware_NoDocument)
+                        .SetCode(ErrorCodes.Execution.Incomplete)
+                        .Build());
             }
             else
             {
@@ -49,7 +48,7 @@ namespace HotChocolate.Execution
                 try
                 {
                     context.ValidationResult = _validatorCache.GetOrCreate(
-                        context.Request.Query,
+                        context.QueryKey,
                         () => Validate(context.Schema, context.Document));
                 }
                 finally

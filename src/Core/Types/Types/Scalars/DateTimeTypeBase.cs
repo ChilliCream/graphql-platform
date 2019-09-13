@@ -99,24 +99,6 @@ namespace HotChocolate.Types
                 TypeResourceHelper.Scalar_Cannot_Serialize(Name));
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
-        {
-            if (serialized is null)
-            {
-                value = null;
-                return true;
-            }
-
-            if (serialized is string s && TryParseLiteral(s, out object d))
-            {
-                value = d;
-                return true;
-            }
-
-            value = null;
-            return false;
-        }
-
         protected virtual bool TrySerialize(
             object value,
             out string serializedValue)
@@ -143,11 +125,11 @@ namespace HotChocolate.Types
             return false;
         }
 
-        private bool TryParseLiteral(string literal, out object obj) =>
-            TryParseLiteral(new StringValueNode(literal), out obj);
+        private bool TryParseLiteral(StringValueNode literal, out object obj) =>
+            TryDeserializeFromString(literal.Value, out obj);
 
-        protected abstract bool TryParseLiteral(
-            StringValueNode literal,
+        protected abstract bool TryDeserializeFromString(
+            string serialized,
             out object obj);
 
         protected abstract string Serialize(DateTime value);

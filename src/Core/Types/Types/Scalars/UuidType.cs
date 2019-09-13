@@ -105,9 +105,9 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (serialized is Guid g)
+            if (serialized is Guid)
             {
-                value = g;
+                value = serialized;
                 return true;
             }
 

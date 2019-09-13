@@ -5,11 +5,22 @@ namespace HotChocolate.Types
 {
     public static class InterfaceTypeDescriptorExtensions
     {
-        public static void Ignore<T>(
+        public static IInterfaceTypeDescriptor<T> Ignore<T>(
             this IInterfaceTypeDescriptor<T> descriptor,
             Expression<Func<T, object>> propertyOrMethod)
         {
+            if (descriptor == null)
+            {
+                throw new ArgumentNullException(nameof(descriptor));
+            }
+
+            if (propertyOrMethod == null)
+            {
+                throw new ArgumentNullException(nameof(propertyOrMethod));
+            }
+
             descriptor.Field(propertyOrMethod).Ignore();
+            return descriptor;
         }
     }
 }

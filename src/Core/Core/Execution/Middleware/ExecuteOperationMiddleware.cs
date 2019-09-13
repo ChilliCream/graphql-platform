@@ -2,7 +2,8 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
-using HotChocolate.Runtime;
+using HotChocolate.Properties;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -33,11 +34,11 @@ namespace HotChocolate.Execution
         {
             if (IsContextIncomplete(context))
             {
-                // TODO : resources
-                context.Result = QueryResult.CreateError(new QueryError(
-                    "The execute operation middleware expects the " +
-                    "query document to be parsed and the operation to " +
-                    "be resolved."));
+                context.Result = QueryResult.CreateError(
+                    ErrorBuilder.New()
+                        .SetMessage(CoreResources.ExecuteOperationMiddleware_InComplete)
+                        .SetCode(ErrorCodes.Execution.Incomplete)
+                        .Build());
             }
             else
             {
@@ -68,7 +69,7 @@ namespace HotChocolate.Execution
         {
             DirectiveMiddlewareCompiler directives =
                 GetOrCreateDirectiveLookup(
-                    context.Request.Query,
+                    context.QueryKey,
                     context.Schema);
 
             var requestContext = new RequestContext
@@ -92,9 +93,9 @@ namespace HotChocolate.Execution
         }
 
         private DirectiveMiddlewareCompiler GetOrCreateDirectiveLookup(
-            string query, ISchema schema)
+            string queryKey, ISchema schema)
         {
-            return _cache.GetOrCreate(query,
+            return _cache.GetOrCreate(queryKey,
                 () => new DirectiveMiddlewareCompiler(schema));
         }
 

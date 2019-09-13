@@ -7,7 +7,7 @@ using Xunit;
 using HotChocolate.AspNetCore;
 using HotChocolate.Stitching.Schemas.Contracts;
 using HotChocolate.Stitching.Schemas.Customers;
-using HotChocolate.Resolvers;
+using HotChocolate.AspNetCore.Tests.Utilities;
 
 namespace HotChocolate.Stitching
 {
@@ -27,18 +27,16 @@ namespace HotChocolate.Stitching
             return CreateRemoteSchemas(new Dictionary<string, HttpClient>());
         }
 
-        protected IHttpClientFactory CreateRemoteSchemas(
+        protected virtual IHttpClientFactory CreateRemoteSchemas(
             Dictionary<string, HttpClient> connections)
         {
             TestServer server_contracts = TestServerFactory.Create(
-                ContractSchemaFactory.ConfigureSchema,
                 ContractSchemaFactory.ConfigureServices,
-                new QueryMiddlewareOptions());
+                app => app.UseGraphQL());
 
             TestServer server_customers = TestServerFactory.Create(
-                CustomerSchemaFactory.ConfigureSchema,
                 CustomerSchemaFactory.ConfigureServices,
-                new QueryMiddlewareOptions());
+                app => app.UseGraphQL());
 
             connections["contract"] = server_contracts.CreateClient();
             connections["customer"] = server_customers.CreateClient();
@@ -54,6 +52,7 @@ namespace HotChocolate.Stitching
 
                     throw new Exception();
                 }));
+
             return httpClientFactory.Object;
         }
     }

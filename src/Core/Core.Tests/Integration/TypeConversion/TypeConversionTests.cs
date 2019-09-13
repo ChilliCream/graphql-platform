@@ -1,11 +1,12 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Types;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Integration.TypeConversion
 {
@@ -134,6 +135,101 @@ namespace HotChocolate.Integration.TypeConversion
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public void Register_TypeConverter_As_Service()
+        {
+            // arrange
+            var services = new ServiceCollection();
+
+            // act
+            services.AddTypeConverter<IntToStringConverter>();
+
+            // assert
+            ITypeConversion conversion =
+                services.BuildServiceProvider().GetService<ITypeConversion>();
+            Assert.Equal("123_123", conversion.Convert<int, string>(123));
+        }
+
+        [Fact]
+        public void Register_DelegateTypeConverter_As_Service()
+        {
+            // arrange
+            var services = new ServiceCollection();
+
+            // act
+            services.AddTypeConverter<int, string>(
+                from => from.ToString() + "_123");
+
+            // assert
+            ITypeConversion conversion =
+                services.BuildServiceProvider().GetService<ITypeConversion>();
+            Assert.Equal("123_123", conversion.Convert<int, string>(123));
+        }
+
+        [Fact]
+        public void Register_Multiple_TypeConverters_As_Service()
+        {
+            // arrange
+            var services = new ServiceCollection();
+
+            // act
+            services.AddTypeConverter<int, string>(
+                from => from.ToString() + "_123");
+            services.AddTypeConverter<char, string>(
+                from => from + "_123");
+
+            // assert
+            ITypeConversion conversion =
+                services.BuildServiceProvider().GetService<ITypeConversion>();
+            Assert.Equal("123_123", conversion.Convert<int, string>(123));
+            Assert.Equal("a_123", conversion.Convert<char, string>('a'));
+        }
+
+        [Fact]
+        public void Register_TypeConverter_Services_Is_Null()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                TypeConverterServiceCollectionExtensions
+                    .AddTypeConverter<IntToStringConverter>(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Register_DelegateTypeConverter_Services_Is_Null()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                TypeConverterServiceCollectionExtensions
+                    .AddTypeConverter<int, string>(
+                        null,
+                        from => from.ToString() + "_123");
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Register_DelegateTypeConverter_Delegate_Is_Null()
+        {
+            // arrange
+            var services = new ServiceCollection();
+
+            // act
+            Action action = () =>
+                TypeConverterServiceCollectionExtensions
+                    .AddTypeConverter<int, string>(
+                        services,
+                        null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
         public class QueryType
             : ObjectType<Query>
         {
@@ -169,6 +265,15 @@ namespace HotChocolate.Integration.TypeConversion
 
             [GraphQLType(typeof(LongType))]
             public int? Number { get; set; }
+        }
+
+        public class IntToStringConverter
+            : TypeConverter<int, string>
+        {
+            public override string Convert(int from)
+            {
+                return from.ToString() + "_123";
+            }
         }
     }
 }

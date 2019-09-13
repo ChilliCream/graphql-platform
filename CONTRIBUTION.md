@@ -11,7 +11,7 @@
   - `StringExtensions.cs`
   - `ServiceCollectionExtensions.cs`
 - Write for every type a separate extension file.
-- Use the origin namespace of the type; use `HotChocolate` when extending an external type like `Microsoft.Ectensions.DependencyInjection.IServiceCollection` or `HotChocolate.AspNetCore` when extending a ASP.net core specific type like `Microsoft.AspNetCore.Builder.IApplicationBuilder`.
+- Use the origin namespace of the type; use `HotChocolate` when extending an external type like `Microsoft.Ectensions.DependencyInjection.IServiceCollection` or `HotChocolate.AspNetCore` when extending a ASP .Net core specific type like `Microsoft.AspNetCore.Builder.IApplicationBuilder`.
   Example:
   ```csharp
   using Microsoft.Extensions.DependencyInjection;

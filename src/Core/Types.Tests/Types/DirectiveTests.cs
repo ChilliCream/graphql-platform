@@ -97,7 +97,7 @@ namespace HotChocolate.Types
 
         private static ISchema CreateSchema()
         {
-            return CreateSchema(b => 
+            return CreateSchema(b =>
             {
                 b.AddDirectiveType<FooDirectiveType>();
                 b.AddType<InputObjectType<FooChild>>();

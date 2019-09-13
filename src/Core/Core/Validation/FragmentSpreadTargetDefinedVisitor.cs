@@ -8,8 +8,9 @@ namespace HotChocolate.Validation
     internal sealed class FragmentSpreadTargetDefinedVisitor
         : QueryVisitorErrorBase
     {
-        private readonly Dictionary<string, List<FragmentSpreadNode>> _missingFragments =
-            new Dictionary<string, List<FragmentSpreadNode>>();
+        private readonly Dictionary<string, List<FragmentSpreadNode>>
+            _missingFragments =
+                new Dictionary<string, List<FragmentSpreadNode>>();
 
         public FragmentSpreadTargetDefinedVisitor(ISchema schema)
             : base(schema)

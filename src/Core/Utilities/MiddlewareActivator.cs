@@ -106,9 +106,9 @@ namespace HotChocolate.Utilities
 
         private static IEnumerable<Expression>
             CreateParameters<TRequestDelegate>(
-            ConstructorInfo constructor,
-            ParameterExpression services,
-            Expression next)
+                ConstructorInfo constructor,
+                ParameterExpression services,
+                Expression next)
         {
             return CreateParameters(
                 constructor.GetParameters(),

@@ -1,13 +1,17 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Execution.Configuration;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
     public class ErrorHandler
         : IErrorHandler
     {
+        private const string _messageProperty = "message";
+        private const string _stackTraceProperty = "stackTrace";
+
         private readonly IErrorFilter[] _filters;
         private readonly bool _includeExceptionDetails;
 
@@ -51,7 +55,7 @@ namespace HotChocolate.Execution
                 if (current == null)
                 {
                     throw new InvalidOperationException(
-                        "IErrorFilter.OnError mustn't return null.");
+                        CoreResources.ErrorHandler_ErrorIsNull);
                 }
             }
 
@@ -70,16 +74,15 @@ namespace HotChocolate.Execution
 
         private IErrorBuilder CreateErrorFromException(Exception exception)
         {
-            // TODO : resources
             IErrorBuilder builder = ErrorBuilder.New()
-                .SetMessage("Unexpected Execution Error")
+                .SetMessage(CoreResources.ErrorHandler_UnexpectedError)
                 .SetException(exception);
 
             if (_includeExceptionDetails)
             {
                 builder
-                    .SetExtension("message", exception.Message)
-                    .SetExtension("stackTrace", exception.StackTrace);
+                    .SetExtension(_messageProperty, exception.Message)
+                    .SetExtension(_stackTraceProperty, exception.StackTrace);
             }
 
             return builder;

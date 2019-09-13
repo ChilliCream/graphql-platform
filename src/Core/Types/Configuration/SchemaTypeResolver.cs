@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 
@@ -5,6 +7,8 @@ namespace HotChocolate.Configuration
 {
     internal static class SchemaTypeResolver
     {
+        private static readonly Type _keyValuePair = typeof(KeyValuePair<,>);
+
         public static bool TryInferSchemaType(
             IClrTypeReference unresolvedType,
             out IClrTypeReference schemaType)
@@ -58,16 +62,26 @@ namespace HotChocolate.Configuration
         private static bool IsInputObjectType(IClrTypeReference unresolvedType)
         {
             return IsComplexType(unresolvedType)
+                && !unresolvedType.Type.IsAbstract
                 && unresolvedType.Context == TypeContext.Input;
         }
 
         private static bool IsComplexType(IClrTypeReference unresolvedType)
         {
-            return (unresolvedType.Type.IsClass
-                    && !unresolvedType.Type.IsAbstract
+            bool isComplexType =
+                (unresolvedType.Type.IsClass
                     && (unresolvedType.Type.IsPublic
                         || unresolvedType.Type.IsNestedPublic))
                     && unresolvedType.Type != typeof(string);
+
+            if (!isComplexType && unresolvedType.Type.IsGenericType)
+            {
+                Type typeDefinition =
+                    unresolvedType.Type.GetGenericTypeDefinition();
+                return typeDefinition == _keyValuePair;
+            }
+
+            return isComplexType;
         }
 
         private static bool IsEnumType(IClrTypeReference unresolvedType)

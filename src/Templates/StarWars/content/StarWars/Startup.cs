@@ -2,6 +2,7 @@ using System.Security.Claims;
 using HotChocolate;
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Voyager;
+using HotChocolate.Execution.Configuration;
 using HotChocolate.Subscriptions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -21,34 +22,31 @@ namespace StarWars
             services.AddSingleton<CharacterRepository>();
             services.AddSingleton<ReviewRepository>();
 
-            services.AddSingleton<Query>();
-            services.AddSingleton<Mutation>();
-            services.AddSingleton<Subscription>();
-
             // Add in-memory event provider
-            var eventRegistry = new InMemoryEventRegistry();
-            services.AddSingleton<IEventRegistry>(eventRegistry);
-            services.AddSingleton<IEventSender>(eventRegistry);
+            services.AddInMemorySubscriptionProvider();
 
             // Add GraphQL Services
-            services.AddGraphQL(sp => Schema.Create(c =>
-            {
-                c.RegisterServiceProvider(sp);
+            services.AddGraphQL(sp => SchemaBuilder.New()
+                .AddServices(sp)
 
                 // Adds the authorize directive and
-                // enables the authorization middleware.
-                c.RegisterAuthorizeDirectiveType();
+                // enable the authorization middleware.
+                .AddAuthorizeDirectiveType()
 
-                c.RegisterQueryType<QueryType>();
-                c.RegisterMutationType<MutationType>();
-                c.RegisterSubscriptionType<SubscriptionType>();
+                .AddQueryType<QueryType>()
+                .AddMutationType<MutationType>()
+                .AddSubscriptionType<SubscriptionType>()
+                .AddType<HumanType>()
+                .AddType<DroidType>()
+                .AddType<EpisodeType>()
+                .Create(),
+                new QueryExecutionOptions
+                {
+                    TracingPreference = TracingPreference.Always
+                });
 
-                c.RegisterType<HumanType>();
-                c.RegisterType<DroidType>();
-                c.RegisterType<EpisodeType>();
-            }));
 
-            // Add Authorization Policies
+            // Add Authorization Policy
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("HasCountry", policy =>
@@ -56,6 +54,21 @@ namespace StarWars
                         context.User.HasClaim(c =>
                             (c.Type == ClaimTypes.Country))));
             });
+
+            /*
+            Note: uncomment this
+            section in order to simulate a user that has a country claim and
+            passes the configured authorization rule.
+
+            services.AddQueryRequestInterceptor((ctx, builder, ct) =>
+            {
+                var identity = new ClaimsIdentity("abc");
+                identity.AddClaim(new Claim(ClaimTypes.Country, "us"));
+                ctx.User = new ClaimsPrincipal(identity);
+                builder.SetProperty(nameof(ClaimsPrincipal), ctx.User);
+                return Task.CompletedTask;
+            });
+            */
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -66,29 +79,12 @@ namespace StarWars
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseWebSockets();
-            app.UseGraphQL();
-            app.UseGraphiQL();
-            app.UsePlayground();
-            app.UseVoyager();
-
-            /*
-            Note: comment app.UseGraphQL("/graphql"); and uncomment this
-            section in order to simulare a user that has a country claim and
-            passes the configured authorization rule.
-            app.UseGraphQL(new QueryMiddlewareOptions
-            {
-                Path = "/graphql",
-                OnCreateRequest = (ctx, builder, ct) =>
-                {
-                    var identity = new ClaimsIdentity("abc");
-                    identity.AddClaim(new Claim(ClaimTypes.Country, "us"));
-                    ctx.User = new ClaimsPrincipal(identity);
-                    builder.SetProperty(nameof(ClaimsPrincipal), ctx.User);
-                    return Task.CompletedTask;
-                }
-            });
-            */
+            app
+                .UseWebSockets()
+                .UseGraphQL("/graphql")
+                .UseGraphiQL("/graphql")
+                .UsePlayground("/graphql")
+                .UseVoyager("/graphql");
         }
     }
 }

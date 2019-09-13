@@ -13,6 +13,8 @@ namespace HotChocolate.Execution
     internal class SubscriptionResult
         : ISubscriptionExecutionResult
     {
+        private readonly Dictionary<string, object> _contextData =
+            new Dictionary<string, object>();
         private readonly IEventStream _eventStream;
         private readonly Func<IEventMessage, IExecutionContext> _contextFactory;
         private readonly ExecuteSubscriptionQuery _executeQuery;
@@ -42,6 +44,11 @@ namespace HotChocolate.Execution
 
         public IReadOnlyDictionary<string, object> Extensions { get; } =
             new OrderedDictionary();
+
+        public IDictionary<string, object> ContextData => _contextData;
+
+        IReadOnlyDictionary<string, object> IExecutionResult.ContextData =>
+            _contextData;
 
         public bool IsCompleted => _isCompleted && _eventStream.IsCompleted;
 

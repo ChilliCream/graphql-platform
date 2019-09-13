@@ -1,6 +1,7 @@
 ﻿using System.IO;
 using System.Text;
 using ChilliCream.Testing;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language
@@ -44,7 +45,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -84,7 +85,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -128,7 +129,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -174,7 +175,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -216,7 +217,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -256,7 +257,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -296,7 +297,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -336,7 +337,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -376,7 +377,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -416,7 +417,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -456,7 +457,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -496,7 +497,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -538,7 +539,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -578,7 +579,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -660,7 +661,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -700,7 +701,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -740,7 +741,7 @@ namespace HotChocolate.Language
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
-            content.ToString().Snapshot();
+            content.ToString().MatchSnapshot();
         }
     }
 }

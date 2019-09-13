@@ -1,9 +1,10 @@
-{
+﻿{
   "Data": {
     "customer": {
-      "foo": "Freddy Freeman_Q3VzdG9tZXIteDE="
+      "foo": "Freddy Freeman_Q3VzdG9tZXIKZDE="
     }
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

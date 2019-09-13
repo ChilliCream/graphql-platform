@@ -1,7 +1,8 @@
-{
+﻿{
   "Data": {
     "test": "Hello World!"
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

@@ -21,7 +21,7 @@ namespace HotChocolate.Stitching.Delegation
                 SelectionPathParser.Parse("a.b.c.d(a: $fields:bar)");
 
             DocumentNode initialQuery =
-                Parser.Default.Parse(
+                Utf8GraphQLParser.Parse(
                     @"{
                         foo {
                           bar {

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using HotChocolate.Configuration;
 using HotChocolate.Types;
 
 namespace HotChocolate
@@ -14,7 +13,7 @@ namespace HotChocolate
         : IHasDirectives
         , IHasName
         , IHasDescription
-        , ITypeSystem
+        , ITypeSystemMember
     {
         /// <summary>
         /// Gets the global schema services.

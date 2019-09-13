@@ -1,22 +1,23 @@
-{
+﻿{
   "Data": {
     "contracts": [
       {
-        "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgx",
+        "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0CmQx",
         "customerId": "1",
         "foo": "this variable is passed to remote query!"
       },
       {
-        "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgy",
+        "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0CmQy",
         "customerId": "1",
         "foo": "this variable is passed to remote query!"
       },
       {
-        "id": "U29tZU90aGVyQ29udHJhY3QteDE=",
+        "id": "U29tZU90aGVyQ29udHJhY3QKZDE=",
         "customerId": "1"
       }
     ]
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

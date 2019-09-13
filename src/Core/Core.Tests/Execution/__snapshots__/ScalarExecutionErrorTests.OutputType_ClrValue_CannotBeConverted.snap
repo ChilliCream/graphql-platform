@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "stringToName": null
   },
@@ -12,12 +12,13 @@
       ],
       "Locations": [
         {
-          "line": 1,
-          "column": 3
+          "Line": 1,
+          "Column": 3
         }
       ],
       "Exception": null,
       "Extensions": {}
     }
-  ]
+  ],
+  "ContextData": {}
 }

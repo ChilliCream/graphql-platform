@@ -1,9 +1,10 @@
-{
+﻿{
   "Data": {
     "customer": {
       "guid": "01e2f5dc-0f19-4305-99d3-3c5c234a6524"
     }
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

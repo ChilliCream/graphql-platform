@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using HotChocolate.Language;
+using HotChocolate.Types.Descriptors;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -90,7 +91,9 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>());
+            InterfaceType<IFoo> fooType = CreateType(
+                new InterfaceType<IFoo>(),
+                b => b.ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.Collection(
@@ -138,7 +141,8 @@ namespace HotChocolate.Types
             // arrange
             // act
             InterfaceType<IFoo> fooType = CreateType(
-                new InterfaceType<IFoo>(t => t.Ignore(p => p.Bar)));
+                new InterfaceType<IFoo>(t => t.Ignore(p => p.Bar)),
+                b => b.ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.Collection(
@@ -163,9 +167,11 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(t => t
-                .BindFields(BindingBehavior.Explicit)
-                .Field(p => p.Bar)));
+            InterfaceType<IFoo> fooType = CreateType(
+                new InterfaceType<IFoo>(t => t
+                    .BindFields(BindingBehavior.Explicit)
+                    .Field(p => p.Bar)),
+                b => b.ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.Collection(
@@ -183,11 +189,13 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(d => d
-                .Directive("foo")
-                .Field(f => f.Bar)
-                .Directive("foo")),
-                b => b.AddDirectiveType<FooDirectiveType>());
+            InterfaceType<IFoo> fooType = CreateType(
+                new InterfaceType<IFoo>(d => d
+                    .Directive("foo")
+                    .Field(f => f.Bar)
+                    .Directive("foo")),
+                    b => b.AddDirectiveType<FooDirectiveType>()
+                        .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -199,11 +207,13 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(d => d
-                .Directive(new NameString("foo"))
-                .Field(f => f.Bar)
-                .Directive(new NameString("foo"))),
-                b => b.AddDirectiveType<FooDirectiveType>());
+            InterfaceType<IFoo> fooType = CreateType(
+                new InterfaceType<IFoo>(d => d
+                    .Directive(new NameString("foo"))
+                    .Field(f => f.Bar)
+                    .Directive(new NameString("foo"))),
+                    b => b.AddDirectiveType<FooDirectiveType>()
+                        .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -215,11 +225,13 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(d => d
-                .Directive(new DirectiveNode("foo"))
-                .Field(f => f.Bar)
-                .Directive(new DirectiveNode("foo"))),
-                b => b.AddDirectiveType<FooDirectiveType>());
+            InterfaceType<IFoo> fooType = CreateType(
+                new InterfaceType<IFoo>(d => d
+                    .Directive(new DirectiveNode("foo"))
+                    .Field(f => f.Bar)
+                    .Directive(new DirectiveNode("foo"))),
+                    b => b.AddDirectiveType<FooDirectiveType>()
+                        .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -231,11 +243,13 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>(d => d
-                .Directive(new FooDirective())
-                .Field(f => f.Bar)
-                .Directive(new FooDirective())),
-                b => b.AddDirectiveType<FooDirectiveType>());
+            InterfaceType<IFoo> fooType = CreateType(
+                new InterfaceType<IFoo>(d => d
+                    .Directive(new FooDirective())
+                    .Field(f => f.Bar)
+                    .Directive(new FooDirective())),
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -251,7 +265,8 @@ namespace HotChocolate.Types
                 .Directive<FooDirective>()
                 .Field(f => f.Bar)
                 .Directive<FooDirective>()),
-                b => b.AddDirectiveType<FooDirectiveType>());
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -269,7 +284,8 @@ namespace HotChocolate.Types
                 .Field("id")
                 .Type<StringType>()
                 .Directive("foo")),
-                b => b.AddDirectiveType<FooDirectiveType>());
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -287,7 +303,8 @@ namespace HotChocolate.Types
                 .Field("bar")
                 .Type<StringType>()
                 .Directive(new NameString("foo"))),
-                b => b.AddDirectiveType<FooDirectiveType>());
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -305,7 +322,8 @@ namespace HotChocolate.Types
                 .Field("id")
                 .Type<StringType>()
                 .Directive(new DirectiveNode("foo"))),
-                b => b.AddDirectiveType<FooDirectiveType>());
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -323,7 +341,8 @@ namespace HotChocolate.Types
                 .Field("id")
                 .Type<StringType>()
                 .Directive(new FooDirective())),
-                b => b.AddDirectiveType<FooDirectiveType>());
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -341,7 +360,8 @@ namespace HotChocolate.Types
                 .Field("id")
                 .Type<StringType>()
                 .Directive<FooDirective>()),
-                b => b.AddDirectiveType<FooDirectiveType>());
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -365,7 +385,7 @@ namespace HotChocolate.Types
                 .Errors.First().Message.MatchSnapshot();
         }
 
-         [Fact]
+        [Fact]
         public void DoNotAllow_DynamicInputTypes_OnFields()
         {
             // arrange
@@ -380,6 +400,89 @@ namespace HotChocolate.Types
             // assert
             Assert.Throws<SchemaException>(a)
                 .Errors.First().Message.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Ignore_DescriptorIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                InterfaceTypeDescriptorExtensions
+                    .Ignore<IFoo>(null, t => t.Bar);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Ignore_ExpressionIsNull_ArgumentNullException()
+        {
+            // arrange
+            InterfaceTypeDescriptor<IFoo> descriptor =
+                InterfaceTypeDescriptor.New<IFoo>(DescriptorContext.Create());
+
+            // act
+            Action action = () =>
+                InterfaceTypeDescriptorExtensions
+                    .Ignore(descriptor, null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Ignore_Bar_Property()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InterfaceType<IFoo>(d => d
+                    .Ignore(t => t.Bar)))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Deprecate_Obsolete_Fields()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InterfaceType<FooObsolete>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Deprecate_Fields_With_Deprecated_Attribute()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(c => c.Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType(new InterfaceType<FooDeprecated>())
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            schema.ToString().MatchSnapshot();
         }
 
         public interface IFoo
@@ -418,5 +521,19 @@ namespace HotChocolate.Types
         }
 
         public class FooDirective { }
+
+        public class FooObsolete
+        {
+            [Obsolete("Baz")]
+            public string Bar() => "foo";
+        }
+
+        public class FooDeprecated
+        {
+            [GraphQLDeprecated("Use Bar2.")]
+            public string Bar() => "foo";
+
+            public string Bar2() => "Foo 2: Electric foo-galoo";
+        }
     }
 }

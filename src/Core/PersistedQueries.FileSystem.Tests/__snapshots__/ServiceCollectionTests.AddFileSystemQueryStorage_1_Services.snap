@@ -1,0 +1,6 @@
+﻿{
+  "HotChocolate.PersistedQueries.FileSystem.FileSystemQueryStorage": "HotChocolate.PersistedQueries.FileSystem.FileSystemQueryStorage",
+  "HotChocolate.Execution.IReadStoredQueries": null,
+  "HotChocolate.PersistedQueries.FileSystem.IQueryFileMap": null,
+  "HotChocolate.Execution.IWriteStoredQueries": null
+}

@@ -126,8 +126,8 @@ namespace HotChocolate.Language
         {
             SchemaDefinitionNode current = node;
 
-            current = RewriteMany(current, current.Directives, context,
-                RewriteDirective, current.WithDirectives);
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
 
             current = RewriteMany(current, current.OperationTypes, context,
                 RewriteOperationTypeDefinition, current.WithOperationTypes);
@@ -141,8 +141,8 @@ namespace HotChocolate.Language
         {
             SchemaExtensionNode current = node;
 
-            current = RewriteMany(current, current.Directives, context,
-                RewriteDirective, current.WithDirectives);
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
 
             current = RewriteMany(current, current.OperationTypes, context,
                 RewriteOperationTypeDefinition, current.WithOperationTypes);
@@ -190,8 +190,8 @@ namespace HotChocolate.Language
         {
             ScalarTypeDefinitionNode current = node;
 
-            current = RewriteMany(current, current.Directives, context,
-                RewriteDirective, current.WithDirectives);
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
 
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
@@ -208,8 +208,8 @@ namespace HotChocolate.Language
         {
             ScalarTypeExtensionNode current = node;
 
-            current = RewriteMany(current, current.Directives, context,
-                RewriteDirective, current.WithDirectives);
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
 
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
@@ -223,8 +223,8 @@ namespace HotChocolate.Language
         {
             ObjectTypeDefinitionNode current = node;
 
-            current = RewriteMany(current, current.Directives, context,
-                RewriteDirective, current.WithDirectives);
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
 
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
@@ -247,8 +247,8 @@ namespace HotChocolate.Language
         {
             ObjectTypeExtensionNode current = node;
 
-            current = RewriteMany(current, current.Directives, context,
-                RewriteDirective, current.WithDirectives);
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
 
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
@@ -271,8 +271,8 @@ namespace HotChocolate.Language
         {
             FieldDefinitionNode current = node;
 
-            current = RewriteMany(current, current.Directives, context,
-                RewriteDirective, current.WithDirectives);
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
 
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
@@ -296,8 +296,8 @@ namespace HotChocolate.Language
         {
             InputObjectTypeDefinitionNode current = node;
 
-            current = RewriteMany(current, current.Directives, context,
-                RewriteDirective, current.WithDirectives);
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
 
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
@@ -318,8 +318,8 @@ namespace HotChocolate.Language
         {
             InputObjectTypeExtensionNode current = node;
 
-            current = RewriteMany(current, current.Directives, context,
-                RewriteDirective, current.WithDirectives);
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
 
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
@@ -336,8 +336,8 @@ namespace HotChocolate.Language
         {
             InputValueDefinitionNode current = node;
 
-            current = RewriteMany(current, current.Directives, context,
-                RewriteDirective, current.WithDirectives);
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
 
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
@@ -361,8 +361,8 @@ namespace HotChocolate.Language
         {
             InterfaceTypeDefinitionNode current = node;
 
-            current = RewriteMany(current, current.Directives, context,
-                RewriteDirective, current.WithDirectives);
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
 
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
@@ -383,8 +383,8 @@ namespace HotChocolate.Language
         {
             InterfaceTypeExtensionNode current = node;
 
-            current = RewriteMany(current, current.Directives, context,
-                RewriteDirective, current.WithDirectives);
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
 
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
@@ -401,8 +401,8 @@ namespace HotChocolate.Language
         {
             UnionTypeDefinitionNode current = node;
 
-            current = RewriteMany(current, current.Directives, context,
-                RewriteDirective, current.WithDirectives);
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
 
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
@@ -422,8 +422,8 @@ namespace HotChocolate.Language
         {
             UnionTypeExtensionNode current = node;
 
-            current = RewriteMany(current, current.Directives, context,
-                RewriteDirective, current.WithDirectives);
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
 
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
@@ -440,8 +440,8 @@ namespace HotChocolate.Language
         {
             EnumTypeDefinitionNode current = node;
 
-            current = RewriteMany(current, current.Directives, context,
-                RewriteDirective, current.WithDirectives);
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
 
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
@@ -461,8 +461,8 @@ namespace HotChocolate.Language
         {
             EnumTypeExtensionNode current = node;
 
-            current = RewriteMany(current, current.Directives, context,
-                RewriteDirective, current.WithDirectives);
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
 
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);
@@ -479,8 +479,8 @@ namespace HotChocolate.Language
         {
             EnumValueDefinitionNode current = node;
 
-            current = RewriteMany(current, current.Directives, context,
-                RewriteDirective, current.WithDirectives);
+            current = RewriteDirectives(current, current.Directives,
+                context, current.WithDirectives);
 
             current = Rewrite(current, current.Name, context,
                 RewriteName, current.WithName);

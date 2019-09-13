@@ -280,7 +280,7 @@ namespace HotChocolate.Language
             VisitMany(node.Values, context, VisitEnumValueDefinition);
         }
 
-        private void VisitIfNotNull<T>(
+        private static void VisitIfNotNull<T>(
             T node,
             TContext context,
             Action<T, TContext> visitor)

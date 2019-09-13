@@ -15,10 +15,6 @@
         CancellationToken,
         CustomContext,
         DataLoader,
-        ResolverResult,
-        Directive,
-        DirectiveArgument,
-        DirectiveContext,
         DirectiveObject,
         EventMessage
     }

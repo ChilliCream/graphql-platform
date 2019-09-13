@@ -6,8 +6,12 @@ namespace HotChocolate.Language
         : IValueNode<string>
         , IEquatable<VariableNode>
     {
-        public VariableNode(
-            NameNode name)
+        public VariableNode(string name)
+            : this(null, new NameNode(name))
+        {
+        }
+
+        public VariableNode(NameNode name)
             : this(null, name)
         {
         }

@@ -1,5 +1,6 @@
 using System;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate
@@ -284,6 +285,142 @@ namespace HotChocolate
             return builder.AddType(new ObjectType<T>(configure));
         }
 
+        public static ISchemaBuilder AddUnionType(
+           this ISchemaBuilder builder,
+           Action<IUnionTypeDescriptor> configure)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            return builder.AddType(new UnionType(configure));
+        }
+
+        public static ISchemaBuilder AddUnionType<T>(
+            this ISchemaBuilder builder,
+            Action<IUnionTypeDescriptor> configure)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            return builder.AddType(new UnionType<T>(configure));
+        }
+
+        public static ISchemaBuilder AddEnumType(
+           this ISchemaBuilder builder,
+           Action<IEnumTypeDescriptor> configure)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            return builder.AddType(new EnumType(configure));
+        }
+
+        public static ISchemaBuilder AddEnumType<T>(
+            this ISchemaBuilder builder,
+            Action<IEnumTypeDescriptor<T>> configure)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            return builder.AddType(new EnumType<T>(configure));
+        }
+
+        public static ISchemaBuilder AddInterfaceType(
+           this ISchemaBuilder builder,
+           Action<IInterfaceTypeDescriptor> configure)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            return builder.AddType(new InterfaceType(configure));
+        }
+
+        public static ISchemaBuilder AddInterfaceType<T>(
+            this ISchemaBuilder builder,
+            Action<IInterfaceTypeDescriptor<T>> configure)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            return builder.AddType(new InterfaceType<T>(configure));
+        }
+
+        public static ISchemaBuilder AddInputObjectType(
+           this ISchemaBuilder builder,
+           Action<IInputObjectTypeDescriptor> configure)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            return builder.AddType(new InputObjectType(configure));
+        }
+
+        public static ISchemaBuilder AddInputObjectType<T>(
+            this ISchemaBuilder builder,
+            Action<IInputObjectTypeDescriptor<T>> configure)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (configure == null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            return builder.AddType(new InputObjectType<T>(configure));
+        }
+
         public static ISchemaBuilder AddType<T>(
             this ISchemaBuilder builder)
         {
@@ -356,14 +493,16 @@ namespace HotChocolate
                 && directiveType.GetGenericTypeDefinition() ==
                 typeof(DirectiveType<>)))
             {
-                // TODO : resources
-                throw new ArgumentException("df", nameof(directiveType));
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilderExtensions_DirectiveTypeIsBaseType,
+                    nameof(directiveType));
             }
 
             if (!typeof(DirectiveType).IsAssignableFrom(directiveType))
             {
-                // TODO : resources
-                throw new ArgumentException("df", nameof(directiveType));
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilderExtensions_MustBeDirectiveType,
+                    nameof(directiveType));
             }
 
             return builder.AddType(directiveType);
@@ -391,6 +530,18 @@ namespace HotChocolate
             }
 
             return builder.SetSchema(typeof(TSchema));
+        }
+
+        public static ISchemaBuilder BindClrType<TClrType, TSchemaType>(
+            this ISchemaBuilder builder)
+            where TSchemaType : INamedType
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            return builder.BindClrType(typeof(TClrType), typeof(TSchemaType));
         }
     }
 }

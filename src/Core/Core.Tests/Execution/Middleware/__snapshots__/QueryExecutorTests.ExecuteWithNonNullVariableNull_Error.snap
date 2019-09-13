@@ -1,19 +1,22 @@
-{
+﻿{
   "Data": {},
   "Extensions": {},
   "Errors": [
     {
-      "Message": "Variable `a` of non-null type `String!` must not be null.",
+      "Message": "Variable `a` of type `String!` must not be null.",
       "Code": null,
       "Path": null,
       "Locations": [
         {
-          "line": 1,
-          "column": 9
+          "Line": 1,
+          "Column": 9
         }
       ],
       "Exception": null,
-      "Extensions": {}
+      "Extensions": {
+        "variableName": "a"
+      }
     }
-  ]
+  ],
+  "ContextData": {}
 }

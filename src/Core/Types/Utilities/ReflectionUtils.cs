@@ -11,7 +11,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Utilities
 {
-    internal static class ReflectionUtils
+    public static class ReflectionUtils
     {
         public static MemberInfo ExtractMember<T, TPropertyType>(
             this Expression<Func<T, TPropertyType>> memberExpression)
@@ -148,7 +148,7 @@ namespace HotChocolate.Utilities
             return false;
         }
 
-        internal static string GetTypeName(this Type type)
+        public static string GetTypeName(this Type type)
         {
             if (type == null)
             {

@@ -81,7 +81,12 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 Id = "1000",
                 Name = "Luke Skywalker",
                 Friends = new[] { "1002", "1003", "2000", "2001" },
-                AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
+                AppearsIn = new[]
+                {
+                    Episode.NewHope,
+                    Episode.Empire,
+                    Episode.Jedi
+                },
                 HomePlanet = "Tatooine"
             };
 
@@ -90,7 +95,12 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 Id = "1001",
                 Name = "Darth Vader",
                 Friends = new[] { "1004" },
-                AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
+                AppearsIn = new[]
+                {
+                    Episode.NewHope,
+                    Episode.Empire,
+                    Episode.Jedi
+                },
                 HomePlanet = "Tatooine"
             };
 
@@ -99,7 +109,12 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 Id = "1002",
                 Name = "Han Solo",
                 Friends = new[] { "1000", "1003", "2001" },
-                AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi }
+                AppearsIn = new[]
+                {
+                    Episode.NewHope,
+                    Episode.Empire,
+                    Episode.Jedi
+                }
             };
 
             yield return new Human
@@ -107,7 +122,12 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 Id = "1003",
                 Name = "Leia Organa",
                 Friends = new[] { "1000", "1002", "2000", "2001" },
-                AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
+                AppearsIn = new[]
+                {
+                    Episode.NewHope,
+                    Episode.Empire,
+                    Episode.Jedi
+                },
                 HomePlanet = "Alderaan"
             };
 
@@ -124,7 +144,12 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 Id = "2000",
                 Name = "C-3PO",
                 Friends = new[] { "1000", "1002", "1003", "2001" },
-                AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
+                AppearsIn = new[]
+                {
+                    Episode.NewHope,
+                    Episode.Empire,
+                    Episode.Jedi
+                },
                 PrimaryFunction = "Protocol"
             };
 
@@ -133,7 +158,12 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
                 Id = "2001",
                 Name = "R2-D2",
                 Friends = new[] { "1000", "1002", "1003" },
-                AppearsIn = new[] { Episode.NewHope, Episode.Empire, Episode.Jedi },
+                AppearsIn = new[]
+                {
+                    Episode.NewHope,
+                    Episode.Empire,
+                    Episode.Jedi
+                },
                 PrimaryFunction = "Astromech"
             };
         }
@@ -148,5 +178,4 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             };
         }
     }
-
 }

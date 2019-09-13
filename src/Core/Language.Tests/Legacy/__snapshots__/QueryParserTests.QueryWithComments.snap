@@ -1,0 +1,82 @@
+﻿{
+  "Kind": "Document",
+  "Location": null,
+  "Definitions": [
+    {
+      "Kind": "OperationDefinition",
+      "Location": null,
+      "Name": null,
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": null,
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": null,
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "name"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": null,
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
+                        "Location": null,
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": null,
+                          "Value": "name"
+                        },
+                        "Directives": []
+                      }
+                    ]
+                  },
+                  "Location": null,
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": null,
+                    "Value": "friends"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": null,
+            "Name": {
+              "Kind": "Name",
+              "Location": null,
+              "Value": "hero"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
+  ]
+}

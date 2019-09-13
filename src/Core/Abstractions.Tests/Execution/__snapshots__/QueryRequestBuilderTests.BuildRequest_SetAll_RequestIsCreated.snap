@@ -1,5 +1,9 @@
-{
-  "Query": "{ foo }",
+﻿{
+  "Query": {
+    "Text": "{ foo }"
+  },
+  "QueryName": null,
+  "QueryHash": null,
   "OperationName": "bar",
   "VariableValues": {
     "two": "bar"
@@ -10,5 +14,6 @@
   "Properties": {
     "one": "foo"
   },
-  "Services": {}
+  "Services": {},
+  "Extensions": {}
 }

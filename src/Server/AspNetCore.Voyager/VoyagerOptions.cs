@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 #if ASPNETCLASSIC
 using Microsoft.Owin;
@@ -14,9 +14,10 @@ namespace HotChocolate.AspNetCore.Voyager
 {
     public class VoyagerOptions
     {
+        private bool _pathIsSet;
         private PathString _path = new PathString("/voyager");
         private PathString _queryPath = new PathString("/");
-       
+
         public PathString Path
         {
             get => _path;
@@ -29,6 +30,7 @@ namespace HotChocolate.AspNetCore.Voyager
                 }
 
                 _path = value;
+                _pathIsSet = true;
             }
         }
 
@@ -44,10 +46,12 @@ namespace HotChocolate.AspNetCore.Voyager
                 }
 
                 _queryPath = value;
-                
+
+                if (!_pathIsSet)
+                {
+                    _path = value.Add(new PathString("/voyager"));
+                }
             }
         }
-
-       
     }
 }

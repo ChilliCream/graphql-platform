@@ -9,14 +9,15 @@ namespace HotChocolate.Types
         , IFluent
     {
         // <summary>
-        /// Associates the specified <paramref name="interfaceTypeDefinitionNode"/>
+        /// Associates the specified
+        /// <paramref name="interfaceTypeDefinition"/>
         /// with the <see cref="InterfaceType"/>.
         /// </summary>
         /// <param name="syntaxNode">
         /// The <see cref="InterfaceTypeDefinitionNode"/> of a parsed schema.
         /// </param>
         IInterfaceTypeDescriptor SyntaxNode(
-            InterfaceTypeDefinitionNode interfaceTypeDefinitionNode);
+            InterfaceTypeDefinitionNode interfaceTypeDefinition);
 
         /// <summary>
         /// Defines the name of the <see cref="InterfaceType"/>.
@@ -40,7 +41,7 @@ namespace HotChocolate.Types
 
         IInterfaceFieldDescriptor Field(NameString name);
 
-        IInterfaceTypeDescriptor Directive<T>(T directive)
+        IInterfaceTypeDescriptor Directive<T>(T directiveInstance)
             where T : class;
 
         IInterfaceTypeDescriptor Directive<T>()

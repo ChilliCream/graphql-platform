@@ -1,9 +1,10 @@
-﻿using System;
+﻿using System.Collections.Concurrent;
+using System;
 using System.Collections.Immutable;
 
 namespace HotChocolate.Utilities
 {
-    internal class TypeInspector
+    public class TypeInspector
         : ITypeInfoFactory
     {
         private static readonly ITypeInfoFactory[] _factories =
@@ -12,23 +13,19 @@ namespace HotChocolate.Utilities
             new DotNetTypeInfoFactory()
         };
 
-        private ImmutableDictionary<Type, TypeInfo> _typeInfoCache =
-            ImmutableDictionary<Type, TypeInfo>.Empty;
+        private readonly ConcurrentDictionary<Type, TypeInfo> _cache =
+            new ConcurrentDictionary<Type, TypeInfo>();
 
         public bool TryCreate(Type type, out TypeInfo typeInfo)
         {
-            if (!_typeInfoCache.TryGetValue(type, out typeInfo))
+            if (!_cache.TryGetValue(type, out typeInfo))
             {
                 if (!TryCreateInternal(type, out typeInfo))
                 {
                     typeInfo = default;
                     return false;
                 }
-
-                lock (_typeInfoCache)
-                {
-                    _typeInfoCache = _typeInfoCache.SetItem(type, typeInfo);
-                }
+                _cache.TryAdd(type, typeInfo);
             }
             return true;
         }
@@ -46,5 +43,7 @@ namespace HotChocolate.Utilities
             typeInfo = default;
             return false;
         }
+
+        public static TypeInspector Default { get; } = new TypeInspector();
     }
 }

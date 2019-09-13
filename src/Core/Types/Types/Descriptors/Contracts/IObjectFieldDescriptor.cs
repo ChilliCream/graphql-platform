@@ -18,11 +18,16 @@ namespace HotChocolate.Types
         IObjectFieldDescriptor Description(
             string value);
 
+        [Obsolete("Use `Deprecated`.")]
         IObjectFieldDescriptor DeprecationReason(
-            string value);
+            string reason);
+
+        IObjectFieldDescriptor Deprecated(string reason);
+
+        IObjectFieldDescriptor Deprecated();
 
         IObjectFieldDescriptor Type<TOutputType>()
-            where TOutputType : IOutputType;
+            where TOutputType : class, IOutputType;
 
         IObjectFieldDescriptor Type<TOutputType>(
             TOutputType outputType)
@@ -33,7 +38,7 @@ namespace HotChocolate.Types
 
         IObjectFieldDescriptor Argument(
             NameString argumentName,
-            Action<IArgumentDescriptor> argumentdescriptor);
+            Action<IArgumentDescriptor> argumentDescriptor);
 
         IObjectFieldDescriptor Ignore();
 

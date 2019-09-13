@@ -1,4 +1,5 @@
-﻿using HotChocolate.Language;
+﻿using System;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
@@ -14,7 +15,13 @@ namespace HotChocolate.Types
 
         IEnumValueDescriptor Description(string value);
 
-        IEnumValueDescriptor DeprecationReason(string reason);
+        [Obsolete("Use `Deprecated`.")]
+        IEnumValueDescriptor DeprecationReason(
+            string reason);
+
+        IEnumValueDescriptor Deprecated(string reason);
+
+        IEnumValueDescriptor Deprecated();
 
         IEnumValueDescriptor Directive<T>(
             T directiveInstance)

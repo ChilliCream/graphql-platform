@@ -22,9 +22,7 @@ namespace HotChocolate.Stitching.Schemas.Contracts
                 .Type<DateTimeType>()
                 .Resolver(ctx =>
                 {
-                    DateTime dateTime =
-                        ctx.Argument<DateTime>("d")
-                            .ToUniversalTime();
+                    DateTime dateTime = ctx.Argument<DateTime>("d");
                     return dateTime;
                 });
         }

@@ -1,8 +1,8 @@
 using System;
 using System.ComponentModel;
 using System.Globalization;
+using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Utilities;
 
 namespace HotChocolate
 {
@@ -11,7 +11,7 @@ namespace HotChocolate
     /// GraphQL spec rules: /[_A-Za-z][_0-9A-Za-z]*/
     /// </summary>
     [TypeConverter(typeof(NameStringConverter))]
-    public struct NameString
+    public readonly struct NameString
         : IEquatable<NameString>
         , IComparable<NameString>
     {
@@ -20,10 +20,10 @@ namespace HotChocolate
         /// Initializes a new instance of the <see cref="NameString"/> struct.
         /// </summary>
         /// <param name="value">The actual type name string</param>
-        /// <exception cref="ArgumentException"
+        /// <exception cref="ArgumentException"></exception>
         public NameString(string value)
         {
-            if (!NameUtils.IsValidName(value))
+            if (!NameUtils.IsValidGraphQLName(value))
             {
                 throw new ArgumentException(
                     string.Format(CultureInfo.InvariantCulture,
@@ -262,7 +262,7 @@ namespace HotChocolate
     public static class NameStringExtensions
     {
         public static NameString EnsureNotEmpty(
-            this NameString name,
+            in this NameString name,
             string argumentName)
         {
             if (name.IsEmpty)

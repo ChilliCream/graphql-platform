@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Resolvers;
@@ -11,6 +11,8 @@ namespace HotChocolate.Types.Descriptors.Definitions
         public Type ResolverType { get; set; }
 
         public MemberInfo Member { get; set; }
+
+        public Type ResultType { get; set; }
 
         public FieldResolverDelegate Resolver { get; set; }
 

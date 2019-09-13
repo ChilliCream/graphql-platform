@@ -1,13 +1,10 @@
-using System.Threading;
+using System;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using HotChocolate.Execution;
-using HotChocolate.Resolvers;
+using System.Linq;
 using Xunit;
 using Snapshooter.Xunit;
 using HotChocolate.Language;
-using System.Linq;
-using Moq;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
@@ -22,6 +19,7 @@ namespace HotChocolate.Types
                 .AddQueryType<DummyQuery>()
                 .AddType<FooType>()
                 .AddType<FooTypeExtension>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -29,6 +27,7 @@ namespace HotChocolate.Types
             Assert.True(type.Fields.ContainsField("test"));
         }
 
+        [Obsolete]
         [Fact]
         public void InterfaceTypeExtension_DepricateField()
         {
@@ -45,12 +44,88 @@ namespace HotChocolate.Types
                     .Field("description")
                     .Type<StringType>()
                     .DeprecationReason("Foo")))
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
             InterfaceType type = schema.GetType<InterfaceType>("Foo");
             Assert.True(type.Fields["description"].IsDeprecated);
             Assert.Equal("Foo", type.Fields["description"].DeprecationReason);
+        }
+
+        [Fact]
+        public void InterfaceTypeExtension_Deprecate_With_Reason()
+        {
+            // arrange
+            FieldResolverDelegate resolver =
+                ctx => Task.FromResult<object>(null);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<DummyQuery>()
+                .AddType<FooType>()
+                .AddType(new InterfaceTypeExtension(d => d
+                    .Name("Foo")
+                    .Field("description")
+                    .Type<StringType>()
+                    .Deprecated("Foo")))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            // assert
+            InterfaceType type = schema.GetType<InterfaceType>("Foo");
+            Assert.True(type.Fields["description"].IsDeprecated);
+            Assert.Equal("Foo", type.Fields["description"].DeprecationReason);
+        }
+
+        [Fact]
+        public void InterfaceTypeExtension_Deprecate_Without_Reason()
+        {
+            // arrange
+            FieldResolverDelegate resolver =
+                ctx => Task.FromResult<object>(null);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<DummyQuery>()
+                .AddType<FooType>()
+                .AddType(new InterfaceTypeExtension(d => d
+                    .Name("Foo")
+                    .Field("description")
+                    .Type<StringType>()
+                    .Deprecated()))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            // assert
+            InterfaceType type = schema.GetType<InterfaceType>("Foo");
+            Assert.True(type.Fields["description"].IsDeprecated);
+            Assert.Equal(
+                WellKnownDirectives.DeprecationDefaultReason,
+                type.Fields["description"].DeprecationReason);
+        }
+
+        [Fact]
+        public void InterfaceTypeExtension_Deprecated_Directive_Is_Serialized()
+        {
+            // arrange
+            FieldResolverDelegate resolver =
+                ctx => Task.FromResult<object>(null);
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<DummyQuery>()
+                .AddType<FooType>()
+                .AddType(new InterfaceTypeExtension(d => d
+                    .Name("Foo")
+                    .Field("description")
+                    .Type<StringType>()
+                    .Deprecated()))
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
         }
 
         [Fact]
@@ -68,6 +143,7 @@ namespace HotChocolate.Types
                     .Name("Foo")
                     .Extend()
                     .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -91,6 +167,7 @@ namespace HotChocolate.Types
                     .Field("description")
                     .Extend()
                     .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -118,6 +195,7 @@ namespace HotChocolate.Types
                         .Type<StringType>()
                         .Extend()
                         .OnBeforeCreate(c => c.ContextData["foo"] = "bar"))))
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -138,6 +216,7 @@ namespace HotChocolate.Types
                     .Name("Foo")
                     .Directive("dummy")))
                 .AddDirectiveType<DummyDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -158,6 +237,7 @@ namespace HotChocolate.Types
                     .Field("name")
                     .Directive("dummy")))
                 .AddDirectiveType<DummyDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -179,6 +259,7 @@ namespace HotChocolate.Types
                     .Field("name")
                     .Argument("a", a => a.Directive("dummy"))))
                 .AddDirectiveType<DummyDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -201,6 +282,7 @@ namespace HotChocolate.Types
                     .Name("Foo")
                     .Directive("dummy_arg", new ArgumentNode("a", "b"))))
                 .AddDirectiveType<DummyWithArgDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -226,6 +308,7 @@ namespace HotChocolate.Types
                     .Field("description")
                     .Directive("dummy_arg", new ArgumentNode("a", "b"))))
                 .AddDirectiveType<DummyWithArgDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -254,6 +337,7 @@ namespace HotChocolate.Types
                     .Argument("a", a =>
                         a.Directive("dummy_arg", new ArgumentNode("a", "b")))))
                 .AddDirectiveType<DummyWithArgDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -278,6 +362,7 @@ namespace HotChocolate.Types
                     .Argument("a", a =>
                         a.Directive("dummy_arg", new ArgumentNode("a", "b")))))
                 .AddDirectiveType<DummyWithArgDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -302,6 +387,7 @@ namespace HotChocolate.Types
                     .Name("Foo")
                     .Directive("dummy_rep")))
                 .AddDirectiveType<RepeatableDummyDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -326,6 +412,7 @@ namespace HotChocolate.Types
                     .Field("description")
                     .Directive("dummy_rep")))
                 .AddDirectiveType<RepeatableDummyDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -354,6 +441,7 @@ namespace HotChocolate.Types
                     .Argument("a", a =>
                         a.Directive("dummy_rep", new ArgumentNode("a", "b")))))
                 .AddDirectiveType<RepeatableDummyDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -442,6 +530,7 @@ namespace HotChocolate.Types
             {
                 descriptor.Name("dummy_rep");
                 descriptor.Repeatable();
+                descriptor.Argument("a").Type<StringType>();
                 descriptor.Location(DirectiveLocation.Interface);
                 descriptor.Location(DirectiveLocation.FieldDefinition);
                 descriptor.Location(DirectiveLocation.ArgumentDefinition);

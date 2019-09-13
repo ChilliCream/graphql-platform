@@ -54,6 +54,10 @@ namespace HotChocolate.Types
             return type;
         }
 
+        public static ISchema CreateSchema<T>(T type)
+            where T : INamedType =>
+            CreateSchema(builder => builder.AddType(type));
+
         public static ISchema CreateSchema(Action<ISchemaBuilder> configure)
         {
             ISchemaBuilder builder = SchemaBuilder.New()

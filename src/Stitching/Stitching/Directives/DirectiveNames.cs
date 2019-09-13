@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 namespace HotChocolate.Stitching
 {
     internal static class DirectiveNames

@@ -57,7 +57,8 @@ namespace HotChocolate.Types
 
             // assert
             FooType type = schema.GetType<FooType>("Foo");
-            Assert.Equal(1, type.Directives["dummy"].Count());
+            Assert.Collection(type.Directives["dummy"],
+                t => { });
         }
 
         [Fact]
@@ -133,7 +134,7 @@ namespace HotChocolate.Types
             protected override void Configure(
                 IEnumTypeDescriptor<Foo> descriptor)
             {
-                descriptor.BindItems(BindingBehavior.Explicit);
+                descriptor.BindValues(BindingBehavior.Explicit);
                 descriptor.Item(Foo.Bar);
                 descriptor.Item(Foo.Baz);
             }

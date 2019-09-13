@@ -1,26 +1,20 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Introspection
 {
-    // TODO : resources
     [Introspection]
+#pragma warning disable IDE1006 // Naming Styles
     internal sealed class __Type
+#pragma warning restore IDE1006 // Naming Styles
         : ObjectType<IType>
     {
         protected override void Configure(IObjectTypeDescriptor<IType> descriptor)
         {
             descriptor.Name("__Type");
 
-            descriptor.Description(
-                "The fundamental unit of any GraphQL Schema is the type. There are " +
-                "many kinds of types in GraphQL as represented by the `__TypeKind` enum." +
-                "\n\nDepending on the kind of a type, certain fields describe " +
-                "information about that type. Scalar types provide no information " +
-                "beyond a name and description, while Enum types provide their values. " +
-                "Object and Interface types provide the fields they describe. Abstract " +
-                "types, Union and Interface, provide the Object types possible " +
-                "at runtime. List and NonNull types compose other types.");
+            descriptor.Description(TypeResources.Type_Description);
 
             descriptor.BindFields(BindingBehavior.Explicit);
 

@@ -9,6 +9,7 @@
   "None: HotChocolate.Types.CostDirective": "None: HotChocolate.Types.CostDirectiveType",
   "None: System.String": "None: HotChocolate.Types.StringType",
   "None: System.Boolean": "None: HotChocolate.Types.BooleanType",
+  "None: HotChocolate.Types.DeprecatedDirective": "None: HotChocolate.Types.DeprecatedDirectiveType",
   "None: System.Int32": "None: HotChocolate.Types.IntType",
   "None: HotChocolate.Types.MultiplierPathString": "None: HotChocolate.Types.MultiplierPathType",
   "Output: HotChocolate.TypeRegistrarTests.Foo": "Output: HotChocolate.Types.ObjectType<HotChocolate.TypeRegistrarTests.Foo>",

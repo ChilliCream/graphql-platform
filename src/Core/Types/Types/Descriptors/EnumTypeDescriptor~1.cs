@@ -6,7 +6,7 @@ namespace HotChocolate.Types.Descriptors
         : EnumTypeDescriptor
         , IEnumTypeDescriptor<T>
     {
-        public EnumTypeDescriptor(IDescriptorContext context)
+        protected internal EnumTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {
         }
@@ -30,11 +30,21 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public new IEnumTypeDescriptor<T> BindItems(BindingBehavior behavior)
+        public new IEnumTypeDescriptor<T> BindItems(
+            BindingBehavior behavior) =>
+            BindValues(behavior);
+
+        public new IEnumTypeDescriptor<T> BindValues(BindingBehavior behavior)
         {
-            base.BindItems(behavior);
+            base.BindValues(behavior);
             return this;
         }
+
+        public new IEnumTypeDescriptor<T> BindValuesExplicitly() =>
+            BindValues(BindingBehavior.Explicit);
+
+        public new IEnumTypeDescriptor<T> BindValuesImplicitly() =>
+            BindValues(BindingBehavior.Implicit);
 
         public IEnumValueDescriptor Item(T value)
         {

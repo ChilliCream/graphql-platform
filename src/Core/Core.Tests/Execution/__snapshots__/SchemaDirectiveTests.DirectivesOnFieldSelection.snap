@@ -1,9 +1,10 @@
-{
+﻿{
   "Data": {
     "person": {
       "name": "NameFooBarBaz"
     }
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using HotChocolate.Language;
 using Xunit;
 
@@ -72,7 +73,7 @@ namespace HotChocolate.Types
         public void ListCanBeCoercedFromListValue()
         {
             // arrange
-            var type = new ListType(new BooleanType());
+            var type = (IInputType)new ListType(new BooleanType());
             var list = new ListValueNode(
                 new[] {
                     new BooleanValueNode(true),
@@ -82,8 +83,8 @@ namespace HotChocolate.Types
             object coercedValue = type.ParseLiteral(list);
 
             // assert
-            Assert.IsType<bool[]>(coercedValue);
-            Assert.Collection((bool[])coercedValue,
+            Assert.Collection(
+                Assert.IsType<List<bool?>>(coercedValue),
                 t => Assert.True(t),
                 t => Assert.False(t));
         }
@@ -92,15 +93,15 @@ namespace HotChocolate.Types
         public void ListCanBeCoercedFromListElementValue()
         {
             // arrange
-            var type = new ListType(new BooleanType());
+            var type = (IInputType)new ListType(new BooleanType());
             var element = new BooleanValueNode(true);
 
             // act
             object coercedValue = type.ParseLiteral(element);
 
             // assert
-            Assert.IsType<bool[]>(coercedValue);
-            Assert.Collection((bool[])coercedValue,
+            Assert.Collection(
+                Assert.IsType<List<bool?>>(coercedValue),
                 t => Assert.True(t));
         }
 
@@ -108,7 +109,7 @@ namespace HotChocolate.Types
         public void ListCannotBeCoercedFromMixedList()
         {
             // arrange
-            var type = new ListType(new BooleanType());
+            var type = (IInputType)new ListType(new BooleanType());
             var list = new ListValueNode(
                 new IValueNode[] {
                     new BooleanValueNode(true),
@@ -125,7 +126,7 @@ namespace HotChocolate.Types
         public void ListCannotBeCoercedIfElementTypeDoesNotMatch()
         {
             // arrange
-            var type = new ListType(new BooleanType());
+            var type = (IInputType)new ListType(new BooleanType());
             var element = new StringValueNode("foo");
 
             // act
@@ -171,7 +172,7 @@ namespace HotChocolate.Types
            where TElement : ScalarType, new()
         {
             // arrange
-            var type = new ListType(new TElement());
+            var type = (IInputType)new ListType(new TElement());
 
             // act
             bool isInstanceOfType = type.IsInstanceOfType(literal);
@@ -185,7 +186,7 @@ namespace HotChocolate.Types
            where TElement : ScalarType, new()
         {
             // arrange
-            var type = new ListType(new TElement());
+            var type = (IInputType)new ListType(new TElement());
 
             // act
             bool isInstanceOfType = type.IsInstanceOfType(literal);

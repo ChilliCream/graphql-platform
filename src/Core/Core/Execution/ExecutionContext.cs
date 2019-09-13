@@ -34,23 +34,26 @@ namespace HotChocolate.Execution
 
             _cachedQuery = _requestContext.CachedQuery;
 
-            ErrorHandler = requestContext.ServiceScope.ServiceProvider
-                .GetRequiredService<IErrorHandler>();
+            IServiceProvider services = requestContext.ServiceScope.ServiceProvider;
+
+            ErrorHandler = services.GetRequiredService<IErrorHandler>();
 
             Result = new QueryResult();
 
             var fragments = new FragmentCollection(
                 schema, operation.Document);
 
+            Converter = services.GetTypeConversion();
+
             _fieldCollector = new FieldCollector(
-                fragments, requestContext.ResolveMiddleware);
+                fragments,
+                requestContext.ResolveMiddleware,
+                Converter,
+                services.GetService<IEnumerable<IArgumentCoercionHandler>>());
 
-            Activator = new Activator(
-                requestContext.ServiceScope.ServiceProvider);
-
-            Converter = _requestContext.ServiceScope
-                .ServiceProvider.GetTypeConversion();
+            Activator = new Activator(services);
         }
+
 
         public ISchema Schema { get; }
 
@@ -64,7 +67,7 @@ namespace HotChocolate.Execution
 
         public IOperation Operation { get; }
 
-        public IVariableCollection Variables => Operation.Variables;
+        public IVariableValueCollection Variables => Operation.Variables;
 
         public IQueryResult Result { get; private set; }
 
@@ -115,8 +118,8 @@ namespace HotChocolate.Execution
                     () => _fieldCollector.CollectFields(
                         objectType, selectionSet, path));
 
-            // TODO: should we rent?
             var visibleFields = new List<FieldSelection>();
+
             for (int i = 0; i < fields.Count; i++)
             {
                 if (fields[i].IsVisible(Variables))
@@ -125,6 +128,7 @@ namespace HotChocolate.Execution
                 }
             }
             return visibleFields;
+
         }
 
         public IExecutionContext Clone()

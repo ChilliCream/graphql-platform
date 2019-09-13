@@ -24,14 +24,19 @@ namespace HotChocolate
         public void WithException()
         {
             // arrange
-            IError error = new Error { Message = "123" };
-            var exception = new Exception();
+            IError error = new Error
+            {
+                Message = "123",
+                Exception = new Exception()
+            };
+
+            Assert.NotNull(error.Exception);
 
             // act
-            error = error.WithException(exception);
+            error = error.RemoveException();
 
             // assert
-            Assert.Equal(exception, error.Exception);
+            Assert.Null(error.Exception);
         }
 
         [Fact]

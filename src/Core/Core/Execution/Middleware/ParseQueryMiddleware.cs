@@ -3,7 +3,8 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
-using HotChocolate.Runtime;
+using HotChocolate.Properties;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -13,12 +14,14 @@ namespace HotChocolate.Execution
         private readonly IQueryParser _parser;
         private readonly Cache<ICachedQuery> _queryCache;
         private readonly QueryExecutionDiagnostics _diagnosticEvents;
+        private readonly IDocumentHashProvider _documentHashProvider;
 
         public ParseQueryMiddleware(
             QueryDelegate next,
             IQueryParser parser,
             Cache<ICachedQuery> queryCache,
-            QueryExecutionDiagnostics diagnosticEvents)
+            QueryExecutionDiagnostics diagnosticEvents,
+            IDocumentHashProvider documentHashProvider)
         {
             _next = next
                 ?? throw new ArgumentNullException(nameof(next));
@@ -28,16 +31,19 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(queryCache));
             _diagnosticEvents = diagnosticEvents
                 ?? throw new ArgumentNullException(nameof(diagnosticEvents));
+            _documentHashProvider = documentHashProvider
+                ?? new MD5DocumentHashProvider();
         }
 
         public async Task InvokeAsync(IQueryContext context)
         {
             if (IsContextIncomplete(context))
             {
-                // TODO : resources
-                context.Result = QueryResult.CreateError(new QueryError(
-                   "The parse query middleware expects " +
-                   "a valid query request."));
+                context.Result = QueryResult.CreateError(
+                    ErrorBuilder.New()
+                        .SetMessage(CoreResources.ParseQueryMiddleware_InComplete)
+                        .SetCode(ErrorCodes.Execution.Incomplete)
+                        .Build());
             }
             else
             {
@@ -46,39 +52,115 @@ namespace HotChocolate.Execution
                 try
                 {
                     bool documentRetrievedFromCache = true;
+                    ICachedQuery cachedQuery = null;
+                    string queryKey = ResolveQueryKey(context.Request);
 
-                    context.CachedQuery  = _queryCache.GetOrCreate(
-                        context.Request.Query,
-                        () =>
-                        {
-                            documentRetrievedFromCache = false;
-                            DocumentNode document =
-                                ParseDocument(context.Request.Query);
-                            return new CachedQuery(context.Request.Query, document);
-                        });
-                    context.Document = context.CachedQuery.Document;
-                    context.ContextData[ContextDataKeys.DocumentCached] =
-                        documentRetrievedFromCache;
+                    if (context.Request.Query is null)
+                    {
+                        _queryCache.TryGet(queryKey, out cachedQuery);
+                    }
+                    else
+                    {
+                        cachedQuery = _queryCache.GetOrCreate(
+                            queryKey,
+                            () =>
+                            {
+                                documentRetrievedFromCache = false;
+                                DocumentNode document =
+                                    ParseDocument(context.Request.Query);
+                                return new CachedQuery(queryKey, document);
+                            });
+                    }
+
+                    // update context
+                    context.QueryKey = queryKey;
+
+                    if (cachedQuery != null)
+                    {
+                        context.CachedQuery = cachedQuery;
+                        context.Document = cachedQuery.Document;
+                        context.ContextData[ContextDataKeys.DocumentCached] =
+                            documentRetrievedFromCache;
+                    }
                 }
                 finally
                 {
                     _diagnosticEvents.EndParsing(activity, context);
                 }
-            }
 
-            await _next(context).ConfigureAwait(false);
+                await _next(context).ConfigureAwait(false);
+            }
         }
 
-        private DocumentNode ParseDocument(string queryText)
+        private string ResolveQueryKey(IReadOnlyQueryRequest request)
         {
-            return _parser.Parse(queryText);
+            string queryKey = request.QueryName;
+
+            if (queryKey is null || request.Query != null)
+            {
+                queryKey = request.QueryHash is null
+                    ? _documentHashProvider.ComputeHash(
+                        request.Query.ToSpan())
+                    : request.QueryHash;
+            }
+
+            return queryKey;
+        }
+
+        private DocumentNode ParseDocument(IQuery query)
+        {
+            if (query is QueryDocument parsed)
+            {
+                return parsed.Document;
+            }
+
+            if (query is QuerySourceText source)
+            {
+                return _parser.Parse(source.ToSpan());
+            }
+
+            throw new NotSupportedException(
+                CoreResources.ParseQuery_Middleware_QueryTypeNotSupported);
         }
 
         private static bool IsContextIncomplete(IQueryContext context)
         {
-            return context.Request == null ||
-                context.Request.Query == null;
+            return context.Request is null
+                || (context.Request.Query is null
+                    && context.Request.QueryName is null);
+        }
+    }
+
+    internal sealed class NoCachedQueryErrorMiddleware
+    {
+        private readonly QueryDelegate _next;
+        private readonly IErrorHandler _errorHandler;
+
+        public NoCachedQueryErrorMiddleware(
+            QueryDelegate next,
+            IErrorHandler errorHandler)
+        {
+            _next = next
+                ?? throw new ArgumentNullException(nameof(next));
+            _errorHandler = errorHandler
+                ?? throw new ArgumentNullException(nameof(errorHandler));
+        }
+
+        public Task InvokeAsync(IQueryContext context)
+        {
+            if (context.Document is null)
+            {
+                context.Result = QueryResult.CreateError(
+                    _errorHandler.Handle(ErrorBuilder.New()
+                        .SetMessage("CachedQueryNotFound")
+                        .SetCode(ErrorCodes.Execution.CachedQueryNotFound)
+                        .Build()));
+                return Task.CompletedTask;
+            }
+            else
+            {
+                return _next.Invoke(context);
+            }
         }
     }
 }
-

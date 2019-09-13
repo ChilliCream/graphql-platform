@@ -8,6 +8,7 @@ using Xunit;
 namespace HotChocolate.Types
 {
     public class EnumTypeTests
+        : TypeTestBase
     {
         [Fact]
         public void EnumType_DynamicName()
@@ -154,7 +155,30 @@ namespace HotChocolate.Types
             {
                 c.RegisterType(new EnumType<Foo>(d =>
                 {
-                    d.BindItems(BindingBehavior.Explicit);
+                    d.BindValues(BindingBehavior.Explicit);
+                    d.Item(Foo.Bar1);
+                }));
+                c.Options.StrictValidation = false;
+            });
+
+            // assert
+            EnumType type = schema.GetType<EnumType>("Foo");
+            Assert.NotNull(type);
+            Assert.True(type.TryGetValue("BAR1", out object value));
+            Assert.Equal(Foo.Bar1, value);
+            Assert.False(type.TryGetValue("BAR2", out value));
+            Assert.Null(value);
+        }
+
+         [Fact]
+        public void ExplicitEnumType_OnlyContainDeclaredValues_2()
+        {
+            // act
+            var schema = Schema.Create(c =>
+            {
+                c.RegisterType(new EnumType<Foo>(d =>
+                {
+                    d.BindValuesImplicitly().BindValuesExplicitly();
                     d.Item(Foo.Bar1);
                 }));
                 c.Options.StrictValidation = false;
@@ -431,6 +455,40 @@ namespace HotChocolate.Types
             Assert.Throws<ArgumentException>(action);
         }
 
+        [Fact]
+        public void Deprecate_Obsolete_Values()
+        {
+            // act
+            var schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType<FooObsolete>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Deprecate_Fields_With_Deprecated_Attribute()
+        {
+            // act
+            var schema = SchemaBuilder.New()
+                .AddQueryType(c => c
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<StringType>()
+                    .Resolver("bar"))
+                .AddType<FooDeprecated>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public enum Foo
         {
             Bar1,
@@ -438,5 +496,20 @@ namespace HotChocolate.Types
         }
 
         public class Bar { }
+
+        public enum FooObsolete
+        {
+            Bar1,
+
+            [Obsolete]
+            Bar2
+        }
+
+        public enum FooDeprecated
+        {
+            Bar1,
+            [GraphQLDeprecated("Baz.")]
+            Bar2
+        }
     }
 }

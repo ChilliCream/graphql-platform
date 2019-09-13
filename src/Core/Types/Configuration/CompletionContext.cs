@@ -1,3 +1,4 @@
+using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -66,6 +67,9 @@ namespace HotChocolate.Configuration
 
         public ISet<NameString> AlternateTypeNames => _alternateNames;
 
+        public IDescriptorContext DescriptorContext =>
+            _initializationContext.DescriptorContext;
+
         public T GetType<T>(ITypeReference reference)
             where T : IType
         {
@@ -74,7 +78,18 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(reference));
             }
 
-            TryGetType(reference, out T type);
+            if (!TryGetType(reference, out T type))
+            {
+                throw new SchemaException(
+                    SchemaErrorBuilder.New()
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            "Unable to resolve type reference `{0}`.",
+                            reference))
+                        .SetTypeSystemObject(Type)
+                        .SetExtension(nameof(reference), reference)
+                        .Build());
+            }
             return type;
         }
 
@@ -86,33 +101,67 @@ namespace HotChocolate.Configuration
                 throw new ArgumentNullException(nameof(reference));
             }
 
-            if (_typeInitializer.TryNormalizeReference(
-                reference, out ITypeReference nr)
-                && _typeInitializer.Types.TryGetValue(
-                    nr, out RegisteredType rt)
-                    && rt.Type is IType t)
+            if (reference is ISchemaTypeReference schemaRef
+                && TryGetType(schemaRef, out type))
             {
-                IType resolved;
-                if (reference is IClrTypeReference cr
-                    && _typeInitializer.TypeInspector.TryCreate(
-                        cr.Type, out TypeInfo typeInfo))
-                {
-                    resolved = typeInfo.TypeFactory.Invoke(t);
-                }
-                else if (reference is ISyntaxTypeReference sr)
-                {
-                    resolved = WrapType(t, sr.Type);
-                }
-                else
-                {
-                    resolved = t;
-                }
+                return true;
+            }
 
-                if (resolved is T casted)
+            if (reference is ISyntaxTypeReference syntaxRef
+                && TryGetType(syntaxRef, out type))
+            {
+                return true;
+            }
+
+            if (reference is IClrTypeReference clrRef
+                && _typeInitializer.TryNormalizeReference(
+                    clrRef, out ITypeReference normalized)
+                && _typeInitializer.Types.TryGetValue(
+                    normalized, out RegisteredType registered)
+                && registered.Type is IType t
+                && _typeInitializer.TypeInspector.TryCreate(
+                    clrRef.Type, out TypeInfo typeInfo)
+                && typeInfo.TypeFactory.Invoke(t) is T casted)
+            {
+                type = casted;
+                return true;
+            }
+
+            type = default;
+            return false;
+        }
+
+        private bool TryGetType<T>(
+            ISchemaTypeReference reference,
+            out T type)
+            where T : IType
+        {
+            if (reference.Type is IType schemaType)
+            {
+                INamedType namedType = schemaType.NamedType();
+                if (_typeInitializer.Types.Any(t => t.Value.Type == namedType)
+                    && schemaType is T casted)
                 {
                     type = casted;
                     return true;
                 }
+            }
+
+            type = default;
+            return false;
+        }
+
+        private bool TryGetType<T>(
+            ISyntaxTypeReference reference,
+            out T type)
+            where T : IType
+        {
+            NamedTypeNode namedType = reference.Type.NamedType();
+            if (_typeInitializer.TryGetType(namedType.Name.Value, out IType t)
+                && WrapType(t, reference.Type) is T casted)
+            {
+                type = casted;
+                return true;
             }
 
             type = default;
@@ -144,12 +193,23 @@ namespace HotChocolate.Configuration
                 throw new NotSupportedException();
             }
 
-            if (reference is ClrTypeDirectiveReference cr
-                && _typeInitializer.TryGetRegisteredType(
-                    new ClrTypeReference(cr.ClrType, TypeContext.None),
-                    out RegisteredType registeredType))
+            if (reference is ClrTypeDirectiveReference cr)
             {
-                return (DirectiveType)registeredType.Type;
+                ITypeReference clrTypeReference = new ClrTypeReference(
+                    cr.ClrType, TypeContext.None);
+                if (!_typeInitializer.ClrTypes.TryGetValue(
+                    clrTypeReference,
+                    out ITypeReference internalReference))
+                {
+                    internalReference = clrTypeReference;
+                }
+
+                if (_typeInitializer.TryGetRegisteredType(
+                    internalReference,
+                    out RegisteredType registeredType))
+                {
+                    return (DirectiveType)registeredType.Type;
+                }
             }
 
             if (reference is NameDirectiveReference nr)
@@ -226,7 +286,9 @@ namespace HotChocolate.Configuration
             }
 
             return _typeInitializer.Types.Values
-                .Select(t => t.Type).OfType<T>();
+                .Select(t => t.Type)
+                .OfType<T>()
+                .Distinct();
         }
 
         public void ReportError(ISchemaError error)

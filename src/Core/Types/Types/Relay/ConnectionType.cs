@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Linq;
 using HotChocolate.Configuration;
-using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Relay
     public class ConnectionType<T>
         : ObjectType<IConnection>
         , IConnectionType
-        where T : IOutputType, new()
+        where T : class, IOutputType
     {
         public ConnectionType()
             : base(descriptor => Configure(descriptor))
@@ -47,6 +47,12 @@ namespace HotChocolate.Types.Relay
                 .Name("edges")
                 .Description("A list of edges.")
                 .Type<ListType<NonNullType<EdgeType<T>>>>();
+
+            descriptor.Field("nodes")
+                .Description("A flattened list of the nodes.")
+                .Type<ListType<T>>()
+                .Resolver(ctx =>
+                    ctx.Parent<IConnection>().Edges.Select(t => t.Node));
         }
 
         protected override void OnRegisterDependencies(
@@ -68,29 +74,6 @@ namespace HotChocolate.Types.Relay
 
             EdgeType = context.GetType<EdgeType<T>>(
                 ClrTypeReference.FromSchemaType<EdgeType<T>>());
-        }
-
-        public static ConnectionType<T> CreateWithTotalCount()
-        {
-            return new ConnectionType<T>(c =>
-            {
-                c.Field("totalCount")
-                    .Type<NonNullType<IntType>>()
-                    .Resolver(ctx => GetTotalCount(ctx));
-            });
-        }
-
-        private static IResolverResult<long> GetTotalCount(
-            IResolverContext context)
-        {
-            IConnection connection = context.Parent<IConnection>();
-            if (connection.PageInfo.TotalCount.HasValue)
-            {
-                return ResolverResult.CreateValue(
-                    connection.PageInfo.TotalCount.Value);
-            }
-            return ResolverResult.CreateError<long>(
-                "The total count was not provided by the connection.");
         }
     }
 }

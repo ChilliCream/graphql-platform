@@ -1,0 +1,17 @@
+﻿{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "Exception": null,
+      "message": "`baz` is a required field and cannot be null.",
+      "locations": [
+        {
+          "Line": 3,
+          "Column": 45
+        }
+      ]
+    }
+  ],
+  "ContextData": {}
+}

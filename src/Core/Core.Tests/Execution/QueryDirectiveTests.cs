@@ -56,23 +56,5 @@ namespace HotChocolate.Execution
                 });
             }
         }
-
-        public class AppendDirectiveMiddleware
-        {
-            public string AppendString(
-                [Result]string result,
-                [DirectiveArgument]string s)
-            {
-                return result + s;
-            }
-
-            public Task<string> AppendStringAsync(
-               [Result]string result,
-               [DirectiveArgument]string s)
-            {
-                return Task.FromResult(result + s);
-            }
-        }
-
     }
 }

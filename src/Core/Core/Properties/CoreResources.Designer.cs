@@ -61,7 +61,34 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not resolve the schema type from `{0}`..
+        ///   Looks up a localized string similar to Unable to find a compatible input type for the exported object type..
+        /// </summary>
+        internal static string BatchColVars_NoCompatibleType {
+            get {
+                return ResourceManager.GetString("BatchColVars_NoCompatibleType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not serialize the specified variable..
+        /// </summary>
+        internal static string BatchQueryExec_CannotSerialize {
+            get {
+                return ResourceManager.GetString("BatchQueryExec_CannotSerialize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The query key mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string CachedQuery_Key_Is_Null {
+            get {
+                return ResourceManager.GetString("CachedQuery_Key_Is_Null", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not resolve the actual object type from `{0}` for the abstract type `{1}`..
         /// </summary>
         internal static string CompleteCompositeType_UnknownSchemaType {
             get {
@@ -97,6 +124,69 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The {0} if-argument value has to be a &apos;Boolean&apos;..
+        /// </summary>
+        internal static string DirectiveCollectionExtensions_IfNotBoolean {
+            get {
+                return ResourceManager.GetString("DirectiveCollectionExtensions_IfNotBoolean", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The {0}-directive is missing the if-argument..
+        /// </summary>
+        internal static string DirectiveCollectionExtensions_NotValid {
+            get {
+                return ResourceManager.GetString("DirectiveCollectionExtensions_NotValid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected Execution Error.
+        /// </summary>
+        internal static string ErrorHandler_ErrorIsNull {
+            get {
+                return ResourceManager.GetString("ErrorHandler_ErrorIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected Execution Error.
+        /// </summary>
+        internal static string ErrorHandler_UnexpectedError {
+            get {
+                return ResourceManager.GetString("ErrorHandler_UnexpectedError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The execute operation middleware expects the query document to be parsed and the operation to be resolved..
+        /// </summary>
+        internal static string ExecuteOperationMiddleware_InComplete {
+            get {
+                return ResourceManager.GetString("ExecuteOperationMiddleware_InComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Operation not supported..
+        /// </summary>
+        internal static string ExecutionStrategyResolver_NotSupported {
+            get {
+                return ResourceManager.GetString("ExecutionStrategyResolver_NotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not resolve the specified field..
+        /// </summary>
+        internal static string FieldCollector_FieldNotFound {
+            get {
+                return ResourceManager.GetString("FieldCollector_FieldNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified operation `{0}` does not exist..
         /// </summary>
         internal static string GetOperation_InvalidOperationName {
@@ -124,6 +214,70 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The operation that shall be executed has a complexity of {0}.
+        ///The maximum allowed query complexity is {1}..
+        /// </summary>
+        internal static string MaxComplexityMiddleware_NotAllowed {
+            get {
+                return ResourceManager.GetString("MaxComplexityMiddleware_NotAllowed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The max complexity middleware expects the query document to be parsed and the operation to be resolved..
+        /// </summary>
+        internal static string MaxComplexityMiddleware_Prerequisite {
+            get {
+                return ResourceManager.GetString("MaxComplexityMiddleware_Prerequisite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified query type is not supported..
+        /// </summary>
+        internal static string ParseQuery_Middleware_QueryTypeNotSupported {
+            get {
+                return ResourceManager.GetString("ParseQuery_Middleware_QueryTypeNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The parse query middleware expects a valid query request..
+        /// </summary>
+        internal static string ParseQueryMiddleware_InComplete {
+            get {
+                return ResourceManager.GetString("ParseQueryMiddleware_InComplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The argument name mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string QueryError_ArgumentIsNull {
+            get {
+                return ResourceManager.GetString("QueryError_ArgumentIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The error message mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string QueryError_MessageIsNull {
+            get {
+                return ResourceManager.GetString("QueryError_MessageIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The variable name mustn&apos;t be null or empty..
+        /// </summary>
+        internal static string QueryError_VariableIsNull {
+            get {
+                return ResourceManager.GetString("QueryError_VariableIsNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The execution pipeline yielded no query result..
         /// </summary>
         internal static string QueryExecutor_NoResult {
@@ -138,6 +292,42 @@ namespace HotChocolate.Properties {
         internal static string QueryExecutorExtensions_QueryIsNullOrEmpty {
             get {
                 return ResourceManager.GetString("QueryExecutorExtensions_QueryIsNullOrEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The read persisted query middleware expects a valid query request..
+        /// </summary>
+        internal static string Read_PQ_Middleware_Incomplete {
+            get {
+                return ResourceManager.GetString("Read_PQ_Middleware_Incomplete", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to PersistedQueryNotFound.
+        /// </summary>
+        internal static string Read_PQ_Middleware_QueryNotFound {
+            get {
+                return ResourceManager.GetString("Read_PQ_Middleware_QueryNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The specified query type is not supported..
+        /// </summary>
+        internal static string Read_PQ_Middleware_QueryTypeNotSupported {
+            get {
+                return ResourceManager.GetString("Read_PQ_Middleware_QueryTypeNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Execution timeout has been exceeded..
+        /// </summary>
+        internal static string RequestTimeoutMiddleware_Timeout {
+            get {
+                return ResourceManager.GetString("RequestTimeoutMiddleware_Timeout", resourceCulture);
             }
         }
         
@@ -169,6 +359,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not cast the source object to `{0}`..
+        /// </summary>
+        internal static string ResolverContext_Parent_InvalidCast {
+            get {
+                return ResourceManager.GetString("ResolverContext_Parent_InvalidCast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified root type `{0}` does not exist..
         /// </summary>
         internal static string ResolveRootType_DoesNotExist {
@@ -196,6 +395,24 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Subscriptions must have one and only one root field..
+        /// </summary>
+        internal static string Subscriptions_SingleRootField {
+            get {
+                return ResourceManager.GetString("Subscriptions_SingleRootField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Only query results are supported..
+        /// </summary>
+        internal static string ToJson_OnlyQueryResultsSupported {
+            get {
+                return ResourceManager.GetString("ToJson_OnlyQueryResultsSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The validation middleware expects the query document to be parsed..
         /// </summary>
         internal static string ValidateQueryMiddleware_NoDocument {
@@ -210,6 +427,33 @@ namespace HotChocolate.Properties {
         internal static string VariableCollection_VariableNotDeclared {
             get {
                 return ResourceManager.GetString("VariableCollection_VariableNotDeclared", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to convert the specified variable value..
+        /// </summary>
+        internal static string VarRewriter_CannotConvert {
+            get {
+                return ResourceManager.GetString("VarRewriter_CannotConvert", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unknown field..
+        /// </summary>
+        internal static string VarRewriter_UnknownField {
+            get {
+                return ResourceManager.GetString("VarRewriter_UnknownField", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The write persisted query middleware expects a valid query request..
+        /// </summary>
+        internal static string Write_PQ_Middleware_Incomplete {
+            get {
+                return ResourceManager.GetString("Write_PQ_Middleware_Incomplete", resourceCulture);
             }
         }
     }

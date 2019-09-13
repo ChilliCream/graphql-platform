@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Configuration.Bindings
@@ -9,6 +12,8 @@ namespace HotChocolate.Configuration.Bindings
     {
         private readonly ResolverTypeBindingInfo _bindingInfo =
             new ResolverTypeBindingInfo();
+        private readonly List<ResolverFieldBindingBuilder> _fields =
+            new List<ResolverFieldBindingBuilder>();
 
         public IResolverTypeBindingBuilder SetType(NameString typeName)
         {
@@ -50,12 +55,13 @@ namespace HotChocolate.Configuration.Bindings
 
             if (builder.IsComplete())
             {
-                _bindingInfo.Fields = _bindingInfo.Fields.Add(builder.Create());
+                _fields.Add(builder);
                 return this;
             }
 
-            // TODO : resources
-            throw new ArgumentException("notcompleted", nameof(builder));
+            throw new ArgumentException(
+                TypeResources.ResolverTypeBindingBuilder_FieldNotComplete,
+                nameof(configure));
         }
 
         public IResolverTypeBindingBuilder AddField(
@@ -68,24 +74,25 @@ namespace HotChocolate.Configuration.Bindings
 
             if (!builder.IsComplete())
             {
-                // TODO : resources
-                throw new ArgumentException("notcompleted", nameof(builder));
+                throw new ArgumentException(
+                    TypeResources.ResolverTypeBindingBuilder_FieldNotComplete,
+                    nameof(builder));
             }
 
             if (builder is ResolverFieldBindingBuilder b)
             {
-                _bindingInfo.Fields = _bindingInfo.Fields.Add(b.Create());
+                _fields.Add(b);
                 return this;
             }
 
-            // TODO : resources
-            throw new NotSupportedException("builder not supported");
+            throw new NotSupportedException(
+                TypeResources.ResolverTypeBindingBuilder_FieldBuilderNotSupported);
         }
 
         public bool IsComplete()
         {
             if (_bindingInfo.BindingBehavior == BindingBehavior.Explicit
-                && _bindingInfo.Fields.Count == 0)
+                && _fields.Count == 0)
             {
                 return false;
             }
@@ -95,12 +102,14 @@ namespace HotChocolate.Configuration.Bindings
                 return false;
             }
 
-            return _bindingInfo.Fields.All(t => t.IsValid());
+            return _fields.All(t => t.IsComplete());
         }
 
         public IBindingInfo Create()
         {
             ResolverTypeBindingInfo cloned = _bindingInfo.Clone();
+            cloned.Fields = ImmutableList.CreateRange(
+                _fields.Select(t => t.Create()));
 
             if (IsComplete() && !cloned.IsValid())
             {

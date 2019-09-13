@@ -10,36 +10,37 @@ namespace HotChocolate.Types
         , IFluent
     {
         // <summary>
-        /// Associates the specified <paramref name="syntaxNode"/>
+        /// Associates the specified
+        /// <paramref name="syntaxinterfaceTypeDefinitionode"/>
         /// with the <see cref="InterfaceType"/>.
         /// </summary>
-        /// <param name="syntaxNode">
+        /// <param name="interfaceTypeDefinition">
         /// The <see cref="InterfaceTypeDefinitionNode"/> of a parsed schema.
         /// </param>
         IInterfaceTypeDescriptor<T> SyntaxNode(
-            InterfaceTypeDefinitionNode syntaxNode);
+            InterfaceTypeDefinitionNode syntaxinterfaceTypeDefinitionode);
 
         /// <summary>
         /// Defines the name of the <see cref="InterfaceType"/>.
         /// </summary>
-        /// <param name="name">The interface type name.</param>
+        /// <param name="value">The interface type name.</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="name"/> is <c>null</c> or
+        /// <paramref name="value"/> is <c>null</c> or
         /// <see cref="string.Empty"/>.
         /// </exception>
-        IInterfaceTypeDescriptor<T> Name(NameString name);
+        IInterfaceTypeDescriptor<T> Name(NameString value);
 
         /// <summary>
         /// Adds explanatory text to the <see cref="InterfaceType"/>
         /// that can be accessd via introspection.
         /// </summary>
-        /// <param name="description">The interface type description.</param>
-        IInterfaceTypeDescriptor<T> Description(string description);
+        /// <param name="value">The interface type description.</param>
+        IInterfaceTypeDescriptor<T> Description(string value);
 
         /// <summary>
         /// Defines the field binding behavior.
         ///
-        /// The default binding behaviour is set to
+        /// The default binding behavior is set to
         /// <see cref="BindingBehavior.Implicit"/>.
         /// </summary>
         /// <param name="behavior">
@@ -56,6 +57,17 @@ namespace HotChocolate.Types
         /// or <see cref="Field(string)"/>.
         /// </param>
         IInterfaceTypeDescriptor<T> BindFields(BindingBehavior behavior);
+
+        /// <summary>
+        /// Defines that all fields have to be specified explicitly.
+        /// </summary>
+        IInterfaceTypeDescriptor<T> BindFieldsExplicitly();
+
+        /// <summary>
+        /// Defines that all fields shall be infered
+        /// from the associated .Net type,
+        /// </summary>
+        IInterfaceTypeDescriptor<T> BindFieldsImplicitly();
 
         IInterfaceTypeDescriptor<T> ResolveAbstractType(
             ResolveAbstractType typeResolver);

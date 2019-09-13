@@ -3,8 +3,21 @@
   // for the documentation about the tasks.json format
   "version": "2.0.0",
   "tasks": [{
+      "label": "build client",
+      "command": "dotnet build src/Client /property:GenerateFullPaths=true",
+      "type": "shell",
+      "presentation": {
+        "reveal": "silent"
+      },
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    }, {
       "label": "build core",
       "command": "dotnet build src/Core /property:GenerateFullPaths=true",
+      ‚
       "type": "shell",
       "presentation": {
         "reveal": "silent"
@@ -29,8 +42,21 @@
       }
     },
     {
-      "label": "build benchmarks",
-      "command": "dotnet build benchmarks /property:GenerateFullPaths=true",
+      "label": "build server",
+      "command": "dotnet build src/Server /property:GenerateFullPaths=true",
+      "type": "shell",
+      "presentation": {
+        "reveal": "silent"
+      },
+      "problemMatcher": "$msCompile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    {
+      "label": "build all core projects",
+      "command": "dotnet build tools/Build.Core.sln /property:GenerateFullPaths=true",
       "type": "shell",
       "presentation": {
         "reveal": "silent"

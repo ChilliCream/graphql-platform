@@ -1,7 +1,7 @@
 ﻿namespace HotChocolate.Types
 {
     public interface IType
-        : ITypeSystem
+        : ITypeSystemMember
     {
         TypeKind Kind { get; }
     }

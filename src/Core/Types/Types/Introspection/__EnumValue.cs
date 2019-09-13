@@ -1,8 +1,11 @@
-﻿namespace HotChocolate.Types.Introspection
+using HotChocolate.Properties;
+
+namespace HotChocolate.Types.Introspection
 {
-    // TODO : resources
     [Introspection]
+#pragma warning disable IDE1006 // Naming Styles
     internal sealed class __EnumValue
+#pragma warning restore IDE1006 // Naming Styles
         : ObjectType<EnumValue>
     {
         protected override void Configure(
@@ -11,10 +14,7 @@
             descriptor.Name("__EnumValue");
 
             descriptor.Description(
-                "One possible value for a given Enum. Enum values are " +
-                "unique values, not a placeholder for a string or " +
-                "numeric value. However an Enum value is " +
-                "returned in a JSON response as a string.");
+                TypeResources.EnumValue_Description);
 
             descriptor.BindFields(BindingBehavior.Explicit);
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Reflection;
 using System.Threading;
+using GreenDonut;
 using HotChocolate.Language;
 using HotChocolate.Subscriptions;
 using HotChocolate.Types;
@@ -23,8 +24,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 || TryCheckForSubscription(parameter, out argumentKind)
                 || TryCheckForSchemaTypes(parameter, out argumentKind)
                 || TryCheckForQueryTypes(parameter, out argumentKind)
-                || TryCheckForExtensions(parameter, out argumentKind)
-                || TryCheckForDirectives(parameter, out argumentKind))
+                || TryCheckForExtensions(parameter, out argumentKind))
             {
                 return argumentKind;
             }
@@ -55,7 +55,8 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return false;
             }
 
-            if (parameter.ParameterType == sourceType || parameter.IsParent())
+            if (parameter.ParameterType == sourceType
+                || IsParent(parameter, sourceType))
             {
                 argumentKind = ArgumentKind.Source;
                 return true;
@@ -69,7 +70,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             this ParameterInfo parameter,
             out ArgumentKind argumentKind)
         {
-            if (typeof(ISchema).IsAssignableFrom(parameter.ParameterType))
+            if (IsSchema(parameter))
             {
                 argumentKind = ArgumentKind.Schema;
                 return true;
@@ -81,7 +82,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
                 return true;
             }
 
-            if (typeof(IOutputField).IsAssignableFrom(parameter.ParameterType))
+            if (IsOutputField(parameter))
             {
                 argumentKind = ArgumentKind.Field;
                 return true;
@@ -121,59 +122,21 @@ namespace HotChocolate.Resolvers.CodeGeneration
             this ParameterInfo parameter,
             out ArgumentKind argumentKind)
         {
-            if (parameter.IsDataLoader())
+            if (IsDataLoader(parameter))
             {
                 argumentKind = ArgumentKind.DataLoader;
                 return true;
             }
 
-            if (parameter.IsState())
+            if (IsState(parameter))
             {
                 argumentKind = ArgumentKind.CustomContext;
                 return true;
             }
 
-            if (parameter.IsService())
+            if (IsService(parameter))
             {
                 argumentKind = ArgumentKind.Service;
-                return true;
-            }
-
-            argumentKind = default(ArgumentKind);
-            return false;
-        }
-
-        private static bool TryCheckForDirectives(
-            this ParameterInfo parameter,
-            out ArgumentKind argumentKind)
-        {
-            if (parameter.ParameterType == typeof(IDirectiveContext))
-            {
-                argumentKind = ArgumentKind.Context;
-                return true;
-            }
-
-            if (parameter.ParameterType == typeof(IDirective))
-            {
-                argumentKind = ArgumentKind.Directive;
-                return true;
-            }
-
-            if (parameter.IsDirective())
-            {
-                argumentKind = ArgumentKind.DirectiveObject;
-                return true;
-            }
-
-            if (parameter.IsDirectiveArgument())
-            {
-                argumentKind = ArgumentKind.DirectiveArgument;
-                return true;
-            }
-
-            if (parameter.IsResolverResult())
-            {
-                argumentKind = ArgumentKind.ResolverResult;
                 return true;
             }
 
@@ -185,7 +148,7 @@ namespace HotChocolate.Resolvers.CodeGeneration
             this ParameterInfo parameter,
             out ArgumentKind argumentKind)
         {
-            if (typeof(IEventMessage).IsAssignableFrom(parameter.ParameterType))
+            if (IsEventMessage(parameter))
             {
                 argumentKind = ArgumentKind.EventMessage;
                 return true;
@@ -195,39 +158,35 @@ namespace HotChocolate.Resolvers.CodeGeneration
             return false;
         }
 
-        private static bool IsDataLoader(this ParameterInfo parameter)
+        internal static bool IsDataLoader(ParameterInfo parameter)
         {
-            return parameter.IsDefined(typeof(DataLoaderAttribute));
+            return typeof(IDataLoader).IsAssignableFrom(parameter.ParameterType)
+                || parameter.IsDefined(typeof(DataLoaderAttribute));
         }
 
-        private static bool IsState(this ParameterInfo parameter)
+        internal static bool IsState(ParameterInfo parameter)
         {
             return parameter.IsDefined(typeof(StateAttribute));
         }
 
-        private static bool IsService(this ParameterInfo parameter)
+        internal static bool IsService(ParameterInfo parameter)
         {
             return parameter.IsDefined(typeof(ServiceAttribute));
         }
 
-        private static bool IsParent(this ParameterInfo parameter)
+        internal static bool IsParent(ParameterInfo parameter, Type sourceType)
         {
-            return parameter.IsDefined(typeof(ParentAttribute));
+            return parameter.ParameterType.IsAssignableFrom(sourceType)
+                || parameter.IsDefined(typeof(ParentAttribute));
         }
 
-        private static bool IsResolverResult(this ParameterInfo parameter)
-        {
-            return parameter.IsDefined(typeof(ResultAttribute));
-        }
+        internal static bool IsEventMessage(ParameterInfo parameter) =>
+            typeof(IEventMessage).IsAssignableFrom(parameter.ParameterType);
 
-        private static bool IsDirective(this ParameterInfo parameter)
-        {
-            return parameter.IsDefined(typeof(DirectiveAttribute));
-        }
+        internal static bool IsOutputField(ParameterInfo parameter) =>
+            typeof(IOutputField).IsAssignableFrom(parameter.ParameterType);
 
-        private static bool IsDirectiveArgument(this ParameterInfo parameter)
-        {
-            return parameter.IsDefined(typeof(DirectiveArgumentAttribute));
-        }
+        internal static bool IsSchema(ParameterInfo parameter) =>
+            typeof(ISchema).IsAssignableFrom(parameter.ParameterType);
     }
 }

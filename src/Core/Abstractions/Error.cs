@@ -114,6 +114,13 @@ namespace HotChocolate
             return error;
         }
 
+        public IError RemoveException()
+        {
+            Error error = Copy();
+            error.Exception = null;
+            return error;
+        }
+
         public IError WithExtensions(
             IReadOnlyDictionary<string, object> extensions)
         {

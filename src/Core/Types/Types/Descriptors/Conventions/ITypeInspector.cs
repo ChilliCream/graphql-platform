@@ -7,6 +7,7 @@ namespace HotChocolate.Types.Descriptors
     public interface ITypeInspector
     {
         IEnumerable<Type> GetResolverTypes(Type sourceType);
+
         IEnumerable<MemberInfo> GetMembers(Type type);
 
         /// <summary>
@@ -35,7 +36,9 @@ namespace HotChocolate.Types.Descriptors
         ITypeReference GetArgumentType(ParameterInfo parameter);
 
         IEnumerable<object> GetEnumValues(Type enumType);
+
         Type ExtractType(Type type);
+
         bool IsSchemaType(Type type);
     }
 }

@@ -1,0 +1,360 @@
+﻿{
+  "Kind": "Document",
+  "Location": {
+    "Start": 0,
+    "End": 240,
+    "Line": 1,
+    "Column": 1
+  },
+  "Definitions": [
+    {
+      "Kind": "OperationDefinition",
+      "Location": {
+        "Start": 0,
+        "End": 240,
+        "Line": 1,
+        "Column": 1
+      },
+      "Name": null,
+      "Operation": "Query",
+      "VariableDefinitions": [],
+      "Directives": [],
+      "SelectionSet": {
+        "Kind": "SelectionSet",
+        "Location": {
+          "Start": 0,
+          "End": 240,
+          "Line": 1,
+          "Column": 1
+        },
+        "Selections": [
+          {
+            "Kind": "Field",
+            "Alias": null,
+            "Arguments": [
+              {
+                "Kind": "Argument",
+                "Location": {
+                  "Start": 13,
+                  "End": 36,
+                  "Line": 2,
+                  "Column": 12
+                },
+                "Name": {
+                  "Kind": "Name",
+                  "Location": {
+                    "Start": 13,
+                    "End": 16,
+                    "Line": 2,
+                    "Column": 12
+                  },
+                  "Value": "id"
+                },
+                "Value": {
+                  "Kind": "StringValue",
+                  "Location": {
+                    "Start": 17,
+                    "End": 36,
+                    "Line": 2,
+                    "Column": 16
+                  },
+                  "Value": "Q3VzdG9tZXIteDE=",
+                  "Block": false
+                }
+              }
+            ],
+            "SelectionSet": {
+              "Kind": "SelectionSet",
+              "Location": {
+                "Start": 37,
+                "End": 239,
+                "Line": 2,
+                "Column": 36
+              },
+              "Selections": [
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": null,
+                  "Location": {
+                    "Start": 43,
+                    "End": 62,
+                    "Line": 3,
+                    "Column": 5
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 43,
+                      "End": 62,
+                      "Line": 3,
+                      "Column": 5
+                    },
+                    "Value": "name"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": {
+                      "Start": 63,
+                      "End": 95,
+                      "Line": 4,
+                      "Column": 16
+                    },
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
+                        "Location": {
+                          "Start": 71,
+                          "End": 81,
+                          "Line": 5,
+                          "Column": 7
+                        },
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": {
+                            "Start": 71,
+                            "End": 81,
+                            "Line": 5,
+                            "Column": 7
+                          },
+                          "Value": "name"
+                        },
+                        "Directives": []
+                      }
+                    ]
+                  },
+                  "Location": {
+                    "Start": 52,
+                    "End": 95,
+                    "Line": 4,
+                    "Column": 5
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 52,
+                      "End": 64,
+                      "Line": 4,
+                      "Column": 5
+                    },
+                    "Value": "consultant"
+                  },
+                  "Directives": []
+                },
+                {
+                  "Kind": "Field",
+                  "Alias": null,
+                  "Arguments": [],
+                  "SelectionSet": {
+                    "Kind": "SelectionSet",
+                    "Location": {
+                      "Start": 96,
+                      "End": 237,
+                      "Line": 7,
+                      "Column": 15
+                    },
+                    "Selections": [
+                      {
+                        "Kind": "Field",
+                        "Alias": null,
+                        "Arguments": [],
+                        "SelectionSet": null,
+                        "Location": {
+                          "Start": 104,
+                          "End": 116,
+                          "Line": 8,
+                          "Column": 7
+                        },
+                        "Name": {
+                          "Kind": "Name",
+                          "Location": {
+                            "Start": 104,
+                            "End": 116,
+                            "Line": 8,
+                            "Column": 7
+                          },
+                          "Value": "id"
+                        },
+                        "Directives": []
+                      },
+                      {
+                        "Kind": "InlineFragment",
+                        "Location": {
+                          "Start": 113,
+                          "End": 177,
+                          "Line": 9,
+                          "Column": 7
+                        },
+                        "TypeCondition": {
+                          "Kind": "NamedType",
+                          "Location": {
+                            "Start": 120,
+                            "End": 143,
+                            "Line": 9,
+                            "Column": 14
+                          },
+                          "Name": {
+                            "Kind": "Name",
+                            "Location": {
+                              "Start": 120,
+                              "End": 143,
+                              "Line": 9,
+                              "Column": 14
+                            },
+                            "Value": "LifeInsuranceContract"
+                          }
+                        },
+                        "Directives": [],
+                        "SelectionSet": {
+                          "Kind": "SelectionSet",
+                          "Location": {
+                            "Start": 142,
+                            "End": 177,
+                            "Line": 9,
+                            "Column": 36
+                          },
+                          "Selections": [
+                            {
+                              "Kind": "Field",
+                              "Alias": null,
+                              "Arguments": [],
+                              "SelectionSet": null,
+                              "Location": {
+                                "Start": 152,
+                                "End": 167,
+                                "Line": 10,
+                                "Column": 9
+                              },
+                              "Name": {
+                                "Kind": "Name",
+                                "Location": {
+                                  "Start": 152,
+                                  "End": 167,
+                                  "Line": 10,
+                                  "Column": 9
+                                },
+                                "Value": "premium"
+                              },
+                              "Directives": []
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "Kind": "InlineFragment",
+                        "Location": {
+                          "Start": 174,
+                          "End": 233,
+                          "Line": 12,
+                          "Column": 7
+                        },
+                        "TypeCondition": {
+                          "Kind": "NamedType",
+                          "Location": {
+                            "Start": 181,
+                            "End": 200,
+                            "Line": 12,
+                            "Column": 14
+                          },
+                          "Name": {
+                            "Kind": "Name",
+                            "Location": {
+                              "Start": 181,
+                              "End": 200,
+                              "Line": 12,
+                              "Column": 14
+                            },
+                            "Value": "SomeOtherContract"
+                          }
+                        },
+                        "Directives": [],
+                        "SelectionSet": {
+                          "Kind": "SelectionSet",
+                          "Location": {
+                            "Start": 199,
+                            "End": 233,
+                            "Line": 12,
+                            "Column": 32
+                          },
+                          "Selections": [
+                            {
+                              "Kind": "Field",
+                              "Alias": null,
+                              "Arguments": [],
+                              "SelectionSet": null,
+                              "Location": {
+                                "Start": 209,
+                                "End": 227,
+                                "Line": 13,
+                                "Column": 9
+                              },
+                              "Name": {
+                                "Kind": "Name",
+                                "Location": {
+                                  "Start": 209,
+                                  "End": 227,
+                                  "Line": 13,
+                                  "Column": 9
+                                },
+                                "Value": "expiryDate"
+                              },
+                              "Directives": []
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  },
+                  "Location": {
+                    "Start": 86,
+                    "End": 237,
+                    "Line": 7,
+                    "Column": 5
+                  },
+                  "Name": {
+                    "Kind": "Name",
+                    "Location": {
+                      "Start": 86,
+                      "End": 97,
+                      "Line": 7,
+                      "Column": 5
+                    },
+                    "Value": "contracts"
+                  },
+                  "Directives": []
+                }
+              ]
+            },
+            "Location": {
+              "Start": 4,
+              "End": 239,
+              "Line": 2,
+              "Column": 3
+            },
+            "Name": {
+              "Kind": "Name",
+              "Location": {
+                "Start": 4,
+                "End": 13,
+                "Line": 2,
+                "Column": 3
+              },
+              "Value": "customer"
+            },
+            "Directives": []
+          }
+        ]
+      }
+    }
+  ]
+}

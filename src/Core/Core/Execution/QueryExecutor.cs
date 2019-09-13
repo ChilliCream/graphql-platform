@@ -1,8 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Utilities;
@@ -23,26 +21,21 @@ namespace HotChocolate.Execution
             IServiceProvider applicationServices,
             QueryDelegate queryDelegate,
             FieldMiddleware fieldMiddleware)
+            : this(schema, queryDelegate, fieldMiddleware)
+        {
+            _applicationServices = applicationServices
+                ?? throw new ArgumentNullException(nameof(applicationServices));
+        }
+
+        public QueryExecutor(
+            ISchema schema,
+            QueryDelegate queryDelegate,
+            FieldMiddleware fieldMiddleware)
         {
             Schema = schema
                 ?? throw new ArgumentNullException(nameof(schema));
-            _applicationServices = applicationServices
-                ?? throw new ArgumentNullException(nameof(applicationServices));
             _queryDelegate = queryDelegate
                 ?? throw new ArgumentNullException(nameof(queryDelegate));
-
-            if (Schema.Services != null)
-            {
-                IEnumerable<IDiagnosticObserver> observers = Schema.Services
-                    .GetService<IEnumerable<IDiagnosticObserver>>();
-
-                if (observers != null)
-                {
-                    QueryExecutionDiagnostics diagnosticEvents = _applicationServices
-                        .GetService<QueryExecutionDiagnostics>();
-                    diagnosticEvents.Subscribe(observers);
-                }
-            }
 
             _fieldMiddlewareCompiler = new FieldMiddlewareCompiler(
                 schema, fieldMiddleware);
@@ -107,19 +100,32 @@ namespace HotChocolate.Execution
         private IRequestServiceScope CreateServiceScope(
             IServiceProvider requestServices)
         {
-            IServiceScope serviceScope = _applicationServices.CreateScope();
-            IServiceProvider services = requestServices ?? Schema.Services;
-
-            if (services == null)
+            if (_applicationServices is null)
             {
                 return new RequestServiceScope(
-                    serviceScope.ServiceProvider,
-                    serviceScope);
+                    CreateRequestServices(requestServices),
+                    Disposable.Instance);
             }
+            else
+            {
+                IServiceScope serviceScope = _applicationServices.CreateScope();
+                IServiceProvider services = requestServices ?? Schema.Services;
 
-            services = serviceScope.ServiceProvider.Include(services);
-            return new RequestServiceScope(services, serviceScope);
+                if (services == null)
+                {
+                    return new RequestServiceScope(
+                        serviceScope.ServiceProvider,
+                        serviceScope);
+                }
+
+                services = serviceScope.ServiceProvider.Include(services);
+                return new RequestServiceScope(services, serviceScope);
+            }
         }
+
+        private IServiceProvider CreateRequestServices(
+            IServiceProvider requestServices) =>
+            requestServices ?? Schema.Services;
 
         public void Dispose()
         {
@@ -131,12 +137,24 @@ namespace HotChocolate.Execution
         {
             if (!_disposed)
             {
-                if (disposing && _applicationServices is IDisposable d)
+                if (disposing
+                    && _applicationServices != null
+                    && _applicationServices is IDisposable d)
                 {
                     d.Dispose();
                 }
                 _disposed = true;
             }
+        }
+
+        private class Disposable
+            : IDisposable
+        {
+            public void Dispose()
+            {
+            }
+
+            public static Disposable Instance { get; } = new Disposable();
         }
     }
 }

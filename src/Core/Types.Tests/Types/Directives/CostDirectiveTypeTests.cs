@@ -108,6 +108,8 @@ namespace HotChocolate.Types
                             .Type<StringType>()
                             .Cost(5)));
 
+                    t.Options.StrictValidation = false;
+
                     t.Use(next => context => Task.CompletedTask);
                 });
 
@@ -138,6 +140,8 @@ namespace HotChocolate.Types
                             .Argument("a", a => a.Type<StringType>())
                             .Type<StringType>()
                             .Cost(5, "a")));
+
+                    t.Options.StrictValidation = false;
 
                     t.Use(next => context => Task.CompletedTask);
                 });
@@ -171,6 +175,8 @@ namespace HotChocolate.Types
                             .Argument("a", a => a.Type<StringType>())
                             .Type<StringType>()
                             .Cost(5, "a", "b")));
+
+                    t.Options.StrictValidation = false;
 
                     t.Use(next => context => Task.CompletedTask);
                 });
@@ -223,7 +229,11 @@ namespace HotChocolate.Types
                         @cost(complexity: 5 multipliers: [""a""])
                 }
                 ",
-                t => t.Use(next => context => Task.CompletedTask));
+                t =>
+                {
+                    t.Use(next => context => Task.CompletedTask);
+                    t.Options.StrictValidation = false;
+                });
 
             InterfaceType queryInterface = schema.GetType<InterfaceType>("IQuery");
             IDirective directive = queryInterface.Fields["field"].Directives

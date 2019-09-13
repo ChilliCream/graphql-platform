@@ -1,10 +1,15 @@
+using System.Threading;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Language;
+using HotChocolate.Server;
+using HotChocolate.Utilities;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 
 namespace HotChocolate.Stitching.Utilities
@@ -17,25 +22,71 @@ namespace HotChocolate.Stitching.Utilities
             new JsonSerializerSettings
             {
                 ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                DateParseHandling = DateParseHandling.DateTimeOffset
+                DateParseHandling = DateParseHandling.None
             };
 
         public Task<QueryResult> FetchAsync(
-            IReadOnlyQueryRequest request, HttpClient httpClient) =>
-            FetchAsync(CreateRemoteRequest(request), httpClient);
+            IReadOnlyQueryRequest request,
+            HttpClient httpClient,
+            IEnumerable<IHttpQueryRequestInterceptor> interceptors,
+            CancellationToken cancellationToken) =>
+            FetchAsync(
+                CreateRemoteRequest(request),
+                httpClient,
+                interceptors,
+                cancellationToken);
 
         public async Task<QueryResult> FetchAsync(
             HttpQueryRequest request,
-            HttpClient httpClient)
+            HttpClient httpClient,
+            IEnumerable<IHttpQueryRequestInterceptor> interceptors,
+            CancellationToken cancellationToken)
         {
-            string result = await FetchStringAsync(request, httpClient)
-                .ConfigureAwait(false);
+            HttpResponseMessage message =
+                await FetchInternalAsync(request, httpClient)
+                    .ConfigureAwait(false);
 
-            return HttpResponseDeserializer.Deserialize(
-                JsonConvert.DeserializeObject<JObject>(result, _jsonSettings));
+            using (Stream stream = await message.Content.ReadAsStreamAsync()
+                .ConfigureAwait(false))
+            {
+                object response = await BufferHelper.ReadAsync(
+                    stream,
+                    (buffer, bytesBuffered) =>
+                        ParseJson(buffer, bytesBuffered),
+                    cancellationToken)
+                    .ConfigureAwait(false);
+
+                QueryResult queryResult =
+                    response is IReadOnlyDictionary<string, object> d
+                        ? HttpResponseDeserializer.Deserialize(d)
+                        : QueryResult.CreateError(
+                            ErrorBuilder.New()
+                                .SetMessage(
+                                    "Could not deserialize query response.")
+                                .Build());
+
+                if (interceptors != null)
+                {
+                    foreach (IHttpQueryRequestInterceptor interceptor in
+                        interceptors)
+                    {
+                        await interceptor.OnResponseReceivedAsync(
+                            request, message, queryResult)
+                            .ConfigureAwait(false);
+                    }
+                }
+
+                return queryResult;
+            }
         }
 
-        public Task<string> FetchStringAsync(
+        private static object ParseJson(byte[] buffer, int bytesBuffered)
+        {
+            return Utf8GraphQLRequestParser.ParseJson(
+                new ReadOnlySpan<byte>(buffer, 0, bytesBuffered));
+        }
+
+        public Task<(string, HttpResponseMessage)> FetchStringAsync(
             HttpQueryRequest request,
             HttpClient httpClient)
         {
@@ -52,7 +103,28 @@ namespace HotChocolate.Stitching.Utilities
             return FetchStringInternalAsync(request, httpClient);
         }
 
-        private async Task<string> FetchStringInternalAsync(
+        private async Task<(string, HttpResponseMessage)>
+            FetchStringInternalAsync(
+                HttpQueryRequest request,
+                HttpClient httpClient)
+        {
+            var content = new StringContent(
+                SerializeRemoteRequest(request),
+                Encoding.UTF8,
+                _json);
+
+            HttpResponseMessage response =
+                await httpClient.PostAsync(default(Uri), content)
+                    .ConfigureAwait(false);
+            response.EnsureSuccessStatusCode();
+
+            string json = await response.Content.ReadAsStringAsync()
+                .ConfigureAwait(false);
+
+            return (json, response);
+        }
+
+        private async Task<HttpResponseMessage> FetchInternalAsync(
             HttpQueryRequest request,
             HttpClient httpClient)
         {
@@ -66,8 +138,7 @@ namespace HotChocolate.Stitching.Utilities
                     .ConfigureAwait(false);
             response.EnsureSuccessStatusCode();
 
-            return await response.Content.ReadAsStringAsync()
-                .ConfigureAwait(false);
+            return response;
         }
 
         private HttpQueryRequest CreateRemoteRequest(
@@ -75,7 +146,7 @@ namespace HotChocolate.Stitching.Utilities
         {
             return new HttpQueryRequest
             {
-                Query = request.Query,
+                Query = request.Query.ToString(),
                 OperationName = request.OperationName,
                 Variables = request.VariableValues
             };

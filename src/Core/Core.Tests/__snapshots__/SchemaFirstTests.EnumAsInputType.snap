@@ -1,7 +1,8 @@
-{
+﻿{
   "Data": {
     "setEnumValue": "Baz"
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

@@ -39,7 +39,9 @@ namespace HotChocolate.Validation
         {
             if (fieldSelection.SelectionSet != null)
             {
-                string type = field.Type.IsScalarType() ? "a scalar" : "an enum";
+                string type = field.Type.IsScalarType()
+                    ? "a scalar"
+                    : "an enum";
                 Errors.Add(new ValidationError(
                     $"`{field.Name}` is {type} field. Selections on scalars " +
                     "or enums are never allowed, because they are the leaf " +

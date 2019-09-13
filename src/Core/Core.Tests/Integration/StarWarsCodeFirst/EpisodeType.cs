@@ -6,5 +6,4 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
         : EnumType<Episode>
     {
     }
-
 }

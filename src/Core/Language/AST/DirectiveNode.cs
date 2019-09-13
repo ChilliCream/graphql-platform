@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace HotChocolate.Language
 {
@@ -33,9 +34,9 @@ namespace HotChocolate.Language
         {
             Location = location;
             Name = name
-                ?? throw new System.ArgumentNullException(nameof(name));
+                ?? throw new ArgumentNullException(nameof(name));
             Arguments = arguments
-                ?? throw new System.ArgumentNullException(nameof(arguments));
+                ?? throw new ArgumentNullException(nameof(arguments));
         }
 
         public NodeKind Kind { get; } = NodeKind.Directive;

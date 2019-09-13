@@ -31,6 +31,15 @@ namespace HotChocolate.Types.Descriptors
 
         public ITypeNode Type { get; }
 
+        public ISyntaxTypeReference WithType(ITypeNode type)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+            return new SyntaxTypeReference(type, Context);
+        }
+
         public bool Equals(SyntaxTypeReference other)
         {
             if (other is null)

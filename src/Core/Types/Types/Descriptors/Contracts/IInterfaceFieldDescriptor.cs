@@ -15,7 +15,13 @@ namespace HotChocolate.Types
 
         IInterfaceFieldDescriptor Description(string value);
 
-        IInterfaceFieldDescriptor DeprecationReason(string reason);
+        [Obsolete("Use `Deprecated`.")]
+        IInterfaceFieldDescriptor DeprecationReason(
+            string reason);
+
+        IInterfaceFieldDescriptor Deprecated(string reason);
+
+        IInterfaceFieldDescriptor Deprecated();
 
         IInterfaceFieldDescriptor Type<TOutputType>()
             where TOutputType : IOutputType;

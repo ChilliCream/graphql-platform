@@ -2,7 +2,7 @@
 
 namespace HotChocolate.Execution
 {
-    internal class FieldVisibility
+    internal sealed class FieldVisibility
     {
         public FieldVisibility(
             IValueNode skip,
@@ -20,7 +20,7 @@ namespace HotChocolate.Execution
 
         public FieldVisibility Parent { get; }
 
-        public bool IsVisible(IVariableCollection variables)
+        public bool IsVisible(IVariableValueCollection variables)
         {
             if (Parent != null && !Parent.IsVisible(variables))
             {
@@ -34,8 +34,8 @@ namespace HotChocolate.Execution
             return Include == null || IsTrue(variables, Include);
         }
 
-        private bool IsTrue(
-            IVariableCollection variables,
+        private static bool IsTrue(
+            IVariableValueCollection variables,
             IValueNode value)
         {
             if (value is BooleanValueNode b)

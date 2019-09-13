@@ -1,11 +1,13 @@
-﻿using HotChocolate.Types.Descriptors;
+using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Introspection
 {
-    // TODO : resources
     [Introspection]
+#pragma warning disable IDE1006 // Naming Styles
     internal sealed class __TypeField
+#pragma warning restore IDE1006 // Naming Styles
         : ObjectField
     {
         internal __TypeField(IDescriptorContext context)
@@ -13,7 +15,7 @@ namespace HotChocolate.Types.Introspection
         {
         }
 
-        public override bool IsIntrospectionField { get; } = true;
+        public override bool IsIntrospectionField => true;
 
         private static ObjectFieldDefinition CreateDefinition(
             IDescriptorContext context)
@@ -22,7 +24,7 @@ namespace HotChocolate.Types.Introspection
                 .New(context, IntrospectionFields.Type);
 
             descriptor.Description(
-                "Request the type information of a single type.")
+                TypeResources.TypeField_Description)
                 .Argument("name", a => a.Type<NonNullType<StringType>>())
                 .Type<__Type>()
                 .Resolver(ctx => ctx.Schema.GetType<INamedType>(

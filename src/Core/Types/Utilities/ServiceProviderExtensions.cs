@@ -3,12 +3,13 @@ using HotChocolate.Resolvers;
 
 namespace HotChocolate.Utilities
 {
-    public static class ServiceProviderExtensions
+    public static class TypeConversionServiceProviderExtensions
     {
         public static ITypeConversion GetTypeConversion(
             this IServiceProvider services)
         {
-            return GetServiceOrDefault(services, TypeConversion.Default);
+            return GetServiceOrDefault<ITypeConversion>(
+                services, TypeConversion.Default);
         }
 
         public static ITypeConversion GetTypeConversion(

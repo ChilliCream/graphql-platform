@@ -35,7 +35,8 @@ namespace HotChocolate.Validation
             DirectiveNode directive,
             ImmutableStack<ISyntaxNode> path)
         {
-            if (_directives.TryGetValue(directive.Name.Value, out DirectiveType d))
+            if (_directives.TryGetValue(directive.Name.Value,
+                out DirectiveType d))
             {
                 CheckArguments(d.Arguments, directive.Arguments);
             }

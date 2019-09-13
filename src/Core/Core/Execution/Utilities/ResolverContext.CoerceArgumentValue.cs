@@ -1,14 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
@@ -31,23 +26,61 @@ namespace HotChocolate.Execution
             return default;
         }
 
+        // TODO : simplify
         private T CoerceArgumentValue<T>(
             string name,
             ArgumentValue argumentValue)
         {
-            if (argumentValue.Value is T value)
+            object value = argumentValue.Value;
+
+            if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
             {
-                return value;
+                IValueNode literal = (argumentValue.Literal == null)
+                    ? argumentValue.Type.ParseValue(value)
+                    : argumentValue.Literal;
+
+                return (T)VariableToValueRewriter.Rewrite(
+                    literal,
+                    argumentValue.Type,
+                    _executionContext.Variables,
+                    _executionContext.Converter);
             }
 
-            if (argumentValue.Value == null)
+            if (argumentValue.Literal != null)
+            {
+                IValueNode literal = VariableToValueRewriter.Rewrite(
+                    argumentValue.Literal,
+                    argumentValue.Type,
+                    _executionContext.Variables,
+                    _executionContext.Converter);
+
+                value = argumentValue.Type.ParseLiteral(literal);
+            }
+
+            if (value is null)
             {
                 return default;
             }
 
-            if (TryConvertValue(argumentValue, out value))
+            if (value is T resolved)
             {
-                return value;
+                return resolved;
+            }
+
+            if (TryConvertValue(
+                argumentValue.Type.ClrType,
+                value, out resolved))
+            {
+                return resolved;
+            }
+
+            if (typeof(T).IsClass
+                && (value is IReadOnlyDictionary<string, object>
+                || value is IReadOnlyList<object>))
+            {
+                var dictToObjConverter =
+                    new DictionaryToObjectConverter(Converter);
+                return (T)dictToObjConverter.Convert(value, typeof(T));
             }
 
             IError error = ErrorBuilder.New()
@@ -65,18 +98,19 @@ namespace HotChocolate.Execution
         }
 
         private bool TryConvertValue<T>(
-            ArgumentValue argumentValue,
-            out T value)
+            Type type,
+            object value,
+            out T converted)
         {
             if (Converter.TryConvert(
-                argumentValue.Type.ClrType, typeof(T),
-                argumentValue.Value, out object converted))
+                type, typeof(T),
+                value, out object c))
             {
-                value = (T)converted;
+                converted = (T)c;
                 return true;
             }
 
-            value = default;
+            converted = default;
             return false;
         }
     }

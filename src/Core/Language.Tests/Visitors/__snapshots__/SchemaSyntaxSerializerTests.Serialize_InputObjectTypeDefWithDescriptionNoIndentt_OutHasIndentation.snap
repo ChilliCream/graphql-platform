@@ -1,0 +1,5 @@
+﻿"abc"
+input A {
+  "abc"
+  b: String
+}

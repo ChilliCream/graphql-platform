@@ -1,18 +1,18 @@
-﻿namespace HotChocolate.Types.Introspection
+using HotChocolate.Properties;
+
+namespace HotChocolate.Types.Introspection
 {
-    // TODO : resources
     [Introspection]
+#pragma warning disable IDE1006 // Naming Styles
     internal sealed class __Schema
+#pragma warning restore IDE1006 // Naming Styles
         : ObjectType<ISchema>
     {
         protected override void Configure(IObjectTypeDescriptor<ISchema> descriptor)
         {
             descriptor.Name("__Schema");
 
-            descriptor.Description(
-                "A GraphQL Schema defines the capabilities of a GraphQL server. It " +
-                "exposes all available types and directives on the server, as well as " +
-                "the entry points for query, mutation, and subscription operations.");
+            descriptor.Description(TypeResources.Schema_Description);
 
             descriptor.BindFields(BindingBehavior.Explicit);
 
@@ -21,26 +21,24 @@
                 .Resolver(c => c.Schema.Description);
 
             descriptor.Field("types")
-                .Description("A list of all types supported by this server.")
+                .Description(TypeResources.Schema_Types)
                 .Type<NonNullType<ListType<NonNullType<__Type>>>>()
                 .Resolver(c => c.Schema.Types);
 
             descriptor.Field(t => t.QueryType)
-                .Description("The type that query operations will be rooted at.")
+                .Description(TypeResources.Schema_QueryType)
                 .Type<NonNullType<__Type>>();
 
             descriptor.Field(t => t.MutationType)
-                .Description("If this server supports mutation, the type that " +
-                    "mutation operations will be rooted at.")
+                .Description(TypeResources.Schema_MutationType)
                 .Type<__Type>();
 
             descriptor.Field(t => t.SubscriptionType)
-                .Description("If this server support subscription, the type that " +
-                    "subscription operations will be rooted at.")
+                .Description(TypeResources.Schema_SubscriptionType)
                 .Type<__Type>();
 
             descriptor.Field("directives")
-                .Description("A list of all directives supported by this server.")
+                .Description(TypeResources.Schema_Directives)
                 .Type<NonNullType<ListType<NonNullType<__Directive>>>>()
                 .Resolver(c => c.Schema.DirectiveTypes);
         }

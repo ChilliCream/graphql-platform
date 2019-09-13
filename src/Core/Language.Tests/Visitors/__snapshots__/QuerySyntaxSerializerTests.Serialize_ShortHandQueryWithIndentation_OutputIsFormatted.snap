@@ -1,0 +1,7 @@
+﻿{
+  foo(s: "String") {
+    bar @foo {
+      baz @foo @bar
+    }
+  }
+}

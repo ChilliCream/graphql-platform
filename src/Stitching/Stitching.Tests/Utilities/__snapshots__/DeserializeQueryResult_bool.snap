@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "foo": [
       {
@@ -17,5 +17,6 @@
     }
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

@@ -14,6 +14,8 @@ namespace HotChocolate.Integration.HelloWorldCodeFirst
 
         protected override void Configure(IObjectTypeDescriptor descriptor)
         {
+            descriptor.Name("Mutation");
+
             descriptor.Field("newState")
                 .Argument("state", a => a.Type<StringType>())
                 .Resolver(c => DataStore.State = c.Argument<string>("state"));

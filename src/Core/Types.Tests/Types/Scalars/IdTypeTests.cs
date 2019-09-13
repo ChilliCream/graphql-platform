@@ -117,6 +117,64 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Deserialize_String()
+        {
+            // arrange
+            var type = new IdType();
+            var serialized = "123456";
+
+            // act
+            bool success = type.TryDeserialize(serialized, out object value);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal("123456", Assert.IsType<string>(value));
+        }
+
+        [Fact]
+        public void Deserialize_Int()
+        {
+            // arrange
+            var type = new IdType();
+            var serialized = 123456;
+
+            // act
+            bool success = type.TryDeserialize(serialized, out object value);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal("123456", Assert.IsType<string>(value));
+        }
+
+        [Fact]
+        public void Deserialize_Null()
+        {
+            // arrange
+            var type = new IdType();
+            object serialized = null;
+
+            // act
+            bool success = type.TryDeserialize(serialized, out object value);
+
+            // assert
+            Assert.Null(value);
+        }
+
+        [Fact]
+        public void Deserialize_Float()
+        {
+            // arrange
+            var type = new IdType();
+            float serialized = 1.1f;
+
+            // act
+            bool success = type.TryDeserialize(serialized, out object value);
+
+            // assert
+            Assert.False(success);
+        }
+
+        [Fact]
         public void Serialize_Wrong_Type_Throws()
         {
             // arrange

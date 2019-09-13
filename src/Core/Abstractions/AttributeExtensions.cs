@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using HotChocolate.Utilities;
+using HotChocolate.Language;
 
 namespace HotChocolate
 {
@@ -25,7 +25,7 @@ namespace HotChocolate
                 typeof(GraphQLNameAttribute), false)
                 ? typeInfo.GetCustomAttribute<GraphQLNameAttribute>().Name
                 : GetFromType(typeInfo);
-            return NameUtils.RemoveInvalidCharacters(name);
+            return NameUtils.MakeValidGraphQLName(name);
         }
 
         public static string GetGraphQLName(this PropertyInfo property)
@@ -34,7 +34,7 @@ namespace HotChocolate
                 typeof(GraphQLNameAttribute), false)
                 ? property.GetCustomAttribute<GraphQLNameAttribute>().Name
                 : NormalizeName(property.Name);
-            return NameUtils.RemoveInvalidCharacters(name);
+            return NameUtils.MakeValidGraphQLName(name);
         }
 
         public static string GetGraphQLName(this MethodInfo method)
@@ -43,7 +43,7 @@ namespace HotChocolate
                 typeof(GraphQLNameAttribute), false)
                 ? method.GetCustomAttribute<GraphQLNameAttribute>().Name
                 : NormalizeMethodName(method);
-            return NameUtils.RemoveInvalidCharacters(name);
+            return NameUtils.MakeValidGraphQLName(name);
         }
 
         public static string GetGraphQLName(this ParameterInfo parameter)
@@ -52,7 +52,7 @@ namespace HotChocolate
                 typeof(GraphQLNameAttribute), false)
                 ? parameter.GetCustomAttribute<GraphQLNameAttribute>().Name
                 : NormalizeName(parameter.Name);
-            return NameUtils.RemoveInvalidCharacters(name);
+            return NameUtils.MakeValidGraphQLName(name);
         }
 
         public static string GetGraphQLName(this MemberInfo member)
@@ -103,15 +103,42 @@ namespace HotChocolate
                 typeof(GraphQLDescriptionAttribute),
                 false))
             {
-                GraphQLDescriptionAttribute attribute = attributeProvider.GetCustomAttributes(
-                    typeof(GraphQLDescriptionAttribute),
-                    false)
-                    .OfType<GraphQLDescriptionAttribute>()
-                    .FirstOrDefault();
+                GraphQLDescriptionAttribute attribute =
+                    (GraphQLDescriptionAttribute)
+                        attributeProvider.GetCustomAttributes(
+                            typeof(GraphQLDescriptionAttribute),
+                            false)[0];
                 return attribute.Description;
             }
 
             return null;
+        }
+
+        public static bool IsDeprecated(
+            this ICustomAttributeProvider attributeProvider,
+            out string reason)
+        {
+            var deprecatedAttribute =
+                GetAttributeIfDefined<GraphQLDeprecatedAttribute>(
+                    attributeProvider);
+
+            if (deprecatedAttribute != null)
+            {
+                reason = deprecatedAttribute.DeprecationReason;
+                return true;
+            }
+
+            var obsoleteAttribute = GetAttributeIfDefined<ObsoleteAttribute>(
+                attributeProvider);
+
+            if (obsoleteAttribute != null)
+            {
+                reason = obsoleteAttribute.Message;
+                return true;
+            }
+
+            reason = null;
+            return false;
         }
 
         private static string GetFromType(Type type)
@@ -141,6 +168,21 @@ namespace HotChocolate
                     name.Substring(1);
             }
             return name.ToLowerInvariant();
+        }
+
+        private static TAttribute GetAttributeIfDefined<TAttribute>(
+            ICustomAttributeProvider attributeProvider)
+            where TAttribute : Attribute
+        {
+            Type attributeType = typeof(TAttribute);
+
+            if (attributeProvider.IsDefined(attributeType, false))
+            {
+                return (TAttribute)attributeProvider
+                    .GetCustomAttributes(attributeType, false)[0];
+            }
+
+            return null;
         }
     }
 }

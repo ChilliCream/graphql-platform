@@ -14,7 +14,8 @@ namespace HotChocolate.Types
         /// </summary>
         /// <param name="value">The object type name.</param>
         /// <exception cref="ArgumentNullException">
-        /// <paramref name="value"/> is <c>null</c> or <see cref="string.Empty"/>.
+        /// <paramref name="value"/> is <c>null</c> or
+        /// <see cref="string.Empty"/>.
         /// </exception>
         IObjectTypeDescriptor<T> Name(NameString value);
 
@@ -28,7 +29,7 @@ namespace HotChocolate.Types
         /// <summary>
         /// Defines the field binding behavior.
         ///
-        /// The default binding behaviour is set to
+        /// The default binding behavior is set to
         /// <see cref="BindingBehavior.Implicit"/>.
         /// </summary>
         /// <param name="behavior">
@@ -45,6 +46,17 @@ namespace HotChocolate.Types
         /// or <see cref="Field(string)"/>.
         /// </param>
         IObjectTypeDescriptor<T> BindFields(BindingBehavior behavior);
+
+           /// <summary>
+        /// Defines that all fields have to be specified explicitly.
+        /// </summary>
+        IObjectTypeDescriptor<T> BindFieldsExplicitly();
+
+        /// <summary>
+        /// Defines that all fields shall be infered
+        /// from the associated .Net type,
+        /// </summary>
+        IObjectTypeDescriptor<T> BindFieldsImplicitly();
 
         /// <summary>
         /// Specifies an interface that is implemented by the

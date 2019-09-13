@@ -13,9 +13,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("enum Foo { BAR BAZ }");
+                Utf8GraphQLParser.Parse("enum Foo { BAR BAZ }");
             DocumentNode schema_b =
-                Parser.Default.Parse("enum Foo { BAR BAZ }");
+                Utf8GraphQLParser.Parse("enum Foo { BAR BAZ }");
 
             var types = new List<ITypeInfo>
             {
@@ -43,9 +43,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("enum Foo { BAR BAZ }");
+                Utf8GraphQLParser.Parse("enum Foo { BAR BAZ }");
             DocumentNode schema_b =
-                Parser.Default.Parse(@"""Foo Bar"" enum Foo { BAR BAZ }");
+                Utf8GraphQLParser.Parse(@"""Foo Bar"" enum Foo { BAR BAZ }");
 
             var types = new List<ITypeInfo>
             {
@@ -73,11 +73,11 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("enum Foo { BAR BAZ }");
+                Utf8GraphQLParser.Parse("enum Foo { BAR BAZ }");
             DocumentNode schema_b =
-                Parser.Default.Parse("enum Foo { BAR BAZ }");
+                Utf8GraphQLParser.Parse("enum Foo { BAR BAZ }");
             DocumentNode schema_c =
-                Parser.Default.Parse("enum Foo { BAR BAZ QUX }");
+                Utf8GraphQLParser.Parse("enum Foo { BAR BAZ QUX }");
 
             var types = new List<ITypeInfo>
             {
@@ -108,11 +108,11 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("enum Foo { BAR BAZ }");
+                Utf8GraphQLParser.Parse("enum Foo { BAR BAZ }");
             DocumentNode schema_b =
-                Parser.Default.Parse("enum Foo { BAR BAZ QUX }");
+                Utf8GraphQLParser.Parse("enum Foo { BAR BAZ QUX }");
             DocumentNode schema_c =
-                Parser.Default.Parse("enum Foo { BAR BAZ QUX }");
+                Utf8GraphQLParser.Parse("enum Foo { BAR BAZ QUX }");
 
             var types = new List<ITypeInfo>
             {
@@ -143,9 +143,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("input A { b: String }");
+                Utf8GraphQLParser.Parse("input A { b: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse("enum A { B C }");
+                Utf8GraphQLParser.Parse("enum A { B C }");
 
             var types = new List<ITypeInfo>
             {

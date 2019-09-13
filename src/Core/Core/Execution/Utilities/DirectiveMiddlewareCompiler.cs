@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -155,7 +154,6 @@ namespace HotChocolate.Execution
 
             for (int i = components.Count - 1; i >= 0; i--)
             {
-
                 DirectiveDelegate component = components[i].Invoke(next);
 
                 next = context =>

@@ -7,7 +7,6 @@ using ChilliCream.Testing;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
-using HotChocolate.Runtime;
 using HotChocolate.Utilities;
 using Snapshooter.Xunit;
 using Xunit;
@@ -35,7 +34,7 @@ namespace HotChocolate.Execution
                         .To("Mutation", "changeTheNumber");
                 });
 
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 FileResource.Open("MutationExecutionQuery.graphql"));
 
             OperationDefinitionNode operationNode = query.Definitions
@@ -54,7 +53,10 @@ namespace HotChocolate.Execution
                      null
             );
 
-            IReadOnlyQueryRequest request = new QueryRequest("{ a }");
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ a }")
+                    .Create();
 
             var observable = new DiagnosticListener("Foo");
 
@@ -74,11 +76,12 @@ namespace HotChocolate.Execution
                 schema,
                 services.CreateRequestServiceScope(),
                 request,
-                (f,s) => f.Middleware
+                (f, s) => f.Middleware
             )
             {
                 CachedQuery = new CachedQuery("{ a }", query),
                 Document = query,
+                QueryKey = "foo",
                 Operation = operation
             };
 

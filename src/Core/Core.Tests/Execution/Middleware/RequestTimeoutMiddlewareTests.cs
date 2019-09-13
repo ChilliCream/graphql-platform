@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using ChilliCream.Testing;
 using HotChocolate.Execution.Configuration;
 using Moq;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -26,14 +27,17 @@ namespace HotChocolate.Execution
                 c.BindResolver(() => "hello world")
                     .To("Query", "a");
             });
-            IReadOnlyQueryRequest request = new QueryRequest("{ a }");
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ a }")
+                    .Create();
 
             var context = new QueryContext
             (
                 schema,
                 MiddlewareTools.CreateEmptyRequestServiceScope(),
                 request,
-                (f,s) => f.Middleware
+                (f, s) => f.Middleware
             );
 
             var middleware = new RequestTimeoutMiddleware(
@@ -46,7 +50,7 @@ namespace HotChocolate.Execution
             // assert
             Assert.NotNull(context.Result);
             Assert.IsType<TaskCanceledException>(context.Exception);
-            context.Result.Snapshot();
+            context.Result.MatchSnapshot();
         }
     }
 }

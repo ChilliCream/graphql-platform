@@ -6,13 +6,13 @@ namespace HotChocolate.Types.Descriptors
         : TypeReferenceBase
         , ISchemaTypeReference
     {
-        public SchemaTypeReference(ITypeSystem type)
+        public SchemaTypeReference(ITypeSystemMember type)
             : this(type, null, null)
         {
         }
 
         public SchemaTypeReference(
-            ITypeSystem type,
+            ITypeSystemMember type,
             bool? isTypeNullable,
             bool? isElementTypeNullable)
             : base(InferTypeContext(type),
@@ -27,7 +27,16 @@ namespace HotChocolate.Types.Descriptors
             Type = type;
         }
 
-        public ITypeSystem Type { get; }
+        public ITypeSystemMember Type { get; }
+
+        public ISchemaTypeReference WithType(ITypeSystemMember type)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+            return new SchemaTypeReference(type);
+        }
 
         public bool Equals(SchemaTypeReference other)
         {
@@ -46,7 +55,8 @@ namespace HotChocolate.Types.Descriptors
             {
                 return Context == other.Context
                     && IsTypeNullable.Equals(other.IsTypeNullable)
-                    && IsElementTypeNullable.Equals(other.IsElementTypeNullable);
+                    && IsElementTypeNullable.Equals(
+                        other.IsElementTypeNullable);
             }
 
             return false;
@@ -167,7 +177,7 @@ namespace HotChocolate.Types.Descriptors
         }
 
         internal static SchemaTypeReference Create<T>(T type)
-            where T : ITypeSystem
+            where T : ITypeSystemMember
         {
             return new SchemaTypeReference(type);
         }

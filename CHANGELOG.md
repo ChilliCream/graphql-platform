@@ -9,6 +9,117 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [10.1.0]
+
+### Added
+
+- Added more error codes. [#1030](https://github.com/ChilliCream/hotchocolate/pull/1030)
+- Added better exceptions to the service factory. [#1040](https://github.com/ChilliCream/hotchocolate/pull/1040)
+
+### Changed
+
+- Distinguish between HTTP and remote schema errors with schema stitching. [#1063](https://github.com/ChilliCream/hotchocolate/pull/1063)
+
+### Fixed
+
+- Fixed issue with the request parser when requests are issued from relay-modern-http-transport. [#1024](https://github.com/ChilliCream/hotchocolate/pull/1024)
+- Fixed Utf8GraphQLRequestParser handling of Apollo AQP signature query.
+- Fixed Apollo Active Query Persistence Flow [#1049](https://github.com/ChilliCream/hotchocolate/pull/1049)
+- Fixed scoped service handling. [#1066](https://github.com/ChilliCream/hotchocolate/pull/1066)
+- Fixed Duplicate service registration. [#1066](https://github.com/ChilliCream/hotchocolate/pull/1066)
+
+## [10.0.0]
+
+### Added
+
+- Added support to infer if a field or enum value is deprecated. [#826](https://github.com/ChilliCream/hotchocolate/pull/826)
+- Added filter types. [#861](https://github.com/ChilliCream/hotchocolate/pull/861)
+- Added UTF-8 request parser. [#869](https://github.com/ChilliCream/hotchocolate/pull/869)
+- Added new syntax visitor API.
+- Added Redis subscription provider [#902](https://github.com/ChilliCream/hotchocolate/pull/902)
+- Added support for batching over HTTP [#933](https://github.com/ChilliCream/hotchocolate/pull/933)
+- Added support for persisted queries and added a middleware to enable the active persisted query flow. [#858](https://github.com/ChilliCream/hotchocolate/pull/858)
+- Provide access to variables through IResolverContext. [#958](https://github.com/ChilliCream/hotchocolate/pull/958)
+- Added ability to control when the schem stitching will pull in the remote schemas. [#964](https://github.com/ChilliCream/hotchocolate/pull/964)
+- Added support to register class DataLoader with the standard dependency injection. [#966](https://github.com/ChilliCream/hotchocolate/pull/966)
+- Added support for ObsoleteAttribute. Fields & enum values that are annotated with ObsoleteAttribute become deprecated.
+- Add Redis Provider for Subscriptions [#902](https://github.com/ChilliCream/hotchocolate/pull/902)
+- Added not authenticated error code.
+- Added TryAddProperty, TryAddExtension and TryAddVariable to query request builder
+- Added support for persisted queries with providers for the file system and Redis. [#858](https://github.com/ChilliCream/hotchocolate/pull/858)
+- Added support for middleware on introspection fields. [#962](https://github.com/ChilliCream/hotchocolate/pull/962)
+- Added default binding behavior option to schema options. [#963](https://github.com/ChilliCream/hotchocolate/pull/963)
+- Added support for directives on enum values with schema first [#815](https://github.com/ChilliCream/hotchocolate/pull/815)
+- Added DataLoader Dependency Injection Support. [#966](https://github.com/ChilliCream/hotchocolate/pull/966)
+- Added AddDocumentFromFile to SchemaBuilder. [#974](https://github.com/ChilliCream/hotchocolate/pull/974)
+- Added error filter ServiceCollection extensions [#973](https://github.com/ChilliCream/hotchocolate/pull/973)
+- Added schema validation rule that ensures that interfaces are implemented. [#979](https://github.com/ChilliCream/hotchocolate/pull/979)
+
+### Changed
+
+- Subscription now uses pipeline API to abstract sockets. [#807](https://github.com/ChilliCream/hotchocolate/pull/807)
+- Improved parser performance. [#806](https://github.com/ChilliCream/hotchocolate/pull/806)
+- Roles collection on authorization directive is now interpreted as OR.
+- The type conversion API is now better integreated with dependency injection.
+- The server is now more modularized and the various server middlewares can be added separably.
+- context.Parent() converts now the result if the source object is not of the type of T
+- Update GraphQL-Voyager to 1.0.0-rc.27 [#972](https://github.com/ChilliCream/hotchocolate/pull/972)
+
+### Fixed
+
+- The parent method on the resolver context now uses the converters if the source object type does not align with the requested type.
+- Aligned the deprecation handling with the GraphQL spec. [#876](https://github.com/ChilliCream/hotchocolate/pull/876)
+- Fixed the StateAttribute for resolvers. [#887](https://github.com/ChilliCream/hotchocolate/pull/887)
+- Order of types in a serialized schema is now consistent. [#891](https://github.com/ChilliCream/hotchocolate/pull/891)
+- Respect UseXmlDocumentation with Schema.Create [#897](https://github.com/ChilliCream/hotchocolate/pull/897)
+- Variables now work in lists and input objects [#896](https://github.com/ChilliCream/hotchocolate/pull/896)
+- Fixed url scalar now correctly detects url strings.
+- Support directives declared stitched schemas [#936](https://github.com/ChilliCream/hotchocolate/pull/936)
+- Fixed issues with filters and variables. [#960](https://github.com/ChilliCream/hotchocolate/pull/960)
+- Fixed issues stitching lists. [#946](https://github.com/ChilliCream/hotchocolate/pull/946)
+- Fixed source link support. [#943](https://github.com/ChilliCream/hotchocolate/pull/943)
+- Fixed dead-lock issues with the DataLoader [#942](https://github.com/ChilliCream/hotchocolate/pull/942)
+- Fixed UrlType IsInstanceOfType method to correctly return true for a Url StringValueNode.
+- Fixed Date and DateTime handling in the stitching layer.
+- Fixed subscriptions with InputObject arguments [#975](https://github.com/ChilliCream/hotchocolate/pull/975)
+- Fixed Playground, GraphiQL and Voyager path logic in middleware options object. [#984](https://github.com/ChilliCream/hotchocolate/pull/984)
+- Exceptions are now correctly removed from the remote error data structure so that no exception information leaks.
+- Fixed IResolverContext.CollectFields issue where the provided selection set was not passed to the underlying field collection algoritm. [#994](https://github.com/ChilliCream/hotchocolate/pull/994)
+- Fixed variable coercion so that we are now throwing GraphQL errors if the wrong type is passed. [#991](https://github.com/ChilliCream/hotchocolate/pull/991)
+- Fixed type rename issue in the stitching layer when types where nun-null types. [#998](https://github.com/ChilliCream/hotchocolate/pull/998)
+
+## [9.0.4] - 2019-06-16
+
+### Fixed
+
+- Fixed paging flaws that in some cases lead to the connection type being registered twice. [#842](https://github.com/ChilliCream/hotchocolate/pull/842)
+
+## [9.0.3] - 2019-06-13
+
+### Fixed
+
+- Fixed issues where the type initializer would swallow schema errors.
+
+## [9.0.2] - 2019-06-12
+
+### Fixed
+
+- Fixed issues with list input types.
+
+## [9.0.1] - 2019-06-09
+
+### Changed
+
+- Better error message when failing TypeConvertion enhancement [#819](https://github.com/ChilliCream/hotchocolate/issues/819)
+
+### Fixed
+
+- Fixed list argument conversion issue. [#823](https://github.com/ChilliCream/hotchocolate/issues/823)
+
+## [9.0.0] - 2019-06-04
+
+### Added
+
 - Added new SchemaBuilder. [#369](https://github.com/ChilliCream/hotchocolate/issues/369)
 - Added code-first type extensions. [#683](https://github.com/ChilliCream/hotchocolate/issues/683)
 - Added support for schema description. [spec](https://github.com/graphql/graphql-spec/pull/466)
@@ -21,11 +132,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added support for directives on variable definitions [spec](https://github.com/graphql/graphql-spec/pull/510)
 - Added support for directives on enum values [spec](https://graphql.github.io/graphql-spec/June2018/#EnumValueDefinition)
 - Added support for directives on arguments [spec](https://graphql.github.io/graphql-spec/June2018/#ArgumentsDefinition)
+- Added support for XML documentation [715](https://github.com/ChilliCream/hotchocolate/issues/715)
+- Added access to stitched http response headers (e.g. Set-Cookie) [679](https://github.com/ChilliCream/hotchocolate/issues/679)
+- Added helper to add delegation paths to a field.
+- It is now possible to bind .net types explicitly to schema types with SchemaBuilder.New().BindClrType<ClrType, SchemaType>(). [756](https://github.com/ChilliCream/hotchocolate/issues/756)
+- Added support for schema-first bindings on the `SchemaBuilder` API. [781](https://github.com/ChilliCream/hotchocolate/issues/781)
 
 ### Changed
 
 - Replaced roslyn compiler with the expression compiler. This will reduce the memory footprint of the server.
 - Changed how the server caches queries.
+- `DiagnosticNames` is now public.
+- Reworked how input object arguments are cached [#805](https://github.com/ChilliCream/hotchocolate/pull/805)
 
 ### Removed
 
@@ -36,7 +154,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Includes directive definitions in serialized schema [#717](https://github.com/ChilliCream/hotchocolate/issues/717)
 - Field types are now validated. [#713](https://github.com/ChilliCream/hotchocolate/issues/713)
-
+- Variables in object values and lists are now correctly recognised [#215](https://github.com/ChilliCream/hotchocolate/issues/215) and [#745](https://github.com/ChilliCream/hotchocolate/issues/745).
+- Fixed issue with input type arguments on the stitching layer
+- Delegate Directive not being assigned correctly with ITypeRewriter. [#766](https://github.com/ChilliCream/hotchocolate/issues/766)
+- Format Exception when registering types. [#787](https://github.com/ChilliCream/hotchocolate/issues/787)
+- The schema factory does not throw an exception if an annotated directive is not correct. [#619](https://github.com/ChilliCream/hotchocolate/issues/619)
+- Temprarily fixed issues with type system directives. We will add a final patch with the next release.
+- Fixed issues with external resolver overwrites.
+- Fixed authorization directive validation issues [#804](https://github.com/ChilliCream/hotchocolate/issues/804)
+- Fixed schema initialization issues
+- Fixed paging extension overloads [#811](https://github.com/ChilliCream/hotchocolate/issues/811)
+- Fixed null reference exception in Path.Equals [#802](https://github.com/ChilliCream/hotchocolate/issues/802)
 
 ## [0.8.2] - 2019-04-10
 
@@ -84,7 +212,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- The authoization directive is now more aligned how the authorize attribute in ASP.net works.
+- The authoization directive is now more aligned how the authorize attribute in ASP .Net works.
 
 ### Fixed
 
@@ -232,11 +360,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Separate package providing a _GraphiQL_ middleware. The middleware can serve all of _GraphiQL_ without needing to refer to CDNs making it useful even in closed networks. Moreover, we have configured _GraphiQL_ to work with the _GraphQL-ws_ protocol which is supported by _Hot Chocolate_.
 - Initial Support for _GraphQL_ subscriptions. We currently support the _GraphQL-ws_ protocol over web sockets. There will be a lot of additional work in version _0.7.0_ that will harden it.
-- Authorization package for ASP.net core which supports policy-base authorization on fields.
+- Authorization package for ASP .Net core which supports policy-base authorization on fields.
 - Diagnostic source which can be used to track field execution times and other events.
 - Implementing a directive middleware has now become much easier with this release. We have built the authorize-directive with these new APIs.
 
-[unreleased]: https://github.com/ChilliCream/hotchocolate/compare/0.7.0...HEAD
+[unreleased]: https://github.com/ChilliCream/hotchocolate/compare/0.8.2...HEAD
+[0.8.2]: https://github.com/ChilliCream/hotchocolate/compare/0.8.1...0.8.2
+[0.8.1]: https://github.com/ChilliCream/hotchocolate/compare/0.8.0...0.8.1
+[0.8.0]: https://github.com/ChilliCream/hotchocolate/compare/0.7.0...0.8.0
 [0.7.0]: https://github.com/ChilliCream/hotchocolate/compare/0.6.11...0.7.0
 [0.6.11]: https://github.com/ChilliCream/hotchocolate/compare/0.6.10...0.6.11
 [0.6.10]: https://github.com/ChilliCream/hotchocolate/compare/0.6.9...0.6.10

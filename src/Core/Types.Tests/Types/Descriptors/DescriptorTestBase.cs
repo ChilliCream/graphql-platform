@@ -10,6 +10,6 @@ namespace HotChocolate.Types
         }
 
         public IDescriptorContext Context { get; } =
-            DescriptorContext.Create(new EmptyServiceProvider());
+            DescriptorContext.Create();
     }
 }

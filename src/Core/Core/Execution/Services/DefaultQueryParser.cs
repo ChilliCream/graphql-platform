@@ -1,4 +1,4 @@
-﻿using System.Text;
+﻿using System;
 using HotChocolate.Language;
 
 namespace HotChocolate.Execution
@@ -6,10 +6,10 @@ namespace HotChocolate.Execution
     public class DefaultQueryParser
         : IQueryParser
     {
-        public DocumentNode Parse(string queryText)
+        public DocumentNode Parse(ReadOnlySpan<byte> source)
         {
             return new Utf8GraphQLParser(
-                Encoding.UTF8.GetBytes(queryText),
+                source,
                 ParserOptions.Default).Parse();
         }
     }

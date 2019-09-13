@@ -22,7 +22,7 @@ namespace HotChocolate.Subscriptions
         /// <value>
         /// The event arguments.
         /// </value>
-        IReadOnlyCollection<ArgumentNode> Arguments { get; }
+        IReadOnlyList<ArgumentNode> Arguments { get; }
     }
 }
 

@@ -2,7 +2,7 @@
   "Data": {
     "__schema": {
       "queryType": {
-        "name": "BarType"
+        "name": "Bar"
       },
       "mutationType": null,
       "subscriptionType": null,
@@ -872,7 +872,7 @@
         },
         {
           "kind": "OBJECT",
-          "name": "BarType",
+          "name": "Bar",
           "description": null,
           "fields": [
             {
@@ -884,7 +884,7 @@
                   "description": null,
                   "type": {
                     "kind": "INPUT_OBJECT",
-                    "name": "BazInput",
+                    "name": "Baz",
                     "ofType": null
                   },
                   "defaultValue": "{ qux: \"fooBar\" }"
@@ -946,7 +946,7 @@
         },
         {
           "kind": "INPUT_OBJECT",
-          "name": "BazInput",
+          "name": "Baz",
           "description": null,
           "fields": null,
           "inputFields": [
@@ -1053,10 +1053,30 @@
           "onOperation": false,
           "onFragment": false,
           "onField": false
+        },
+        {
+          "name": "deprecated",
+          "description": "The @deprecated directive is used within the type system definition language to indicate deprecated portions of a GraphQL service’s schema,such as deprecated fields on a type or deprecated enum values.",
+          "args": [
+            {
+              "name": "reason",
+              "description": "Deprecations include a reason for why it is deprecated, which is formatted using Markdown syntax (as specified by CommonMark).",
+              "type": {
+                "kind": "SCALAR",
+                "name": "String",
+                "ofType": null
+              },
+              "defaultValue": "\"No longer supported\""
+            }
+          ],
+          "onOperation": false,
+          "onFragment": false,
+          "onField": false
         }
       ]
     }
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

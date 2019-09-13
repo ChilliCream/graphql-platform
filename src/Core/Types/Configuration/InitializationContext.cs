@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {
@@ -15,15 +16,20 @@ namespace HotChocolate.Configuration
         private readonly List<IDirectiveReference> _directiveReferences =
             new List<IDirectiveReference>();
 
+        private readonly IDescriptorContext _descriptorContext;
+
         public InitializationContext(
             ITypeSystemObject type,
             IServiceProvider services,
+            IDescriptorContext descriptorContext,
             IDictionary<string, object> contextData)
         {
             Type = type
                 ?? throw new ArgumentNullException(nameof(type));
             Services = services
                 ?? throw new ArgumentNullException(nameof(services));
+            _descriptorContext = descriptorContext
+                ?? throw new ArgumentNullException(nameof(descriptorContext));
             ContextData = contextData
                 ?? throw new ArgumentNullException(nameof(contextData));
 
@@ -64,6 +70,9 @@ namespace HotChocolate.Configuration
 
         public IDictionary<string, object> ContextData { get; }
 
+        public IDescriptorContext DescriptorContext =>
+            _descriptorContext;
+
         public void RegisterDependency(
             ITypeReference reference,
             TypeDependencyKind kind)
@@ -74,6 +83,16 @@ namespace HotChocolate.Configuration
             }
 
             _typeDependencies.Add(new TypeDependency(reference, kind));
+        }
+
+        public void RegisterDependency(TypeDependency dependency)
+        {
+            if (dependency is null)
+            {
+                throw new ArgumentNullException(nameof(dependency));
+            }
+
+            _typeDependencies.Add(dependency);
         }
 
         public void RegisterDependencyRange(
@@ -89,6 +108,12 @@ namespace HotChocolate.Configuration
             {
                 _typeDependencies.Add(new TypeDependency(reference, kind));
             }
+        }
+
+        public void RegisterDependencyRange(
+            IEnumerable<TypeDependency> dependencies)
+        {
+            _typeDependencies.AddRange(dependencies);
         }
 
         public void RegisterDependency(IDirectiveReference reference)

@@ -81,9 +81,7 @@ namespace HotChocolate.Types
                     .OrderBy(t => t),
                 t => Assert.Equal("a", t),
                 t => Assert.Equal("b", t),
-                t => Assert.Equal("c", t),
-                t => Assert.Equal("equals", t),
-                t => Assert.Equal("hashCode", t));
+                t => Assert.Equal("c", t));
         }
 
         [Fact]
@@ -101,9 +99,7 @@ namespace HotChocolate.Types
                     .Select(t => t.Name)
                     .OrderBy(t => t),
                 t => Assert.Equal("a", t),
-                t => Assert.Equal("c", t),
-                t => Assert.Equal("equals", t),
-                t => Assert.Equal("hashCode", t));
+                t => Assert.Equal("c", t));
         }
 
 
@@ -124,8 +120,7 @@ namespace HotChocolate.Types
                     .OrderBy(t => t),
                 t => Assert.Equal("a", t),
                 t => Assert.Equal("b", t),
-                t => Assert.Equal("c", t),
-                t => Assert.Equal("hashCode", t));
+                t => Assert.Equal("c", t));
         }
 
         [Fact]

@@ -1,0 +1,11 @@
+﻿{
+  "Data": {
+    "createReview": {
+      "commentary": "foo",
+      "stars": 4
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

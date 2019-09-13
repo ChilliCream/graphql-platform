@@ -1,8 +1,11 @@
-﻿namespace HotChocolate.Types.Introspection
+using HotChocolate.Properties;
+
+namespace HotChocolate.Types.Introspection
 {
-    // TODO : resources
     [Introspection]
+#pragma warning disable IDE1006 // Naming Styles
     internal sealed class __Field
+#pragma warning restore IDE1006 // Naming Styles
         : ObjectType<IOutputField>
     {
         protected override void Configure(
@@ -10,10 +13,7 @@
         {
             descriptor.Name("__Field");
 
-            descriptor.Description(
-                "Object and Interface types are described by a " +
-                "list of Fields, each of which has a name, " +
-                "potentially a list of arguments, and a return type.");
+            descriptor.Description(TypeResources.Field_Description);
 
             descriptor.BindFields(BindingBehavior.Explicit);
 

@@ -60,24 +60,29 @@ namespace HotChocolate.Stitching.Merge.Handlers
                 && HasSameType(left.Type, right.Type)
                 && left.Arguments.Count == right.Arguments.Count)
             {
-                Dictionary<string, InputValueDefinitionNode> leftArgs =
-                    left.Arguments.ToDictionary(t => t.Name.Value);
-                Dictionary<string, InputValueDefinitionNode> rightArgs =
-                    right.Arguments.ToDictionary(t => t.Name.Value);
-
-                foreach (string name in leftArgs.Keys)
-                {
-                    InputValueDefinitionNode leftArgument = leftArgs[name];
-                    if (!rightArgs.TryGetValue(name,
-                        out InputValueDefinitionNode rightArgument)
-                        || !HasSameType(leftArgument.Type, rightArgument.Type))
-                    {
-                        return false;
-                    }
-                }
-                return true;
+                return HasSameArguments(left.Arguments, right.Arguments);
             }
             return false;
+        }
+
+        public static bool HasSameArguments(
+            IReadOnlyList<InputValueDefinitionNode> left,
+            IReadOnlyList<InputValueDefinitionNode> right)
+        {
+            var leftArgs = left.ToDictionary(t => t.Name.Value);
+            var rightArgs = right.ToDictionary(t => t.Name.Value);
+
+            foreach (string name in leftArgs.Keys)
+            {
+                InputValueDefinitionNode leftArgument = leftArgs[name];
+                if (!rightArgs.TryGetValue(name,
+                    out InputValueDefinitionNode rightArgument)
+                    || !HasSameType(leftArgument.Type, rightArgument.Type))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private static bool HasSameType(ITypeNode left, ITypeNode right)

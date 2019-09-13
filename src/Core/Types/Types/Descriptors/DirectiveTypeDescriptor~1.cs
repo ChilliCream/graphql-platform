@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -6,6 +6,7 @@ using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -14,9 +15,11 @@ namespace HotChocolate.Types.Descriptors
         , IDirectiveTypeDescriptor<T>
         , IHasClrType
     {
-        public DirectiveTypeDescriptor(IDescriptorContext context)
+        protected internal DirectiveTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {
+            Definition.Arguments.BindingBehavior =
+                context.Options.DefaultBindingBehavior;
         }
 
         Type IHasClrType.ClrType => Definition.ClrType;
@@ -69,6 +72,12 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public IDirectiveTypeDescriptor<T> BindArgumentsExplicitly() =>
+            BindArguments(BindingBehavior.Explicit);
+
+        public IDirectiveTypeDescriptor<T> BindArgumentsImplicitly() =>
+            BindArguments(BindingBehavior.Implicit);
+
         public IDirectiveArgumentDescriptor Argument(
             Expression<Func<T, object>> property)
         {
@@ -84,16 +93,15 @@ namespace HotChocolate.Types.Descriptors
                 return descriptor;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed in this expression.",
+                TypeResources.DirectiveTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
 
         public new IDirectiveTypeDescriptor<T> Location(
-            DirectiveLocation location)
+            DirectiveLocation value)
         {
-            base.Location(location);
+            base.Location(value);
             return this;
         }
 
@@ -101,6 +109,21 @@ namespace HotChocolate.Types.Descriptors
             DirectiveMiddleware middleware)
         {
             base.Use(middleware);
+            return this;
+        }
+
+        public new IDirectiveTypeDescriptor<T> Use<TMiddleware>()
+            where TMiddleware : class
+        {
+            base.Use<TMiddleware>();
+            return this;
+        }
+
+        public new IDirectiveTypeDescriptor<T> Use<TMiddleware>(
+            Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
+            where TMiddleware : class
+        {
+            base.Use(factory);
             return this;
         }
 

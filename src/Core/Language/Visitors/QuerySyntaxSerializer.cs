@@ -28,10 +28,7 @@ namespace HotChocolate.Language
                 throw new ArgumentNullException(nameof(node));
             }
 
-            if (node != null)
-            {
-                VisitInternal(node, writer);
-            }
+            VisitInternal(node, writer);
         }
 
         private void VisitInternal(
@@ -126,6 +123,11 @@ namespace HotChocolate.Language
                     (n, w) => w.WriteDirective(n),
                     w => w.WriteSpace());
 
+                writer.WriteSpace();
+            }
+            else if (node.Operation != OperationType.Query)
+            {
+                writer.Write(node.Operation.ToString().ToLowerInvariant());
                 writer.WriteSpace();
             }
 

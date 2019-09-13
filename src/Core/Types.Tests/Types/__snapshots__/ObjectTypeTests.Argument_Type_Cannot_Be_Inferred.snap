@@ -1,0 +1,1 @@
+﻿The argument `bar` has no type. Specify the type with `.Argument("bar", a.Type<MyType>())` to fix this issue.

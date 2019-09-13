@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate
@@ -14,9 +15,8 @@ namespace HotChocolate
         {
             if (string.IsNullOrEmpty(message))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The error message mustn't be null or empty.",
+                    TypeResources.SchemaErrorBuilder_MessageIsNull,
                     nameof(message));
             }
 

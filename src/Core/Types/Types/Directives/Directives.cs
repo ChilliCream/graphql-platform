@@ -10,6 +10,7 @@ namespace HotChocolate.Types
             {
                 WellKnownDirectives.Skip,
                 WellKnownDirectives.Include,
+                WellKnownDirectives.Deprecated,
                 "cost"
             };
 

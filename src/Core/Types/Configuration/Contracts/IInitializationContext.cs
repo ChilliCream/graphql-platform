@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using HotChocolate.Types.Descriptors;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {
@@ -12,9 +13,15 @@ namespace HotChocolate.Configuration
             ITypeReference reference,
             TypeDependencyKind kind);
 
+        void RegisterDependency(
+            TypeDependency dependency);
+
         void RegisterDependencyRange(
             IEnumerable<ITypeReference> references,
             TypeDependencyKind kind);
+
+        void RegisterDependencyRange(
+            IEnumerable<TypeDependency> dependencies);
 
         void RegisterDependency(IDirectiveReference reference);
 

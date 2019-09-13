@@ -4,8 +4,6 @@ using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
@@ -19,6 +17,7 @@ namespace HotChocolate.Stitching
 {
     public class DelegateToRemoteSchemaMiddleware
     {
+        private const string _remoteErrorField = "remote";
         private static readonly RootScopedVariableResolver _resolvers =
             new RootScopedVariableResolver();
         private readonly FieldDelegate _next;
@@ -41,23 +40,48 @@ namespace HotChocolate.Stitching
                     ? ImmutableStack<SelectionPathComponent>.Empty
                     : SelectionPathParser.Parse(delegateDirective.Path);
 
-                IRemoteQueryRequest request =
+                IReadOnlyQueryRequest request =
                     CreateQuery(context, delegateDirective.Schema, path);
 
                 IReadOnlyQueryResult result = await ExecuteQueryAsync(
                     context, request, delegateDirective.Schema)
                     .ConfigureAwait(false);
 
-                context.ScopedContextData = context.ScopedContextData.SetItem(
-                    WellKnownProperties.SchemaName, delegateDirective.Schema);
-                context.Result = ExtractData(result.Data, path.Count());
+                UpdateContextData(context, result, delegateDirective);
+
+                context.Result = new SerializedData(
+                    ExtractData(result.Data, path.Count()));
                 ReportErrors(context, result.Errors);
             }
 
             await _next.Invoke(context).ConfigureAwait(false);
         }
 
-        private static IRemoteQueryRequest CreateQuery(
+        private void UpdateContextData(
+            IResolverContext context,
+            IReadOnlyQueryResult result,
+            DelegateDirective delegateDirective)
+        {
+            if (result.ContextData.Count > 0)
+            {
+                ImmutableDictionary<string, object>.Builder builder =
+                    ImmutableDictionary.CreateBuilder<string, object>();
+                builder.AddRange(context.ScopedContextData);
+                builder[WellKnownProperties.SchemaName] =
+                    delegateDirective.Schema;
+                builder.AddRange(result.ContextData);
+                context.ScopedContextData = builder.ToImmutableDictionary();
+            }
+            else
+            {
+                context.ScopedContextData =
+                    context.ScopedContextData.SetItem(
+                        WellKnownProperties.SchemaName,
+                        delegateDirective.Schema);
+            }
+        }
+
+        private static IReadOnlyQueryRequest CreateQuery(
             IMiddlewareContext context,
             NameString schemaName,
             IImmutableStack<SelectionPathComponent> path)
@@ -91,7 +115,7 @@ namespace HotChocolate.Stitching
                 .AddFragmentDefinitions(extractedField.Fragments)
                 .Build();
 
-            var requestBuilder = new RemoteQueryRequestBuilder();
+            var requestBuilder = QueryRequestBuilder.New();
 
             AddVariables(context, schemaName,
                 requestBuilder, query, variableValues);
@@ -160,7 +184,7 @@ namespace HotChocolate.Stitching
             foreach (IError error in errors)
             {
                 IErrorBuilder builder = ErrorBuilder.FromError(error)
-                    .SetExtension("remote", error);
+                    .SetExtension(_remoteErrorField, error.RemoveException());
 
                 if (error.Path != null)
                 {
@@ -309,42 +333,51 @@ namespace HotChocolate.Stitching
                     VariableValue variable =
                         _resolvers.Resolve(context, sv, arg.Type.ToTypeNode());
 
-                    if (context.Schema.TryGetType(
-                        arg.Type.NamedType().Name,
-                        out ILeafType leafType))
-                    {
-                        object value = variable.Value;
+                    object value = variable.Value;
 
-                        if (!leafType.IsInstanceOfType(value))
-                        {
-                            value = typeConversion.Convert(
-                                typeof(object), leafType.ClrType, value);
-                        }
-
-                        variable = new VariableValue
-                        (
-                            variable.Name,
-                            variable.Type,
-                            leafType.Serialize(value),
-                            variable.DefaultValue
-                        );
-                    }
-                    else
+                    if (!arg.Type.IsInstanceOfType(value))
                     {
-                        // TODO : resources
-                        throw new QueryException(
-                            ErrorBuilder.New()
-                                .SetMessage(string.Format(
-                                    CultureInfo.InvariantCulture,
-                                    "Serialize argument {0} of type {1}.",
-                                    arg.Name, arg.Type.Visualize()))
-                                .SetPath(context.Path)
-                                .Build());
+                        value = ConvertValue(typeConversion, arg.Type, value);
                     }
+
+                    variable = new VariableValue
+                    (
+                        variable.Name,
+                        variable.Type,
+                        arg.Type.Serialize(value),
+                        variable.DefaultValue
+                    );
 
                     variables.Add(variable);
                 }
             }
+        }
+
+        private static object ConvertValue(
+            ITypeConversion converter,
+            IInputType type,
+            object value)
+        {
+            Type sourceType = typeof(object);
+
+            if (type.IsListType() && value is IEnumerable<object> e)
+            {
+                if (e.Any())
+                {
+                    Type elementType = e.FirstOrDefault()?.GetType();
+                    if (elementType != null)
+                    {
+                        sourceType =
+                            typeof(IEnumerable<>).MakeGenericType(elementType);
+                    }
+                }
+                else
+                {
+                    return Activator.CreateInstance(type.ClrType);
+                }
+            }
+
+            return converter.Convert(sourceType, type.ClrType, value);
         }
 
         private static IEnumerable<VariableValue> ResolveUsedRequestVariables(
@@ -370,7 +403,7 @@ namespace HotChocolate.Stitching
         private static void AddVariables(
             IResolverContext context,
             NameString schemaName,
-            IRemoteQueryRequestBuilder builder,
+            IQueryRequestBuilder builder,
             DocumentNode query,
             IEnumerable<VariableValue> variableValues)
         {
@@ -390,7 +423,7 @@ namespace HotChocolate.Stitching
                         variableValue.Type.NamedType().Name.Value,
                         out InputObjectType inputType))
                     {
-                        var wrapped = WrapType(inputType, variableValue.Type);
+                        IInputType wrapped = WrapType(inputType, variableValue.Type);
                         value = ObjectVariableRewriter.RewriteVariable(
                             schemaName, wrapped, value);
                     }
@@ -437,5 +470,4 @@ namespace HotChocolate.Stitching
             return definitions;
         }
     }
-
 }

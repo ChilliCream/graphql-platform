@@ -16,7 +16,6 @@ namespace HotChocolate.Execution
         private readonly ISchema _schema;
         private readonly OperationDefinitionNode _operation;
         private readonly ITypeConversion _converter;
-        private readonly DictionaryToInputObjectConverter _inputTypeConverter;
 
         public VariableValueBuilder(
             ISchema schema,
@@ -28,8 +27,6 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(operation));
 
             _converter = _schema.Services.GetTypeConversion();
-            _inputTypeConverter = new DictionaryToInputObjectConverter(
-                _converter);
         }
 
         /// <summary>
@@ -44,7 +41,7 @@ namespace HotChocolate.Execution
         /// Returns the coerced variable values converted
         /// to their .net counterparts.
         /// </returns>/
-        public VariableCollection CreateValues(
+        public VariableValueCollection CreateValues(
             IReadOnlyDictionary<string, object> variableValues)
         {
             var values = variableValues ?? _empty;
@@ -62,7 +59,7 @@ namespace HotChocolate.Execution
                 }
             }
 
-            return new VariableCollection(_converter, coercedValues);
+            return new VariableValueCollection(_converter, coercedValues);
         }
 
         private Variable CreateVariable(
@@ -111,21 +108,35 @@ namespace HotChocolate.Execution
                         variable.Name,
                         TypeVisualizer.Visualize(variable.Type)))
                     .AddLocation(variableDefinition)
+                    .SetExtension("variableName", variable.Name)
                     .Build());
             }
 
-            InputTypeNonNullCheck.CheckForNullValueViolation(
-                variable.Type, variable.Value,
-                message => ErrorBuilder.New()
-                    .SetMessage(message)
+            NonNullValidationReport report =
+                NonNullValidator.Validate(
+                    variable.Type,
+                    variable.Value,
+                    _converter);
+
+            if (report.HasError)
+            {
+                throw new QueryException(ErrorBuilder.New()
+                    .SetMessage(string.Format(
+                        CultureInfo.InvariantCulture,
+                        TypeResources.VariableValueBuilder_NonNull_In_Graph,
+                        variable.Name))
                     .AddLocation(variableDefinition)
+                    .SetExtension("variableName", variable.Name)
+                    .SetExtension("variablePath", report.InputPath)
                     .Build());
+            }
+
             CheckForInvalidValueType(variableDefinition, variable);
 
             return variable;
         }
 
-        private object Normalize(
+        private static object Normalize(
             VariableDefinitionNode variableDefinition,
             Variable variable,
             object rawValue)
@@ -144,49 +155,15 @@ namespace HotChocolate.Execution
                 value = variable.Type.ParseLiteral(literal);
             }
 
-            value = DeserializeValue(variable.Type, value);
-            value = EnsureClrTypeIsCorrect(variable.Type, value);
-
-            return value;
-        }
-
-        private object DeserializeValue(IInputType type, object value)
-        {
-            if (type.IsLeafType()
-                && type.NamedType() is ISerializableType serializable
-                && serializable.TryDeserialize(value, out object deserialized))
+            if (variable.Type.TryDeserialize(value, out object deserialized))
             {
                 return deserialized;
             }
 
-            if (type.IsListType() && value is IList<object>)
-            {
-                return _inputTypeConverter.Convert(value, type);
-            }
-
-            if (type.IsInputObjectType()
-                && value is IDictionary<string, object>)
-            {
-                return _inputTypeConverter.Convert(value, type);
-            }
-
             return value;
         }
 
-        private object EnsureClrTypeIsCorrect(IHasClrType type, object value)
-        {
-            if (type.ClrType != typeof(object)
-                && value.GetType() != type.ClrType
-                && _converter.TryConvert(value.GetType(),
-                    type.ClrType, value,
-                    out object converted))
-            {
-                return converted;
-            }
-            return value;
-        }
-
-        private void CheckForInvalidValueType(
+        private static void CheckForInvalidValueType(
             VariableDefinitionNode variableDefinition,
             Variable variable)
         {
@@ -203,7 +180,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private void CheckForInvalidValueType(
+        private static void CheckForInvalidValueType(
             VariableDefinitionNode variableDefinition,
             Variable variable,
             IValueNode value)

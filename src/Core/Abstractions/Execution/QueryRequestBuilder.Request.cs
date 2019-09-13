@@ -8,7 +8,11 @@ namespace HotChocolate.Execution
         private class QueryRequest
             : IReadOnlyQueryRequest
         {
-            public string Query { get; set; }
+            public IQuery Query { get; set; }
+
+            public string QueryName { get; set; }
+
+            public string QueryHash { get; set; }
 
             public string OperationName { get; set; }
 
@@ -20,6 +24,8 @@ namespace HotChocolate.Execution
             public IReadOnlyDictionary<string, object> Properties { get; set; }
 
             public IServiceProvider Services { get; set; }
+
+            public IReadOnlyDictionary<string, object> Extensions { get; set; }
         }
     }
 }

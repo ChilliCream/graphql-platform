@@ -1,8 +1,13 @@
-{
-  "Query": "{ foo }",
+﻿{
+  "Query": {
+    "Text": "{ foo }"
+  },
+  "QueryName": null,
+  "QueryHash": null,
   "OperationName": null,
-  "VariableValues": null,
+  "VariableValues": {},
   "InitialValue": null,
-  "Properties": null,
-  "Services": null
+  "Properties": {},
+  "Services": null,
+  "Extensions": {}
 }

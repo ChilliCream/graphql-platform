@@ -1,3 +1,4 @@
+using System.Buffers;
 using System;
 using System.Collections.Generic;
 
@@ -12,7 +13,6 @@ namespace HotChocolate.Language
             return node;
         }
 
-
         protected virtual VariableNode RewriteVariable(
             VariableNode node,
             TContext context)
@@ -24,7 +24,6 @@ namespace HotChocolate.Language
 
             return current;
         }
-
 
         protected virtual ArgumentNode RewriteArgument(
             ArgumentNode node,
@@ -119,6 +118,16 @@ namespace HotChocolate.Language
             TContext context)
         {
             return node;
+        }
+
+        protected virtual TParent RewriteDirectives<TParent>(
+            TParent parent,
+            IReadOnlyList<DirectiveNode> directives,
+            TContext context,
+            Func<IReadOnlyList<DirectiveNode>, TParent> rewrite)
+        {
+            return RewriteMany(parent, directives, context,
+                RewriteDirective, rewrite);
         }
 
         protected virtual NamedTypeNode RewriteNamedType(
@@ -259,21 +268,42 @@ namespace HotChocolate.Language
            TContext context,
            Func<T, TContext, T> func)
         {
-            var originalSet = new HashSet<T>(items);
-            var rewrittenSet = new List<T>();
+            IReadOnlyList<T> current = items;
+
+            T[] rented = ArrayPool<T>.Shared.Rent(items.Count);
+            Span<T> copy = rented;
+            copy = copy.Slice(0, items.Count);
             var modified = false;
 
             for (int i = 0; i < items.Count; i++)
             {
+                T original = items[i];
                 T rewritten = func(items[i], context);
-                if (!modified && !originalSet.Contains(rewritten))
+
+                copy[i] = rewritten;
+
+                if (!modified && !ReferenceEquals(original, rewritten))
                 {
                     modified = true;
                 }
-                rewrittenSet.Add(rewritten);
             }
 
-            return modified ? rewrittenSet : items;
+            if (modified)
+            {
+                var rewrittenList = new T[items.Count];
+
+                for (int i = 0; i < items.Count; i++)
+                {
+                    rewrittenList[i] = copy[i];
+                }
+
+                current = rewrittenList;
+            }
+
+            copy.Clear();
+            ArrayPool<T>.Shared.Return(rented);
+
+            return current;
         }
     }
 

@@ -25,25 +25,23 @@ namespace StarWars
             services.AddSingleton<Mutation>();
 
             // Add GraphQL Services
-            services.AddGraphQL(sp => Schema.Create(c =>
-            {
-                c.RegisterServiceProvider(sp);
+            services.AddGraphQL(sp => SchemaBuilder.New()
+                .AddServices(sp)
 
                 // Adds the authorize directive and
                 // enable the authorization middleware.
-                c.RegisterAuthorizeDirectiveType();
+                .AddAuthorizeDirectiveType()
 
-                c.RegisterQueryType<QueryType>();
-                c.RegisterMutationType<MutationType>();
-
-                c.RegisterType<HumanType>();
-                c.RegisterType<DroidType>();
-                c.RegisterType<EpisodeType>();
-            }),
-            new QueryExecutionOptions
-            {
-                TracingPreference = TracingPreference.Always
-            });
+                .AddQueryType<QueryType>()
+                .AddMutationType<MutationType>()
+                .AddType<HumanType>()
+                .AddType<DroidType>()
+                .AddType<EpisodeType>()
+                .Create(),
+                new QueryExecutionOptions
+                {
+                    TracingPreference = TracingPreference.Always
+                });
 
             // Add Authorization Policy
             //services.AddAuthorization(options =>
@@ -53,6 +51,19 @@ namespace StarWars
             //            context.User.HasClaim(c =>
             //                (c.Type == ClaimTypes.Country))));
             //});
+
+            /*
+            Note: Intercept and enrich query requests
+
+            services.AddQueryRequestInterceptor((ctx, builder, ct) =>
+            {
+                var identity = new ClaimsIdentity("abc");
+                identity.AddClaim(new Claim(ClaimTypes.Country, "us"));
+                ctx.User = new ClaimsPrincipal(identity);
+                builder.SetProperty(nameof(ClaimsPrincipal), ctx.User);
+                return Task.CompletedTask;
+            });
+            */
 
             return services.BuildServiceProvider();
         }

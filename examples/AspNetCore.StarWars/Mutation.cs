@@ -17,6 +17,13 @@ namespace StarWars
                 ?? throw new ArgumentNullException(nameof(repository));
         }
 
+        /// <summary>
+        /// Creates a review for a given Star Wars episode.
+        /// </summary>
+        /// <param name="episode">The episode to review.</param>
+        /// <param name="review">The review.</param>
+        /// <param name="eventSender">The event sending service.</param>
+        /// <returns>The created review.</returns>
         public async Task<Review> CreateReview(
             Episode episode, Review review,
             [Service]IEventSender eventSender)

@@ -1,20 +1,24 @@
-using System.Linq;
+using System.Collections.Immutable;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
-using System;
-using System.Collections.Immutable;
+using HotChocolate.Utilities;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
     public sealed class FieldSelection
         : IFieldSelection
     {
+        private const string _argumentProperty = "argument";
+
         private static IReadOnlyDictionary<NameString, ArgumentValue> _empty =
             ImmutableDictionary<NameString, ArgumentValue>.Empty;
         private readonly IReadOnlyDictionary<NameString, ArgumentValue> _args;
-        private readonly IReadOnlyDictionary<NameString, VariableValue> _varArgs;
+        private readonly IReadOnlyDictionary<NameString, VariableValue> _vars;
         private readonly IReadOnlyList<FieldVisibility> _visibility;
         private readonly Path _path;
         private readonly bool _hasArgumentErrors;
@@ -22,7 +26,7 @@ namespace HotChocolate.Execution
         internal FieldSelection(FieldInfo fieldInfo)
         {
             _args = fieldInfo.Arguments ?? _empty;
-            _varArgs = fieldInfo.VarArguments;
+            _vars = fieldInfo.VarArguments;
             _visibility = fieldInfo.Visibilities;
             _path = fieldInfo.Path;
             _hasArgumentErrors =
@@ -54,45 +58,56 @@ namespace HotChocolate.Execution
         public FieldDelegate Middleware { get; }
 
         public IReadOnlyDictionary<NameString, ArgumentValue> CoerceArguments(
-            IVariableCollection variables)
+            IVariableValueCollection variables,
+            ITypeConversion converter)
         {
             if (_hasArgumentErrors)
             {
-                Path path = CreatePath();
-                throw new QueryException(
-                    _args.Values.Select(t => t.Error.WithPath(path)));
+                throw new QueryException(_args.Values.Select(t => t.Error));
             }
 
-            if (_varArgs == null)
+            if (_vars == null)
             {
                 return _args;
             }
 
             var args = _args.ToDictionary(t => t.Key, t => t.Value);
 
-            foreach (KeyValuePair<NameString, VariableValue> var in _varArgs)
+            foreach (KeyValuePair<NameString, VariableValue> var in _vars)
             {
-                if (!variables.TryGetVariable(
+                IError error = null;
+
+                if (variables.TryGetVariable(
                     var.Value.VariableName,
                     out object value))
                 {
-                    value = var.Value.DefaultValue;
+                    value = var.Value.CoerceValue(value);
                 }
+                else
+                {
+                    value = var.Value.DefaultValue;
 
-                IError error = InputTypeNonNullCheck.CheckForNullValueViolation(
-                    var.Key,
-                    var.Value.Type,
-                    value,
-                    message => ErrorBuilder.New()
-                        .SetMessage(message)
-                        .SetPath(CreatePath())
-                        .AddLocation(Selection)
-                        .SetExtension("argument", var.Key)
-                        .Build());
+                    if (var.Value.Type.IsNonNullType()
+                        && (value is null || value is NullValueNode))
+                    {
+                        error = ErrorBuilder.New()
+                            .SetMessage(string.Format(
+                                CultureInfo.InvariantCulture,
+                                TypeResources.ArgumentValueBuilder_NonNull,
+                                var.Key,
+                                TypeVisualizer.Visualize(var.Value.Type)))
+                            .AddLocation(Selection)
+                            .SetExtension(_argumentProperty, Path.New(var.Key))
+                            .SetPath(_path)
+                            .Build();
+                    }
+                }
 
                 if (error is null)
                 {
-                    args[var.Key] = new ArgumentValue(var.Value.Type, value);
+                    args[var.Key] = value is IValueNode literal
+                        ? new ArgumentValue(var.Value.Argument, literal)
+                        : new ArgumentValue(var.Value.Argument, value);
                 }
                 else
                 {
@@ -103,7 +118,7 @@ namespace HotChocolate.Execution
             return args;
         }
 
-        public bool IsVisible(IVariableCollection variables)
+        public bool IsVisible(IVariableValueCollection variables)
         {
             if (_visibility == null || _visibility.Count == 0)
             {
@@ -120,11 +135,6 @@ namespace HotChocolate.Execution
 
             return true;
         }
-
-        private Path CreatePath() =>
-            _path == null
-                ? Path.New(ResponseName)
-                : _path.Append(ResponseName);
 
         private static FieldNode MergeField(FieldInfo fieldInfo)
         {

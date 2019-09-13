@@ -9,7 +9,7 @@ namespace HotChocolate.Types.Relay
     public class EdgeType<T>
         : ObjectType<IEdge>
         , IEdgeType
-        where T : IOutputType
+        where T : class, IOutputType
     {
         public IOutputType EntityType { get; private set; }
 
@@ -40,7 +40,7 @@ namespace HotChocolate.Types.Relay
         {
             base.OnCompleteType(context, definition);
 
-            EntityType = context.GetType<T>(
+            EntityType = context.GetType<IOutputType>(
                 ClrTypeReference.FromSchemaType<T>());
         }
     }

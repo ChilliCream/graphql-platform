@@ -1,5 +1,7 @@
 ﻿using System.Linq;
+using HotChocolate.Execution;
 using HotChocolate.Types;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Discovery
@@ -50,7 +52,7 @@ namespace HotChocolate.Discovery
                 f => Assert.Equal(new NameString("f"), f.Name));
         }
 
-        [Fact(Skip = "This will be fixed with extensions")]
+        [Fact]
         public void DiscoverQueryResolversByClrType()
         {
             // arrange
@@ -64,17 +66,19 @@ namespace HotChocolate.Discovery
 
             // assert
             ObjectType query = schema.GetType<ObjectType>("Query");
+
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
                 .OrderBy(t => t.Name.ToString()),
                 f => Assert.Equal(new NameString("a"), f.Name),
                 f => Assert.Equal(new NameString("c"), f.Name),
                 f => Assert.Equal(new NameString("d"), f.Name),
-                f => Assert.Equal(new NameString("f"), f.Name),
-                f => Assert.Equal(new NameString("g"), f.Name));
+                f => Assert.Equal(new NameString("f"), f.Name));
+
+            schema.MakeExecutable().Execute("{ f }").MatchSnapshot();
         }
 
-        [Fact(Skip = "This will be fixed with extensions")]
+        [Fact]
         public void DiscoverQueryResolversByName()
         {
             // arrange
@@ -88,17 +92,19 @@ namespace HotChocolate.Discovery
 
             // assert
             ObjectType query = schema.GetType<ObjectType>("Query");
+
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
                 .OrderBy(t => t.Name.ToString()),
                 f => Assert.Equal(new NameString("a"), f.Name),
                 f => Assert.Equal(new NameString("c"), f.Name),
                 f => Assert.Equal(new NameString("d"), f.Name),
-                f => Assert.Equal(new NameString("f"), f.Name),
-                f => Assert.Equal(new NameString("h"), f.Name));
+                f => Assert.Equal(new NameString("f"), f.Name));
+
+            schema.MakeExecutable().Execute("{ f }").MatchSnapshot();
         }
 
-        [Fact(Skip = "This will be fixed with extensions")]
+        [Fact]
         public void DiscoverQueryResolversByObjectType()
         {
             // arrange
@@ -112,14 +118,16 @@ namespace HotChocolate.Discovery
 
             // assert
             ObjectType query = schema.GetType<ObjectType>("Query");
+
             Assert.Collection(query.Fields
                 .Where(t => !t.IsIntrospectionField)
                 .OrderBy(t => t.Name.ToString()),
                 f => Assert.Equal(new NameString("a"), f.Name),
                 f => Assert.Equal(new NameString("c"), f.Name),
                 f => Assert.Equal(new NameString("d"), f.Name),
-                f => Assert.Equal(new NameString("f"), f.Name),
-                f => Assert.Equal(new NameString("i"), f.Name));
+                f => Assert.Equal(new NameString("f"), f.Name));
+
+            schema.MakeExecutable().Execute("{ f }").MatchSnapshot();
         }
 
         public class QueryType
@@ -135,7 +143,7 @@ namespace HotChocolate.Discovery
 
         [GraphQLResolver(typeof(QueryResolvers1), typeof(QueryResolvers2))]
         public class Mutation
-                    : IMutation
+            : IMutation
         {
             public string B { get; }
         }
@@ -168,19 +176,19 @@ namespace HotChocolate.Discovery
         [GraphQLResolverOf(typeof(Query))]
         public class QueryResolvers3
         {
-            public string G { get; set; }
+            public string GetF([Parent]Query query) => "QueryResolvers3";
         }
 
         [GraphQLResolverOf("Query")]
         public class QueryResolvers4
         {
-            public string H { get; set; }
+            public string GetF([Parent]Query query) => "QueryResolvers4";
         }
 
         [GraphQLResolverOf(typeof(QueryType))]
         public class QueryResolvers5
         {
-            public string I { get; set; }
+            public string GetF([Parent]Query query) => "QueryResolvers5";
         }
     }
 }

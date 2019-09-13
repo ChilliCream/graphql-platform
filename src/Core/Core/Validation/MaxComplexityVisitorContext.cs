@@ -149,7 +149,7 @@ namespace HotChocolate.Validation
 
         public static MaxComplexityVisitorContext New(
             ISchema schema,
-            IVariableCollection variables,
+            IVariableValueCollection variables,
             ComplexityCalculation calculateComplexity) =>
                 new MaxComplexityWithMultipliersVisitorContext(
                     schema, variables, calculateComplexity);

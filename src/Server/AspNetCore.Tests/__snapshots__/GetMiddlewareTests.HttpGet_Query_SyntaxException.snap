@@ -1,0 +1,15 @@
+﻿{
+  "Data": null,
+  "Errors": [
+    {
+      "message": "Unexpected character `Ã` (195).",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ]
+    }
+  ],
+  "Extensions": null
+}

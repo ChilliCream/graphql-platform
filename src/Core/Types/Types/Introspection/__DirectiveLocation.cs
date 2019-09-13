@@ -1,8 +1,11 @@
-﻿namespace HotChocolate.Types.Introspection
+using HotChocolate.Properties;
+
+namespace HotChocolate.Types.Introspection
 {
-    // TODO : resources
     [Introspection]
+#pragma warning disable IDE1006 // Naming Styles
     internal sealed class __DirectiveLocation
+#pragma warning restore IDE1006 // Naming Styles
         : EnumType<DirectiveLocation>
     {
         protected override void Configure(IEnumTypeDescriptor<DirectiveLocation> descriptor)
@@ -10,70 +13,69 @@
             descriptor.Name("__DirectiveLocation");
 
             descriptor.Description(
-                "A Directive can be adjacent to many parts of the GraphQL language, a " +
-                "__DirectiveLocation describes one such possible adjacencies.");
+                TypeResources.DirectiveLocation_Description);
 
             descriptor.Item(DirectiveLocation.Query)
-                .Description("Location adjacent to a query operation.");
+                .Description(TypeResources.DirectiveLocation_Query);
 
             descriptor.Item(DirectiveLocation.Mutation)
-                .Description("Location adjacent to a mutation operation.");
+                .Description(TypeResources.DirectiveLocation_Mutation);
 
             descriptor.Item(DirectiveLocation.Subscription)
-                .Description("Location adjacent to a subscription operation.");
+                .Description(TypeResources.DirectiveLocation_Subscription);
 
             descriptor.Item(DirectiveLocation.Field)
-                .Description("Location adjacent to a field.");
+                .Description(TypeResources.DirectiveLocation_Field);
 
             descriptor.Item(DirectiveLocation.FragmentDefinition)
                 .Name("FRAGMENT_DEFINITION")
-                .Description("Location adjacent to a fragment definition.");
+                .Description(TypeResources.DirectiveLocation_FragmentDefinition);
 
             descriptor.Item(DirectiveLocation.FragmentSpread)
                 .Name("FRAGMENT_SPREAD")
-                .Description("Location adjacent to a fragment spread.");
+                .Description(TypeResources.DirectiveLocation_FragmentSpread);
 
             descriptor.Item(DirectiveLocation.InlineFragment)
                 .Name("INLINE_FRAGMENT")
-                .Description("Location adjacent to an inline fragment.");
+                .Description(TypeResources.DirectiveLocation_InlineFragment);
 
             descriptor.Item(DirectiveLocation.Schema)
-                .Description("Location adjacent to a schema definition.");
+                .Description(TypeResources.DirectiveLocation_Schema);
 
             descriptor.Item(DirectiveLocation.Scalar)
-                .Description("Location adjacent to a scalar definition.");
+                .Description(TypeResources.DirectiveLocation_Scalar);
 
             descriptor.Item(DirectiveLocation.Object)
-                .Description("Location adjacent to an object type definition.");
+                .Description(TypeResources.DirectiveLocation_Object);
 
             descriptor.Item(DirectiveLocation.FieldDefinition)
                 .Name("FIELD_DEFINITION")
-                .Description("Location adjacent to a field definition.");
+                .Description(TypeResources.DirectiveLocation_FieldDefinition);
 
             descriptor.Item(DirectiveLocation.ArgumentDefinition)
                 .Name("ARGUMENT_DEFINITION")
-                .Description("Location adjacent to an argument definition");
+                .Description(TypeResources.DirectiveLocation_ArgumentDefinition);
 
             descriptor.Item(DirectiveLocation.Interface)
-                .Description("Location adjacent to an interface definition.");
+                .Description(TypeResources.DirectiveLocation_Interface);
 
             descriptor.Item(DirectiveLocation.Union)
-                .Description("Location adjacent to a union definition.");
+                .Description(TypeResources.DirectiveLocation_Union);
 
             descriptor.Item(DirectiveLocation.Enum)
-                .Description("Location adjacent to an enum definition.");
+                .Description(TypeResources.DirectiveLocation_Enum);
 
             descriptor.Item(DirectiveLocation.EnumValue)
                 .Name("ENUM_VALUE")
-                .Description("Location adjacent to an enum value definition.");
+                .Description(TypeResources.DirectiveLocation_EnumValue);
 
             descriptor.Item(DirectiveLocation.InputObject)
                 .Name("INPUT_OBJECT")
-                .Description("Location adjacent to an input object type definition.");
+                .Description(TypeResources.DirectiveLocation_InputObject);
 
             descriptor.Item(DirectiveLocation.InputFieldDefinition)
                 .Name("INPUT_FIELD_DEFINITION")
-                .Description("Location adjacent to an input object field definition.");
+                .Description(TypeResources.DirectiveLocation_InputFieldDefinition);
         }
     }
 }

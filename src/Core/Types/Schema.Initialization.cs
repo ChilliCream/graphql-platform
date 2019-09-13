@@ -33,7 +33,7 @@ namespace HotChocolate
             IInitializationContext context)
         {
             var descriptor = SchemaTypeDescriptor.New(
-                DescriptorContext.Create(context.Services),
+                context.DescriptorContext,
                 GetType());
 
             _configure(descriptor);

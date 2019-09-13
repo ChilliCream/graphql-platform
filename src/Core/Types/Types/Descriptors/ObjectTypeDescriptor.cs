@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -6,10 +6,11 @@ using System.Reflection;
 using HotChocolate.Utilities;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal class ObjectTypeDescriptor
+    public class ObjectTypeDescriptor
         : DescriptorBase<ObjectTypeDefinition>
         , IObjectTypeDescriptor
     {
@@ -26,13 +27,6 @@ namespace HotChocolate.Types.Descriptors
                 context.Naming.GetTypeName(clrType, TypeKind.Object);
             Definition.Description =
                 context.Naming.GetTypeDescription(clrType, TypeKind.Object);
-        }
-
-        public ObjectTypeDescriptor(IDescriptorContext context, NameString name)
-            : base(context)
-        {
-            Definition.ClrType = typeof(object);
-            Definition.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         public ObjectTypeDescriptor(IDescriptorContext context)
@@ -109,9 +103,10 @@ namespace HotChocolate.Types.Descriptors
             {
                 if (IsResolverRelevant(sourceType, member))
                 {
-                    ObjectFieldDefinition fieldDefinition = ObjectFieldDescriptor
-                        .New(Context, member, resolverType)
-                        .CreateDefinition();
+                    ObjectFieldDefinition fieldDefinition =
+                        ObjectFieldDescriptor
+                            .New(Context, member, resolverType)
+                            .CreateDefinition();
 
                     if (processed.Add(fieldDefinition.Name))
                     {
@@ -142,9 +137,9 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IObjectTypeDescriptor SyntaxNode(
-            ObjectTypeDefinitionNode objectTypeDefinitionNode)
+            ObjectTypeDefinitionNode objectTypeDefinition)
         {
-            Definition.SyntaxNode = objectTypeDefinitionNode;
+            Definition.SyntaxNode = objectTypeDefinition;
             return this;
         }
 
@@ -165,9 +160,8 @@ namespace HotChocolate.Types.Descriptors
         {
             if (typeof(TInterface) == typeof(InterfaceType))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The interface type has to be inherited.");
+                    TypeResources.ObjectTypeDescriptor_InterfaceBaseClass);
             }
 
             Definition.Interfaces.Add(typeof(TInterface).GetOutputType());
@@ -175,29 +169,29 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IObjectTypeDescriptor Interface<TInterface>(
-            TInterface interfaceType)
+            TInterface type)
             where TInterface : InterfaceType
         {
-            if (interfaceType == null)
+            if (type == null)
             {
-                throw new ArgumentNullException(nameof(interfaceType));
+                throw new ArgumentNullException(nameof(type));
             }
 
             Definition.Interfaces.Add(new SchemaTypeReference(
-                (ITypeSystemObject)interfaceType));
+                type));
             return this;
         }
 
         public IObjectTypeDescriptor Interface(
-            NamedTypeNode namedTypeNode)
+            NamedTypeNode namedType)
         {
-            if (namedTypeNode == null)
+            if (namedType == null)
             {
-                throw new ArgumentNullException(nameof(namedTypeNode));
+                throw new ArgumentNullException(nameof(namedType));
             }
 
             Definition.Interfaces.Add(new SyntaxTypeReference(
-                namedTypeNode, TypeContext.Output));
+                namedType, TypeContext.Output));
             return this;
         }
 
@@ -216,9 +210,8 @@ namespace HotChocolate.Types.Descriptors
         {
             if (typeof(IType).IsAssignableFrom(typeof(TResolver)))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "Schema types cannot be used as resolver types.");
+                    TypeResources.ObjectTypeDescriptor_Resolver_SchemaType);
             }
 
             ResolverTypes.Add(typeof(TResolver));
@@ -234,7 +227,7 @@ namespace HotChocolate.Types.Descriptors
 
         public IObjectFieldDescriptor Field(NameString name)
         {
-            var fieldDescriptor = new ObjectFieldDescriptor(Context, name);
+            var fieldDescriptor = ObjectFieldDescriptor.New(Context, name);
             Fields.Add(fieldDescriptor);
             return fieldDescriptor;
         }
@@ -254,15 +247,14 @@ namespace HotChocolate.Types.Descriptors
             MemberInfo member = propertyOrMethod.ExtractMember();
             if (member is PropertyInfo || member is MethodInfo)
             {
-                var fieldDescriptor = new ObjectFieldDescriptor(
+                var fieldDescriptor = ObjectFieldDescriptor.New(
                     Context, member, typeof(TResolver));
                 Fields.Add(fieldDescriptor);
                 return fieldDescriptor;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "A field of an entity can only be a property or a method.",
+                TypeResources.ObjectTypeDescriptor_MustBePropertyOrMethod,
                 nameof(member));
         }
 
@@ -289,17 +281,25 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public static ObjectTypeDescriptor New(
+            IDescriptorContext context) =>
+            new ObjectTypeDescriptor(context);
+
+        public static ObjectTypeDescriptor New(
             IDescriptorContext context,
             Type clrType) =>
             new ObjectTypeDescriptor(context, clrType);
 
-        public static ObjectTypeDescriptor New(
-            IDescriptorContext context,
-            NameString name) =>
-            new ObjectTypeDescriptor(context, name);
-
         public static ObjectTypeDescriptor<T> New<T>(
             IDescriptorContext context) =>
             new ObjectTypeDescriptor<T>(context);
+
+        public static ObjectTypeDescriptor FromSchemaType(
+            IDescriptorContext context,
+            Type schemaType)
+        {
+            var descriptor = new ObjectTypeDescriptor(context, schemaType);
+            descriptor.Definition.ClrType = typeof(object);
+            return descriptor;
+        }
     }
 }

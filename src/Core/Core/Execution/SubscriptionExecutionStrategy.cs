@@ -71,27 +71,14 @@ namespace HotChocolate.Execution
             if (selections.Count == 1)
             {
                 FieldSelection selection = selections.Single();
-                IReadOnlyDictionary<NameString, ArgumentValue> argumentValues =
-                    selection.CoerceArguments(executionContext.Variables);
-                var arguments = new List<ArgumentNode>();
-
-                foreach (KeyValuePair<NameString, ArgumentValue> argValue in
-                    argumentValues)
-                {
-                    IInputType argumentType = argValue.Value.Type;
-                    object value = argValue.Value.Value;
-
-                    arguments.Add(new ArgumentNode(
-                        argValue.Key,
-                        argumentType.ParseValue(value)));
-                }
-
-                return new EventDescription(selection.Field.Name, arguments);
+                return new EventDescription(
+                    selection.Field.Name,
+                    selection.Selection.Arguments);
             }
             else
             {
-                // TODO : Error message
-                throw new QueryException();
+                throw new QueryException(
+                    CoreResources.Subscriptions_SingleRootField);
             }
         }
 
@@ -104,8 +91,11 @@ namespace HotChocolate.Execution
 
             if (eventRegistry == null)
             {
-                throw new QueryException(new QueryError(CoreResources
-                    .SubscriptionExecutionStrategy_NoEventRegistry));
+                throw new QueryException(
+                    ErrorBuilder.New()
+                        .SetMessage(CoreResources
+                            .SubscriptionExecutionStrategy_NoEventRegistry)
+                        .Build());
             }
 
             return eventRegistry.SubscribeAsync(@event);

@@ -25,7 +25,7 @@ namespace HotChocolate.Types
             IInitializationContext context)
         {
             var descriptor = EnumTypeDescriptor.New<T>(
-                DescriptorContext.Create(context.Services));
+                context.DescriptorContext);
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
@@ -36,7 +36,6 @@ namespace HotChocolate.Types
 
         protected sealed override void Configure(IEnumTypeDescriptor descriptor)
         {
-            // TODO : resources
             throw new NotSupportedException();
         }
     }

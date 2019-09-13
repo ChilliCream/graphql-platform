@@ -1,6 +1,6 @@
-﻿using System;
+using System;
+using System.Buffers;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using HotChocolate.Language;
@@ -11,7 +11,9 @@ namespace HotChocolate.Subscriptions
         : IEventDescription
         , IEquatable<EventDescription>
     {
+        private static readonly Encoding _encoding = Encoding.UTF8;
         private string _serialized;
+        private int? _hash;
 
         public EventDescription(string name)
             : this(name, Array.Empty<ArgumentNode>())
@@ -38,9 +40,25 @@ namespace HotChocolate.Subscriptions
                 ?? throw new ArgumentNullException(nameof(arguments));
         }
 
+        private EventDescription(
+            string name,
+            IReadOnlyList<ArgumentNode> arguments)
+        {
+            if (string.IsNullOrEmpty(name))
+            {
+                throw new ArgumentException(
+                    "The event name cannot be null or empty.",
+                    nameof(name));
+            }
+
+            Name = name;
+            Arguments = arguments
+                ?? throw new ArgumentNullException(nameof(arguments));
+        }
+
         public string Name { get; }
 
-        public IReadOnlyCollection<ArgumentNode> Arguments { get; }
+        public IReadOnlyList<ArgumentNode> Arguments { get; }
 
         public bool Equals(EventDescription other)
         {
@@ -57,15 +75,17 @@ namespace HotChocolate.Subscriptions
             if (Name.Equals(other.Name, StringComparison.Ordinal)
                 && Arguments.Count == other.Arguments.Count)
             {
-                var arguments =
-                    other.Arguments.ToDictionary(
-                        c => c.Name.Value,
-                        c => c.Value);
+                IEnumerator<ArgumentNode> otherFields = other.Arguments
+                    .OrderBy(t => t.Name.Value, StringComparer.Ordinal)
+                    .GetEnumerator();
 
-                foreach (ArgumentNode argument in Arguments)
+                foreach (ArgumentNode argument in
+                    Arguments.OrderBy(t => t.Name.Value, StringComparer.Ordinal))
                 {
-                    if (!arguments.TryGetValue(argument.Name.Value, out IValueNode v)
-                        || !v.Equals(argument.Value))
+                    otherFields.MoveNext();
+
+                    if (!otherFields.Current.Name.Equals(argument.Name)
+                        || !otherFields.Current.Value.Equals(argument.Value))
                     {
                         return false;
                     }
@@ -96,13 +116,20 @@ namespace HotChocolate.Subscriptions
         {
             unchecked
             {
-                var hash = Name.GetHashCode() * 379;
-                foreach (ArgumentNode argument in Arguments)
+                if (_hash is null)
                 {
-                    hash ^= (argument.Name.GetHashCode() * 7);
-                    hash ^= (argument.Value.GetHashCode() * 11);
+                    var hash = Name.GetHashCode() * 379;
+
+                    foreach (ArgumentNode argument in
+                        Arguments.OrderBy(t => t.Name.Value, StringComparer.Ordinal))
+                    {
+                        hash ^= (argument.Name.GetHashCode() * 7);
+                        hash ^= (argument.Value.GetHashCode() * 11);
+                    }
+
+                    _hash = hash;
                 }
-                return hash;
+                return _hash.Value;
             }
         }
 
@@ -110,30 +137,69 @@ namespace HotChocolate.Subscriptions
         {
             if (_serialized == null)
             {
-                _serialized = Arguments.Any()
-                    ? $"{Name}({SerializeArguments(Arguments)})"
-                    : Name;
+                if (Arguments.Count == 0)
+                {
+                    _serialized = Name;
+                }
+                else
+                {
+                    var serialized = new StringBuilder();
+                    serialized.Append(Name);
+                    serialized.Append('(');
+                    SerializeArguments(serialized, Arguments);
+                    serialized.Append(')');
+                    _serialized = serialized.ToString();
+                }
             }
             return _serialized;
         }
 
-        private static string SerializeArguments(
-            IEnumerable<ArgumentNode> arguments)
+        private static void SerializeArguments(
+            StringBuilder serialized,
+            IReadOnlyList<ArgumentNode> arguments)
         {
-            var serializer = new QuerySyntaxSerializer();
-            var sb = new StringBuilder();
-
-            using (var stringWriter = new StringWriter(sb))
+            for (int i = 0; i < arguments.Count; i++)
             {
-                var documentWriter = new DocumentWriter(stringWriter);
-
-                return string.Join(", ", arguments.Select(t =>
+                if (i != 0)
                 {
-                    sb.Clear();
-                    serializer.Visit(t.Value, documentWriter);
-                    return t.Name.Value + " = " + sb;
-                }));
+                    serialized.Append(',');
+                    serialized.Append(' ');
+                }
+
+                ArgumentNode argument = arguments[i];
+                serialized.Append(argument.Name.Value);
+                serialized.Append(':');
+                serialized.Append(' ');
+                serialized.Append(QuerySyntaxSerializer.Serialize(argument.Value));
             }
+        }
+
+        public static EventDescription Parse(string s)
+        {
+            return Parse(_encoding.GetBytes(s));
+        }
+
+        public static EventDescription Parse(ReadOnlySpan<byte> data)
+        {
+            var reader = new Utf8GraphQLReader(data);
+            if (reader.Read())
+            {
+                if (reader.Kind != TokenKind.Name)
+                {
+                    // TODO : exception
+                    throw new Exception();
+                }
+
+                string name = reader.GetString();
+
+                var parser = new Utf8GraphQLParser(
+                    reader,
+                    ParserOptions.NoLocation);
+                IReadOnlyList<ArgumentNode> arguments = parser.ParseArguments();
+                return new EventDescription(name, arguments);
+            }
+
+            throw new ArgumentException("data is empty.", nameof(data));
         }
     }
 }

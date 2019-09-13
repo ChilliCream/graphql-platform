@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
 
@@ -54,8 +55,8 @@ namespace HotChocolate.Types
 
             if (!success)
             {
-                // TODO : Resources
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(
+                    TypeResources.InputField_CannotSetValue);
             }
         }
 
@@ -97,21 +98,26 @@ namespace HotChocolate.Types
                 ? TryGetValueOnUnknownType(obj, out object value)
                 : TryGetValueOnKnownType(obj, out value);
 
-            if (!success)
+            return success ? value : null;
+        }
+
+        public bool TryGetValue(object obj, out object value)
+        {
+            if (obj == null)
             {
-                // TODO : Resources
-                throw new InvalidOperationException();
+                throw new ArgumentNullException(nameof(obj));
             }
 
-            return value;
+            return Property == null
+                ? TryGetValueOnUnknownType(obj, out value)
+                : TryGetValueOnKnownType(obj, out value);
         }
 
         private bool TryGetValueOnUnknownType(object obj, out object value)
         {
-            if (obj is IDictionary<string, object> dict)
+            if (obj is IDictionary<string, object> d)
             {
-                dict.TryGetValue(Name, out value);
-                return true;
+                return d.TryGetValue(Name, out value);
             }
 
             ILookup<string, PropertyInfo> properties =

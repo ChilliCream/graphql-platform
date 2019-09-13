@@ -41,7 +41,7 @@ namespace HotChocolate.Validation
             return new QueryValidationResult(errors);
         }
 
-        private Dictionary<string, List<ISyntaxNode>> CollectOperations(
+        private static Dictionary<string, List<ISyntaxNode>> CollectOperations(
             DocumentNode queryDocument)
         {
             var operations =
@@ -63,7 +63,7 @@ namespace HotChocolate.Validation
             return operations;
         }
 
-        private List<IError> CheckForRuleViolations(
+        private static List<IError> CheckForRuleViolations(
             Dictionary<string, List<ISyntaxNode>> operations)
         {
             var errors = new List<IError>();

@@ -4,7 +4,7 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Utilities
 {
-    internal static class BaseTypes
+    public static class BaseTypes
     {
         private static readonly HashSet<Type> _baseTypes = new HashSet<Type>
         {
@@ -23,6 +23,11 @@ namespace HotChocolate.Utilities
 
         public static bool IsSchemaType(Type type)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             foreach (Type baseType in _baseTypes)
             {
                 if (baseType.IsAssignableFrom(type))
@@ -43,6 +48,11 @@ namespace HotChocolate.Utilities
 
         public static bool IsNonGenericBaseType(Type type)
         {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
             if (_baseTypes.Contains(type))
             {
                 return true;

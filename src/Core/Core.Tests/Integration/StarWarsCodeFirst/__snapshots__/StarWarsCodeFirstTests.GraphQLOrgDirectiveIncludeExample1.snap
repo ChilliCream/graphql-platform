@@ -1,9 +1,10 @@
-{
+﻿{
   "Data": {
     "hero": {
       "name": "R2-D2"
     }
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

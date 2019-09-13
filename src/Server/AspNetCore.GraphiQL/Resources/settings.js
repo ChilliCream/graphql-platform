@@ -3,5 +3,6 @@ var rootUri = protocol + "//" + window.location.host;
 
 window.Settings = {
   url: rootUri,
-  subscriptionUrl: rootUri + "/subscriptions"
+  subscriptionUrl: rootUri + "/subscriptions",
+  enableSubscriptions: true
 };

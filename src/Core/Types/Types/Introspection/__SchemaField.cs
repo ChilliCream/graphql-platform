@@ -1,11 +1,13 @@
-﻿using HotChocolate.Types.Descriptors;
+using HotChocolate.Properties;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Introspection
 {
-    // TODO : resources
     [Introspection]
+#pragma warning disable IDE1006 // Naming Styles
     internal sealed class __SchemaField
+#pragma warning restore IDE1006 // Naming Styles
         : ObjectField
     {
         internal __SchemaField(IDescriptorContext context)
@@ -13,7 +15,7 @@ namespace HotChocolate.Types.Introspection
         {
         }
 
-        public override bool IsIntrospectionField { get; } = true;
+        public override bool IsIntrospectionField => true;
 
         private static ObjectFieldDefinition CreateDefinition(
             IDescriptorContext context)
@@ -21,8 +23,7 @@ namespace HotChocolate.Types.Introspection
             var descriptor = ObjectFieldDescriptor
                 .New(context, IntrospectionFields.Schema);
 
-            descriptor.Description(
-                "Access the current type schema of this server.")
+            descriptor.Description(TypeResources.SchemaField_Description)
                 .Type<NonNullType<__Schema>>()
                 .Resolver(ctx => ctx.Schema);
 

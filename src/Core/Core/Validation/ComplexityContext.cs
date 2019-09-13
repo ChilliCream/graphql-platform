@@ -11,7 +11,7 @@ namespace HotChocolate.Validation
             IOutputField fieldDefinition,
             FieldNode fieldSelection,
             ICollection<IOutputField> path,
-            IVariableCollection variables,
+            IVariableValueCollection variables,
             CostDirective cost)
         {
             FieldDefinition = fieldDefinition;
@@ -27,7 +27,7 @@ namespace HotChocolate.Validation
 
         public ICollection<IOutputField> Path { get; }
 
-        public IVariableCollection Variables { get; }
+        public IVariableValueCollection Variables { get; }
 
         public CostDirective Cost { get; }
     }

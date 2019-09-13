@@ -48,14 +48,16 @@ namespace HotChocolate.Validation
             base.VisitField(field, type, path);
         }
 
-        private bool HasOnylTypeNameField(SelectionSetNode selectionSet)
+        private static bool HasOnylTypeNameField(SelectionSetNode selectionSet)
         {
             return selectionSet.Selections
                 .OfType<FieldNode>()
                 .All(t => IsTypeNameField(t.Name.Value));
         }
 
-        private bool FieldExists(IComplexOutputType type, NameString fieldName)
+        private static bool FieldExists(
+            IComplexOutputType type,
+            NameString fieldName)
         {
             if (IsTypeNameField(fieldName))
             {

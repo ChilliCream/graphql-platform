@@ -1,6 +1,5 @@
 using System;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Configuration;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -18,12 +17,12 @@ namespace HotChocolate.Types.Descriptors
             TypeDependencyKind.Completed;
 
         public ICompletedDependencyDescriptor DependsOn<TType>()
-            where TType : ITypeSystem =>
+            where TType : ITypeSystemMember =>
             DependsOn<TType>(false);
 
         public new ICompletedDependencyDescriptor DependsOn<TType>(
             bool mustBeCompleted)
-            where TType : ITypeSystem
+            where TType : ITypeSystemMember
         {
             base.DependsOn<TType>(mustBeCompleted);
             return this;

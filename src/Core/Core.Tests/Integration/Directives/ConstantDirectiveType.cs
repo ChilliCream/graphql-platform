@@ -1,4 +1,4 @@
-﻿using HotChocolate.Types;
+using HotChocolate.Types;
 
 namespace HotChocolate.Integration.Directives
 {
@@ -14,7 +14,7 @@ namespace HotChocolate.Integration.Directives
                 .Location(DirectiveLocation.FieldDefinition)
                 .Location(DirectiveLocation.Field);
 
-            descriptor.Middleware(next => context =>
+            descriptor.Use(next => context =>
             {
                 context.Result = context.Directive.GetArgument<string>("value");
                 return next(context);

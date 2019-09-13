@@ -71,15 +71,19 @@ namespace HotChocolate
                     SerializeSchemaTypeDefinition(schema, referenced));
             }
 
-            IEnumerable<DirectiveDefinitionNode> directiveTypeDefinitions = schema.DirectiveTypes
+            IEnumerable<DirectiveDefinitionNode> directiveTypeDefinitions =
+                schema.DirectiveTypes
                 .Where(t => referenced.DirectiveNames.Contains(t.Name))
+                .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
                 .Select(t => SerializeDirectiveTypeDefinition(t, referenced));
 
             typeDefinitions.AddRange(directiveTypeDefinitions);
 
-            IEnumerable<ScalarTypeDefinitionNode> scalarTypeDefinitions = schema.Types
+            IEnumerable<ScalarTypeDefinitionNode> scalarTypeDefinitions =
+                schema.Types
                 .OfType<ScalarType>()
                 .Where(t => referenced.TypeNames.Contains(t.Name))
+                .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
                 .Select(t => SerializeScalarType(t));
 
             typeDefinitions.AddRange(scalarTypeDefinitions);
@@ -92,7 +96,7 @@ namespace HotChocolate
         {
             return schema.Types
                .Where(t => IsPublicAndNoScalar(t))
-               .OrderBy(t => t.Name.ToString())
+               .OrderBy(t => t.Name.ToString(), StringComparer.Ordinal)
                .GroupBy(t => (int)t.Kind)
                .OrderBy(t => t.Key)
                .SelectMany(t => t);
@@ -118,7 +122,7 @@ namespace HotChocolate
                .ToList();
 
             var locations = directiveType.Locations
-                .Select(l => new NameNode(l.ToString()))
+                .Select(l => new NameNode(l.MapDirectiveLocation().ToString()))
                 .ToList();
 
             return new DirectiveDefinitionNode
@@ -437,7 +441,7 @@ namespace HotChocolate
             ReferencedTypes referenced)
         {
             referenced.DirectiveNames.Add(directiveType.Name);
-            return directiveType.ToNode();
+            return directiveType.ToNode(true);
         }
 
         private static StringValueNode SerializeDescription(string description)

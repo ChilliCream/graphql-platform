@@ -3,7 +3,7 @@ using HotChocolate.Configuration;
 namespace HotChocolate.Types
 {
     public interface INamedTypeExtension
-        : ITypeSystem
+        : ITypeSystemMember
         , IHasName
     {
         TypeKind Kind { get; }

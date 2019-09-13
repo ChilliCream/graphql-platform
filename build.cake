@@ -1,8 +1,6 @@
-#addin "nuget:?package=Cake.Sonar&version=1.1.18"
-#addin "nuget:?package=Cake.FileHelpers&version=3.1.0"
-#addin "nuget:?package=Cake.NuGet&version=0.30.0"
-#tool "nuget:?package=MSBuild.SonarQube.Runner.Tool&version=4.3.1"
-
+#addin "nuget:?package=Cake.Sonar&version=1.1.22"
+#addin "nuget:?package=Cake.FileHelpers&version=3.2.1"
+#tool "nuget:?package=MSBuild.SonarQube.Runner.Tool&version=4.6.0"
 
 //////////////////////////////////////////////////////////////////////
 // ARGUMENTS
@@ -53,6 +51,7 @@ Task("Clean")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
+    DotNetCoreClean("./src/DataLoader");
     DotNetCoreClean("./src/Core");
     DotNetCoreClean("./src/Server");
 });
@@ -83,6 +82,18 @@ Task("Build")
     DotNetCoreBuild("./tools/Build.sln", settings);
 });
 
+Task("BuildDebug")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    var buildSettings = new DotNetCoreBuildSettings
+    {
+        Configuration = "Debug"
+    };
+
+    DotNetCoreBuild("./tools/Build.sln", buildSettings);
+});
+
 Task("BuildCore")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
@@ -100,19 +111,19 @@ Task("Publish")
     .Does(() =>
 {
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "./tools/Build.sln /t:restore /p:configuration=" + configuration }))
+        new ProcessSettings{ Arguments = "./tools/Build.Core.sln /t:restore /p:configuration=" + configuration }))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "./tools/Build.sln /t:build /p:configuration=" + configuration }))
+        new ProcessSettings{ Arguments = "./tools/Build.Core.sln /t:build /p:configuration=" + configuration }))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "./tools/Build.sln /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
+        new ProcessSettings{ Arguments = "./tools/Build.Core.sln /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
     {
         process.WaitForExit();
     }
@@ -128,8 +139,8 @@ Task("PublishTemplates")
         OutputDirectory = "src/Templates"
     };
 
-    ReplaceTextInFiles("src/Templates/StarWars/content/StarWars/StarWars.csproj", "0.8.2", packageVersion);
-    ReplaceTextInFiles("src/Templates/Server/content/HotChocolate.Server.csproj", "0.8.2", packageVersion);
+    ReplaceTextInFiles("src/Templates/StarWars/content/StarWars/StarWars.csproj", "10.0.1", packageVersion);
+    ReplaceTextInFiles("src/Templates/Server/content/HotChocolate.Server.Template.csproj", "10.0.1", packageVersion);
     NuGetPack("src/Templates/StarWars/HotChocolate.Templates.StarWars.nuspec", nuGetPackSettings);
     NuGetPack("src/Templates/Server/HotChocolate.Templates.Server.nuspec", nuGetPackSettings);
 });
@@ -162,7 +173,10 @@ Task("Tests")
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
-        DotNetCoreTest(file.FullPath, testSettings);
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
     }
 });
 
@@ -207,7 +221,207 @@ Task("CoreTests")
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
-        DotNetCoreTest(file.FullPath, testSettings);
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
+Task("RedisTests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/core_{i++}\" --blame")
+    };
+
+    foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
+    {
+        if(file.FullPath.Contains("Redis"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
+Task("MongoTests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/core_{i++}\" --blame")
+    };
+
+    foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
+    {
+        if(file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
+Task("HC_DataLoader_Tests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/hc_dataloader_{i++}\" --blame")
+    };
+
+    foreach(var file in GetFiles("./src/DataLoader/**/*.Tests.csproj"))
+    {
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
+
+Task("HC_Core_Tests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/hc_core_{i++}\" --blame")
+    };
+
+    foreach(var file in GetFiles("./src/Core/**/*.Tests.csproj"))
+    {
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
+Task("HC_Server_Tests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/hc_server_{i++}\" --blame")
+    };
+
+    foreach(var file in GetFiles("./src/Server/**/*.Tests.csproj"))
+    {
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
+Task("HC_Stitching_Tests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/hc_stitching_{i++}\" --blame")
+    };
+
+    foreach(var file in GetFiles("./src/Stitching/**/*.Tests.csproj"))
+    {
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
+Task("HC_Client_Tests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/hc_stitching_{i++}\" --blame")
+    };
+
+    foreach(var file in GetFiles("./src/Client/**/*.Tests.csproj"))
+    {
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
     }
 });
 
@@ -223,7 +437,7 @@ Task("SonarBegin")
         Organization = "chillicream",
         VsTestReportsPath = "**/*.trx",
         OpenCoverReportsPath = "**/*.opencover.xml",
-        Exclusions = "**/*.js,**/*.html,**/*.css,**/examples/**/*.*,**/benchmarks/**/*.*,**/src/Templates/**/*.*",
+        Exclusions = "**/*.js,**/*.html,**/*.css,**/examples/**/*.*,**/StarWars/**/*.*,**/benchmarks/**/*.*,**/src/Templates/**/*.*",
         Verbose = false,
         Version = packageVersion,
         ArgumentCustomization = a => {
@@ -259,6 +473,11 @@ Task("Default")
 Task("Sonar")
     .IsDependentOn("SonarBegin")
     .IsDependentOn("Tests")
+    .IsDependentOn("SonarEnd");
+
+Task("SonarSlim")
+    .IsDependentOn("SonarBegin")
+    .IsDependentOn("BuildDebug")
     .IsDependentOn("SonarEnd");
 
 Task("Release")

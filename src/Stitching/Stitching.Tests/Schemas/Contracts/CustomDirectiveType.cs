@@ -11,7 +11,7 @@ namespace HotChocolate.Stitching.Schemas.Contracts
             descriptor.Name("custom");
             descriptor.Location(DirectiveLocation.Field);
             descriptor.Argument("d").Type<DateTimeType>();
-            descriptor.Middleware(next => ctx =>
+            descriptor.Use(next => ctx =>
             {
                 ctx.Result = ctx.Directive.GetArgument<DateTime>("d")
                     .ToUniversalTime();

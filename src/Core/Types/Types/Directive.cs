@@ -72,7 +72,9 @@ namespace HotChocolate.Types
             return CreateCustomDirective<T>();
         }
 
-        public DirectiveNode ToNode()
+        public DirectiveNode ToNode() => ToNode(false);
+
+        public DirectiveNode ToNode(bool removeNullArguments)
         {
             if (_parsedDirective is null)
             {
@@ -92,6 +94,21 @@ namespace HotChocolate.Types
                 }
 
                 _parsedDirective = new DirectiveNode(Name, arguments);
+            }
+
+            if (removeNullArguments
+                && _parsedDirective.Arguments.Count != 0
+                && _parsedDirective.Arguments.Any(t => t.Value.IsNull()))
+            {
+                var arguments = new List<ArgumentNode>();
+                foreach (ArgumentNode argument in _parsedDirective.Arguments)
+                {
+                    if (!argument.Value.IsNull())
+                    {
+                        arguments.Add(argument);
+                    }
+                }
+                return _parsedDirective.WithArguments(arguments);
             }
 
             return _parsedDirective;

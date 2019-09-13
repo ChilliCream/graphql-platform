@@ -3,5 +3,6 @@
     "description": "fooBar"
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

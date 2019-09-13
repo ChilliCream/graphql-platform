@@ -1,7 +1,10 @@
-﻿using System;
+using System.Collections.Generic;
+using System;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
-using HotChocolate.Utilities;
+using System.Reflection;
+using System.Globalization;
 
 namespace HotChocolate.Types.Descriptors
 {
@@ -9,10 +12,16 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<TDefinition>
         where TDefinition : OutputFieldDefinitionBase
     {
+        private bool _deprecatedDependecySet;
+        private DirectiveDefinition _deprecatedDirective;
+
         protected OutputFieldDescriptorBase(IDescriptorContext context)
             : base(context)
         {
         }
+
+        protected IReadOnlyDictionary<NameString, ParameterInfo> Parameters
+        { get; set; }
 
         protected void SyntaxNode(
             FieldDefinitionNode syntaxNode)
@@ -37,9 +46,8 @@ namespace HotChocolate.Types.Descriptors
             if (Context.Inspector.IsSchemaType(type)
                 && !typeof(IOutputType).IsAssignableFrom(type))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "Output fields can only have an output type as type.");
+                    TypeResources.ObjectFieldDescriptorBase_FieldType);
             }
 
             Definition.SetMoreSpecificType(
@@ -57,9 +65,8 @@ namespace HotChocolate.Types.Descriptors
 
             if (!outputType.IsOutputType())
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "Output fields can only have an output type as type.");
+                    TypeResources.ObjectFieldDescriptorBase_FieldType);
             }
 
             Definition.Type = new SchemaTypeReference(outputType);
@@ -83,16 +90,60 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(argument));
             }
 
-            var descriptor = new ArgumentDescriptor(
-                Context,
-                name.EnsureNotEmpty(nameof(name)));
+            name.EnsureNotEmpty(nameof(name));
+
+            ArgumentDescriptor descriptor =
+                Parameters != null
+                && Parameters.TryGetValue(name, out ParameterInfo p)
+                    ? ArgumentDescriptor.New(Context, p)
+                    : ArgumentDescriptor.New(Context, name);
+
             argument(descriptor);
-            Definition.Arguments.Add(descriptor.CreateDefinition());
+
+            ArgumentDefinition definition = descriptor.CreateDefinition();
+            Definition.Arguments.Add(definition);
         }
 
-        protected void DeprecationReason(string reason)
+        public void Deprecated(string reason)
         {
-            Definition.DeprecationReason = reason;
+            if (string.IsNullOrEmpty(reason))
+            {
+                Deprecated();
+            }
+            else
+            {
+                Definition.DeprecationReason = reason;
+                AddDeprectedDirective(reason);
+            }
+        }
+
+        public void Deprecated()
+        {
+            Definition.DeprecationReason =
+                WellKnownDirectives.DeprecationDefaultReason;
+            AddDeprectedDirective(null);
+        }
+
+        private void AddDeprectedDirective(string reason)
+        {
+            if (_deprecatedDirective != null)
+            {
+                Definition.Directives.Remove(_deprecatedDirective);
+            }
+
+            _deprecatedDirective = new DirectiveDefinition(
+                new DeprecatedDirective(reason));
+            Definition.Directives.Add(_deprecatedDirective);
+
+            if (!_deprecatedDependecySet)
+            {
+                Definition.Dependencies.Add(new TypeDependency(
+                    new ClrTypeReference(
+                        typeof(DeprecatedDirectiveType),
+                        TypeContext.None),
+                    TypeDependencyKind.Completed));
+                _deprecatedDependecySet = true;
+            }
         }
 
         protected void Ignore()

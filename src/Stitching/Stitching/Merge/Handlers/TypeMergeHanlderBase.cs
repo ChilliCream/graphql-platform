@@ -5,7 +5,7 @@ using System.Linq;
 namespace HotChocolate.Stitching.Merge.Handlers
 {
     public abstract class TypeMergeHanlderBase<T>
-        : ITypeMergeHanlder
+        : ITypeMergeHandler
         where T : ITypeInfo
     {
         private readonly MergeTypeRuleDelegate _next;

@@ -1,7 +1,7 @@
 using System;
-using HotChocolate.Configuration;
+using System.IO;
 using HotChocolate.Language;
-using HotChocolate.Resolvers;
+using HotChocolate.Properties;
 
 namespace HotChocolate
 {
@@ -18,12 +18,33 @@ namespace HotChocolate
 
             if (string.IsNullOrEmpty(schema))
             {
-                // TODO : resources
-                throw new ArgumentException("message", nameof(schema));
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilderExtensions_SchemaIsEmpty,
+                    nameof(schema));
             }
 
-            DocumentNode document = Utf8GraphQLParser.Parse(schema);
-            return builder.AddDocument(sp => document);
+            return builder.AddDocument(sp => Utf8GraphQLParser.Parse(schema));
+        }
+
+        public static ISchemaBuilder AddDocumentFromFile(
+            this ISchemaBuilder builder,
+            string filePath)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (string.IsNullOrEmpty(filePath))
+            {
+                throw new ArgumentException(
+                    "",
+                    nameof(filePath));
+            }
+
+            return builder.AddDocument(sp =>
+                Utf8GraphQLParser.Parse(
+                    File.ReadAllBytes(filePath)));
         }
 
         public static ISchemaBuilder AddDocument(

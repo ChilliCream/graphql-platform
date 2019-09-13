@@ -1,10 +1,9 @@
-using System.Text;
+using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
@@ -49,7 +48,7 @@ namespace HotChocolate.Execution
 
         public FieldNode FieldSelection => _fieldSelection.Selection;
 
-        public string ResponseName => _fieldSelection.ResponseName;
+        public NameString ResponseName => _fieldSelection.ResponseName;
 
         public IImmutableStack<object> Source { get; private set; }
 
@@ -100,9 +99,31 @@ namespace HotChocolate.Execution
 
         public Action PropagateNonNullViolation { get; private set; }
 
+        public IVariableValueCollection Variables => _executionContext.Variables;
+
         public T Parent<T>()
         {
-            return (T)SourceObject;
+            if (SourceObject is null)
+            {
+                return default;
+            }
+
+            if (SourceObject is T parent)
+            {
+                return parent;
+            }
+
+            if (_executionContext.Converter
+                .TryConvert<object, T>(SourceObject, out parent))
+            {
+                return parent;
+            }
+
+            throw new InvalidCastException(
+                string.Format(
+                    CultureInfo.InvariantCulture,
+                    CoreResources.ResolverContext_Parent_InvalidCast,
+                    typeof(T).FullName));
         }
 
         public T CustomProperty<T>(string key)
@@ -201,14 +222,19 @@ namespace HotChocolate.Execution
             return (T)_cachedResolverResult;
         }
 
-        public IReadOnlyCollection<IFieldSelection> CollectFields(
+        public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType typeContext) =>
-            _executionContext.CollectFields(
-                typeContext, FieldSelection.SelectionSet, Path);
+            CollectFields(typeContext, FieldSelection.SelectionSet);
 
-        public IReadOnlyCollection<IFieldSelection> CollectFields(
+        public IReadOnlyCollection<FieldSelection> CollectFields(
             ObjectType typeContext, SelectionSetNode selectionSet) =>
-            _executionContext.CollectFields(
-                typeContext, FieldSelection.SelectionSet, Path);
+            _executionContext.CollectFields(typeContext, selectionSet, Path);
+
+        IReadOnlyCollection<IFieldSelection> IResolverContext.CollectFields(
+            ObjectType typeContext) => CollectFields(typeContext);
+
+        IReadOnlyCollection<IFieldSelection> IResolverContext.CollectFields(
+            ObjectType typeContext, SelectionSetNode selectionSet) =>
+            CollectFields(typeContext, selectionSet);
     }
 }

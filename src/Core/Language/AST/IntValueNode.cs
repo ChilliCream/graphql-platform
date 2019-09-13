@@ -7,7 +7,32 @@ namespace HotChocolate.Language
         : IValueNode<string>
         , IEquatable<IntValueNode>
     {
+        public IntValueNode(short value)
+            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
+        {
+        }
+
         public IntValueNode(int value)
+            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
+        {
+        }
+
+        public IntValueNode(long value)
+            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
+        {
+        }
+
+        public IntValueNode(ushort value)
+            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
+        {
+        }
+
+        public IntValueNode(uint value)
+            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
+        {
+        }
+
+        public IntValueNode(ulong value)
             : this(null, value.ToString("D", CultureInfo.InvariantCulture))
         {
         }

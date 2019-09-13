@@ -150,9 +150,9 @@ namespace HotChocolate.Types
                 TypeResourceHelper.Scalar_Cannot_Serialize(Name));
         }
 
-        public object Deserialize(object value)
+        public object Deserialize(object serialized)
         {
-            if (TryDeserialize(value, out object v))
+            if (TryDeserialize(serialized, out object v))
             {
                 return v;
             }
@@ -187,8 +187,9 @@ namespace HotChocolate.Types
         protected override EnumTypeDefinition CreateDefinition(
             IInitializationContext context)
         {
-            var descriptor = EnumTypeDescriptor.New(
-                DescriptorContext.Create(context.Services));
+            var descriptor = EnumTypeDescriptor.FromSchemaType(
+                context.DescriptorContext,
+                GetType());
             _configure(descriptor);
             return descriptor.CreateDefinition();
         }
@@ -224,7 +225,7 @@ namespace HotChocolate.Types
                 context.ReportError(
                     SchemaErrorBuilder.New()
                         .SetMessage(TypeResources.EnumType_NoValues, Name)
-                        .SetCode(TypeErrorCodes.NoEnumValues)
+                        .SetCode(ErrorCodes.Schema.NoEnumValues)
                         .SetTypeSystemObject(this)
                         .AddSyntaxNode(SyntaxNode)
                         .Build());

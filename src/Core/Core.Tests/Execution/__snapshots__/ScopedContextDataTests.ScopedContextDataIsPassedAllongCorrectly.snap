@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "root": {
       "a": {
@@ -10,5 +10,6 @@
     }
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

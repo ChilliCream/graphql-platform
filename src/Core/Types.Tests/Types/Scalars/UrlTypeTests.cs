@@ -118,5 +118,74 @@ namespace HotChocolate.Types
             // assert
             Assert.Equal(uri, Assert.IsType<Uri>(serializedValue));
         }
+
+        [Fact]
+        public void IsInstanceOfType_GivenUriAsStringValueNode_ReturnsTrue()
+        {
+            // Arrange
+            var urlType = new UrlType();
+            var uri = new Uri("http://domain.test/url");
+
+            // Act
+            var isUrlType = urlType.IsInstanceOfType(new StringValueNode(uri.AbsoluteUri));
+
+            // Assert
+            Assert.True(isUrlType);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_GivenNullValueNode_ReturnsTrue()
+        {
+            // arrange
+            var urlType = new UrlType();
+
+            // act
+            var isUrlType = urlType.IsInstanceOfType(new NullValueNode(null));
+
+            // assert
+            Assert.True(isUrlType);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_GivenInvalidUriAsStringLiteral_False()
+        {
+            // arrange
+            var urlType = new UrlType();
+
+            // act
+            var isUrlType = urlType.IsInstanceOfType(
+                new StringValueNode("$*^domain.test"));
+
+            // assert
+            Assert.False(isUrlType);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_GivenNull_ThrowsArgumentException()
+        {
+            // arrange
+            var urlType = new UrlType();
+
+            // act
+            Action action = () => urlType.IsInstanceOfType(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_GivenNonUrlValueNode_ReturnsFalse()
+        {
+            // arrange
+            var urlType = new UrlType();
+            var intValue = new IntValueNode(1);
+
+            // act
+            var isUrlType = urlType.IsInstanceOfType(intValue);
+
+            // assert
+            Assert.False(isUrlType);
+        }
+
     }
 }

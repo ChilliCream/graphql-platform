@@ -1,0 +1,10 @@
+﻿{
+  "Data": {
+    "foo": {
+      "qux": "bar"
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

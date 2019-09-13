@@ -1,0 +1,10 @@
+﻿{
+  "errors": [
+    {
+      "message": "Invalid GraphQL Request.",
+      "extensions": {
+        "code": "INVALID_REQUEST"
+      }
+    }
+  ]
+}

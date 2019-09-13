@@ -12,12 +12,16 @@ namespace HotChocolate
         {
             // arrange
             Schema schema = CreateSchema();
+
             IQueryExecutor executor = QueryExecutionBuilder
                 .BuildDefault(schema, new QueryExecutionOptions
                 {
                     TracingPreference = TracingPreference.Always
                 });
-            var request = new QueryRequest("{ a }");
+
+            var request = QueryRequestBuilder.New()
+                .SetQuery("{ a }")
+                .Create();
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(request);

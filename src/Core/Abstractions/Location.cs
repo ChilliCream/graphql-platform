@@ -1,5 +1,4 @@
 ﻿using System;
-using Newtonsoft.Json;
 
 namespace HotChocolate
 {
@@ -25,10 +24,8 @@ namespace HotChocolate
             Column = column;
         }
 
-        [JsonProperty("line", Order = 0)]
         public int Line { get; }
 
-        [JsonProperty("column", Order = 1)]
         public int Column { get; }
     }
 }

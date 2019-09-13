@@ -1,0 +1,30 @@
+﻿schema {
+  query: Query
+}
+
+type Foo {
+  bool_field: Boolean
+  bool_non_null_field: Boolean!
+  float_field: Float
+  float_non_null_field: Float!
+  int_field: Int
+  int_non_null_field: Int!
+  string_field: String
+  string_non_null_field: String!
+}
+
+type Query {
+  foo: Foo
+}
+
+"The `Boolean` scalar type represents `true` or `false`."
+scalar Boolean
+
+"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
+scalar Float
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

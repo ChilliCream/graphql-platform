@@ -191,7 +191,7 @@ namespace HotChocolate.DataLoader
             where T : class, IDataLoader
         {
             Func<IServiceProvider, T> createInstance =
-                ActivatorHelper.CreateInstanceFactory<T>();
+                ActivatorHelper.CompileFactory<T>();
             return registry.Register(key, createInstance);
         }
 
@@ -200,7 +200,7 @@ namespace HotChocolate.DataLoader
             where T : class, IDataLoader
         {
             Func<IServiceProvider, T> createInstance =
-                ActivatorHelper.CreateInstanceFactory<T>();
+                ActivatorHelper.CompileFactory<T>();
             return registry.Register(typeof(T).FullName, createInstance);
         }
     }

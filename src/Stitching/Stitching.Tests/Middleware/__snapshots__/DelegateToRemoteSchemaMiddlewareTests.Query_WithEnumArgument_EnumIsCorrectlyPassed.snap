@@ -1,0 +1,15 @@
+﻿{
+  "Data": {
+    "standard": {
+      "id": "Q3VzdG9tZXIKZDI=",
+      "kind": "STANDARD"
+    },
+    "premium": {
+      "id": "Q3VzdG9tZXIKZDE=",
+      "kind": "PREMIUM"
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

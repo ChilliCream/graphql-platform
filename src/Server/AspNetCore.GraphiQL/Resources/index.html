@@ -20,6 +20,7 @@
     #graphiql {
       height: 100vh;
     }
+
   </style>
 
   <!--
@@ -141,7 +142,8 @@
 
     ReactDOM.render(
       React.createElement(GraphiQL, {
-        fetcher: subscriptionsFetcher,
+        fetcher: window.Settings.enableSubscriptions ?
+          subscriptionsFetcher : graphQLFetcher,
         query: parameters.query,
         variables: parameters.variables,
         operationName: parameters.operationName,
@@ -151,6 +153,7 @@
       }),
       document.getElementById('graphiql')
     );
+
   </script>
 </body>
 

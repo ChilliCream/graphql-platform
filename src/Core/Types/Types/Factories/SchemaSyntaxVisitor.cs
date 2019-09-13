@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Factories
@@ -109,16 +110,18 @@ namespace HotChocolate.Types.Factories
                     case OperationType.Query:
                         QueryTypeName = operationType.Type.Name.Value;
                         break;
+
                     case OperationType.Mutation:
                         MutationTypeName = operationType.Type.Name.Value;
                         break;
+
                     case OperationType.Subscription:
                         SubscriptionTypeName = operationType.Type.Name.Value;
                         break;
+
                     default:
-                        // TODO : resources
                         throw new InvalidOperationException(
-                            "Unknown operation type.");
+                            TypeResources.SchemaSyntaxVisitor_UnknownOperationType);
                 }
             }
         }

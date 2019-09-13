@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "foo": {
       "nullable_list_nullable_element": [
@@ -28,5 +28,6 @@
     }
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

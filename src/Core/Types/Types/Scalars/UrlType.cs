@@ -29,7 +29,7 @@ namespace HotChocolate.Types
             if (literal is StringValueNode stringLiteral
                 && TryParseUri(stringLiteral.Value, out _))
             {
-                return false;
+                return true;
             }
 
             return false;

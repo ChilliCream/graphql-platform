@@ -1,4 +1,4 @@
-{
+﻿{
   "Data": {
     "foo": [
       {
@@ -33,5 +33,6 @@
       }
     }
   },
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

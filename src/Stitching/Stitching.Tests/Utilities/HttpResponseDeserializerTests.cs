@@ -1,13 +1,11 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Xunit;
 using HotChocolate.Execution;
 using HotChocolate.Stitching.Utilities;
 using Snapshooter.Xunit;
+using HotChocolate.Language;
 
 namespace HotChocolate.Stitching
 {
@@ -35,12 +33,12 @@ namespace HotChocolate.Stitching
             await serializer.SerializeAsync(result, stream);
             byte[] buffer = stream.ToArray();
 
-            string json = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
-            var serializedResult = JsonConvert.DeserializeObject<JObject>(json);
+            var serializedResult = Utf8GraphQLRequestParser.ParseJson(buffer);
 
             // act
             IReadOnlyQueryResult deserializedResult =
-                HttpResponseDeserializer.Deserialize(serializedResult);
+                HttpResponseDeserializer.Deserialize(
+                    (IReadOnlyDictionary<string, object>)serializedResult);
 
             // assert
             Snapshot.Match(deserializedResult,
@@ -71,12 +69,12 @@ namespace HotChocolate.Stitching
             await serializer.SerializeAsync(result, stream);
             byte[] buffer = stream.ToArray();
 
-            string json = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
-            var serializedResult = JsonConvert.DeserializeObject<JObject>(json);
+            var serializedResult = Utf8GraphQLRequestParser.ParseJson(buffer);
 
             // act
             IReadOnlyQueryResult deserializedResult =
-                HttpResponseDeserializer.Deserialize(serializedResult);
+                HttpResponseDeserializer.Deserialize(
+                    (IReadOnlyDictionary<string, object>)serializedResult);
 
             // assert
             Snapshot.Match(deserializedResult);
@@ -97,27 +95,33 @@ namespace HotChocolate.Stitching
             result.Data["bar"] = scalarList;
             result.Data["baz"] = baz;
 
-            result.Errors.Add(new QueryError(
-                "foo",
-                Path.New("root").Append("child"),
-                new List<Location> { new Location(15, 16) },
-                new ErrorProperty("bar", "baz")));
-            result.Errors.Add(new QueryError(
-                "qux",
-                new ErrorProperty("bar", "baz")));
-            result.Errors.Add(new QueryError("quux"));
+            result.Errors.Add(ErrorBuilder.New()
+                .SetMessage("foo")
+                .SetPath(Path.New("root").Append("child"))
+                .AddLocation(new Location(15, 16))
+                .SetExtension("bar", "baz")
+                .Build());
+
+            result.Errors.Add(ErrorBuilder.New()
+                .SetMessage("qux")
+                .SetExtension("bar", "baz")
+                .Build());
+
+            result.Errors.Add(ErrorBuilder.New()
+                .SetMessage("quux")
+                .Build());
 
             var stream = new MemoryStream();
             var serializer = new JsonQueryResultSerializer();
             await serializer.SerializeAsync(result, stream);
             byte[] buffer = stream.ToArray();
 
-            string json = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
-            var serializedResult = JsonConvert.DeserializeObject<JObject>(json);
+            var serializedResult = Utf8GraphQLRequestParser.ParseJson(buffer);
 
             // act
             IReadOnlyQueryResult deserializedResult =
-                HttpResponseDeserializer.Deserialize(serializedResult);
+                HttpResponseDeserializer.Deserialize(
+                    (IReadOnlyDictionary<string, object>)serializedResult);
 
             // assert
             Snapshot.Match(deserializedResult);
@@ -134,27 +138,33 @@ namespace HotChocolate.Stitching
 
             var result = new QueryResult();
 
-            result.Errors.Add(new QueryError(
-                "foo",
-                Path.New("root").Append("child"),
-                new List<Location> { new Location(15, 16) },
-                new ErrorProperty("bar", "baz")));
-            result.Errors.Add(new QueryError(
-                "qux",
-                new ErrorProperty("bar", "baz")));
-            result.Errors.Add(new QueryError("quux"));
+            result.Errors.Add(ErrorBuilder.New()
+                .SetMessage("foo")
+                .SetPath(Path.New("root").Append("child"))
+                .AddLocation(new Location(15, 16))
+                .SetExtension("bar", "baz")
+                .Build());
+
+            result.Errors.Add(ErrorBuilder.New()
+                .SetMessage("qux")
+                .SetExtension("bar", "baz")
+                .Build());
+
+            result.Errors.Add(ErrorBuilder.New()
+                .SetMessage("quux")
+                .Build());
 
             var stream = new MemoryStream();
             var serializer = new JsonQueryResultSerializer();
             await serializer.SerializeAsync(result, stream);
             byte[] buffer = stream.ToArray();
 
-            string json = Encoding.UTF8.GetString(buffer, 0, buffer.Length);
-            var serializedResult = JsonConvert.DeserializeObject<JObject>(json);
+            var serializedResult = Utf8GraphQLRequestParser.ParseJson(buffer);
 
             // act
             IReadOnlyQueryResult deserializedResult =
-                HttpResponseDeserializer.Deserialize(serializedResult);
+                HttpResponseDeserializer.Deserialize(
+                    (IReadOnlyDictionary<string, object>)serializedResult);
 
             // assert
             Snapshot.Match(deserializedResult);

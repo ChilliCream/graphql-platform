@@ -14,7 +14,8 @@ namespace HotChocolate.Stitching.Schemas.Customers
                 Street = "Far far away 1",
                 ConsultantId = "1",
                 SomeInt = 1,
-                SomeGuid = new Guid("01e2f5dc-0f19-4305-99d3-3c5c234a6524")
+                SomeGuid = new Guid("01e2f5dc-0f19-4305-99d3-3c5c234a6524"),
+                Kind = CustomerKind.Premium
             },
             new Customer
             {
@@ -23,7 +24,8 @@ namespace HotChocolate.Stitching.Schemas.Customers
                 Street = "Far far away 2",
                 ConsultantId = "1",
                 SomeInt = 2,
-                SomeGuid = new Guid("7f84a645-3439-4a6c-91b1-d313f699648d")
+                SomeGuid = new Guid("7f84a645-3439-4a6c-91b1-d313f699648d"),
+                Kind = CustomerKind.Standard
             },
             new Customer
             {

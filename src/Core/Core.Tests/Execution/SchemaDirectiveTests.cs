@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
@@ -122,7 +122,7 @@ namespace HotChocolate.Execution
                 descriptor.Location(DirectiveLocation.Object);
                 descriptor.Location(DirectiveLocation.Interface);
                 descriptor.Location(DirectiveLocation.FieldDefinition);
-                descriptor.Middleware(next => context =>
+                descriptor.Use(next => context =>
                 {
                     string s = context.Directive
                         .ToObject<ADirective>()
@@ -144,7 +144,7 @@ namespace HotChocolate.Execution
                 descriptor.Location(DirectiveLocation.Object);
                 descriptor.Location(DirectiveLocation.Interface);
                 descriptor.Location(DirectiveLocation.FieldDefinition);
-                descriptor.Middleware(next => context =>
+                descriptor.Use(next => context =>
                 {
                     string s = context.Directive
                         .ToObject<BDirective>()
@@ -163,7 +163,7 @@ namespace HotChocolate.Execution
             {
                 descriptor.Name("c");
                 descriptor.Location(DirectiveLocation.Field);
-                descriptor.Middleware(next => context =>
+                descriptor.Use(next => context =>
                 {
                     string s = context.Directive
                         .ToObject<CDirective>()
@@ -183,7 +183,7 @@ namespace HotChocolate.Execution
                 descriptor.Name("upper");
                 descriptor.Location(DirectiveLocation.Field
                     | DirectiveLocation.FieldDefinition);
-                descriptor.Middleware(next => async context =>
+                descriptor.Use(next => async context =>
                 {
                     await next(context);
 
@@ -209,7 +209,7 @@ namespace HotChocolate.Execution
                 descriptor.Name("lower");
                 descriptor.Location(DirectiveLocation.Field
                     | DirectiveLocation.FieldDefinition);
-                descriptor.Middleware(next => async context =>
+                descriptor.Use(next => async context =>
                 {
                     await next(context);
 

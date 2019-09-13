@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -13,7 +14,7 @@ namespace HotChocolate.Types.Descriptors
         : DescriptorBase<DirectiveTypeDefinition>
         , IDirectiveTypeDescriptor
     {
-        public DirectiveTypeDescriptor(
+        protected DirectiveTypeDescriptor(
             IDescriptorContext context,
             Type clrType)
             : base(context)
@@ -30,13 +31,10 @@ namespace HotChocolate.Types.Descriptors
                 clrType, TypeKind.Directive);
         }
 
-        public DirectiveTypeDescriptor(
-            IDescriptorContext context,
-            NameString name)
+        protected DirectiveTypeDescriptor(IDescriptorContext context)
             : base(context)
         {
             Definition.ClrType = typeof(object);
-            Definition.Name = name.EnsureNotEmpty(nameof(name));
         }
 
         protected override DirectiveTypeDefinition Definition { get; } =
@@ -88,11 +86,11 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IDirectiveArgumentDescriptor Argument(NameString value)
+        public IDirectiveArgumentDescriptor Argument(NameString name)
         {
             var descriptor = new DirectiveArgumentDescriptor(
                 Context,
-                value.EnsureNotEmpty(nameof(value)));
+                name.EnsureNotEmpty(nameof(name)));
             Arguments.Add(descriptor);
             return descriptor;
         }
@@ -121,6 +119,24 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public IDirectiveTypeDescriptor Use<TMiddleware>()
+            where TMiddleware : class
+        {
+            return Use(DirectiveClassMiddlewareFactory.Create<TMiddleware>());
+        }
+
+        public IDirectiveTypeDescriptor Use<TMiddleware>(
+            Func<IServiceProvider, FieldDelegate, TMiddleware> factory)
+            where TMiddleware : class
+        {
+            if (factory == null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            return Use(DirectiveClassMiddlewareFactory.Create(factory));
+        }
+
         [Obsolete("Replace Middleware with `Use`.")]
         public IDirectiveTypeDescriptor Middleware(
             DirectiveMiddleware middleware)
@@ -132,16 +148,16 @@ namespace HotChocolate.Types.Descriptors
         public IDirectiveTypeDescriptor Middleware<T>(
             Expression<Func<T, object>> method)
         {
-            // TODO : resources
-            throw new NotSupportedException("Replace Middleware with `Use`.");
+            throw new NotSupportedException(
+                TypeResources.DirectiveType_ReplaceWithUse);
         }
 
         [Obsolete("Replace Middleware with `Use`.", true)]
         public IDirectiveTypeDescriptor Middleware<T>(
             Expression<Action<T>> method)
         {
-            // TODO : resources
-            throw new NotSupportedException("Replace Middleware with `Use`.");
+            throw new NotSupportedException(
+                TypeResources.DirectiveType_ReplaceWithUse);
         }
 
         public IDirectiveTypeDescriptor Repeatable()
@@ -156,12 +172,20 @@ namespace HotChocolate.Types.Descriptors
             new DirectiveTypeDescriptor(context, clrType);
 
         public static DirectiveTypeDescriptor New(
-            IDescriptorContext context,
-            NameString name) =>
-            new DirectiveTypeDescriptor(context, name);
+            IDescriptorContext context) =>
+            new DirectiveTypeDescriptor(context);
 
         public static DirectiveTypeDescriptor<T> New<T>(
             IDescriptorContext context) =>
             new DirectiveTypeDescriptor<T>(context);
+
+        public static DirectiveTypeDescriptor FromSchemaType(
+            IDescriptorContext context,
+            Type schemaType)
+        {
+            var descriptor = New(context, schemaType);
+            descriptor.Definition.ClrType = typeof(object);
+            return descriptor;
+        }
     }
 }

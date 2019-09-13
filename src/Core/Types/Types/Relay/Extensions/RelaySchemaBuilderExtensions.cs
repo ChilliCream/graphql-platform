@@ -11,7 +11,8 @@ namespace HotChocolate
         {
             return schemaBuilder
                 .UseGlobalObjectIdentifier()
-                .SetContextData(RelayConstants.IsRelaySupportEnabled, 1);
+                .SetContextData(RelayConstants.IsRelaySupportEnabled, 1)
+                .AddType<NodeType>();
         }
 
         public static ISchemaBuilder UseGlobalObjectIdentifier(

@@ -7,32 +7,20 @@ namespace HotChocolate.Stitching.Schemas.Contracts
     {
         public static ISchema Create()
         {
-            return Schema.Create(c =>
-            {
-                ConfigureSchema(c);
-            });
-        }
-
-        public static void ConfigureSchema(ISchemaConfiguration configuration)
-        {
-            if (configuration == null)
-            {
-                throw new System.ArgumentNullException(nameof(configuration));
-            }
-
-            configuration.RegisterQueryType<QueryType>();
-            configuration.RegisterType<LifeInsuranceContractType>();
-            configuration.RegisterType<SomeOtherContractType>();
-            configuration.RegisterDirective<CustomDirectiveType>();
-
-            configuration.RegisterExtendedScalarTypes();
-            configuration.UseGlobalObjectIdentifier();
+            return SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddType<LifeInsuranceContractType>()
+                .AddType<SomeOtherContractType>()
+                .AddDirectiveType<CustomDirectiveType>()
+                .UseGlobalObjectIdentifier()
+                .Create();
         }
 
         public static void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<ContractStorage>();
             services.AddSingleton<Query>();
+            services.AddGraphQL(Create());
         }
     }
 }

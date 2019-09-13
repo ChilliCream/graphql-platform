@@ -7,6 +7,8 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 using Moq;
+using Snapshooter;
+using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Execution
@@ -37,7 +39,7 @@ namespace HotChocolate.Execution
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
             options.SetupGet(t => t.UseComplexityMultipliers).Returns(true);
 
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 "{ foo(i:" + count + ") }");
 
             OperationDefinitionNode operationNode = query.Definitions
@@ -56,7 +58,10 @@ namespace HotChocolate.Execution
                 null
             );
 
-            IReadOnlyQueryRequest request = new QueryRequest("{ a }");
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ a }")
+                    .Create();
 
             var services = new DictionaryServiceProvider(
                 new KeyValuePair<Type, object>(
@@ -90,9 +95,8 @@ namespace HotChocolate.Execution
             }
             else
             {
-                context.Result.Snapshot(
-                    "ValidateMaxComplexityWithMiddleware" +
-                    count);
+                context.Result.MatchSnapshot(
+                    new SnapshotNameExtension("complexity", count));
             }
         }
 
@@ -120,7 +124,7 @@ namespace HotChocolate.Execution
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
             options.SetupGet(t => t.UseComplexityMultipliers).Returns(true);
 
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 "query f($i: Int) { foo(i: $i) }");
 
             OperationDefinitionNode operationNode = query.Definitions
@@ -142,7 +146,10 @@ namespace HotChocolate.Execution
                 null
             );
 
-            IReadOnlyQueryRequest request = new QueryRequest("{ a }");
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ a }")
+                    .Create();
 
             var services = new DictionaryServiceProvider(
                 new KeyValuePair<Type, object>(
@@ -176,9 +183,8 @@ namespace HotChocolate.Execution
             }
             else
             {
-                context.Result.Snapshot(
-                    "ValidateMaxComplexityWithMiddlewareWithVariables" +
-                    count);
+                context.Result.MatchSnapshot(
+                    new SnapshotNameExtension("complexity", count));
             }
         }
 
@@ -210,7 +216,7 @@ namespace HotChocolate.Execution
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
             options.SetupGet(t => t.UseComplexityMultipliers).Returns(true);
 
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 "{ foo(i: { index:" + count + " }) }");
 
             OperationDefinitionNode operationNode = query.Definitions
@@ -229,7 +235,10 @@ namespace HotChocolate.Execution
                 null
             );
 
-            IReadOnlyQueryRequest request = new QueryRequest("{ a }");
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ a }")
+                    .Create();
 
             var services = new DictionaryServiceProvider(
                 new KeyValuePair<Type, object>(
@@ -263,9 +272,8 @@ namespace HotChocolate.Execution
             }
             else
             {
-                context.Result.Snapshot(
-                    "ValidateMaxComplexityWithMiddlewareWithObjects" +
-                    count);
+                context.Result.MatchSnapshot(
+                    new SnapshotNameExtension("complexity", count));
             }
         }
 
@@ -297,7 +305,7 @@ namespace HotChocolate.Execution
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
             options.SetupGet(t => t.UseComplexityMultipliers).Returns(true);
 
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 "query f($i:Int) { foo(i: { index:$i }) }");
 
             OperationDefinitionNode operationNode = query.Definitions
@@ -319,7 +327,10 @@ namespace HotChocolate.Execution
                 null
             );
 
-            IReadOnlyQueryRequest request = new QueryRequest("{ a }");
+            IReadOnlyQueryRequest request =
+                QueryRequestBuilder.New()
+                    .SetQuery("{ a }")
+                    .Create();
 
             var services = new DictionaryServiceProvider(
                 new KeyValuePair<Type, object>(
@@ -353,9 +364,8 @@ namespace HotChocolate.Execution
             }
             else
             {
-                context.Result.Snapshot(
-                    "ValidateMaxComplexityWithMiddlewareWithObjectsAndVar" +
-                    count);
+                context.Result.MatchSnapshot(
+                    new SnapshotNameExtension("complexity", count));
             }
         }
     }

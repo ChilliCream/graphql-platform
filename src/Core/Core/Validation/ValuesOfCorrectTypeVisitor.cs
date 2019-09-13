@@ -13,6 +13,9 @@ namespace HotChocolate.Validation
         private readonly HashSet<ObjectValueNode> _visited =
             new HashSet<ObjectValueNode>();
         private readonly Dictionary<NameString, DirectiveType> _directives;
+        private readonly Dictionary<NameString, ITypeNode> _variables =
+            new Dictionary<NameString, ITypeNode>();
+
 
         public ValuesOfCorrectTypeVisitor(ISchema schema)
             : base(schema)
@@ -27,6 +30,9 @@ namespace HotChocolate.Validation
             foreach (VariableDefinitionNode variableDefinition in
                 operation.VariableDefinitions)
             {
+                _variables[variableDefinition.Variable.Name.Value] =
+                    variableDefinition.Type;
+
                 if (!variableDefinition.DefaultValue.IsNull())
                 {
                     IType type = ConvertTypeNodeToType(variableDefinition.Type);
@@ -123,18 +129,16 @@ namespace HotChocolate.Validation
             ArgumentNode argument)
         {
             if (argumentFields.TryGetField(argument.Name.Value,
-                out IInputField argumentField))
+                out IInputField argumentField)
+                && !(argument.Value is VariableNode)
+                && !IsInstanceOfType(argumentField.Type, argument.Value))
             {
-                if (!(argument.Value is VariableNode)
-                    && !IsInstanceOfType(argumentField.Type, argument.Value))
-                {
-                    Errors.Add(new ValidationError(
-                        "The specified argument value " +
-                        "does not match the argument type.\n" +
-                        $"Argument: `{argument.Name.Value}`\n" +
-                        $"Value: `{argument.Value}`",
-                        argument));
-                }
+                Errors.Add(new ValidationError(
+                    "The specified argument value " +
+                    "does not match the argument type.\n" +
+                    $"Argument: `{argument.Name.Value}`\n" +
+                    $"Value: `{argument.Value}`",
+                    argument));
             }
         }
 
@@ -158,14 +162,62 @@ namespace HotChocolate.Validation
             throw new NotSupportedException();
         }
 
-        private bool IsInstanceOfType(IInputType inputType, IValueNode value)
+        private bool IsInstanceOfType(
+            IInputType inputType,
+            IValueNode value)
         {
+            if (value is VariableNode v
+                && _variables.TryGetValue(v.Name.Value, out ITypeNode t))
+            {
+                return IsTypeCompatible(inputType, t);
+            }
+
             IInputType internalType = inputType;
+
             if (inputType.IsNonNullType())
             {
                 internalType = (IInputType)inputType.InnerType();
             }
+
             return internalType.IsInstanceOfType(value);
+        }
+
+        private bool IsTypeCompatible(IType left, ITypeNode right)
+        {
+            if (left is NonNullType leftNonNull)
+            {
+                if (right is NonNullTypeNode rightNonNull)
+                {
+                    return IsTypeCompatible(
+                        leftNonNull.Type,
+                        rightNonNull.Type);
+                }
+                return false;
+            }
+
+            if (right is NonNullTypeNode nonNull)
+            {
+                return IsTypeCompatible(left, nonNull.Type);
+            }
+
+            if (left is ListType leftList)
+            {
+                if (right is ListTypeNode rightList)
+                {
+                    return IsTypeCompatible(
+                        leftList.ElementType,
+                        rightList.Type);
+                }
+                return false;
+            }
+
+            if (left is INamedType leftNamedType
+                && right is NamedTypeNode rightNamedType)
+            {
+                return leftNamedType.Name.Equals(rightNamedType.Name.Value);
+            }
+
+            return false;
         }
     }
 }

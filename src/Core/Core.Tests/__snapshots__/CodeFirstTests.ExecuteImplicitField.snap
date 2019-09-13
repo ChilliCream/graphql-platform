@@ -1,9 +1,10 @@
-{
+﻿{
   "Data": {
     "dog": {
       "name": "a"
     }
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

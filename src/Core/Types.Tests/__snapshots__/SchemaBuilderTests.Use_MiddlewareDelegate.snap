@@ -3,5 +3,6 @@
     "a": "foo"
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

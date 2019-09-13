@@ -87,6 +87,7 @@ namespace HotChocolate.Types
             var schema = Schema.Create(source, c =>
             {
                 c.RegisterQueryType<DummyQuery>();
+                c.Options.StrictValidation = false;
             });
 
             // assert
@@ -123,6 +124,7 @@ namespace HotChocolate.Types
             var schema = Schema.Create(source, c =>
             {
                 c.RegisterQueryType<DummyQuery>();
+                c.Options.StrictValidation = false;
             });
 
             // assert
@@ -130,6 +132,33 @@ namespace HotChocolate.Types
 
             Assert.True(type.Fields["a"].IsDeprecated);
             Assert.Equal("reason123", type.Fields["a"].DeprecationReason);
+
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void InterfaceFieldDeprecationWithoutReason()
+        {
+            // arrange
+            string source = @"
+                interface Simple {
+                    a: String @deprecated
+                }";
+
+            // act
+            var schema = Schema.Create(source, c =>
+            {
+                c.Options.StrictValidation = false;
+                c.RegisterQueryType<DummyQuery>();
+            });
+
+            // assert
+            InterfaceType type = schema.GetType<InterfaceType>("Simple");
+
+            Assert.True(type.Fields["a"].IsDeprecated);
+            Assert.Equal(
+                WellKnownDirectives.DeprecationDefaultReason,
+                type.Fields["a"].DeprecationReason);
 
             schema.ToString().MatchSnapshot();
         }

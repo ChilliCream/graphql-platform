@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
@@ -12,18 +11,25 @@ namespace HotChocolate.Execution
     internal sealed class CompleteValueContext
         : ICompleteValueContext
     {
-        private readonly Action<ResolverContext> _enqueueNext;
         private ResolverContext _resolverContext;
         private FieldNode _selection;
         private SelectionSetNode _selectionSet;
         private Path _path;
 
-        public CompleteValueContext(
-            Action<ResolverContext> enqueueNext)
+        public void Clear()
         {
-            _enqueueNext = enqueueNext
-                ?? throw new ArgumentNullException(nameof(enqueueNext));
+            _resolverContext = null;
+            _selection = null;
+            _selectionSet = null;
+            _path = null;
+            EnqueueNext = null;
+            Value = null;
+            HasErrors = false;
+            IsViolatingNonNullType = false;
+            SetElementNull = null;
         }
+
+        public Action<ResolverContext> EnqueueNext { get; set; }
 
         public ResolverContext ResolverContext
         {
@@ -97,7 +103,7 @@ namespace HotChocolate.Execution
             OrderedDictionary serializedResult,
             object resolverResult)
         {
-            IReadOnlyCollection<IFieldSelection> fields =
+            IReadOnlyCollection<FieldSelection> fields =
                 ResolverContext.CollectFields(
                     objectType, _selectionSet);
 
@@ -110,7 +116,7 @@ namespace HotChocolate.Execution
 
             foreach (FieldSelection field in fields)
             {
-                _enqueueNext(_resolverContext.Branch(
+                EnqueueNext(_resolverContext.Branch(
                     field,
                     source,
                     resolverResult,

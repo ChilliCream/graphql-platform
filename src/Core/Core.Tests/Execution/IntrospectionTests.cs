@@ -1,5 +1,6 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using ChilliCream.Testing;
+using HotChocolate.Configuration;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
@@ -118,6 +119,37 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
+        public async Task FieldMiddlewareHasAnEffectOnIntrospectIfSwitchedOn()
+        {
+            // arrange
+            string query = "{ __typename a }";
+
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .Use(next => async context =>
+                {
+                    await next.Invoke(context);
+
+                    if (context.Result is string s)
+                    {
+                        context.Result = s.ToUpperInvariant();
+                    }
+                })
+                .ModifyOptions(o =>
+                    o.FieldMiddleware = FieldMiddlewareApplication.AllFields)
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            Assert.Empty(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task DirectiveMiddlewareDoesWorkOnIntrospection()
         {
             // arrange
@@ -171,6 +203,8 @@ namespace HotChocolate.Execution
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
+                descriptor.Name("Query");
+
                 descriptor.Field("a")
                     .Type<StringType>()
                     .Resolver(() => "a");
@@ -186,6 +220,8 @@ namespace HotChocolate.Execution
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
+                descriptor.Name("Foo");
+
                 descriptor.Field("a")
                     .Type<StringType>()
                     .Resolver(() => "foo.a");
@@ -197,6 +233,7 @@ namespace HotChocolate.Execution
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
             {
+                descriptor.Name("Bar");
                 descriptor.Field("a")
                     .Type<StringType>()
                     .Argument("b", a => a.Type<BazType>()
@@ -211,6 +248,7 @@ namespace HotChocolate.Execution
             protected override void Configure(
                 IInputObjectTypeDescriptor<Baz> descriptor)
             {
+                descriptor.Name("Baz");
                 descriptor.Field(t => t.Qux).DefaultValue("123456");
             }
         }
@@ -229,7 +267,7 @@ namespace HotChocolate.Execution
             {
                 descriptor.Name("upper");
                 descriptor.Location(DirectiveLocation.Field);
-                descriptor.Middleware(next => async context =>
+                descriptor.Use(next => async context =>
                 {
                     await next.Invoke(context);
 

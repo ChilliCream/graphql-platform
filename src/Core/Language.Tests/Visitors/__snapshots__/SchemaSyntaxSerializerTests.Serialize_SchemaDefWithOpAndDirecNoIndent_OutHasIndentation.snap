@@ -1,0 +1,3 @@
+﻿schema @a @b(c: 1) {
+  query: A
+}

@@ -26,7 +26,7 @@ namespace HotChocolate.Execution
 
         void EnqueueForProcessing(
             ObjectType objectType,
-            OrderedDictionary objectResult,
+            OrderedDictionary serializedResult,
             object resolverResult);
     }
 }

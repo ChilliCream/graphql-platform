@@ -20,5 +20,11 @@ namespace HotChocolate.Types.Descriptors
         string GetArgumentDescription(ParameterInfo parameter);
 
         NameString GetEnumValueName(object value);
+
+        string GetEnumValueDescription(object value);
+
+        bool IsDeprecated(MemberInfo member, out string reason);
+
+        bool IsDeprecated(object value, out string reason);
     }
 }

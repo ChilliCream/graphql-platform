@@ -401,7 +401,7 @@ namespace HotChocolate
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddDocument(sp =>
-                    Parser.Default.Parse("type Query { a: String }"))
+                    Utf8GraphQLParser.Parse("type Query { a: String }"))
                 .Use(next => context =>
                 {
                     context.Result = "foo";
@@ -433,9 +433,9 @@ namespace HotChocolate
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddDocument(sp =>
-                    Parser.Default.Parse("type Query { a: Foo }"))
+                    Utf8GraphQLParser.Parse("type Query { a: Foo }"))
                 .AddDocument(sp =>
-                    Parser.Default.Parse("type Foo { a: String }"))
+                    Utf8GraphQLParser.Parse("type Foo { a: String }"))
                 .Use(next => context =>
                 {
                     context.Result = "foo";
@@ -460,7 +460,9 @@ namespace HotChocolate
             Assert.Throws<ArgumentNullException>(action);
         }
 
-        [Fact(Skip = "Fix THIS")]
+        // TODO : review why this was wrong and check what happens if the parent
+        // of the resolver functions is more specific
+        [Fact]
         public void AddType_TypeIsResolverTypeByType_QueryContainsBazField()
         {
             // arrange
@@ -471,8 +473,7 @@ namespace HotChocolate
                 .Create();
 
             // assert
-            ObjectType queryType = schema.GetType<ObjectType>("Query");
-            Assert.True(queryType.Fields.ContainsField("baz"));
+            schema.MakeExecutable().Execute("{ foo }").MatchSnapshot();
         }
 
         [Fact]
@@ -807,6 +808,273 @@ namespace HotChocolate
             Assert.Equal(resolverDelegate, type.Fields["foo"].Resolver);
         }
 
+        [Fact]
+        public void BindClrType_IntToString_IntFieldIsStringField()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryWithIntField>()
+                .BindClrType<int, StringType>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void BindClrType_BuilderIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilderExtensions.BindClrType<int, StringType>(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void BindClrType_ClrTypeIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilder.New().BindClrType(null, typeof(StringType));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void BindClrType_SchemaTypeIsNull_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilder.New().BindClrType(typeof(string), null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void BindClrType_SchemaTypeIsNotTso_ArgumentNullException()
+        {
+            // arrange
+            // act
+            Action action = () =>
+                SchemaBuilder.New().BindClrType(typeof(string), typeof(string));
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void Dynamic_Types_Are_Integrated()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type(new DynamicFooType("MyFoo"))
+                .Resolver(new object()));
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(queryType)
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void DuplicateName()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type(new DynamicFooType("MyFoo"))
+                .Resolver(new object()));
+
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddQueryType(queryType)
+                .AddType(new DynamicFooType("MyFoo"))
+                .AddType(new DynamicFooType("MyBar"))
+                .Create();
+
+            // assert
+            Assert.Equal(
+                "The name `MyFoo` was already registered by another type. " +
+                "- Type: MyFoo",
+                Assert.Throws<SchemaException>(action).Message);
+        }
+
+        [Fact]
+        public void UseFirstRegisteredDynamicType()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("Query")
+                .Field("foo")
+                .Type<DynamicFooType>()
+                .Resolver(new object()));
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(queryType)
+                .AddType(new DynamicFooType("MyFoo"))
+                .AddType(new DynamicFooType("MyBar"))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Could_Not_Resolve_Type()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddDocumentFromString("type Query { foo : Bar } scalar Bar")
+                .AddResolver("Query", "foo", "bar")
+                .Create();
+
+            // assert
+            Assert.Equal(
+                "Unable to resolve type reference `Output: Bar`. " +
+                "- Type: Query",
+                Assert.Throws<SchemaException>(action).Message);
+        }
+
+        [Fact]
+        public void Interface_Without_Implementation()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddDocumentFromString(@"
+                    type Query {
+                        foo : Bar
+                    }
+                    interface Bar {
+                        baz: String
+                    }")
+                .AddResolver("Query", "foo", "bar")
+                .Create();
+
+            // assert
+            Assert.Equal(
+                "There is no object type implementing interface `Bar`. - Type: Bar",
+                Assert.Throws<SchemaException>(action).Message);
+        }
+
+        [Fact]
+        public void Interface_Without_Implementation_But_Not_Used()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(@"
+                    type Query {
+                        foo : Baz
+                    }
+
+                    type Baz {
+                        baz: String
+                    }
+
+                    interface Bar {
+                        baz: String
+                    }")
+                .AddResolver("Query", "foo", "bar")
+                .AddResolver("Baz", "baz", "baz")
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Interface_Without_Implementation_Not_Strict()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(@"
+                    type Query {
+                        foo : Bar
+                    }
+                    interface Bar {
+                        baz: String
+                    }")
+                .AddResolver("Query", "foo", "bar")
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            // assert
+            Assert.NotNull(schema);
+        }
+
+        [Fact]
+        public async Task Execute_Agains_Interface_Without_Impl_Field()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(@"
+                    type Query {
+                        foo : Bar
+                    }
+                    interface Bar {
+                        baz: String
+                    }")
+                .AddResolver("Query", "foo", "bar")
+                .ModifyOptions(o => o.StrictValidation = false)
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result =
+                await executor.ExecuteAsync("{ foo { baz } }");
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Abstract_Classes_Are_Allowed_As_Object_Types()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<AbstractQuery>()
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        public class DynamicFooType
+            : ObjectType
+        {
+            private NameString _typeName;
+
+            public DynamicFooType(NameString typeName)
+            {
+                _typeName = typeName;
+            }
+
+            protected override void Configure(IObjectTypeDescriptor descriptor)
+            {
+                descriptor.Name(_typeName);
+                descriptor.Field("bar").Resolver("baz");
+            }
+        }
 
         public class QueryType
             : ObjectType
@@ -869,7 +1137,7 @@ namespace HotChocolate
         [GraphQLResolverOf(typeof(QueryType))]
         public class QueryResolverOnType
         {
-            public string Baz { get; }
+            public string GetFoo([Parent]object o) => "QueryResolverOnType";
         }
 
         [GraphQLResolverOf("Query")]
@@ -890,5 +1158,22 @@ namespace HotChocolate
         public class MyEnumType
             : EnumType
         { }
+
+        public class QueryWithIntField
+        {
+            public int Foo { get; set; }
+        }
+
+        public abstract class AbstractQuery
+        {
+            public string Foo { get; set; }
+
+            public AbstractChild Object { get; set; }
+        }
+
+        public abstract class AbstractChild
+        {
+            public string Foo { get; set; }
+        }
     }
 }

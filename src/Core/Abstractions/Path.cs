@@ -47,9 +47,14 @@ namespace HotChocolate
                 return true;
             }
 
-            return (other.Parent.Equals(Parent)
+            if (ReferenceEquals(null, other))
+            {
+                return false;
+            }
+
+            return ((Parent == null && other.Parent == null) || other.Parent.Equals(Parent))
                 && string.Equals(other.Name, Name, StringComparison.Ordinal)
-                && other.Index.Equals(Index));
+                && other.Index.Equals(Index);
         }
 
         public override bool Equals(object obj)

@@ -1,17 +1,18 @@
-{
+﻿{
   "Data": {
     "a": [
       {
-        "foo": "123"
+        "foo": "123_"
       },
       {
-        "foo": "456"
+        "foo": "456_"
       },
       {
-        "foo": "789"
+        "foo": "789_"
       }
     ]
   },
   "Extensions": {},
-  "Errors": []
+  "Errors": [],
+  "ContextData": {}
 }

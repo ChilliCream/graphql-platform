@@ -13,9 +13,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("type A { b: String }");
+                Utf8GraphQLParser.Parse("type A { b: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse("type A { b: String }");
+                Utf8GraphQLParser.Parse("type A { b: String }");
 
             var types = new List<ITypeInfo>
             {
@@ -43,11 +43,11 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("type A { b: String }");
+                Utf8GraphQLParser.Parse("type A { b: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse("type A { b(a: String): String }");
+                Utf8GraphQLParser.Parse("type A { b(a: String): String }");
             DocumentNode schema_c =
-                Parser.Default.Parse("type A { b: String }");
+                Utf8GraphQLParser.Parse("type A { b: String }");
 
             var types = new List<ITypeInfo>
             {
@@ -78,11 +78,11 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("type A implements IA { b: String }");
+                Utf8GraphQLParser.Parse("type A implements IA { b: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse("type A implements IB { b : String }");
+                Utf8GraphQLParser.Parse("type A implements IB { b : String }");
             DocumentNode schema_c =
-                Parser.Default.Parse("type A implements IC { b: String }");
+                Utf8GraphQLParser.Parse("type A implements IC { b: String }");
 
             var types = new List<ITypeInfo>
             {
@@ -113,9 +113,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("type A { b: String }");
+                Utf8GraphQLParser.Parse("type A { b: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse("enum A { B C }");
+                Utf8GraphQLParser.Parse("enum A { B C }");
 
             var types = new List<ITypeInfo>
             {

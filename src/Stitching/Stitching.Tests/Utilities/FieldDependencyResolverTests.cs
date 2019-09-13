@@ -25,7 +25,7 @@ namespace HotChocolate.Stitching
                     c.Use(next => context => Task.CompletedTask);
                 });
 
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 FileResource.Open("StitchingQuery.graphql"));
 
             FieldNode selection = query.Definitions

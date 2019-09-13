@@ -1,9 +1,10 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading.Tasks;
+using HotChocolate.Properties;
 using HotChocolate.Resolvers.Expressions.Parameters;
 
 namespace HotChocolate.Resolvers.Expressions
@@ -19,13 +20,12 @@ namespace HotChocolate.Resolvers.Expressions
         private static readonly MethodInfo _resolver =
             typeof(IResolverContext).GetMethod("Resolver");
 
-
         private readonly IResolverParameterCompiler[] _compilers;
         private readonly ParameterExpression _context;
         private readonly MethodInfo _taskResult;
 
         public ResolverCompiler()
-            : this(ParameterCompilerFactory.CreateForResolverContext())
+            : this(ParameterCompilerFactory.Create())
         {
         }
 
@@ -122,10 +122,8 @@ namespace HotChocolate.Resolvers.Expressions
 
                 if (parameterCompiler == null)
                 {
-                    // TODO : Resources
                     throw new InvalidOperationException(
-                        "There is no default resolver parameter " +
-                        "compiler available.");
+                        TypeResources.ResolverCompiler_UnknownParameterType);
                 }
 
                 yield return parameterCompiler.Compile(
@@ -169,23 +167,6 @@ namespace HotChocolate.Resolvers.Expressions
             MethodInfo wrapResultHelper =
                 _wrapResultHelper.MakeGenericMethod(valueType);
             return Expression.Call(wrapResultHelper, taskExpression);
-        }
-    }
-
-    internal static class ExpressionHelper
-    {
-        public static async Task<object> AwaitHelper<T>(Task<T> task)
-        {
-            if (task == null)
-            {
-                return null;
-            }
-            return await task;
-        }
-
-        public static Task<object> WrapResultHelper<T>(T result)
-        {
-            return Task.FromResult<object>(result);
         }
     }
 }

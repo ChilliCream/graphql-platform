@@ -13,9 +13,11 @@ namespace HotChocolate.Types.Descriptors
         , IInputObjectTypeDescriptor<T>
         , IHasClrType
     {
-        public InputObjectTypeDescriptor(IDescriptorContext context)
+        protected internal InputObjectTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {
+            Definition.Fields.BindingBehavior =
+                context.Options.DefaultBindingBehavior;
         }
 
         Type IHasClrType.ClrType => Definition.ClrType;
@@ -63,6 +65,12 @@ namespace HotChocolate.Types.Descriptors
             Definition.Fields.BindingBehavior = behavior;
             return this;
         }
+
+        public IInputObjectTypeDescriptor<T> BindFieldsExplicitly() =>
+            BindFields(BindingBehavior.Explicit);
+
+        public IInputObjectTypeDescriptor<T> BindFieldsImplicitly() =>
+            BindFields(BindingBehavior.Implicit);
 
         public IInputFieldDescriptor Field<TValue>(
             Expression<Func<T, TValue>> property)

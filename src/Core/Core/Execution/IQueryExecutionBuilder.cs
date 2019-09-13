@@ -17,5 +17,9 @@ namespace HotChocolate.Execution
         IQueryExecutionBuilder UseField(FieldMiddleware middleware);
 
         IQueryExecutor Build(ISchema schema);
+
+        void Populate(IServiceCollection services);
+
+        void Populate(IServiceCollection services, bool lazyExecutor);
     }
 }

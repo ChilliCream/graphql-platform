@@ -18,7 +18,8 @@ namespace HotChocolate.Validation
         {
         }
 
-        public IReadOnlyCollection<ISyntaxNode> ViolatingNodes => _violatingNodes;
+        public IReadOnlyCollection<ISyntaxNode> ViolatingNodes =>
+            _violatingNodes;
 
         protected override void VisitField(
             FieldNode field,
@@ -37,7 +38,8 @@ namespace HotChocolate.Validation
             base.VisitDirective(directive, path);
         }
 
-        private void ValidateArguments(ISyntaxNode node, IEnumerable<ArgumentNode> arguments)
+        private void ValidateArguments(ISyntaxNode node,
+            IEnumerable<ArgumentNode> arguments)
         {
             foreach (ArgumentNode argument in arguments)
             {

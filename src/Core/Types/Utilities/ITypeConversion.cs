@@ -1,8 +1,7 @@
-﻿using System;
+using System;
 
 namespace HotChocolate.Utilities
 {
-    // TODO : The name should realy be ITypeConverter .... but what should we call the ITypeConverter?
     public interface ITypeConversion
     {
         bool TryConvert(Type from, Type to,

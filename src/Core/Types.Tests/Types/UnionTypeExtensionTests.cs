@@ -144,6 +144,7 @@ namespace HotChocolate.Types
             protected override void Configure(
                 IObjectTypeDescriptor descriptor)
             {
+                descriptor.Name("Query");
                 descriptor.Field("description").Resolver("bar");
             }
         }
@@ -154,6 +155,7 @@ namespace HotChocolate.Types
             protected override void Configure(
                 IObjectTypeDescriptor descriptor)
             {
+                descriptor.Name("A");
                 descriptor.Field("description").Resolver("bar");
             }
         }
@@ -164,6 +166,7 @@ namespace HotChocolate.Types
             protected override void Configure(
                 IObjectTypeDescriptor descriptor)
             {
+                descriptor.Name("B");
                 descriptor.Field("description").Resolver("bar");
             }
         }

@@ -318,7 +318,7 @@ namespace HotChocolate.Language
             WriteInputValueDefinition(node, writer);
         }
 
-        private void WriteInputValueDefinition(
+        private static void WriteInputValueDefinition(
            InputValueDefinitionNode node,
            DocumentWriter writer)
         {
@@ -373,7 +373,7 @@ namespace HotChocolate.Language
             }
         }
 
-        private void WriteDirectives(
+        private static void WriteDirectives(
             IReadOnlyList<DirectiveNode> directives,
             DocumentWriter writer)
         {

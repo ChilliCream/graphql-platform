@@ -8,6 +8,27 @@ namespace HotChocolate.Language
     {
         private int? _hash;
 
+        public ObjectFieldNode(string name, bool value)
+            : this(null, new NameNode(name), new BooleanValueNode(value))
+        {
+        }
+
+        public ObjectFieldNode(string name, int value)
+            : this(null, new NameNode(name), new IntValueNode(value))
+        {
+        }
+
+        public ObjectFieldNode(string name, double value)
+            : this(null, new NameNode(name), new FloatValueNode(value))
+        {
+        }
+
+        public ObjectFieldNode(string name, string value)
+            : this(null, new NameNode(name), new StringValueNode(value))
+        {
+        }
+
+
         public ObjectFieldNode(string name, IValueNode value)
             : this(null, new NameNode(name), value)
         {
