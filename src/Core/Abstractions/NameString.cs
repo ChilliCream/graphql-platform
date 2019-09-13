@@ -20,7 +20,7 @@ namespace HotChocolate
         /// Initializes a new instance of the <see cref="NameString"/> struct.
         /// </summary>
         /// <param name="value">The actual type name string</param>
-        /// <exception cref="ArgumentException"
+        /// <exception cref="ArgumentException"></exception>
         public NameString(string value)
         {
             if (!NameUtils.IsValidGraphQLName(value))

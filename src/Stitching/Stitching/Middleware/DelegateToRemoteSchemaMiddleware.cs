@@ -423,7 +423,7 @@ namespace HotChocolate.Stitching
                         variableValue.Type.NamedType().Name.Value,
                         out InputObjectType inputType))
                     {
-                        var wrapped = WrapType(inputType, variableValue.Type);
+                        IInputType wrapped = WrapType(inputType, variableValue.Type);
                         value = ObjectVariableRewriter.RewriteVariable(
                             schemaName, wrapped, value);
                     }

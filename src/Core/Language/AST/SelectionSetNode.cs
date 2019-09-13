@@ -6,6 +6,11 @@ namespace HotChocolate.Language
     public sealed class SelectionSetNode
         : ISyntaxNode
     {
+        public SelectionSetNode(IReadOnlyList<ISelectionNode> selections)
+            : this(null, selections)
+        {
+        }
+
         public SelectionSetNode(
             Location location,
             IReadOnlyList<ISelectionNode> selections)

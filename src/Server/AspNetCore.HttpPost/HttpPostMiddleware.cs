@@ -228,11 +228,10 @@ namespace HotChocolate.AspNetCore
                 .ConfigureAwait(false);
         }
 
-        private async Task<IReadOnlyList<IReadOnlyQueryRequest>>
-            BuildBatchRequestAsync(
-                HttpContext context,
-                IServiceProvider services,
-                IReadOnlyList<GraphQLRequest> batch)
+        private async Task<IReadOnlyList<IReadOnlyQueryRequest>> BuildBatchRequestAsync(
+            HttpContext context,
+            IServiceProvider services,
+            IReadOnlyList<GraphQLRequest> batch)
         {
             var queryBatch = new IReadOnlyQueryRequest[batch.Count];
 
@@ -248,12 +247,11 @@ namespace HotChocolate.AspNetCore
             return queryBatch;
         }
 
-        private async Task<IReadOnlyList<IReadOnlyQueryRequest>>
-            BuildBatchRequestAsync(
-                HttpContext context,
-                IServiceProvider services,
-                GraphQLRequest request,
-                IReadOnlyList<string> operationNames)
+        private async Task<IReadOnlyList<IReadOnlyQueryRequest>> BuildBatchRequestAsync(
+            HttpContext context,
+            IServiceProvider services,
+            GraphQLRequest request,
+            IReadOnlyList<string> operationNames)
         {
             var queryBatch = new IReadOnlyQueryRequest[operationNames.Count];
 

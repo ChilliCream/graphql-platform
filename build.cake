@@ -1,8 +1,6 @@
-#addin "nuget:?package=Cake.Sonar&version=1.1.18"
-#addin "nuget:?package=Cake.FileHelpers&version=3.1.0"
-#addin "nuget:?package=Cake.NuGet&version=0.30.0"
-#tool "nuget:?package=MSBuild.SonarQube.Runner.Tool&version=4.3.1"
-
+#addin "nuget:?package=Cake.Sonar&version=1.1.22"
+#addin "nuget:?package=Cake.FileHelpers&version=3.2.1"
+#tool "nuget:?package=MSBuild.SonarQube.Runner.Tool&version=4.6.0"
 
 //////////////////////////////////////////////////////////////////////
 // ARGUMENTS
@@ -113,19 +111,19 @@ Task("Publish")
     .Does(() =>
 {
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "./tools/Build.sln /t:restore /p:configuration=" + configuration }))
+        new ProcessSettings{ Arguments = "./tools/Build.Core.sln /t:restore /p:configuration=" + configuration }))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "./tools/Build.sln /t:build /p:configuration=" + configuration }))
+        new ProcessSettings{ Arguments = "./tools/Build.Core.sln /t:build /p:configuration=" + configuration }))
     {
         process.WaitForExit();
     }
 
     using(var process = StartAndReturnProcess("msbuild",
-        new ProcessSettings{ Arguments = "./tools/Build.sln /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
+        new ProcessSettings{ Arguments = "./tools/Build.Core.sln /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
     {
         process.WaitForExit();
     }
@@ -391,6 +389,34 @@ Task("HC_Stitching_Tests")
     };
 
     foreach(var file in GetFiles("./src/Stitching/**/*.Tests.csproj"))
+    {
+        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
+    }
+});
+
+Task("HC_Client_Tests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = false,
+        NoBuild = false,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/hc_stitching_{i++}\" --blame")
+    };
+
+    foreach(var file in GetFiles("./src/Client/**/*.Tests.csproj"))
     {
         if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
         {

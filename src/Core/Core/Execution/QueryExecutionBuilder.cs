@@ -88,7 +88,6 @@ namespace HotChocolate.Execution
                         () => new QueryExecutor
                         (
                             sp.GetRequiredService<ISchema>(),
-                            sp,
                             Compile(_middlewareComponents),
                             Compile(_fieldMiddlewareComponents)
                         )
@@ -99,7 +98,6 @@ namespace HotChocolate.Execution
                     return new QueryExecutor
                     (
                         sp.GetRequiredService<ISchema>(),
-                        sp,
                         Compile(_middlewareComponents),
                         Compile(_fieldMiddlewareComponents)
                     );

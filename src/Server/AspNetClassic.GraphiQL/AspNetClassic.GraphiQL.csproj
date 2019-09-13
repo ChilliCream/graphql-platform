@@ -11,6 +11,7 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">net461</TargetFramework>
     <PackageId>HotChocolate.AspNetClassic.GraphiQL</PackageId>
     <AssemblyName>HotChocolate.AspNetClassic.GraphiQL</AssemblyName>
     <RootNamespace>HotChocolate.AspNetClassic.GraphiQL</RootNamespace>

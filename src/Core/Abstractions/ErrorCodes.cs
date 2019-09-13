@@ -60,5 +60,11 @@ namespace HotChocolate
         {
             public const string UnknownType = "VALIDATION_UNKNOWN_TYPE";
         }
+
+        internal static class Utilities
+        {
+            public const string UnknownField = "EXEC_VAR_UNKNOWN_FIELD";
+            public const string NoConverter = "EXEC_VAR_NO_CONVERTER";
+        }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Stitching;
 using HotChocolate.Stitching.Delegation;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate.Execution
 {
@@ -92,7 +93,7 @@ namespace HotChocolate.Execution
             }
 
             return builder.Use((services, next) =>
-                new RemoteQueryMiddleware(next, schemaName));
+                new RemoteQueryMiddleware(next, services.GetRequiredService<IErrorHandler>(), schemaName));
         }
 
         public static IQueryExecutionBuilder UsePropagateVariables(

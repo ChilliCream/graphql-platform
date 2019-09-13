@@ -39,7 +39,8 @@ namespace HotChocolate.Execution
             var collector = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default);
+                TypeConversion.Default,
+                Array.Empty<IArgumentCoercionHandler>());
 
             IReadOnlyCollection<FieldSelection> selections =
                 collector.CollectFields(schema.QueryType,
@@ -88,7 +89,8 @@ namespace HotChocolate.Execution
             var collector = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default);
+                TypeConversion.Default,
+                Array.Empty<IArgumentCoercionHandler>());
 
             IReadOnlyCollection<FieldSelection> selections =
                 collector.CollectFields(schema.QueryType,
@@ -128,7 +130,8 @@ namespace HotChocolate.Execution
             var collector = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default);
+                TypeConversion.Default,
+                Array.Empty<IArgumentCoercionHandler>());
 
             IReadOnlyCollection<FieldSelection> selections =
                 collector.CollectFields(schema.QueryType,
@@ -165,7 +168,8 @@ namespace HotChocolate.Execution
             var collector = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default);
+                TypeConversion.Default,
+                Array.Empty<IArgumentCoercionHandler>());
 
             IReadOnlyCollection<FieldSelection> selections =
                 collector.CollectFields(schema.QueryType,
@@ -200,7 +204,10 @@ namespace HotChocolate.Execution
                 new Dictionary<string, object>());
 
             var collector = new FieldCollector(
-                fragments, (f, s) => null, TypeConversion.Default);
+                fragments,
+                (f, s) => null,
+                TypeConversion.Default,
+                Array.Empty<IArgumentCoercionHandler>());
             IReadOnlyCollection<FieldSelection> selections =
                 collector.CollectFields(schema.QueryType,
                     operation.SelectionSet, null);
