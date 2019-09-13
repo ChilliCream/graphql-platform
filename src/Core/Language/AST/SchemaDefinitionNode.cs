@@ -41,7 +41,7 @@ namespace HotChocolate.Language
         }
 
         public SchemaDefinitionNode WithDescription(
-            StringValueNode description)
+            StringValueNode? description)
         {
             return new SchemaDefinitionNode(
                 Location, description, Directives, OperationTypes);

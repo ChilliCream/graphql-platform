@@ -37,7 +37,7 @@ namespace HotChocolate.Language
         }
 
         public InterfaceTypeDefinitionNode WithDescription(
-            StringValueNode description)
+            StringValueNode? description)
         {
             return new InterfaceTypeDefinitionNode(
                 Location, Name, description,

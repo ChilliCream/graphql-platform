@@ -8,7 +8,7 @@ namespace HotChocolate.Language
             ParserContext context)
         {
             SyntaxToken start = context.Current;
-            StringValueNode description = ParseDescription(context);
+            StringValueNode? description = ParseDescription(context);
             context.ExpectDirectiveKeyword();
             context.ExpectAt();
             NameNode name = ParseName(context);

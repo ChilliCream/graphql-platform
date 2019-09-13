@@ -36,7 +36,7 @@ namespace HotChocolate.Language
         }
 
         public UnionTypeDefinitionNode WithDescription(
-            StringValueNode description)
+            StringValueNode? description)
         {
             return new UnionTypeDefinitionNode(
                 Location, Name, description,

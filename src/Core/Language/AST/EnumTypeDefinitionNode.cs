@@ -36,7 +36,7 @@ namespace HotChocolate.Language
         }
 
         public EnumTypeDefinitionNode WithDescription(
-            StringValueNode description)
+            StringValueNode? description)
         {
             return new EnumTypeDefinitionNode(
                 Location, Name, description,

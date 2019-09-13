@@ -230,7 +230,7 @@ namespace HotChocolate.Language
         {
             TokenInfo start = Start();
 
-            StringValueNode description = ParseDescription();
+            StringValueNode? description = ParseDescription();
             NameNode name = ParseName();
             List<InputValueDefinitionNode> arguments =
                 ParseArgumentDefinitions();
@@ -290,7 +290,7 @@ namespace HotChocolate.Language
         {
             TokenInfo start = Start();
 
-            StringValueNode description = ParseDescription();
+            StringValueNode? description = ParseDescription();
             NameNode name = ParseName();
             ExpectColon();
             ITypeNode type = ParseTypeReference();
@@ -468,7 +468,7 @@ namespace HotChocolate.Language
         {
             TokenInfo start = Start();
 
-            StringValueNode description = ParseDescription();
+            StringValueNode? description = ParseDescription();
             NameNode name = ParseName();
             List<DirectiveNode> directives =
                 ParseDirectives(true);

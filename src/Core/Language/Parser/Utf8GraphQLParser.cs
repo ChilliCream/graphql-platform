@@ -218,7 +218,7 @@ namespace HotChocolate.Language
             }
         }
 
-        internal unsafe static void ConvertToBytes(
+        internal unsafe static int ConvertToBytes(
             string text,
             ref Span<byte> buffer)
         {
@@ -230,6 +230,7 @@ namespace HotChocolate.Language
                         stringPtr, text.Length,
                         bytePtr, buffer.Length);
                     buffer = buffer.Slice(0, length);
+                    return length;
                 }
             }
         }

@@ -17,9 +17,7 @@ namespace HotChocolate.Language
         {
         }
 
-        public IntValueNode(
-            Location? location,
-            string value)
+        public IntValueNode(Location? location, string value)
         {
             if (string.IsNullOrEmpty(value))
             {

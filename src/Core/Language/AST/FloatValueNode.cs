@@ -7,19 +7,20 @@ namespace HotChocolate.Language
         : IValueNode<string>
         , IEquatable<FloatValueNode>
     {
+        private Memory<byte> _memory;
+        private string? _value;
+
         public FloatValueNode(double value)
-            : this(null, value.ToString(CultureInfo.InvariantCulture))
+            : this(value.ToString(CultureInfo.InvariantCulture), FloatFormat.FixedPoint)
         {
         }
 
-        public FloatValueNode(string value)
-            : this(null, value)
+        public FloatValueNode(string value, FloatFormat format)
+            : this(null, value, format)
         {
         }
 
-        public FloatValueNode(
-            Location? location,
-            string value)
+        public FloatValueNode(Location? location, string value, FloatFormat format)
         {
             if (string.IsNullOrEmpty(value))
             {
@@ -29,21 +30,43 @@ namespace HotChocolate.Language
             }
 
             Location = location;
-            Value = value;
+            _value = value;
+            Format = format;
+        }
+
+        public FloatValueNode(Location? location, Memory<byte> value, FloatFormat format)
+        {
+            if (value.IsEmpty)
+            {
+                throw new ArgumentNullException(
+                    "The value mustn't be empty.",
+                    nameof(value));
+            }
+
+            Location = location;
+            _memory = value;
+            Format = format;
         }
 
         public NodeKind Kind { get; } = NodeKind.FloatValue;
 
         public Location? Location { get; }
 
-        public string Value { get; }
+        public FloatFormat Format { get; }
+
+        public string Value
+        {
+            get
+            {
+                if (_value is null)
+                {
+                    _value = Utf8GraphQLReader.GetScalarValue(_memory.Span);
+                }
+                return _value;
+            }
+        }
 
         object IValueNode.Value => Value;
-
-        public Span<byte> AsSpan()
-        {
-            throw new NotImplementedException();
-        }
 
         /// <summary>
         /// Determines whether the specified <see cref="FloatValueNode"/>
@@ -58,7 +81,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="FloatValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(FloatValueNode other)
+        public bool Equals(FloatValueNode? other)
         {
             if (other is null)
             {
@@ -86,7 +109,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="FloatValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(IValueNode other)
+        public bool Equals(IValueNode? other)
         {
             if (other is null)
             {
@@ -118,7 +141,7 @@ namespace HotChocolate.Language
         /// <c>true</c> if the specified <see cref="object"/> is equal to the
         /// current <see cref="FloatValueNode"/>; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -163,14 +186,44 @@ namespace HotChocolate.Language
             return Value;
         }
 
+        public Span<byte> AsSpan()
+        {
+            if (_memory.IsEmpty)
+            {
+                int length = checked(_value.Length * 4);
+                Memory<byte> memory = new byte[length];
+                Span<byte> span = memory.Span;
+                int buffered = Utf8GraphQLParser.ConvertToBytes(_value, ref span);
+                _memory = memory.Slice(0, buffered);
+            }
+
+            return _memory.Span;
+        }
+
         public FloatValueNode WithLocation(Location? location)
         {
-            return new FloatValueNode(location, Value);
+            return new FloatValueNode(location, Value, Format);
         }
 
         public FloatValueNode WithValue(string value)
         {
-            return new FloatValueNode(Location, value);
+            return new FloatValueNode(Location, value, Format);
         }
+
+        public FloatValueNode WithValue(Memory<byte> value)
+        {
+            return new FloatValueNode(Location, value, Format);
+        }
+
+        public FloatValueNode WithFormat(FloatFormat format)
+        {
+            return new FloatValueNode(Location, Value, format);
+        }
+    }
+
+    public enum FloatFormat
+    {
+        FixedPoint = 0,
+        Exponential = 1
     }
 }

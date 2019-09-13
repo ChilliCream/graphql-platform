@@ -35,7 +35,7 @@ namespace HotChocolate.Language
         }
 
         public ScalarTypeDefinitionNode WithDescription(
-            StringValueNode description)
+            StringValueNode? description)
         {
             return new ScalarTypeDefinitionNode(
                 Location, Name, description,

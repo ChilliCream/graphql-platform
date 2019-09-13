@@ -86,7 +86,7 @@ namespace HotChocolate.Language
             ParserContext context)
         {
             SyntaxToken start = context.Current;
-            StringValueNode description = ParseDescription(context);
+            StringValueNode? description = ParseDescription(context);
             context.ExpectSchemaKeyword();
 
             List<DirectiveNode> directives =
@@ -143,7 +143,7 @@ namespace HotChocolate.Language
             ParserContext context)
         {
             SyntaxToken start = context.Current;
-            StringValueNode description = ParseDescription(context);
+            StringValueNode? description = ParseDescription(context);
             context.ExpectScalarKeyword();
             NameNode name = ParseName(context);
             List<DirectiveNode> directives =
@@ -170,7 +170,7 @@ namespace HotChocolate.Language
             ParserContext context)
         {
             SyntaxToken start = context.Current;
-            StringValueNode description = ParseDescription(context);
+            StringValueNode? description = ParseDescription(context);
             context.ExpectTypeKeyword();
             NameNode name = ParseName(context);
             List<NamedTypeNode> interfaces =
@@ -248,7 +248,7 @@ namespace HotChocolate.Language
             ParserContext context)
         {
             SyntaxToken start = context.Current;
-            StringValueNode description = ParseDescription(context);
+            StringValueNode? description = ParseDescription(context);
             NameNode name = ParseName(context);
             List<InputValueDefinitionNode> arguments =
                 ParseArgumentDefinitions(context);
@@ -298,7 +298,7 @@ namespace HotChocolate.Language
             ParserContext context)
         {
             SyntaxToken start = context.Current;
-            StringValueNode description = ParseDescription(context);
+            StringValueNode? description = ParseDescription(context);
             NameNode name = ParseName(context);
             context.ExpectColon();
             ITypeNode type = ParseTypeReference(context);
@@ -333,7 +333,7 @@ namespace HotChocolate.Language
             ParserContext context)
         {
             SyntaxToken start = context.Current;
-            StringValueNode description = ParseDescription(context);
+            StringValueNode? description = ParseDescription(context);
             context.ExpectInterfaceKeyword();
             NameNode name = ParseName(context);
             List<DirectiveNode> directives =
@@ -363,7 +363,7 @@ namespace HotChocolate.Language
             ParserContext context)
         {
             SyntaxToken start = context.Current;
-            StringValueNode description = ParseDescription(context);
+            StringValueNode? description = ParseDescription(context);
             context.ExpectUnionKeyword();
             NameNode name = ParseName(context);
             List<DirectiveNode> directives =
@@ -418,7 +418,7 @@ namespace HotChocolate.Language
             ParserContext context)
         {
             SyntaxToken start = context.Current;
-            StringValueNode description = ParseDescription(context);
+            StringValueNode? description = ParseDescription(context);
             context.ExpectEnumKeyword();
             NameNode name = ParseName(context);
             List<DirectiveNode> directives =
@@ -467,7 +467,7 @@ namespace HotChocolate.Language
             ParserContext context)
         {
             SyntaxToken start = context.Current;
-            StringValueNode description = ParseDescription(context);
+            StringValueNode? description = ParseDescription(context);
             NameNode name = ParseName(context);
             List<DirectiveNode> directives =
                 ParseDirectives(context, true);
@@ -486,7 +486,7 @@ namespace HotChocolate.Language
             ParserContext context)
         {
             SyntaxToken start = context.Current;
-            StringValueNode description = ParseDescription(context);
+            StringValueNode? description = ParseDescription(context);
             context.ExpectInputKeyword();
             NameNode name = ParseName(context);
             List<DirectiveNode> directives =

@@ -44,7 +44,8 @@ namespace HotChocolate.Language
                 Arguments, Type, Directives);
         }
 
-        public FieldDefinitionNode WithDescription(StringValueNode description)
+        public FieldDefinitionNode WithDescription(
+            StringValueNode? description)
         {
             return new FieldDefinitionNode(
                 Location, Name, description,

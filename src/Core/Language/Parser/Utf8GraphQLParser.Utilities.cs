@@ -185,7 +185,7 @@ namespace HotChocolate.Language
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private StringValueNode TakeDescription()
         {
-            StringValueNode description = _description;
+            StringValueNode? description = _description;
             _description = null;
             return description;
         }

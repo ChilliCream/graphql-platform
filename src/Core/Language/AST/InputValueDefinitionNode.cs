@@ -43,7 +43,7 @@ namespace HotChocolate.Language
         }
 
         public InputValueDefinitionNode WithDescription(
-            StringValueNode description)
+            StringValueNode? description)
         {
             return new InputValueDefinitionNode(
                 Location, Name, description,

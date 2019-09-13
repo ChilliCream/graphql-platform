@@ -12,7 +12,7 @@ namespace HotChocolate.Language
         {
             TokenInfo start = Start();
 
-            StringValueNode description = ParseDescription();
+            StringValueNode? description = ParseDescription();
 
             ExpectDirectiveKeyword();
             ExpectAt();
