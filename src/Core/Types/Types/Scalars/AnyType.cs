@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using HotChocolate.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
@@ -7,16 +9,26 @@ namespace HotChocolate.Types
     public sealed class AnyType
         : ScalarType
     {
-        private readonly ObjectValueToDictionaryConverter _converter =
+        private readonly ObjectValueToDictionaryConverter _objectValueToDictConverter =
             new ObjectValueToDictionaryConverter();
+        private ObjectToDictionaryConverter _objectToDictConverter;
+        private ITypeConversion _converter;
 
         public AnyType()
             : base("Any")
         {
-
         }
 
         public override Type ClrType => typeof(object);
+
+        protected override void OnCompleteType(
+            ICompletionContext context,
+            IDictionary<string, object> contextData)
+        {
+            _converter = context.Services.GetTypeConversion();
+            _objectToDictConverter = new ObjectToDictionaryConverter(_converter);
+            base.OnCompleteType(context, contextData);
+        }
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
@@ -52,10 +64,10 @@ namespace HotChocolate.Types
                     return bvn.Value;
 
                 case ListValueNode lvn:
-                    return _converter.Convert(lvn);
+                    return _objectValueToDictConverter.Convert(lvn);
 
                 case ObjectValueNode ovn:
-                    return _converter.Convert(ovn);
+                    return _objectValueToDictConverter.Convert(ovn);
 
                 default:
                     return false;
@@ -63,6 +75,15 @@ namespace HotChocolate.Types
         }
 
         public override IValueNode ParseValue(object value)
+        {
+            if (value is null)
+            {
+                return NullValueNode.Default;
+            }
+            return ParseValue(value, new HashSet<object>());
+        }
+
+        private IValueNode ParseValue(object value, ISet<object> set)
         {
             if (value is null)
             {
@@ -95,18 +116,56 @@ namespace HotChocolate.Types
                     return new BooleanValueNode(b);
             }
 
-            throw new  NotImplementedException();
+            Type type = value.GetType();
+
+            if (type.IsValueType && _converter.TryConvert(
+                type, typeof(string), value, out object converted)
+                && converted is string c)
+            {
+                return new StringValueNode(c);
+            }
+
+            if (set.Contains(value))
+            {
+                if (value is IReadOnlyList<object> list)
+                {
+                    var valueList = new List<IValueNode>();
+                    foreach (object element in list)
+                    {
+                        valueList.Add(ParseValue(element, set));
+                    }
+                    return new ListValueNode(valueList);
+                }
+
+                if (value is IReadOnlyDictionary<string, object> dict)
+                {
+                    var fields = new List<ObjectFieldNode>();
+                    foreach (KeyValuePair<string, object> field in dict)
+                    {
+                        fields.Add(new ObjectFieldNode(
+                            field.Key,
+                            ParseValue(field.Value, set)));
+                    }
+                    return new ObjectValueNode(fields);
+                }
+
+                return ParseValue(_objectToDictConverter.Convert(value), set);
+            }
+
+            throw new ScalarSerializationException(
+                "Cycle detected in graph detected.");
         }
 
 
         public override object Serialize(object value)
         {
-            throw new NotImplementedException();
+            return _objectToDictConverter.Convert(value);
         }
 
         public override bool TryDeserialize(object serialized, out object value)
         {
-            throw new NotImplementedException();
+            value = serialized;
+            return true;
         }
     }
 }
