@@ -66,7 +66,8 @@ namespace HotChocolate.Utilities
             {
                 setValue(s);
             }
-            else if (obj is ICollection list)
+            else if (!typeof(IReadOnlyDictionary<string, object>).IsAssignableFrom(type)
+                && obj is ICollection list)
             {
                 VisitList(list, setValue, processed);
             }
@@ -86,12 +87,23 @@ namespace HotChocolate.Utilities
                 var dict = new Dictionary<string, object>();
                 setValue(dict);
 
-                foreach (PropertyInfo property in GetProperties(obj))
+                if (obj is IReadOnlyDictionary<string, object> d)
                 {
-                    string name = property.GetGraphQLName();
-                    object value = property.GetValue(obj);
-                    Action<object> setField = v => dict[name] = v;
-                    VisitValue(value, setField, processed);
+                    foreach (KeyValuePair<string, object> item in d)
+                    {
+                        Action<object> setField = v => dict[item.Key] = v;
+                        VisitValue(item.Value, setField, processed);
+                    }
+                }
+                else
+                {
+                    foreach (PropertyInfo property in GetProperties(obj))
+                    {
+                        string name = property.GetGraphQLName();
+                        object value = property.GetValue(obj);
+                        Action<object> setField = v => dict[name] = v;
+                        VisitValue(value, setField, processed);
+                    }
                 }
             }
         }

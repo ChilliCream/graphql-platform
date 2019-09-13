@@ -177,8 +177,6 @@ namespace HotChocolate.Types
                 case double _:
                 case decimal _:
                 case bool _:
-                case IReadOnlyDictionary<string, object> _:
-                case IReadOnlyList<object> _:
                     return value;
 
                 default:
