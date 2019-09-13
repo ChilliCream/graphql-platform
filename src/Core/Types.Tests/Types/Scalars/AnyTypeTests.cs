@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
+using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -439,11 +440,11 @@ namespace HotChocolate.Types
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-             IExecutionResult result = await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                    .SetVariableValue("foo", "bar")
-                    .Create());
+            IExecutionResult result = await executor.ExecuteAsync(
+               QueryRequestBuilder.New()
+                   .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+                   .SetVariableValue("foo", "bar")
+                   .Create());
 
             // assert
             result.ToJson().MatchSnapshot();
@@ -465,11 +466,11 @@ namespace HotChocolate.Types
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-             IExecutionResult result = await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                    .SetVariableValue("foo", 123)
-                    .Create());
+            IExecutionResult result = await executor.ExecuteAsync(
+               QueryRequestBuilder.New()
+                   .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+                   .SetVariableValue("foo", 123)
+                   .Create());
 
             // assert
             result.ToJson().MatchSnapshot();
@@ -491,11 +492,11 @@ namespace HotChocolate.Types
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-             IExecutionResult result = await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                    .SetVariableValue("foo", 1.2)
-                    .Create());
+            IExecutionResult result = await executor.ExecuteAsync(
+               QueryRequestBuilder.New()
+                   .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+                   .SetVariableValue("foo", 1.2)
+                   .Create());
 
             // assert
             result.ToJson().MatchSnapshot();
@@ -517,11 +518,11 @@ namespace HotChocolate.Types
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-             IExecutionResult result = await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                    .SetVariableValue("foo", false)
-                    .Create());
+            IExecutionResult result = await executor.ExecuteAsync(
+               QueryRequestBuilder.New()
+                   .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+                   .SetVariableValue("foo", false)
+                   .Create());
 
             // assert
             result.ToJson().MatchSnapshot();
@@ -543,14 +544,216 @@ namespace HotChocolate.Types
             IQueryExecutor executor = schema.MakeExecutable();
 
             // act
-             IExecutionResult result = await executor.ExecuteAsync(
-                QueryRequestBuilder.New()
-                    .SetQuery("query ($foo: Any) { foo(input: $foo) }")
-                    .SetVariableValue("foo", null)
-                    .Create());
+            IExecutionResult result = await executor.ExecuteAsync(
+               QueryRequestBuilder.New()
+                   .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+                   .SetVariableValue("foo", null)
+                   .Create());
 
             // assert
             result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public void IsInstanceOfType_EnumValue_False()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            // act
+            bool result = type.IsInstanceOfType(new EnumValueNode("foo"));
+
+            // assert
+            Assert.False(result);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_ObjectValue_True()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            // act
+            bool result = type.IsInstanceOfType(
+                new ObjectValueNode(
+                    Array.Empty<ObjectFieldNode>()));
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_ListValue_False()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            // act
+            bool result = type.IsInstanceOfType(
+                new ListValueNode(
+                    Array.Empty<IValueNode>()));
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_StringValue_False()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            // act
+            bool result = type.IsInstanceOfType(new StringValueNode("foo"));
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_IntValue_False()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            // act
+            bool result = type.IsInstanceOfType(new IntValueNode("123"));
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_FloatValue_False()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            // act
+            bool result = type.IsInstanceOfType(new FloatValueNode("1.2"));
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_BooleanValue_False()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            // act
+            bool result = type.IsInstanceOfType(new BooleanValueNode(true));
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_NullValue_True()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            // act
+            bool result = type.IsInstanceOfType(NullValueNode.Default);
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
+        public void IsInstanceOfType_Null_ArgumentNullException()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<object>("input")))
+                .Create();
+
+            AnyType type = schema.GetType<AnyType>("Any");
+
+            // act
+            Action action = () => type.IsInstanceOfType(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
         }
 
         public class Foo
