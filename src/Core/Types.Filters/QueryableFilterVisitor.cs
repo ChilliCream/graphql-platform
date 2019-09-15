@@ -106,9 +106,9 @@ namespace HotChocolate.Types.Filters
             if (Operations.Peek() is FilterOperationField field)
             {
                 // TODO : needed only if we allow objects
-                // Instance.Push(Expression.Property(
-                //     Instance.Peek(),
-                //     field.Operation.Property));
+                 Instance.Push(Expression.Property(
+                     Instance.Peek(),
+                     field.Operation.Property));
 
                 for (int i = _opHandlers.Count - 1; i >= 0; i--)
                 {
@@ -137,10 +137,10 @@ namespace HotChocolate.Types.Filters
             IReadOnlyList<ISyntaxNode> ancestors)
         {
             // TODO : needed only if we allow objects
-            // if (Operations.Peek() is FilterOperationField)
-            // {
-            //     Instance.Pop();
-            // }
+            if (Operations.Peek() is FilterOperationField)
+            {
+                Instance.Pop();
+            }
             return base.Leave(node, parent, path, ancestors);
         }
 
