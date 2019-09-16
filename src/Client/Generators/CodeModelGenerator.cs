@@ -19,6 +19,8 @@ namespace StrawberryShake.Generators
             new Dictionary<OperationDefinitionNode, ICodeDescriptor>();
         private readonly Dictionary<FieldNode, ICodeDescriptor> _fieldTypes =
             new Dictionary<FieldNode, ICodeDescriptor>();
+        private readonly Dictionary<ISyntaxNode, string> _interfaceNames =
+            new Dictionary<ISyntaxNode, string>();
         private FieldCollector _fieldCollector;
         private readonly ISchema _schema;
         private readonly IQueryDescriptor _query;
@@ -26,7 +28,6 @@ namespace StrawberryShake.Generators
         private readonly DocumentNode _document;
         private readonly string _clientName;
         private readonly string _namespace;
-
 
         public CodeModelGenerator(
             ISchema schema,
@@ -333,7 +334,7 @@ namespace StrawberryShake.Generators
                 string name = CreateName(
                     fieldSelection,
                     unionType,
-                    Utilities.NameUtils.GetInterfaceName);
+                    GetInterfaceName);
                 unionInterface = new InterfaceDescriptor(
                     name, _namespace, unionType);
             }
@@ -345,7 +346,7 @@ namespace StrawberryShake.Generators
 
             var resultParserTypes = new List<ResultParserTypeDescriptor>();
 
-            foreach (var typeCase in typeCases)
+            foreach (var typeCase in Normalize(typeCases))
             {
                 string className;
                 string interfaceName;
@@ -361,7 +362,7 @@ namespace StrawberryShake.Generators
                 else
                 {
                     className = CreateName(fragment.Fragment.Name);
-                    interfaceName = CreateName(GetInterfaceName(fragment.Fragment.Name));
+                    interfaceName = GetOrCreateInterfaceName(fragment);
                 }
 
                 var modelInterfaces = new List<IInterfaceDescriptor>();
@@ -439,7 +440,7 @@ namespace StrawberryShake.Generators
 
             var resultParserTypes = new List<ResultParserTypeDescriptor>();
 
-            foreach (FieldCollectionResult typeCase in typeCases)
+            foreach (FieldCollectionResult typeCase in Normalize(typeCases))
             {
                 GenerateInterfaceTypeCaseModel(
                     typeCase, returnType, resultParserTypes, path);
@@ -649,12 +650,8 @@ namespace StrawberryShake.Generators
                     path);
             }
 
-            string typeName = CreateName(
-                Utilities.NameUtils.GetInterfaceName(
-                    fragmentNode.Fragment.Name));
-
             return new InterfaceDescriptor(
-                typeName,
+                GetOrCreateInterfaceName(fragmentNode),
                 _namespace,
                 fragmentNode.Fragment.TypeCondition,
                 fieldDescriptors,
@@ -705,7 +702,7 @@ namespace StrawberryShake.Generators
                     string n = name + i;
                     if (_usedNames.Add(n))
                     {
-                        return name;
+                        return n;
                     }
                 }
 
@@ -784,6 +781,34 @@ namespace StrawberryShake.Generators
                     }
                 }
             }
+        }
+
+        private string GetOrCreateInterfaceName(IFragmentNode fragmentNode)
+        {
+            if (!_interfaceNames.TryGetValue(
+                fragmentNode.Fragment.SelectionSet,
+                out string? typeName))
+            {
+                typeName = CreateName(GetInterfaceName(
+                    fragmentNode.Fragment.Name));
+
+                _interfaceNames.Add(
+                    fragmentNode.Fragment.SelectionSet,
+                    typeName);
+            }
+            return typeName;
+        }
+
+        private static IReadOnlyCollection<FieldCollectionResult> Normalize(
+            IReadOnlyCollection<FieldCollectionResult> typeCases)
+        {
+            FieldCollectionResult first = typeCases.First();
+            if (typeCases.Count == 1
+                || typeCases.All(t => t.SelectionSet == first.SelectionSet))
+            {
+                return new List<FieldCollectionResult> { first };
+            }
+            return typeCases;
         }
     }
 }

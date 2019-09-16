@@ -8,10 +8,19 @@ namespace StrawberryShake.Client
     public class Droid
         : IDroid
     {
-        public double? Height { get; set; }
+        public Droid(
+            double? height, 
+            string? name, 
+            IFriend0 friends)
+        {
+            height = Height;
+            name = Name;
+            friends = Friends;
+        }
+        public double? Height { get; }
 
-        public string? Name { get; set; }
+        public string? Name { get; }
 
-        public IFriend Friends { get; set; }
+        public IFriend0 Friends { get; }
     }
 }

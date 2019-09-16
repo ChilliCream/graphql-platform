@@ -5,8 +5,8 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    public interface IHuman
-        : IHero
+    public interface IDroid1
+        : IHasName
     {
     }
 }

@@ -5,10 +5,10 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    public class Friend
-        : IFriend
+    public class Friend0
+        : IFriend0
     {
-        public Friend(
+        public Friend0(
             IReadOnlyList<IHasName> nodes)
         {
             nodes = Nodes;

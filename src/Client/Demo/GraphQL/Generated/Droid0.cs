@@ -5,14 +5,14 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    public class GetHero
-        : IGetHero
+    public class Droid0
+        : IDroid0
     {
-        public GetHero(
-            IHero hero)
+        public Droid0(
+            string? name)
         {
-            hero = Hero;
+            name = Name;
         }
-        public IHero Hero { get; }
+        public string? Name { get; }
     }
 }

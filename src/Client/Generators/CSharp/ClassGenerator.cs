@@ -20,27 +20,26 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteAsync(descriptor.Name).ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
 
-            writer.IncreaseIndent();
-
-            for (int i = 0; i < descriptor.Implements.Count; i++)
+            using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentAsync().ConfigureAwait(false);
-
-                if (i == 0)
+                for (int i = 0; i < descriptor.Implements.Count; i++)
                 {
-                    await writer.WriteAsync(':').ConfigureAwait(false);
-                }
-                else
-                {
-                    await writer.WriteAsync(',').ConfigureAwait(false);
-                }
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
 
-                await writer.WriteSpaceAsync().ConfigureAwait(false);
-                await writer.WriteAsync(descriptor.Implements[i].Name).ConfigureAwait(false);
-                await writer.WriteLineAsync().ConfigureAwait(false);
+                    if (i == 0)
+                    {
+                        await writer.WriteAsync(':').ConfigureAwait(false);
+                    }
+                    else
+                    {
+                        await writer.WriteAsync(',').ConfigureAwait(false);
+                    }
+
+                    await writer.WriteSpaceAsync().ConfigureAwait(false);
+                    await writer.WriteAsync(descriptor.Implements[i].Name).ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
+                }
             }
-
-            writer.DecreaseIndent();
 
             await writer.WriteIndentAsync().ConfigureAwait(false);
             await writer.WriteAsync("{").ConfigureAwait(false);
@@ -48,6 +47,8 @@ namespace StrawberryShake.Generators.CSharp
 
             using (writer.IncreaseIndent())
             {
+                await WriteConstructorAsync(writer, descriptor, typeLookup);
+
                 for (int i = 0; i < descriptor.Fields.Count; i++)
                 {
                     IFieldDescriptor fieldDescriptor = descriptor.Fields[i];
@@ -82,12 +83,66 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
-        protected override async Task WriteConstructorAsync(
-           CodeWriter writer,
-           IClassDescriptor descriptor,
-           ITypeLookup typeLookup)
+        private async Task WriteConstructorAsync(
+            CodeWriter writer,
+            IClassDescriptor descriptor,
+            ITypeLookup typeLookup)
         {
+            await writer.WriteIndentedLineAsync("public {0}(", descriptor.Name);
 
+            using (writer.IncreaseIndent())
+            {
+                for (int i = 0; i < descriptor.Fields.Count; i++)
+                {
+                    IFieldDescriptor fieldDescriptor = descriptor.Fields[i];
+
+                    string typeName = typeLookup.GetTypeName(
+                        fieldDescriptor.Type,
+                        fieldDescriptor.Selection,
+                        true);
+
+                    string parameterName = GetFieldName(
+                        fieldDescriptor.ResponseName);
+
+                    await writer.WriteIndentAsync();
+                    await writer.WriteAsync(string.Format(
+                        "{0} {1}", typeName, parameterName));
+
+                    if (i < descriptor.Fields.Count - 1)
+                    {
+                        await writer.WriteAsync(", ");
+                    }
+                    else
+                    {
+                        await writer.WriteAsync(")");
+                    }
+
+                    await writer.WriteLineAsync();
+                }
+            }
+
+            await writer.WriteIndentedLineAsync("{");
+
+            using (writer.IncreaseIndent())
+            {
+                for (int i = 0; i < descriptor.Fields.Count; i++)
+                {
+                    IFieldDescriptor fieldDescriptor = descriptor.Fields[i];
+
+                    string parameterName = GetFieldName(
+                        fieldDescriptor.ResponseName);
+
+                    string propetyName = GetPropertyName(
+                        fieldDescriptor.ResponseName);
+
+                    await writer.WriteIndentedLineAsync(
+                        "{0} = {1};",
+                        parameterName,
+                        propetyName);
+                }
+            }
+
+            await writer.WriteIndentedLineAsync("}");
         }
     }
 }

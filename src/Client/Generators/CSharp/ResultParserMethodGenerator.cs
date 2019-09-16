@@ -350,6 +350,7 @@ namespace StrawberryShake.Generators.CSharp
                 possibleType,
                 jsonElement,
                 typeLookup);
+            await writer.WriteIndentedLineAsync("break;");
         }
 
         private async Task WriteCreateObjectAsync(
