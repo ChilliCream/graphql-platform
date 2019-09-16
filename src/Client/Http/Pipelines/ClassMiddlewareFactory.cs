@@ -50,10 +50,10 @@ namespace StrawberryShake.Http.Pipelines
             ParameterExpression context =
                 Expression.Parameter(typeof(IHttpOperationContext));
             ParameterExpression instance =
-                Expression.Parameter(classMiddlewareType);
+                Expression.Parameter(typeof(object));
 
             MethodCallExpression invokeMiddleware = Expression.Call(
-                instance,
+                Expression.Convert(instance, classMiddlewareType),
                 invokeMethod,
                 CreateParameters(invokeMethod, services, context));
 

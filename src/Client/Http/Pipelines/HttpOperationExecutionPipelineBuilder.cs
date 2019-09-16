@@ -58,6 +58,9 @@ namespace StrawberryShake.Http.Pipelines
             return next;
         }
 
+        public static HttpOperationExecutionPipelineBuilder New() =>
+            new HttpOperationExecutionPipelineBuilder();
+
         private static Task ThrowExceptionMiddleware(
             IHttpOperationContext context)
         {
