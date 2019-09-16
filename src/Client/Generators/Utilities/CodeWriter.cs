@@ -73,6 +73,25 @@ namespace StrawberryShake.Generators.Utilities
                 TaskCreationOptions.DenyChildAttach,
                 TaskScheduler.Default);
 
+        public Task WriteIndentedLineAsync(string format, params object?[] args) =>
+            Task.Factory.StartNew(
+                () =>
+                {
+                    WriteIndent();
+                    if (args.Length == 0)
+                    {
+                        Write(format);
+                    }
+                    else
+                    {
+                        Write(format, args);
+                    }
+                    WriteLine();
+                },
+                CancellationToken.None,
+                TaskCreationOptions.DenyChildAttach,
+                TaskScheduler.Default);
+
         public void WriteSpace() => Write(' ');
 
         public Task WriteSpaceAsync() =>

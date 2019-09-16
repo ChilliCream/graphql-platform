@@ -72,7 +72,7 @@ namespace StrawberryShake.Generators.CSharp
                     await writer.WriteSpaceAsync().ConfigureAwait(false);
                     await writer.WriteAsync(propertyName).ConfigureAwait(false);
                     await writer.WriteSpaceAsync().ConfigureAwait(false);
-                    await writer.WriteAsync("{ get; set; }").ConfigureAwait(false);
+                    await writer.WriteAsync("{ get; }").ConfigureAwait(false);
                     await writer.WriteLineAsync().ConfigureAwait(false);
                 }
             }
@@ -80,6 +80,14 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteIndentAsync().ConfigureAwait(false);
             await writer.WriteAsync("}").ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
+        }
+
+        protected override async Task WriteConstructorAsync(
+           CodeWriter writer,
+           IClassDescriptor descriptor,
+           ITypeLookup typeLookup)
+        {
+
         }
     }
 }
