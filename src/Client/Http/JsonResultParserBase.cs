@@ -43,6 +43,8 @@ namespace StrawberryShake.Http
 
         private static readonly byte[] _typename = new byte[]
         {
+            (byte)'_',
+            (byte)'_',
             (byte)'t',
             (byte)'y',
             (byte)'p',
@@ -81,24 +83,28 @@ namespace StrawberryShake.Http
             using (JsonDocument document = await JsonDocument.ParseAsync(stream)
                 .ConfigureAwait(false))
             {
+                var builder = OperationResultBuilder.New<T>();
+
                 if (document.RootElement.TryGetProperty(
                     _data, out JsonElement data))
                 {
-                    ParserData(data);
+                    builder.SetData(ParserData(data));
                 }
 
                 if (document.RootElement.TryGetProperty(
                     _error, out JsonElement errors))
                 {
+                    // TODO : add error deserialization
                 }
 
                 if (document.RootElement.TryGetProperty(
                     _extensions, out JsonElement extensions))
                 {
+                    // TODO : add extension deserialization
                 }
-            }
 
-            throw new Exception();
+                return builder.Build();
+            }
         }
 
         protected abstract T ParserData(JsonElement parent);

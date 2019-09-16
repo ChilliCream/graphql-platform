@@ -25,7 +25,7 @@ namespace StrawberryShake.Client
             }
             _floatSerializer = serializer;
 
-            if (!map.TryGetValue("String", out  serializer))
+            if (!map.TryGetValue("String", out serializer))
             {
                 throw new ArgumentException(
                     "There is no serializer specified for `String`.",
@@ -96,41 +96,35 @@ namespace StrawberryShake.Client
                 return null;
             }
 
-            string type = obj.GetProperty(TypeName).GetString();
+            int objLength = obj.GetArrayLength();
+            var list = new IHasName[objLength];
 
-            if (string.Equals(type, "Droid", StringComparison.Ordinal))
+            for (int objIndex = 0; objIndex < objLength; objIndex++)
             {
-                int objLength = obj.GetArrayLength();
-                var list = new IHasName[objLength];
+                JsonElement element = obj[objIndex];
 
-                for (int objIndex = 0; objIndex < objLength; objIndex++)
+                string type = element.GetProperty(TypeName).GetString();
+
+                switch (type)
                 {
-                    JsonElement element = obj[objIndex];
-                    var entity = new Droid();
-                    entity.Name = DeserializeNullableString(element, "name");
-                    list[objIndex] = entity;
-                }
+                    case "Droid":
+                        var droid = new Droid();
+                        droid.Name = DeserializeNullableString(element, "name");
+                        list[objIndex] = droid;
+                        break;
 
-                return list;
+                    case "Human":
+                        var human = new Human();
+                        human.Name = DeserializeNullableString(element, "name");
+                        list[objIndex] = human;
+                        break;
+
+                    default:
+                        throw new UnknownSchemaTypeException(type);
+                }
             }
 
-            if (string.Equals(type, "Human", StringComparison.Ordinal))
-            {
-                int objLength = obj.GetArrayLength();
-                var list = new IHasName[objLength];
-
-                for (int objIndex = 0; objIndex < objLength; objIndex++)
-                {
-                    JsonElement element = obj[objIndex];
-                    var entity = new Human();
-                    entity.Name = DeserializeNullableString(element, "name");
-                    list[objIndex] = entity;
-                }
-
-                return list;
-            }
-
-            throw new UnknownSchemaTypeException(type);
+            return list;
         }
 
         private double? DeserializeNullableFloat(JsonElement obj, string fieldName)

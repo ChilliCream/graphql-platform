@@ -20,7 +20,7 @@ namespace StrawberryShake.Generators.Utilities
             {
                 List<ISelectionNode> selections = current.Selections.ToList();
 
-                selections.Add(new FieldNode(
+                selections.Insert(0, new FieldNode(
                     null,
                     new NameNode(_typeName),
                     null,
