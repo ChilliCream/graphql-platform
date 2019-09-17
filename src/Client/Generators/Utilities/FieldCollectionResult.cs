@@ -5,9 +5,9 @@ using HotChocolate.Types;
 
 namespace StrawberryShake.Generators.Utilities
 {
-    internal sealed class FieldCollectionResult
+    internal sealed class FieldSelectionInfo
     {
-        public FieldCollectionResult(
+        public FieldSelectionInfo(
             INamedType type,
             SelectionSetNode selectionSet,
             IReadOnlyList<FieldSelection> fields,
@@ -26,5 +26,11 @@ namespace StrawberryShake.Generators.Utilities
         public IReadOnlyList<FieldSelection> Fields { get; }
 
         public IReadOnlyList<IFragmentNode> Fragments { get; }
+    }
+
+    internal sealed class FieldSelectionInfo1
+    {
+        public FieldSelectionInfo ReturnType { get; }
+        public IReadOnlyList<FieldSelectionInfo> PossibleSelections { get; }
     }
 }

@@ -215,7 +215,7 @@ namespace StrawberryShake.Generators
            Path path,
            Queue<FieldSelection> backlog)
         {
-            FieldCollectionResult typeCase = _fieldCollector.CollectFields(
+            FieldSelectionInfo typeCase = _fieldCollector.CollectFields(
                 operationType,
                 operation.SelectionSet,
                 path);
@@ -246,11 +246,11 @@ namespace StrawberryShake.Generators
                     ? new ObjectType[] { ot }
                     : _schema.GetPossibleTypes(namedType);
 
-            var typeCases = new Dictionary<ObjectType, FieldCollectionResult>();
+            var typeCases = new Dictionary<ObjectType, FieldSelectionInfo>();
 
             foreach (ObjectType objectType in possibleTypes)
             {
-                FieldCollectionResult typeCase = _fieldCollector.CollectFields(
+                FieldSelectionInfo typeCase = _fieldCollector.CollectFields(
                     objectType,
                     fieldSelection.SelectionSet,
                     path);
@@ -307,11 +307,11 @@ namespace StrawberryShake.Generators
             UnionType unionType,
             IType fieldType,
             FieldNode fieldSelection,
-            IReadOnlyCollection<FieldCollectionResult> typeCases,
+            IReadOnlyCollection<FieldSelectionInfo> typeCases,
             Path path)
         {
             IFragmentNode? returnType = null;
-            FieldCollectionResult result = typeCases.First();
+            FieldSelectionInfo result = typeCases.First();
             IReadOnlyList<IFragmentNode> fragments = result.Fragments;
 
             while (fragments.Count == 1)
@@ -412,10 +412,10 @@ namespace StrawberryShake.Generators
             InterfaceType interfaceType,
             IType fieldType,
             FieldNode fieldSelection,
-            IReadOnlyCollection<FieldCollectionResult> typeCases,
+            IReadOnlyCollection<FieldSelectionInfo> typeCases,
             Path path)
         {
-            FieldCollectionResult firstCase = typeCases.First();
+            FieldSelectionInfo firstCase = typeCases.First();
 
             IFragmentNode? returnType = HoistFragment(
                 interfaceType, firstCase.SelectionSet, firstCase.Fragments);
@@ -440,7 +440,7 @@ namespace StrawberryShake.Generators
 
             var resultParserTypes = new List<ResultParserTypeDescriptor>();
 
-            foreach (FieldCollectionResult typeCase in Normalize(typeCases))
+            foreach (FieldSelectionInfo typeCase in Normalize(typeCases))
             {
                 GenerateInterfaceTypeCaseModel(
                     typeCase, returnType, resultParserTypes, path);
@@ -462,7 +462,7 @@ namespace StrawberryShake.Generators
         }
 
         private void GenerateInterfaceTypeCaseModel(
-            FieldCollectionResult typeCase,
+            FieldSelectionInfo typeCase,
             IFragmentNode returnType,
             ICollection<ResultParserTypeDescriptor> resultParser,
             Path path)
@@ -516,7 +516,7 @@ namespace StrawberryShake.Generators
             ObjectType objectType,
             IType fieldType,
             WithDirectives fieldOrOperation,
-            FieldCollectionResult typeCase,
+            FieldSelectionInfo typeCase,
             Path path)
         {
             IFragmentNode? returnType = HoistFragment(
@@ -799,16 +799,18 @@ namespace StrawberryShake.Generators
             return typeName;
         }
 
-        private static IReadOnlyCollection<FieldCollectionResult> Normalize(
-            IReadOnlyCollection<FieldCollectionResult> typeCases)
+        private static IReadOnlyCollection<FieldSelectionInfo> Normalize(
+            IReadOnlyCollection<FieldSelectionInfo> typeCases)
         {
-            FieldCollectionResult first = typeCases.First();
+            FieldSelectionInfo first = typeCases.First();
             if (typeCases.Count == 1
                 || typeCases.All(t => t.SelectionSet == first.SelectionSet))
             {
-                return new List<FieldCollectionResult> { first };
+                return new List<FieldSelectionInfo> { first };
             }
             return typeCases;
         }
     }
+
+
 }

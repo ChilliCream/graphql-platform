@@ -12,15 +12,37 @@ namespace StrawberryShake.Generators.Utilities
     internal sealed class FieldCollector
     {
         private const string _argumentProperty = "argument";
+        private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
 
-        public FieldCollector(FragmentCollection fragments)
+        public FieldCollector(ISchema schema, FragmentCollection fragments)
         {
+            _schema = schema
+                ?? throw new ArgumentNullException(nameof(schema));
             _fragments = fragments
                 ?? throw new ArgumentNullException(nameof(fragments));
         }
 
-        public FieldCollectionResult CollectFields(
+        public FieldSelectionInfo1 CollectFields(
+            INamedOutputType type,
+            SelectionSetNode selectionSet,
+            Path path)
+        {
+            FieldSelectionInfo result = CollectFields(type, selectionSet, path);
+
+
+            if (type.IsAbstractType())
+            {
+                foreach (ObjectType objectType in _schema.GetPossibleTypes(type))
+                {
+
+                }
+            }
+
+
+        }
+
+        private FieldSelectionInfo CollectFieldsInternal(
             INamedOutputType type,
             SelectionSetNode selectionSet,
             Path path)
@@ -36,14 +58,15 @@ namespace StrawberryShake.Generators.Utilities
             }
 
             var fields = new OrderedDictionary<string, FieldSelection>();
-            var root = new FragmentNode();
-            CollectFields(type, selectionSet, path, fields, root);
+            var fragments = new List<IFragmentNode>();
 
-            return new FieldCollectionResult(
+            CollectFields(type, selectionSet, path, fields, fragments);
+
+            return new FieldSelectionInfo(
                 type,
                 selectionSet,
                 fields.Values.ToList(),
-                root.Children);
+                fragments);
         }
 
         private void CollectFields(
@@ -51,7 +74,7 @@ namespace StrawberryShake.Generators.Utilities
             SelectionSetNode selectionSet,
             Path path,
             IDictionary<string, FieldSelection> fields,
-            FragmentNode parent)
+            ICollection<IFragmentNode> fragments)
         {
             foreach (ISelectionNode selection in selectionSet.Selections)
             {
@@ -60,7 +83,7 @@ namespace StrawberryShake.Generators.Utilities
                     selection,
                     path,
                     fields,
-                    parent);
+                    fragments);
             }
         }
 
@@ -69,7 +92,7 @@ namespace StrawberryShake.Generators.Utilities
             ISelectionNode selection,
             Path path,
             IDictionary<string, FieldSelection> fields,
-            FragmentNode parent)
+            ICollection<IFragmentNode> fragments)
         {
             if (selection is FieldNode fs && type is IComplexOutputType ct)
             {
@@ -86,7 +109,7 @@ namespace StrawberryShake.Generators.Utilities
                     fragSpread,
                     path,
                     fields,
-                    parent);
+                    fragments);
             }
             else if (selection is InlineFragmentNode inlineFrag)
             {
@@ -95,7 +118,7 @@ namespace StrawberryShake.Generators.Utilities
                     inlineFrag,
                     path,
                     fields,
-                    parent);
+                    fragments);
             }
         }
 
@@ -112,7 +135,7 @@ namespace StrawberryShake.Generators.Utilities
 
             if (type.Fields.TryGetField(fieldName, out IOutputField field))
             {
-                if (!fields.TryGetValue(responseName, out FieldSelection f))
+                if (!fields.TryGetValue(responseName, out FieldSelection? f))
                 {
                     f = new FieldSelection(field, fieldSelection, path);
                     fields.Add(responseName, f);
@@ -131,11 +154,12 @@ namespace StrawberryShake.Generators.Utilities
             FragmentSpreadNode fragmentSpread,
             Path path,
             IDictionary<string, FieldSelection> fields,
-            FragmentNode parent)
+            ICollection<IFragmentNode> fragments)
         {
             Fragment fragment = _fragments.GetFragment(
                 fragmentSpread.Name.Value);
-            FragmentNode fragmentNode = parent.AddChild(fragment);
+            var fragmentNode = new FragmentNode(fragment);
+            fragments.Add(fragmentNode);
 
             if (fragment != null && DoesTypeApply(fragment.TypeCondition, type))
             {
@@ -144,7 +168,7 @@ namespace StrawberryShake.Generators.Utilities
                     fragment.SelectionSet,
                     path,
                     fields,
-                    fragmentNode);
+                    fragmentNode.Children);
             }
         }
 
@@ -153,7 +177,7 @@ namespace StrawberryShake.Generators.Utilities
             InlineFragmentNode inlineFragment,
             Path path,
             IDictionary<string, FieldSelection> fields,
-            FragmentNode parent)
+            ICollection<IFragmentNode> fragments)
         {
             Fragment fragment = _fragments.GetFragment(type, inlineFragment);
 
@@ -164,7 +188,7 @@ namespace StrawberryShake.Generators.Utilities
                     fragment.SelectionSet,
                     path,
                     fields,
-                    parent);
+                    fragments);
             }
         }
 
@@ -188,6 +212,4 @@ namespace StrawberryShake.Generators.Utilities
             return false;
         }
     }
-
-
 }
