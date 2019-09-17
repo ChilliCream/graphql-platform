@@ -7,6 +7,9 @@ namespace HotChocolate.Utilities
 {
     public partial class TypeConversion
     {
+        private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
+        private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
+
         private static void RegisterConverters(
             ITypeConverterRegistry registry)
         {
@@ -51,6 +54,37 @@ namespace HotChocolate.Utilities
                 from => ((DateTimeOffset)from).ToUnixTimeSeconds());
             registry.Register<long, DateTime>(
                 from => DateTimeOffset.FromUnixTimeSeconds(from).UtcDateTime);
+
+            registry.Register<DateTimeOffset, string>(
+                from =>
+                {
+                    if (from.Offset == TimeSpan.Zero)
+                    {
+                        return from.ToString(
+                            _utcFormat,
+                            CultureInfo.InvariantCulture);
+                    }
+
+                    return from.ToString(
+                        _localFormat,
+                        CultureInfo.InvariantCulture);
+                });
+            registry.Register<DateTime, string>(
+                from =>
+                {
+                    var offset = new DateTimeOffset(from);
+
+                    if (offset.Offset == TimeSpan.Zero)
+                    {
+                        return offset.ToString(
+                            _utcFormat,
+                            CultureInfo.InvariantCulture);
+                    }
+
+                    return offset.ToString(
+                        _localFormat,
+                        CultureInfo.InvariantCulture);
+                });
         }
 
         private static void RegisterGuidConversions(

@@ -1,11 +1,11 @@
-using System;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {
-    internal sealed class OrField
+    public sealed class OrField
         : InputField
+        , IOrField
     {
         internal OrField(
             IDescriptorContext context,
