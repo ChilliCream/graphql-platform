@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+using System;
+using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -68,6 +69,13 @@ namespace HotChocolate.Types.Descriptors
             ITypeNode typeNode)
         {
             base.Type(typeNode);
+            return this;
+        }
+
+        public new IDirectiveArgumentDescriptor Type(
+          Type type)
+        {
+            base.Type(type);
             return this;
         }
 

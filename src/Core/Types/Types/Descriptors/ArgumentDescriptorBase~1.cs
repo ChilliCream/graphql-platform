@@ -45,6 +45,20 @@ namespace HotChocolate.Types.Descriptors
                 TypeContext.Input);
         }
 
+        public void Type(Type type)
+        {
+            if (Context.Inspector.IsSchemaType(type)
+                && !typeof(IInputType).IsAssignableFrom(type))
+            {
+                throw new ArgumentException(
+                    TypeResources.ArgumentDescriptor_InputTypeViolation);
+            }
+
+            Definition.SetMoreSpecificType(
+                type,
+                TypeContext.Input);
+        }
+
         public void Type<TInputType>(TInputType inputType)
             where TInputType : class, IInputType
         {
