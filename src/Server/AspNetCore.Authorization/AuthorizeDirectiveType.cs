@@ -24,7 +24,9 @@ namespace HotChocolate.AspNetCore.Authorization
         {
             descriptor.Name("authorize");
 
-            descriptor.Location(DirectiveLocation.Object)
+            descriptor
+                .Location(DirectiveLocation.Schema)
+                .Location(DirectiveLocation.Object)
                 .Location(DirectiveLocation.FieldDefinition);
 
 #if !ASPNETCLASSIC
