@@ -14,6 +14,7 @@ namespace StrawberryShake.Generators.Utilities
         private const string _argumentProperty = "argument";
         private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
+        private readonly Cache _cache = new Cache();
 
         public FieldCollector(ISchema schema, FragmentCollection fragments)
         {
@@ -23,26 +24,61 @@ namespace StrawberryShake.Generators.Utilities
                 ?? throw new ArgumentNullException(nameof(fragments));
         }
 
-        public FieldSelectionInfo1 CollectFields(
+        public PossibleSelections CollectFields(
             INamedOutputType type,
             SelectionSetNode selectionSet,
             Path path)
         {
-            FieldSelectionInfo result = CollectFields(type, selectionSet, path);
-
-
-            if (type.IsAbstractType())
+            if (!_cache.TryGetValue(type, out SelectionCache? selectionCache))
             {
-                foreach (ObjectType objectType in _schema.GetPossibleTypes(type))
-                {
-
-                }
+                selectionCache = new SelectionCache();
+                _cache.Add(type, selectionCache);
             }
 
+            if (!selectionCache.TryGetValue(
+                selectionSet,
+                out PossibleSelections? possibleSelections))
+            {
+                SelectionInfo returnType =
+                    CollectFieldsInternal(type, selectionSet, path);
 
+                if (type.IsAbstractType())
+                {
+                    var list = new List<SelectionInfo>();
+                    bool singleModelShape = true;
+
+                    foreach (ObjectType objectType in _schema.GetPossibleTypes(type))
+                    {
+                        SelectionInfo objectSelection =
+                            CollectFieldsInternal(type, selectionSet, path);
+                        list.Add(objectSelection);
+
+                        if (!FieldSelectionsAreEqual(
+                            returnType.Fields,
+                            objectSelection.Fields))
+                        {
+                            singleModelShape = false;
+                        }
+                    }
+
+                    if (!singleModelShape)
+                    {
+                        possibleSelections = new PossibleSelections(returnType, list);
+                    }
+                }
+
+                if (possibleSelections is null)
+                {
+                    possibleSelections = new PossibleSelections(returnType);
+                }
+
+                selectionCache.Add(selectionSet, possibleSelections);
+            }
+
+            return possibleSelections;
         }
 
-        private FieldSelectionInfo CollectFieldsInternal(
+        private SelectionInfo CollectFieldsInternal(
             INamedOutputType type,
             SelectionSetNode selectionSet,
             Path path)
@@ -62,7 +98,7 @@ namespace StrawberryShake.Generators.Utilities
 
             CollectFields(type, selectionSet, path, fields, fragments);
 
-            return new FieldSelectionInfo(
+            return new SelectionInfo(
                 type,
                 selectionSet,
                 fields.Values.ToList(),
@@ -156,8 +192,7 @@ namespace StrawberryShake.Generators.Utilities
             IDictionary<string, FieldSelection> fields,
             ICollection<IFragmentNode> fragments)
         {
-            Fragment fragment = _fragments.GetFragment(
-                fragmentSpread.Name.Value);
+            Fragment fragment = _fragments.GetFragment(fragmentSpread.Name.Value);
             var fragmentNode = new FragmentNode(fragment);
             fragments.Add(fragmentNode);
 
@@ -211,5 +246,31 @@ namespace StrawberryShake.Generators.Utilities
             }
             return false;
         }
+
+        private static bool FieldSelectionsAreEqual(
+            IReadOnlyList<FieldSelection> a,
+            IReadOnlyList<FieldSelection> b)
+        {
+            if (a.Count == b.Count)
+            {
+                for (int i = 0; i < a.Count; i++)
+                {
+                    if (!ReferenceEquals(a[i].Field, b[i].Field))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
+        }
+
+        private class Cache
+            : Dictionary<INamedOutputType, SelectionCache>
+        { }
+
+        private class SelectionCache
+            : Dictionary<SelectionSetNode, PossibleSelections>
+        { }
     }
 }

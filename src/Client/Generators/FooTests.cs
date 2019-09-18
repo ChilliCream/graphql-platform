@@ -20,7 +20,7 @@ namespace StrawberryShake.Generators
             T namedType,
             IType returnType,
             FieldNode fieldSelection,
-            IReadOnlyCollection<FieldSelectionInfo> possibleSelections,
+            PossibleSelections possibleSelections,
             Path path);
 
         protected IInterfaceDescriptor CreateInterfaceModel(
@@ -146,12 +146,11 @@ namespace StrawberryShake.Generators
 
         protected IFragmentNode? HoistFragment(
             INamedType typeContext,
-            SelectionSetNode selectionSet,
-            IReadOnlyList<IFragmentNode> fragments)
+            IFragmentNode fragmentNode)
         {
             (SelectionSetNode s, IReadOnlyList<IFragmentNode> f) current =
-                (selectionSet, fragments);
-            IFragmentNode? selected = null;
+                (fragmentNode.Fragment.SelectionSet, fragmentNode.Children);
+            IFragmentNode selected = fragmentNode;
 
             while (!current.s.Selections.OfType<FieldNode>().Any()
                 && current.f.Count == 1
@@ -164,14 +163,14 @@ namespace StrawberryShake.Generators
             return selected;
         }
 
-        protected static IReadOnlyCollection<FieldSelectionInfo> Normalize(
-            IReadOnlyCollection<FieldSelectionInfo> typeCases)
+        protected static IReadOnlyCollection<SelectionInfo> Normalize(
+            IReadOnlyCollection<SelectionInfo> typeCases)
         {
-            FieldSelectionInfo first = typeCases.First();
+            SelectionInfo first = typeCases.First();
             if (typeCases.Count == 1 || typeCases.All(t =>
                 FieldSelectionsAreEqual(t.Fields, first.Fields)))
             {
-                return new List<FieldSelectionInfo> { first };
+                return new List<SelectionInfo> { first };
             }
             return typeCases;
         }
@@ -239,7 +238,7 @@ namespace StrawberryShake.Generators
             InterfaceType namedType,
             IType fieldType,
             FieldNode fieldSelection,
-            IReadOnlyCollection<FieldSelectionInfo> possibleSelections,
+            PossibleSelections possibleSelections,
             Path path)
         {
             IFragmentNode returnType = ResolveReturnType(
@@ -269,27 +268,24 @@ namespace StrawberryShake.Generators
             IModelGeneratorContext context,
             InterfaceType namedType,
             FieldNode fieldSelection,
-            IReadOnlyCollection<FieldSelectionInfo> possibleSelections,
+            PossibleSelections possibleSelections,
             Path path)
         {
-            FieldSelectionInfo firstCase = possibleSelections.First();
-
-            IFragmentNode? returnType = HoistFragment(
-                namedType,
-                firstCase.SelectionSet,
-                firstCase.Fragments);
-
-            if (returnType is null)
+            if (possibleSelections.ReturnType.Fragments.Count == 0)
             {
-                firstCase = context.CollectFields(namedType, firstCase.SelectionSet, path);
-                string name = CreateName(namedType, fieldSelection, GetClassName);
 
-                var selectionSet = new SelectionSetNode(
-                    firstCase.Fields.Select(t => t.Selection).ToList());
-
-                returnType = new FragmentNode(new Fragment(
-                    name, namedType, selectionSet));
             }
+
+            string name =
+                ? CreateName(namedType, fieldSelection, GetClassName);
+
+
+            var selectionSet = new SelectionSetNode(
+                firstCase.Fields.Select(t => t.Selection).ToList());
+
+            returnType = new FragmentNode(new Fragment(
+                name, namedType, selectionSet));
+
 
             return returnType;
         }
@@ -299,14 +295,14 @@ namespace StrawberryShake.Generators
             OperationDefinitionNode operation,
             IType fieldType,
             FieldNode fieldSelection,
-            IReadOnlyCollection<FieldSelectionInfo> possibleSelections,
+            IReadOnlyCollection<SelectionInfo> possibleSelections,
             IFragmentNode returnType,
             IInterfaceDescriptor interfaceDescriptor,
             Path path)
         {
             var resultParserTypes = new List<ResultParserTypeDescriptor>();
 
-            foreach (FieldSelectionInfo possibleSelection in
+            foreach (SelectionInfo possibleSelection in
                 Normalize(possibleSelections))
             {
                 GeneratePossibleTypeModel(
@@ -331,7 +327,7 @@ namespace StrawberryShake.Generators
 
         private void GeneratePossibleTypeModel(
             IModelGeneratorContext context,
-            FieldSelectionInfo typeCase,
+            SelectionInfo typeCase,
             IFragmentNode returnType,
             ICollection<ResultParserTypeDescriptor> resultParser,
             Path path)
@@ -401,7 +397,7 @@ namespace StrawberryShake.Generators
 
         void Register(ICodeDescriptor descriptor);
 
-        FieldSelectionInfo CollectFields(
+        SelectionInfo CollectFields(
             INamedOutputType type,
             SelectionSetNode selectionSet,
             Path path);

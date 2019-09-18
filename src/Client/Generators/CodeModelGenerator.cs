@@ -215,7 +215,7 @@ namespace StrawberryShake.Generators
            Path path,
            Queue<FieldSelection> backlog)
         {
-            FieldSelectionInfo typeCase = _fieldCollector.CollectFields(
+            SelectionInfo typeCase = _fieldCollector.CollectFields(
                 operationType,
                 operation.SelectionSet,
                 path);
@@ -246,11 +246,11 @@ namespace StrawberryShake.Generators
                     ? new ObjectType[] { ot }
                     : _schema.GetPossibleTypes(namedType);
 
-            var typeCases = new Dictionary<ObjectType, FieldSelectionInfo>();
+            var typeCases = new Dictionary<ObjectType, SelectionInfo>();
 
             foreach (ObjectType objectType in possibleTypes)
             {
-                FieldSelectionInfo typeCase = _fieldCollector.CollectFields(
+                SelectionInfo typeCase = _fieldCollector.CollectFields(
                     objectType,
                     fieldSelection.SelectionSet,
                     path);
@@ -307,11 +307,11 @@ namespace StrawberryShake.Generators
             UnionType unionType,
             IType fieldType,
             FieldNode fieldSelection,
-            IReadOnlyCollection<FieldSelectionInfo> typeCases,
+            IReadOnlyCollection<SelectionInfo> typeCases,
             Path path)
         {
             IFragmentNode? returnType = null;
-            FieldSelectionInfo result = typeCases.First();
+            SelectionInfo result = typeCases.First();
             IReadOnlyList<IFragmentNode> fragments = result.Fragments;
 
             while (fragments.Count == 1)
@@ -412,10 +412,10 @@ namespace StrawberryShake.Generators
             InterfaceType interfaceType,
             IType fieldType,
             FieldNode fieldSelection,
-            IReadOnlyCollection<FieldSelectionInfo> typeCases,
+            IReadOnlyCollection<SelectionInfo> typeCases,
             Path path)
         {
-            FieldSelectionInfo firstCase = typeCases.First();
+            SelectionInfo firstCase = typeCases.First();
 
             IFragmentNode? returnType = HoistFragment(
                 interfaceType, firstCase.SelectionSet, firstCase.Fragments);
@@ -440,7 +440,7 @@ namespace StrawberryShake.Generators
 
             var resultParserTypes = new List<ResultParserTypeDescriptor>();
 
-            foreach (FieldSelectionInfo typeCase in Normalize(typeCases))
+            foreach (SelectionInfo typeCase in Normalize(typeCases))
             {
                 GenerateInterfaceTypeCaseModel(
                     typeCase, returnType, resultParserTypes, path);
@@ -462,7 +462,7 @@ namespace StrawberryShake.Generators
         }
 
         private void GenerateInterfaceTypeCaseModel(
-            FieldSelectionInfo typeCase,
+            SelectionInfo typeCase,
             IFragmentNode returnType,
             ICollection<ResultParserTypeDescriptor> resultParser,
             Path path)
@@ -516,7 +516,7 @@ namespace StrawberryShake.Generators
             ObjectType objectType,
             IType fieldType,
             WithDirectives fieldOrOperation,
-            FieldSelectionInfo typeCase,
+            SelectionInfo typeCase,
             Path path)
         {
             IFragmentNode? returnType = HoistFragment(
@@ -799,14 +799,14 @@ namespace StrawberryShake.Generators
             return typeName;
         }
 
-        private static IReadOnlyCollection<FieldSelectionInfo> Normalize(
-            IReadOnlyCollection<FieldSelectionInfo> typeCases)
+        private static IReadOnlyCollection<SelectionInfo> Normalize(
+            IReadOnlyCollection<SelectionInfo> typeCases)
         {
-            FieldSelectionInfo first = typeCases.First();
+            SelectionInfo first = typeCases.First();
             if (typeCases.Count == 1
                 || typeCases.All(t => t.SelectionSet == first.SelectionSet))
             {
-                return new List<FieldSelectionInfo> { first };
+                return new List<SelectionInfo> { first };
             }
             return typeCases;
         }
