@@ -10,7 +10,32 @@ namespace HotChocolate.Language
         private string? _value;
         private Memory<byte> _memory;
 
+        public IntValueNode(short value)
+            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
+        {
+        }
+
         public IntValueNode(int value)
+            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
+        {
+        }
+
+        public IntValueNode(long value)
+            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
+        {
+        }
+
+        public IntValueNode(ushort value)
+            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
+        {
+        }
+
+        public IntValueNode(uint value)
+            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
+        {
+        }
+
+        public IntValueNode(ulong value)
             : this(null, value.ToString("D", CultureInfo.InvariantCulture))
         {
         }
@@ -30,7 +55,7 @@ namespace HotChocolate.Language
             }
 
             Location = location;
-            Value = value;
+            _value = value;
         }
 
         public IntValueNode(Location? location, Memory<byte> value)
@@ -43,7 +68,7 @@ namespace HotChocolate.Language
             }
 
             Location = location;
-            Value = value;
+            _memory = value;
         }
 
         public NodeKind Kind { get; } = NodeKind.IntValue;

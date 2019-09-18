@@ -1,11 +1,11 @@
-﻿using System;
-using HotChocolate.Types.Descriptors;
+﻿using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {
-    internal sealed class AndField
+    public sealed class AndField
         : InputField
+        , IAndField
     {
         internal AndField(
             IDescriptorContext context,

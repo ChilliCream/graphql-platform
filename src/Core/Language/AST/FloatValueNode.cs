@@ -10,15 +10,25 @@ namespace HotChocolate.Language
         private Memory<byte> _memory;
         private string? _value;
 
+        public FloatValueNode(float value)
+            : this(null, value.ToString(CultureInfo.InvariantCulture), FloatFormat.FixedPoint)
+        {
+        }
+
         public FloatValueNode(double value)
             : this(value.ToString(CultureInfo.InvariantCulture), FloatFormat.FixedPoint)
         {
         }
 
-        public FloatValueNode(string value, FloatFormat format)
-            : this(null, value, format)
+        public FloatValueNode(decimal value)
+            : this(null, value.ToString(CultureInfo.InvariantCulture), FloatFormat.FixedPoint)
         {
         }
+
+
+        public FloatValueNode(string value, FloatFormat format)
+            : this(null, value, format)
+        { }
 
         public FloatValueNode(Location? location, string value, FloatFormat format)
         {

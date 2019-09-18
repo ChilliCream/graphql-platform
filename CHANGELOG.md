@@ -9,6 +9,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+## [10.1.0]
+
+### Added
+
+- Added more error codes. [#1030](https://github.com/ChilliCream/hotchocolate/pull/1030)
+- Added better exceptions to the service factory. [#1040](https://github.com/ChilliCream/hotchocolate/pull/1040)
+
+### Changed
+
+- Distinguish between HTTP and remote schema errors with schema stitching. [#1063](https://github.com/ChilliCream/hotchocolate/pull/1063)
+
+### Fixed
+
+- Fixed issue with the request parser when requests are issued from relay-modern-http-transport. [#1024](https://github.com/ChilliCream/hotchocolate/pull/1024)
+- Fixed Utf8GraphQLRequestParser handling of Apollo AQP signature query.
+- Fixed Apollo Active Query Persistence Flow [#1049](https://github.com/ChilliCream/hotchocolate/pull/1049)
+- Fixed scoped service handling. [#1066](https://github.com/ChilliCream/hotchocolate/pull/1066)
+- Fixed Duplicate service registration. [#1066](https://github.com/ChilliCream/hotchocolate/pull/1066)
+
 ## [10.0.0]
 
 ### Added

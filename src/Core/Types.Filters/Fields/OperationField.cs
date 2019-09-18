@@ -1,12 +1,10 @@
-using HotChocolate.Configuration;
-using HotChocolate.Types.Descriptors.Definitions;
-
 namespace HotChocolate.Types.Filters
 {
-    internal sealed class FilterOperationField
+    public sealed class FilterOperationField
         : InputField
+        , IFilterOperationField
     {
-        public FilterOperationField(FilterOperationDefintion definition)
+        internal FilterOperationField(FilterOperationDefintion definition)
             : base(definition)
         {
             Operation = definition.Operation;
