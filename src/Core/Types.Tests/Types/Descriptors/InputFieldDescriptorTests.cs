@@ -69,6 +69,44 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void SetGenericType()
+        {
+            // arrange
+            var descriptor = InputFieldDescriptor.New(
+                Context,
+                typeof(ObjectField).GetProperty("Arguments"));
+
+            // act
+            descriptor.Type<StringType>();
+
+            // assert
+            InputFieldDefinition description = descriptor.CreateDefinition();
+            ITypeReference typeRef = description.Type;
+            Assert.Equal(
+               typeof(StringType),
+               Assert.IsType<ClrTypeReference>(typeRef).Type);
+        }
+
+        [Fact]
+        public void SetNonGenericType()
+        {
+            // arrange
+            var descriptor = InputFieldDescriptor.New(
+                Context,
+                typeof(ObjectField).GetProperty("Arguments"));
+
+            // act
+            descriptor.Type(typeof(StringType));
+
+            // assert
+            InputFieldDefinition description = descriptor.CreateDefinition();
+            ITypeReference typeRef = description.Type;
+            Assert.Equal(
+               typeof(StringType),
+               Assert.IsType<ClrTypeReference>(typeRef).Type);
+        }
+
+        [Fact]
         public void OverwriteName()
         {
             // arrange
