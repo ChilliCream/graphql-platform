@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Security.Claims;
-using System.Security.Principal;
-using System.Threading.Tasks;
-using HotChocolate.Execution;
-using HotChocolate.Resolvers;
 using HotChocolate.Types;
 #if ASPNETCLASSIC
 
