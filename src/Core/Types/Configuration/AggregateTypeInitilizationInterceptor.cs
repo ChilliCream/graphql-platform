@@ -77,9 +77,9 @@ namespace HotChocolate.Configuration
         }
 
         public void OnBeforeCompleteType(
-          ICompletionContext context,
-          DefinitionBase definition,
-          IDictionary<string, object> contextData)
+            ICompletionContext context,
+            DefinitionBase definition,
+            IDictionary<string, object> contextData)
         {
             foreach (ITypeInitilizationInterceptor interceptor in _interceptors)
             {
