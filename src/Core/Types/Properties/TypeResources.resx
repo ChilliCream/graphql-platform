@@ -584,4 +584,10 @@ Type: `{0}`</value>
   <data name="SchemaBuilder_Interceptor_NotSuppported" xml:space="preserve">
     <value>The specified interceptor type is not supported.</value>
   </data>
+  <data name="IdSerializer_UnableToEncode" xml:space="preserve">
+    <value>Unable to encode data.</value>
+  </data>
+  <data name="IdSerializer_UnableToDecode" xml:space="preserve">
+    <value>Unable to decode the id string.</value>
+  </data>
 </root>

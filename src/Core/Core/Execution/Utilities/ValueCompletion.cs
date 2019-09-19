@@ -167,7 +167,14 @@ namespace HotChocolate.Execution
             IType type,
             object result)
         {
-            ObjectType objectType = context.ResolveObjectType(type, result);
+            ObjectType objectType =
+                context.LocalContextData.Count != 0
+                && context.LocalContextData.TryGetValue(
+                    WellKnownContextData.Type,
+                    out object o)
+                && o is NameString typeName
+                ? context.ResolveObjectType(typeName)
+                : context.ResolveObjectType(type, result);
 
             if (objectType == null)
             {

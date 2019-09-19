@@ -7,6 +7,9 @@ namespace HotChocolate.Types.Relay
     internal sealed class NodeField
          : ObjectField
     {
+        private const string _node = "node";
+        private const string _id = "id";
+
         internal NodeField(IDescriptorContext context)
            : base(CreateDefinition(context))
         {
@@ -18,38 +21,41 @@ namespace HotChocolate.Types.Relay
             IDescriptorContext context)
         {
             var descriptor = ObjectFieldDescriptor
-                .New(context, "node");
+                .New(context, _node);
 
             IIdSerializer _serializer = null;
 
             descriptor
-                .Argument("id", a => a.Type<NonNullType<IdType>>())
+                .Argument(_id, a => a.Type<NonNullType<IdType>>())
                 .Type<NonNullType<NodeType>>()
                 .Resolver(async ctx =>
                 {
+                    IServiceProvider services = ctx.Service<IServiceProvider>();
+
                     if (_serializer is null)
                     {
-                        var services = ctx.Service<IServiceProvider>();
-                        _serializer = services.GetService(typeof(IIdSerializer)) is IIdSerializer s
-                            ? s
-                            : new IdSerializer();
+                        _serializer =
+                            services.GetService(typeof(IIdSerializer)) is IIdSerializer s
+                                ? s
+                                : new IdSerializer();
                     }
 
-                    string id = ctx.Argument<string>("id");
+                    var id = ctx.Argument<string>(_id);
                     IdValue deserializedId = _serializer.Deserialize(id);
+
+                    ctx.LocalContextData = ctx.LocalContextData
+                        .SetItem(WellKnownContextData.Id, deserializedId.Value)
+                        .SetItem(WellKnownContextData.Type, deserializedId.TypeName);
 
                     if (ctx.Schema.TryGetType(deserializedId.TypeName,
                         out ObjectType type)
                         && type.ContextData.TryGetValue(
                             RelayConstants.NodeResolverFactory,
-                            out object o)
+                            out var o)
                         && o is Func<IServiceProvider, INodeResolver> factory)
                     {
-                        INodeResolver resolver =
-                            factory.Invoke(ctx.Service<IServiceProvider>());
-
-                        return await resolver.ResolveAsync(
-                            ctx, deserializedId.Value)
+                        INodeResolver resolver = factory.Invoke(services);
+                        return await resolver.ResolveAsync(ctx, deserializedId.Value)
                             .ConfigureAwait(false);
                     }
 
