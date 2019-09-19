@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -54,6 +54,40 @@ namespace HotChocolate.Types
             ITypeReference typeRef = description.Type;
             Assert.IsType<StringType>(
                 Assert.IsType<SchemaTypeReference>(typeRef).Type);
+        }
+
+        [Fact]
+        public void SetGenericType()
+        {
+            // arrange
+            var descriptor = new ArgumentDescriptor(Context, "Type");
+
+            // act
+            descriptor.Type<StringType>();
+
+            // assert
+            ArgumentDefinition description = descriptor.CreateDefinition();
+            ITypeReference typeRef = description.Type;
+            Assert.Equal(
+                typeof(StringType),
+                Assert.IsType<ClrTypeReference>(typeRef).Type);
+        }
+
+        [Fact]
+        public void SetNonGenericType()
+        {
+            // arrange
+            var descriptor = new ArgumentDescriptor(Context, "Type");
+
+            // act
+            descriptor.Type(typeof(StringType));
+
+            // assert
+            ArgumentDefinition description = descriptor.CreateDefinition();
+            ITypeReference typeRef = description.Type;
+            Assert.Equal(
+                typeof(StringType),
+                Assert.IsType<ClrTypeReference>(typeRef).Type);
         }
 
         [Fact]

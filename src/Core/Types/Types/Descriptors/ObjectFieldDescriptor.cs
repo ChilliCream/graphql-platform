@@ -141,6 +141,12 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public new IObjectFieldDescriptor Type(Type type)
+        {
+            base.Type(type);
+            return this;
+        }
+
         public new IObjectFieldDescriptor Argument(
             NameString argumentName,
             Action<IArgumentDescriptor> argumentDescriptor)
