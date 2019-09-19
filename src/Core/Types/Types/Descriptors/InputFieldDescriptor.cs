@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -68,6 +68,12 @@ namespace HotChocolate.Types.Descriptors
         public new IInputFieldDescriptor Type(ITypeNode typeNode)
         {
             base.Type(typeNode);
+            return this;
+        }
+
+        public new IInputFieldDescriptor Type(Type type)
+        {
+            base.Type(type);
             return this;
         }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
@@ -120,6 +120,12 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public new IInterfaceFieldDescriptor Type(ITypeNode type)
+        {
+            base.Type(type);
+            return this;
+        }
+
+        public new IInterfaceFieldDescriptor Type(Type type)
         {
             base.Type(type);
             return this;
