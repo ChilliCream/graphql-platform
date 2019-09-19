@@ -7,6 +7,10 @@ using HotChocolate.Resolvers;
 using System;
 using HotChocolate.Execution;
 using Moq;
+using HotChocolate.Configuration;
+using HotChocolate.Types.Descriptors.Definitions;
+using System.Collections.Generic;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace HotChocolate
 {
@@ -740,6 +744,37 @@ namespace HotChocolate
         }
 
         [Fact]
+        public void SetSchema_ConfigureIsNull_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .SetSchema((Action<ISchemaTypeDescriptor>)null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void SetSchema_ConfigureInline_DescriptionIsSet()
+        {
+            // arrange
+            var queryType = new ObjectType(t => t
+                .Name("TestMe")
+                .Field("foo")
+                .Resolver("bar"));
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(queryType)
+                .SetSchema(c => c.Description("Some Description."))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void ModifyOptions_Configure_ArgumentNullException()
         {
             // arrange
@@ -1059,6 +1094,96 @@ namespace HotChocolate
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void AddInterceptor_TypeIsNull_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddTypeInterceptor(null);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddInterceptor_TypeIsNotAnInterceptorType_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddTypeInterceptor(typeof(string));
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void AddInterceptor_TypeIsInterceptor_TypesAreTouched()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddTypeInterceptor(typeof(MyInterceptor))
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            Assert.Collection(schema.GetType<ObjectType>("Query").ContextData,
+                item => Assert.Equal("touched", item.Key));
+
+            Assert.Collection(schema.GetType<StringType>("String").ContextData,
+                item => Assert.Equal("touched", item.Key));
+        }
+
+        [Fact]
+        public void AddInterceptor_Generic_TypesAreTouched()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddTypeInterceptor<MyInterceptor>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            Assert.Collection(schema.GetType<ObjectType>("Query").ContextData,
+                item => Assert.Equal("touched", item.Key));
+
+            Assert.Collection(schema.GetType<StringType>("String").ContextData,
+                item => Assert.Equal("touched", item.Key));
+        }
+
+        [Fact]
+        public void AddInterceptor_AsService_TypesAreTouched()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            services.AddSingleton<ITypeInitializationInterceptor, MyInterceptor>();
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(services.BuildServiceProvider())
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            Assert.Collection(schema.GetType<ObjectType>("Query").ContextData,
+                item => Assert.Equal("touched", item.Key));
+
+            Assert.Collection(schema.GetType<StringType>("String").ContextData,
+                item => Assert.Equal("touched", item.Key));
+        }
+
         public class DynamicFooType
             : ObjectType
         {
@@ -1174,6 +1299,18 @@ namespace HotChocolate
         public abstract class AbstractChild
         {
             public string Foo { get; set; }
+        }
+
+        public class MyInterceptor
+            : TypeInitializationInterceptor
+        {
+            public override void OnAfterCompleteType(
+                ICompletionContext context,
+                DefinitionBase definition,
+                IDictionary<string, object> contextData)
+            {
+                contextData.Add("touched", true);
+            }
         }
     }
 }
