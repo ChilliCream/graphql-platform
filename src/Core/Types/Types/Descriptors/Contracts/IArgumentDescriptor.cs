@@ -1,4 +1,5 @@
-﻿using HotChocolate.Language;
+using System;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
@@ -28,6 +29,9 @@ namespace HotChocolate.Types
 
         IArgumentDescriptor Type(
             ITypeNode typeNode);
+
+        IArgumentDescriptor Type(
+            Type type);
 
         IArgumentDescriptor DefaultValue(
             IValueNode value);

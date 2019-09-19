@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
@@ -30,6 +30,8 @@ namespace HotChocolate.Types
             where TOutputType : class, IOutputType;
 
         IInterfaceFieldDescriptor Type(ITypeNode type);
+
+        IInterfaceFieldDescriptor Type(Type type);
 
         IInterfaceFieldDescriptor Ignore();
 
