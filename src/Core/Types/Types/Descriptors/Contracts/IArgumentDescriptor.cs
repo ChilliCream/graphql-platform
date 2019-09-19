@@ -15,39 +15,30 @@ namespace HotChocolate.Types
         /// <param name="inputValueDefinition">
         /// The the type definition node.
         /// </param>
-        IArgumentDescriptor SyntaxNode(
-            InputValueDefinitionNode inputValueDefinition);
+        IArgumentDescriptor SyntaxNode(InputValueDefinitionNode inputValueDefinition);
 
         IArgumentDescriptor Description(string value);
 
         IArgumentDescriptor Type<TInputType>()
             where TInputType : IInputType;
 
-        IArgumentDescriptor Type<TInputType>(
-            TInputType inputType)
+        IArgumentDescriptor Type<TInputType>(TInputType inputType)
             where TInputType : class, IInputType;
 
-        IArgumentDescriptor Type(
-            ITypeNode typeNode);
+        IArgumentDescriptor Type(ITypeNode typeNode);
 
-        IArgumentDescriptor Type(
-            Type type);
+        IArgumentDescriptor Type(Type type);
 
-        IArgumentDescriptor DefaultValue(
-            IValueNode value);
+        IArgumentDescriptor DefaultValue(IValueNode value);
 
-        IArgumentDescriptor DefaultValue(
-            object value);
+        IArgumentDescriptor DefaultValue(object value);
 
-        IArgumentDescriptor Directive<T>(
-            T directiveInstance)
+        IArgumentDescriptor Directive<T>(T directiveInstance)
             where T : class;
 
         IArgumentDescriptor Directive<T>()
             where T : class, new();
 
-        IArgumentDescriptor Directive(
-            NameString name,
-            params ArgumentNode[] arguments);
+        IArgumentDescriptor Directive(NameString name, params ArgumentNode[] arguments);
     }
 }
