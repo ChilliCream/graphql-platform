@@ -24,7 +24,7 @@ namespace HotChocolate.Configuration
         private readonly List<ITypeReference> _unregistered =
             new List<ITypeReference>();
         private readonly IDictionary<string, object> _contextData;
-        private readonly ITypeInitilizationInterceptor _interceptor;
+        private readonly ITypeInitializationInterceptor _interceptor;
 
         public TypeRegistrar(
             IServiceProvider services,
@@ -32,7 +32,7 @@ namespace HotChocolate.Configuration
             IEnumerable<ITypeReference> initialTypes,
             IDictionary<ITypeReference, ITypeReference> clrTypes,
             IDictionary<string, object> contextData,
-            ITypeInitilizationInterceptor interceptor)
+            ITypeInitializationInterceptor interceptor)
         {
             if (services is null)
             {

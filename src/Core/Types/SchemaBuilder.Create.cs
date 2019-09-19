@@ -300,23 +300,23 @@ namespace HotChocolate
             return false;
         }
 
-        private IReadOnlyCollection<ITypeInitilizationInterceptor> CreateInterceptors(
+        private IReadOnlyCollection<ITypeInitializationInterceptor> CreateInterceptors(
             IServiceProvider services)
         {
-            var list = new List<ITypeInitilizationInterceptor>();
+            var list = new List<ITypeInitializationInterceptor>();
 
-            var obj = services.GetService(typeof(IEnumerable<ITypeInitilizationInterceptor>));
-            if (obj is IEnumerable<ITypeInitilizationInterceptor> interceptors)
+            var obj = services.GetService(typeof(IEnumerable<ITypeInitializationInterceptor>));
+            if (obj is IEnumerable<ITypeInitializationInterceptor> interceptors)
             {
                 list.AddRange(interceptors);
             }
 
             var serviceFactory = new ServiceFactory { Services = services };
-            Type interceptorType = typeof(ITypeInitilizationInterceptor);
+            Type interceptorType = typeof(ITypeInitializationInterceptor);
             foreach (Type type in _interceptors.Where(t => interceptorType.IsAssignableFrom(t)))
             {
                 obj = serviceFactory.CreateInstance(type);
-                if (obj is ITypeInitilizationInterceptor interceptor)
+                if (obj is ITypeInitializationInterceptor interceptor)
                 {
                     list.Add(interceptor);
                 }

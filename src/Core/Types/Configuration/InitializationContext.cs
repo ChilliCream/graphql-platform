@@ -21,7 +21,7 @@ namespace HotChocolate.Configuration
             IServiceProvider services,
             IDescriptorContext descriptorContext,
             IDictionary<string, object> contextData,
-            ITypeInitilizationInterceptor interceptor)
+            ITypeInitializationInterceptor interceptor)
         {
             Type = type
                 ?? throw new ArgumentNullException(nameof(type));
@@ -72,7 +72,7 @@ namespace HotChocolate.Configuration
 
         public IDescriptorContext DescriptorContext { get; private set; }
 
-        public ITypeInitilizationInterceptor Interceptor { get; }
+        public ITypeInitializationInterceptor Interceptor { get; }
 
         public void RegisterDependency(
             ITypeReference reference,

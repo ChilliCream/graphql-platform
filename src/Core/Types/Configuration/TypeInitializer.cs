@@ -40,7 +40,7 @@ namespace HotChocolate.Configuration
         private readonly List<ITypeReference> _initialTypes;
         private readonly List<Type> _externalResolverTypes;
         private readonly IDictionary<string, object> _contextData;
-        private readonly ITypeInitilizationInterceptor _interceptor;
+        private readonly ITypeInitializationInterceptor _interceptor;
         private readonly IsOfTypeFallback _isOfType;
         private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
 
@@ -50,7 +50,7 @@ namespace HotChocolate.Configuration
             IEnumerable<ITypeReference> initialTypes,
             IEnumerable<Type> externalResolverTypes,
             IDictionary<string, object> contextData,
-            ITypeInitilizationInterceptor interceptor,
+            ITypeInitializationInterceptor interceptor,
             IsOfTypeFallback isOfType,
             Func<TypeSystemObjectBase, bool> isQueryType)
         {

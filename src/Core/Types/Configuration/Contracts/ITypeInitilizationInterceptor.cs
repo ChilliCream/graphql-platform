@@ -5,7 +5,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Configuration
 {
-    public interface ITypeInitilizationInterceptor
+    public interface ITypeInitializationInterceptor
     {
         bool CanHandle(ITypeSystemObjectContext context);
 

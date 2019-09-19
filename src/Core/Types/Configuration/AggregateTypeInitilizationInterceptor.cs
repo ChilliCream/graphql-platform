@@ -5,12 +5,17 @@ using HotChocolate.Types.Descriptors.Definitions;
 namespace HotChocolate.Configuration
 {
     internal sealed class AggregateTypeInitilizationInterceptor
-        : ITypeInitilizationInterceptor
+        : ITypeInitializationInterceptor
     {
-        private readonly IReadOnlyCollection<ITypeInitilizationInterceptor> _interceptors;
+        private readonly IReadOnlyCollection<ITypeInitializationInterceptor> _interceptors;
+
+        public AggregateTypeInitilizationInterceptor()
+        {
+            _interceptors = Array.Empty<ITypeInitializationInterceptor>();
+        }
 
         public AggregateTypeInitilizationInterceptor(
-            IReadOnlyCollection<ITypeInitilizationInterceptor> interceptors)
+            IReadOnlyCollection<ITypeInitializationInterceptor> interceptors)
         {
             _interceptors = interceptors
                 ?? throw new ArgumentNullException(nameof(interceptors));
@@ -23,7 +28,7 @@ namespace HotChocolate.Configuration
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            foreach (ITypeInitilizationInterceptor interceptor in _interceptors)
+            foreach (ITypeInitializationInterceptor interceptor in _interceptors)
             {
                 if (interceptor.CanHandle(context))
                 {
@@ -38,7 +43,7 @@ namespace HotChocolate.Configuration
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            foreach (ITypeInitilizationInterceptor interceptor in _interceptors)
+            foreach (ITypeInitializationInterceptor interceptor in _interceptors)
             {
                 if (interceptor.CanHandle(context))
                 {
@@ -53,7 +58,7 @@ namespace HotChocolate.Configuration
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            foreach (ITypeInitilizationInterceptor interceptor in _interceptors)
+            foreach (ITypeInitializationInterceptor interceptor in _interceptors)
             {
                 if (interceptor.CanHandle(context))
                 {
@@ -67,7 +72,7 @@ namespace HotChocolate.Configuration
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            foreach (ITypeInitilizationInterceptor interceptor in _interceptors)
+            foreach (ITypeInitializationInterceptor interceptor in _interceptors)
             {
                 if (interceptor.CanHandle(context))
                 {
@@ -81,7 +86,7 @@ namespace HotChocolate.Configuration
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            foreach (ITypeInitilizationInterceptor interceptor in _interceptors)
+            foreach (ITypeInitializationInterceptor interceptor in _interceptors)
             {
                 if (interceptor.CanHandle(context))
                 {
@@ -95,7 +100,7 @@ namespace HotChocolate.Configuration
             DefinitionBase definition,
             IDictionary<string, object> contextData)
         {
-            foreach (ITypeInitilizationInterceptor interceptor in _interceptors)
+            foreach (ITypeInitializationInterceptor interceptor in _interceptors)
             {
                 if (interceptor.CanHandle(context))
                 {

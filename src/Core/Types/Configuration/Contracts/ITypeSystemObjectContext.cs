@@ -21,7 +21,7 @@ namespace HotChocolate.Configuration
 
         IDescriptorContext DescriptorContext { get; }
 
-        ITypeInitilizationInterceptor Interceptor { get; }
+        ITypeInitializationInterceptor Interceptor { get; }
 
         void ReportError(ISchemaError error);
     }
