@@ -15,8 +15,6 @@ namespace HotChocolate.Types.Relay
         {
         }
 
-        public override bool IsIntrospectionField { get; } = true;
-
         private static ObjectFieldDefinition CreateDefinition(
             IDescriptorContext context)
         {

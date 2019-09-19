@@ -13,6 +13,29 @@ namespace HotChocolate.Types.Relay
         [Fact]
         public async Task NodeId_Is_Correctly_Formatted()
         {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .EnableRelaySupport()
+                .AddQueryType<Foo>()
+                .AddObjectType<Bar>(d => d
+                    .AsNode()
+                    .IdField(t => t.Id)
+                    .NodeResolver((ctx, id) =>
+                        Task.FromResult(new Bar { Id = id })))
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync("{ bar { id } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Node_Type_Is_Correctly_In_Context()
+        {
             string type = null;
 
             ISchema schema = SchemaBuilder.New()
@@ -31,16 +54,17 @@ namespace HotChocolate.Types.Relay
                         WellKnownContextData.Type,
                         out object value))
                     {
-                        type = (string)value;
+                        type = (NameString)value;
                     }
                 })
                 .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
 
-            IExecutionResult result = await executor.ExecuteAsync("{ bar { id } }");
+            IExecutionResult result = await executor.ExecuteAsync(
+                "{ node(id: \"QmFyCmQxMjM=\") { id } }");
 
-            result.MatchSnapshot();
+            Assert.Equal("Bar", type);
         }
 
 

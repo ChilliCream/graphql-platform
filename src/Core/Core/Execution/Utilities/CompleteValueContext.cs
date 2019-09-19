@@ -65,7 +65,8 @@ namespace HotChocolate.Execution
 
         public Action SetElementNull { get; set; }
 
-        public IReadOnlyDictionary<string, object> LocalContextData => throw new NotImplementedException();
+        public IReadOnlyDictionary<string, object> LocalContextData =>
+            ResolverContext.LocalContextData;
 
         public void AddError(Action<IErrorBuilder> error)
         {
