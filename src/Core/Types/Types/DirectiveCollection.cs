@@ -10,7 +10,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
-    internal sealed class DirectiveCollection
+    public sealed class DirectiveCollection
         : IDirectiveCollection
     {
         private readonly object _source;
