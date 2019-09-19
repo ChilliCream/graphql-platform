@@ -271,13 +271,13 @@ namespace StrawberryShake.Generators
             PossibleSelections possibleSelections,
             Path path)
         {
+            string name = null;
+
             if (possibleSelections.ReturnType.Fragments.Count == 0)
             {
+                name = CreateName(namedType, fieldSelection, GetClassName);
 
             }
-
-            string name =
-                ? CreateName(namedType, fieldSelection, GetClassName);
 
 
             var selectionSet = new SelectionSetNode(
