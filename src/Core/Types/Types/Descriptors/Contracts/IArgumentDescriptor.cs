@@ -1,4 +1,5 @@
-﻿using HotChocolate.Language;
+using System;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
@@ -14,36 +15,30 @@ namespace HotChocolate.Types
         /// <param name="inputValueDefinition">
         /// The the type definition node.
         /// </param>
-        IArgumentDescriptor SyntaxNode(
-            InputValueDefinitionNode inputValueDefinition);
+        IArgumentDescriptor SyntaxNode(InputValueDefinitionNode inputValueDefinition);
 
         IArgumentDescriptor Description(string value);
 
         IArgumentDescriptor Type<TInputType>()
             where TInputType : IInputType;
 
-        IArgumentDescriptor Type<TInputType>(
-            TInputType inputType)
+        IArgumentDescriptor Type<TInputType>(TInputType inputType)
             where TInputType : class, IInputType;
 
-        IArgumentDescriptor Type(
-            ITypeNode typeNode);
+        IArgumentDescriptor Type(ITypeNode typeNode);
 
-        IArgumentDescriptor DefaultValue(
-            IValueNode value);
+        IArgumentDescriptor Type(Type type);
 
-        IArgumentDescriptor DefaultValue(
-            object value);
+        IArgumentDescriptor DefaultValue(IValueNode value);
 
-        IArgumentDescriptor Directive<T>(
-            T directiveInstance)
+        IArgumentDescriptor DefaultValue(object value);
+
+        IArgumentDescriptor Directive<T>(T directiveInstance)
             where T : class;
 
         IArgumentDescriptor Directive<T>()
             where T : class, new();
 
-        IArgumentDescriptor Directive(
-            NameString name,
-            params ArgumentNode[] arguments);
+        IArgumentDescriptor Directive(NameString name, params ArgumentNode[] arguments);
     }
 }

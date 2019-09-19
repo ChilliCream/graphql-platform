@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using HotChocolate.Resolvers;
 using HotChocolate.Types.Descriptors;
@@ -12,6 +12,42 @@ namespace HotChocolate.Types
     public class ObjectFieldDescriptorTests
         : DescriptorTestBase
     {
+        [Fact]
+        public void SetGenericType()
+        {
+            // arrange
+            var descriptor =
+              ObjectFieldDescriptor.New(Context, "field");
+
+            // act
+            descriptor.Type<StringType>();
+
+            // assert
+            ObjectFieldDefinition description = descriptor.CreateDefinition();
+            ITypeReference typeRef = description.Type;
+            Assert.Equal(
+                typeof(StringType),
+                Assert.IsType<ClrTypeReference>(typeRef).Type);
+        }
+
+        [Fact]
+        public void SetNonGenericType()
+        {
+            // arrange
+            var descriptor =
+              ObjectFieldDescriptor.New(Context, "field");
+
+            // act
+            descriptor.Type(typeof(StringType));
+
+            // assert
+            ObjectFieldDefinition description = descriptor.CreateDefinition();
+            ITypeReference typeRef = description.Type;
+            Assert.Equal(
+                typeof(StringType),
+                Assert.IsType<ClrTypeReference>(typeRef).Type);
+        }
+
         [Fact]
         public void DotNetTypesDoNotOverwriteSchemaTypes()
         {

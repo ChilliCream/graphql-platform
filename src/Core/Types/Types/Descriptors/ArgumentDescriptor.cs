@@ -83,6 +83,13 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public new IArgumentDescriptor Type(
+            Type type)
+        {
+            base.Type(type);
+            return this;
+        }
+
         public new IArgumentDescriptor DefaultValue(IValueNode value)
         {
             base.DefaultValue(value);
