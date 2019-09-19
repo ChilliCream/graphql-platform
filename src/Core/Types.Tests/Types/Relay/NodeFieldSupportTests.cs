@@ -1,0 +1,57 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Threading.Tasks;
+using HotChocolate.Execution;
+using Snapshooter.Xunit;
+using Xunit;
+
+namespace HotChocolate.Types.Relay
+{
+    public class NodeFieldSupportTests
+    {
+        [Fact]
+        public async Task NodeId_Is_Correctly_Formatted()
+        {
+            string type = null;
+
+            ISchema schema = SchemaBuilder.New()
+                .EnableRelaySupport()
+                .AddQueryType<Foo>()
+                .AddObjectType<Bar>(d => d
+                    .AsNode()
+                    .IdField(t => t.Id)
+                    .NodeResolver((ctx, id) =>
+                        Task.FromResult(new Bar { Id = id })))
+                .Use(next => async ctx =>
+                {
+                    await next(ctx);
+
+                    if (ctx.LocalContextData.TryGetValue(
+                        WellKnownContextData.Type,
+                        out object value))
+                    {
+                        type = (string)value;
+                    }
+                })
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IExecutionResult result = await executor.ExecuteAsync("{ bar { id } }");
+
+            result.MatchSnapshot();
+        }
+
+
+        public class Foo
+        {
+            public Bar Bar { get; set; } = new Bar { Id = "123" };
+        }
+
+        public class Bar
+        {
+            public string Id { get; set; }
+        }
+    }
+}
