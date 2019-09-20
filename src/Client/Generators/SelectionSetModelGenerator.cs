@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate;
@@ -44,7 +44,8 @@ namespace StrawberryShake.Generators
             Stack<ISet<string>> levels)
         {
             ISet<string> implementedFields = levels.Peek();
-            IReadOnlyList<IFieldDescriptor> fieldDescriptors = Array.Empty<IFieldDescriptor>();
+            IReadOnlyList<IFieldDescriptor> fieldDescriptors =
+                Array.Empty<IFieldDescriptor>();
 
             IReadOnlyList<IInterfaceDescriptor> implements =
                 CreateChildInterfaceModels(
@@ -144,7 +145,7 @@ namespace StrawberryShake.Generators
             }).ToList();
         }
 
-        protected IFragmentNode? HoistFragment(
+        protected IFragmentNode HoistFragment(
             INamedType typeContext,
             IFragmentNode fragmentNode)
         {
@@ -164,15 +165,13 @@ namespace StrawberryShake.Generators
         }
 
         protected static IReadOnlyCollection<SelectionInfo> Normalize(
-            IReadOnlyCollection<SelectionInfo> typeCases)
+            PossibleSelections possibleSelections)
         {
-            SelectionInfo first = typeCases.First();
-            if (typeCases.Count == 1 || typeCases.All(t =>
-                FieldSelectionsAreEqual(t.Fields, first.Fields)))
+            if (possibleSelections.Variants.Count == 0)
             {
-                return new List<SelectionInfo> { first };
+                return new List<SelectionInfo> { possibleSelections.ReturnType };
             }
-            return typeCases;
+            return possibleSelections.Variants;
         }
 
         private static bool FieldSelectionsAreEqual(
@@ -227,179 +226,5 @@ namespace StrawberryShake.Generators
                 a.Name.Value.EqualsOrdinal("name")).Value.Value;
             return true;
         }
-    }
-
-    internal class InterfaceModelGenerator
-        : SelectionSetModelGenerator<InterfaceType>
-    {
-        public override void Generate(
-            IModelGeneratorContext context,
-            OperationDefinitionNode operation,
-            InterfaceType namedType,
-            IType fieldType,
-            FieldNode fieldSelection,
-            PossibleSelections possibleSelections,
-            Path path)
-        {
-            IFragmentNode returnType = ResolveReturnType(
-                context,
-                namedType,
-                fieldSelection,
-                possibleSelections,
-                path);
-
-            IInterfaceDescriptor interfaceDescriptor = CreateInterfaceModel(
-                context, returnType, path);
-
-            GeneratePossibleTypeModel(
-                context,
-                operation,
-                fieldType,
-                fieldSelection,
-                possibleSelections,
-                returnType,
-                interfaceDescriptor,
-                path);
-
-            context.Register(interfaceDescriptor);
-        }
-
-        private IFragmentNode ResolveReturnType(
-            IModelGeneratorContext context,
-            InterfaceType namedType,
-            FieldNode fieldSelection,
-            PossibleSelections possibleSelections,
-            Path path)
-        {
-            string name = null;
-
-            if (possibleSelections.ReturnType.Fragments.Count == 0)
-            {
-                name = CreateName(namedType, fieldSelection, GetClassName);
-
-            }
-
-
-            var selectionSet = new SelectionSetNode(
-                firstCase.Fields.Select(t => t.Selection).ToList());
-
-            returnType = new FragmentNode(new Fragment(
-                name, namedType, selectionSet));
-
-
-            return returnType;
-        }
-
-        private void GeneratePossibleTypeModel(
-            IModelGeneratorContext context,
-            OperationDefinitionNode operation,
-            IType fieldType,
-            FieldNode fieldSelection,
-            IReadOnlyCollection<SelectionInfo> possibleSelections,
-            IFragmentNode returnType,
-            IInterfaceDescriptor interfaceDescriptor,
-            Path path)
-        {
-            var resultParserTypes = new List<ResultParserTypeDescriptor>();
-
-            foreach (SelectionInfo possibleSelection in
-                Normalize(possibleSelections))
-            {
-                GeneratePossibleTypeModel(
-                    context,
-                    possibleSelection,
-                    returnType,
-                    resultParserTypes,
-                    path);
-            }
-
-            context.Register(
-                new ResultParserMethodDescriptor(
-                    GetPathName(path),
-                    operation,
-                    fieldType,
-                    fieldSelection,
-                    path,
-                    interfaceDescriptor,
-                    resultParserTypes));
-        }
-
-
-        private void GeneratePossibleTypeModel(
-            IModelGeneratorContext context,
-            SelectionInfo typeCase,
-            IFragmentNode returnType,
-            ICollection<ResultParserTypeDescriptor> resultParser,
-            Path path)
-        {
-            string className;
-            IReadOnlyList<IFragmentNode> fragments;
-
-            IFragmentNode? modelType = HoistFragment(
-                (ObjectType)typeCase.Type,
-                typeCase.SelectionSet,
-                typeCase.Fragments);
-
-            if (modelType is null)
-            {
-                fragments = typeCase.Fragments;
-                className = GetClassName(typeCase.Type.Name);
-            }
-            else
-            {
-                fragments = modelType.Children;
-                className = GetClassName(modelType.Name);
-            }
-
-            var modelSelectionSet = new SelectionSetNode(
-                typeCase.Fields.Select(t => t.Selection).ToList());
-
-            var modelFragment = new FragmentNode(new Fragment(
-                className, typeCase.Type, modelSelectionSet));
-            modelFragment.Children.AddRange(fragments);
-            if (modelFragment.Children.All(t =>
-                t.Fragment.SelectionSet != returnType.Fragment.SelectionSet))
-            {
-                modelFragment.Children.Add(returnType);
-            }
-
-            IInterfaceDescriptor modelInterface =
-                CreateInterface(modelFragment, path);
-
-            var modelClass = new ClassDescriptor(
-                className, _namespace, typeCase.Type, modelInterface);
-
-
-            RegisterDescriptor(modelInterface);
-            RegisterDescriptor(modelClass);
-
-            resultParser.Add(new ResultParserTypeDescriptor(modelClass));
-        }
-
-    }
-
-
-
-
-    internal interface IModelGeneratorContext
-    {
-        ISchema Schema { get; }
-
-        IQueryDescriptor Query { get; }
-
-        string ClientName { get; }
-
-        string Namespace { get; }
-
-        NameString GetOrCreateName(
-            ISyntaxNode node,
-            NameString name);
-
-        void Register(ICodeDescriptor descriptor);
-
-        SelectionInfo CollectFields(
-            INamedOutputType type,
-            SelectionSetNode selectionSet,
-            Path path);
     }
 }
