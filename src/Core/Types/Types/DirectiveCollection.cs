@@ -187,6 +187,7 @@ namespace HotChocolate.Types
         {
             return GetEnumerator();
         }
+
         public static DirectiveCollection CreateAndComplete(
             ICompletionContext context,
             object source,
