@@ -24,13 +24,13 @@ namespace StrawberryShake.Generators
                 context,
                 namedType,
                 fieldSelection,
-                possibleSelections,
-                path);
+                possibleSelections.ReturnType);
 
             IInterfaceDescriptor interfaceDescriptor = CreateInterfaceModel(
                 context, returnType, path);
+            context.Register(fieldSelection, interfaceDescriptor);
 
-            GeneratePossibleTypeModel(
+            GenerateModels(
                 context,
                 operation,
                 fieldType,
@@ -39,29 +39,25 @@ namespace StrawberryShake.Generators
                 returnType,
                 interfaceDescriptor,
                 path);
-
-            context.Register(fieldSelection, interfaceDescriptor);
         }
 
         private IFragmentNode ResolveReturnType(
             IModelGeneratorContext context,
-            InterfaceType namedType,
-            FieldNode fieldSelection,
-            PossibleSelections possibleSelections,
-            Path path)
+            INamedType namedType,
+            FieldNode field,
+            SelectionInfo selection)
         {
             var returnType = new FragmentNode(new Fragment(
-                CreateName(namedType, fieldSelection, GetClassName),
+                CreateName(namedType, field, GetClassName),
                 namedType,
-                possibleSelections.ReturnType.SelectionSet));
+                selection.SelectionSet));
 
-            returnType.Children.AddRange(
-                possibleSelections.ReturnType.Fragments);
+            returnType.Children.AddRange(selection.Fragments);
 
             return HoistFragment(namedType, returnType);
         }
 
-        private void GeneratePossibleTypeModel(
+        private void GenerateModels(
             IModelGeneratorContext context,
             OperationDefinitionNode operation,
             IType fieldType,
@@ -73,15 +69,25 @@ namespace StrawberryShake.Generators
         {
             var resultParserTypes = new List<ResultParserTypeDescriptor>();
 
-            foreach (SelectionInfo possibleSelection in
-                Normalize(possibleSelections))
+            foreach (SelectionInfo selection in Normalize(possibleSelections))
             {
-                GeneratePossibleTypeModel(
+                IFragmentNode modelType = ResolveReturnType(
                     context,
-                    possibleSelection,
-                    returnType,
-                    resultParserTypes,
-                    path);
+                    selection.Type,
+                    fieldSelection,
+                    selection);
+
+                IInterfaceDescriptor modelInterface = CreateInterfaceModel(
+                    context, modelType, path);
+
+                var modelClass = new ClassDescriptor(
+                    GetClassName(modelType.Name),
+                    context.Namespace,
+                    selection.Type,
+                    new[] { interfaceDescriptor, modelInterface });
+
+                context.Register(modelClass);
+                resultParserTypes.Add(new ResultParserTypeDescriptor(modelClass));
             }
 
             context.Register(
@@ -93,37 +99,6 @@ namespace StrawberryShake.Generators
                     path,
                     interfaceDescriptor,
                     resultParserTypes));
-        }
-
-        private void GeneratePossibleTypeModel(
-            IModelGeneratorContext context,
-            SelectionInfo selectionInfo,
-            IFragmentNode returnType,
-            ICollection<ResultParserTypeDescriptor> resultParser,
-            Path path)
-        {
-            IFragmentNode modelType = new FragmentNode(new Fragment(
-                selectionInfo.Type.Name,
-                selectionInfo.Type,
-                selectionInfo.SelectionSet));
-
-            modelType = HoistFragment(
-                selectionInfo.Type,
-                modelType);
-
-            IInterfaceDescriptor modelInterface = CreateInterfaceModel(
-                context, modelType, path);
-
-            var modelClass = new ClassDescriptor(
-                GetClassName(modelType.Name),
-                context.Namespace,
-                selectionInfo.Type,
-                modelInterface);
-
-            context.Register(modelInterface);
-            context.Register(modelClass);
-
-            resultParser.Add(new ResultParserTypeDescriptor(modelClass));
         }
     }
 }

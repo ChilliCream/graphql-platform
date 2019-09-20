@@ -50,7 +50,7 @@ namespace StrawberryShake.Generators.Utilities
                     foreach (ObjectType objectType in _schema.GetPossibleTypes(type))
                     {
                         SelectionInfo objectSelection =
-                            CollectFieldsInternal(type, selectionSet, path);
+                            CollectFieldsInternal(objectType, selectionSet, path);
                         list.Add(objectSelection);
 
                         if (!FieldSelectionsAreEqual(
@@ -193,11 +193,12 @@ namespace StrawberryShake.Generators.Utilities
             ICollection<IFragmentNode> fragments)
         {
             Fragment fragment = _fragments.GetFragment(fragmentSpread.Name.Value);
-            var fragmentNode = new FragmentNode(fragment);
-            fragments.Add(fragmentNode);
 
-            if (fragment != null && DoesTypeApply(fragment.TypeCondition, type))
+            if (fragment != null && TypeHelpers.DoesTypeApply(fragment.TypeCondition, type))
             {
+                var fragmentNode = new FragmentNode(fragment);
+                fragments.Add(fragmentNode);
+
                 CollectFields(
                     type,
                     fragment.SelectionSet,
@@ -216,7 +217,7 @@ namespace StrawberryShake.Generators.Utilities
         {
             Fragment fragment = _fragments.GetFragment(type, inlineFragment);
 
-            if (DoesTypeApply(fragment.TypeCondition, type))
+            if (TypeHelpers.DoesTypeApply(fragment.TypeCondition, type))
             {
                 CollectFields(
                     type,
@@ -225,33 +226,6 @@ namespace StrawberryShake.Generators.Utilities
                     fields,
                     fragments);
             }
-        }
-
-        private static bool DoesTypeApply(
-            IType typeCondition,
-            INamedOutputType current)
-        {
-            if (typeCondition is ObjectType ot)
-            {
-                return ot == current;
-            }
-            else if (typeCondition is InterfaceType it)
-            {
-                if (current is ObjectType cot)
-                {
-                    return cot.Interfaces.ContainsKey(it.Name);
-                }
-
-                if (current is InterfaceType cit)
-                {
-                    return it.Name.Equals(cit.Name);
-                }
-            }
-            else if (typeCondition is UnionType ut)
-            {
-                return ut.Types.ContainsKey(current.Name);
-            }
-            return false;
         }
 
         private static bool FieldSelectionsAreEqual(

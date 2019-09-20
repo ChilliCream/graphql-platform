@@ -1,9 +1,4 @@
-﻿﻿public interface ICharacter
-{
-}
-
-
-public interface IHero
+﻿﻿public interface IHero
     : IHasName
     , IHasFriends
 {
@@ -22,12 +17,19 @@ public interface IHasFriends
 }
 
 
-public class Character
-    : ICharacter
+public class Hero
+    : IHero
 {
-    public Character(
+    public Hero(
+        string? name,
+        UNKNOWN friends)
     {
+        name = Name;
+        friends = Friends;
     }
+    public string? Name { get; }
+
+    public UNKNOWN Friends { get; }
 }
 
 

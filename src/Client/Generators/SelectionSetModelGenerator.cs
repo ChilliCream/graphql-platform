@@ -146,7 +146,7 @@ namespace StrawberryShake.Generators
         }
 
         protected IFragmentNode HoistFragment(
-            INamedType typeContext,
+            INamedType type,
             IFragmentNode fragmentNode)
         {
             (SelectionSetNode s, IReadOnlyList<IFragmentNode> f) current =
@@ -155,7 +155,7 @@ namespace StrawberryShake.Generators
 
             while (!current.s.Selections.OfType<FieldNode>().Any()
                 && current.f.Count == 1
-                && current.f[0].Fragment.TypeCondition == typeContext)
+                && TypeHelpers.DoesTypeApply(current.f[0].Fragment.TypeCondition, type))
             {
                 selected = current.f[0];
                 current = (selected.Fragment.SelectionSet, selected.Children);
