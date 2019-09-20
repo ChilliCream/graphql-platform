@@ -12,12 +12,13 @@ namespace StrawberryShake.Generators
     internal class ModelGeneratorContext
         : IModelGeneratorContext
     {
-        private Dictionary<ISyntaxNode, NameString> _names =
-            new Dictionary<ISyntaxNode, NameString>();
+        private Dictionary<ISyntaxNode, ISet<NameString>> _names =
+            new Dictionary<ISyntaxNode, ISet<NameString>>();
         private Dictionary<NameString, ICodeDescriptor> _descriptors =
             new Dictionary<NameString, ICodeDescriptor>();
         private Dictionary<FieldNode, ICodeDescriptor> _fieldTypes =
             new Dictionary<FieldNode, ICodeDescriptor>();
+        private HashSet<NameString> _usedNames = new HashSet<NameString>();
         private readonly FieldCollector _collector;
 
         public ModelGeneratorContext(
@@ -58,26 +59,34 @@ namespace StrawberryShake.Generators
 
         public NameString GetOrCreateName(ISyntaxNode node, NameString name)
         {
-            if (!_names.TryGetValue(node, out NameString n))
+            if (!_names.TryGetValue(node, out ISet<NameString>? n))
             {
-                if (_names.ContainsValue(name))
-                {
-                    for (int i = 1; i < int.MaxValue; i++)
-                    {
-                        n = name + i;
-                        if (!_names.ContainsValue(n))
-                        {
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-                    n = name;
-                }
+                n = new HashSet<NameString>();
                 _names.Add(node, n);
             }
-            return n;
+
+            if (n.Contains(name))
+            {
+                return name;
+            }
+
+            var current = name;
+
+            if (_usedNames.Contains(current))
+            {
+                for (int i = 1; i < int.MaxValue; i++)
+                {
+                    current = name + i;
+                    if (_usedNames.Add(current))
+                    {
+                        break;
+                    }
+                }
+            }
+
+            n.Add(current);
+            _usedNames.Add(current);
+            return current;
         }
 
         public void Register(ICodeDescriptor descriptor)

@@ -80,8 +80,12 @@ namespace StrawberryShake.Generators
                 IInterfaceDescriptor modelInterface = CreateInterfaceModel(
                     context, modelType, path);
 
+                string className = context.GetOrCreateName(
+                    modelType.Fragment.SelectionSet,
+                    GetClassName(modelType.Name));
+
                 var modelClass = new ClassDescriptor(
-                    GetClassName(modelType.Name),
+                    className,
                     context.Namespace,
                     selection.Type,
                     new[] { interfaceDescriptor, modelInterface });

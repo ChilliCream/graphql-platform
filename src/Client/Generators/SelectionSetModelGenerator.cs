@@ -75,12 +75,14 @@ namespace StrawberryShake.Generators
                 fragmentNode.Fragment.SelectionSet,
                 GetInterfaceName(fragmentNode.Name));
 
-            return new InterfaceDescriptor(
+            var descriptor = new InterfaceDescriptor(
                 interfaceName,
                 context.Namespace,
                 fragmentNode.Fragment.TypeCondition,
                 fieldDescriptors,
                 implements);
+            context.Register(descriptor);
+            return descriptor;
         }
 
         private IReadOnlyList<IInterfaceDescriptor> CreateChildInterfaceModels(

@@ -4,27 +4,33 @@
 }
 
 
-public class Droid
+public interface IHero
     : IHasName
+    , ISomeDroid
 {
-    public Droid(
-        string? name)
-    {
-        name = Name;
-    }
-    public string? Name { get; }
 }
 
 
-public class Human
-    : IHasName
+public interface ISomeDroid
 {
-    public Human(
-        string? name)
+    string? PrimaryFunction { get; }
+}
+
+
+public class Hero
+    : IHasName
+    , IHero
+{
+    public Hero(
+        string? name, 
+        string? primaryFunction)
     {
         name = Name;
+        primaryFunction = PrimaryFunction;
     }
     public string? Name { get; }
+
+    public string? PrimaryFunction { get; }
 }
 
 
