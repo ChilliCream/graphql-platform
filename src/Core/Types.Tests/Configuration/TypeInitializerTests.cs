@@ -30,6 +30,7 @@ namespace HotChocolate
                 initialTypes,
                 new List<Type>(),
                 new Dictionary<string, object>(),
+                new AggregateTypeInitilizationInterceptor(),
                 null,
                 t => t is FooType);
 
@@ -75,6 +76,7 @@ namespace HotChocolate
                 initialTypes,
                 new List<Type>(),
                 new Dictionary<string, object>(),
+                new AggregateTypeInitilizationInterceptor(),
                 null,
                 t => t is ObjectType<Foo>);
 
@@ -122,6 +124,7 @@ namespace HotChocolate
                 initialTypes,
                 new List<Type>(),
                 new Dictionary<string, object>(),
+                new AggregateTypeInitilizationInterceptor(),
                 null,
                 t => t is ObjectType<Foo>);
 
@@ -150,6 +153,7 @@ namespace HotChocolate
                 initialTypes,
                 new List<Type>(),
                 new Dictionary<string, object>(),
+                new AggregateTypeInitilizationInterceptor(),
                 null,
                 t => t is ObjectType<Foo>);
 
