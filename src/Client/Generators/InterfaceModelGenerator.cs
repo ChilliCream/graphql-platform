@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
@@ -41,7 +40,7 @@ namespace StrawberryShake.Generators
                 interfaceDescriptor,
                 path);
 
-            context.Register(interfaceDescriptor);
+            context.Register(fieldSelection, interfaceDescriptor);
         }
 
         private IFragmentNode ResolveReturnType(
@@ -96,7 +95,6 @@ namespace StrawberryShake.Generators
                     resultParserTypes));
         }
 
-
         private void GeneratePossibleTypeModel(
             IModelGeneratorContext context,
             SelectionInfo selectionInfo,
@@ -104,9 +102,6 @@ namespace StrawberryShake.Generators
             ICollection<ResultParserTypeDescriptor> resultParser,
             Path path)
         {
-            string className;
-            IReadOnlyList<IFragmentNode> fragments;
-
             IFragmentNode modelType = new FragmentNode(new Fragment(
                 selectionInfo.Type.Name,
                 selectionInfo.Type,

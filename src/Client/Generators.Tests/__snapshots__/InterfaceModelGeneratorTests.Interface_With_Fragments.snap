@@ -1,0 +1,33 @@
+﻿﻿public interface ICharacter
+{
+}
+
+
+public interface IHero
+    : IHasName
+    , IHasFriends
+{
+}
+
+
+public interface IHasName
+{
+    string? Name { get; }
+}
+
+
+public interface IHasFriends
+{
+    UNKNOWN Friends { get; }
+}
+
+
+public class Character
+    : ICharacter
+{
+    public Character(
+    {
+    }
+}
+
+

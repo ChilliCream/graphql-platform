@@ -414,7 +414,7 @@ namespace StrawberryShake.Generators
             foreach (IQueryDescriptor query in queries)
             {
                 var modelGenerator = new CodeModelGenerator(
-                    schema, query, usedNames, _clientName, _namespace);
+                    schema, query, usedNames, _clientName!, _namespace!);
                 modelGenerator.Generate();
 
                 descriptors.AddRange(modelGenerator.Descriptors);

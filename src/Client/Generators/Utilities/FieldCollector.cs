@@ -235,10 +235,17 @@ namespace StrawberryShake.Generators.Utilities
             {
                 return ot == current;
             }
-            else if (typeCondition is InterfaceType it
-                && current is ObjectType cot)
+            else if (typeCondition is InterfaceType it)
             {
-                return cot.Interfaces.ContainsKey(it.Name);
+                if (current is ObjectType cot)
+                {
+                    return cot.Interfaces.ContainsKey(it.Name);
+                }
+
+                if (current is InterfaceType cit)
+                {
+                    return it.Name.Equals(cit.Name);
+                }
             }
             else if (typeCondition is UnionType ut)
             {
