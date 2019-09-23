@@ -147,6 +147,67 @@ namespace StrawberryShake.Generators
             }).ToList();
         }
 
+        protected void CreateClassModel(
+            IModelGeneratorContext context,
+            IFragmentNode returnType,
+            IInterfaceDescriptor interfaceDescriptor,
+            SelectionInfo selection,
+            List<ResultParserTypeDescriptor> resultParserTypes)
+        {
+            var modelClass = new ClassDescriptor(
+                GetClassName(returnType.Name),
+                context.Namespace,
+                selection.Type,
+                new[] { interfaceDescriptor });
+
+            context.Register(modelClass);
+            resultParserTypes.Add(new ResultParserTypeDescriptor(modelClass));
+        }
+
+        protected void CreateClassModels(
+            IModelGeneratorContext context,
+            FieldNode fieldSelection,
+            IFragmentNode returnType,
+            IInterfaceDescriptor interfaceDescriptor,
+            IReadOnlyCollection<SelectionInfo> selections,
+            List<ResultParserTypeDescriptor> resultParserTypes,
+            Path path)
+        {
+            foreach (SelectionInfo selection in selections)
+            {
+                IFragmentNode modelType = ResolveReturnType(
+                    context,
+                    selection.Type,
+                    fieldSelection,
+                    selection);
+
+                var interfaces = new List<IInterfaceDescriptor>();
+
+                foreach (IFragmentNode fragment in
+                    ShedNonMatchingFragments(selection.Type, modelType))
+                {
+                    interfaces.Add(CreateInterfaceModel(context, fragment, path));
+                }
+
+                interfaces.Insert(0, interfaceDescriptor);
+
+                NameString typeName = HoistName(selection.Type, modelType);
+
+                string className = context.GetOrCreateName(
+                    modelType.Fragment.SelectionSet,
+                    GetClassName(typeName));
+
+                var modelClass = new ClassDescriptor(
+                    className,
+                    context.Namespace,
+                    selection.Type,
+                    interfaces);
+
+                context.Register(modelClass);
+                resultParserTypes.Add(new ResultParserTypeDescriptor(modelClass));
+            }
+        }
+
         protected IFragmentNode HoistFragment(
             INamedType type,
             IFragmentNode fragmentNode)
@@ -187,16 +248,6 @@ namespace StrawberryShake.Generators
 
                 return default;
             }
-        }
-
-        protected static IReadOnlyCollection<SelectionInfo> Normalize(
-            PossibleSelections possibleSelections)
-        {
-            if (possibleSelections.Variants.Count == 0)
-            {
-                return new List<SelectionInfo> { possibleSelections.ReturnType };
-            }
-            return possibleSelections.Variants;
         }
 
         private static bool FieldSelectionsAreEqual(
@@ -289,6 +340,22 @@ namespace StrawberryShake.Generators
                     ShedNonMatchingFragments(namedType, child, add);
                 }
             }
+        }
+
+        protected IFragmentNode ResolveReturnType(
+            IModelGeneratorContext context,
+            INamedType namedType,
+            FieldNode field,
+            SelectionInfo selection)
+        {
+            var returnType = new FragmentNode(new Fragment(
+                CreateName(namedType, field, GetClassName),
+                namedType,
+                selection.SelectionSet));
+
+            returnType.Children.AddRange(selection.Fragments);
+
+            return HoistFragment(namedType, returnType);
         }
     }
 }

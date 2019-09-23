@@ -8,7 +8,7 @@ namespace StrawberryShake.Generators.Utilities
         public PossibleSelections(SelectionInfo returnType)
         {
             ReturnType = returnType;
-            Variants = Array.Empty<SelectionInfo>();
+            Variants = new List<SelectionInfo> { returnType };
         }
 
         public PossibleSelections(

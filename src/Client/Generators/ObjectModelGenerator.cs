@@ -8,13 +8,13 @@ using static StrawberryShake.Generators.Utilities.NameUtils;
 
 namespace StrawberryShake.Generators
 {
-    internal class UnionModelGenerator
-        : SelectionSetModelGenerator<UnionType>
+    internal class ObjectModelGenerator
+        : SelectionSetModelGenerator<ObjectType>
     {
         public override void Generate(
             IModelGeneratorContext context,
             OperationDefinitionNode operation,
-            UnionType namedType,
+            ObjectType namedType,
             IType fieldType,
             FieldNode fieldSelection,
             PossibleSelections possibleSelections,
@@ -30,38 +30,14 @@ namespace StrawberryShake.Generators
                 context, returnType, path);
             context.Register(fieldSelection, interfaceDescriptor);
 
-            CreateClassModels(
+             var resultParserTypes = new List<ResultParserTypeDescriptor>();
+
+            CreateClassModel(
                 context,
-                operation,
-                fieldType,
-                fieldSelection,
-                possibleSelections,
                 returnType,
                 interfaceDescriptor,
-                path);
-        }
-
-        private void CreateClassModels(
-            IModelGeneratorContext context,
-            OperationDefinitionNode operation,
-            IType fieldType,
-            FieldNode fieldSelection,
-            PossibleSelections possibleSelections,
-            IFragmentNode returnType,
-            IInterfaceDescriptor interfaceDescriptor,
-            Path path)
-        {
-            var resultParserTypes = new List<ResultParserTypeDescriptor>();
-            IReadOnlyCollection<SelectionInfo> selections = possibleSelections.Variants;
-
-            CreateClassModels(
-                context,
-                fieldSelection,
-                returnType,
-                interfaceDescriptor,
-                selections,
-                resultParserTypes,
-                path);
+                possibleSelections.ReturnType,
+                resultParserTypes);
 
             context.Register(
                 new ResultParserMethodDescriptor(

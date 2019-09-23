@@ -31,7 +31,7 @@ namespace StrawberryShake.Generators
                 context, returnType, path);
             context.Register(fieldSelection, interfaceDescriptor);
 
-            GenerateModels(
+            CreateClassModels(
                 context,
                 operation,
                 fieldType,
@@ -42,23 +42,7 @@ namespace StrawberryShake.Generators
                 path);
         }
 
-        private IFragmentNode ResolveReturnType(
-            IModelGeneratorContext context,
-            INamedType namedType,
-            FieldNode field,
-            SelectionInfo selection)
-        {
-            var returnType = new FragmentNode(new Fragment(
-                CreateName(namedType, field, GetClassName),
-                namedType,
-                selection.SelectionSet));
-
-            returnType.Children.AddRange(selection.Fragments);
-
-            return HoistFragment(namedType, returnType);
-        }
-
-        private void GenerateModels(
+        private void CreateClassModels(
             IModelGeneratorContext context,
             OperationDefinitionNode operation,
             IType fieldType,
@@ -69,13 +53,12 @@ namespace StrawberryShake.Generators
             Path path)
         {
             var resultParserTypes = new List<ResultParserTypeDescriptor>();
-            IReadOnlyCollection<SelectionInfo> selections = Normalize(possibleSelections);
+            IReadOnlyCollection<SelectionInfo> selections = possibleSelections.Variants;
 
             if (selections.Count == 1)
             {
-                GenerateSingleModel(
+                CreateClassModel(
                     context,
-                    fieldSelection,
                     returnType,
                     interfaceDescriptor,
                     selections.Single(),
@@ -83,7 +66,7 @@ namespace StrawberryShake.Generators
             }
             else
             {
-                GenerateModels(
+                CreateClassModels(
                     context,
                     fieldSelection,
                     returnType,
@@ -104,66 +87,5 @@ namespace StrawberryShake.Generators
                     resultParserTypes));
         }
 
-        private void GenerateSingleModel(
-            IModelGeneratorContext context,
-            FieldNode fieldSelection,
-            IFragmentNode returnType,
-            IInterfaceDescriptor interfaceDescriptor,
-            SelectionInfo selection,
-            List<ResultParserTypeDescriptor> resultParserTypes)
-        {
-            var modelClass = new ClassDescriptor(
-                GetClassName(returnType.Name),
-                context.Namespace,
-                selection.Type,
-                new[] { interfaceDescriptor });
-
-            context.Register(modelClass);
-            resultParserTypes.Add(new ResultParserTypeDescriptor(modelClass));
-        }
-
-        private void GenerateModels(
-            IModelGeneratorContext context,
-            FieldNode fieldSelection,
-            IFragmentNode returnType,
-            IInterfaceDescriptor interfaceDescriptor,
-            IReadOnlyCollection<SelectionInfo> selections,
-            List<ResultParserTypeDescriptor> resultParserTypes,
-            Path path)
-        {
-            foreach (SelectionInfo selection in selections)
-            {
-                IFragmentNode modelType = ResolveReturnType(
-                    context,
-                    selection.Type,
-                    fieldSelection,
-                    selection);
-
-                var interfaces = new List<IInterfaceDescriptor>();
-
-                foreach (IFragmentNode fragment in
-                    ShedNonMatchingFragments(selection.Type, modelType))
-                {
-                    interfaces.Add(CreateInterfaceModel(context, fragment, path));
-                }
-
-                interfaces.Insert(0, interfaceDescriptor);
-
-                NameString typeName = HoistName(selection.Type, modelType);
-
-                string className = context.GetOrCreateName(
-                    modelType.Fragment.SelectionSet,
-                    GetClassName(typeName));
-
-                var modelClass = new ClassDescriptor(
-                    className,
-                    context.Namespace,
-                    selection.Type,
-                    interfaces);
-
-                context.Register(modelClass);
-                resultParserTypes.Add(new ResultParserTypeDescriptor(modelClass));
-            }
-        }
     }
 }

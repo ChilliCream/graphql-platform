@@ -27,8 +27,12 @@ namespace StrawberryShake.Generators
         private readonly string _clientName;
         private readonly string _namespace;
 
+        private ObjectModelGenerator _objectModelGenerator =
+            new ObjectModelGenerator();
         private InterfaceModelGenerator _interfaceModelGenerator =
             new InterfaceModelGenerator();
+        private UnionModelGenerator _unionModelGenerator =
+            new UnionModelGenerator();
         private IModelGeneratorContext _context;
 
         public CodeModelGenerator(
@@ -244,45 +248,32 @@ namespace StrawberryShake.Generators
             Path path,
             Queue<FieldSelection> backlog)
         {
-            INamedType namedType = fieldType.NamedType();
+            var namedType = (INamedOutputType)fieldType.NamedType();
 
-            IReadOnlyCollection<ObjectType> possibleTypes =
-                namedType is ObjectType ot
-                    ? new ObjectType[] { ot }
-                    : _schema.GetPossibleTypes(namedType);
+            PossibleSelections possibleSelections =
+                _fieldCollector.CollectFields(
+                    namedType,
+                    fieldSelection.SelectionSet,
+                    path);
 
-            var typeCases = new Dictionary<ObjectType, SelectionInfo>();
-
-            foreach (ObjectType objectType in possibleTypes)
+            foreach (SelectionInfo selectionInfo in possibleSelections.Variants)
             {
-                PossibleSelections possibleSelections =
-                    _fieldCollector.CollectFields(
-                        objectType,
-                        fieldSelection.SelectionSet,
-                        path);
-
-                EnqueueFields(backlog, possibleSelections.ReturnType.Fields);
-
-                typeCases[objectType] = possibleSelections.ReturnType;
+                EnqueueFields(backlog, selectionInfo.Fields);
             }
 
             if (namedType is UnionType unionType)
             {
-                _fieldTypes[fieldSelection] = GenerateUnionSelectionSet(
+                _unionModelGenerator.Generate(
+                    _context,
                     operation,
                     unionType,
                     fieldType,
                     fieldSelection,
-                    typeCases.Values,
+                    possibleSelections,
                     path);
             }
             else if (namedType is InterfaceType interfaceType)
             {
-                PossibleSelections possibleSelections =
-                    _fieldCollector.CollectFields(
-                        interfaceType,
-                        fieldSelection.SelectionSet,
-                        path);
                 _interfaceModelGenerator.Generate(
                     _context,
                     operation,
@@ -294,12 +285,13 @@ namespace StrawberryShake.Generators
             }
             else if (namedType is ObjectType objectType)
             {
-                _fieldTypes[fieldSelection] = GenerateObjectSelectionSet(
+                _objectModelGenerator.Generate(
+                    _context,
                     operation,
                     objectType,
                     fieldType,
                     fieldSelection,
-                    typeCases.Values.Single(),
+                    possibleSelections,
                     path);
             }
         }
@@ -312,111 +304,6 @@ namespace StrawberryShake.Generators
             {
                 backlog.Enqueue(fieldSelection);
             }
-        }
-
-        private ICodeDescriptor GenerateUnionSelectionSet(
-            OperationDefinitionNode operation,
-            UnionType unionType,
-            IType fieldType,
-            FieldNode fieldSelection,
-            IReadOnlyCollection<SelectionInfo> typeCases,
-            Path path)
-        {
-            IFragmentNode? returnType = null;
-            SelectionInfo result = typeCases.First();
-            IReadOnlyList<IFragmentNode> fragments = result.Fragments;
-
-            while (fragments.Count == 1)
-            {
-                if (fragments[0].Fragment.TypeCondition == unionType)
-                {
-                    returnType = fragments[0];
-                    fragments = fragments[0].Children;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            InterfaceDescriptor unionInterface;
-
-            if (returnType is null)
-            {
-                string name = CreateName(
-                    fieldSelection,
-                    unionType,
-                    GetInterfaceName);
-                unionInterface = new InterfaceDescriptor(
-                    name, _namespace, unionType);
-            }
-            else
-            {
-                unionInterface = CreateInterface(returnType, path);
-                unionInterface = unionInterface.RemoveAllImplements();
-            }
-
-            var resultParserTypes = new List<ResultParserTypeDescriptor>();
-
-            foreach (var typeCase in Normalize(typeCases))
-            {
-                string className;
-                string interfaceName;
-
-                IFragmentNode fragment = typeCase.Fragments.FirstOrDefault(
-                    t => t.Fragment.TypeCondition == typeCase.Type);
-
-                if (fragment is null)
-                {
-                    className = CreateName(typeCase.Type.Name);
-                    interfaceName = CreateName(GetInterfaceName(className));
-                }
-                else
-                {
-                    className = CreateName(fragment.Fragment.Name);
-                    interfaceName = GetOrCreateInterfaceName(fragment);
-                }
-
-                var modelInterfaces = new List<IInterfaceDescriptor>();
-                modelInterfaces.Add(
-                    new InterfaceDescriptor(
-                        interfaceName,
-                        _namespace,
-                        typeCase.Type,
-                        typeCase.Fields.Select(t =>
-                        {
-                            string responseName = (t.Selection.Alias ?? t.Selection.Name).Value;
-                            return new FieldDescriptor(
-                                t.Field,
-                                t.Selection,
-                                t.Field.Type,
-                                t.Path.Append(responseName));
-                        }).ToList(),
-                        new[] { unionInterface }));
-                modelInterfaces.AddRange(CreateInterfaces(typeCase.Fragments, path));
-
-                var modelClass = new ClassDescriptor(
-                    className, _namespace, typeCase.Type, modelInterfaces);
-
-                RegisterDescriptors(modelInterfaces);
-                RegisterDescriptor(modelClass);
-
-                resultParserTypes.Add(new ResultParserTypeDescriptor(modelClass));
-            }
-
-            RegisterDescriptor(unionInterface);
-
-            RegisterDescriptor(
-                new ResultParserMethodDescriptor(
-                    GetPathName(path),
-                    operation,
-                    fieldType,
-                    fieldSelection,
-                    path,
-                    unionInterface,
-                    resultParserTypes));
-
-            return unionInterface;
         }
 
         private ICodeDescriptor GenerateObjectSelectionSet(
@@ -491,18 +378,6 @@ namespace StrawberryShake.Generators
             }
 
             return selected;
-        }
-
-        private IReadOnlyList<InterfaceDescriptor> CreateInterfaces(
-           IEnumerable<IFragmentNode> fragmentNodes,
-           Path path)
-        {
-            var list = new List<InterfaceDescriptor>();
-            foreach (IFragmentNode fragmentNode in fragmentNodes)
-            {
-                list.Add(CreateInterface(fragmentNode, path));
-            }
-            return list;
         }
 
         private InterfaceDescriptor CreateInterface(
@@ -656,20 +531,6 @@ namespace StrawberryShake.Generators
             return true;
         }
 
-        private bool Spread(FieldNode field)
-        {
-            return field.Directives.Any(t =>
-                t.Name.Value.EqualsOrdinal(GeneratorDirectives.Spread));
-        }
-
-        private void RegisterDescriptors(IEnumerable<ICodeDescriptor> descriptors)
-        {
-            foreach (ICodeDescriptor descriptor in descriptors)
-            {
-                RegisterDescriptor(descriptor);
-            }
-        }
-
         private void RegisterDescriptor(ICodeDescriptor descriptor)
         {
             _context.Register(descriptor);
@@ -690,19 +551,5 @@ namespace StrawberryShake.Generators
             }
             return typeName;
         }
-
-        private static IReadOnlyCollection<SelectionInfo> Normalize(
-            IReadOnlyCollection<SelectionInfo> typeCases)
-        {
-            SelectionInfo first = typeCases.First();
-            if (typeCases.Count == 1
-                || typeCases.All(t => t.SelectionSet == first.SelectionSet))
-            {
-                return new List<SelectionInfo> { first };
-            }
-            return typeCases;
-        }
     }
-
-
 }
