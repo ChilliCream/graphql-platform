@@ -29,4 +29,8 @@
     <ProjectReference Include="..\AspNetCore.Voyager\AspNetCore.Voyager.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Authorization\__snapshots__\__mismatch__\" />
+  </ItemGroup>
+
 </Project>

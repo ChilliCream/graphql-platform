@@ -1,4 +1,4 @@
-﻿namespace HotChocolate
+namespace HotChocolate
 {
     internal static class WellKnownDirectives
     {

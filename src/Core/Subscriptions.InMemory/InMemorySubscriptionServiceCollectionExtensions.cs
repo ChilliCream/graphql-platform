@@ -5,7 +5,7 @@ namespace HotChocolate.Subscriptions
 {
     public static class InMemorySubscriptionServiceCollectionExtensions
     {
-        public static void AddInMemorySubscriptionProvider(
+        public static IServiceCollection AddInMemorySubscriptionProvider(
             this IServiceCollection services)
         {
             if (services == null)
@@ -18,6 +18,7 @@ namespace HotChocolate.Subscriptions
                 sp.GetRequiredService<InMemoryEventRegistry>());
             services.AddSingleton<IEventSender>(sp =>
                 sp.GetRequiredService<InMemoryEventRegistry>());
+            return services;
         }
     }
 }

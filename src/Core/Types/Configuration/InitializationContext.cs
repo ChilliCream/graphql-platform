@@ -16,23 +16,23 @@ namespace HotChocolate.Configuration
         private readonly List<IDirectiveReference> _directiveReferences =
             new List<IDirectiveReference>();
 
-        private readonly IDescriptorContext _descriptorContext;
-
         public InitializationContext(
             ITypeSystemObject type,
             IServiceProvider services,
             IDescriptorContext descriptorContext,
-            IDictionary<string, object> contextData)
+            IDictionary<string, object> contextData,
+            ITypeInitializationInterceptor interceptor)
         {
             Type = type
                 ?? throw new ArgumentNullException(nameof(type));
             Services = services
                 ?? throw new ArgumentNullException(nameof(services));
-            _descriptorContext = descriptorContext
+            DescriptorContext = descriptorContext
                 ?? throw new ArgumentNullException(nameof(descriptorContext));
             ContextData = contextData
                 ?? throw new ArgumentNullException(nameof(contextData));
-
+            Interceptor = interceptor
+                ?? throw new ArgumentNullException(nameof(interceptor));
             IsDirective = type is DirectiveType;
 
             if (type is INamedType nt)
@@ -70,8 +70,9 @@ namespace HotChocolate.Configuration
 
         public IDictionary<string, object> ContextData { get; }
 
-        public IDescriptorContext DescriptorContext =>
-            _descriptorContext;
+        public IDescriptorContext DescriptorContext { get; private set; }
+
+        public ITypeInitializationInterceptor Interceptor { get; }
 
         public void RegisterDependency(
             ITypeReference reference,
