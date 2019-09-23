@@ -129,16 +129,16 @@ namespace StrawberryShake.Generators.CSharp
                 {
                     IFieldDescriptor fieldDescriptor = descriptor.Fields[i];
 
-                    string parameterName = GetFieldName(
+                    string propetyName = GetPropertyName(
                         fieldDescriptor.ResponseName);
 
-                    string propetyName = GetPropertyName(
+                    string parameterName = GetFieldName(
                         fieldDescriptor.ResponseName);
 
                     await writer.WriteIndentedLineAsync(
                         "{0} = {1};",
-                        parameterName,
-                        propetyName);
+                        propetyName,
+                        parameterName);
                 }
             }
 

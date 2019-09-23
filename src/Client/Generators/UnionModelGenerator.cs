@@ -9,13 +9,13 @@ using static StrawberryShake.Generators.Utilities.NameUtils;
 
 namespace StrawberryShake.Generators
 {
-    internal class InterfaceModelGenerator
-        : SelectionSetModelGenerator<InterfaceType>
+    internal class UnionModelGenerator
+        : SelectionSetModelGenerator<UnionType>
     {
         public override void Generate(
             IModelGeneratorContext context,
             OperationDefinitionNode operation,
-            InterfaceType namedType,
+            UnionType namedType,
             IType fieldType,
             FieldNode fieldSelection,
             PossibleSelections possibleSelections,

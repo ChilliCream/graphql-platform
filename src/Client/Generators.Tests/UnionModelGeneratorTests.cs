@@ -16,10 +16,10 @@ using System.Reflection;
 
 namespace StrawberryShake.Generators
 {
-    public class InterfaceModelGeneratorTests
+    public class UnionModelGeneratorTests
     {
         [Fact]
-        public async Task Interface_No_Fragments()
+        public async Task Union_No_Fragments()
         {
             // arrange
             var path = HotChocolate.Path.New("root");
@@ -78,7 +78,7 @@ namespace StrawberryShake.Generators
             output.MatchSnapshot();
         }
 
-        [Fact]
+        // [Fact]
         public async Task Interface_With_Fragments()
         {
             // arrange
@@ -138,7 +138,7 @@ namespace StrawberryShake.Generators
             output.MatchSnapshot();
         }
 
-        [Fact]
+        // [Fact]
         public async Task Interface_Two_Cases()
         {
             // arrange
@@ -222,7 +222,7 @@ namespace StrawberryShake.Generators
             output.MatchSnapshot();
         }
 
-        [Fact]
+        // [Fact]
         public async Task Interface_Two_Cases_2()
         {
             // arrange
@@ -302,7 +302,7 @@ namespace StrawberryShake.Generators
             output.MatchSnapshot();
         }
 
-        [Fact]
+        // [Fact]
         public async Task Interface_Two_Cases_3()
         {
             // arrange

@@ -4,32 +4,22 @@
 }
 
 public interface ISomeDroid
+    : IHasName
 {
     string? PrimaryFunction { get; }
 }
 
-public interface IDroid
-    : IHasName
-    , ISomeDroid
-{
-}
-
 public interface ISomeHuman
+    : IHasName
 {
     string? HomePlanet { get; }
 }
 
-public interface IHuman
+public class SomeDroid
     : IHasName
-    , ISomeHuman
+    , ISomeDroid
 {
-}
-
-public class Droid
-    : IHasName
-    , IDroid
-{
-    public Droid(
+    public SomeDroid(
         string? name, 
         string? primaryFunction)
     {
@@ -41,11 +31,11 @@ public class Droid
     public string? PrimaryFunction { get; }
 }
 
-public class Human
+public class SomeHuman
     : IHasName
-    , IHuman
+    , ISomeHuman
 {
-    public Human(
+    public SomeHuman(
         string? name, 
         string? homePlanet)
     {

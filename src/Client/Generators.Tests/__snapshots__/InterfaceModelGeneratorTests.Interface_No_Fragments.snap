@@ -5,20 +5,18 @@
     UNKNOWN Friends { get; }
 }
 
-
 public class Character
     : ICharacter
 {
     public Character(
-        string? name,
+        string? name, 
         UNKNOWN friends)
     {
-        name = Name;
-        friends = Friends;
+        Name = name;
+        Friends = friends;
     }
     public string? Name { get; }
 
     public UNKNOWN Friends { get; }
 }
-
 

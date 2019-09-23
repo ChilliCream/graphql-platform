@@ -166,6 +166,29 @@ namespace StrawberryShake.Generators
             return selected;
         }
 
+        protected NameString HoistName(
+            INamedType type,
+            IFragmentNode fragmentNode)
+        {
+            if (fragmentNode.Fragment.TypeCondition.Name.Equals(type.Name))
+            {
+                return fragmentNode.Name;
+            }
+            else
+            {
+                foreach (IFragmentNode child in fragmentNode.Children)
+                {
+                    NameString name = HoistName(type, child);
+                    if (name.HasValue)
+                    {
+                        return name;
+                    }
+                }
+
+                return default;
+            }
+        }
+
         protected static IReadOnlyCollection<SelectionInfo> Normalize(
             PossibleSelections possibleSelections)
         {
@@ -227,6 +250,45 @@ namespace StrawberryShake.Generators
             typeName = (string)directive.Arguments.Single(a =>
                 a.Name.Value.EqualsOrdinal("name")).Value.Value;
             return true;
+        }
+
+        protected IReadOnlyList<IFragmentNode> ShedNonMatchingFragments(
+            INamedType namedType,
+            IFragmentNode fragmentNode)
+        {
+            var nodes = new List<IFragmentNode>();
+
+            if (fragmentNode.Fragment.TypeCondition.Name.Equals(namedType.Name))
+            {
+                ShedNonMatchingFragments(namedType, fragmentNode, nodes.Add);
+            }
+            else
+            {
+                foreach (IFragmentNode child in fragmentNode.Children)
+                {
+                    ShedNonMatchingFragments(namedType, child, nodes.Add);
+                }
+            }
+
+            return nodes;
+        }
+
+        private void ShedNonMatchingFragments(
+            INamedType namedType,
+            IFragmentNode fragmentNode,
+            Action<IFragmentNode> add)
+        {
+            if (fragmentNode.Fragment.TypeCondition.Name.Equals(namedType.Name))
+            {
+                add(fragmentNode);
+            }
+            else
+            {
+                foreach (IFragmentNode child in fragmentNode.Children)
+                {
+                    ShedNonMatchingFragments(namedType, child, add);
+                }
+            }
         }
     }
 }

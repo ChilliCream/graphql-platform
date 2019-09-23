@@ -236,7 +236,7 @@ namespace StrawberryShake.Generators.Utilities
             {
                 for (int i = 0; i < a.Count; i++)
                 {
-                    if (!ReferenceEquals(a[i].Field, b[i].Field))
+                    if (!ReferenceEquals(a[i].Selection, b[i].Selection))
                     {
                         return false;
                     }
