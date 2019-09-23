@@ -20,9 +20,6 @@ public class Starship
     : ISearchResult
     , IStarship
 {
-    public Starship(
-    {
-    }
 }
 
 public class Human
@@ -34,6 +31,7 @@ public class Human
     {
         HomePlanet = homePlanet;
     }
+
     public string? HomePlanet { get; }
 }
 
@@ -46,6 +44,7 @@ public class Droid
     {
         PrimaryFunction = primaryFunction;
     }
+
     public string? PrimaryFunction { get; }
 }
 

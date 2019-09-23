@@ -18,7 +18,7 @@ namespace StrawberryShake.Generators
     public class UnionModelGeneratorTests
     {
         [Fact]
-        public async Task Union_No_Fragments()
+        public async Task Union_Inline_Fragments()
         {
             // arrange
             var path = HotChocolate.Path.New("root");
@@ -32,6 +32,9 @@ namespace StrawberryShake.Generators
                         }
                         ... on Droid {
                             primaryFunction
+                        }
+                        ... on Starship {
+                            name
                         }
                     }
                 }
@@ -88,95 +91,31 @@ namespace StrawberryShake.Generators
             output.MatchSnapshot();
         }
 
-        // [Fact]
-        public async Task Interface_With_Fragments()
-        {
-            // arrange
-            var path = HotChocolate.Path.New("root");
-
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                FileResource.Open("Multiple_Fragments_Query.graphql"));
-
-            var operation = document.Definitions
-                .OfType<OperationDefinitionNode>()
-                .First();
-
-            var field = operation.SelectionSet.Selections
-                .OfType<FieldNode>()
-                .First();
-
-            var query = new QueryDescriptor(
-                "Simple_Query",
-                "Foo.Bar.Ns",
-                "1234",
-                "12345",
-                new byte[] { 1, 2, 3 },
-                document);
-
-            var schema = SchemaBuilder.New()
-                .AddDocumentFromString(FileResource.Open("StarWars.graphql"))
-                .Use(next => context => Task.CompletedTask)
-                .Create();
-
-            var context = new ModelGeneratorContext(
-                schema,
-                query,
-                "StarWarsClient",
-                "Foo.Bar.Ns");
-
-            var character = schema.GetType<InterfaceType>("Character");
-
-            // act
-            var generator = new InterfaceModelGenerator();
-
-            generator.Generate(
-                context,
-                operation,
-                character,
-                character,
-                field,
-                context.CollectFields(character, field.SelectionSet, path),
-                path);
-
-            // assert
-            var typeLookup = new TypeLookup(
-                LanguageVersion.CSharp_8_0,
-                CollectFieldsVisitor.MockLookup(document, context.FieldTypes));
-
-            string output = await WriteAllAsync(context.Descriptors, typeLookup);
-
-            output.MatchSnapshot();
-        }
-
-        // [Fact]
-        public async Task Interface_Two_Cases()
+        [Fact]
+        public async Task Union_Fragment_Definition()
         {
             // arrange
             var path = HotChocolate.Path.New("root");
 
             DocumentNode document = Utf8GraphQLParser.Parse(
                 @"
-                query getHero {
-                    hero {
-                        ...Hero
+                query search {
+                    search(text: ""foo"") {
+                        ... SomeHuman
+                        ... SomeDroid
+                        ... SomeStarship
                     }
-                }
-
-                fragment Hero on Character {
-                    ...HasName
-                    ...SomeDroid
-                    ...SomeHuman
-                }
-
-                fragment SomeDroid on Droid {
-                    primaryFunction
                 }
 
                 fragment SomeHuman on Human {
                     homePlanet
                 }
 
-                fragment HasName on Character {
+                fragment SomeDroid on Droid {
+                    primaryFunction
+                }
+
+                fragment SomeStarship on Starship {
                     name
                 }
                 ");
@@ -208,10 +147,10 @@ namespace StrawberryShake.Generators
                 "StarWarsClient",
                 "Foo.Bar.Ns");
 
-            var character = schema.GetType<InterfaceType>("Character");
+            var character = schema.GetType<UnionType>("SearchResult");
 
             // act
-            var generator = new InterfaceModelGenerator();
+            var generator = new UnionModelGenerator();
 
             generator.Generate(
                 context,
@@ -232,32 +171,23 @@ namespace StrawberryShake.Generators
             output.MatchSnapshot();
         }
 
-        // [Fact]
-        public async Task Interface_Two_Cases_2()
+        [Fact]
+        public async Task Union_Inline_Fragments_Skip_One_Type()
         {
             // arrange
             var path = HotChocolate.Path.New("root");
 
             DocumentNode document = Utf8GraphQLParser.Parse(
                 @"
-                query getHero {
-                    hero {
-                        ...HasName
-                        ...SomeDroid
-                        ...SomeHuman
+                query search {
+                    search(text: ""foo"") {
+                        ... on Human {
+                            homePlanet
+                        }
+                        ... on Droid {
+                            primaryFunction
+                        }
                     }
-                }
-
-                fragment SomeDroid on Droid {
-                    primaryFunction
-                }
-
-                fragment SomeHuman on Human {
-                    homePlanet
-                }
-
-                fragment HasName on Character {
-                    name
                 }
                 ");
 
@@ -288,96 +218,10 @@ namespace StrawberryShake.Generators
                 "StarWarsClient",
                 "Foo.Bar.Ns");
 
-            var character = schema.GetType<InterfaceType>("Character");
+            var character = schema.GetType<UnionType>("SearchResult");
 
             // act
-            var generator = new InterfaceModelGenerator();
-
-            generator.Generate(
-                context,
-                operation,
-                character,
-                character,
-                field,
-                context.CollectFields(character, field.SelectionSet, path),
-                path);
-
-            // assert
-            var typeLookup = new TypeLookup(
-                LanguageVersion.CSharp_8_0,
-                CollectFieldsVisitor.MockLookup(document, context.FieldTypes));
-
-            string output = await WriteAllAsync(context.Descriptors, typeLookup);
-
-            output.MatchSnapshot();
-        }
-
-        // [Fact]
-        public async Task Interface_Two_Cases_3()
-        {
-            // arrange
-            var path = HotChocolate.Path.New("root");
-
-            DocumentNode document = Utf8GraphQLParser.Parse(
-                @"
-                query getHero {
-                    hero {
-                        ...Hero
-                    }
-                }
-
-                fragment Hero on Character {
-                    ...HasName
-                    ...SomeDroid
-                    ...SomeHuman
-                }
-
-                fragment SomeDroid on Droid {
-                    ...HasName
-                    primaryFunction
-                }
-
-                fragment SomeHuman on Human {
-                    ...HasName
-                    homePlanet
-                }
-
-                fragment HasName on Character {
-                    name
-                }
-                ");
-
-            var operation = document.Definitions
-                .OfType<OperationDefinitionNode>()
-                .First();
-
-            var field = operation.SelectionSet.Selections
-                .OfType<FieldNode>()
-                .First();
-
-            var query = new QueryDescriptor(
-                "Simple_Query",
-                "Foo.Bar.Ns",
-                "1234",
-                "12345",
-                new byte[] { 1, 2, 3 },
-                document);
-
-            var schema = SchemaBuilder.New()
-                .AddDocumentFromString(FileResource.Open("StarWars.graphql"))
-                .Use(next => context => Task.CompletedTask)
-                .Create();
-
-            var context = new ModelGeneratorContext(
-                schema,
-                query,
-                "StarWarsClient",
-                "Foo.Bar.Ns");
-
-            var character = schema.GetType<InterfaceType>("Character");
-
-            // act
-            var generator = new InterfaceModelGenerator();
+            var generator = new UnionModelGenerator();
 
             generator.Generate(
                 context,
