@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -148,6 +148,28 @@ namespace HotChocolate.Types
 
             // act
             descriptor.Argument(t => t.FieldA).Type<NonNullType<StringType>>();
+
+            // assert
+            DirectiveTypeDefinition description =
+                descriptor.CreateDefinition();
+            Assert.Collection(description.Arguments,
+                t => Assert.Equal(
+                    typeof(NonNullType<StringType>),
+                    Assert.IsType<ClrTypeReference>(t.Type).Type),
+                t => Assert.Equal(
+                    typeof(string),
+                    Assert.IsType<ClrTypeReference>(t.Type).Type));
+        }
+
+        [Fact]
+        public void DeclareArgumentAndSpecifyClrType()
+        {
+            // arrange
+            var descriptor =
+                DirectiveTypeDescriptor.New<CustomDirective>(Context);
+
+            // act
+            descriptor.Argument(t => t.FieldA).Type(typeof(NonNullType<StringType>));
 
             // assert
             DirectiveTypeDefinition description =

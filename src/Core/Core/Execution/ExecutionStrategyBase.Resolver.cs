@@ -56,7 +56,7 @@ namespace HotChocolate.Execution
                         .ConfigureAwait(false);
                 }
             }
-            catch (QueryException ex)
+            catch (GraphQLException ex)
             {
                 resolverContext.Result = ex.Errors;
             }

@@ -166,7 +166,12 @@ namespace HotChocolate.Types
 
         internal sealed override void Initialize(IInitializationContext context)
         {
+            context.Interceptor.OnBeforeRegisterDependencies(
+                context, null, _contextData);
             OnRegisterDependencies(context, _contextData);
+            context.Interceptor.OnAfterRegisterDependencies(
+                context, null, _contextData);
+
             base.Initialize(context);
         }
 
@@ -178,8 +183,12 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteName(ICompletionContext context)
         {
+            context.Interceptor.OnBeforeCompleteName(
+                context, null, _contextData);
             OnCompleteName(context, _contextData);
             base.CompleteName(context);
+            context.Interceptor.OnAfterCompleteName(
+                context, null, _contextData);
         }
 
         protected virtual void OnCompleteName(
@@ -190,8 +199,12 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteType(ICompletionContext context)
         {
+            context.Interceptor.OnBeforeCompleteType(
+                context, null, _contextData);
             OnCompleteType(context, _contextData);
             base.CompleteType(context);
+            context.Interceptor.OnAfterCompleteType(
+                context, null, _contextData);
         }
 
         protected virtual void OnCompleteType(

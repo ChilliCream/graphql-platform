@@ -38,10 +38,8 @@ namespace HotChocolate.Types
         {
             base.OnCompleteType(context, definition);
 
-            var directives = new DirectiveCollection(
-                this, definition.Directives);
-            directives.CompleteCollection(context);
-            Directives = directives;
+            Directives = DirectiveCollection.CreateAndComplete(
+                context, this, definition.Directives);
         }
     }
 }
