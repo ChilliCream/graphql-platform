@@ -71,27 +71,14 @@ namespace StrawberryShake.Generators
             var resultParserTypes = new List<ResultParserTypeDescriptor>();
             IReadOnlyCollection<SelectionInfo> selections = Normalize(possibleSelections);
 
-            if (selections.Count == 1)
-            {
-                GenerateSingleModel(
-                    context,
-                    fieldSelection,
-                    returnType,
-                    interfaceDescriptor,
-                    selections.Single(),
-                    resultParserTypes);
-            }
-            else
-            {
-                GenerateModels(
-                    context,
-                    fieldSelection,
-                    returnType,
-                    interfaceDescriptor,
-                    selections,
-                    resultParserTypes,
-                    path);
-            }
+            GenerateModels(
+                context,
+                fieldSelection,
+                returnType,
+                interfaceDescriptor,
+                selections,
+                resultParserTypes,
+                path);
 
             context.Register(
                 new ResultParserMethodDescriptor(
@@ -102,24 +89,6 @@ namespace StrawberryShake.Generators
                     path,
                     interfaceDescriptor,
                     resultParserTypes));
-        }
-
-        private void GenerateSingleModel(
-            IModelGeneratorContext context,
-            FieldNode fieldSelection,
-            IFragmentNode returnType,
-            IInterfaceDescriptor interfaceDescriptor,
-            SelectionInfo selection,
-            List<ResultParserTypeDescriptor> resultParserTypes)
-        {
-            var modelClass = new ClassDescriptor(
-                GetClassName(returnType.Name),
-                context.Namespace,
-                selection.Type,
-                new[] { interfaceDescriptor });
-
-            context.Register(modelClass);
-            resultParserTypes.Add(new ResultParserTypeDescriptor(modelClass));
         }
 
         private void GenerateModels(

@@ -12,7 +12,6 @@ using System.IO;
 using StrawberryShake.Generators.Utilities;
 using System.Text;
 using Snapshooter.Xunit;
-using System.Reflection;
 
 namespace StrawberryShake.Generators
 {
@@ -25,7 +24,18 @@ namespace StrawberryShake.Generators
             var path = HotChocolate.Path.New("root");
 
             DocumentNode document = Utf8GraphQLParser.Parse(
-                FileResource.Open("Simple_Query.graphql"));
+                @"
+                query search {
+                    search(text: ""foo"") {
+                        ... on Human {
+                            homePlanet
+                        }
+                        ... on Droid {
+                            primaryFunction
+                        }
+                    }
+                }
+                ");
 
             var operation = document.Definitions
                 .OfType<OperationDefinitionNode>()
@@ -54,10 +64,10 @@ namespace StrawberryShake.Generators
                 "StarWarsClient",
                 "Foo.Bar.Ns");
 
-            var character = schema.GetType<InterfaceType>("Character");
+            var character = schema.GetType<UnionType>("SearchResult");
 
             // act
-            var generator = new InterfaceModelGenerator();
+            var generator = new UnionModelGenerator();
 
             generator.Generate(
                 context,

@@ -194,7 +194,7 @@ namespace StrawberryShake.Generators.Utilities
         {
             Fragment fragment = _fragments.GetFragment(fragmentSpread.Name.Value);
 
-            if (fragment != null && TypeHelpers.DoesTypeApply(fragment.TypeCondition, type))
+            if (TypeHelpers.DoesTypeApply(fragment.TypeCondition, type))
             {
                 var fragmentNode = new FragmentNode(fragment);
                 fragments.Add(fragmentNode);
@@ -219,12 +219,18 @@ namespace StrawberryShake.Generators.Utilities
 
             if (TypeHelpers.DoesTypeApply(fragment.TypeCondition, type))
             {
+                var fragmentNode = new FragmentNode(new Fragment(
+                    fragment.TypeCondition.Name,
+                    fragment.TypeCondition,
+                    fragment.SelectionSet));
+                fragments.Add(fragmentNode);
+
                 CollectFields(
                     type,
                     fragment.SelectionSet,
                     path,
                     fields,
-                    fragments);
+                    fragmentNode.Children);
             }
         }
 
