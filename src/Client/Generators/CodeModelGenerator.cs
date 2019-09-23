@@ -218,26 +218,27 @@ namespace StrawberryShake.Generators
             return descriptor;
         }
 
-        private ICodeDescriptor GenerateOperationSelectionSet(
+        private void GenerateOperationSelectionSet(
            ObjectType operationType,
            OperationDefinitionNode operation,
            Path path,
            Queue<FieldSelection> backlog)
         {
-            SelectionInfo typeCase = _fieldCollector.CollectFields(
-                operationType,
-                operation.SelectionSet,
-                path).ReturnType;
+            PossibleSelections possibleSelections  =
+                _fieldCollector.CollectFields(
+                    operationType,
+                    operation.SelectionSet,
+                    path);
 
-            EnqueueFields(backlog, typeCase.Fields);
+            EnqueueFields(backlog, possibleSelections.ReturnType.Fields);
 
-            return _operationTypes[operation] =
-                GenerateObjectSelectionSet(
+            _objectModelGenerator.Generate(
+                    _context,
                     operation,
                     operationType,
                     operationType,
-                    operation,
-                    typeCase,
+                    null,
+                    possibleSelections,
                     path);
         }
 
@@ -306,59 +307,6 @@ namespace StrawberryShake.Generators
             }
         }
 
-        private ICodeDescriptor GenerateObjectSelectionSet(
-            OperationDefinitionNode operation,
-            ObjectType objectType,
-            IType fieldType,
-            WithDirectives fieldOrOperation,
-            SelectionInfo typeCase,
-            Path path)
-        {
-            IFragmentNode? returnType = HoistFragment(
-                objectType, typeCase.SelectionSet, typeCase.Fragments);
-
-            IReadOnlyList<IFragmentNode> fragments;
-            string className;
-
-            if (returnType is null)
-            {
-                fragments = typeCase.Fragments;
-                className = CreateName(fieldOrOperation, objectType, GetClassName);
-            }
-            else
-            {
-                fragments = returnType.Children;
-                className = CreateName(GetClassName(returnType.Fragment.Name));
-            }
-
-            var modelSelectionSet = new SelectionSetNode(
-                typeCase.Fields.Select(t => t.Selection).ToList());
-
-            var modelFragment = new FragmentNode(new Fragment(
-                className, objectType, modelSelectionSet));
-            modelFragment.Children.AddRange(fragments);
-
-            IInterfaceDescriptor modelInterface =
-                CreateInterface(modelFragment, path);
-
-            var modelClass = new ClassDescriptor(
-                className, _namespace, typeCase.Type, modelInterface);
-
-            RegisterDescriptor(modelInterface);
-            RegisterDescriptor(modelClass);
-
-            RegisterDescriptor(
-                new ResultParserMethodDescriptor(
-                    GetPathName(path),
-                    operation,
-                    fieldType,
-                    fieldOrOperation as FieldNode,
-                    path,
-                    modelInterface,
-                    new[] { new ResultParserTypeDescriptor(modelClass) }));
-
-            return modelInterface;
-        }
 
         private IFragmentNode? HoistFragment(
             INamedType typeContext,

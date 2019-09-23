@@ -345,11 +345,11 @@ namespace StrawberryShake.Generators
         protected IFragmentNode ResolveReturnType(
             IModelGeneratorContext context,
             INamedType namedType,
-            FieldNode field,
+            FieldNode fieldSelection,
             SelectionInfo selection)
         {
             var returnType = new FragmentNode(new Fragment(
-                CreateName(namedType, field, GetClassName),
+                CreateName(namedType, fieldSelection, GetClassName),
                 namedType,
                 selection.SelectionSet));
 
