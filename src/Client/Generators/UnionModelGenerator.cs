@@ -11,7 +11,7 @@ namespace StrawberryShake.Generators
     internal class UnionModelGenerator
         : SelectionSetModelGenerator<UnionType>
     {
-        public override void Generate(
+        public override ICodeDescriptor Generate(
             IModelGeneratorContext context,
             OperationDefinitionNode operation,
             UnionType namedType,
@@ -39,6 +39,8 @@ namespace StrawberryShake.Generators
                 returnType,
                 interfaceDescriptor,
                 path);
+
+            return interfaceDescriptor;
         }
 
         private void CreateClassModels(

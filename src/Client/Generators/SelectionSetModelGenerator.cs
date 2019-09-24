@@ -14,7 +14,7 @@ namespace StrawberryShake.Generators
     internal abstract class SelectionSetModelGenerator<T>
         where T : INamedType
     {
-        public abstract void Generate(
+        public abstract ICodeDescriptor Generate(
             IModelGeneratorContext context,
             OperationDefinitionNode operation,
             T namedType,

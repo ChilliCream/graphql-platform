@@ -174,49 +174,6 @@ namespace StrawberryShake.Generators
                 resultType);
         }
 
-        private IInputClassDescriptor GenerateInputObjectType(
-            InputObjectType inputObjectType)
-        {
-            return GenerateInputObjectType(
-                inputObjectType,
-                new Dictionary<string, IInputClassDescriptor>());
-        }
-
-        private IInputClassDescriptor GenerateInputObjectType(
-            InputObjectType inputObjectType,
-            IDictionary<string, IInputClassDescriptor> knownTypes)
-        {
-            if (knownTypes.TryGetValue(
-                inputObjectType.Name,
-                out IInputClassDescriptor? descriptor))
-            {
-                return descriptor;
-            }
-
-            string typeName = CreateName(GetClassName(inputObjectType.Name));
-
-            var fields = new List<Descriptors.IInputFieldDescriptor>();
-            descriptor = new InputClassDescriptor(
-                typeName, _namespace, inputObjectType, fields);
-            knownTypes[inputObjectType.Name] = descriptor;
-
-            foreach (InputField field in inputObjectType.Fields)
-            {
-                if (field.Type.NamedType() is InputObjectType fieldType)
-                {
-                    fields.Add(new InputFieldDescriptor(
-                        field.Name, field.Type, field,
-                        GenerateInputObjectType(fieldType, knownTypes)));
-                }
-                else
-                {
-                    fields.Add(new InputFieldDescriptor(
-                        field.Name, field.Type, field, null));
-                }
-            }
-
-            return descriptor;
-        }
 
         private void GenerateOperationSelectionSet(
            ObjectType operationType,

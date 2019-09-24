@@ -11,7 +11,7 @@ namespace StrawberryShake.Generators
     internal class ObjectModelGenerator
         : SelectionSetModelGenerator<ObjectType>
     {
-        public override void Generate(
+        public override ICodeDescriptor Generate(
             IModelGeneratorContext context,
             OperationDefinitionNode operation,
             ObjectType namedType,
@@ -30,7 +30,7 @@ namespace StrawberryShake.Generators
                 context, returnType, path);
             context.Register(fieldSelection, interfaceDescriptor);
 
-             var resultParserTypes = new List<ResultParserTypeDescriptor>();
+            var resultParserTypes = new List<ResultParserTypeDescriptor>();
 
             CreateClassModel(
                 context,
@@ -48,6 +48,8 @@ namespace StrawberryShake.Generators
                     path,
                     interfaceDescriptor,
                     resultParserTypes));
+
+            return interfaceDescriptor;
         }
     }
 }

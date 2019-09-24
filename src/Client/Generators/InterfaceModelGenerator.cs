@@ -12,7 +12,7 @@ namespace StrawberryShake.Generators
     internal class InterfaceModelGenerator
         : SelectionSetModelGenerator<InterfaceType>
     {
-        public override void Generate(
+        public override ICodeDescriptor Generate(
             IModelGeneratorContext context,
             OperationDefinitionNode operation,
             InterfaceType namedType,
@@ -40,6 +40,8 @@ namespace StrawberryShake.Generators
                 returnType,
                 interfaceDescriptor,
                 path);
+
+            return interfaceDescriptor;
         }
 
         private void CreateClassModels(
