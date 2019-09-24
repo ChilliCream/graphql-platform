@@ -9,16 +9,22 @@ namespace StrawberryShake.Generators.Descriptors
     public class EnumDescriptor
         : IEnumDescriptor
     {
-        public EnumDescriptor(EnumType type)
+        public EnumDescriptor(EnumType type, string ns)
         {
             if (type is null)
             {
                 throw new ArgumentNullException(nameof(type));
             }
 
+            if (ns is null)
+            {
+                throw new ArgumentNullException(nameof(ns));
+            }
+
             var values = new List<IEnumValueDescriptor>();
 
             Name = type.Name;
+            Namespace = ns;
             Values = values;
 
             foreach (EnumValue value in type.Values)
@@ -36,6 +42,8 @@ namespace StrawberryShake.Generators.Descriptors
         }
 
         public string Name { get; }
+
+        public string Namespace { get; }
 
         public IReadOnlyList<IEnumValueDescriptor> Values { get; }
 

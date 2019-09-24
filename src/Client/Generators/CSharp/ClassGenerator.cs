@@ -149,16 +149,4 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteIndentedLineAsync("}");
         }
     }
-
-    public class EnumGenerator
-        : CodeGenerator<IEnumDescriptor>
-    {
-        protected override async Task WriteAsync(
-            CodeWriter writer,
-            IEnumDescriptor descriptor,
-            ITypeLookup typeLookup)
-        {
-
-        }
-    }
 }

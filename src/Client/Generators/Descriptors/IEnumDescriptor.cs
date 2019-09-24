@@ -5,13 +5,8 @@ namespace StrawberryShake.Generators.Descriptors
 {
     public interface IEnumDescriptor
         : ICodeDescriptor
+        , IHasNamespace
     {
         IReadOnlyList<IEnumValueDescriptor> Values { get; }
-    }
-
-    public interface IEnumValueDescriptor
-        : ICodeDescriptor
-    {
-        string Value { get; }
     }
 }
