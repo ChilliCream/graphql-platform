@@ -76,9 +76,9 @@ namespace StrawberryShake.Generators
                 ObjectType operationType =
                     _schema.GetOperationType(operation.Operation);
 
-                ICodeDescriptor resultDescriptor =
-                    GenerateOperationSelectionSet(
-                        operationType, operation, root, backlog);
+                ICodeDescriptor resultDescriptor = null;
+                GenerateOperationSelectionSet(
+                    operationType, operation, root, backlog);
 
                 RegisterDescriptor(GenerateOperation(
                     operationType, operation, resultDescriptor));
@@ -224,7 +224,7 @@ namespace StrawberryShake.Generators
            Path path,
            Queue<FieldSelection> backlog)
         {
-            PossibleSelections possibleSelections  =
+            PossibleSelections possibleSelections =
                 _fieldCollector.CollectFields(
                     operationType,
                     operation.SelectionSet,
