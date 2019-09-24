@@ -5,8 +5,8 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    public interface IHasName
+    public interface IFriend
     {
-        string? Name { get; }
+        IReadOnlyList<IHasName> Nodes { get; }
     }
 }

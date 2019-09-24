@@ -33,8 +33,7 @@ namespace StrawberryShake.Generators
 
                 if (namedType is InputObjectType inputObjectType)
                 {
-                    inputClassDescriptor =
-                        GenerateInputObjectType(inputObjectType);
+                    inputClassDescriptor = GenerateInputObjectType(context, inputObjectType);
                 }
 
                 arguments.Add(new ArgumentDescriptor(
@@ -99,7 +98,7 @@ namespace StrawberryShake.Generators
                 {
                     fields.Add(new InputFieldDescriptor(
                         field.Name, field.Type, field,
-                        GenerateInputObjectType(fieldType, knownTypes)));
+                        GenerateInputObjectType(context, fieldType, knownTypes)));
                 }
                 else
                 {

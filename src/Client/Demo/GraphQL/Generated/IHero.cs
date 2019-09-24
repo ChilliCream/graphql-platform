@@ -5,8 +5,10 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    public interface IHasName
+    public interface IHero
+        : IHasName
+        , IHasFriends
     {
-        string? Name { get; }
+        double? Height { get; }
     }
 }
