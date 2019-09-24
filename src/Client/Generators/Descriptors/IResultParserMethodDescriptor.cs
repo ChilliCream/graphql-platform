@@ -12,7 +12,7 @@ namespace StrawberryShake.Generators.Descriptors
 
         IType ResultType { get; }
 
-        FieldNode? ResultSelection { get; }
+        FieldNode ResultSelection { get; }
 
         Path Path { get; }
 

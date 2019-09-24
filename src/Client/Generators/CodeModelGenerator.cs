@@ -152,7 +152,8 @@ namespace StrawberryShake.Generators
                         {
                             new DirectiveNode(
                                 GeneratorDirectives.Type,
-                                new ArgumentNode("name", operation.Name.Value))
+                                new ArgumentNode("name", operation.Name.Value)),
+                            new DirectiveNode(GeneratorDirectives.Operation)
                         },
                         Array.Empty<ArgumentNode>(),
                         null),

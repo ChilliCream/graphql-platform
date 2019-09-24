@@ -34,18 +34,11 @@ namespace StrawberryShake.Client
             _stringSerializer = serializer;
         }
 
-        private IGetHero ParseRoot(
-            JsonElement parent,
-            string field)
+        protected override IGetHero ParserData(JsonElement data)
         {
-            if (!parent.TryGetProperty(field, out JsonElement obj))
-            {
-                return null;
-            }
-
             return new GetHero
             (
-                ParseRootHero(obj, "hero")
+                ParseRootHero(data, "hero")
             );
 
         }

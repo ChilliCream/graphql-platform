@@ -4,5 +4,6 @@ namespace StrawberryShake.Generators
     {
         public const string Spread = "spread";
         public const string Type = "type";
+        public const string Operation = "operation";
     }
 }

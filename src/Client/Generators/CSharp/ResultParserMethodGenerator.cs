@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 using StrawberryShake.Generators.Descriptors;
@@ -22,7 +23,8 @@ namespace StrawberryShake.Generators.CSharp
                     descriptor.ResultSelection,
                     true);
 
-            if (descriptor.ResultSelection is null)
+            if (descriptor.ResultSelection.Directives.Any(t =>
+                t.Name.Value.EqualsOrdinal(GeneratorDirectives.Operation)))
             {
                 return WriteParseDataAsync(
                     writer, descriptor, typeLookup, resultTypeName);

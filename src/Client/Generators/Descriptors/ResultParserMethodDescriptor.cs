@@ -14,7 +14,7 @@ namespace StrawberryShake.Generators.Descriptors
             string name,
             OperationDefinitionNode operation,
             IType resultType,
-            FieldNode? resultSelection,
+            FieldNode resultSelection,
             Path path,
             IInterfaceDescriptor resultDescriptor,
             IReadOnlyList<IResultParserTypeDescriptor> possibleTypes)
@@ -38,7 +38,8 @@ namespace StrawberryShake.Generators.Descriptors
                 ?? throw new ArgumentNullException(nameof(operation));
             ResultType = resultType
                 ?? throw new ArgumentNullException(nameof(resultType));
-            ResultSelection = resultSelection;
+            ResultSelection = resultSelection
+                ?? throw new ArgumentNullException(nameof(resultSelection));
             Path = path
                 ?? throw new ArgumentNullException(nameof(path));
             ResultDescriptor = resultDescriptor
@@ -54,7 +55,7 @@ namespace StrawberryShake.Generators.Descriptors
 
         public IType ResultType { get; }
 
-        public FieldNode? ResultSelection { get; }
+        public FieldNode ResultSelection { get; }
 
         public Path Path { get; }
 
