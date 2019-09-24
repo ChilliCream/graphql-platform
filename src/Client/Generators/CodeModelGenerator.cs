@@ -143,7 +143,7 @@ namespace StrawberryShake.Generators
                     _context,
                     operation,
                     operationType,
-                    operationType,
+                    new NonNullType(operationType),
                     new FieldNode(
                         null,
                         new NameNode(operation.Name.Value),

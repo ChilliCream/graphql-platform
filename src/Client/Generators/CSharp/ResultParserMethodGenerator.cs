@@ -16,15 +16,17 @@ namespace StrawberryShake.Generators.CSharp
             IResultParserMethodDescriptor descriptor,
             ITypeLookup typeLookup)
         {
-            string resultTypeName = descriptor.ResultSelection is null
+            bool isOperation = descriptor.ResultSelection.Directives.Any(t =>
+                t.Name.Value.EqualsOrdinal(GeneratorDirectives.Operation));
+
+            string resultTypeName = isOperation
                 ? descriptor.ResultDescriptor.Name
                 : typeLookup.GetTypeName(
                     descriptor.ResultType,
                     descriptor.ResultSelection,
                     true);
 
-            if (descriptor.ResultSelection.Directives.Any(t =>
-                t.Name.Value.EqualsOrdinal(GeneratorDirectives.Operation)))
+            if (isOperation)
             {
                 return WriteParseDataAsync(
                     writer, descriptor, typeLookup, resultTypeName);
@@ -104,7 +106,8 @@ namespace StrawberryShake.Generators.CSharp
                     await WriteNullHandlingAsync(writer);
                 }
 
-                if (descriptor.ResultType.NamedType().IsAbstractType())
+                if (descriptor.ResultType.NamedType().IsAbstractType()
+                    && descriptor.PossibleTypes.Count > 1)
                 {
                     await WriteParserForMultipleResultTypes(
                         writer, descriptor, typeLookup);
@@ -252,7 +255,7 @@ namespace StrawberryShake.Generators.CSharp
             IType elementType = methodDescriptor.ResultType.ElementType();
 
             string resultTypeName = typeLookup.GetTypeName(
-                elementType,
+                elementType.IsNonNullType() ? elementType : new NonNullType(elementType),
                 methodDescriptor.ResultSelection,
                 true);
 
@@ -296,7 +299,8 @@ namespace StrawberryShake.Generators.CSharp
                 }
                 else
                 {
-                    if (elementType.IsAbstractType())
+                    if (elementType.IsAbstractType()
+                        && methodDescriptor.PossibleTypes.Count > 1)
                     {
                         await WriteAbstractTypeHandlingAsync(
                             writer,
@@ -352,7 +356,6 @@ namespace StrawberryShake.Generators.CSharp
                 possibleType,
                 jsonElement,
                 typeLookup);
-            await writer.WriteIndentedLineAsync("break;");
         }
 
         private async Task WriteCreateObjectAsync(

@@ -25,7 +25,7 @@ namespace StrawberryShake.Client
             }
             _floatSerializer = serializer;
 
-            if (!map.TryGetValue("String", out  serializer))
+            if (!map.TryGetValue("String", out serializer))
             {
                 throw new ArgumentException(
                     "There is no serializer specified for `String`.",
@@ -43,7 +43,7 @@ namespace StrawberryShake.Client
 
         }
 
-        private IHero ParseRootHero(
+        private IHero? ParseRootHero(
             JsonElement parent,
             string field)
         {
@@ -52,24 +52,16 @@ namespace StrawberryShake.Client
                 return null;
             }
 
-            string type = obj.GetProperty(TypeName).GetString();
+            return new Hero
+            (
+                DeserializeNullableFloat(obj, "height"),
+                DeserializeNullableString(obj, "name"),
+                ParseRootHeroFriends(obj, "friends")
+            );
 
-            switch(type)
-            {
-                case "Hero":
-                    return new Hero
-                    (
-                        DeserializeNullableFloat(obj, "height"),
-                        DeserializeNullableString(obj, "name"),
-                        ParseRootHeroFriends(obj, "friends")
-                    );
-
-                default:
-                    throw new UnknownSchemaTypeException(type);
-            }
         }
 
-        private IFriend ParseRootHeroFriends(
+        private IFriend? ParseRootHeroFriends(
             JsonElement parent,
             string field)
         {
@@ -85,7 +77,7 @@ namespace StrawberryShake.Client
 
         }
 
-        private IReadOnlyList<IHasName> ParseRootHeroFriendsNodes(
+        private IReadOnlyList<IHasName>? ParseRootHeroFriendsNodes(
             JsonElement parent,
             string field)
         {
@@ -99,24 +91,15 @@ namespace StrawberryShake.Client
             for (int objIndex = 0; objIndex < objLength; objIndex++)
             {
                 JsonElement element = obj[objIndex];
-                string type = obj.GetProperty(TypeName).GetString();
-
-                switch(type)
-                {
-                    case "HasName":
-                        list[objIndex] = new HasName
-                        (
-                            DeserializeNullableString(obj, "name")
-                        );
-                        break;
-
-                    default:
-                        throw new UnknownSchemaTypeException(type);
-                }
+                list[objIndex] = new HasName
+                (
+                    DeserializeNullableString(element, "name")
+                );
 
             }
 
             return list;
+
         }
 
         private double? DeserializeNullableFloat(JsonElement obj, string fieldName)

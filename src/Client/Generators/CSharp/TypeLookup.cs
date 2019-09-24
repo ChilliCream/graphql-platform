@@ -83,7 +83,7 @@ namespace StrawberryShake.Generators.CSharp
                 return BuildType(type.ClrType, fieldType, readOnly);
             }
 
-             if (field is null)
+            if (field is null)
             {
                 throw new InvalidOperationException(
                     "The type cannot be null if the field type " +
@@ -97,7 +97,7 @@ namespace StrawberryShake.Generators.CSharp
                     $"of type `{fieldType.Visualize()}`.");
             }
 
-            return BuildType(typeName, fieldType, readOnly);
+            return BuildType(typeName, fieldType, readOnly, true);
         }
 
         public string GetTypeName(IType fieldType, string? typeName, bool readOnly)
@@ -109,7 +109,7 @@ namespace StrawberryShake.Generators.CSharp
                     throw new NotSupportedException(
                         $"Scalar type `{scalarType.Name}` is not supported.");
                 }
-                return BuildType(type.ClrType, fieldType, readOnly);
+                return BuildType(type.ClrType, fieldType, readOnly, true);
             }
 
             if (typeName is null)
@@ -119,7 +119,7 @@ namespace StrawberryShake.Generators.CSharp
                     "is not a scalar type.");
             }
 
-            return BuildType(typeName, fieldType, readOnly);
+            return BuildType(typeName, fieldType, readOnly, true);
         }
 
         public ITypeInfo GetTypeInfo(IType fieldType, bool readOnly)
@@ -214,23 +214,31 @@ namespace StrawberryShake.Generators.CSharp
             typeInfo.IsValueType = type.IsValueType;
         }
 
-        private static string BuildType(string typeName, IType fieldType, bool readOnly)
+        private string BuildType(
+            string typeName,
+            IType fieldType,
+            bool readOnly,
+            bool isNullable)
         {
             if (fieldType is NonNullType nnt)
             {
-                return BuildType(typeName, nnt.Type, readOnly);
+                return BuildType(typeName, nnt.Type, readOnly, false);
             }
 
             if (fieldType is ListType lt)
             {
-                string elementType = BuildType(typeName, lt.ElementType, readOnly);
-
-                return readOnly
+                string elementType = BuildType(typeName, lt.ElementType, readOnly, false);
+                string listType = readOnly
                     ? $"IReadOnlyList<{elementType}>"
                     : $"List<{elementType}>";
+                return _languageVersion == LanguageVersion.CSharp_8_0
+                    ? isNullable ? listType + "?" : listType
+                    : listType;
             }
 
-            return typeName;
+            return _languageVersion == LanguageVersion.CSharp_8_0
+                ? isNullable ? typeName + "?" : typeName
+                : typeName;
         }
 
         private static string GetTypeName(Type type)

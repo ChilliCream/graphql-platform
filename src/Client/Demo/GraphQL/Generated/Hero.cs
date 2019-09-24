@@ -11,7 +11,7 @@ namespace StrawberryShake.Client
         public Hero(
             double? height, 
             string? name, 
-            IFriend friends)
+            IFriend? friends)
         {
             Height = height;
             Name = name;
@@ -22,6 +22,6 @@ namespace StrawberryShake.Client
 
         public string? Name { get; }
 
-        public IFriend Friends { get; }
+        public IFriend? Friends { get; }
     }
 }

@@ -9,11 +9,11 @@ namespace StrawberryShake.Client
         : IGetHero
     {
         public GetHero(
-            IHero hero)
+            IHero? hero)
         {
             Hero = hero;
         }
 
-        public IHero Hero { get; }
+        public IHero? Hero { get; }
     }
 }

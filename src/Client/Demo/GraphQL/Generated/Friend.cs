@@ -9,11 +9,11 @@ namespace StrawberryShake.Client
         : IFriend
     {
         public Friend(
-            IReadOnlyList<IHasName> nodes)
+            IReadOnlyList<IHasName>? nodes)
         {
             Nodes = nodes;
         }
 
-        public IReadOnlyList<IHasName> Nodes { get; }
+        public IReadOnlyList<IHasName>? Nodes { get; }
     }
 }
