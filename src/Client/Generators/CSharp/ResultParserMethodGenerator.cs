@@ -306,12 +306,12 @@ namespace StrawberryShake.Generators.CSharp
                             writer,
                             methodDescriptor,
                             typeLookup,
-                            jsonElement,
+                            elementField,
                             m => WriteCreateListElementAsync(
                                 writer,
                                 methodDescriptor,
                                 m,
-                                jsonElement,
+                                elementField,
                                 listField,
                                 indexField,
                                 typeLookup));
@@ -322,7 +322,7 @@ namespace StrawberryShake.Generators.CSharp
                             writer,
                             methodDescriptor,
                             methodDescriptor.PossibleTypes[0],
-                            jsonElement,
+                            elementField,
                             listField,
                             indexField,
                             typeLookup);
@@ -433,7 +433,6 @@ namespace StrawberryShake.Generators.CSharp
                 }
 
                 await writer.WriteLineAsync();
-
             }
         }
 
