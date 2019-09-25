@@ -6,20 +6,21 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Types.Filters
 {
     public class ObjectFilterFieldDescriptor
-       : FilterFieldDescriptorBase
-       , IObjectFilterFieldDescriptor
+        : FilterFieldDescriptorBase
+        , IObjectFilterFieldDescriptor
     {
-        private readonly Type type;
+        private readonly Type _type;
+
         public ObjectFilterFieldDescriptor(
             IDescriptorContext context,
             PropertyInfo property,
             Type type)
             : base(context, property)
         {
-            this.type = type;
+            _type = type;
             AllowedOperations = new HashSet<FilterOperationKind>
             {
-                FilterOperationKind.Equals
+                FilterOperationKind.Object
             };
         }
 
@@ -50,7 +51,7 @@ namespace HotChocolate.Types.Filters
             FilterOperationKind operationKind)
         {
             var operation = new FilterOperation(
-                type,
+                _type,
                 operationKind,
                 Definition.Property);
 
@@ -58,16 +59,20 @@ namespace HotChocolate.Types.Filters
                 Context,
                 this,
                 CreateFieldName(operationKind),
-                new ClrTypeReference(typeof(FilterInputType<>).MakeGenericType(type), Definition.Type.Context, true, true),
+                new ClrTypeReference(
+                    typeof(FilterInputType<>).MakeGenericType(_type),
+                    Definition.Type.Context,
+                    true,
+                    true),
                 operation);
             ;
         }
 
 
         public IObjectFilterOperationDescriptor AllowObject()
-        { 
+        {
             ObjectFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.Equals);
+                CreateOperation(FilterOperationKind.Object);
             Filters.Add(field);
             return field;
         }

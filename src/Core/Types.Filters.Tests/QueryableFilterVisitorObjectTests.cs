@@ -16,7 +16,7 @@ namespace HotChocolate.Types.Filters
                 new ObjectFieldNode("fooNested",
                     new ObjectValueNode(
                         new ObjectFieldNode("bar",
-                        new StringValueNode("a")
+                            new StringValueNode("a")
                         )
                     )
                 )

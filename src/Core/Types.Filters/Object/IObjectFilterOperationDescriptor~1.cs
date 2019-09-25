@@ -2,7 +2,6 @@ using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters
 {
-
     public interface IObjectFilterOperationDescriptor<TObject>
         : IDescriptor<FilterOperationDefintion>
         , IFluent
