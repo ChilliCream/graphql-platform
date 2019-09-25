@@ -31,11 +31,11 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <inheritdoc/>
-        public IBooleanFilterFieldDescriptor BindExplicitly() =>
+        public IBooleanFilterFieldDescriptor BindFiltersExplicitly() =>
             BindFilters(BindingBehavior.Explicit);
 
         /// <inheritdoc/>
-        public IBooleanFilterFieldDescriptor BindImplicitly() =>
+        public IBooleanFilterFieldDescriptor BindFiltersImplicitly() =>
             BindFilters(BindingBehavior.Implicit);
 
         /// <inheritdoc/>
@@ -54,6 +54,13 @@ namespace HotChocolate.Types.Filters
                 CreateOperation(FilterOperationKind.NotEquals);
             Filters.Add(field);
             return field;
+        }
+
+        /// <inheritdoc/>
+        public IBooleanFilterFieldDescriptor Ignore()
+        {
+            Definition.Ignore = true;
+            return this;
         }
 
         protected override FilterOperationDefintion CreateOperationDefinition(

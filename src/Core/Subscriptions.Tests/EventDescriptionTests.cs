@@ -53,6 +53,29 @@ namespace HotChocolate.Subscriptions
         }
 
         [Fact]
+        public void EventDescription_ObjectValue_Equals_True()
+        {
+            // arrange
+            var a = new EventDescription("event",
+                new ArgumentNode("foo", new ObjectValueNode(
+                new ObjectFieldNode("a", 123),
+                new ObjectFieldNode("b", true),
+                new ObjectFieldNode("c", "abc"))));
+
+            var b = new EventDescription("event",
+                new ArgumentNode("foo", new ObjectValueNode(
+                new ObjectFieldNode("b", true),
+                new ObjectFieldNode("a", 123),
+                new ObjectFieldNode("c", "abc"))));
+
+            // act
+            bool result = a.Equals(b);
+
+            // assert
+            Assert.True(result);
+        }
+
+        [Fact]
         public void EventDescription_EqualsWithNoArgs_True()
         {
             // arrange
@@ -128,6 +151,30 @@ namespace HotChocolate.Subscriptions
             // assert
             Assert.Equal(result_a, result_b);
             Assert.NotEqual(result_a, result_c);
+        }
+
+        [Fact]
+        public void EventDescription_ObjectValue_GetHashCode()
+        {
+            // arrange
+            var a = new EventDescription("event",
+                new ArgumentNode("foo", new ObjectValueNode(
+                new ObjectFieldNode("a", 123),
+                new ObjectFieldNode("b", true),
+                new ObjectFieldNode("c", "abc"))));
+
+            var b = new EventDescription("event",
+                new ArgumentNode("foo", new ObjectValueNode(
+                new ObjectFieldNode("b", true),
+                new ObjectFieldNode("a", 123),
+                new ObjectFieldNode("c", "abc"))));
+
+            // act
+            int hasha = a.GetHashCode();
+            int hashb = b.GetHashCode();
+
+            // assert
+            Assert.Equal(a, b);
         }
 
         [Fact]

@@ -3,8 +3,10 @@
 }
 
 type Query {
-  foo: String @delegate(schema: "server_1")
+  foo: String @bar @delegate(schema: "server_1")
 }
+
+directive @bar on FIELD_DEFINITION
 
 directive @delegate(path: String "The name of the schema to which this field shall be delegated to." schema: Name!) on FIELD_DEFINITION
 

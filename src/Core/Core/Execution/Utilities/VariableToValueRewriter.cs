@@ -5,6 +5,7 @@ using System.Threading;
 using HotChocolate.Language;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
+using HotChocolate.Properties;
 
 namespace HotChocolate.Execution
 {
@@ -15,13 +16,13 @@ namespace HotChocolate.Execution
             new ThreadLocal<VariableToValueRewriter>(
                 () => new VariableToValueRewriter());
         private readonly Stack<IType> _type = new Stack<IType>();
-        private IVariableCollection _variables;
+        private IVariableValueCollection _variables;
         private ITypeConversion _typeConversion;
 
         public IValueNode RewriteValue(
             IValueNode value,
             IType type,
-            IVariableCollection variables,
+            IVariableValueCollection variables,
             ITypeConversion typeConversion)
         {
             if (value is null)
@@ -97,7 +98,8 @@ namespace HotChocolate.Execution
             // TODO : resource
             throw new QueryException(
                 ErrorBuilder.New()
-                    .SetMessage("Unknown field.")
+                    .SetMessage(CoreResources.VarRewriter_UnknownField)
+                    .SetCode(ErrorCodes.Utilities.UnknownField)
                     .Build());
         }
 
@@ -171,13 +173,11 @@ namespace HotChocolate.Execution
                         v,
                         out v))
                 {
-                    // TODO : resource
-                    // TODO : path?
                     throw new QueryException(
                         ErrorBuilder.New()
-                            .SetMessage(
-                                "Unable to convert the specified " +
-                                "variable value.")
+                            .SetMessage(CoreResources.VarRewriter_CannotConvert)
+                            .SetCode(ErrorCodes.Utilities.NoConverter)
+                            .AddLocation(variable)
                             .Build());
                 }
 
@@ -190,7 +190,7 @@ namespace HotChocolate.Execution
         public static IValueNode Rewrite(
             IValueNode value,
             IType type,
-            IVariableCollection variables,
+            IVariableValueCollection variables,
             ITypeConversion typeConversion) =>
             _current.Value.RewriteValue(value, type, variables, typeConversion);
     }

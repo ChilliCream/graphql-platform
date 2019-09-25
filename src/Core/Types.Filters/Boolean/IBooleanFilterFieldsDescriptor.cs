@@ -27,13 +27,13 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Defines that all filter operations have to be specified explicitly.
         /// </summary>
-        IBooleanFilterFieldDescriptor BindExplicitly();
+        IBooleanFilterFieldDescriptor BindFiltersExplicitly();
 
         /// <summary>
         /// The boolean filter field descriptor will add
         /// all available boolean filter operations.
         /// </summary>
-        IBooleanFilterFieldDescriptor BindImplicitly();
+        IBooleanFilterFieldDescriptor BindFiltersImplicitly();
 
         /// <summary>
         /// Allow equals filter operations.
@@ -44,5 +44,11 @@ namespace HotChocolate.Types.Filters
         /// Allow not equals filter operations.
         /// </summary>
         IBooleanFilterOperationDescriptor AllowNotEquals();
+
+        /// <summary>
+        /// Ignore the specified property.
+        /// </summary>
+        /// <param name="property">The property that hall be ignored.</param>
+        IBooleanFilterFieldDescriptor Ignore();
     }
 }

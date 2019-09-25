@@ -110,11 +110,18 @@ namespace HotChocolate.Types
                     context.Type.Name, Resolver, resolver);
             }
 
+            IReadOnlySchemaOptions options = context.DescriptorContext.Options;
+
+            bool skipMiddleware =
+                options.FieldMiddleware == FieldMiddlewareApplication.AllFields
+                    ? false
+                    : isIntrospectionField;
+
             Middleware = FieldMiddlewareCompiler.Compile(
                 context.GlobalComponents,
                 definition.MiddlewareComponents.ToArray(),
                 Resolver,
-                isIntrospectionField);
+                skipMiddleware);
 
             if (Resolver == null && Middleware == null)
             {
@@ -128,7 +135,7 @@ namespace HotChocolate.Types
                         .SetMessage(
                             $"The field `{context.Type.Name}.{Name}` " +
                             "has no resolver.")
-                        .SetCode(TypeErrorCodes.NoResolver)
+                        .SetCode(ErrorCodes.Schema.NoResolver)
                         .SetTypeSystemObject(context.Type)
                         .AddSyntaxNode(definition.SyntaxNode)
                         .Build());

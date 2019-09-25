@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
@@ -15,6 +14,8 @@ namespace HotChocolate.Types.Descriptors
             : base(context)
         {
             Definition.ClrType = typeof(object);
+            Definition.Values.BindingBehavior =
+                context.Options.DefaultBindingBehavior;
         }
 
         protected EnumTypeDescriptor(IDescriptorContext context, Type clrType)
@@ -26,6 +27,8 @@ namespace HotChocolate.Types.Descriptors
                 clrType, TypeKind.Enum);
             Definition.Description = context.Naming.GetTypeDescription(
                 clrType, TypeKind.Enum);
+            Definition.Values.BindingBehavior =
+                context.Options.DefaultBindingBehavior;
         }
 
         protected override EnumTypeDefinition Definition { get; } =
@@ -91,11 +94,21 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IEnumTypeDescriptor BindItems(
+            BindingBehavior behavior) =>
+            BindValues(behavior);
+
+        public IEnumTypeDescriptor BindValues(
             BindingBehavior behavior)
         {
             Definition.Values.BindingBehavior = behavior;
             return this;
         }
+
+        public IEnumTypeDescriptor BindValuesExplicitly() =>
+            BindValues(BindingBehavior.Explicit);
+
+        public IEnumTypeDescriptor BindValuesImplicitly() =>
+            BindValues(BindingBehavior.Implicit);
 
         public IEnumValueDescriptor Item<T>(T value)
         {
@@ -106,10 +119,10 @@ namespace HotChocolate.Types.Descriptors
 
         public IEnumValueDescriptor Value<T>(T value) => Item<T>(value);
 
-        public IEnumTypeDescriptor Directive<T>(T instance)
+        public IEnumTypeDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
-            Definition.AddDirective(instance);
+            Definition.AddDirective(directiveInstance);
             return this;
         }
 

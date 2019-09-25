@@ -8,6 +8,7 @@ namespace HotChocolate.Integration.DataLoader
 {
     public class TestDataLoader
         : DataLoaderBase<string, string>
+        , ITestDataLoader
     {
         public TestDataLoader()
             : base(new DataLoaderOptions<string>())

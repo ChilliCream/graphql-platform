@@ -82,6 +82,96 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public void Deserialize_InvalidString_To_DateTimeOffset()
+        {
+            // arrange
+            var type = new DateType();
+
+            // act
+            bool success = type.TryDeserialize("abc", out object deserialized);
+
+            // assert
+            Assert.False(success);
+        }
+
+        [Fact]
+        public void Deserialize_DateTimeOffset_To_DateTime()
+        {
+            // arrange
+            var type = new DateType();
+            var time = new DateTimeOffset(
+                new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc));
+
+            // act
+            bool success = type.TryDeserialize(time, out object deserialized);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal(time.UtcDateTime,
+                Assert.IsType<DateTime>(deserialized));
+        }
+
+        [Fact]
+        public void Deserialize_DateTime_To_DateTime()
+        {
+            // arrange
+            var type = new DateType();
+            var time = new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+
+            // act
+            bool success = type.TryDeserialize(time, out object deserialized);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal(time, deserialized);
+        }
+
+        [Fact]
+        public void Deserialize_NullableDateTime_To_DateTime()
+        {
+            // arrange
+            var type = new DateType();
+            DateTime? time =
+                new DateTime(2018, 6, 11, 8, 46, 14, DateTimeKind.Utc);
+
+            // act
+            bool success = type.TryDeserialize(time, out object deserialized);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal(time, Assert.IsType<DateTime>(deserialized));
+        }
+
+        [Fact]
+        public void Deserialize_NullableDateTime_To_DateTime_2()
+        {
+            // arrange
+            var type = new DateType();
+            DateTime? time = null;
+
+            // act
+            bool success = type.TryDeserialize(time, out object deserialized);
+
+            // assert
+            Assert.True(success);
+            Assert.Null(deserialized);
+        }
+
+        [Fact]
+        public void Deserialize_Null_To_Null()
+        {
+            // arrange
+            var type = new DateType();
+
+            // act
+            bool success = type.TryDeserialize(null, out object deserialized);
+
+            // assert
+            Assert.True(success);
+            Assert.Null(deserialized);
+        }
+
+        [Fact]
         public void ParseLiteral_StringValueNode()
         {
             // arrange

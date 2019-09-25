@@ -1,0 +1,10 @@
+﻿{
+  "Data": {
+    "contract": {
+      "float_field": 123.123
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

@@ -10,7 +10,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
         public ParserOptions ParserOptions { get; set; } = new ParserOptions();
 
-        public PathString SubscriptionPath
+        public PathString Path
         {
             get => _subscriptionPath;
             set

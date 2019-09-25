@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using HotChocolate.Resolvers.CodeGeneration;
 
 namespace HotChocolate.Resolvers.Expressions.Parameters
 {
@@ -17,9 +18,7 @@ namespace HotChocolate.Resolvers.Expressions.Parameters
 
         public override bool CanHandle(
             ParameterInfo parameter,
-            Type sourceType)
-        {
-            return parameter.IsDefined(typeof(ServiceAttribute));
-        }
+            Type sourceType) =>
+            ArgumentHelper.IsService(parameter);
     }
 }

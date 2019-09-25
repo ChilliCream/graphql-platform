@@ -61,7 +61,7 @@ namespace HotChocolate.Stitching
                     QueryRequestBuilder.New()
                         .SetQuery(@"
                         {
-                            customer(id: ""Q3VzdG9tZXIteDE="") {
+                            customer(id: ""Q3VzdG9tZXIKZDE="") {
                                 inter
                             }
                         }")

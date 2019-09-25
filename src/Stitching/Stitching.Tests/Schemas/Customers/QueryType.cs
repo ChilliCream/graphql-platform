@@ -12,6 +12,10 @@ namespace HotChocolate.Stitching.Schemas.Customers
                 .Argument("id", a => a.Type<NonNullType<IdType>>())
                 .Type<CustomerType>();
 
+            descriptor.Field(t => t.GetCustomers(default(string[])))
+                .Argument("ids", a => a.Type<NonNullType<ListType<NonNullType<IdType>>>>())
+                .Type<ListType<CustomerType>>();
+
             descriptor.Field(t => t.GetConsultant(default))
                 .Argument("id", a => a.Type<NonNullType<IdType>>())
                 .Type<ConsultantType>();

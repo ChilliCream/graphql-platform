@@ -2,7 +2,6 @@ using System.Globalization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using HotChocolate.Runtime;
 using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
@@ -25,27 +24,34 @@ namespace HotChocolate.Configuration
         private readonly List<ITypeReference> _unregistered =
             new List<ITypeReference>();
         private readonly IDictionary<string, object> _contextData;
+        private readonly ITypeInitializationInterceptor _interceptor;
 
         public TypeRegistrar(
             IServiceProvider services,
             IDescriptorContext descriptorContext,
             IEnumerable<ITypeReference> initialTypes,
             IDictionary<ITypeReference, ITypeReference> clrTypes,
-            IDictionary<string, object> contextData)
+            IDictionary<string, object> contextData,
+            ITypeInitializationInterceptor interceptor)
         {
-            if (initialTypes == null)
+            if (services is null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            if (initialTypes is null)
             {
                 throw new ArgumentNullException(nameof(initialTypes));
             }
 
-            if (contextData == null)
+            if (contextData is null)
             {
                 throw new ArgumentNullException(nameof(contextData));
             }
 
-            if (services == null)
+            if (interceptor is null)
             {
-                throw new ArgumentNullException(nameof(services));
+                throw new ArgumentNullException(nameof(interceptor));
             }
 
             _descriptorContext = descriptorContext
@@ -58,6 +64,7 @@ namespace HotChocolate.Configuration
             _unregistered.AddRange(initialTypes);
             _serviceFactory.Services = services;
             _contextData = contextData;
+            _interceptor = interceptor;
         }
 
         public ICollection<InitializationContext> InitializationContexts =>
@@ -104,7 +111,7 @@ namespace HotChocolate.Configuration
                         .SetExtension(
                             TypeErrorFields.Reference,
                             unresolvedReference)
-                        .SetCode(TypeErrorCodes.UnresolvedTypes)
+                        .SetCode(ErrorCodes.Schema.UnresolvedTypes)
                         .Build());
                 }
             }
@@ -318,7 +325,8 @@ namespace HotChocolate.Configuration
                     typeSystemObject,
                     _serviceFactory.Services,
                     _descriptorContext,
-                    _contextData);
+                    _contextData,
+                    _interceptor);
 
                 typeSystemObject.Initialize(initializationContext);
                 _initContexts.Add(initializationContext);

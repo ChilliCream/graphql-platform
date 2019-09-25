@@ -1,14 +1,10 @@
 using System;
-using System.Threading;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using HotChocolate.Execution;
-using HotChocolate.Resolvers;
+using System.Linq;
 using Xunit;
 using Snapshooter.Xunit;
 using HotChocolate.Language;
-using System.Linq;
-using Moq;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Types
 {
@@ -23,6 +19,7 @@ namespace HotChocolate.Types
                 .AddQueryType<DummyQuery>()
                 .AddType<FooType>()
                 .AddType<FooTypeExtension>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -47,6 +44,7 @@ namespace HotChocolate.Types
                     .Field("description")
                     .Type<StringType>()
                     .DeprecationReason("Foo")))
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -71,6 +69,7 @@ namespace HotChocolate.Types
                     .Field("description")
                     .Type<StringType>()
                     .Deprecated("Foo")))
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -95,6 +94,7 @@ namespace HotChocolate.Types
                     .Field("description")
                     .Type<StringType>()
                     .Deprecated()))
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -121,6 +121,7 @@ namespace HotChocolate.Types
                     .Field("description")
                     .Type<StringType>()
                     .Deprecated()))
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -142,6 +143,7 @@ namespace HotChocolate.Types
                     .Name("Foo")
                     .Extend()
                     .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -165,6 +167,7 @@ namespace HotChocolate.Types
                     .Field("description")
                     .Extend()
                     .OnBeforeCreate(c => c.ContextData["foo"] = "bar")))
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -192,6 +195,7 @@ namespace HotChocolate.Types
                         .Type<StringType>()
                         .Extend()
                         .OnBeforeCreate(c => c.ContextData["foo"] = "bar"))))
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -212,6 +216,7 @@ namespace HotChocolate.Types
                     .Name("Foo")
                     .Directive("dummy")))
                 .AddDirectiveType<DummyDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -232,6 +237,7 @@ namespace HotChocolate.Types
                     .Field("name")
                     .Directive("dummy")))
                 .AddDirectiveType<DummyDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -253,6 +259,7 @@ namespace HotChocolate.Types
                     .Field("name")
                     .Argument("a", a => a.Directive("dummy"))))
                 .AddDirectiveType<DummyDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -275,6 +282,7 @@ namespace HotChocolate.Types
                     .Name("Foo")
                     .Directive("dummy_arg", new ArgumentNode("a", "b"))))
                 .AddDirectiveType<DummyWithArgDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -300,6 +308,7 @@ namespace HotChocolate.Types
                     .Field("description")
                     .Directive("dummy_arg", new ArgumentNode("a", "b"))))
                 .AddDirectiveType<DummyWithArgDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -328,6 +337,7 @@ namespace HotChocolate.Types
                     .Argument("a", a =>
                         a.Directive("dummy_arg", new ArgumentNode("a", "b")))))
                 .AddDirectiveType<DummyWithArgDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -352,6 +362,7 @@ namespace HotChocolate.Types
                     .Argument("a", a =>
                         a.Directive("dummy_arg", new ArgumentNode("a", "b")))))
                 .AddDirectiveType<DummyWithArgDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -376,6 +387,7 @@ namespace HotChocolate.Types
                     .Name("Foo")
                     .Directive("dummy_rep")))
                 .AddDirectiveType<RepeatableDummyDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -400,6 +412,7 @@ namespace HotChocolate.Types
                     .Field("description")
                     .Directive("dummy_rep")))
                 .AddDirectiveType<RepeatableDummyDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -428,6 +441,7 @@ namespace HotChocolate.Types
                     .Argument("a", a =>
                         a.Directive("dummy_rep", new ArgumentNode("a", "b")))))
                 .AddDirectiveType<RepeatableDummyDirective>()
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert

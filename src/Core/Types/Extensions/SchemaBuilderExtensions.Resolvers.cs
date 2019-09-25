@@ -1,9 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Language;
 using HotChocolate.Resolvers;
-using HotChocolate.Types;
 
 namespace HotChocolate
 {

@@ -13,7 +13,9 @@ namespace HotChocolate.AspNetClassic
                 throw new ArgumentNullException(nameof(services));
             }
 
-            services.AddSingleton<IOwinContextAccessor, OwinContextAccessor>();
+            services.AddSingleton<OwinContextAccessor>();
+            services.AddSingleton<IOwinContextAccessor>(sp =>
+                sp.GetService<OwinContextAccessor>());
             return services;
         }
     }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 
@@ -10,11 +11,20 @@ namespace HotChocolate.Execution
     public sealed class JsonQueryResultSerializer
         : IQueryResultSerializer
     {
+        private const string _contentType = "application/json";
         private readonly UTF8Encoding _encoding = new UTF8Encoding();
+
+        public string ContentType => _contentType;
 
         public Task SerializeAsync(
             IReadOnlyQueryResult result,
-            Stream stream)
+            Stream stream) =>
+            SerializeAsync(result, stream, CancellationToken.None);
+
+        public Task SerializeAsync(
+            IReadOnlyQueryResult result,
+            Stream stream,
+            CancellationToken cancellationToken)
         {
             if (result is null)
             {

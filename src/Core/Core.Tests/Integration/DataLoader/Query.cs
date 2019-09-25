@@ -25,6 +25,15 @@ namespace HotChocolate.Integration.DataLoader
             return testDataLoader.LoadAsync(key, cancellationToken);
         }
 
+        public Task<string> GetDataLoaderWithInterface(
+            string key,
+            FieldNode fieldSelection,
+            ITestDataLoader testDataLoader,
+            CancellationToken cancellationToken)
+        {
+            return testDataLoader.LoadAsync(key, cancellationToken);
+        }
+
         public async Task<string> GetWithStackedDataLoader(
             string key,
             FieldNode fieldSelection,
@@ -59,6 +68,18 @@ namespace HotChocolate.Integration.DataLoader
             var list = new List<string>();
 
             foreach (IReadOnlyList<string> request in testDataLoader.Loads)
+            {
+                list.Add(string.Join(", ", request));
+            }
+
+            return list;
+        }
+
+        public List<string> GetLoads3(ITestDataLoader testDataLoader)
+        {
+            var list = new List<string>();
+
+            foreach (IReadOnlyList<string> request in ((TestDataLoader)testDataLoader).Loads)
             {
                 list.Add(string.Join(", ", request));
             }

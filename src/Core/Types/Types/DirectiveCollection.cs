@@ -10,7 +10,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
 {
-    internal sealed class DirectiveCollection
+    public sealed class DirectiveCollection
         : IDirectiveCollection
     {
         private readonly object _source;
@@ -19,7 +19,7 @@ namespace HotChocolate.Types
         private List<DirectiveDefinition> _definitions;
         private ILookup<NameString, IDirective> _lookup;
 
-        public DirectiveCollection(
+        internal DirectiveCollection(
             object source,
             IEnumerable<DirectiveDefinition> directiveDefinitions)
         {
@@ -37,6 +37,8 @@ namespace HotChocolate.Types
         public int Count => _directives.Count;
 
         public IEnumerable<IDirective> this[NameString key] => _lookup[key];
+
+        public bool Contains(NameString key) => _lookup.Contains(key);
 
         #region Initialization
 
@@ -84,7 +86,7 @@ namespace HotChocolate.Types
                             CultureInfo.InvariantCulture,
                             TypeResources.DirectiveCollection_DirectiveIsUnique,
                             directiveType.Name))
-                        .SetCode(TypeErrorCodes.MissingType)
+                        .SetCode(ErrorCodes.Schema.MissingType)
                         .SetTypeSystemObject(context.Type)
                         .AddSyntaxNode(definition.ParsedDirective)
                         .Build());
@@ -101,7 +103,7 @@ namespace HotChocolate.Types
                             TypeResources.DirectiveCollection_LocationNotAllowed,
                             directiveType.Name,
                             _location))
-                        .SetCode(TypeErrorCodes.MissingType)
+                        .SetCode(ErrorCodes.Schema.MissingType)
                         .SetTypeSystemObject(context.Type)
                         .AddSyntaxNode(definition.ParsedDirective)
                         .Build());
@@ -129,7 +131,7 @@ namespace HotChocolate.Types
                                 CultureInfo.InvariantCulture,
                                 "The argument `{0}` value type is wrong.",
                                 arg.Name))
-                            .SetCode(TypeErrorCodes.ArgumentValueTypeWrong)
+                            .SetCode(ErrorCodes.Schema.ArgumentValueTypeWrong)
                             .SetTypeSystemObject(context.Type)
                             .AddSyntaxNode(directive.ToNode())
                             .Build());
@@ -145,7 +147,7 @@ namespace HotChocolate.Types
                             "directive `{1}`.",
                             argument.Name.Value,
                             directive.Type.Name))
-                        .SetCode(TypeErrorCodes.InvalidArgument)
+                        .SetCode(ErrorCodes.Schema.InvalidArgument)
                         .SetTypeSystemObject(context.Type)
                         .AddSyntaxNode(directive.ToNode())
                         .Build());
@@ -166,7 +168,7 @@ namespace HotChocolate.Types
                             "mustn't be null.",
                             argument.Name.Value,
                             directive.Type.Name))
-                        .SetCode(TypeErrorCodes.NonNullArgument)
+                        .SetCode(ErrorCodes.Schema.NonNullArgument)
                         .SetTypeSystemObject(context.Type)
                         .AddSyntaxNode(directive.ToNode())
                         .Build());
@@ -176,8 +178,6 @@ namespace HotChocolate.Types
 
         #endregion
 
-        public bool Contains(NameString key) => _lookup.Contains(key);
-
         public IEnumerator<IDirective> GetEnumerator()
         {
             return _directives.GetEnumerator();
@@ -186,6 +186,32 @@ namespace HotChocolate.Types
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        public static DirectiveCollection CreateAndComplete(
+            ICompletionContext context,
+            object source,
+            IEnumerable<DirectiveDefinition> directiveDefinitions)
+        {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
+            if (source is null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
+
+            if (directiveDefinitions is null)
+            {
+                throw new ArgumentNullException(nameof(directiveDefinitions));
+            }
+
+            var directives = new DirectiveCollection(
+                source, directiveDefinitions);
+            directives.CompleteCollection(context);
+            return directives;
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Threading;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -7,6 +8,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution;
 using HotChocolate.Language;
 using HotChocolate.Server;
+using HotChocolate.Utilities;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -26,13 +28,19 @@ namespace HotChocolate.Stitching.Utilities
         public Task<QueryResult> FetchAsync(
             IReadOnlyQueryRequest request,
             HttpClient httpClient,
-            IEnumerable<IHttpQueryRequestInterceptor> interceptors) =>
-            FetchAsync(CreateRemoteRequest(request), httpClient, interceptors);
+            IEnumerable<IHttpQueryRequestInterceptor> interceptors,
+            CancellationToken cancellationToken) =>
+            FetchAsync(
+                CreateRemoteRequest(request),
+                httpClient,
+                interceptors,
+                cancellationToken);
 
         public async Task<QueryResult> FetchAsync(
             HttpQueryRequest request,
             HttpClient httpClient,
-            IEnumerable<IHttpQueryRequestInterceptor> interceptors)
+            IEnumerable<IHttpQueryRequestInterceptor> interceptors,
+            CancellationToken cancellationToken)
         {
             HttpResponseMessage message =
                 await FetchInternalAsync(request, httpClient)
@@ -41,10 +49,11 @@ namespace HotChocolate.Stitching.Utilities
             using (Stream stream = await message.Content.ReadAsStreamAsync()
                 .ConfigureAwait(false))
             {
-                object response = await RequestHelper.ReadAsync(
+                object response = await BufferHelper.ReadAsync(
                     stream,
                     (buffer, bytesBuffered) =>
-                        ParseJson(buffer, bytesBuffered))
+                        ParseJson(buffer, bytesBuffered),
+                    cancellationToken)
                     .ConfigureAwait(false);
 
                 QueryResult queryResult =

@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Linq;
 using System;
 using System.Collections.Generic;
 using HotChocolate.Language;
@@ -9,7 +8,6 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Configuration;
 using HotChocolate.Configuration.Bindings;
-using HotChocolate.Types.Factories;
 using HotChocolate.Properties;
 
 namespace HotChocolate
@@ -32,6 +30,7 @@ namespace HotChocolate
             new Dictionary<FieldReference, FieldResolver>();
         private readonly Dictionary<ITypeReference, ITypeReference> _clrTypes =
             new Dictionary<ITypeReference, ITypeReference>();
+        private readonly List<Type> _interceptors = new List<Type>();
         private readonly IBindingCompiler _bindingCompiler =
             new BindingCompiler();
         private SchemaOptions _options = new SchemaOptions();
@@ -76,6 +75,17 @@ namespace HotChocolate
                     TypeResources.SchemaBuilder_ISchemaNotTso,
                     nameof(schema));
             }
+            return this;
+        }
+
+        public ISchemaBuilder SetSchema(Action<ISchemaTypeDescriptor> configure)
+        {
+            if (configure is null)
+            {
+                throw new ArgumentNullException(nameof(configure));
+            }
+
+            _schema = new SchemaTypeReference(new Schema(configure));
             return this;
         }
 
@@ -359,6 +369,24 @@ namespace HotChocolate
         public ISchemaBuilder ClearContextData()
         {
             _contextData.Clear();
+            return this;
+        }
+
+        public ISchemaBuilder AddTypeInterceptor(Type interceptor)
+        {
+            if (interceptor is null)
+            {
+                throw new ArgumentNullException(nameof(interceptor));
+            }
+
+            if(!typeof(ITypeInitializationInterceptor).IsAssignableFrom(interceptor))
+            {
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilder_Interceptor_NotSuppported,
+                    nameof(interceptor));
+            }
+
+            _interceptors.Add(interceptor);
             return this;
         }
 

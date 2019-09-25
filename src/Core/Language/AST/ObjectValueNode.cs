@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace HotChocolate.Language
 {
@@ -67,9 +68,16 @@ namespace HotChocolate.Language
 
             if (other.Fields.Count == Fields.Count)
             {
-                for (int i = 0; i < Fields.Count; i++)
+                IEnumerator<ObjectFieldNode> otherFields = other.Fields
+                    .OrderBy(t => t.Name.Value, StringComparer.Ordinal)
+                    .GetEnumerator();
+
+                foreach (ObjectFieldNode field in
+                    Fields.OrderBy(t => t.Name.Value, StringComparer.Ordinal))
                 {
-                    if (!other.Fields[i].Equals(Fields[i]))
+                    otherFields.MoveNext();
+
+                    if (!otherFields.Current.Equals(field))
                     {
                         return false;
                     }
@@ -155,10 +163,12 @@ namespace HotChocolate.Language
             {
                 if (_hash == null)
                 {
-                    var hash = 0;
-                    for (var i = 0; i < Fields.Count; i++)
+                    var hash = (Kind.GetHashCode() * 397);
+
+                    foreach (ObjectFieldNode field in Fields.OrderBy(
+                        t => t.Name.Value, StringComparer.Ordinal))
                     {
-                        hash = hash ^ (Fields[i].GetHashCode() * 397);
+                        hash = hash ^ (field.GetHashCode() * 397);
                     }
                     _hash = hash;
                 }

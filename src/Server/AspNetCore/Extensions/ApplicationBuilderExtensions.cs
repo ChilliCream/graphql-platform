@@ -41,15 +41,33 @@ namespace HotChocolate.AspNetCore
                 throw new ArgumentNullException(nameof(options));
             }
 
-            return applicationBuilder
-                .UseMiddleware<PostQueryMiddleware>(options)
-                .UseMiddleware<GetQueryMiddleware>(options)
-                .UseGraphQLSubscriptions(new SubscriptionMiddlewareOptions
+            applicationBuilder
+                .UseGraphQLHttpPost(new HttpPostMiddlewareOptions
                 {
+                    Path = options.Path,
                     ParserOptions = options.ParserOptions,
-                    SubscriptionPath = options.SubscriptionPath
+                    MaxRequestSize = options.MaxRequestSize
                 })
-                .UseMiddleware<SchemaMiddleware>(options);
+                .UseGraphQLHttpGet(new HttpGetMiddlewareOptions
+                {
+                    Path = options.Path
+                })
+                .UseGraphQLHttpGetSchema(new HttpGetSchemaMiddlewareOptions
+                {
+                    Path = options.Path.Add(new PathString("/schema"))
+                });
+
+            if (options.EnableSubscriptions)
+            {
+                applicationBuilder.UseGraphQLSubscriptions(
+                    new SubscriptionMiddlewareOptions
+                    {
+                        ParserOptions = options.ParserOptions,
+                        Path = options.SubscriptionPath
+                    });
+            }
+
+            return applicationBuilder;
         }
     }
 }

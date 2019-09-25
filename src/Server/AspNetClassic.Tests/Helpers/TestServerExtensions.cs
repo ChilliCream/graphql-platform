@@ -1,4 +1,4 @@
-﻿using System.Net.Http;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Owin.Testing;
@@ -8,7 +8,7 @@ namespace HotChocolate.AspNetClassic
 {
     public static class TestServerExtensions
     {
-        public static Task<HttpResponseMessage> SendRequestAsync<TObject>(
+        public static Task<HttpResponseMessage> SendPostRequestAsync<TObject>(
             this TestServer testServer,
             TObject requestBody,
             string path = null)
@@ -16,7 +16,7 @@ namespace HotChocolate.AspNetClassic
             return SendPostRequestAsync(
                 testServer,
                 JsonConvert.SerializeObject(requestBody),
-                path);
+                path?.TrimStart('/'));
         }
 
         public static Task<HttpResponseMessage> SendPostRequestAsync(
@@ -27,7 +27,8 @@ namespace HotChocolate.AspNetClassic
             return SendPostRequestAsync(
                 testServer,
                 requestBody,
-                "application/json", path);
+                "application/json",
+                path?.TrimStart('/'));
         }
 
         public static Task<HttpResponseMessage> SendPostRequestAsync(
@@ -53,15 +54,13 @@ namespace HotChocolate.AspNetClassic
                 .GetAsync($"{CreateUrl(path)}?query={normalizedQuery}");
         }
 
-        private static string CreateUrl(string path)
+        public static string CreateUrl(string path)
         {
             string url = "http://localhost:5000";
-
             if (path != null)
             {
-                url += "/" + path;
+                url += "/" + path.TrimStart('/');
             }
-
             return url;
         }
     }

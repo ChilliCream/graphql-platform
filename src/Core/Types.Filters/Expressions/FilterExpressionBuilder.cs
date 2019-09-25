@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace HotChocolate.Types.Filters.Expressions
 {
-    internal static class FilterExpressionBuilder
+    public static class FilterExpressionBuilder
     {
 
         private static readonly MethodInfo _startsWith =

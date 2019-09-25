@@ -10,15 +10,22 @@ namespace HotChocolate.Configuration.Validation
         private static ISchemaValidationRule[] _rules =
             new ISchemaValidationRule[]
             {
-                new InterfaceImplementationRule()
+                new InterfaceHasAtLeastOneImplementationRule(),
+                new InetrfaceFieldsAreImplementedRule()
             };
 
         public static IReadOnlyCollection<ISchemaError> Validate(
-            IEnumerable<ITypeSystemObject> typeSystemObjects)
+            IEnumerable<ITypeSystemObject> typeSystemObjects,
+            IReadOnlySchemaOptions options)
         {
-            if (typeSystemObjects == null)
+            if (typeSystemObjects is null)
             {
                 throw new ArgumentNullException(nameof(typeSystemObjects));
+            }
+
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
             }
 
             var types = typeSystemObjects.ToList();
@@ -26,8 +33,9 @@ namespace HotChocolate.Configuration.Validation
 
             foreach (ISchemaValidationRule rule in _rules)
             {
-                errors.AddRange(rule.Validate(types));
+                errors.AddRange(rule.Validate(types, options));
             }
+
             return errors;
         }
     }

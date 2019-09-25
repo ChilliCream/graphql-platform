@@ -387,6 +387,14 @@ namespace HotChocolate.Execution
             };
         }
 
+        public IError RemoveException()
+        {
+            return new QueryError(Message, Path, Locations, _extensions)
+            {
+                Exception = null
+            };
+        }
+
         #endregion
     }
 }

@@ -30,5 +30,38 @@ namespace HotChocolate.AspNetCore
             ClientQueryResult result = await DeserializeAsync(message);
             result.MatchSnapshot();
         }
+
+        [Fact]
+        public async Task HttpGet_Query_SyntaxException()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var request = "{ ähero { name } }";
+
+            // act
+            HttpResponseMessage message =
+                await server.SendGetRequestAsync(request);
+
+            // assert
+            ClientQueryResult result = await DeserializeAsync(message);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpGet_ContentType()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var request = "{ hero { name } }";
+
+            // act
+            HttpResponseMessage message =
+                await server.SendGetRequestAsync(request);
+
+            // assert
+            Assert.Collection(
+                message.Content.Headers.GetValues("Content-Type"),
+                t => Assert.Equal("application/json", t));
+        }
     }
 }

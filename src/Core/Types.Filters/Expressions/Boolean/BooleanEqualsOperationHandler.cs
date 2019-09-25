@@ -1,6 +1,4 @@
-using System.Linq;
 using System.Linq.Expressions;
-using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
 
@@ -18,7 +16,7 @@ namespace HotChocolate.Types.Filters.Expressions
             out Expression expression)
         {
             if (operation.Type == typeof(bool)
-                && (value is BooleanValueNode || value.IsNull()))
+                && type.IsInstanceOfType(value))
             {
                 MemberExpression property =
                     Expression.Property(instance, operation.Property);

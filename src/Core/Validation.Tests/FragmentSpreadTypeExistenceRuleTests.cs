@@ -1,4 +1,4 @@
-﻿using HotChocolate.Language;
+using HotChocolate.Language;
 using Xunit;
 
 namespace HotChocolate.Validation
@@ -16,7 +16,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...correctType
@@ -40,7 +40,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...inlineFragment
@@ -66,7 +66,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...inlineFragment2
@@ -92,7 +92,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...notOnExistingType
@@ -110,9 +110,15 @@ namespace HotChocolate.Validation
             // assert
             Assert.True(result.HasErrors);
             Assert.Collection(result.Errors,
-                t => Assert.Equal(t.Message,
-                    "The type of fragment `notOnExistingType` " +
-                    "does not exist in the current schema."));
+                t =>
+                {
+                    Assert.Equal(
+                        "Unknown type `NotInSchema`.",
+                        t.Message);
+                    Assert.Equal(
+                        ErrorCodes.Validation.UnknownType,
+                        t.Code);
+                });
         }
 
         [Fact]
@@ -120,7 +126,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         ...inlineNotExistingType
@@ -140,9 +146,15 @@ namespace HotChocolate.Validation
             // assert
             Assert.True(result.HasErrors);
             Assert.Collection(result.Errors,
-                t => Assert.Equal(t.Message,
-                    "The specified inline fragment " +
-                    "does not exist in the current schema."));
+                t =>
+                {
+                    Assert.Equal(
+                        "Unknown type `NotInSchema`.",
+                        t.Message);
+                    Assert.Equal(
+                        ErrorCodes.Validation.UnknownType,
+                        t.Code);
+                });
         }
     }
 }

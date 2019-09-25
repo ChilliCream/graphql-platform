@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Threading.Tasks;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -18,29 +15,6 @@ namespace HotChocolate.Types
             }
 
             return (type is NonNullType);
-        }
-
-        public static bool IsNonNullElementType(this IType type)
-        {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (type is ListType l
-                && l.ElementType is NonNullType)
-            {
-                return true;
-            }
-
-            if (type is NonNullType n
-                && n.Type is ListType nl
-                && nl.ElementType is NonNullType)
-            {
-                return true;
-            }
-
-            return false;
         }
 
         public static bool IsCompositeType(this IType type)
@@ -144,7 +118,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return type.InnerType().InnerType().InnerType() is IInputType;
+            return type.NamedType() is IInputType;
         }
 
         public static bool IsOutputType(this IType type)
@@ -154,7 +128,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(type));
             }
 
-            return type.InnerType().InnerType().InnerType() is IOutputType;
+            return type.NamedType() is IOutputType;
         }
 
         public static bool IsUnionType(this IType type)
@@ -240,15 +214,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(type));
             }
 
-            IType innerType = type.InnerType().InnerType().InnerType();
-
-            if (innerType is INamedType nt)
-            {
-                return nt.Name;
-            }
-
-            throw new ArgumentException(
-                TypeResources.TypeExtensions_InvalidStructure);
+            return type.NamedType().Name;
         }
 
         public static ListType ListType(this IType type)
@@ -279,35 +245,24 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(type));
             }
 
-            IType innerType = type.InnerType().InnerType().InnerType();
+            IType current = type;
 
-            if (innerType is INamedType nt)
+            if (current is INamedType n1)
             {
-                return nt;
+                return n1;
+            }
+
+            for (int i = 0; i < 6; i++)
+            {
+                current = current.InnerType();
+
+                if (current is INamedType nn)
+                {
+                    return nn;
+                }
             }
 
             throw new ArgumentException("The type structure is invalid.");
-        }
-
-        public static T NamedType<T>(this IType type)
-            where T : INamedType
-        {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            IType innerType = type.InnerType().InnerType().InnerType();
-
-            if (innerType is T nt)
-            {
-                return nt;
-            }
-
-            throw new ArgumentException(string.Format(
-                CultureInfo.InvariantCulture,
-                TypeResources.TypeExtensions_TypeIsNotOfT,
-                typeof(T).Name));
         }
 
         public static IType ElementType(this IType type)
@@ -430,6 +385,55 @@ namespace HotChocolate.Types
             if (type is INamedType nt)
             {
                 return new NamedTypeNode(null, new NameNode(nt.Name));
+            }
+
+            throw new NotSupportedException(
+                TypeResources.TypeExtensions_KindIsNotSupported);
+        }
+
+        public static ITypeNode ToTypeNode(
+            this IType original,
+            INamedType namedType)
+        {
+            if (original is NonNullType nnt
+                && ToTypeNode(nnt.Type, namedType) is INullableTypeNode nntn)
+            {
+                return new NonNullTypeNode(null, nntn);
+            }
+
+            if (original is ListType lt)
+            {
+                return new ListTypeNode(null,
+                    ToTypeNode(lt.ElementType, namedType));
+            }
+
+            if (original is INamedType)
+            {
+                return new NamedTypeNode(null, new NameNode(namedType.Name));
+            }
+
+            throw new NotSupportedException(
+                TypeResources.TypeExtensions_KindIsNotSupported);
+        }
+
+        public static IType ToType(
+            this ITypeNode typeNode,
+            INamedType namedType)
+        {
+            if (typeNode is NonNullTypeNode nntn
+                && ToType(nntn.Type, namedType) is INullableType nnt)
+            {
+                return new NonNullType(nnt);
+            }
+
+            if (typeNode is ListTypeNode ltn)
+            {
+                return new ListType(ToType(ltn.Type, namedType));
+            }
+
+            if (typeNode is NamedTypeNode)
+            {
+                return namedType;
             }
 
             throw new NotSupportedException(

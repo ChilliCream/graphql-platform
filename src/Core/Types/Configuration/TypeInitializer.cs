@@ -40,6 +40,7 @@ namespace HotChocolate.Configuration
         private readonly List<ITypeReference> _initialTypes;
         private readonly List<Type> _externalResolverTypes;
         private readonly IDictionary<string, object> _contextData;
+        private readonly ITypeInitializationInterceptor _interceptor;
         private readonly IsOfTypeFallback _isOfType;
         private readonly Func<TypeSystemObjectBase, bool> _isQueryType;
 
@@ -49,6 +50,7 @@ namespace HotChocolate.Configuration
             IEnumerable<ITypeReference> initialTypes,
             IEnumerable<Type> externalResolverTypes,
             IDictionary<string, object> contextData,
+            ITypeInitializationInterceptor interceptor,
             IsOfTypeFallback isOfType,
             Func<TypeSystemObjectBase, bool> isQueryType)
         {
@@ -68,6 +70,8 @@ namespace HotChocolate.Configuration
                 ?? throw new ArgumentNullException(nameof(descriptorContext));
             _contextData = contextData
                 ?? throw new ArgumentNullException(nameof(contextData));
+            _interceptor = interceptor
+                ?? throw new ArgumentNullException(nameof(interceptor));
             _isOfType = isOfType;
             _isQueryType = isQueryType
                 ?? throw new ArgumentNullException(nameof(isQueryType));
@@ -104,11 +108,18 @@ namespace HotChocolate.Configuration
             return false;
         }
 
-        public void Initialize(Func<ISchema> schemaResolver)
+        public void Initialize(
+            Func<ISchema> schemaResolver,
+            IReadOnlySchemaOptions options)
         {
             if (schemaResolver == null)
             {
                 throw new ArgumentNullException(nameof(schemaResolver));
+            }
+
+            if (options is null)
+            {
+                throw new ArgumentNullException(nameof(options));
             }
 
             if (RegisterTypes())
@@ -122,7 +133,8 @@ namespace HotChocolate.Configuration
             }
 
             _errors.AddRange(SchemaValidator.Validate(
-                _types.Select(t => t.Value.Type)));
+                _types.Select(t => t.Value.Type),
+                options));
 
             if (_errors.Count > 0)
             {
@@ -161,7 +173,8 @@ namespace HotChocolate.Configuration
                 _descriptorContext,
                 _initialTypes,
                 ClrTypes,
-                _contextData);
+                _contextData,
+                _interceptor);
 
             if (typeRegistrar.Complete())
             {

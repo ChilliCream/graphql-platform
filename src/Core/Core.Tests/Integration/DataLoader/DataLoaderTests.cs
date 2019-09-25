@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ChilliCream.Testing;
-using GreenDonut;
-using HotChocolate.Execution;
-using HotChocolate.Resolvers;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
+using GreenDonut;
+using HotChocolate.Execution;
+using HotChocolate.Resolvers;
 
 namespace HotChocolate.Integration.DataLoader
 {
@@ -325,6 +324,65 @@ namespace HotChocolate.Integration.DataLoader
 
             // assert
             Assert.Collection(results,
+                t => Assert.Empty(t.Errors),
+                t => Assert.Empty(t.Errors),
+                t => Assert.Empty(t.Errors));
+            results.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task ClassDataLoader_Resolve_From_DependencyInjection()
+        {
+            // arrange
+            IServiceProvider serviceProvider = new ServiceCollection()
+                .AddDataLoader<ITestDataLoader, TestDataLoader>()
+                .BuildServiceProvider();
+
+            var schema = Schema.Create(c => c.RegisterQueryType<Query>());
+
+            IQueryExecutor executor = schema.MakeExecutable();
+            IServiceScope scope = serviceProvider.CreateScope();
+
+            // act
+            var results = new List<IExecutionResult>();
+
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            a: dataLoaderWithInterface(key: ""a"")
+                            b: dataLoaderWithInterface(key: ""b"")
+                        }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create()));
+
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            a: dataLoaderWithInterface(key: ""a"")
+                        }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create()));
+
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery(
+                        @"{
+                            c: dataLoaderWithInterface(key: ""c"")
+                        }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create()));
+
+            results.Add(await executor.ExecuteAsync(
+                QueryRequestBuilder.New()
+                    .SetQuery("{ loads loads2 loads3 }")
+                    .SetServices(scope.ServiceProvider)
+                    .Create()));
+
+            // assert
+            Assert.Collection(results,
+                t => Assert.Empty(t.Errors),
                 t => Assert.Empty(t.Errors),
                 t => Assert.Empty(t.Errors),
                 t => Assert.Empty(t.Errors));

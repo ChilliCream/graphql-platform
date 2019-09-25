@@ -47,7 +47,7 @@ namespace HotChocolate.Execution
             await InvokeBatchOperationsAsync(cancellationToken)
                 .ConfigureAwait(false);
 
-            if (All(tasks.Span, IsInProgress))
+            if (Any(tasks.Span, IsInProgress))
             {
                 _completed = new TaskCompletionSource<bool>(
                     TaskCreationOptions.RunContinuationsAsynchronously);

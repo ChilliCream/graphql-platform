@@ -128,6 +128,16 @@ namespace HotChocolate
 
         /// <summary>
         /// Creates a new error that contains all properties of this error
+        /// but removed the exception from it.
+        /// </summary>
+        /// <returns>
+        /// Returns a new error that contains all properties of this error
+        /// but without any exception details.
+        /// </returns>
+        IError RemoveException();
+
+        /// <summary>
+        /// Creates a new error that contains all properties of this error
         /// but with the specified <paramref name="extensions" />.
         /// </summary>
         /// <param name="extensions">

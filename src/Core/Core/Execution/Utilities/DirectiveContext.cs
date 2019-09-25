@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -73,6 +73,18 @@ namespace HotChocolate.Execution
         {
             get => _middlewareContext.ScopedContextData;
             set => _middlewareContext.ScopedContextData = value;
+        }
+
+        public NameString ResponseName =>
+            _middlewareContext.ResponseName;
+
+        public IVariableValueCollection Variables =>
+            _middlewareContext.Variables;
+
+        public IImmutableDictionary<string, object> LocalContextData
+        {
+            get => _middlewareContext.LocalContextData;
+            set => _middlewareContext.LocalContextData = value;
         }
 
         public T Argument<T>(NameString name) =>

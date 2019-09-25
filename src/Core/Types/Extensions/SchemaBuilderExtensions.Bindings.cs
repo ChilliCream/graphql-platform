@@ -1,7 +1,5 @@
 using System;
 using HotChocolate.Configuration.Bindings;
-using HotChocolate.Language;
-using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate

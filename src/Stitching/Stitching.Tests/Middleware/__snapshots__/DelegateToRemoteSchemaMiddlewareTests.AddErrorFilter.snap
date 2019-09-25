@@ -3,15 +3,15 @@
     "customer": {
       "contracts": [
         {
-          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgx",
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0CmQx",
           "error": null
         },
         {
-          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0LXgy",
+          "id": "TGlmZUluc3VyYW5jZUNvbnRyYWN0CmQy",
           "error": null
         },
         {
-          "id": "U29tZU90aGVyQ29udHJhY3QteDE="
+          "id": "U29tZU90aGVyQ29udHJhY3QKZDE="
         }
       ]
     }
@@ -28,8 +28,8 @@
       ],
       "Locations": [
         {
-          "line": 4,
-          "column": 33
+          "Line": 4,
+          "Column": 33
         }
       ],
       "Exception": null,
@@ -62,8 +62,8 @@
       ],
       "Locations": [
         {
-          "line": 4,
-          "column": 33
+          "Line": 4,
+          "Column": 33
         }
       ],
       "Exception": null,

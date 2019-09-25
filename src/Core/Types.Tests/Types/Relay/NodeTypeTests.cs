@@ -1,4 +1,4 @@
-﻿using HotChocolate.Types.Relay;
+using HotChocolate.Types.Relay;
 using Xunit;
 
 namespace HotChocolate.Types
@@ -11,7 +11,9 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            NodeType nodeInterface = CreateType(new NodeType());
+            NodeType nodeInterface = CreateType(
+                new NodeType(),
+                b => b.ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.Equal(

@@ -21,6 +21,25 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void Create_Schema_With_FilteType_With_Fluent_API()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(d =>
+                    d.Field(m => m.Foos)
+                        .UseFiltering<Foo>(f =>
+                            f.BindFieldsExplicitly()
+                                .Filter(m => m.Bar)
+                                .BindFiltersExplicitly()
+                                .AllowEquals()))
+                .Create();
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Execute_Filter()
         {
             // arrange
@@ -33,6 +52,63 @@ namespace HotChocolate.Types.Filters
             // act
             IExecutionResult result = executor.Execute(
                 "{ foos(where: { bar_starts_with: \"a\" }) { bar } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Execute_Filter_With_Variables()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query filter($a: String) {
+                        foos(where: { bar_starts_with: $a }) {
+                            bar
+                        }
+                    }")
+                .SetVariableValue("a", "a")
+                .Create();
+
+            // act
+            IExecutionResult result = executor.Execute(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Execute_Filter_As_Variable()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query filter($a: FooFilter) {
+                        foos(where: $a) {
+                            bar
+                        }
+                    }")
+                .SetVariableValue("a", new Dictionary<string, object>
+                {
+                    { "bar_starts_with", "a" }
+                })
+                .Create();
+
+            // act
+            IExecutionResult result = executor.Execute(request);
 
             // assert
             result.MatchSnapshot();

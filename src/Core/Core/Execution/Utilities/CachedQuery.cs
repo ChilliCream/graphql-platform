@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using HotChocolate.Language;
+using HotChocolate.Properties;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution
@@ -17,9 +18,8 @@ namespace HotChocolate.Execution
         {
             if (string.IsNullOrEmpty(queryKey))
             {
-                // TODO : resources
                 throw new ArgumentException(
-                    "The query key mustn't be null or empty.",
+                    CoreResources.CachedQuery_Key_Is_Null,
                     nameof(queryKey));
             }
 

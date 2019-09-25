@@ -1,10 +1,6 @@
 using System;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Owin;
-using Owin;
 using IApplicationBuilder = Owin.IAppBuilder;
-using HotChocolate.Execution;
-using HotChocolate.Language;
 
 namespace HotChocolate.AspNetClassic
 {
@@ -52,23 +48,24 @@ namespace HotChocolate.AspNetClassic
                 throw new ArgumentNullException(nameof(options));
             }
 
-            IQueryExecutor executor = serviceProvider
-                .GetService<IQueryExecutor>();
-
-            IQueryResultSerializer serializer = serviceProvider
-                .GetService<IQueryResultSerializer>()
-                ?? new JsonQueryResultSerializer();
-
-            IDocumentCache cache = serviceProvider
-                .GetRequiredService<IDocumentCache>();
-
-            IDocumentHashProvider hashProvider = serviceProvider
-                .GetRequiredService<IDocumentHashProvider>();
-
             return applicationBuilder
-                .Use<PostQueryMiddleware>(executor, serializer, cache, hashProvider, options)
-                .Use<GetQueryMiddleware>(executor, serializer, options)
-                .Use<SchemaMiddleware>(executor, options);
+                .UseGraphQLHttpPost(serviceProvider,
+                    new HttpPostMiddlewareOptions
+                    {
+                        Path = options.Path,
+                        ParserOptions = options.ParserOptions,
+                        MaxRequestSize = options.MaxRequestSize
+                    })
+                .UseGraphQLHttpGet(serviceProvider,
+                    new HttpGetMiddlewareOptions
+                    {
+                        Path = options.Path
+                    })
+                .UseGraphQLHttpGetSchema(serviceProvider,
+                    new HttpGetSchemaMiddlewareOptions
+                    {
+                        Path = options.Path.Add(new PathString("/schema"))
+                    });
         }
     }
 }

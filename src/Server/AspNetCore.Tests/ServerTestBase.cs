@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -31,6 +32,14 @@ namespace HotChocolate.AspNetCore
             Assert.Equal(HttpStatusCode.OK, message.StatusCode);
             string json = await message.Content.ReadAsStringAsync();
             return JsonConvert.DeserializeObject<ClientQueryResult>(json);
+        }
+
+        protected async Task<List<ClientQueryResult>> DeserializeBatchAsync(
+            HttpResponseMessage message)
+        {
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+            string json = await message.Content.ReadAsStringAsync();
+            return JsonConvert.DeserializeObject<List<ClientQueryResult>>(json);
         }
     }
 }

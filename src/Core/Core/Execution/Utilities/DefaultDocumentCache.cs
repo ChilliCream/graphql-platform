@@ -1,6 +1,6 @@
 using System;
 using HotChocolate.Language;
-using HotChocolate.Runtime;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {

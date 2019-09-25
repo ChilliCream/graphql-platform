@@ -16,7 +16,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query intCannotGoIntoBoolean($intArg: Int) {
                     arguments {
                         booleanArgField(booleanArg: $intArg)
@@ -43,7 +43,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query booleanListCannotGoIntoBoolean($booleanListArg: [Boolean]) {
                     arguments {
                         booleanArgField(booleanArg: $booleanListArg)
@@ -70,7 +70,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query booleanArgQuery($booleanArg: Boolean) {
                     arguments {
                         nonNullBooleanArgField(nonNullBooleanArg: $booleanArg)
@@ -97,7 +97,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query nonNullListToList($nonNullBooleanList: [Boolean]!) {
                     arguments {
                         booleanListArgField(booleanListArg: $nonNullBooleanList)
@@ -117,7 +117,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query listToNonNullList($booleanList: [Boolean]) {
                     arguments {
                         nonNullBooleanListField(nonNullBooleanListArg: $booleanList)
@@ -144,7 +144,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query booleanArgQueryWithDefault($booleanArg: Boolean) {
                     arguments {
                         optionalNonNullBooleanArgField(optionalBooleanArg: $booleanArg)
@@ -164,7 +164,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 query booleanArgQueryWithDefault($booleanArg: Boolean = true) {
                     arguments {
                         nonNullBooleanArgField(nonNullBooleanArg: $booleanArg)

@@ -91,7 +91,9 @@ namespace HotChocolate.Types
         {
             // arrange
             // act
-            InterfaceType<IFoo> fooType = CreateType(new InterfaceType<IFoo>());
+            InterfaceType<IFoo> fooType = CreateType(
+                new InterfaceType<IFoo>(),
+                b => b.ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.Collection(
@@ -139,7 +141,8 @@ namespace HotChocolate.Types
             // arrange
             // act
             InterfaceType<IFoo> fooType = CreateType(
-                new InterfaceType<IFoo>(t => t.Ignore(p => p.Bar)));
+                new InterfaceType<IFoo>(t => t.Ignore(p => p.Bar)),
+                b => b.ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.Collection(
@@ -167,7 +170,8 @@ namespace HotChocolate.Types
             InterfaceType<IFoo> fooType = CreateType(
                 new InterfaceType<IFoo>(t => t
                     .BindFields(BindingBehavior.Explicit)
-                    .Field(p => p.Bar)));
+                    .Field(p => p.Bar)),
+                b => b.ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.Collection(
@@ -190,7 +194,8 @@ namespace HotChocolate.Types
                     .Directive("foo")
                     .Field(f => f.Bar)
                     .Directive("foo")),
-                    b => b.AddDirectiveType<FooDirectiveType>());
+                    b => b.AddDirectiveType<FooDirectiveType>()
+                        .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -207,7 +212,8 @@ namespace HotChocolate.Types
                     .Directive(new NameString("foo"))
                     .Field(f => f.Bar)
                     .Directive(new NameString("foo"))),
-                    b => b.AddDirectiveType<FooDirectiveType>());
+                    b => b.AddDirectiveType<FooDirectiveType>()
+                        .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -224,7 +230,8 @@ namespace HotChocolate.Types
                     .Directive(new DirectiveNode("foo"))
                     .Field(f => f.Bar)
                     .Directive(new DirectiveNode("foo"))),
-                    b => b.AddDirectiveType<FooDirectiveType>());
+                    b => b.AddDirectiveType<FooDirectiveType>()
+                        .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -241,7 +248,8 @@ namespace HotChocolate.Types
                     .Directive(new FooDirective())
                     .Field(f => f.Bar)
                     .Directive(new FooDirective())),
-                b => b.AddDirectiveType<FooDirectiveType>());
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -257,7 +265,8 @@ namespace HotChocolate.Types
                 .Directive<FooDirective>()
                 .Field(f => f.Bar)
                 .Directive<FooDirective>()),
-                b => b.AddDirectiveType<FooDirectiveType>());
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -275,7 +284,8 @@ namespace HotChocolate.Types
                 .Field("id")
                 .Type<StringType>()
                 .Directive("foo")),
-                b => b.AddDirectiveType<FooDirectiveType>());
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -293,7 +303,8 @@ namespace HotChocolate.Types
                 .Field("bar")
                 .Type<StringType>()
                 .Directive(new NameString("foo"))),
-                b => b.AddDirectiveType<FooDirectiveType>());
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -311,7 +322,8 @@ namespace HotChocolate.Types
                 .Field("id")
                 .Type<StringType>()
                 .Directive(new DirectiveNode("foo"))),
-                b => b.AddDirectiveType<FooDirectiveType>());
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -329,7 +341,8 @@ namespace HotChocolate.Types
                 .Field("id")
                 .Type<StringType>()
                 .Directive(new FooDirective())),
-                b => b.AddDirectiveType<FooDirectiveType>());
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -347,7 +360,8 @@ namespace HotChocolate.Types
                 .Field("id")
                 .Type<StringType>()
                 .Directive<FooDirective>()),
-                b => b.AddDirectiveType<FooDirectiveType>());
+                b => b.AddDirectiveType<FooDirectiveType>()
+                    .ModifyOptions(o => o.StrictValidation = false));
 
             // assert
             Assert.NotEmpty(fooType.Directives["foo"]);
@@ -430,6 +444,7 @@ namespace HotChocolate.Types
                     .Resolver("bar"))
                 .AddType(new InterfaceType<IFoo>(d => d
                     .Ignore(t => t.Bar)))
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -448,6 +463,7 @@ namespace HotChocolate.Types
                     .Type<StringType>()
                     .Resolver("bar"))
                 .AddType(new InterfaceType<FooObsolete>())
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             // assert
@@ -463,6 +479,7 @@ namespace HotChocolate.Types
                     .Type<StringType>()
                     .Resolver("bar"))
                 .AddType(new InterfaceType<FooDeprecated>())
+                .ModifyOptions(o => o.StrictValidation = false)
                 .Create();
 
             schema.ToString().MatchSnapshot();

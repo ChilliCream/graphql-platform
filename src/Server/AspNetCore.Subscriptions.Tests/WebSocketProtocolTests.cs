@@ -135,7 +135,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
 
                     // assert
-                    await testServer.SendRequestAsync(new ClientQueryRequest
+                    await testServer.SendPostRequestAsync(new ClientQueryRequest
                     {
                         Query = @"
                     mutation {
@@ -181,7 +181,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
 
                     await webSocket.SendSubscriptionStartAsync(subscriptionId, request);
 
-                    await testServer.SendRequestAsync(new ClientQueryRequest
+                    await testServer.SendPostRequestAsync(new ClientQueryRequest
                     {
                         Query = @"
                     mutation {
@@ -204,7 +204,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                     // act
                     await webSocket.SendSubscriptionStopAsync(subscriptionId);
 
-                    await testServer.SendRequestAsync(new ClientQueryRequest
+                    await testServer.SendPostRequestAsync(new ClientQueryRequest
                     {
                         Query = @"
                     mutation {

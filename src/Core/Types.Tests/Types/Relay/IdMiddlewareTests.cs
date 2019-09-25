@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using HotChocolate.Execution;
+using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 

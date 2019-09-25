@@ -17,7 +17,7 @@ namespace HotChocolate.Types.Filters.Expressions
             out Expression expression)
         {
             if (operation.Type == typeof(IComparable)
-                && value is ListValueNode li)
+                && type.IsInstanceOfType(value))
             {
                 MemberExpression property =
                     Expression.Property(instance, operation.Property);

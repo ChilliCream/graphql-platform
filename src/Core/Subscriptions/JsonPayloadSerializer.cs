@@ -1,6 +1,6 @@
 using System.Globalization;
+using System.Runtime.Serialization.Formatters;
 using System.Text;
-using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 namespace HotChocolate.Subscriptions
@@ -11,8 +11,13 @@ namespace HotChocolate.Subscriptions
         private static readonly JsonSerializerSettings _settings =
             new JsonSerializerSettings
             {
+#if NET461
+                TypeNameAssemblyFormat = FormatterAssemblyStyle.Full,
+#else
                 TypeNameAssemblyFormatHandling =
                     TypeNameAssemblyFormatHandling.Full,
+#endif
+
                 TypeNameHandling = TypeNameHandling.All,
                 Culture = CultureInfo.InvariantCulture,
                 DateTimeZoneHandling = DateTimeZoneHandling.RoundtripKind,

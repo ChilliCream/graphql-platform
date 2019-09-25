@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using HotChocolate.Runtime;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {

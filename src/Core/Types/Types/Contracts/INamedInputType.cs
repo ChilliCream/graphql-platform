@@ -3,7 +3,6 @@
     public interface INamedInputType
         : INamedType
         , IInputType
-        , ISerializableType
     {
     }
 }

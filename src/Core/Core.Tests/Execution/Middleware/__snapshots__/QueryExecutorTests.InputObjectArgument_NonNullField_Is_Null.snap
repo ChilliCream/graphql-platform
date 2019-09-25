@@ -7,8 +7,8 @@
       "message": "`baz` is a required field and cannot be null.",
       "locations": [
         {
-          "line": 3,
-          "column": 45
+          "Line": 3,
+          "Column": 45
         }
       ]
     }

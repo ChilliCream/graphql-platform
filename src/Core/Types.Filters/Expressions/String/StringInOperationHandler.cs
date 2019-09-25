@@ -15,8 +15,7 @@ namespace HotChocolate.Types.Filters.Expressions
             ITypeConversion converter,
             out Expression expression)
         {
-            if (operation.Type == typeof(string)
-                && value is ListValueNode li)
+            if (operation.Type == typeof(string) && type.IsInstanceOfType(value))
             {
                 MemberExpression property =
                     Expression.Property(instance, operation.Property);

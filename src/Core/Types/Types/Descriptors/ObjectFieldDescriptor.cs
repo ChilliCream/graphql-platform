@@ -141,11 +141,17 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
+        public new IObjectFieldDescriptor Type(Type type)
+        {
+            base.Type(type);
+            return this;
+        }
+
         public new IObjectFieldDescriptor Argument(
-            NameString name,
+            NameString argumentName,
             Action<IArgumentDescriptor> argumentDescriptor)
         {
-            base.Argument(name, argumentDescriptor);
+            base.Argument(argumentName, argumentDescriptor);
             return this;
         }
 
@@ -182,16 +188,21 @@ namespace HotChocolate.Types.Descriptors
             {
                 Definition.SetMoreSpecificType(resultType, TypeContext.Output);
 
-                Type resultTypeDef = resultType.GetGenericTypeDefinition();
-                Type clrResultType = resultType.IsGenericType
-                    && resultTypeDef == typeof(NativeType<>)
+                if (resultType.IsGenericType)
+                {
+                    Type resultTypeDef = resultType.GetGenericTypeDefinition();
+
+                    Type clrResultType = resultTypeDef == typeof(NativeType<>)
                         ? resultType.GetGenericArguments()[0]
                         : resultType;
-                if (!BaseTypes.IsSchemaType(clrResultType))
-                {
-                    Definition.ResultType = clrResultType;
+
+                    if (!BaseTypes.IsSchemaType(clrResultType))
+                    {
+                        Definition.ResultType = clrResultType;
+                    }
                 }
             }
+
             return this;
         }
 
@@ -206,10 +217,10 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public new IObjectFieldDescriptor Directive<T>(T directive)
+        public new IObjectFieldDescriptor Directive<T>(T directiveInstance)
             where T : class
         {
-            base.Directive(directive);
+            base.Directive(directiveInstance);
             return this;
         }
 

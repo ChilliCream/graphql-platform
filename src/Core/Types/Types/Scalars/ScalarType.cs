@@ -3,6 +3,7 @@ using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Configuration;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
@@ -15,6 +16,8 @@ namespace HotChocolate.Types
         : TypeSystemObjectBase
         , ILeafType
     {
+        private static readonly ITypeConversion _converter =
+            TypeConversion.Default;
         private readonly Dictionary<string, object> _contextData =
             new Dictionary<string, object>();
 
@@ -163,7 +166,12 @@ namespace HotChocolate.Types
 
         internal sealed override void Initialize(IInitializationContext context)
         {
+            context.Interceptor.OnBeforeRegisterDependencies(
+                context, null, _contextData);
             OnRegisterDependencies(context, _contextData);
+            context.Interceptor.OnAfterRegisterDependencies(
+                context, null, _contextData);
+
             base.Initialize(context);
         }
 
@@ -175,8 +183,12 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteName(ICompletionContext context)
         {
+            context.Interceptor.OnBeforeCompleteName(
+                context, null, _contextData);
             OnCompleteName(context, _contextData);
             base.CompleteName(context);
+            context.Interceptor.OnAfterCompleteName(
+                context, null, _contextData);
         }
 
         protected virtual void OnCompleteName(
@@ -187,14 +199,35 @@ namespace HotChocolate.Types
 
         internal sealed override void CompleteType(ICompletionContext context)
         {
+            context.Interceptor.OnBeforeCompleteType(
+                context, null, _contextData);
             OnCompleteType(context, _contextData);
             base.CompleteType(context);
+            context.Interceptor.OnAfterCompleteType(
+                context, null, _contextData);
         }
 
         protected virtual void OnCompleteType(
             ICompletionContext context,
             IDictionary<string, object> contextData)
         {
+        }
+
+        protected static bool TryConvertSerialized<T>(
+            object serialized,
+            ValueKind expectedKind,
+            out T value)
+        {
+            if (Scalars.TryGetKind(serialized, out ValueKind kind)
+                && kind == expectedKind
+                && _converter.TryConvert<object, T>(serialized, out T c))
+            {
+                value = c;
+                return true;
+            }
+
+            value = default;
+            return false;
         }
     }
 }

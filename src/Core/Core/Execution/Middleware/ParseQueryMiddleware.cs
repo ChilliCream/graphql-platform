@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using HotChocolate.Execution.Instrumentation;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Runtime;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
@@ -41,8 +41,8 @@ namespace HotChocolate.Execution
             {
                 context.Result = QueryResult.CreateError(
                     ErrorBuilder.New()
-                        .SetMessage(CoreResources
-                            .ParseQueryMiddleware_InComplete)
+                        .SetMessage(CoreResources.ParseQueryMiddleware_InComplete)
+                        .SetCode(ErrorCodes.Execution.Incomplete)
                         .Build());
             }
             else
@@ -52,37 +52,59 @@ namespace HotChocolate.Execution
                 try
                 {
                     bool documentRetrievedFromCache = true;
+                    ICachedQuery cachedQuery = null;
+                    string queryKey = ResolveQueryKey(context.Request);
 
-                    string queryKey = context.Request.QueryHash
-                        ?? context.Request.QueryName;
-
-                    if (queryKey is null)
+                    if (context.Request.Query is null)
                     {
-                        queryKey = _documentHashProvider.ComputeHash(
-                            context.Request.Query.ToSource());
+                        _queryCache.TryGet(queryKey, out cachedQuery);
+                    }
+                    else
+                    {
+                        cachedQuery = _queryCache.GetOrCreate(
+                            queryKey,
+                            () =>
+                            {
+                                documentRetrievedFromCache = false;
+                                DocumentNode document =
+                                    ParseDocument(context.Request.Query);
+                                return new CachedQuery(queryKey, document);
+                            });
                     }
 
+                    // update context
                     context.QueryKey = queryKey;
-                    context.CachedQuery = _queryCache.GetOrCreate(
-                        queryKey,
-                        () =>
-                        {
-                            documentRetrievedFromCache = false;
-                            DocumentNode document =
-                                ParseDocument(context.Request.Query);
-                            return new CachedQuery(queryKey, document);
-                        });
-                    context.Document = context.CachedQuery.Document;
-                    context.ContextData[ContextDataKeys.DocumentCached] =
-                        documentRetrievedFromCache;
+
+                    if (cachedQuery != null)
+                    {
+                        context.CachedQuery = cachedQuery;
+                        context.Document = cachedQuery.Document;
+                        context.ContextData[ContextDataKeys.DocumentCached] =
+                            documentRetrievedFromCache;
+                    }
                 }
                 finally
                 {
                     _diagnosticEvents.EndParsing(activity, context);
                 }
+
+                await _next(context).ConfigureAwait(false);
+            }
+        }
+
+        private string ResolveQueryKey(IReadOnlyQueryRequest request)
+        {
+            string queryKey = request.QueryName;
+
+            if (queryKey is null || request.Query != null)
+            {
+                queryKey = request.QueryHash is null
+                    ? _documentHashProvider.ComputeHash(
+                        request.Query.ToSpan())
+                    : request.QueryHash;
             }
 
-            await _next(context).ConfigureAwait(false);
+            return queryKey;
         }
 
         private DocumentNode ParseDocument(IQuery query)
@@ -94,19 +116,51 @@ namespace HotChocolate.Execution
 
             if (query is QuerySourceText source)
             {
-                return _parser.Parse(source.ToSource());
+                return _parser.Parse(source.ToSpan());
             }
 
-            // TODO : resources
             throw new NotSupportedException(
-                "The specified query type is not supported.");
+                CoreResources.ParseQuery_Middleware_QueryTypeNotSupported);
         }
 
         private static bool IsContextIncomplete(IQueryContext context)
         {
-            return context.Request == null
-                || context.Request.Query == null;
+            return context.Request is null
+                || (context.Request.Query is null
+                    && context.Request.QueryName is null);
+        }
+    }
+
+    internal sealed class NoCachedQueryErrorMiddleware
+    {
+        private readonly QueryDelegate _next;
+        private readonly IErrorHandler _errorHandler;
+
+        public NoCachedQueryErrorMiddleware(
+            QueryDelegate next,
+            IErrorHandler errorHandler)
+        {
+            _next = next
+                ?? throw new ArgumentNullException(nameof(next));
+            _errorHandler = errorHandler
+                ?? throw new ArgumentNullException(nameof(errorHandler));
+        }
+
+        public Task InvokeAsync(IQueryContext context)
+        {
+            if (context.Document is null)
+            {
+                context.Result = QueryResult.CreateError(
+                    _errorHandler.Handle(ErrorBuilder.New()
+                        .SetMessage("CachedQueryNotFound")
+                        .SetCode(ErrorCodes.Execution.CachedQueryNotFound)
+                        .Build()));
+                return Task.CompletedTask;
+            }
+            else
+            {
+                return _next.Invoke(context);
+            }
         }
     }
 }
-

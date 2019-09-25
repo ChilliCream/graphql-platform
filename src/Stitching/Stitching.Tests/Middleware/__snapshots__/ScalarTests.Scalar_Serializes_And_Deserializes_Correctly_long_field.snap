@@ -1,0 +1,10 @@
+﻿{
+  "Data": {
+    "contract": {
+      "long_field": 123
+    }
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}

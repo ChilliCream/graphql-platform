@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using ChilliCream.Testing;
+using HotChocolate.Configuration;
 using HotChocolate.Types;
 using Snapshooter.Xunit;
 using Xunit;
@@ -106,6 +107,37 @@ namespace HotChocolate.Execution
                     }
                 });
             });
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(query);
+
+            // assert
+            Assert.Empty(result.Errors);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task FieldMiddlewareHasAnEffectOnIntrospectIfSwitchedOn()
+        {
+            // arrange
+            string query = "{ __typename a }";
+
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>()
+                .Use(next => async context =>
+                {
+                    await next.Invoke(context);
+
+                    if (context.Result is string s)
+                    {
+                        context.Result = s.ToUpperInvariant();
+                    }
+                })
+                .ModifyOptions(o =>
+                    o.FieldMiddleware = FieldMiddlewareApplication.AllFields)
+                .Create();
 
             IQueryExecutor executor = schema.MakeExecutable();
 

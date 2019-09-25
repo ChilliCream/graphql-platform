@@ -148,7 +148,7 @@ namespace HotChocolate.Utilities
             return false;
         }
 
-        internal static string GetTypeName(this Type type)
+        public static string GetTypeName(this Type type)
         {
             if (type == null)
             {

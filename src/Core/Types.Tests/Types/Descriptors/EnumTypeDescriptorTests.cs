@@ -84,7 +84,7 @@ namespace HotChocolate.Types
             // act
             IEnumTypeDescriptor desc = descriptor;
             desc.Item(FooEnum.Bar1).Name("FOOBAR");
-            desc.BindItems(BindingBehavior.Explicit);
+            desc.BindValues(BindingBehavior.Explicit);
 
             // assert
             EnumTypeDefinition description = descriptor.CreateDefinition();

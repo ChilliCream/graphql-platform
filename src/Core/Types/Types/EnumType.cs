@@ -150,9 +150,9 @@ namespace HotChocolate.Types
                 TypeResourceHelper.Scalar_Cannot_Serialize(Name));
         }
 
-        public object Deserialize(object value)
+        public object Deserialize(object serialized)
         {
-            if (TryDeserialize(value, out object v))
+            if (TryDeserialize(serialized, out object v))
             {
                 return v;
             }
@@ -225,7 +225,7 @@ namespace HotChocolate.Types
                 context.ReportError(
                     SchemaErrorBuilder.New()
                         .SetMessage(TypeResources.EnumType_NoValues, Name)
-                        .SetCode(TypeErrorCodes.NoEnumValues)
+                        .SetCode(ErrorCodes.Schema.NoEnumValues)
                         .SetTypeSystemObject(this)
                         .AddSyntaxNode(SyntaxNode)
                         .Build());

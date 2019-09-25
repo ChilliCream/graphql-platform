@@ -42,6 +42,6 @@ namespace HotChocolate.Execution
         /// Gets the variable values for this operation.
         /// </summary>
         /// <value></value>
-        IVariableCollection Variables { get; }
+        IVariableValueCollection Variables { get; }
     }
 }

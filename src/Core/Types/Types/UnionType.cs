@@ -98,7 +98,7 @@ namespace HotChocolate.Types
             {
                 context.ReportError(SchemaErrorBuilder.New()
                     .SetMessage(TypeResources.UnionType_MustHaveTypes)
-                    .SetCode(TypeErrorCodes.MissingType)
+                    .SetCode(ErrorCodes.Schema.MissingType)
                     .SetTypeSystemObject(this)
                     .AddSyntaxNode(SyntaxNode)
                     .Build());
@@ -120,7 +120,7 @@ namespace HotChocolate.Types
                 {
                     context.ReportError(SchemaErrorBuilder.New()
                         .SetMessage(TypeResources.UnionType_UnableToResolveType)
-                        .SetCode(TypeErrorCodes.MissingType)
+                        .SetCode(ErrorCodes.Schema.MissingType)
                         .SetTypeSystemObject(this)
                         .SetExtension(_typeReference, typeReference)
                         .AddSyntaxNode(SyntaxNode)

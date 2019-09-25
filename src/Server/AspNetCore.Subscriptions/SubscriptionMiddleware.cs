@@ -28,7 +28,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
         public async Task InvokeAsync(HttpContext context)
         {
             if (context.WebSockets.IsWebSocketRequest
-                && IsValidPath(context, _options.SubscriptionPath))
+                && IsValidPath(context, _options.Path))
             {
                 await WebSocketSession
                     .New(context, _messagePipeline)

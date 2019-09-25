@@ -81,10 +81,12 @@ namespace HotChocolate.Utilities
 
                 foreach (InputField field in type.Fields)
                 {
-                    object fieldValue = field.GetValue(obj);
-                    Action<IValueNode> setField = value =>
-                        fields.Add(new ObjectFieldNode(field.Name, value));
-                    VisitValue(field.Type, fieldValue, setField, processed);
+                    if(field.TryGetValue(obj, out object fieldValue))
+                    {
+                        Action<IValueNode> setField = value =>
+                            fields.Add(new ObjectFieldNode(field.Name, value));
+                        VisitValue(field.Type, fieldValue, setField, processed);
+                    }
                 }
 
                 setValue(new ObjectValueNode(fields));

@@ -60,6 +60,16 @@ namespace HotChocolate.Types
             BindingBehavior behavior);
 
         /// <summary>
+        /// Defines that all arguments have to be specified explicitly.
+        /// </summary>
+        IDirectiveTypeDescriptor<T> BindArgumentsExplicitly();
+
+        /// <summary>
+        /// The directive type will add arguments for all compatible properties.
+        /// </summary>
+        IDirectiveTypeDescriptor<T> BindArgumentsImplicitly();
+
+        /// <summary>
         /// Specifies a directive argument.
         /// </summary>
         /// <param name="property">

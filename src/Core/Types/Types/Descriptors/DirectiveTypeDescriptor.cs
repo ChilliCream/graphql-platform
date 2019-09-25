@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -87,11 +86,11 @@ namespace HotChocolate.Types.Descriptors
             return this;
         }
 
-        public IDirectiveArgumentDescriptor Argument(NameString value)
+        public IDirectiveArgumentDescriptor Argument(NameString name)
         {
             var descriptor = new DirectiveArgumentDescriptor(
                 Context,
-                value.EnsureNotEmpty(nameof(value)));
+                name.EnsureNotEmpty(nameof(name)));
             Arguments.Add(descriptor);
             return descriptor;
         }

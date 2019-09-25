@@ -17,8 +17,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             DocumentNode merged = rewriter.AddExtensions(
-                Parser.Default.Parse(schema),
-                Parser.Default.Parse(extensions));
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
 
             // assert
             SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
@@ -35,8 +35,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             DocumentNode merged = rewriter.AddExtensions(
-                Parser.Default.Parse(schema),
-                Parser.Default.Parse(extensions));
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
 
             // assert
             SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
@@ -53,8 +53,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             DocumentNode merged = rewriter.AddExtensions(
-                Parser.Default.Parse(schema),
-                Parser.Default.Parse(extensions));
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
 
             // assert
             SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
@@ -71,8 +71,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             DocumentNode merged = rewriter.AddExtensions(
-                Parser.Default.Parse(schema),
-                Parser.Default.Parse(extensions));
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
 
             // assert
             SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
@@ -89,8 +89,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             DocumentNode merged = rewriter.AddExtensions(
-                Parser.Default.Parse(schema),
-                Parser.Default.Parse(extensions));
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
 
             // assert
             SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
@@ -107,8 +107,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             Action action = () => rewriter.AddExtensions(
-                  Parser.Default.Parse(schema),
-                  Parser.Default.Parse(extensions));
+                  Utf8GraphQLParser.Parse(schema),
+                  Utf8GraphQLParser.Parse(extensions));
 
             // assert
             Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -124,8 +124,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             Action action = () => rewriter.AddExtensions(
-                  Parser.Default.Parse(schema),
-                  Parser.Default.Parse(extensions));
+                  Utf8GraphQLParser.Parse(schema),
+                  Utf8GraphQLParser.Parse(extensions));
 
             // assert
             Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -141,8 +141,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             DocumentNode merged = rewriter.AddExtensions(
-                Parser.Default.Parse(schema),
-                Parser.Default.Parse(extensions));
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
 
             // assert
             SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
@@ -159,8 +159,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             DocumentNode merged = rewriter.AddExtensions(
-                Parser.Default.Parse(schema),
-                Parser.Default.Parse(extensions));
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
 
             // assert
             SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
@@ -177,8 +177,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             DocumentNode merged = rewriter.AddExtensions(
-                Parser.Default.Parse(schema),
-                Parser.Default.Parse(extensions));
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
 
             // assert
             SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
@@ -195,8 +195,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             Action action = () => rewriter.AddExtensions(
-                  Parser.Default.Parse(schema),
-                  Parser.Default.Parse(extensions));
+                  Utf8GraphQLParser.Parse(schema),
+                  Utf8GraphQLParser.Parse(extensions));
 
             // assert
             Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -212,8 +212,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             Action action = () => rewriter.AddExtensions(
-                  Parser.Default.Parse(schema),
-                  Parser.Default.Parse(extensions));
+                  Utf8GraphQLParser.Parse(schema),
+                  Utf8GraphQLParser.Parse(extensions));
 
             // assert
             Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -232,8 +232,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             DocumentNode merged = rewriter.AddExtensions(
-                Parser.Default.Parse(schema),
-                Parser.Default.Parse(extensions));
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
 
             // assert
             SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
@@ -252,8 +252,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             DocumentNode merged = rewriter.AddExtensions(
-                Parser.Default.Parse(schema),
-                Parser.Default.Parse(extensions));
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
 
             // assert
             SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
@@ -272,8 +272,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             Action action = () => rewriter.AddExtensions(
-                  Parser.Default.Parse(schema),
-                  Parser.Default.Parse(extensions));
+                  Utf8GraphQLParser.Parse(schema),
+                  Utf8GraphQLParser.Parse(extensions));
 
             // assert
             Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -291,8 +291,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             Action action = () => rewriter.AddExtensions(
-                  Parser.Default.Parse(schema),
-                  Parser.Default.Parse(extensions));
+                  Utf8GraphQLParser.Parse(schema),
+                  Utf8GraphQLParser.Parse(extensions));
 
             // assert
             Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -308,8 +308,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             DocumentNode merged = rewriter.AddExtensions(
-                Parser.Default.Parse(schema),
-                Parser.Default.Parse(extensions));
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
 
             // assert
             SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
@@ -326,8 +326,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             DocumentNode merged = rewriter.AddExtensions(
-                Parser.Default.Parse(schema),
-                Parser.Default.Parse(extensions));
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
 
             // assert
             SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
@@ -344,8 +344,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             DocumentNode merged = rewriter.AddExtensions(
-                Parser.Default.Parse(schema),
-                Parser.Default.Parse(extensions));
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
 
             // assert
             SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
@@ -362,8 +362,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             Action action = () => rewriter.AddExtensions(
-                  Parser.Default.Parse(schema),
-                  Parser.Default.Parse(extensions));
+                  Utf8GraphQLParser.Parse(schema),
+                  Utf8GraphQLParser.Parse(extensions));
 
             // assert
             Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -379,8 +379,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             Action action = () => rewriter.AddExtensions(
-                  Parser.Default.Parse(schema),
-                  Parser.Default.Parse(extensions));
+                  Utf8GraphQLParser.Parse(schema),
+                  Utf8GraphQLParser.Parse(extensions));
 
             // assert
             Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -396,8 +396,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             DocumentNode merged = rewriter.AddExtensions(
-                Parser.Default.Parse(schema),
-                Parser.Default.Parse(extensions));
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
 
             // assert
             SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
@@ -414,8 +414,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             DocumentNode merged = rewriter.AddExtensions(
-                Parser.Default.Parse(schema),
-                Parser.Default.Parse(extensions));
+                Utf8GraphQLParser.Parse(schema),
+                Utf8GraphQLParser.Parse(extensions));
 
             // assert
             SchemaSyntaxSerializer.Serialize(merged).MatchSnapshot();
@@ -432,8 +432,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             Action action = () => rewriter.AddExtensions(
-                  Parser.Default.Parse(schema),
-                  Parser.Default.Parse(extensions));
+                  Utf8GraphQLParser.Parse(schema),
+                  Utf8GraphQLParser.Parse(extensions));
 
             // assert
             Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -450,8 +450,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             Action action = () => rewriter.AddExtensions(
-                  Parser.Default.Parse(schema),
-                  Parser.Default.Parse(extensions));
+                  Utf8GraphQLParser.Parse(schema),
+                  Utf8GraphQLParser.Parse(extensions));
 
             // assert
             Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();
@@ -467,8 +467,8 @@ namespace HotChocolate.Stitching.Merge
             // act
             var rewriter = new AddSchemaExtensionRewriter();
             Action action = () => rewriter.AddExtensions(
-                  Parser.Default.Parse(schema),
-                  Parser.Default.Parse(extensions));
+                  Utf8GraphQLParser.Parse(schema),
+                  Utf8GraphQLParser.Parse(extensions));
 
             // assert
             Assert.Throws<SchemaMergeException>(action).Message.MatchSnapshot();

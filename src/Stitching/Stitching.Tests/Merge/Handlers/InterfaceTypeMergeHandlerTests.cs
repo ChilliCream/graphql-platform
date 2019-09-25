@@ -13,9 +13,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("interface A { b: String }");
+                Utf8GraphQLParser.Parse("interface A { b: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse("interface A { b: String }");
+                Utf8GraphQLParser.Parse("interface A { b: String }");
 
             var types = new List<ITypeInfo>
             {
@@ -43,11 +43,11 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("interface A { b: String }");
+                Utf8GraphQLParser.Parse("interface A { b: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse("interface A { b(a: String): String }");
+                Utf8GraphQLParser.Parse("interface A { b(a: String): String }");
             DocumentNode schema_c =
-                Parser.Default.Parse("interface A { b: String }");
+                Utf8GraphQLParser.Parse("interface A { b: String }");
 
             var types = new List<ITypeInfo>
             {
@@ -78,9 +78,9 @@ namespace HotChocolate.Stitching.Merge.Handlers
         {
             // arrange
             DocumentNode schema_a =
-                Parser.Default.Parse("interface A { b: String }");
+                Utf8GraphQLParser.Parse("interface A { b: String }");
             DocumentNode schema_b =
-                Parser.Default.Parse("enum A { B C }");
+                Utf8GraphQLParser.Parse("enum A { B C }");
 
             var types = new List<ITypeInfo>
             {

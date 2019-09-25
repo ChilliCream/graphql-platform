@@ -19,7 +19,7 @@ namespace HotChocolate.Execution
         public void MergeFieldsWithFragmentSpreads()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 FileResource.Open("MergeQuery.graphql"));
 
             OperationDefinitionNode operation =
@@ -31,7 +31,7 @@ namespace HotChocolate.Execution
 
             var fragments = new FragmentCollection(schema, query);
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
 
@@ -39,7 +39,8 @@ namespace HotChocolate.Execution
             var collector = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default);
+                TypeConversion.Default,
+                Array.Empty<IArgumentCoercionHandler>());
 
             IReadOnlyCollection<FieldSelection> selections =
                 collector.CollectFields(schema.QueryType,
@@ -69,7 +70,7 @@ namespace HotChocolate.Execution
         public void MergeMerged()
         {
             // arrange
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 FileResource.Open("MergeQuery.graphql"));
 
             OperationDefinitionNode operation =
@@ -81,14 +82,15 @@ namespace HotChocolate.Execution
 
             var fragments = new FragmentCollection(schema, query);
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
 
             var collector = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default);
+                TypeConversion.Default,
+                Array.Empty<IArgumentCoercionHandler>());
 
             IReadOnlyCollection<FieldSelection> selections =
                 collector.CollectFields(schema.QueryType,
@@ -121,14 +123,15 @@ namespace HotChocolate.Execution
                 schema,
                 document);
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
 
             var collector = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default);
+                TypeConversion.Default,
+                Array.Empty<IArgumentCoercionHandler>());
 
             IReadOnlyCollection<FieldSelection> selections =
                 collector.CollectFields(schema.QueryType,
@@ -158,14 +161,15 @@ namespace HotChocolate.Execution
                 schema,
                 document);
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
 
             var collector = new FieldCollector(
                 fragments,
                 (f, s) => null,
-                TypeConversion.Default);
+                TypeConversion.Default,
+                Array.Empty<IArgumentCoercionHandler>());
 
             IReadOnlyCollection<FieldSelection> selections =
                 collector.CollectFields(schema.QueryType,
@@ -195,12 +199,15 @@ namespace HotChocolate.Execution
                 schema,
                 document);
 
-            var variables = new VariableCollection(
+            var variables = new VariableValueCollection(
                 TypeConversion.Default,
                 new Dictionary<string, object>());
 
             var collector = new FieldCollector(
-                fragments, (f, s) => null, TypeConversion.Default);
+                fragments,
+                (f, s) => null,
+                TypeConversion.Default,
+                Array.Empty<IArgumentCoercionHandler>());
             IReadOnlyCollection<FieldSelection> selections =
                 collector.CollectFields(schema.QueryType,
                     operation.SelectionSet, null);
@@ -223,7 +230,7 @@ namespace HotChocolate.Execution
 
         private static FieldNode CreateField(string field)
         {
-            return Parser.Default.Parse($"{{ {field} }}").Definitions
+            return Utf8GraphQLParser.Parse($"{{ {field} }}").Definitions
                 .OfType<OperationDefinitionNode>()
                 .SelectMany(t => t.SelectionSet.Selections)
                 .OfType<FieldNode>()

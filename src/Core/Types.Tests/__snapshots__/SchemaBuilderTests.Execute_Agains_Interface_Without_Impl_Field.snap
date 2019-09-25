@@ -1,0 +1,19 @@
+﻿{
+  "errors": [
+    {
+      "message": "Could not resolve the actual object type from `System.String` for the abstract type `Bar`.",
+      "locations": [
+        {
+          "line": 1,
+          "column": 3
+        }
+      ],
+      "path": [
+        "foo"
+      ]
+    }
+  ],
+  "data": {
+    "foo": null
+  }
+}

@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 
@@ -6,6 +7,8 @@ namespace HotChocolate.Execution
 {
     internal interface ICompleteValueContext
     {
+        IReadOnlyDictionary<string, object> LocalContextData { get; }
+
         ITypeConversion Converter { get; }
 
         Path Path { get; set; }
@@ -17,6 +20,8 @@ namespace HotChocolate.Execution
         bool IsViolatingNonNullType { get; set; }
 
         Action SetElementNull { get; set; }
+
+        ObjectType ResolveObjectType(NameString typeName);
 
         ObjectType ResolveObjectType(IType type, object resolverResult);
 

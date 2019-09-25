@@ -1,40 +1,10 @@
-﻿using System;
-using HotChocolate.Language;
-
-namespace HotChocolate.Types
+﻿namespace HotChocolate.Types
 {
     // this is just a marker type for the fluent code-first api.
     public sealed class NonNullType<T>
-        : IOutputType
-        , IInputType
+        : FluentWrapperType
         where T : IType
     {
-        private NonNullType()
-        {
-        }
-
-        public Type ClrType => throw new NotSupportedException();
-
-        public TypeKind Kind => throw new NotSupportedException();
-
-        public bool IsInstanceOfType(IValueNode literal)
-        {
-            throw new NotSupportedException();
-        }
-
-        public bool IsInstanceOfType(object value)
-        {
-            throw new NotSupportedException();
-        }
-
-        public object ParseLiteral(IValueNode literal)
-        {
-            throw new NotSupportedException();
-        }
-
-        public IValueNode ParseValue(object value)
-        {
-            throw new NotSupportedException();
-        }
+        private NonNullType() { }
     }
 }

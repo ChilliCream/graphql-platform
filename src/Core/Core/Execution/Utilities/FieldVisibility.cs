@@ -20,7 +20,7 @@ namespace HotChocolate.Execution
 
         public FieldVisibility Parent { get; }
 
-        public bool IsVisible(IVariableCollection variables)
+        public bool IsVisible(IVariableValueCollection variables)
         {
             if (Parent != null && !Parent.IsVisible(variables))
             {
@@ -35,7 +35,7 @@ namespace HotChocolate.Execution
         }
 
         private static bool IsTrue(
-            IVariableCollection variables,
+            IVariableValueCollection variables,
             IValueNode value)
         {
             if (value is BooleanValueNode b)

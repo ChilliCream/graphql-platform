@@ -39,7 +39,7 @@ namespace HotChocolate.Execution
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
             options.SetupGet(t => t.UseComplexityMultipliers).Returns(true);
 
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 "{ foo(i:" + count + ") }");
 
             OperationDefinitionNode operationNode = query.Definitions
@@ -124,7 +124,7 @@ namespace HotChocolate.Execution
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
             options.SetupGet(t => t.UseComplexityMultipliers).Returns(true);
 
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 "query f($i: Int) { foo(i: $i) }");
 
             OperationDefinitionNode operationNode = query.Definitions
@@ -216,7 +216,7 @@ namespace HotChocolate.Execution
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
             options.SetupGet(t => t.UseComplexityMultipliers).Returns(true);
 
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 "{ foo(i: { index:" + count + " }) }");
 
             OperationDefinitionNode operationNode = query.Definitions
@@ -305,7 +305,7 @@ namespace HotChocolate.Execution
             options.SetupGet(t => t.MaxOperationComplexity).Returns(20);
             options.SetupGet(t => t.UseComplexityMultipliers).Returns(true);
 
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 "query f($i:Int) { foo(i: { index:$i }) }");
 
             OperationDefinitionNode operationNode = query.Definitions

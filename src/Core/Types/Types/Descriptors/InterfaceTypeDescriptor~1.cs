@@ -16,6 +16,8 @@ namespace HotChocolate.Types.Descriptors
         protected internal InterfaceTypeDescriptor(IDescriptorContext context)
             : base(context, typeof(T))
         {
+            Definition.Fields.BindingBehavior =
+                context.Options.DefaultBindingBehavior;
         }
 
         Type IHasClrType.ClrType => Definition.ClrType;
@@ -39,9 +41,9 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public new IInterfaceTypeDescriptor<T> SyntaxNode(
-            InterfaceTypeDefinitionNode interfaceTypeDefinitionNode)
+            InterfaceTypeDefinitionNode interfaceTypeDefinition)
         {
-            base.SyntaxNode(interfaceTypeDefinitionNode);
+            base.SyntaxNode(interfaceTypeDefinition);
             return this;
         }
 
@@ -58,11 +60,17 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public IInterfaceTypeDescriptor<T> BindFields(
-            BindingBehavior bindingBehavior)
+            BindingBehavior behavior)
         {
-            Definition.Fields.BindingBehavior = bindingBehavior;
+            Definition.Fields.BindingBehavior = behavior;
             return this;
         }
+
+        public IInterfaceTypeDescriptor<T> BindFieldsExplicitly() =>
+            BindFields(BindingBehavior.Explicit);
+
+        public IInterfaceTypeDescriptor<T> BindFieldsImplicitly() =>
+            BindFields(BindingBehavior.Implicit);
 
         public IInterfaceFieldDescriptor Field(
             Expression<Func<T, object>> propertyOrMethod)
@@ -87,17 +95,17 @@ namespace HotChocolate.Types.Descriptors
         }
 
         public new IInterfaceTypeDescriptor<T> ResolveAbstractType(
-            ResolveAbstractType resolveAbstractType)
+            ResolveAbstractType typeResolver)
         {
-            base.ResolveAbstractType(resolveAbstractType);
+            base.ResolveAbstractType(typeResolver);
             return this;
         }
 
         public new IInterfaceTypeDescriptor<T> Directive<TDirective>(
-            TDirective directive)
+            TDirective directiveInstance)
             where TDirective : class
         {
-            base.Directive(directive);
+            base.Directive(directiveInstance);
             return this;
         }
 

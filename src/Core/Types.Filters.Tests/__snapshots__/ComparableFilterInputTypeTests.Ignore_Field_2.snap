@@ -1,0 +1,104 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input FooFilter {
+  AND: [FooFilter!]
+  barDecimal: Decimal
+  barDecimal_gt: Decimal
+  barDecimal_gte: Decimal
+  barDecimal_in: [Decimal!]
+  barDecimal_lt: Decimal
+  barDecimal_lte: Decimal
+  barDecimal_not: Decimal
+  barDecimal_not_gt: Decimal
+  barDecimal_not_gte: Decimal
+  barDecimal_not_in: [Decimal!]
+  barDecimal_not_lt: Decimal
+  barDecimal_not_lte: Decimal
+  barDouble: Float
+  barDouble_gt: Float
+  barDouble_gte: Float
+  barDouble_in: [Float!]
+  barDouble_lt: Float
+  barDouble_lte: Float
+  barDouble_not: Float
+  barDouble_not_gt: Float
+  barDouble_not_gte: Float
+  barDouble_not_in: [Float!]
+  barDouble_not_lt: Float
+  barDouble_not_lte: Float
+  barFloat: Float
+  barFloat_gt: Float
+  barFloat_gte: Float
+  barFloat_in: [Float!]
+  barFloat_lt: Float
+  barFloat_lte: Float
+  barFloat_not: Float
+  barFloat_not_gt: Float
+  barFloat_not_gte: Float
+  barFloat_not_in: [Float!]
+  barFloat_not_lt: Float
+  barFloat_not_lte: Float
+  barInt: Int
+  barInt_gt: Int
+  barInt_gte: Int
+  barInt_in: [Int!]
+  barInt_lt: Int
+  barInt_lte: Int
+  barInt_not: Int
+  barInt_not_gt: Int
+  barInt_not_gte: Int
+  barInt_not_in: [Int!]
+  barInt_not_lt: Int
+  barInt_not_lte: Int
+  barLong: Long
+  barLong_gt: Long
+  barLong_gte: Long
+  barLong_in: [Long!]
+  barLong_lt: Long
+  barLong_lte: Long
+  barLong_not: Long
+  barLong_not_gt: Long
+  barLong_not_gte: Long
+  barLong_not_in: [Long!]
+  barLong_not_lt: Long
+  barLong_not_lte: Long
+  fooBar: FooBar
+  fooBar_gt: FooBar
+  fooBar_gte: FooBar
+  fooBar_in: [FooBar!]
+  fooBar_lt: FooBar
+  fooBar_lte: FooBar
+  fooBar_not: FooBar
+  fooBar_not_gt: FooBar
+  fooBar_not_gte: FooBar
+  fooBar_not_in: [FooBar!]
+  fooBar_not_lt: FooBar
+  fooBar_not_lte: FooBar
+  OR: [FooFilter!]
+}
+
+enum FooBar {
+  FOO
+  BAR
+}
+
+"The built-in `Decimal` scalar type."
+scalar Decimal
+
+"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
+scalar Float
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String

@@ -22,7 +22,7 @@ namespace HotChocolate.Types
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ node(id: \"RW50aXR5LXhmb28=\")  " +
+                "{ node(id: \"RW50aXR5CmRmb28=\")  " +
                 "{ ... on Entity { id name } } }");
 
             // assert
@@ -49,7 +49,7 @@ namespace HotChocolate.Types
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ node(id: \"RW50aXR5LXhmb28=\")  " +
+                "{ node(id: \"RW50aXR5CmRmb28=\")  " +
                 "{ ... on Entity { id name } } }");
 
             // assert
@@ -76,7 +76,7 @@ namespace HotChocolate.Types
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ node(id: \"RW50aXR5LXhmb28=\")  " +
+                "{ node(id: \"RW50aXR5CmRmb28=\")  " +
                 "{ ... on Entity { id name } } }");
 
             // assert
@@ -116,7 +116,7 @@ namespace HotChocolate.Types
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ node(id: \"RW50aXR5LXhmb28=\")  " +
+                "{ node(id: \"RW50aXR5CmRmb28=\")  " +
                 "{ ... on Entity { id name } } }");
 
             // assert
@@ -156,7 +156,7 @@ namespace HotChocolate.Types
 
             // act
             IExecutionResult result = await executor.ExecuteAsync(
-                "{ node(id: \"RW50aXR5LXhmb28=\")  " +
+                "{ node(id: \"RW50aXR5CmRmb28=\")  " +
                 "{ ... on Entity { id name } } }");
 
             // assert

@@ -11,7 +11,6 @@ namespace HotChocolate
         /// Creates an error from an unexpected exception.
         /// </summary>
         /// <param name="exception"></param>
-        /// <param name="configure"></param>
         /// <returns></returns>
         IErrorBuilder CreateUnexpectedError(Exception exception);
     }

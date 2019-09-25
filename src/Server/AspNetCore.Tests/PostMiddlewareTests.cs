@@ -2,8 +2,13 @@ using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Tests.Utilities;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using HotChocolate;
+using HotChocolate.Types;
+using HotChocolate.AspNetCore.Tests.Utilities;
+using HotChocolate.Language;
 using Snapshooter;
 using Snapshooter.Xunit;
 using Xunit;
@@ -37,11 +42,64 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
             result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpPost_Query_Syntax_Exception()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var request = new ClientQueryRequest
+            {
+                Query =
+                @"
+                    {
+                        ähero {
+                            name
+                        }
+                    }
+                "
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request);
+
+            // assert
+            ClientQueryResult result = await DeserializeAsync(message);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpPost_Check_Response_ContentType()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var request = new ClientQueryRequest
+            {
+                Query =
+                @"
+                    {
+                        hero {
+                            name
+                        }
+                    }
+                "
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request);
+
+            // assert
+            Assert.Collection(
+                message.Content.Headers.GetValues("Content-Type"),
+                t => Assert.Equal("application/json", t));
         }
 
         [Fact]
@@ -67,7 +125,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -97,7 +155,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -123,7 +181,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -149,7 +207,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request, "foo");
+                await server.SendPostRequestAsync(request, "foo");
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -175,7 +233,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request, "bar");
+                await server.SendPostRequestAsync(request, "bar");
 
             // assert
             Assert.Equal(HttpStatusCode.NotFound, message.StatusCode);
@@ -200,7 +258,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -240,7 +298,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -279,7 +337,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -318,7 +376,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -358,7 +416,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -394,7 +452,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -415,12 +473,79 @@ namespace HotChocolate.AspNetCore
                             name
                         }
                     }
-                ",
+                ".Replace("\n", string.Empty).Replace("\r", string.Empty),
+            };
+
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request);
+
+            // act
+            request = new ClientQueryRequest
+            {
+                NamedQuery = "W5vrrAIypCbniaIYeroNnw=="
+            };
+
+            message = await server.SendPostRequestAsync(request);
+
+            // assert
+            ClientQueryResult result = await DeserializeAsync(message);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpPost_Json_CachedQuery_2()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var request = new ClientQueryRequest
+            {
+                Query =
+                @"
+                    query a {
+                        hero {
+                            name
+                        }
+                    }
+                ".Replace("\n", string.Empty).Replace("\r", string.Empty),
+                NamedQuery = "W5vrrAIypCbniaIYeroNnw=="
+            };
+
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request);
+
+            // act
+            request = new ClientQueryRequest
+            {
+                NamedQuery = "W5vrrAIypCbniaIYeroNnw=="
+            };
+
+            message = await server.SendPostRequestAsync(request);
+
+            // assert
+            ClientQueryResult result = await DeserializeAsync(message);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpPost_Json_CachedQuery_NotFound()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var request = new ClientQueryRequest
+            {
+                Query =
+                @"
+                    query a {
+                        hero {
+                            name
+                        }
+                    }
+                ".Replace("\n", string.Empty).Replace("\r", string.Empty),
                 NamedQuery = "abc"
             };
 
             HttpResponseMessage message =
-                await server.SendRequestAsync(request);
+                await server.SendPostRequestAsync(request);
 
             // act
             request = new ClientQueryRequest
@@ -428,7 +553,7 @@ namespace HotChocolate.AspNetCore
                 NamedQuery = "abc"
             };
 
-            message = await server.SendRequestAsync(request);
+            message = await server.SendPostRequestAsync(request);
 
             // assert
             ClientQueryResult result = await DeserializeAsync(message);
@@ -513,7 +638,7 @@ namespace HotChocolate.AspNetCore
 
             // act
             HttpResponseMessage message =
-                await server.SendRequestAsync(request, requestPath);
+                await server.SendPostRequestAsync(request, requestPath);
 
             // assert
             Assert.Equal(httpStatus, message.StatusCode);
@@ -524,6 +649,216 @@ namespace HotChocolate.AspNetCore
                 result.MatchSnapshot(new SnapshotNameExtension(
                     path?.Replace("/", "_Slash_"),
                     requestPath?.Replace("/", "_Slash_")));
+            }
+        }
+
+        [Fact]
+        public async Task HttpPost_Batch()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var batch = new List<ClientQueryRequest>
+            {
+                new ClientQueryRequest
+                {
+                    Query =
+                    @"
+                    query getHero {
+                        hero(episode: EMPIRE) {
+                            id @export
+                        }
+                    }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                    @"
+                    query getHuman {
+                        human(id: $id) {
+                            name
+                        }
+                    }"
+                }
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(batch);
+
+            // assert
+            List<ClientQueryResult> result =
+                 await DeserializeBatchAsync(message);
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpPost_Batch_ContentType()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var batch = new List<ClientQueryRequest>
+            {
+                new ClientQueryRequest
+                {
+                    Query =
+                    @"
+                    query getHero {
+                        hero(episode: EMPIRE) {
+                            id @export
+                        }
+                    }"
+                },
+                new ClientQueryRequest
+                {
+                    Query =
+                    @"
+                    query getHuman {
+                        human(id: $id) {
+                            name
+                        }
+                    }"
+                }
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(batch);
+
+            // assert
+            Assert.Collection(
+                message.Content.Headers.GetValues("Content-Type"),
+                    t => Assert.Equal("application/json", t));
+        }
+
+        [Fact]
+        public async Task HttpPost_Operation_Batch()
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var batch = new List<ClientQueryRequest>
+            {
+                new ClientQueryRequest
+                {
+                    Query =
+                    @"
+                    query getHero {
+                        hero(episode: EMPIRE) {
+                            id @export
+                        }
+                    }
+
+                    query getHuman {
+                        human(id: $id) {
+                            name
+                        }
+                    }"
+                }
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(
+                    batch,
+                    "?batchOperations=[getHero, getHuman]");
+
+            // assert
+            List<ClientQueryResult> result =
+                 await DeserializeBatchAsync(message);
+            result.MatchSnapshot();
+        }
+
+
+        [InlineData("?batchOperations=getHero")]
+        [InlineData("?batchOperations=[getHero")]
+        [Theory]
+        public async Task HttpPost_Operation_Batch_Invalid_Argument(string path)
+        {
+            // arrange
+            TestServer server = CreateStarWarsServer();
+            var batch = new List<ClientQueryRequest>
+            {
+                new ClientQueryRequest
+                {
+                    Query =
+                    @"
+                    query getHero {
+                        hero(episode: EMPIRE) {
+                            id @export
+                        }
+                    }
+
+                    query getHuman {
+                        human(id: $id) {
+                            name
+                        }
+                    }"
+                }
+            };
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(
+                    batch,
+                    path);
+
+            // assert
+            Assert.Equal(HttpStatusCode.OK, message.StatusCode);
+            byte[] json = await message.Content.ReadAsByteArrayAsync();
+            Utf8GraphQLRequestParser.ParseJson(json).MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task HttpPost_Ensure_Scoped_Services_Work()
+        {
+            // arrange
+            TestServer server = ServerFactory.Create(
+                services =>
+                {
+                    services.AddScoped<ScopedService>();
+                    services.AddGraphQL(SchemaBuilder.New()
+                        .AddQueryType(c => c
+                            .Name("Query")
+                            .Field("foo")
+                            .Resolver(ctx =>
+                            {
+                                ScopedService service = ctx.Service<ScopedService>();
+                                service.Increase();
+                                return service.Count;
+                            })));
+                },
+                app => app
+                    .Use(next => ctx =>
+                    {
+                        ScopedService service = ctx.RequestServices.GetService<ScopedService>();
+                        service.Increase();
+                        return next(ctx);
+                    })
+                    .UseGraphQL());
+
+            var request =
+                @"
+                    {
+                        foo
+                    }
+                ";
+            var contentType = "application/graphql";
+
+            // act
+            HttpResponseMessage message =
+                await server.SendPostRequestAsync(request, contentType, null);
+
+            // assert
+            ClientQueryResult result = await DeserializeAsync(message);
+            result.MatchSnapshot();
+        }
+
+        public class ScopedService
+        {
+            public int Count { get; private set; }
+
+            public void Increase()
+            {
+                Count += 1;
             }
         }
     }

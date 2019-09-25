@@ -3,15 +3,19 @@ jobs:
   pull-request:
     working_directory: /work
     docker:
-      - image: chillicream/dotnet-build:3.0
+      - image: chillicream/dotnet-build:4.0
     steps:
       - checkout
       - run:
           name: Check that Templates Compile
-          command: dotnet cake -target=TemplatesCompile
+          command: |
+            export PATH="$PATH:/root/.dotnet/tools"
+            dotnet cake -target=TemplatesCompile
       - run:
           name: Pull Request Build
-          command: dotnet cake -target=CoreTests
+          command: |
+            export PATH="$PATH:/root/.dotnet/tools"
+            dotnet cake -target=CoreTests
       - store_test_results:
           path: /work/testoutput
       - store_artifacts:

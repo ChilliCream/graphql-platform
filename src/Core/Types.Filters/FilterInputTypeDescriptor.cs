@@ -32,6 +32,8 @@ namespace HotChocolate.Types.Filters
             // TODO : should we rework get type description?
             Definition.Description = context.Naming.GetTypeDescription(
                 entityType, TypeKind.Object);
+            Definition.Fields.BindingBehavior =
+                context.Options.DefaultBindingBehavior;
         }
 
         protected override FilterInputTypeDefinition Definition { get; } =
@@ -46,12 +48,19 @@ namespace HotChocolate.Types.Filters
             var fields = new Dictionary<NameString, FilterOperationDefintion>();
             var handledProperties = new HashSet<PropertyInfo>();
 
+            List<FilterFieldDefintion> explicitFields =
+                Fields.Select(t => t.CreateDefinition()).ToList();
+
             FieldDescriptorUtilities.AddExplicitFields(
-                Fields.Select(t => t.CreateDefinition())
-                        .SelectMany(t => t.Filters),
-                    f => f.Operation.Property,
-                    fields,
-                    handledProperties);
+                explicitFields.Where(t => !t.Ignore).SelectMany(t => t.Filters),
+                f => f.Operation.Property,
+                fields,
+                handledProperties);
+
+            foreach (var field in explicitFields.Where(t => t.Ignore))
+            {
+                handledProperties.Add(field.Property);
+            }
 
             OnCompleteFields(fields, handledProperties);
 
@@ -135,16 +144,16 @@ namespace HotChocolate.Types.Filters
             return this;
         }
 
-        public IFilterInputTypeDescriptor<T> BindExplicitly() =>
+        public IFilterInputTypeDescriptor<T> BindFieldsExplicitly() =>
             BindFields(BindingBehavior.Explicit);
 
-        public IFilterInputTypeDescriptor<T> BindImplicitly() =>
+        public IFilterInputTypeDescriptor<T> BindFieldsImplicitly() =>
             BindFields(BindingBehavior.Implicit);
 
         public IStringFilterFieldDescriptor Filter(
-            Expression<Func<T, string>> propertyOrMethod)
+            Expression<Func<T, string>> property)
         {
-            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+            if (property.ExtractMember() is PropertyInfo p)
             {
                 var field = new StringFilterFieldDescriptor(Context, p);
                 Fields.Add(field);
@@ -154,14 +163,14 @@ namespace HotChocolate.Types.Filters
             // TODO : resources
             throw new ArgumentException(
                 "Only properties are allowed for input types.",
-                nameof(propertyOrMethod));
+                nameof(property));
         }
 
 
         public IBooleanFilterFieldDescriptor Filter(
-            Expression<Func<T, bool>> propertyOrMethod)
+            Expression<Func<T, bool>> property)
         {
-            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+            if (property.ExtractMember() is PropertyInfo p)
             {
                 var field = new BooleanFilterFieldDescriptor(Context, p);
                 Fields.Add(field);
@@ -171,14 +180,14 @@ namespace HotChocolate.Types.Filters
             // TODO : resources
             throw new ArgumentException(
                 "Only properties are allowed for input types.",
-                nameof(propertyOrMethod));
+                nameof(property));
         }
 
 
         public IComparableFilterFieldDescriptor Filter(
-            Expression<Func<T, IComparable>> propertyOrMethod)
+            Expression<Func<T, IComparable>> property)
         {
-            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+            if (property.ExtractMember() is PropertyInfo p)
             {
                 var field = new ComparableFilterFieldDescriptor(Context, p);
                 Fields.Add(field);
@@ -188,7 +197,22 @@ namespace HotChocolate.Types.Filters
             // TODO : resources
             throw new ArgumentException(
                 "Only properties are allowed for input types.",
-                nameof(propertyOrMethod));
+                nameof(property));
+        }
+
+        public IFilterInputTypeDescriptor<T> Ignore(
+            Expression<Func<T, object>> property)
+        {
+            if (property.ExtractMember() is PropertyInfo p)
+            {
+                Fields.Add(new IgnoredFilterFieldDescriptor(Context, p));
+                return this;
+            }
+
+            // TODO : resources
+            throw new ArgumentException(
+                "Only properties are allowed for input types.",
+                nameof(property));
         }
 
         public IObjectFilterFieldDescriptor<TObject> Filter<TObject>(

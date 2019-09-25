@@ -19,6 +19,8 @@ namespace HotChocolate.Execution
 
         IReadOnlyDictionary<string, object> Properties { get; }
 
+        IReadOnlyDictionary<string, object> Extensions { get; }
+
         IServiceProvider Services { get; }
     }
 }

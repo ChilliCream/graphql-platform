@@ -21,6 +21,6 @@ namespace HotChocolate.Types.Descriptors.Definitions
         /// Gets the list of directives that are annotated to this field.
         /// </summary>
         public IList<DirectiveDefinition> Directives { get; } =
-            new List<DirectiveDefinition>();        
+            new List<DirectiveDefinition>();
     }
 }

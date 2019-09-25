@@ -1,4 +1,5 @@
-﻿using HotChocolate.Language;
+using System;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
@@ -28,6 +29,8 @@ namespace HotChocolate.Types
             where TInputType : class, IInputType;
 
         IDirectiveArgumentDescriptor Type(ITypeNode typeNode);
+
+        IDirectiveArgumentDescriptor Type(Type type);
 
         IDirectiveArgumentDescriptor DefaultValue(IValueNode value);
 

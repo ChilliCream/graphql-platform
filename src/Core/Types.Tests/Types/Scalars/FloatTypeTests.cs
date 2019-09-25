@@ -53,5 +53,94 @@ namespace HotChocolate.Types
             Assert.IsType<double>(result);
             Assert.Equal(123d, result);
         }
+
+        [Fact]
+        public void Deserialize_Int_To_Double()
+        {
+            // arrange
+            var type = new FloatType();
+            int serialized = 123;
+
+            // act
+            bool success = type.TryDeserialize(serialized, out object value);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal((double)123, Assert.IsType<double>(value));
+        }
+
+        [Fact]
+        public void Deserialize_NullableInt_To_Double()
+        {
+            // arrange
+            var type = new FloatType();
+            int? serialized = 123;
+
+            // act
+            bool success = type.TryDeserialize(serialized, out object value);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal((double)123, Assert.IsType<double>(value));
+        }
+
+        [Fact]
+        public void Deserialize_Decimal_To_Double()
+        {
+            // arrange
+            var type = new FloatType();
+            decimal serialized = 123;
+
+            // act
+            bool success = type.TryDeserialize(serialized, out object value);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal((double)123, Assert.IsType<double>(value));
+        }
+
+        [Fact]
+        public void Deserialize_NullableDecimal_To_Double()
+        {
+            // arrange
+            var type = new FloatType();
+            decimal? serialized = 123;
+
+            // act
+            bool success = type.TryDeserialize(serialized, out object value);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal((double)123, Assert.IsType<double>(value));
+        }
+
+        [Fact]
+        public void Deserialize_Double_To_Double()
+        {
+            // arrange
+            var type = new FloatType();
+            double serialized = 123;
+
+            // act
+            bool success = type.TryDeserialize(serialized, out object value);
+
+            // assert
+            Assert.True(success);
+            Assert.Equal((double)123, Assert.IsType<double>(value));
+        }
+
+        [Fact]
+        public void Deserialize_Null_To_Null()
+        {
+            // arrange
+            var type = new FloatType();
+
+            // act
+            bool success = type.TryDeserialize(null, out object value);
+
+            // assert
+            Assert.True(success);
+            Assert.Null(value);
+        }
     }
 }

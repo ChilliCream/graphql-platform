@@ -10,7 +10,7 @@ namespace HotChocolate.Execution
         public Operation(
             DocumentNode query,
             OperationDefinitionNode definition,
-            IVariableCollection variables,
+            IVariableValueCollection variables,
             ObjectType rootType,
             object rootValue)
         {
@@ -37,6 +37,6 @@ namespace HotChocolate.Execution
 
         public OperationType Type => Definition.Operation;
 
-        public IVariableCollection Variables { get; }
+        public IVariableValueCollection Variables { get; }
     }
 }

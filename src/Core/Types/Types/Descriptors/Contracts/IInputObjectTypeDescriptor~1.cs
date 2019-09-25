@@ -19,6 +19,17 @@ namespace HotChocolate.Types
         IInputObjectTypeDescriptor<T> BindFields(
             BindingBehavior behavior);
 
+        /// <summary>
+        /// Defines that all fields have to be specified explicitly.
+        /// </summary>
+        IInputObjectTypeDescriptor<T> BindFieldsExplicitly();
+
+        /// <summary>
+        /// Defines that all fields shall be infered
+        /// from the associated .Net type,
+        /// </summary>
+        IInputObjectTypeDescriptor<T> BindFieldsImplicitly();
+
         IInputFieldDescriptor Field(NameString name);
 
         IInputFieldDescriptor Field<TValue>(

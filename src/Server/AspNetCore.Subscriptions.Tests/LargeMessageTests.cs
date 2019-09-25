@@ -44,7 +44,7 @@ namespace HotChocolate.AspNetCore.Subscriptions
                 // assert
                 await webSocket.SendEmptyMessageAsync();
 
-                await testServer.SendRequestAsync(new ClientQueryRequest
+                await testServer.SendPostRequestAsync(new ClientQueryRequest
                 {
                     Query = @"
                     mutation {

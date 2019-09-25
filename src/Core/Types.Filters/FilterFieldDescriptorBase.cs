@@ -24,6 +24,8 @@ namespace HotChocolate.Types.Filters
             Definition.Description = context.Naming.GetMemberDescription(
                 property, MemberKind.InputObjectField);
             Definition.Type = context.Inspector.GetInputReturnType(property);
+            Definition.Filters.BindingBehavior =
+                context.Options.DefaultBindingBehavior;
         }
 
         protected override FilterFieldDefintion Definition { get; } =

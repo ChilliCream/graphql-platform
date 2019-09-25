@@ -17,7 +17,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment mergeIdenticalFields on Dog {
                     name
                     name
@@ -36,7 +36,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment mergeIdenticalAliasesAndFields on Dog {
                     otherName: name
                     otherName: name
@@ -55,7 +55,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment conflictingBecauseAlias on Dog {
                     name: nickname
                     name
@@ -78,7 +78,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment mergeIdenticalFieldsWithIdenticalArgs on Dog {
                     doesKnowCommand(dogCommand: SIT)
                     doesKnowCommand(dogCommand: SIT)
@@ -97,7 +97,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment mergeIdenticalFieldsWithIdenticalValues on Dog {
                     doesKnowCommand(dogCommand: $dogCommand)
                     doesKnowCommand(dogCommand: $dogCommand)
@@ -116,7 +116,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment conflictingArgsOnValues on Dog {
                     doesKnowCommand(dogCommand: SIT)
                     doesKnowCommand(dogCommand: HEEL)
@@ -139,7 +139,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment conflictingArgsValueAndVar on Dog {
                     doesKnowCommand(dogCommand: SIT)
                     doesKnowCommand(dogCommand: $dogCommand)
@@ -162,7 +162,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment conflictingArgsWithVars on Dog {
                     doesKnowCommand(dogCommand: $varOne)
                     doesKnowCommand(dogCommand: $varTwo)
@@ -185,7 +185,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment differingArgs on Dog {
                     doesKnowCommand(dogCommand: SIT)
                     doesKnowCommand
@@ -208,7 +208,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment safeDifferingFields on Pet {
                     ... on Dog {
                         volume: barkVolume
@@ -231,7 +231,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment safeDifferingArgs on Pet {
                     ... on Dog {
                         doesKnowCommand(dogCommand: SIT)
@@ -254,7 +254,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment conflictingDifferingResponses on Pet {
                     ... on Dog {
                         someValue: nickname
@@ -281,7 +281,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 "{ __type (type: \"Foo\") " +
                 "{ name fields { name type { name } } } }");
 
@@ -297,7 +297,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         doesKnowCommand(dogCommand: DOWN)
@@ -326,7 +326,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 {
                     dog {
                         doesKnowCommand(dogCommand: DOWN)
@@ -355,7 +355,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment interfaceFieldSelection on Pet {
                     __typename
                     __typename
@@ -374,7 +374,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment interfaceFieldSelection on CatOrDog {
                     __typename
                     __typename
@@ -393,7 +393,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(@"
+            DocumentNode query = Utf8GraphQLParser.Parse(@"
                 fragment interfaceFieldSelection on Cat {
                     __typename
                     __typename
@@ -412,7 +412,7 @@ namespace HotChocolate.Validation
         {
             // arrange
             Schema schema = ValidationUtils.CreateSchema();
-            DocumentNode query = Parser.Default.Parse(
+            DocumentNode query = Utf8GraphQLParser.Parse(
                 FileResource.Open("InvalidIntrospectionQuery.graphql"));
 
             // act

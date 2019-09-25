@@ -415,7 +415,8 @@ namespace HotChocolate.Utilities
                 if (typeDefinition == typeof(IReadOnlyCollection<>)
                     || typeDefinition == typeof(IReadOnlyList<>)
                     || typeDefinition == typeof(ICollection<>)
-                    || typeDefinition == typeof(IList<>))
+                    || typeDefinition == typeof(IList<>)
+                    || typeDefinition == typeof(IQueryable<>))
                 {
                     return true;
                 }
@@ -428,7 +429,7 @@ namespace HotChocolate.Utilities
             return false;
         }
 
-        private static bool IsListType(Type type)
+        public static bool IsListType(Type type)
         {
             return type.IsArray
                 || typeof(ListType) == type

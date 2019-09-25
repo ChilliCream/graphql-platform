@@ -43,11 +43,11 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <inheritdoc/>
-        public IStringFilterFieldDescriptor BindExplicitly() =>
+        public IStringFilterFieldDescriptor BindFiltersExplicitly() =>
             BindFilters(BindingBehavior.Explicit);
 
         /// <inheritdoc/>
-        public IStringFilterFieldDescriptor BindImplicitly() =>
+        public IStringFilterFieldDescriptor BindFiltersImplicitly() =>
             BindFilters(BindingBehavior.Implicit);
 
         /// <inheritdoc/>
@@ -138,6 +138,13 @@ namespace HotChocolate.Types.Filters
                 CreateOperation(FilterOperationKind.NotEndsWith);
             Filters.Add(field);
             return field;
+        }
+
+        /// <inheritdoc/>
+        public IStringFilterFieldDescriptor Ignore()
+        {
+            Definition.Ignore = true;
+            return this;
         }
 
         protected override FilterOperationDefintion CreateOperationDefinition(

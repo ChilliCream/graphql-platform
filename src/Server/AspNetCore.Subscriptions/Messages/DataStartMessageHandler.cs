@@ -30,7 +30,6 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                 QueryRequestBuilder.New()
                     .SetQuery(message.Payload.Query)
                     .SetQueryName(message.Payload.QueryName)
-                    .SetQueryHash(message.Payload.QueryName)
                     .SetOperation(message.Payload.OperationName)
                     .SetVariableValues(message.Payload.Variables)
                     .SetProperties(message.Payload.Extensions)

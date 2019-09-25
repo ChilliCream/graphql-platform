@@ -35,16 +35,6 @@ namespace HotChocolate.Types.Filters
 
             IQueryable<T> source = null;
 
-            if (context.Result is IQueryable<T> q)
-            {
-                source = q;
-            }
-
-            if (context.Result is IEnumerable<T> e)
-            {
-                source = e.AsQueryable();
-            }
-
             if (context.Result is PageableData<T> p)
             {
                 source = p.Source;
@@ -52,6 +42,15 @@ namespace HotChocolate.Types.Filters
             else
             {
                 p = null;
+            }
+
+            if (context.Result is IQueryable<T> q)
+            {
+                source = q;
+            }
+            else if (context.Result is IEnumerable<T> e)
+            {
+                source = e.AsQueryable();
             }
 
             if (source != null

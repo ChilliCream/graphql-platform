@@ -1,0 +1,4 @@
+﻿[
+  "HotChocolate.DataLoader.IDataLoaderRegistry",
+  "HotChocolate.Execution.IBatchOperation"
+]

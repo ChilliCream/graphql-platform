@@ -87,6 +87,7 @@ namespace HotChocolate.Types
             var schema = Schema.Create(source, c =>
             {
                 c.RegisterQueryType<DummyQuery>();
+                c.Options.StrictValidation = false;
             });
 
             // assert
@@ -123,6 +124,7 @@ namespace HotChocolate.Types
             var schema = Schema.Create(source, c =>
             {
                 c.RegisterQueryType<DummyQuery>();
+                c.Options.StrictValidation = false;
             });
 
             // assert
@@ -146,6 +148,7 @@ namespace HotChocolate.Types
             // act
             var schema = Schema.Create(source, c =>
             {
+                c.Options.StrictValidation = false;
                 c.RegisterQueryType<DummyQuery>();
             });
 

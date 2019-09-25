@@ -52,6 +52,7 @@ namespace HotChocolate.Stitching
 
                     throw new Exception();
                 }));
+
             return httpClientFactory.Object;
         }
     }
