@@ -20,7 +20,7 @@ namespace Demo.Tests
             var services = new ServiceCollection();
             services.AddSingleton<IValueSerializer, StringValueSerializer>();
             services.AddSingleton<IValueSerializer, FloatValueSerializer>();
-            //services.AddSingleton<IValueSerializer, EpisodeValueSerializer>();
+            services.AddSingleton<IValueSerializer, EpisodeValueSerializer>();
             services.AddSingleton<IResultParser, GetHeroResultParser>();
             services.AddSingleton<IOperationSerializer, JsonOperationSerializer>();
             services.AddSingleton<IStarWarsClient, StarWarsClient>();
@@ -37,7 +37,7 @@ namespace Demo.Tests
 
             IStarWarsClient client = serviceProvider.GetService<IStarWarsClient>();
 
-            IOperationResult<IGetHero> result = await client.GetHeroAsync();
+            IOperationResult<IGetHero> result = await client.GetHeroAsync(Episode.Empire);
         }
 
         public class StringValueSerializer

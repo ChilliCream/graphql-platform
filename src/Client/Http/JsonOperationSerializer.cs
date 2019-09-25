@@ -58,6 +58,7 @@ namespace StrawberryShake.Http
                 SerializeVariables(operation);
             if (variables != null)
             {
+                writer.WritePropertyName("variables");
                 WriteValue(variables, writer);
             }
 
@@ -206,8 +207,6 @@ namespace StrawberryShake.Http
                         break;
                 }
             }
-
-            writer.WriteEndObject();
         }
     }
 }
