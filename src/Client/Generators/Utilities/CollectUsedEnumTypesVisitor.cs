@@ -12,7 +12,6 @@ namespace StrawberryShake.Generators.Utilities
         private readonly HashSet<INamedType> _enumTypes = new HashSet<INamedType>();
         private readonly Stack<IType> _typeContext = new Stack<IType>();
         private readonly Stack<IOutputField> _fieldContext = new Stack<IOutputField>();
-        private readonly Stack<IInputField> _inputFieldContext = new Stack<IInputField>();
         private ISchema? _schema;
 
         public static IReadOnlyList<EnumType> Collect(ISchema schema, DocumentNode node)
@@ -35,6 +34,19 @@ namespace StrawberryShake.Generators.Utilities
             _typeContext.Pop();
         }
 
+        protected override void VisitVariableDefinition(
+            VariableDefinitionNode node,
+            object? context)
+        {
+            if (_schema!.TryGetType(
+                node.Type.NamedType().Name.Value,
+                out INamedType type)
+                && type.IsEnumType())
+            {
+                _enumTypes.Add(type);
+            }
+        }
+
         protected override void VisitField(FieldNode node, object? context)
         {
             IType currentType = _typeContext.Peek();
@@ -55,51 +67,6 @@ namespace StrawberryShake.Generators.Utilities
                 base.VisitField(node, context);
 
                 _fieldContext.Pop();
-                _typeContext.Pop();
-            }
-        }
-
-        protected override void VisitArgument(ArgumentNode node, object? context)
-        {
-            IOutputField field = _fieldContext.Peek();
-
-            if (field.Arguments.TryGetField(node.Name.Value, out IInputField inputField))
-            {
-                INamedType fieldType = inputField.Type.NamedType();
-
-                if (fieldType.IsEnumType())
-                {
-                    _enumTypes.Add(fieldType);
-                }
-
-                _typeContext.Push(fieldType);
-
-                base.VisitArgument(node, context);
-
-                _typeContext.Pop();
-            }
-        }
-
-        protected override void VisitObjectField(ObjectFieldNode node, object? context)
-        {
-            IType currentType = _typeContext.Peek();
-
-            if (currentType is InputObjectType inputObjectType
-                && inputObjectType.Fields.TryGetField(
-                    node.Name.Value, out IInputField field))
-            {
-                INamedType fieldType = field.Type.NamedType();
-                if (fieldType.IsEnumType())
-                {
-                    _enumTypes.Add(fieldType);
-                }
-
-                _typeContext.Push(fieldType);
-                _inputFieldContext.Push(field);
-
-                base.VisitObjectField(node, context);
-
-                _inputFieldContext.Pop();
                 _typeContext.Pop();
             }
         }

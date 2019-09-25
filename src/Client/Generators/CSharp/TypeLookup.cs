@@ -126,7 +126,23 @@ namespace StrawberryShake.Generators.CSharp
         {
             INamedType namedType = fieldType.NamedType();
 
-            if (namedType.IsLeafType())
+            if (namedType.IsEnumType())
+            {
+                var typeInfo = new TypeInfo
+                (
+                    BuildType(namedType.Name, fieldType, readOnly, true),
+                    namedType.Name,
+                    typeof(string),
+                    fieldType
+                );
+
+                BuildTypeInfo(true, fieldType, true, readOnly, typeInfo);
+
+
+                return typeInfo;
+            }
+
+            if (namedType.IsScalarType())
             {
                 if (!_leafTypes.TryGetValue(namedType.Name, out LeafTypeInfo? type))
                 {
@@ -189,10 +205,10 @@ namespace StrawberryShake.Generators.CSharp
             IType fieldType,
             bool readOnly,
             TypeInfo typeInfo) =>
-            BuildTypeInfo(type, fieldType, true, readOnly, typeInfo);
+            BuildTypeInfo(type.IsValueType, fieldType, true, readOnly, typeInfo);
 
         private static void BuildTypeInfo(
-            Type type,
+            bool isValueType,
             IType fieldType,
             bool nullable,
             bool readOnly,
@@ -200,18 +216,18 @@ namespace StrawberryShake.Generators.CSharp
         {
             if (fieldType is NonNullType nnt)
             {
-                BuildTypeInfo(type, nnt.Type, false, readOnly, typeInfo);
+                BuildTypeInfo(isValueType, nnt.Type, false, readOnly, typeInfo);
             }
 
             if (fieldType is ListType lt)
             {
                 typeInfo.ListLevel++;
-                BuildTypeInfo(type, lt.ElementType, true, readOnly, typeInfo);
+                BuildTypeInfo(isValueType, lt.ElementType, true, readOnly, typeInfo);
                 typeInfo.IsValueType = false;
             }
 
             typeInfo.IsNullable = nullable;
-            typeInfo.IsValueType = type.IsValueType;
+            typeInfo.IsValueType = isValueType;
         }
 
         private string BuildType(

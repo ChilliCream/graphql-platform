@@ -478,7 +478,7 @@ namespace StrawberryShake.Generators
             yield return new ClientClassGenerator();
             yield return new QueryGenerator();
             yield return new EnumGenerator();
-            yield return new EnumValueConverterGenerator();
+            yield return new EnumValueSerializerGenerator();
         }
 
         private class DocumentInfo

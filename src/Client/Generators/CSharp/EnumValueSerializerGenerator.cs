@@ -4,9 +4,14 @@ using StrawberryShake.Generators.Utilities;
 
 namespace StrawberryShake.Generators.CSharp
 {
-    public class EnumValueConverterGenerator
+    public class EnumValueSerializerGenerator
         : CodeGenerator<IEnumDescriptor>
     {
+        protected override string CreateFileName(IEnumDescriptor descriptor)
+        {
+            return descriptor.Name + "ValueSerializer.cs";
+        }
+
         protected override async Task WriteAsync(
             CodeWriter writer,
             IEnumDescriptor descriptor,
@@ -40,7 +45,7 @@ namespace StrawberryShake.Generators.CSharp
                 await WriteSerializeMethodAsync(writer, descriptor, typeLookup);
                 await writer.WriteLineAsync();
 
-                await WriteSerializeMethodAsync(writer, descriptor, typeLookup);
+                await WriteDeserializeMethodAsync(writer, descriptor, typeLookup);
                 await writer.WriteLineAsync();
             }
 

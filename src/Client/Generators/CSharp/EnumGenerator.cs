@@ -22,7 +22,7 @@ namespace StrawberryShake.Generators.CSharp
                     await writer.WriteIndentAsync();
                     await writer.WriteAsync(descriptor.Values[i].Name);
 
-                    if (i == descriptor.Values.Count - 1)
+                    if (i < descriptor.Values.Count - 1)
                     {
                         await writer.WriteAsync(",");
                     }
