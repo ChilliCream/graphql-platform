@@ -106,27 +106,31 @@ namespace HotChocolate.Types.Filters
 
             if (Operations.Peek() is FilterOperationField field)
             {
-                // TODO : needed only if we allow objects
-                 Instance.Push(Expression.Property(
-                     Instance.Peek(),
-                     field.Operation.Property));
-
-                for (int i = _opHandlers.Count - 1; i >= 0; i--)
+                if(field.Operation.Kind == FilterOperationKind.Object)
                 {
-                    if (_opHandlers[i].TryHandle(
-                        field.Operation,
-                        field.Type,
-                        node.Value,
+                    Instance.Push(Expression.Property(
                         Instance.Peek(),
-                        _converter,
-                        out Expression expression))
-                    {
-                        Level.Peek().Enqueue(expression);
-                        break;
-                    }
+                        field.Operation.Property));
+                    return VisitorAction.Continue;
                 }
-
-                return VisitorAction.Skip;
+                else
+                {
+                    for (var i = _opHandlers.Count - 1; i >= 0; i--)
+                    {
+                        if (_opHandlers[i].TryHandle(
+                            field.Operation,
+                            field.Type,
+                            node.Value,
+                            Instance.Peek(),
+                            _converter,
+                            out Expression expression))
+                        {
+                            Level.Peek().Enqueue(expression);
+                            break;
+                        }
+                    }
+                    return VisitorAction.Skip;
+                }
             }
             return VisitorAction.Continue;
         }
@@ -137,8 +141,8 @@ namespace HotChocolate.Types.Filters
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            // TODO : needed only if we allow objects
-            if (Operations.Peek() is FilterOperationField)
+            if (Operations.Peek() is FilterOperationField field
+                && field.Operation.Kind == FilterOperationKind.Object)
             {
                 Instance.Pop();
             }
