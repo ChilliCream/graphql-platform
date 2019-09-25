@@ -25,7 +25,7 @@ namespace StrawberryShake.Generators.Descriptors
 
         public IInputField Field { get; }
 
-        public IInputClassDescriptor InputObjectType { get; }
+        public IInputClassDescriptor? InputObjectType { get; }
 
         public IEnumerable<ICodeDescriptor> GetChildren()
         {
