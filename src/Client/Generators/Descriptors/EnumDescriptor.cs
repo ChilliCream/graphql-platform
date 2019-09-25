@@ -9,36 +9,11 @@ namespace StrawberryShake.Generators.Descriptors
     public class EnumDescriptor
         : IEnumDescriptor
     {
-        public EnumDescriptor(EnumType type, string ns)
+        public EnumDescriptor(string name, string ns, IReadOnlyList<IEnumValueDescriptor> values)
         {
-            if (type is null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            if (ns is null)
-            {
-                throw new ArgumentNullException(nameof(ns));
-            }
-
-            var values = new List<IEnumValueDescriptor>();
-
-            Name = type.Name;
-            Namespace = ns;
-            Values = values;
-
-            foreach (EnumValue value in type.Values)
-            {
-                IDirective directive = value.Directives.FirstOrDefault(t =>
-                    t.Name.Equals(GeneratorDirectives.Name)
-                    && t.GetArgument<string>(GeneratorDirectives.ValueArgument) != null);
-
-                string name = directive is null
-                    ? GetPropertyName(value.Name.ToLowerInvariant())
-                    : directive.GetArgument<string>(GeneratorDirectives.ValueArgument);
-
-                values.Add(new EnumValueDescriptor(name, value.Name));
-            }
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Namespace = ns ?? throw new ArgumentNullException(nameof(ns));
+            Values = values ?? throw new ArgumentNullException(nameof(values));
         }
 
         public string Name { get; }

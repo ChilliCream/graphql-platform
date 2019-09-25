@@ -25,14 +25,17 @@ namespace StrawberryShake.Generators
         private readonly string _clientName;
         private readonly string _namespace;
 
-        private OperationModelGenerator _operationModelGenerator =
+        private readonly OperationModelGenerator _operationModelGenerator =
             new OperationModelGenerator();
-        private ObjectModelGenerator _objectModelGenerator =
+        private readonly ObjectModelGenerator _objectModelGenerator =
             new ObjectModelGenerator();
-        private InterfaceModelGenerator _interfaceModelGenerator =
+        private readonly InterfaceModelGenerator _interfaceModelGenerator =
             new InterfaceModelGenerator();
-        private UnionModelGenerator _unionModelGenerator =
+        private readonly UnionModelGenerator _unionModelGenerator =
             new UnionModelGenerator();
+        private readonly EnumModelGenerator _enumModelGenerator =
+            new EnumModelGenerator();
+
         private IModelGeneratorContext _context;
 
         public CodeModelGenerator(
@@ -66,6 +69,8 @@ namespace StrawberryShake.Generators
         public void Generate()
         {
             _context.Register(_query);
+
+            GenerateEnumTypes();
 
             var backlog = new Queue<FieldSelection>();
             Path root = Path.New("root");
@@ -221,6 +226,19 @@ namespace StrawberryShake.Generators
                     fieldSelection,
                     possibleSelections,
                     path);
+            }
+        }
+
+        private void GenerateEnumTypes()
+        {
+            IReadOnlyList<EnumType> enumTypes =
+                CollectUsedEnumTypesVisitor.Collect(
+                    _context.Schema,
+                    _context.Query.OriginalDocument);
+
+            foreach (EnumType enumType in enumTypes)
+            {
+                _enumModelGenerator.Generate(_context, enumType);
             }
         }
 

@@ -103,5 +103,19 @@ namespace StrawberryShake.Generators.Utilities
                 _typeContext.Pop();
             }
         }
+
+        protected override void VisitFragmentDefinition(
+            FragmentDefinitionNode node,
+            object? context)
+        {
+            INamedType type = _schema!.GetType<INamedType>(
+                node.TypeCondition.Name.Value);
+
+            _typeContext.Push(type);
+
+            base.VisitFragmentDefinition(node, context);
+
+            _typeContext.Pop();
+        }
     }
 }
