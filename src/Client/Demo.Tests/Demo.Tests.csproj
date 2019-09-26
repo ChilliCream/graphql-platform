@@ -21,10 +21,13 @@
   <ItemGroup>
     <ProjectReference Include="..\Demo\Demo.csproj" />
     <ProjectReference Include="..\Http\Http.csproj" />
+    <ProjectReference Include="..\..\Core\StarWars\StarWars.csproj" />
+    <ProjectReference Include="..\..\Core\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
+    <ProjectReference Include="..\..\Server\AspNetCore\AspNetCore.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.1.1" />
   </ItemGroup>
 
 </Project>
