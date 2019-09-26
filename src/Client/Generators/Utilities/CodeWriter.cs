@@ -26,7 +26,7 @@ namespace StrawberryShake.Generators.Utilities
             _disposeWriter = true;
         }
 
-        public override Encoding Encoding { get; }
+        public override Encoding Encoding { get; } = Encoding.UTF8;
 
         public override void Write(char value) =>
             _writer.Write(value);

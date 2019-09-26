@@ -391,7 +391,7 @@ namespace StrawberryShake.Generators
         private async Task<IReadOnlyList<IQueryDescriptor>> ParseQueriesAsync(
             ISchema schema, IDocumentHashProvider hashProvider)
         {
-            var queryCollection = new QueryCollection(hashProvider, _namespace);
+            var queryCollection = new QueryCollection(hashProvider, _namespace!);
 
             foreach (DocumentInfo documentInfo in _queries.Values)
             {

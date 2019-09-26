@@ -27,7 +27,7 @@ namespace StrawberryShake.Generators.Descriptors
 
         public IType Type { get; }
 
-        public IInputClassDescriptor InputObjectType { get; }
+        public IInputClassDescriptor? InputObjectType { get; }
 
         public VariableDefinitionNode VariableDefinition { get; }
 
