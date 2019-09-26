@@ -28,7 +28,7 @@ namespace StrawberryShake.Generators.CSharp
         public IReadOnlyList<string> Components { get; } = new[]
         {
             WellKnownComponents.Json,
-            WellKnownComponents.Http,
+            WellKnownComponents.HttpExecutor,
         };
 
         protected override async Task WriteAsync(

@@ -33,7 +33,10 @@ namespace StrawberryShake.Generators.Descriptors
 
         public IEnumerable<ICodeDescriptor> GetChildren()
         {
-            yield return InputObjectType;
+            if (InputObjectType is { })
+            {
+                yield return InputObjectType;
+            }
         }
     }
 }

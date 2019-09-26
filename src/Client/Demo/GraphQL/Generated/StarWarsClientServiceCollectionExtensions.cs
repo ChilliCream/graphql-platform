@@ -1,7 +1,7 @@
-﻿using System.Net.Http;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using StrawberryShake;
@@ -28,12 +28,15 @@ namespace StrawberryShake.Client
 
             return serviceCollection;
         }
-
-        public static IServiceCollection AddStarWarsClient(
+        public static IServiceCollection AddDefaultScalarSerializers(
             this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton<IStarWarsClient, StarWarsClient>();
+            if (serviceCollection is null)
+            {
+                throw new ArgumentNullException(nameof(serviceCollection));
+            }
 
+            serviceCollection.AddSingleton<IStarWarsClient, StarWarsClient>();
             serviceCollection.AddSingleton(sp =>
                 HttpOperationExecutorBuilder.New()
                     .AddServices(sp)
@@ -41,35 +44,31 @@ namespace StrawberryShake.Client
                     .SetPipeline(PipelineFactory)
                     .Build());
 
-            serviceCollection.AddEnumValueSerializers();
+            serviceCollection.AddEnumSerializers();
             serviceCollection.AddResultParsers();
             serviceCollection.TryAddDefaultOperationSerializer();
             serviceCollection.TryAddDefaultHttpPipeline();
 
             return serviceCollection;
         }
-
-        private static IServiceCollection AddEnumValueSerializers(
+        private static IServiceCollection AddEnumSerializers(
             this IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<IValueSerializer, EpisodeValueSerializer>();
             return serviceCollection;
         }
-
         private static IServiceCollection AddResultParsers(
             this IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<IResultParser, GetHeroResultParser>();
             return serviceCollection;
         }
-
         private static IServiceCollection TryAddDefaultOperationSerializer(
             this IServiceCollection serviceCollection)
         {
             serviceCollection.TryAddSingleton<IOperationSerializer, JsonOperationSerializer>();
             return serviceCollection;
         }
-
         private static IServiceCollection TryAddDefaultHttpPipeline(
             this IServiceCollection serviceCollection)
         {
@@ -81,13 +80,11 @@ namespace StrawberryShake.Client
                     .Build(sp));
             return serviceCollection;
         }
-
         private static Func<HttpClient> ClientFactory(IServiceProvider services)
         {
             var clientFactory = services.GetRequiredService<IHttpClientFactory>();
             return () => clientFactory.CreateClient("StarWarsClient");
         }
-
         private static OperationDelegate PipelineFactory(IServiceProvider services)
         {
             return services.GetRequiredService<OperationDelegate>();

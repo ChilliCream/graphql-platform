@@ -14,11 +14,11 @@ namespace StrawberryShake.Http
             new Dictionary<Type, List<object>>();
         private readonly List<IServiceProvider> _serviceProviders =
             new List<IServiceProvider>();
-        private HttpPipelineBuilder _pipelineBuilder =
-            HttpPipelineBuilder.New();
-        private HttpClient? _client;
+        private Func<IServiceProvider, Func<HttpClient>>? _clientFactory;
+        private Func<IServiceProvider, OperationDelegate>? _pipelineFactory;
 
-        public IHttpOperationExecutorBuilder AddService(Type serviceType, object serviceInstance)
+        public IHttpOperationExecutorBuilder AddService(
+            Type serviceType, object serviceInstance)
         {
             if (serviceType is null)
             {
@@ -39,7 +39,8 @@ namespace StrawberryShake.Http
             return this;
         }
 
-        public IHttpOperationExecutorBuilder AddServices(IServiceProvider services)
+        public IHttpOperationExecutorBuilder AddServices(
+            IServiceProvider services)
         {
             if (services is null)
             {
@@ -50,48 +51,51 @@ namespace StrawberryShake.Http
             return this;
         }
 
-        public IHttpOperationExecutorBuilder SetClient(HttpClient client)
+        public IHttpOperationExecutorBuilder SetClient(
+            Func<IServiceProvider, Func<HttpClient>> clientFactory)
         {
-            if (client is null)
+            if (clientFactory is null)
             {
-                throw new ArgumentNullException(nameof(client));
+                throw new ArgumentNullException(nameof(clientFactory));
             }
 
-            _client = client;
+            _clientFactory = clientFactory;
             return this;
         }
 
-        public IHttpOperationExecutorBuilder Use(
-            Func<OperationDelegate, OperationDelegate> middleware)
+        public IHttpOperationExecutorBuilder SetPipeline(
+            Func<IServiceProvider, OperationDelegate> pipelineFactory)
         {
-            if (middleware is null)
+            if (pipelineFactory is null)
             {
-                throw new ArgumentNullException(nameof(middleware));
+                throw new ArgumentNullException(nameof(pipelineFactory));
             }
 
-            _pipelineBuilder.Use(middleware);
-            return this;
-        }
-
-        public IHttpOperationExecutorBuilder Use(OperationMiddleware middleware)
-        {
-            _pipelineBuilder.Use(middleware);
+            _pipelineFactory = pipelineFactory;
             return this;
         }
 
         public IOperationExecutor Build()
         {
-            if (_client is null)
+            if (_clientFactory is null)
             {
                 throw new InvalidOperationException(
-                    "The HTTP client must be provided in order to create an executor.");
+                    "The HTTP client must be provided in order to " +
+                    "create an executor.");
+            }
+
+            if (_pipelineFactory is null)
+            {
+                throw new InvalidOperationException(
+                    "There must be pipeline defined in order to execute " +
+                    "client requests.");
             }
 
             IServiceProvider services = BuildServices();
+            Func<HttpClient> clientFactory = _clientFactory(services);
+            OperationDelegate pipeline = _pipelineFactory(services);
 
-            OperationDelegate executeOperation = _pipelineBuilder.Build(services);
-
-            return new HttpOperationExecutor(_client, executeOperation, services);
+            return new HttpOperationExecutor(clientFactory, pipeline, services);
         }
 
         private IServiceProvider BuildServices()

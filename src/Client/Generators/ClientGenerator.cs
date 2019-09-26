@@ -494,7 +494,7 @@ namespace StrawberryShake.Generators
 
             if (options.EnableDISupport)
             {
-                yield return new DependencyInjectionGenerator();
+                yield return new ServicesGenerator();
             }
         }
 

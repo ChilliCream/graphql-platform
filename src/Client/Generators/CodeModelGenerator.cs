@@ -100,10 +100,20 @@ namespace StrawberryShake.Generators
                 GenerateResultParserDescriptor(operation, resultType);
             }
 
-            _context.Register(new ClientDescriptor(
+            var clientDescriptor = new ClientDescriptor(
                 _context.ClientName,
                 _namespace,
-                _context.Descriptors.OfType<IOperationDescriptor>().ToList()));
+                _context.Descriptors.OfType<IOperationDescriptor>().ToList());
+
+            var servicesDescriptor = new ServicesDescriptor(
+                _context.ClientName + "ServiceCollectionExtensions",
+                _context.Namespace,
+                clientDescriptor,
+                _context.Descriptors.OfType<IEnumDescriptor>().ToList(),
+                _context.Descriptors.OfType<IResultParserDescriptor>().ToList());
+
+            _context.Register(clientDescriptor);
+            _context.Register(servicesDescriptor);
 
             FieldTypes = _context.FieldTypes;
             Descriptors = _context.Descriptors;

@@ -9,17 +9,17 @@ namespace StrawberryShake.Http
     public class HttpOperationExecutor
         : IOperationExecutor
     {
-        private readonly HttpClient _client;
+        private readonly Func<HttpClient> _clientFactory;
         private readonly OperationDelegate _executeOperation;
         private readonly IServiceProvider _services;
 
         public HttpOperationExecutor(
-            HttpClient client,
+            Func<HttpClient> clientFactory,
             OperationDelegate executeOperation,
             IServiceProvider services)
         {
-            _client = client
-                ?? throw new ArgumentNullException(nameof(client));
+            _clientFactory = clientFactory
+                ?? throw new ArgumentNullException(nameof(clientFactory));
             _executeOperation = executeOperation
                 ?? throw new ArgumentNullException(nameof(executeOperation));
             _services = services
@@ -67,7 +67,7 @@ namespace StrawberryShake.Http
             CancellationToken cancellationToken)
         {
             var context = new HttpOperationContext(
-                operation, _client, _services, cancellationToken);
+                operation, _clientFactory(), _services, cancellationToken);
 
             try
             {
