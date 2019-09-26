@@ -10,26 +10,31 @@ using StrawberryShake.Http.Pipelines;
 using Xunit;
 using StrawberryShake.Serializers;
 using StrawberryShake.Client;
+using Snapshooter.Xunit;
 
 namespace Demo.Tests
 {
-    public class Class1
+    public class StarWarsClientTests
     {
         [Fact]
-        public async Task Foo()
+        public async Task GetHero_By_Episode()
         {
+            // arrange
             var serviceCollection = new ServiceCollection();
 
-            serviceCollection.AddHttpClient("StarWarsClient");
+            serviceCollection.AddHttpClient("StarWarsClient")
+                .ConfigureHttpClient(t => t.BaseAddress = new Uri("http://localhost:5000/graphql"));
             serviceCollection.AddDefaultScalarSerializers();
             serviceCollection.AddStarWarsClient();
 
             var services = serviceCollection.BuildServiceProvider();
 
-            IStarWarsClient client = services.GetService<IStarWarsClient>();
+            // act
+            IStarWarsClient client = services.GetRequiredService<IStarWarsClient>();
             IOperationResult<IGetHero> result = await client.GetHeroAsync(Episode.Empire);
 
-            Console.WriteLine(result.Data.Hero.Name);
+            // assert
+            result.MatchSnapshot();
         }
 
 
