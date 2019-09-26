@@ -32,7 +32,7 @@ namespace StrawberryShake.Client
         {
             var variables = new List<VariableValue>();
 
-            if (_modified_episode)
+            if(_modified_episode)
             {
                 variables.Add(new VariableValue("episode", "Episode", Episode));
             }

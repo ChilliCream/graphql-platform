@@ -19,8 +19,9 @@ namespace Demo.Tests
         public async Task Foo()
         {
             var services = new ServiceCollection();
-            services.AddSingleton<IValueSerializer, StringValueSerializer>();
-            services.AddSingleton<IValueSerializer, FloatValueSerializer>();
+
+
+            services.AddHttpClient("Foo");
             services.AddSingleton<IValueSerializer, EpisodeValueSerializer>();
             services.AddSingleton<IResultParser, GetHeroResultParser>();
             services.AddSingleton<IOperationSerializer, JsonOperationSerializer>();
@@ -29,7 +30,7 @@ namespace Demo.Tests
             services.AddSingleton(sp =>
                 HttpOperationExecutorBuilder.New()
                     .AddServices(sp)
-                    .SetClient(sp.GetRequiredService<HttpClient>())
+                    .SetClient(sp.GetRequiredService<IHttpClientFactory>().CreateClient(""))
                     .Use<CreateStandardRequestMiddleware>()
                     .Use<SendHttpRequestMiddleware>()
                     .Use<ParseSingleResultMiddleware>()

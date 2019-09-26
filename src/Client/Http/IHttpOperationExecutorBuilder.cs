@@ -6,15 +6,15 @@ namespace StrawberryShake.Http
 {
     public interface IHttpOperationExecutorBuilder
     {
+        IHttpOperationExecutorBuilder SetClient(Func<IServiceProvider, HttpClient> client);
+
         IHttpOperationExecutorBuilder SetClient(HttpClient client);
+
+        IHttpOperationExecutorBuilder SetPipeline(OperationDelegate pipeline);
 
         IHttpOperationExecutorBuilder AddServices(IServiceProvider services);
 
         IHttpOperationExecutorBuilder AddService(Type serviceType, object serviceInstance);
-
-        IHttpOperationExecutorBuilder Use(Func<OperationDelegate, OperationDelegate> middleware);
-
-        IHttpOperationExecutorBuilder Use(OperationMiddleware middleware);
 
         IOperationExecutor Build();
     }

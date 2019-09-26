@@ -14,8 +14,8 @@ namespace StrawberryShake.Http
             new Dictionary<Type, List<object>>();
         private readonly List<IServiceProvider> _serviceProviders =
             new List<IServiceProvider>();
-        private HttpOperationExecutionPipelineBuilder _pipelineBuilder =
-            HttpOperationExecutionPipelineBuilder.New();
+        private HttpPipelineBuilder _pipelineBuilder =
+            HttpPipelineBuilder.New();
         private HttpClient? _client;
 
         public IHttpOperationExecutorBuilder AddService(Type serviceType, object serviceInstance)

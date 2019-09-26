@@ -6,7 +6,6 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     public class EpisodeValueSerializer
-        : IValueSerializer
     {
         public string Name => "Episode";
 

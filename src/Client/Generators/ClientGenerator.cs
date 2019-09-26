@@ -44,7 +44,7 @@ namespace StrawberryShake.Generators
                 new LeafTypeInfo("Url", typeof(Uri), typeof(string))
             }.ToDictionary(t => t.TypeName);
 
-        private ClientGeneratorOptions _options = new ClientGeneratorOptions();
+        private readonly ClientGeneratorOptions _options = new ClientGeneratorOptions();
         private IDocumentHashProvider? _hashProvider;
         private IFileHandler? _output;
         private string? _clientName;
@@ -74,6 +74,18 @@ namespace StrawberryShake.Generators
             }
 
             _output = output;
+            return this;
+        }
+
+        public ClientGenerator ModifyOptions(
+            Action<ClientGeneratorOptions> modify)
+        {
+            if (modify is null)
+            {
+                throw new ArgumentNullException(nameof(modify));
+            }
+
+            modify(_options);
             return this;
         }
 
@@ -479,6 +491,11 @@ namespace StrawberryShake.Generators
             yield return new QueryGenerator();
             yield return new EnumGenerator();
             yield return new EnumValueSerializerGenerator();
+
+            if (options.EnableDISupport)
+            {
+                yield return new DependencyInjectionGenerator();
+            }
         }
 
         private class DocumentInfo

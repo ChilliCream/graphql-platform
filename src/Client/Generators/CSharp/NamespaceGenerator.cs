@@ -68,11 +68,21 @@ namespace StrawberryShake.Generators.CSharp
                 await WriteUsing(writer, "System.Threading.Tasks");
             }
 
+            if (components.Contains(WellKnownComponents.DI))
+            {
+                await WriteUsing(writer, "Microsoft.Extensions.DependencyInjection");
+            }
+
             await WriteUsing(writer, "StrawberryShake");
 
             if (components.Contains(WellKnownComponents.Http))
             {
                 await WriteUsing(writer, "StrawberryShake.Http");
+            }
+
+            if (components.Contains(WellKnownComponents.Serializer))
+            {
+                await WriteUsing(writer, "StrawberryShake.Serializers");
             }
         }
 

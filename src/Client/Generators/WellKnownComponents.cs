@@ -7,5 +7,9 @@ namespace StrawberryShake.Generators
         public const string Http = "HTTP";
 
         public const string Task = "TASK";
+
+        public const string DI = "DI";
+
+        public const string Serializer = "SERIALIZER";
     }
 }
