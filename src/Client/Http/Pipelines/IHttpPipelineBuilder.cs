@@ -13,5 +13,6 @@ namespace StrawberryShake.Http.Pipelines
     {
         IHttpPipelineBuilder Use(Func<OperationDelegate, OperationDelegate> middleware);
         IHttpPipelineBuilder Use(OperationMiddleware middleware);
+        OperationDelegate Build(IServiceProvider services);
     }
 }

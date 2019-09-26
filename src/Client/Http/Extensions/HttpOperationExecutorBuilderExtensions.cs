@@ -4,8 +4,8 @@ namespace StrawberryShake.Http
 {
     public static class HttpOperationExecutorBuilderExtensions
     {
-        public static IHttpOperationExecutorBuilder Use<T>(
-            this IHttpOperationExecutorBuilder builder)
+        public static IHttpPipelineBuilder Use<T>(
+            this IHttpPipelineBuilder builder)
         {
             return builder.Use(ClassMiddlewareFactory.Create(typeof(T)));
         }

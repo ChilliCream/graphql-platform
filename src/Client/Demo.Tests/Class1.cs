@@ -3,13 +3,13 @@ using System.Net.Http;
 using System;
 using System.Threading.Tasks;
 using StrawberryShake;
-using StrawberryShake.Client;
 using StrawberryShake.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using StrawberryShake.Http.Pipelines;
 using Xunit;
 using StrawberryShake.Serializers;
+using StrawberryShake.Client;
 
 namespace Demo.Tests
 {
@@ -18,28 +18,18 @@ namespace Demo.Tests
         [Fact]
         public async Task Foo()
         {
-            var services = new ServiceCollection();
+            var serviceCollection = new ServiceCollection();
 
+            serviceCollection.AddHttpClient("StarWarsClient");
+            serviceCollection.AddDefaultScalarSerializers();
+            serviceCollection.AddStarWarsClient();
 
-            services.AddHttpClient("Foo");
-            services.AddSingleton<IValueSerializer, EpisodeValueSerializer>();
-            services.AddSingleton<IResultParser, GetHeroResultParser>();
-            services.AddSingleton<IOperationSerializer, JsonOperationSerializer>();
-            services.AddSingleton<IStarWarsClient, StarWarsClient>();
-            services.AddSingleton<HttpClient>(sp => new HttpClient() { BaseAddress = new Uri("http://localhost:5000/graphql") });
-            services.AddSingleton(sp =>
-                HttpOperationExecutorBuilder.New()
-                    .AddServices(sp)
-                    .SetClient(sp.GetRequiredService<IHttpClientFactory>().CreateClient(""))
-                    .Use<CreateStandardRequestMiddleware>()
-                    .Use<SendHttpRequestMiddleware>()
-                    .Use<ParseSingleResultMiddleware>()
-                    .Build());
-            IServiceProvider serviceProvider = services.BuildServiceProvider();
+            var services = serviceCollection.BuildServiceProvider();
 
-            IStarWarsClient client = serviceProvider.GetService<IStarWarsClient>();
-
+            IStarWarsClient client = services.GetService<IStarWarsClient>();
             IOperationResult<IGetHero> result = await client.GetHeroAsync(Episode.Empire);
+
+            Console.WriteLine(result.Data.Hero.Name);
         }
 
 

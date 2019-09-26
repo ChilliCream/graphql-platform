@@ -6,6 +6,7 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     public class EpisodeValueSerializer
+        : IValueSerializer
     {
         public string Name => "Episode";
 
@@ -17,14 +18,14 @@ namespace StrawberryShake.Client
 
         public object? Serialize(object? value)
         {
-            if(value is null)
+            if (value is null)
             {
                 return null;
             }
 
             var enumValue = (Episode)value;
 
-            switch(enumValue)
+            switch (enumValue)
             {
                 case Episode.Newhope:
                     return "NEWHOPE";
@@ -39,14 +40,14 @@ namespace StrawberryShake.Client
 
         public object? Deserialize(object? value)
         {
-            if(value is null)
+            if (value is null)
             {
                 return null;
             }
 
             var stringValue = (string)value;
 
-            switch(stringValue)
+            switch (stringValue)
             {
                 case "NEWHOPE":
                     return Episode.Newhope;
