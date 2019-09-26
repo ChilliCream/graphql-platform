@@ -13,7 +13,7 @@ namespace StrawberryShake.Tools
         [Required]
         public Command Command { get; set; }
 
-        public string[] RemainingArgs { get; set; }
+        public string[]? RemainingArgs { get; set; }
 
         public Task<int> OnExecute()
         {

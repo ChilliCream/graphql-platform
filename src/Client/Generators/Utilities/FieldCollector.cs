@@ -12,15 +12,73 @@ namespace StrawberryShake.Generators.Utilities
     internal sealed class FieldCollector
     {
         private const string _argumentProperty = "argument";
+        private readonly ISchema _schema;
         private readonly FragmentCollection _fragments;
+        private readonly Cache _cache = new Cache();
 
-        public FieldCollector(FragmentCollection fragments)
+        public FieldCollector(ISchema schema, FragmentCollection fragments)
         {
+            _schema = schema
+                ?? throw new ArgumentNullException(nameof(schema));
             _fragments = fragments
                 ?? throw new ArgumentNullException(nameof(fragments));
         }
 
-        public FieldCollectionResult CollectFields(
+        public PossibleSelections CollectFields(
+            INamedOutputType type,
+            SelectionSetNode selectionSet,
+            Path path)
+        {
+            if (!_cache.TryGetValue(type, out SelectionCache? selectionCache))
+            {
+                selectionCache = new SelectionCache();
+                _cache.Add(type, selectionCache);
+            }
+
+            if (!selectionCache.TryGetValue(
+                selectionSet,
+                out PossibleSelections? possibleSelections))
+            {
+                SelectionInfo returnType =
+                    CollectFieldsInternal(type, selectionSet, path);
+
+                if (type.IsAbstractType())
+                {
+                    var list = new List<SelectionInfo>();
+                    bool singleModelShape = true;
+
+                    foreach (ObjectType objectType in _schema.GetPossibleTypes(type))
+                    {
+                        SelectionInfo objectSelection =
+                            CollectFieldsInternal(objectType, selectionSet, path);
+                        list.Add(objectSelection);
+
+                        if (!FieldSelectionsAreEqual(
+                            returnType.Fields,
+                            objectSelection.Fields))
+                        {
+                            singleModelShape = false;
+                        }
+                    }
+
+                    if (!singleModelShape)
+                    {
+                        possibleSelections = new PossibleSelections(returnType, list);
+                    }
+                }
+
+                if (possibleSelections is null)
+                {
+                    possibleSelections = new PossibleSelections(returnType);
+                }
+
+                selectionCache.Add(selectionSet, possibleSelections);
+            }
+
+            return possibleSelections;
+        }
+
+        private SelectionInfo CollectFieldsInternal(
             INamedOutputType type,
             SelectionSetNode selectionSet,
             Path path)
@@ -36,14 +94,15 @@ namespace StrawberryShake.Generators.Utilities
             }
 
             var fields = new OrderedDictionary<string, FieldSelection>();
-            var root = new FragmentNode();
-            CollectFields(type, selectionSet, path, fields, root);
+            var fragments = new List<IFragmentNode>();
 
-            return new FieldCollectionResult(
+            CollectFields(type, selectionSet, path, fields, fragments);
+
+            return new SelectionInfo(
                 type,
                 selectionSet,
                 fields.Values.ToList(),
-                root.Children);
+                fragments);
         }
 
         private void CollectFields(
@@ -51,7 +110,7 @@ namespace StrawberryShake.Generators.Utilities
             SelectionSetNode selectionSet,
             Path path,
             IDictionary<string, FieldSelection> fields,
-            FragmentNode parent)
+            ICollection<IFragmentNode> fragments)
         {
             foreach (ISelectionNode selection in selectionSet.Selections)
             {
@@ -60,7 +119,7 @@ namespace StrawberryShake.Generators.Utilities
                     selection,
                     path,
                     fields,
-                    parent);
+                    fragments);
             }
         }
 
@@ -69,7 +128,7 @@ namespace StrawberryShake.Generators.Utilities
             ISelectionNode selection,
             Path path,
             IDictionary<string, FieldSelection> fields,
-            FragmentNode parent)
+            ICollection<IFragmentNode> fragments)
         {
             if (selection is FieldNode fs && type is IComplexOutputType ct)
             {
@@ -86,7 +145,7 @@ namespace StrawberryShake.Generators.Utilities
                     fragSpread,
                     path,
                     fields,
-                    parent);
+                    fragments);
             }
             else if (selection is InlineFragmentNode inlineFrag)
             {
@@ -95,7 +154,7 @@ namespace StrawberryShake.Generators.Utilities
                     inlineFrag,
                     path,
                     fields,
-                    parent);
+                    fragments);
             }
         }
 
@@ -112,7 +171,7 @@ namespace StrawberryShake.Generators.Utilities
 
             if (type.Fields.TryGetField(fieldName, out IOutputField field))
             {
-                if (!fields.TryGetValue(responseName, out FieldSelection f))
+                if (!fields.TryGetValue(responseName, out FieldSelection? f))
                 {
                     f = new FieldSelection(field, fieldSelection, path);
                     fields.Add(responseName, f);
@@ -131,20 +190,21 @@ namespace StrawberryShake.Generators.Utilities
             FragmentSpreadNode fragmentSpread,
             Path path,
             IDictionary<string, FieldSelection> fields,
-            FragmentNode parent)
+            ICollection<IFragmentNode> fragments)
         {
-            Fragment fragment = _fragments.GetFragment(
-                fragmentSpread.Name.Value);
-            FragmentNode fragmentNode = parent.AddChild(fragment);
+            Fragment fragment = _fragments.GetFragment(fragmentSpread.Name.Value);
 
-            if (fragment != null && DoesTypeApply(fragment.TypeCondition, type))
+            if (TypeHelpers.DoesTypeApply(fragment.TypeCondition, type))
             {
+                var fragmentNode = new FragmentNode(fragment);
+                fragments.Add(fragmentNode);
+
                 CollectFields(
                     type,
                     fragment.SelectionSet,
                     path,
                     fields,
-                    fragmentNode);
+                    fragmentNode.Children);
             }
         }
 
@@ -153,41 +213,51 @@ namespace StrawberryShake.Generators.Utilities
             InlineFragmentNode inlineFragment,
             Path path,
             IDictionary<string, FieldSelection> fields,
-            FragmentNode parent)
+            ICollection<IFragmentNode> fragments)
         {
             Fragment fragment = _fragments.GetFragment(type, inlineFragment);
 
-            if (DoesTypeApply(fragment.TypeCondition, type))
+            if (TypeHelpers.DoesTypeApply(fragment.TypeCondition, type))
             {
+                var fragmentNode = new FragmentNode(new Fragment(
+                    fragment.TypeCondition.Name,
+                    fragment.TypeCondition,
+                    fragment.SelectionSet));
+                fragments.Add(fragmentNode);
+
                 CollectFields(
                     type,
                     fragment.SelectionSet,
                     path,
                     fields,
-                    parent);
+                    fragmentNode.Children);
             }
         }
 
-        private static bool DoesTypeApply(
-            IType typeCondition,
-            INamedOutputType current)
+        private static bool FieldSelectionsAreEqual(
+            IReadOnlyList<FieldSelection> a,
+            IReadOnlyList<FieldSelection> b)
         {
-            if (typeCondition is ObjectType ot)
+            if (a.Count == b.Count)
             {
-                return ot == current;
-            }
-            else if (typeCondition is InterfaceType it
-                && current is ObjectType cot)
-            {
-                return cot.Interfaces.ContainsKey(it.Name);
-            }
-            else if (typeCondition is UnionType ut)
-            {
-                return ut.Types.ContainsKey(current.Name);
+                for (int i = 0; i < a.Count; i++)
+                {
+                    if (!ReferenceEquals(a[i].Selection, b[i].Selection))
+                    {
+                        return false;
+                    }
+                }
+                return true;
             }
             return false;
         }
+
+        private class Cache
+            : Dictionary<INamedOutputType, SelectionCache>
+        { }
+
+        private class SelectionCache
+            : Dictionary<SelectionSetNode, PossibleSelections>
+        { }
     }
-
-
 }

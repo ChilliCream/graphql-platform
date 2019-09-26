@@ -53,7 +53,7 @@ namespace StrawberryShake.Generators.CSharp
                     IOperationDescriptor operation = descriptor.Operations[i];
 
                     string typeName = typeLookup.GetTypeName(
-                        operation.OperationType,
+                        new NonNullType(operation.OperationType),
                         operation.ResultType.Name,
                         true);
 

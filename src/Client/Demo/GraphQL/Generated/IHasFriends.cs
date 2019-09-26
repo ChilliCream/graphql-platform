@@ -7,6 +7,6 @@ namespace StrawberryShake.Client
 {
     public interface IHasFriends
     {
-        IFriend Friends { get; }
+        IFriend? Friends { get; }
     }
 }

@@ -57,10 +57,10 @@ namespace StrawberryShake.Generators.CSharp
         }
 
         private async Task WriteDeserializeMethodAsync(
-           CodeWriter writer,
-           IResultParserTypeDescriptor possibleType,
-           ITypeLookup typeLookup,
-           ISet<string> generatedMethods)
+            CodeWriter writer,
+            IResultParserTypeDescriptor possibleType,
+            ITypeLookup typeLookup,
+            ISet<string> generatedMethods)
         {
             bool first = true;
 

@@ -17,15 +17,17 @@ namespace StrawberryShake.Client
             _executor = executor ?? throw new ArgumentNullException(nameof(executor));
         }
 
-        public Task<IOperationResult<IGetHero>> GetHeroAsync() =>
-            GetHeroAsync(CancellationToken.None);
+        public Task<IOperationResult<IGetHero>> GetHeroAsync(
+            Episode? episode) =>
+            GetHeroAsync(episode, CancellationToken.None);
 
         public Task<IOperationResult<IGetHero>> GetHeroAsync(
+            Episode? episode,
             CancellationToken cancellationToken)
         {
 
             return _executor.ExecuteAsync(
-                new GetHeroOperation(),
+                new GetHeroOperation {Episode = episode },
                 cancellationToken);
         }
     }

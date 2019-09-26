@@ -57,6 +57,11 @@ namespace StrawberryShake.Generators.CSharp
             await WriteUsing(writer, "System.Collections");
             await WriteUsing(writer, "System.Collections.Generic");
 
+            if (components.Contains(WellKnownComponents.Http))
+            {
+                await WriteUsing(writer, "System.Net.Http");
+            }
+
             if (components.Contains(WellKnownComponents.Json))
             {
                 await WriteUsing(writer, "System.Text.Json");
@@ -68,11 +73,27 @@ namespace StrawberryShake.Generators.CSharp
                 await WriteUsing(writer, "System.Threading.Tasks");
             }
 
+            if (components.Contains(WellKnownComponents.DI))
+            {
+                await WriteUsing(writer, "Microsoft.Extensions.DependencyInjection");
+                await WriteUsing(writer, "Microsoft.Extensions.DependencyInjection.Extensions");
+            }
+
             await WriteUsing(writer, "StrawberryShake");
 
-            if (components.Contains(WellKnownComponents.Http))
+            if (components.Contains(WellKnownComponents.HttpExecutor))
             {
                 await WriteUsing(writer, "StrawberryShake.Http");
+            }
+
+            if (components.Contains(WellKnownComponents.HttpExecutorPipeline))
+            {
+                await WriteUsing(writer, "StrawberryShake.Http.Pipelines");
+            }
+
+            if (components.Contains(WellKnownComponents.Serializer))
+            {
+                await WriteUsing(writer, "StrawberryShake.Serializers");
             }
         }
 

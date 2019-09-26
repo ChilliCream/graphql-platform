@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading.Tasks;
+using McMaster.Extensions.CommandLineUtils;
 using StrawberryShake.Generators;
 using HCError = HotChocolate.IError;
 
@@ -10,12 +11,26 @@ namespace StrawberryShake.Tools
     public class GenerateCommand
         : CompileCommandBase
     {
+        [Option]
+        public string? LanguageVersion { get; set; }
+
+        [Option]
+        public bool DISupport { get; set; }
+
         protected override async Task<bool> Compile(
             string path,
             Configuration config,
             ClientGenerator generator)
         {
+            if (Enum.TryParse(LanguageVersion, true, out LanguageVersion version))
+            {
+                generator.ModifyOptions(o => o.LanguageVersion = version);
+            }
+
+            generator.ModifyOptions(o => o.EnableDISupport = DISupport);
+
             IReadOnlyList<HCError> validationErrors = generator.Validate();
+
             if (validationErrors.Count > 0)
             {
                 WriteErrors(validationErrors);

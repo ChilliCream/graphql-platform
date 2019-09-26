@@ -1,0 +1,51 @@
+﻿﻿public interface IHasName
+{
+    string? Name { get; }
+}
+
+public interface ISomeDroid
+    : IHasName
+{
+    string? PrimaryFunction { get; }
+}
+
+public interface ISomeHuman
+    : IHasName
+{
+    string? HomePlanet { get; }
+}
+
+public class SomeDroid
+    : IHasName
+    , ISomeDroid
+{
+    public SomeDroid(
+        string? name, 
+        string? primaryFunction)
+    {
+        Name = name;
+        PrimaryFunction = primaryFunction;
+    }
+
+    public string? Name { get; }
+
+    public string? PrimaryFunction { get; }
+}
+
+public class SomeHuman
+    : IHasName
+    , ISomeHuman
+{
+    public SomeHuman(
+        string? name, 
+        string? homePlanet)
+    {
+        Name = name;
+        HomePlanet = homePlanet;
+    }
+
+    public string? Name { get; }
+
+    public string? HomePlanet { get; }
+}
+
