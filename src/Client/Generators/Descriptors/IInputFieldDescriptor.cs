@@ -9,6 +9,6 @@ namespace StrawberryShake.Generators.Descriptors
 
         IType Type { get; }
 
-        IInputClassDescriptor InputObjectType { get; }
+        IInputClassDescriptor? InputObjectType { get; }
     }
 }

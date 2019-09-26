@@ -11,7 +11,7 @@ namespace StrawberryShake.Generators.Descriptors
             string name,
             IType type,
             IInputField field,
-            IInputClassDescriptor inputObjectType)
+            IInputClassDescriptor? inputObjectType)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Type = type ?? throw new ArgumentNullException(nameof(type));
@@ -25,7 +25,7 @@ namespace StrawberryShake.Generators.Descriptors
 
         public IInputField Field { get; }
 
-        public IInputClassDescriptor InputObjectType { get; }
+        public IInputClassDescriptor? InputObjectType { get; }
 
         public IEnumerable<ICodeDescriptor> GetChildren()
         {

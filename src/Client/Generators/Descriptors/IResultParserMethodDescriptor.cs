@@ -18,7 +18,7 @@ namespace StrawberryShake.Generators.Descriptors
 
         IInterfaceDescriptor ResultDescriptor { get; }
 
-        IResultParserTypeDescriptor UnknownType { get; }
+        IResultParserTypeDescriptor? UnknownType { get; }
 
         IReadOnlyList<IResultParserTypeDescriptor> PossibleTypes { get; }
     }

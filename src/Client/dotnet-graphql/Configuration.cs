@@ -7,11 +7,11 @@ namespace StrawberryShake.Tools
 {
     public class Configuration
     {
-        public List<SchemaFile> Schemas { get; set; }
+        public List<SchemaFile>? Schemas { get; set; }
 
-        public string ClientName { get; set; }
+        public string? ClientName { get; set; }
 
-        public static async Task<Configuration> LoadConfig(string path)
+        public static async Task<Configuration?> LoadConfig(string path)
         {
             Configuration config;
 

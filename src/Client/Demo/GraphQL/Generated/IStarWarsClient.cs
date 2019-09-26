@@ -9,9 +9,11 @@ namespace StrawberryShake.Client
 {
     public interface IStarWarsClient
     {
-        Task<IOperationResult<IGetHero>> GetHeroAsync();
+        Task<IOperationResult<IGetHero>> GetHeroAsync(
+            Episode? episode);
 
         Task<IOperationResult<IGetHero>> GetHeroAsync(
+            Episode? episode,
             CancellationToken cancellationToken);
     }
 }

@@ -4,13 +4,13 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.Http.Pipelines
 {
-    public class HttpOperationExecutionPipelineBuilder
-        : IHttpOperationExecutionPipelineBuilder
+    public class HttpPipelineBuilder
+        : IHttpPipelineBuilder
     {
         private readonly Stack<OperationMiddleware> _components =
             new Stack<OperationMiddleware>();
 
-        public IHttpOperationExecutionPipelineBuilder Use(
+        public IHttpPipelineBuilder Use(
             Func<OperationDelegate, OperationDelegate> middleware)
         {
             if (middleware is null)
@@ -22,7 +22,7 @@ namespace StrawberryShake.Http.Pipelines
             return this;
         }
 
-        public IHttpOperationExecutionPipelineBuilder Use(
+        public IHttpPipelineBuilder Use(
             OperationMiddleware middleware)
         {
             if (middleware is null)
@@ -57,6 +57,9 @@ namespace StrawberryShake.Http.Pipelines
 
             return next;
         }
+
+        public static HttpPipelineBuilder New() =>
+            new HttpPipelineBuilder();
 
         private static Task ThrowExceptionMiddleware(
             IHttpOperationContext context)
