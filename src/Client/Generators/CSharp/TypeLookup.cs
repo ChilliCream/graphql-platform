@@ -52,6 +52,8 @@ namespace StrawberryShake.Generators.CSharp
                 new LeafTypeInfo("Url", typeof(Uri), typeof(string)),
                 new LeafTypeInfo("Date", typeof(DateTime), typeof(string)),
                 new LeafTypeInfo("DateTime", typeof(DateTimeOffset), typeof(string)),
+                new LeafTypeInfo("Guid", typeof(Guid), typeof(string)),
+                new LeafTypeInfo("Uuid", typeof(Guid), typeof(string)),
             }.ToDictionary(t => t.TypeName);
         }
 

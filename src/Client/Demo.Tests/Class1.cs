@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using StrawberryShake.Http.Pipelines;
 using Xunit;
+using StrawberryShake.Serializers;
 
 namespace Demo.Tests
 {
@@ -40,48 +41,6 @@ namespace Demo.Tests
             IOperationResult<IGetHero> result = await client.GetHeroAsync(Episode.Empire);
         }
 
-        public class StringValueSerializer
-            : IValueSerializer
-        {
-            public string Name => "String";
 
-            public ValueKind Kind => ValueKind.String;
-
-            public Type ClrType => typeof(string);
-
-            public Type SerializationType => typeof(string);
-
-            public object? Serialize(object? value)
-            {
-                return value;
-            }
-
-            public object? Deserialize(object? serialized)
-            {
-                return serialized;
-            }
-        }
-
-        public class FloatValueSerializer
-            : IValueSerializer
-        {
-            public string Name => "Float";
-
-            public ValueKind Kind => ValueKind.Float;
-
-            public Type ClrType => typeof(double);
-
-            public Type SerializationType => typeof(double);
-
-            public object? Serialize(object? value)
-            {
-                return value;
-            }
-
-            public object? Deserialize(object? serialized)
-            {
-                return serialized;
-            }
-        }
     }
 }
