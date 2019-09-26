@@ -20,6 +20,12 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteIndentedLineAsync(
                 "public class {0}ValueSerializer",
                 descriptor.Name);
+
+            using (writer.IncreaseIndent())
+            {
+                await writer.WriteIndentedLineAsync(": IValueSerializer");
+            }
+
             await writer.WriteIndentedLineAsync("{");
 
             using (writer.IncreaseIndent())

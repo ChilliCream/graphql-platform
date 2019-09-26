@@ -28,7 +28,7 @@ namespace StrawberryShake.Client
 
             return serviceCollection;
         }
-        public static IServiceCollection AddDefaultScalarSerializers(
+        public static IServiceCollection AddStarWarsClient(
             this IServiceCollection serviceCollection)
         {
             if (serviceCollection is null)

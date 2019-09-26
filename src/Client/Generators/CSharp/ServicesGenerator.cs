@@ -67,7 +67,7 @@ namespace StrawberryShake.Generators.CSharp
         {
             await WriteMethodAsync(
                 writer,
-                "AddDefaultScalarSerializers",
+                $"Add{descriptor.Name}",
                 true,
                 async () =>
                 {
