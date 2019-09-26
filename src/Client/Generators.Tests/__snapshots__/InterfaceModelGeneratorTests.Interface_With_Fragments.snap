@@ -5,7 +5,7 @@
 
 public interface IHasFriends
 {
-    UNKNOWN Friends { get; }
+    UNKNOWN? Friends { get; }
 }
 
 public interface IHero
@@ -19,13 +19,14 @@ public class Hero
 {
     public Hero(
         string? name, 
-        UNKNOWN friends)
+        UNKNOWN? friends)
     {
         Name = name;
         Friends = friends;
     }
+
     public string? Name { get; }
 
-    public UNKNOWN Friends { get; }
+    public UNKNOWN? Friends { get; }
 }
 

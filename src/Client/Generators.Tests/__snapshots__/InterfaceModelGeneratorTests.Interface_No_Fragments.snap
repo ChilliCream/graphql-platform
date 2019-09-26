@@ -2,7 +2,7 @@
 {
     string? Name { get; }
 
-    UNKNOWN Friends { get; }
+    UNKNOWN? Friends { get; }
 }
 
 public class Character
@@ -10,13 +10,14 @@ public class Character
 {
     public Character(
         string? name, 
-        UNKNOWN friends)
+        UNKNOWN? friends)
     {
         Name = name;
         Friends = friends;
     }
+
     public string? Name { get; }
 
-    public UNKNOWN Friends { get; }
+    public UNKNOWN? Friends { get; }
 }
 

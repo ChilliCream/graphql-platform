@@ -36,6 +36,7 @@ public class Droid
         Name = name;
         PrimaryFunction = primaryFunction;
     }
+
     public string? Name { get; }
 
     public string? PrimaryFunction { get; }
@@ -52,6 +53,7 @@ public class Human
         Name = name;
         HomePlanet = homePlanet;
     }
+
     public string? Name { get; }
 
     public string? HomePlanet { get; }
