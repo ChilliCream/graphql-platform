@@ -1,4 +1,5 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
   <ItemGroup>
     <Watch Include="**\*.graphql" />
     <Watch Include="**\berry.json" />
@@ -16,4 +17,5 @@
 
     <Exec Command="$(BerryCommand)" WorkingDirectory="$(MSBuildProjectDirectory)" IgnoreExitCode="true" />
   </Target>
+
 </Project>
