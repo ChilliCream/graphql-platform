@@ -10,11 +10,14 @@
     <PropertyGroup>
       <BerryLangVersion Condition="'$(BerryLangVersion)'==''">CSharp_7_3</BerryLangVersion>
       <BerryEnableDI Condition="'$(BerryEnableDI)'==''">true</BerryEnableDI>
+      <BerryNamespace Condition="'$(BerryEnableDI)'=='' AND $(RootNamespace)'!=''">$(RootNamespace)</BerryNamespace>
       <BerryCommand>dotnet graphql generate</BerryCommand>
       <BerryCommand>$(BerryCommand) -l $(BerryLangVersion)</BerryCommand>
       <BerryCommand Condition="'$(BerryEnableDI)'=='true'">$(BerryCommand) -d</BerryCommand>
+      <BerryCommand Condition="'$(BerryNamespace)'!=''">$(BerryCommand) -n $(BerryNamespace)</BerryCommand>
     </PropertyGroup>
 
+    <Message Text="$(BerryCommand)" Importance="High" />
     <Exec Command="$(BerryCommand)" WorkingDirectory="$(MSBuildProjectDirectory)" IgnoreExitCode="true" />
   </Target>
 

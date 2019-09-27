@@ -9,7 +9,7 @@ using StrawberryShake.Http;
 using StrawberryShake.Http.Pipelines;
 using StrawberryShake.Serializers;
 
-namespace StrawberryShake.Client
+namespace  StrawberryShake.Client.GraphQL
 {
     public static class StarWarsClientServiceCollectionExtensions
     {

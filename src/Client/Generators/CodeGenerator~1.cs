@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using StrawberryShake.Generators.Utilities;
+using static StrawberryShake.Generators.Utilities.NameUtils;
 
 namespace StrawberryShake.Generators
 {
@@ -29,6 +30,11 @@ namespace StrawberryShake.Generators
             throw new ArgumentException(
                 "The code generator expected " +
                 $"descriptor type `{typeof(T).FullName}`.");
+        }
+
+        protected virtual string CreateFileName(T descriptor)
+        {
+            return GetClassName(descriptor.Name) + ".cs";
         }
 
         public Task WriteAsync(
@@ -65,11 +71,6 @@ namespace StrawberryShake.Generators
             CodeWriter writer,
             T descriptor,
             ITypeLookup typeLookup);
-
-        protected virtual string CreateFileName(T descriptor)
-        {
-            return descriptor.Name + ".cs";
-        }
 
         protected Task WriteStaticClassAsync(
             CodeWriter writer,

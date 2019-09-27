@@ -17,6 +17,9 @@ namespace StrawberryShake.Tools
         [Option]
         public bool DISupport { get; set; }
 
+        [Option]
+        public string? Namespace { get; set; }
+
         protected override async Task<bool> Compile(
             string path,
             Configuration config,
@@ -28,6 +31,11 @@ namespace StrawberryShake.Tools
             }
 
             generator.ModifyOptions(o => o.EnableDISupport = DISupport);
+
+            if (Namespace is { })
+            {
+                generator.SetNamespace(Namespace);
+            }
 
             IReadOnlyList<HCError> validationErrors = generator.Validate();
 

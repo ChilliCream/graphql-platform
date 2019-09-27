@@ -8,6 +8,7 @@ using Xunit;
 using Snapshooter.Xunit;
 using HotChocolate.AspNetCore;
 using StrawberryShake.Client;
+using StrawberryShake.Client.GraphQL;
 
 namespace StrawberryShake.Demo
 {

@@ -15,13 +15,13 @@ namespace StrawberryShake.Tools
         : ICommand
     {
         [Argument(0, "path")]
-        public string Path { get; set; }
+        public string? Path { get; set; }
 
         [Option]
-        public string Token { get; set; }
+        public string? Token { get; set; }
 
         [Option]
-        public string Scheme { get; set; }
+        public string? Scheme { get; set; }
 
         public async Task<int> OnExecute()
         {

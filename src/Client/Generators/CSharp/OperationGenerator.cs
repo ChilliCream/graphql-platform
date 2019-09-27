@@ -124,7 +124,7 @@ namespace StrawberryShake.Generators.CSharp
 
             await writer.WriteIndentAsync().ConfigureAwait(false);
             await writer.WriteAsync("public IDocument Document => ").ConfigureAwait(false);
-            await writer.WriteAsync(descriptor.Query.Name).ConfigureAwait(false);
+            await writer.WriteAsync(GetClassName(descriptor.Query.Name)).ConfigureAwait(false);
             await writer.WriteAsync(".Default").ConfigureAwait(false);
             await writer.WriteAsync(';').ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
