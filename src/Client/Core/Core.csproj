@@ -30,6 +30,7 @@
   </ItemGroup>
 
   <ItemGroup Label="dotnet pack instructions">
+    <None Remove="*.targets" />
     <Content Include="*.targets">
       <Pack>true</Pack>
       <PackagePath>build\</PackagePath>
