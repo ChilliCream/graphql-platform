@@ -27,5 +27,10 @@ namespace StrawberryShake.Tools
 
             return config;
         }
+
+        public static bool Exists(string path)
+        {
+            return File.Exists(Path.Combine(path, WellKnownFiles.Config));
+        }
     }
 }
