@@ -27,7 +27,7 @@ namespace StrawberryShake.Tools
                 {
                     foreach (string configFile in Directory.GetFiles(
                         Environment.CurrentDirectory,
-                        "config.json",
+                        WellKnownFiles.Config,
                         SearchOption.AllDirectories))
                     {
                         string directory = IOPath.GetDirectoryName(configFile)!;

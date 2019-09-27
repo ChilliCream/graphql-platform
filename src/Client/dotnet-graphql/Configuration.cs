@@ -15,7 +15,7 @@ namespace StrawberryShake.Tools
         {
             Configuration config;
 
-            using (var stream = File.OpenRead(Path.Combine(path, "config.json")))
+            using (var stream = File.OpenRead(Path.Combine(path, WellKnownFiles.Config)))
             {
                 config = await JsonSerializer.DeserializeAsync<Configuration>(
                     stream,
