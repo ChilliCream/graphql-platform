@@ -5,8 +5,10 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    public interface IHuman
-        : IHero
+    public enum Episode
     {
+        Newhope,
+        Empire,
+        Jedi
     }
 }

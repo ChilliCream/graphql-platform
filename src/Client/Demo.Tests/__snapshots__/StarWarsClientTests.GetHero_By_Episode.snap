@@ -1,0 +1,26 @@
+﻿{
+  "Data": {
+    "Hero": {
+      "Height": 1.72,
+      "Name": "Luke Skywalker",
+      "Friends": {
+        "Nodes": [
+          {
+            "Name": "Han Solo"
+          },
+          {
+            "Name": "Leia Organa"
+          },
+          {
+            "Name": "C-3PO"
+          },
+          {
+            "Name": "R2-D2"
+          }
+        ]
+      }
+    }
+  },
+  "Errors": [],
+  "Extensions": {}
+}

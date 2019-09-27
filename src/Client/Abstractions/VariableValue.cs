@@ -2,7 +2,7 @@ namespace StrawberryShake
 {
     public readonly struct VariableValue
     {
-        public VariableValue(string name, string typeName, object value)
+        public VariableValue(string name, string typeName, object? value)
         {
             Name = name;
             TypeName = typeName;
@@ -13,6 +13,6 @@ namespace StrawberryShake
 
         public string TypeName { get; }
 
-        public object Value { get; }
+        public object? Value { get; }
     }
 }

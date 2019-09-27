@@ -8,6 +8,12 @@ namespace StrawberryShake.Client
     public class Friend
         : IFriend
     {
-        public IReadOnlyList<IHasName> Nodes { get; set; }
+        public Friend(
+            IReadOnlyList<IHasName>? nodes)
+        {
+            Nodes = nodes;
+        }
+
+        public IReadOnlyList<IHasName>? Nodes { get; }
     }
 }

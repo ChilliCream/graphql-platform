@@ -1,0 +1,32 @@
+﻿﻿public interface IHasName
+{
+    string? Name { get; }
+}
+
+public interface IHasFriends
+{
+    UNKNOWN? Friends { get; }
+}
+
+public interface IHero
+    : IHasName
+    , IHasFriends
+{
+}
+
+public class Hero
+    : IHero
+{
+    public Hero(
+        string? name, 
+        UNKNOWN? friends)
+    {
+        Name = name;
+        Friends = friends;
+    }
+
+    public string? Name { get; }
+
+    public UNKNOWN? Friends { get; }
+}
+

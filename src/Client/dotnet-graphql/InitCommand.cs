@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -10,7 +11,6 @@ using HotChocolate.Stitching.Introspection;
 using McMaster.Extensions.CommandLineUtils;
 using HotChocolate.Language;
 using IOPath = System.IO.Path;
-using System.ComponentModel.DataAnnotations;
 
 namespace StrawberryShake.Tools
 {
@@ -19,23 +19,33 @@ namespace StrawberryShake.Tools
     {
         [Argument(0, "path", "The directory where the client shall be located.")]
         [Required]
-        public string Path { get; set; }
+        public string? Path { get; set; }
 
         [Argument(1, "uri", "The URL to the GraphQL endpoint.")]
         [Required]
-        public string Url { get; set; }
+        public string? Url { get; set; }
 
         [Option("-n|--schemaName")]
-        public string SchemaName { get; set; }
+        public string? SchemaName { get; set; }
 
         [Option]
-        public string Token { get; set; }
+        public string? Token { get; set; }
 
         [Option]
-        public string Scheme { get; set; }
+        public string? Scheme { get; set; }
 
         public async Task<int> OnExecute()
         {
+            if (Path is null)
+            {
+                throw new InvalidOperationException("Path mustn't not be null.");
+            }
+
+            if (Url is null)
+            {
+                throw new InvalidOperationException("Url mustn't not be null.");
+            }
+
             var httpClient = new HttpClient();
             httpClient.BaseAddress = new Uri(Url);
 

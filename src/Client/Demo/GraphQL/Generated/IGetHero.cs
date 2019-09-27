@@ -7,6 +7,6 @@ namespace StrawberryShake.Client
 {
     public interface IGetHero
     {
-        IHero Hero { get; }
+        IHero? Hero { get; }
     }
 }

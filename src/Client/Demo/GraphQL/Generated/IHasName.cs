@@ -7,6 +7,6 @@ namespace StrawberryShake.Client
 {
     public interface IHasName
     {
-        string Name { get; }
+        string? Name { get; }
     }
 }

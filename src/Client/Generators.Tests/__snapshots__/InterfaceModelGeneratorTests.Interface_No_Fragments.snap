@@ -1,0 +1,23 @@
+﻿﻿public interface ICharacter
+{
+    string? Name { get; }
+
+    UNKNOWN? Friends { get; }
+}
+
+public class Character
+    : ICharacter
+{
+    public Character(
+        string? name, 
+        UNKNOWN? friends)
+    {
+        Name = name;
+        Friends = friends;
+    }
+
+    public string? Name { get; }
+
+    public UNKNOWN? Friends { get; }
+}
+

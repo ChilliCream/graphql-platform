@@ -9,9 +9,10 @@ namespace StrawberryShake.Http.Pipelines
         IServiceProvider services,
         OperationDelegate next);
 
-    public interface IHttpOperationExecutionPipelineBuilder
+    public interface IHttpPipelineBuilder
     {
-        IHttpOperationExecutionPipelineBuilder Use(Func<OperationDelegate, OperationDelegate> middleware);
-        IHttpOperationExecutionPipelineBuilder Use(OperationMiddleware middleware);
+        IHttpPipelineBuilder Use(Func<OperationDelegate, OperationDelegate> middleware);
+        IHttpPipelineBuilder Use(OperationMiddleware middleware);
+        OperationDelegate Build(IServiceProvider services);
     }
 }

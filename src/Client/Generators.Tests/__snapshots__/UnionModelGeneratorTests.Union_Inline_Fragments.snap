@@ -1,0 +1,58 @@
+﻿﻿public interface ISearchResult
+{
+}
+
+public interface IStarship
+{
+    string? Name { get; }
+}
+
+public interface IHuman
+{
+    string? HomePlanet { get; }
+}
+
+public interface IDroid
+{
+    string? PrimaryFunction { get; }
+}
+
+public class Starship
+    : ISearchResult
+    , IStarship
+{
+    public Starship(
+        string? name)
+    {
+        Name = name;
+    }
+
+    public string? Name { get; }
+}
+
+public class Human
+    : ISearchResult
+    , IHuman
+{
+    public Human(
+        string? homePlanet)
+    {
+        HomePlanet = homePlanet;
+    }
+
+    public string? HomePlanet { get; }
+}
+
+public class Droid
+    : ISearchResult
+    , IDroid
+{
+    public Droid(
+        string? primaryFunction)
+    {
+        PrimaryFunction = primaryFunction;
+    }
+
+    public string? PrimaryFunction { get; }
+}
+

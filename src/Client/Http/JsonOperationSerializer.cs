@@ -25,7 +25,7 @@ namespace StrawberryShake.Http
 
         public Task SerializeAsync(
             IOperation operation,
-            IReadOnlyDictionary<string, object> extensions,
+            IReadOnlyDictionary<string, object?>? extensions,
             bool includeDocument,
             Stream requestStream)
         {
@@ -54,10 +54,11 @@ namespace StrawberryShake.Http
             writer.WritePropertyName("operationName");
             writer.WriteStringValue(operation.Name);
 
-            IReadOnlyDictionary<string, object> variables =
+            IReadOnlyDictionary<string, object?>? variables =
                 SerializeVariables(operation);
             if (variables != null)
             {
+                writer.WritePropertyName("variables");
                 WriteValue(variables, writer);
             }
 
@@ -72,7 +73,7 @@ namespace StrawberryShake.Http
             return writer.FlushAsync();
         }
 
-        private IReadOnlyDictionary<string, object> SerializeVariables(
+        private IReadOnlyDictionary<string, object?>? SerializeVariables(
             IOperation operation)
         {
             IReadOnlyList<VariableValue> variableValues =
@@ -80,7 +81,7 @@ namespace StrawberryShake.Http
 
             if (variableValues.Count > 0)
             {
-                var map = new Dictionary<string, object>();
+                var map = new Dictionary<string, object?>();
 
                 foreach (VariableValue variableValue in variableValues)
                 {
@@ -206,8 +207,6 @@ namespace StrawberryShake.Http
                         break;
                 }
             }
-
-            writer.WriteEndObject();
         }
     }
 }
