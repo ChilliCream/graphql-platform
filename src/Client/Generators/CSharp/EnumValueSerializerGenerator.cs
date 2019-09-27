@@ -7,6 +7,13 @@ namespace StrawberryShake.Generators.CSharp
     public class EnumValueSerializerGenerator
         : CodeGenerator<IEnumDescriptor>
     {
+        private readonly LanguageVersion _languageVersion;
+
+        public EnumValueSerializerGenerator(LanguageVersion languageVersion)
+        {
+            _languageVersion = languageVersion;
+        }
+
         protected override string CreateFileName(IEnumDescriptor descriptor)
         {
             return descriptor.Name + "ValueSerializer.cs";
@@ -63,8 +70,16 @@ namespace StrawberryShake.Generators.CSharp
             IEnumDescriptor descriptor,
             ITypeLookup typeLookup)
         {
-            await writer.WriteIndentedLineAsync(
-                "public object? Serialize(object? value)");
+            if (_languageVersion == LanguageVersion.CSharp_8_0)
+            {
+                await writer.WriteIndentedLineAsync(
+                    "public object? Serialize(object? value)");
+            }
+            else
+            {
+                await writer.WriteIndentedLineAsync(
+                    "public object Serialize(object value)");
+            }
             await writer.WriteIndentedLineAsync("{");
 
             using (writer.IncreaseIndent())
@@ -121,13 +136,22 @@ namespace StrawberryShake.Generators.CSharp
             IEnumDescriptor descriptor,
             ITypeLookup typeLookup)
         {
-            await writer.WriteIndentedLineAsync(
-                "public object? Deserialize(object? value)");
+            if (_languageVersion == LanguageVersion.CSharp_8_0)
+            {
+                await writer.WriteIndentedLineAsync(
+                    "public object? Deserialize(object? serialized)");
+            }
+            else
+            {
+                await writer.WriteIndentedLineAsync(
+                    "public object Deserialize(object serialized)");
+            }
+
             await writer.WriteIndentedLineAsync("{");
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentedLineAsync("if(value is null)");
+                await writer.WriteIndentedLineAsync("if(serialized is null)");
                 await writer.WriteIndentedLineAsync("{");
                 using (writer.IncreaseIndent())
                 {
@@ -137,7 +161,7 @@ namespace StrawberryShake.Generators.CSharp
                 await writer.WriteLineAsync();
 
                 await writer.WriteIndentedLineAsync(
-                    "var stringValue = (string)value;",
+                    "var stringValue = (string)serialized;",
                     descriptor.Name);
                 await writer.WriteLineAsync();
 
