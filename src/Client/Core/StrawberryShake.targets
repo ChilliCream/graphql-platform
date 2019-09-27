@@ -1,0 +1,19 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Watch Include="**\*.graphql" />
+    <Watch Include="**\berry.json" />
+    <Compile Update="**\Generated\**\*.cs" Watch="false" />
+  </ItemGroup>
+
+  <Target Name="GenerateGraphQLClient" AfterTargets="PreBuildEvent">
+    <PropertyGroup>
+      <BerryLangVersion Condition="'$(BerryLangVersion)'==''">CSharp_7_3</BerryLangVersion>
+      <BerryEnableDI Condition="'$(BerryEnableDI)'==''">true</BerryEnableDI>
+      <BerryCommand>dotnet graphql generate</BerryCommand>
+      <BerryCommand>$(BerryCommand) -l $(BerryLangVersion)</BerryCommand>
+      <BerryCommand Condition="'$(BerryEnableDI)'=='true'">$(BerryCommand) -d</BerryCommand>
+    </PropertyGroup>
+
+    <Exec Command="$(BerryCommand)" WorkingDirectory="$(MSBuildProjectDirectory)" IgnoreExitCode="true" />
+  </Target>
+</Project>

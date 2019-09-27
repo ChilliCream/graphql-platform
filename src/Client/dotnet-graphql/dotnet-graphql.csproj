@@ -19,11 +19,4 @@
     <ProjectReference Include="..\Generators\Generators.csproj" />
   </ItemGroup>
 
-  <ItemGroup Label="dotnet pack instructions">
-    <Content Include="*.targets">
-      <Pack>true</Pack>
-      <PackagePath>build\</PackagePath>
-    </Content>
-  </ItemGroup>
-
 </Project>
