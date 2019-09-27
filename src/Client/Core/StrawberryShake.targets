@@ -8,6 +8,7 @@
 
   <Target Name="GenerateGraphQLClient" AfterTargets="PreBuildEvent">
     <PropertyGroup>
+      <BerryLangVersion Condition="'$(Nullable)'=='enable' AND '$(LangVersion)'=='8.0'">CSharp_8_0</BerryLangVersion>
       <BerryLangVersion Condition="'$(BerryLangVersion)'==''">CSharp_7_3</BerryLangVersion>
       <BerryEnableDI Condition="'$(BerryEnableDI)'==''">true</BerryEnableDI>
       <BerryNamespace Condition="'$(BerryNamespace)'=='' AND '$(RootNamespace)'!=''">$(RootNamespace)</BerryNamespace>
