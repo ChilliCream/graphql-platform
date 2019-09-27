@@ -11,13 +11,13 @@ namespace StrawberryShake.Tools
     public class GenerateCommand
         : CompileCommandBase
     {
-        [Option]
+        [Option("-l|--LanguageVersion")]
         public string? LanguageVersion { get; set; }
 
-        [Option]
+        [Option("-d|--DISupport")]
         public bool DISupport { get; set; }
 
-        [Option]
+        [Option("-n|--Namespace")]
         public string? Namespace { get; set; }
 
         protected override async Task<bool> Compile(
