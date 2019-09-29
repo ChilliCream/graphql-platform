@@ -117,7 +117,7 @@ namespace HotChocolate.Types.Filters
             IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ items(where: { nested:{ nested: { foo: \"abc\" }}}) { foo } }")
+                .SetQuery("{ items(where: { nested:{ nested: { foo: \"abc\" }}}) { nested { nested { foo } } } }")
                 .Create();
 
             // act

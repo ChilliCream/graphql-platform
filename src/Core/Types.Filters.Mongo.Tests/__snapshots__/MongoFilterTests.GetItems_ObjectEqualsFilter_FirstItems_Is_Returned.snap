@@ -2,7 +2,11 @@
   "Data": {
     "items": [
       {
-        "foo": "abc"
+        "nested": {
+          "nested": {
+            "foo": "abc"
+          }
+        }
       }
     ]
   },
