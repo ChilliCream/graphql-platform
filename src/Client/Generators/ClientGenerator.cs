@@ -490,7 +490,7 @@ namespace StrawberryShake.Generators
             yield return new ClientClassGenerator();
             yield return new QueryGenerator();
             yield return new EnumGenerator();
-            yield return new EnumValueSerializerGenerator();
+            yield return new EnumValueSerializerGenerator(options.LanguageVersion);
 
             if (options.EnableDISupport)
             {

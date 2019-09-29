@@ -33,6 +33,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-graphql", "dotnet-gr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Demo.Tests", "Demo.Tests\Demo.Tests.csproj", "{38BC2E7F-0661-42F2-8C4B-687D239B9F7C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Core", "Core\Core.csproj", "{823CAEF4-98E8-4C45-A874-E5C1B93E20F5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -211,6 +213,18 @@ Global
 		{38BC2E7F-0661-42F2-8C4B-687D239B9F7C}.Release|x64.Build.0 = Release|Any CPU
 		{38BC2E7F-0661-42F2-8C4B-687D239B9F7C}.Release|x86.ActiveCfg = Release|Any CPU
 		{38BC2E7F-0661-42F2-8C4B-687D239B9F7C}.Release|x86.Build.0 = Release|Any CPU
+		{823CAEF4-98E8-4C45-A874-E5C1B93E20F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{823CAEF4-98E8-4C45-A874-E5C1B93E20F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{823CAEF4-98E8-4C45-A874-E5C1B93E20F5}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{823CAEF4-98E8-4C45-A874-E5C1B93E20F5}.Debug|x64.Build.0 = Debug|Any CPU
+		{823CAEF4-98E8-4C45-A874-E5C1B93E20F5}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{823CAEF4-98E8-4C45-A874-E5C1B93E20F5}.Debug|x86.Build.0 = Debug|Any CPU
+		{823CAEF4-98E8-4C45-A874-E5C1B93E20F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{823CAEF4-98E8-4C45-A874-E5C1B93E20F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{823CAEF4-98E8-4C45-A874-E5C1B93E20F5}.Release|x64.ActiveCfg = Release|Any CPU
+		{823CAEF4-98E8-4C45-A874-E5C1B93E20F5}.Release|x64.Build.0 = Release|Any CPU
+		{823CAEF4-98E8-4C45-A874-E5C1B93E20F5}.Release|x86.ActiveCfg = Release|Any CPU
+		{823CAEF4-98E8-4C45-A874-E5C1B93E20F5}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

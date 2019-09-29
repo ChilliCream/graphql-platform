@@ -442,6 +442,13 @@ namespace StrawberryShake.Generators.CSharp
                         await writer.WriteAsync(" = ").ConfigureAwait(false);
                         await writer.WriteAsync(GetFieldName(argument.Name))
                             .ConfigureAwait(false);
+
+                        if (i < operation.Arguments.Count - 1)
+                        {
+                            await writer.WriteAsync(',').ConfigureAwait(false);
+                            await writer.WriteSpaceAsync().ConfigureAwait(false);
+                        }
+
                         await writer.WriteLineAsync().ConfigureAwait(false);
                     }
                 }

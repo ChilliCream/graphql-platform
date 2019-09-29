@@ -181,7 +181,7 @@ namespace StrawberryShake.Generators.CSharp
                 {
                     await writer.WriteIndentedLineAsync(
                         "case \"{0}\":",
-                        possibleType.ResultDescriptor.Name);
+                        possibleType.ResultDescriptor.Type.Name);
 
                     using (writer.IncreaseIndent())
                     {

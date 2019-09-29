@@ -15,13 +15,13 @@ namespace StrawberryShake.Tools
         : ICommand
     {
         [Argument(0, "path")]
-        public string Path { get; set; }
+        public string? Path { get; set; }
 
         [Option]
-        public string Token { get; set; }
+        public string? Token { get; set; }
 
         [Option]
-        public string Scheme { get; set; }
+        public string? Scheme { get; set; }
 
         public async Task<int> OnExecute()
         {
@@ -29,7 +29,7 @@ namespace StrawberryShake.Tools
             {
                 foreach (string configFile in Directory.GetFiles(
                     Environment.CurrentDirectory,
-                    "config.json",
+                    WellKnownFiles.Config,
                     SearchOption.AllDirectories))
                 {
                     string directory = IOPath.GetDirectoryName(configFile);
@@ -56,8 +56,8 @@ namespace StrawberryShake.Tools
             }
             else
             {
-                Configuration config = await Configuration.LoadConfig(
-                    IOPath.Combine(Path, "config.json"));
+                Configuration? config = await Configuration.LoadConfig(
+                    IOPath.Combine(Path, WellKnownFiles.Config));
                 await UpdateSchemaAsync(Path, config);
             }
             return 0;
