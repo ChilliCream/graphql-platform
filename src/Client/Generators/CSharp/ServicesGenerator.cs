@@ -27,12 +27,26 @@ namespace StrawberryShake.Generators.CSharp
             WriteStaticClassAsync(writer, descriptor.Name, async () =>
             {
                 await WriteAddSerializersAsync(writer, descriptor.Client);
+                await writer.WriteLineAsync();
+
                 await WriteAddClientAsync(writer, descriptor.Client);
+                await writer.WriteLineAsync();
+
                 await WriteAddEnumSerializersAsync(writer, descriptor);
+                await writer.WriteLineAsync();
+
                 await WriteAddResultParsersAsync(writer, descriptor);
+                await writer.WriteLineAsync();
+
                 await WriteTryAddDefaultOperationSerializerAsync(writer);
+                await writer.WriteLineAsync();
+
                 await WriteTryAddDefaultHttpPipelineAsync(writer);
+                await writer.WriteLineAsync();
+
                 await WriteClientFactoryAsync(writer, descriptor.Client);
+                await writer.WriteLineAsync();
+
                 await WritePipelineFactoryAsync(writer, descriptor.Client);
             });
 

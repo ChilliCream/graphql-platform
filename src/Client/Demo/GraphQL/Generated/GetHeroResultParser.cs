@@ -5,7 +5,7 @@ using System.Text.Json;
 using StrawberryShake;
 using StrawberryShake.Http;
 
-namespace  StrawberryShake.Client.GraphQL
+namespace StrawberryShake.Client.GraphQL
 {
     public class GetHeroResultParser
         : JsonResultParserBase<IGetHero>
@@ -25,7 +25,7 @@ namespace  StrawberryShake.Client.GraphQL
             }
             _floatSerializer = serializer;
 
-            if (!map.TryGetValue("String", out  serializer))
+            if (!map.TryGetValue("String", out serializer))
             {
                 throw new ArgumentException(
                     "There is no serializer specified for `String`.",
