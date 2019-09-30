@@ -84,5 +84,44 @@ namespace StrawberryShake.Generators
             // assert
             outputHandler.Content.MatchSnapshot();
         }
+
+        [Fact]
+        public async Task Two_Alias_Fields()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo: Foo!
+                }
+
+                type Foo {
+                    bar: String
+                }
+                ";
+
+            string query =
+               @"
+                query getBars {
+                    a: foo {
+                        bar
+                    }
+                    b: foo {
+                        bar
+                    }
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
     }
 }
