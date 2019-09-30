@@ -8,6 +8,7 @@ namespace StrawberryShake.Generators.Types
         protected override void Configure(
             IDirectiveTypeDescriptor<TypeDirective> descriptor)
         {
+            descriptor.Name("type");
             descriptor.Argument(t => t.Name).Type<NonNullType<StringType>>();
             descriptor.Location(DirectiveLocation.Field);
         }

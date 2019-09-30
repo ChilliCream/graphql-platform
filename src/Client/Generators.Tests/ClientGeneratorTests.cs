@@ -123,5 +123,84 @@ namespace StrawberryShake.Generators
             // assert
             outputHandler.Content.MatchSnapshot();
         }
+
+        [Fact]
+        public async Task Enum_Type()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    appearsIn: [Episode]
+                }
+
+                enum Episode {
+                    NEWHOPE
+                    EMPIRE
+                    JEDI
+                }
+                ";
+
+            string query =
+               @"
+                query getEpisode {
+                    appearsIn
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Enum_Type_Set_Value_Name()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    appearsIn: [Episode]
+                }
+
+                enum Episode {
+                    NEWHOPE
+                    EMPIRE
+                    JEDI
+                }
+                ";
+
+            string extensions =  @"
+                extend enum Episode {
+                    NEWHOPE @name(value: ""NewHope"")
+                }
+                ";
+
+            string query =
+               @"
+                query getEpisode {
+                    appearsIn
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .AddSchemaDocumentFromString("Extensions", extensions)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
     }
 }

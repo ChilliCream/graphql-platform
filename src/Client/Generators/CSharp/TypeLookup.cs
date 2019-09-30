@@ -85,6 +85,11 @@ namespace StrawberryShake.Generators.CSharp
                 return BuildType(type.ClrType, fieldType, readOnly);
             }
 
+            if (fieldType.NamedType() is EnumType enumType)
+            {
+                return BuildType(enumType.Name, fieldType, readOnly, true);
+            }
+
             if (field is null)
             {
                 throw new InvalidOperationException(
