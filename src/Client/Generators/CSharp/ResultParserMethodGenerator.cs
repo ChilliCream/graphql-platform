@@ -101,7 +101,12 @@ namespace StrawberryShake.Generators.CSharp
 
             using (writer.IncreaseIndent())
             {
-                if (!descriptor.ResultType.IsNonNullType())
+                if (descriptor.ResultType.IsNonNullType())
+                {
+                    await writer.WriteIndentedLineAsync(
+                        "JsonElement obj = parent.GetProperty(field);");
+                }
+                else
                 {
                     await WriteNullHandlingAsync(writer);
                 }
