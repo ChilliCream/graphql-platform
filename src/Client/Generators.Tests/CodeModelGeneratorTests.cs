@@ -1,13 +1,5 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using System.Threading.Tasks;
-using ChilliCream.Testing;
-using Snapshooter;
 using Snapshooter.Xunit;
-using StrawberryShake.Generators.CSharp;
-using StrawberryShake.Generators.Descriptors;
-using StrawberryShake.Generators.Utilities;
 using Xunit;
 
 namespace StrawberryShake.Generators
@@ -16,18 +8,18 @@ namespace StrawberryShake.Generators
         : ModelGeneratorTestBase
     {
         [Fact]
-        public async Task Objects_With_Lists()
+        public async Task NonNull_Objects_With_Lists()
         {
             // arrange
             var outputHandler = new TestOutputHandler();
 
             string schema = @"
                 type Query {
-                    foo: Foo
+                    foo: Foo!
                 }
 
                 type Foo {
-                    bars: [Bar]
+                    bars: [Bar!]!
                 }
 
                 type Bar {
