@@ -214,4 +214,4 @@ More about GraphQL compatibility acceptance tests can be read [here](https://git
 
 For more examples and detailed documentation, click [here](http://hotchocolate.io).
 
-For documentation about our _DataLoader_ implementation click [here](https://github.com/ChilliCream/greendonut).
+For documentation about our _DataLoader_ implementation click [here](https://github.com/ChilliCream/hotchocolate/tree/master/src/DataLoader).
