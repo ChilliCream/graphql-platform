@@ -4,7 +4,7 @@ using Xunit;
 
 namespace StrawberryShake.Generators
 {
-    public class CodeModelGeneratorTests
+    public class ClientGeneratorTests
         : ModelGeneratorTestBase
     {
         [Fact]
