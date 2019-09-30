@@ -12,26 +12,29 @@ namespace StrawberryShake.Generators.CSharp
             IEnumDescriptor descriptor,
             ITypeLookup typeLookup)
         {
-            await writer.WriteIndentedLineAsync("public enum {0}", descriptor.Name);
-            await writer.WriteIndentedLineAsync("{");
+            await writer.WriteIndentedLineAsync(
+                "public enum {0}", descriptor.Name)
+                .ConfigureAwait(false);
+            await writer.WriteIndentedLineAsync("{")
+                .ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
                 for (int i = 0; i < descriptor.Values.Count; i++)
                 {
-                    await writer.WriteIndentAsync();
-                    await writer.WriteAsync(descriptor.Values[i].Name);
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync(descriptor.Values[i].Name).ConfigureAwait(false);
 
                     if (i < descriptor.Values.Count - 1)
                     {
-                        await writer.WriteAsync(",");
+                        await writer.WriteAsync(",").ConfigureAwait(false);
                     }
 
-                    await writer.WriteLineAsync();
+                    await writer.WriteLineAsync().ConfigureAwait(false);
                 }
             }
 
-            await writer.WriteIndentedLineAsync("}");
+            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
         }
     }
 }

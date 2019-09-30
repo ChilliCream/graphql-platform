@@ -89,7 +89,7 @@ namespace StrawberryShake.Generators
                 {
                     FieldSelection current = backlog.Dequeue();
                     Path path = current.Path.Append(current.ResponseName);
-                    if (!current.Field.Type.IsLeafType())
+                    if (!current.Field.Type.NamedType().IsLeafType())
                     {
                         GenerateFieldSelectionSet(
                             operation, current.Field.Type,
