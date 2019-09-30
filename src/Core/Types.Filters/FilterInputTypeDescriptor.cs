@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using HotChocolate.Types.Descriptors.Definitions;
 using System.Linq;
-using HotChocolate.Types.Descriptors;
 using System.Linq.Expressions;
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Types.Filters.Properties;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {

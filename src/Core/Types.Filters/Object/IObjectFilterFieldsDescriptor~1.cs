@@ -39,13 +39,15 @@ namespace HotChocolate.Types.Filters
         /// <summary>
         /// Allow object filter operations.
         /// </summary>
-        IObjectFilterOperationDescriptor<TObject> AllowObject(Action<IFilterInputTypeDescriptor<TObject>> descriptor);
+        IObjectFilterOperationDescriptor<TObject> AllowObject(
+            Action<IFilterInputTypeDescriptor<TObject>> descriptor);
 
 
         /// <summary>
         /// Allow object filter operations.
         /// </summary>
-        IObjectFilterOperationDescriptor<TObject> AllowObject<TFilter>() where TFilter : FilterInputType<TObject>;
+        IObjectFilterOperationDescriptor<TObject> AllowObject<TFilter>()
+            where TFilter : FilterInputType<TObject>;
 
         /// <summary>
         /// Allow object filter operations.

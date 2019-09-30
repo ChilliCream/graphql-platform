@@ -146,7 +146,9 @@ namespace HotChocolate.Types.Filters
             {
                 // Deque last expression to prefix with nullcheck
                 var condition = Level.Peek().Dequeue();
-                var nullCheck = Expression.NotEqual(Instance.Peek(), Expression.Constant(null, typeof(object)));
+                var nullCheck = Expression.NotEqual(
+                    Instance.Peek(),
+                    Expression.Constant(null, typeof(object)));
                 Level.Peek().Enqueue(Expression.AndAlso(nullCheck, condition));
                 Instance.Pop();
             }
