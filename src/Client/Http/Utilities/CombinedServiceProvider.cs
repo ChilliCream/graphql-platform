@@ -54,12 +54,13 @@ namespace StrawberryShake.Http.Utilities
                 .GetTypeInfo()
                 .GenericTypeArguments
                 .First();
+
             MethodInfo info = _enumerableTypeInfo
                 .DeclaredMethods
                 .First(m => m.Name == _methodNameAny && m.IsStatic)
                 .MakeGenericMethod(genericArgumentType);
 
-            return (bool)info.Invoke(null, new[] { enumerable });
+            return (bool)info.Invoke(null, new[] { enumerable })!;
         }
 
         private static object Concat(
@@ -80,7 +81,7 @@ namespace StrawberryShake.Http.Utilities
                         .First(m => m.Name == _methodNameConcat && m.IsStatic)
                         .MakeGenericMethod(genericArgumentType);
 
-                    return info.Invoke(null, new[] { enumerableA, enumerableB });
+                    return info.Invoke(null, new[] { enumerableA, enumerableB })!;
                 }
 
                 return enumerableA;

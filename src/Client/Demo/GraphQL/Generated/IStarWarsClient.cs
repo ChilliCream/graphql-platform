@@ -5,13 +5,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake;
 
-namespace StrawberryShake.Client
+namespace  StrawberryShake.Client.GraphQL
 {
     public interface IStarWarsClient
     {
-        Task<IOperationResult<IGetHero>> GetHeroAsync();
+        Task<IOperationResult<IGetHero>> GetHeroAsync(
+            Episode? episode);
 
         Task<IOperationResult<IGetHero>> GetHeroAsync(
+            Episode? episode,
             CancellationToken cancellationToken);
     }
 }

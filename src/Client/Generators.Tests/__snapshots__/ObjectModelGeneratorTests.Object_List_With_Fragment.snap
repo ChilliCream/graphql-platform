@@ -1,0 +1,17 @@
+﻿﻿public interface IFoo
+{
+    IReadOnlyList<UNKNOWN>? Bars { get; }
+}
+
+public class Foo
+    : IFoo
+{
+    public Foo(
+        IReadOnlyList<UNKNOWN>? bars)
+    {
+        Bars = bars;
+    }
+
+    public IReadOnlyList<UNKNOWN>? Bars { get; }
+}
+

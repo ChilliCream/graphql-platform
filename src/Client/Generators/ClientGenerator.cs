@@ -14,24 +14,12 @@ using StrawberryShake.Generators.CSharp;
 using IOPath = System.IO.Path;
 using HCError = HotChocolate.IError;
 using HCErrorBuilder = HotChocolate.ErrorBuilder;
+using StrawberryShake.Generators.Types;
 
 namespace StrawberryShake.Generators
 {
     public class ClientGenerator
     {
-        private static readonly ICodeGenerator[] _codeGenerators =
-            new ICodeGenerator[]
-            {
-                new ClassGenerator(),
-                new InputClassGenerator(),
-                new InputClassSerializerGenerator(),
-                new InterfaceGenerator(),
-                new ResultParserGenerator(),
-                new OperationGenerator(),
-                new ClientInterfaceGenerator(),
-                new ClientClassGenerator(),
-                new QueryGenerator()
-            };
         private readonly Dictionary<string, DocumentNode> _schemas =
             new Dictionary<string, DocumentNode>();
         private readonly List<DocumentNode> _extensions =
@@ -57,12 +45,11 @@ namespace StrawberryShake.Generators
                 new LeafTypeInfo("Url", typeof(Uri), typeof(string))
             }.ToDictionary(t => t.TypeName);
 
-        private IDocumentHashProvider _hashProvider;
-
-        private IFileHandler _output;
-
-        private string _clientName;
-        private string _namespace;
+        private readonly ClientGeneratorOptions _options = new ClientGeneratorOptions();
+        private IDocumentHashProvider? _hashProvider;
+        private IFileHandler? _output;
+        private string? _clientName;
+        private string? _namespace;
 
         private ClientGenerator()
         {
@@ -88,6 +75,18 @@ namespace StrawberryShake.Generators
             }
 
             _output = output;
+            return this;
+        }
+
+        public ClientGenerator ModifyOptions(
+            Action<ClientGeneratorOptions> modify)
+        {
+            if (modify is null)
+            {
+                throw new ArgumentNullException(nameof(modify));
+            }
+
+            modify(_options);
             return this;
         }
 
@@ -338,15 +337,20 @@ namespace StrawberryShake.Generators
 
             GenerateModels(schema, queries, usedNames, descriptors, fieldTypes);
 
-            var typeLookup = new TypeLookup(_leafTypes.Values, fieldTypes);
+            var typeLookup = new TypeLookup(
+                _options.LanguageVersion,
+                _leafTypes.Values,
+                fieldTypes);
 
             // generate code from models
-            foreach (ICodeDescriptor descriptor in descriptors)
+            foreach (ICodeGenerator generator in CreateGenerators(_options))
             {
-                foreach (ICodeGenerator generator in
-                    _codeGenerators.Where(t => t.CanHandle(descriptor)))
+                foreach (ICodeDescriptor descriptor in descriptors)
                 {
-                    _output.Register(descriptor, generator);
+                    if (generator.CanHandle(descriptor))
+                    {
+                        _output.Register(descriptor, generator);
+                    }
                 }
             }
 
@@ -394,13 +398,16 @@ namespace StrawberryShake.Generators
             return SchemaBuilder.New()
                 .Use(next => context => Task.CompletedTask)
                 .AddDocument(schema)
+                .AddDirectiveType<NameDirectiveType>()
+                .AddDirectiveType<TypeDirectiveType>()
+                .AddDirectiveType<SerializationDirectiveType>()
                 .Create();
         }
 
         private async Task<IReadOnlyList<IQueryDescriptor>> ParseQueriesAsync(
             ISchema schema, IDocumentHashProvider hashProvider)
         {
-            var queryCollection = new QueryCollection(hashProvider, _namespace);
+            var queryCollection = new QueryCollection(hashProvider, _namespace!);
 
             foreach (DocumentInfo documentInfo in _queries.Values)
             {
@@ -423,7 +430,7 @@ namespace StrawberryShake.Generators
             foreach (IQueryDescriptor query in queries)
             {
                 var modelGenerator = new CodeModelGenerator(
-                    schema, query, usedNames, _clientName, _namespace);
+                    schema, query, usedNames, _clientName!, _namespace!);
                 modelGenerator.Generate();
 
                 descriptors.AddRange(modelGenerator.Descriptors);
@@ -472,6 +479,27 @@ namespace StrawberryShake.Generators
             }
 
             return errors;
+        }
+
+        private static IEnumerable<ICodeGenerator> CreateGenerators(
+            ClientGeneratorOptions options)
+        {
+            yield return new ClassGenerator();
+            yield return new InputClassGenerator();
+            yield return new InputClassSerializerGenerator();
+            yield return new InterfaceGenerator();
+            yield return new ResultParserGenerator(options);
+            yield return new OperationGenerator();
+            yield return new ClientInterfaceGenerator();
+            yield return new ClientClassGenerator();
+            yield return new QueryGenerator();
+            yield return new EnumGenerator();
+            yield return new EnumValueSerializerGenerator(options.LanguageVersion);
+
+            if (options.EnableDISupport)
+            {
+                yield return new ServicesGenerator();
+            }
         }
 
         private class DocumentInfo

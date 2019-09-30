@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
-using HotChocolate.Types.Descriptors.Definitions;
 using System.Linq;
-using HotChocolate.Types.Descriptors;
 using System.Linq.Expressions;
+using System.Reflection;
+using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
+using HotChocolate.Types.Filters.Properties;
+using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -125,6 +126,14 @@ namespace HotChocolate.Types.Filters
                 return true;
             }
 
+            if (property.PropertyType.IsClass)
+            {
+                var field = new ObjectFilterFieldDescriptor(
+                    Context, property, property.PropertyType);
+                definition = field.CreateDefinition();
+                return true;
+            }
+
             definition = null;
             return false;
         }
@@ -152,9 +161,8 @@ namespace HotChocolate.Types.Filters
                 return field;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
 
@@ -169,9 +177,8 @@ namespace HotChocolate.Types.Filters
                 return field;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
 
@@ -186,9 +193,8 @@ namespace HotChocolate.Types.Filters
                 return field;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
 
@@ -201,9 +207,23 @@ namespace HotChocolate.Types.Filters
                 return this;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
+                nameof(property));
+        }
+
+        public IObjectFilterFieldDescriptor<TObject> Filter<TObject>(
+            Expression<Func<T, TObject>> property) where TObject : class
+        {
+            if (property.ExtractMember() is PropertyInfo p)
+            {
+                var field = new ObjectFilterFieldDescriptor<TObject>(Context, p);
+                Fields.Add(field);
+                return field;
+            }
+
+            throw new ArgumentException(
+                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
 

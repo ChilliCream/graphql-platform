@@ -1,0 +1,58 @@
+﻿﻿public interface ISearchResult
+{
+}
+
+public interface ISomeStarship
+{
+    string? Name { get; }
+}
+
+public interface ISomeHuman
+{
+    string? HomePlanet { get; }
+}
+
+public interface ISomeDroid
+{
+    string? PrimaryFunction { get; }
+}
+
+public class SomeStarship
+    : ISearchResult
+    , ISomeStarship
+{
+    public SomeStarship(
+        string? name)
+    {
+        Name = name;
+    }
+
+    public string? Name { get; }
+}
+
+public class SomeHuman
+    : ISearchResult
+    , ISomeHuman
+{
+    public SomeHuman(
+        string? homePlanet)
+    {
+        HomePlanet = homePlanet;
+    }
+
+    public string? HomePlanet { get; }
+}
+
+public class SomeDroid
+    : ISearchResult
+    , ISomeDroid
+{
+    public SomeDroid(
+        string? primaryFunction)
+    {
+        PrimaryFunction = primaryFunction;
+    }
+
+    public string? PrimaryFunction { get; }
+}
+

@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.0.100-preview9-bionic AS Build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.0.100-bionic AS Build
 
 RUN wget -q https://packages.microsoft.com/config/ubuntu/18.04/packages-microsoft-prod.deb \
   && dpkg -i packages-microsoft-prod.deb \

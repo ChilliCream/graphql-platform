@@ -3,11 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace StrawberryShake.Client
+namespace  StrawberryShake.Client.GraphQL
 {
     public class GetHero
         : IGetHero
     {
-        public IHero Hero { get; set; }
+        public GetHero(
+            IHero? hero)
+        {
+            Hero = hero;
+        }
+
+        public IHero? Hero { get; }
     }
 }

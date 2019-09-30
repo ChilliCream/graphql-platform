@@ -15,14 +15,15 @@ namespace HotChocolate
 
         ISchemaBuilder SetSchema(ISchema schema);
 
+        ISchemaBuilder SetSchema(Action<ISchemaTypeDescriptor> configure);
+
         ISchemaBuilder SetOptions(IReadOnlySchemaOptions options);
 
         ISchemaBuilder ModifyOptions(Action<ISchemaOptions> configure);
 
         ISchemaBuilder Use(FieldMiddleware middleware);
 
-        ISchemaBuilder AddDocument(
-            LoadSchemaDocument loadSchemaDocument);
+        ISchemaBuilder AddDocument(LoadSchemaDocument loadSchemaDocument);
 
         ISchemaBuilder AddType(Type type);
 
@@ -32,13 +33,9 @@ namespace HotChocolate
 
         ISchemaBuilder BindClrType(Type clrType, Type schemaType);
 
-        ISchemaBuilder AddRootType(
-            Type type,
-            OperationType operation);
+        ISchemaBuilder AddRootType(Type type, OperationType operation);
 
-        ISchemaBuilder AddRootType(
-            ObjectType type,
-            OperationType operation);
+        ISchemaBuilder AddRootType(ObjectType type, OperationType operation);
 
         ISchemaBuilder AddDirectiveType(DirectiveType type);
 
@@ -57,6 +54,8 @@ namespace HotChocolate
         ISchemaBuilder RemoveContextData(string key);
 
         ISchemaBuilder ClearContextData();
+
+        ISchemaBuilder AddTypeInterceptor(Type interceptor);
 
         ISchema Create();
     }

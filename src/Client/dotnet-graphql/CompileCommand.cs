@@ -1,6 +1,4 @@
-using System.Reflection.PortableExecutable;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using StrawberryShake.Generators;
 using HCError = HotChocolate.IError;

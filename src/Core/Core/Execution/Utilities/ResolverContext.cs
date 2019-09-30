@@ -63,6 +63,12 @@ namespace HotChocolate.Execution
             set;
         }
 
+        public IImmutableDictionary<string, object> LocalContextData
+        {
+            get;
+            set;
+        }
+
         public FieldDelegate Middleware => _fieldSelection.Middleware;
 
         public Task Task { get; set; }
