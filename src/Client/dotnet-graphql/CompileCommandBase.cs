@@ -17,39 +17,34 @@ namespace StrawberryShake.Tools
         : ICommand
     {
         [Argument(0, "path")]
-        public string Path { get; set; }
+        public string? Path { get; set; }
+
+        [Option("-s|--SearchForClients")]
+        public bool SearchForClients { get; set; }
 
         public async Task<int> OnExecute()
         {
             try
             {
-                if (Path is null)
+                if (Path is null || Path == string.Empty)
                 {
-                    foreach (string configFile in Directory.GetFiles(
-                        Environment.CurrentDirectory,
-                        "config.json",
-                        SearchOption.AllDirectories))
+                    foreach (string clientDirectory in FindDirectories(
+                        Environment.CurrentDirectory))
                     {
-                        string directory = IOPath.GetDirectoryName(configFile);
-                        if (Directory.GetFiles(
-                            directory,
-                            "*.graphql").Length > 0)
+                        if (!await Compile(clientDirectory))
                         {
-                            try
-                            {
-                                Configuration config = await Configuration.LoadConfig(directory);
-                                if (config.Schemas.Count > 0)
-                                {
-                                    if (!(await Compile(directory, config)))
-                                    {
-                                        return 1;
-                                    }
-                                }
-                            }
-                            catch
-                            {
-                                // ignore invalid configs
-                            }
+                            return 1;
+                        }
+                    }
+                    return 0;
+                }
+                else if (SearchForClients)
+                {
+                    foreach (string clientDirectory in FindDirectories(Path))
+                    {
+                        if (!await Compile(clientDirectory))
+                        {
+                            return 1;
                         }
                     }
                     return 0;
@@ -66,11 +61,31 @@ namespace StrawberryShake.Tools
             }
         }
 
+        private IEnumerable<string> FindDirectories(string path)
+        {
+            foreach (string configFile in Directory.GetFiles(
+                path,
+                WellKnownFiles.Config,
+                SearchOption.AllDirectories))
+            {
+                string directory = IOPath.GetDirectoryName(configFile)!;
+                if (Directory.GetFiles(directory, "*.graphql").Length > 0)
+                {
+                    yield return directory;
+                }
+            }
+        }
 
         private async Task<bool> Compile(string path)
         {
-            Configuration config = await Configuration.LoadConfig(path);
-            return await Compile(path, config); ;
+            Configuration? config = await Configuration.LoadConfig(path);
+
+            if (config is null)
+            {
+                return false;
+            }
+
+            return await Compile(path, config);
         }
 
         private async Task<bool> Compile(string path, Configuration config)
@@ -125,8 +140,22 @@ namespace StrawberryShake.Tools
             ClientGenerator generator,
             ICollection<HCError> errors)
         {
-            Dictionary<string, SchemaFile> schemaConfigs =
-                (await Configuration.LoadConfig(path)).Schemas.ToDictionary(t => t.Name);
+            Configuration? configuration = await Configuration.LoadConfig(path);
+            if (configuration is null)
+            {
+                throw new InvalidOperationException(
+                    "The configuration does not exist.");
+            }
+
+            if (configuration.Schemas is null)
+            {
+                throw new InvalidOperationException(
+                    "The configuration has no schemas defined.");
+            }
+
+            Dictionary<string, SchemaFile> schemas =
+                configuration.Schemas.Where(t => t.Name != null)
+                    .ToDictionary(t => t.Name!);
 
             foreach (DocumentInfo document in await GetGraphQLFiles(path, errors))
             {
@@ -142,11 +171,11 @@ namespace StrawberryShake.Tools
                     string name = IOPath.GetFileNameWithoutExtension(
                         document.FileName);
 
-                    if (schemaConfigs.TryGetValue(
+                    if (schemas.TryGetValue(
                         IOPath.GetFileName(document.FileName),
-                        out SchemaFile file))
+                        out SchemaFile? file))
                     {
-                        name = file.Name;
+                        name = file.Name!;
                     }
 
                     generator.AddSchemaDocument(

@@ -5,7 +5,7 @@ using System.Text.Json;
 using StrawberryShake;
 using StrawberryShake.Http;
 
-namespace StrawberryShake.Client
+namespace  StrawberryShake.Client.GraphQL
 {
     public class GetHeroResultParser
         : JsonResultParserBase<IGetHero>
@@ -17,14 +17,16 @@ namespace StrawberryShake.Client
         {
             IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
 
-            if (!map.TryGetValue("Float", out IValueSerializer serializer)){
+            if (!map.TryGetValue("Float", out IValueSerializer? serializer))
+            {
                 throw new ArgumentException(
                     "There is no serializer specified for `Float`.",
                     nameof(serializers));
             }
             _floatSerializer = serializer;
 
-            if (!map.TryGetValue("String", out  serializer)){
+            if (!map.TryGetValue("String", out  serializer))
+            {
                 throw new ArgumentException(
                     "There is no serializer specified for `String`.",
                     nameof(serializers));
@@ -34,12 +36,14 @@ namespace StrawberryShake.Client
 
         protected override IGetHero ParserData(JsonElement data)
         {
-            var getHero = new GetHero();
-            getHero.Hero = ParseRootHero(data, "hero");
-            return getHero;
+            return new GetHero
+            (
+                ParseRootHero(data, "hero")
+            );
+
         }
 
-        private IHero ParseRootHero(
+        private IHero? ParseRootHero(
             JsonElement parent,
             string field)
         {
@@ -48,30 +52,16 @@ namespace StrawberryShake.Client
                 return null;
             }
 
-            string type = obj.GetProperty(TypeName).GetString();
+            return new Hero
+            (
+                DeserializeNullableFloat(obj, "height"),
+                DeserializeNullableString(obj, "name"),
+                ParseRootHeroFriends(obj, "friends")
+            );
 
-            if (string.Equals(type, "Droid", StringComparison.Ordinal))
-            {
-                var droid = new Droid();
-                droid.Height = (double?)DeserializeFloat(obj, "height");
-                droid.Name = (string)DeserializeString(obj, "name");
-                droid.Friends = ParseRootHeroFriends(obj, "friends");
-                return droid;
-            }
-
-            if (string.Equals(type, "Human", StringComparison.Ordinal))
-            {
-                var human = new Human();
-                human.Height = (double?)DeserializeFloat(obj, "height");
-                human.Name = (string)DeserializeString(obj, "name");
-                human.Friends = ParseRootHeroFriends(obj, "friends");
-                return human;
-            }
-
-            throw new UnknownSchemaTypeException(type);
         }
 
-        private IFriend ParseRootHeroFriends(
+        private IFriend? ParseRootHeroFriends(
             JsonElement parent,
             string field)
         {
@@ -80,12 +70,14 @@ namespace StrawberryShake.Client
                 return null;
             }
 
-            var friend = new Friend();
-            friend.Nodes = ParseRootHeroFriendsNodes(obj, "nodes");
-            return friend;
+            return new Friend
+            (
+                ParseRootHeroFriendsNodes(obj, "nodes")
+            );
+
         }
 
-        private IReadOnlyList<IHasName> ParseRootHeroFriendsNodes(
+        private IReadOnlyList<IHasName>? ParseRootHeroFriendsNodes(
             JsonElement parent,
             string field)
         {
@@ -94,61 +86,52 @@ namespace StrawberryShake.Client
                 return null;
             }
 
-            string type = obj.GetProperty(TypeName).GetString();
-
-            if (string.Equals(type, "Droid", StringComparison.Ordinal))
+            int objLength = obj.GetArrayLength();
+            var list = new IHasName[objLength];
+            for (int objIndex = 0; objIndex < objLength; objIndex++)
             {
-                int objLength = obj.GetArrayLength();
-                var list = new IHasName[objLength];
+                JsonElement element = obj[objIndex];
+                list[objIndex] = new HasName
+                (
+                    DeserializeNullableString(element, "name")
+                );
 
-                for (int objIndex = 0; objIndex < objLength; objIndex++)
-                {
-                    JsonElement element = obj[objIndex];
-                    var entity = new Droid();
-                    entity.Name = (string)DeserializeString(element, "name");
-                    list[objIndex] = entity;
-                }
-
-                return list;
             }
 
-            if (string.Equals(type, "Human", StringComparison.Ordinal))
-            {
-                int objLength = obj.GetArrayLength();
-                var list = new IHasName[objLength];
+            return list;
 
-                for (int objIndex = 0; objIndex < objLength; objIndex++)
-                {
-                    JsonElement element = obj[objIndex];
-                    var entity = new Human();
-                    entity.Name = (string)DeserializeString(element, "name");
-                    list[objIndex] = entity;
-                }
-
-                return list;
-            }
-
-            throw new UnknownSchemaTypeException(type);
         }
 
-        private double? DeserializeFloat(JsonElement obj, string fieldName)
+        private double? DeserializeNullableFloat(JsonElement obj, string fieldName)
         {
             if (!obj.TryGetProperty(fieldName, out JsonElement value))
             {
                 return null;
             }
+
+            if (value.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
 
             return (double?)_floatSerializer.Serialize(value.GetDouble());
         }
 
-        private string DeserializeString(JsonElement obj, string fieldName)
+        private string? DeserializeNullableString(JsonElement obj, string fieldName)
         {
             if (!obj.TryGetProperty(fieldName, out JsonElement value))
             {
                 return null;
             }
 
-            return (string)_stringSerializer.Serialize(value.GetString());
+            if (value.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
+
+            return (string?)_stringSerializer.Serialize(value.GetString());
         }
     }
 }

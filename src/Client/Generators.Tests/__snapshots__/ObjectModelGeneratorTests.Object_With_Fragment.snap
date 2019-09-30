@@ -1,0 +1,17 @@
+﻿﻿public interface ISomeDroid
+{
+    string? Name { get; }
+}
+
+public class SomeDroid
+    : ISomeDroid
+{
+    public SomeDroid(
+        string? name)
+    {
+        Name = name;
+    }
+
+    public string? Name { get; }
+}
+

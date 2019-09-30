@@ -53,7 +53,7 @@ namespace StrawberryShake.Generators.CSharp
                     IOperationDescriptor operation = descriptor.Operations[i];
 
                     string typeName = typeLookup.GetTypeName(
-                        operation.OperationType,
+                        new NonNullType(operation.OperationType),
                         operation.ResultType.Name,
                         true);
 
@@ -442,6 +442,13 @@ namespace StrawberryShake.Generators.CSharp
                         await writer.WriteAsync(" = ").ConfigureAwait(false);
                         await writer.WriteAsync(GetFieldName(argument.Name))
                             .ConfigureAwait(false);
+
+                        if (i < operation.Arguments.Count - 1)
+                        {
+                            await writer.WriteAsync(',').ConfigureAwait(false);
+                            await writer.WriteSpaceAsync().ConfigureAwait(false);
+                        }
+
                         await writer.WriteLineAsync().ConfigureAwait(false);
                     }
                 }

@@ -58,8 +58,8 @@ namespace StrawberryShake.Generators.CSharp
                             fieldDescriptor.Selection.Name.Value))
                         {
                             string typeName = typeLookup.GetTypeName(
-                                fieldDescriptor.Selection,
                                 fieldDescriptor.Type,
+                                fieldDescriptor.Selection,
                                 true);
 
                             string propertyName = GetPropertyName(fieldDescriptor.ResponseName);

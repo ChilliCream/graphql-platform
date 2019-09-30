@@ -1,5 +1,5 @@
-query getHero {
-  hero {
+query getHero($episode: Episode) {
+  hero(episode: $episode) {
     ...Hero
   }
 }

@@ -3,55 +3,33 @@ using System.Collections.Generic;
 
 namespace StrawberryShake
 {
-    internal sealed class Error
+    public sealed class Error
         : IError
     {
-        private string? _message;
-
-        public string Message
+        public Error(
+            string message,
+            IReadOnlyList<object>? path,
+            IReadOnlyList<Location>? locations,
+            IReadOnlyDictionary<string, object?>? extensions,
+            Exception? exception)
         {
-            get
-            {
-                if (_message is null)
-                {
-                    throw new InvalidOperationException(
-                        "Message is a non-null property and is null.");
-                }
-                return _message;
-            }
-            internal set
-            {
-                if (string.IsNullOrEmpty(value))
-                {
-                    throw new ArgumentException(
-                        "The message mustn't be null or empty.",
-                        nameof(value));
-                }
-                _message = value;
-            }
+            Message = message ?? throw new ArgumentNullException(nameof(message));
+            Path = path;
+            Locations = locations;
+            Extensions = extensions;
+            Exception = exception;
         }
 
-        public string? Code
-        {
-            get
-            {
-                if (Extensions != null
-                    && Extensions.TryGetValue(ErrorFields.Code, out object? code)
-                    && code is string s)
-                {
-                    return s;
-                }
+        public string Message { get; }
 
-                return null;
-            }
-        }
+        public string? Code { get; }
 
-        public IReadOnlyList<object>? Path { get; set; }
+        public IReadOnlyList<object>? Path { get; }
 
-        public IReadOnlyList<Location>? Locations { get; set; }
+        public IReadOnlyList<Location>? Locations { get; }
 
-        public IReadOnlyDictionary<string, object?>? Extensions { get; set; }
+        public IReadOnlyDictionary<string, object?>? Extensions { get; }
 
-        public Exception? Exception { get; set; }
+        public Exception? Exception { get; }
     }
 }

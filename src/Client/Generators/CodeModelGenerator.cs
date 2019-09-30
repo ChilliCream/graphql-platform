@@ -6,19 +6,17 @@ using HotChocolate.Language;
 using HotChocolate.Types;
 using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
-using WithDirectives = HotChocolate.Language.IHasDirectives;
-using static StrawberryShake.Generators.Utilities.NameUtils;
 
 namespace StrawberryShake.Generators
 {
     internal class CodeModelGenerator
     {
-        private readonly Dictionary<string, ICodeDescriptor> _descriptors =
-            new Dictionary<string, ICodeDescriptor>();
         private readonly Dictionary<OperationDefinitionNode, ICodeDescriptor> _operationTypes =
             new Dictionary<OperationDefinitionNode, ICodeDescriptor>();
         private readonly Dictionary<FieldNode, ICodeDescriptor> _fieldTypes =
             new Dictionary<FieldNode, ICodeDescriptor>();
+        private readonly Dictionary<ISyntaxNode, string> _interfaceNames =
+            new Dictionary<ISyntaxNode, string>();
         private FieldCollector _fieldCollector;
         private readonly ISchema _schema;
         private readonly IQueryDescriptor _query;
@@ -27,6 +25,18 @@ namespace StrawberryShake.Generators
         private readonly string _clientName;
         private readonly string _namespace;
 
+        private readonly OperationModelGenerator _operationModelGenerator =
+            new OperationModelGenerator();
+        private readonly ObjectModelGenerator _objectModelGenerator =
+            new ObjectModelGenerator();
+        private readonly InterfaceModelGenerator _interfaceModelGenerator =
+            new InterfaceModelGenerator();
+        private readonly UnionModelGenerator _unionModelGenerator =
+            new UnionModelGenerator();
+        private readonly EnumModelGenerator _enumModelGenerator =
+            new EnumModelGenerator();
+
+        private IModelGeneratorContext _context;
 
         public CodeModelGenerator(
             ISchema schema,
@@ -43,10 +53,13 @@ namespace StrawberryShake.Generators
 
             _document = query.OriginalDocument;
             _fieldCollector = new FieldCollector(
+                schema,
                 new FragmentCollection(schema, query.OriginalDocument));
 
             Descriptors = Array.Empty<ICodeDescriptor>();
             FieldTypes = new Dictionary<FieldNode, string>();
+
+            _context = new ModelGeneratorContext(schema, query, clientName, ns);
         }
 
         public IReadOnlyCollection<ICodeDescriptor> Descriptors { get; private set; }
@@ -55,7 +68,9 @@ namespace StrawberryShake.Generators
 
         public void Generate()
         {
-            RegisterDescriptor(_query);
+            _context.Register(_query);
+
+            GenerateEnumTypes();
 
             var backlog = new Queue<FieldSelection>();
             Path root = Path.New("root");
@@ -66,37 +81,45 @@ namespace StrawberryShake.Generators
                 ObjectType operationType =
                     _schema.GetOperationType(operation.Operation);
 
-                ICodeDescriptor resultDescriptor =
+                ICodeDescriptor resultType =
                     GenerateOperationSelectionSet(
                         operationType, operation, root, backlog);
-
-                RegisterDescriptor(GenerateOperation(
-                    operationType, operation, resultDescriptor));
 
                 while (backlog.Any())
                 {
                     FieldSelection current = backlog.Dequeue();
                     Path path = current.Path.Append(current.ResponseName);
-
-                    GenerateFieldSelectionSet(
-                        operation, current.Field.Type,
-                        current.Selection, path, backlog);
+                    if (!current.Field.Type.IsLeafType())
+                    {
+                        GenerateFieldSelectionSet(
+                            operation, current.Field.Type,
+                            current.Selection, path, backlog);
+                    }
                 }
 
-                RegisterDescriptor(
-                    CreateResultParserDescriptor(operation, resultDescriptor));
+                GenerateResultParserDescriptor(operation, resultType);
             }
 
-            RegisterDescriptor(new ClientDescriptor(
-                _clientName,
+            var clientDescriptor = new ClientDescriptor(
+                _context.ClientName,
                 _namespace,
-                _descriptors.Values.OfType<IOperationDescriptor>().ToList()));
+                _context.Descriptors.OfType<IOperationDescriptor>().ToList());
 
-            FieldTypes = _fieldTypes.ToDictionary(t => t.Key, t => t.Value.Name);
-            Descriptors = _descriptors.Values;
+            var servicesDescriptor = new ServicesDescriptor(
+                _context.ClientName + "ServiceCollectionExtensions",
+                _context.Namespace,
+                clientDescriptor,
+                _context.Descriptors.OfType<IEnumDescriptor>().ToList(),
+                _context.Descriptors.OfType<IResultParserDescriptor>().ToList());
+
+            _context.Register(clientDescriptor);
+            _context.Register(servicesDescriptor);
+
+            FieldTypes = _context.FieldTypes;
+            Descriptors = _context.Descriptors;
         }
 
-        private IResultParserDescriptor CreateResultParserDescriptor(
+        private void GenerateResultParserDescriptor(
             OperationDefinitionNode operation,
             ICodeDescriptor resultDescriptor)
         {
@@ -105,107 +128,16 @@ namespace StrawberryShake.Generators
                 : resultDescriptor.Name;
             name += "ResultParser";
 
-            return new ResultParserDescriptor
+            _context.Register(new ResultParserDescriptor
             (
                 name,
-                _namespace,
+                _context.Namespace,
                 operation,
                 resultDescriptor,
-                _descriptors.Values
+                _context.Descriptors
                     .OfType<IResultParserMethodDescriptor>()
                     .Where(t => t.Operation == operation).ToList()
-            );
-        }
-
-        private ICodeDescriptor GenerateOperation(
-            ObjectType operationType,
-            OperationDefinitionNode operation,
-            ICodeDescriptor resultType)
-        {
-            var arguments = new List<Descriptors.IArgumentDescriptor>();
-
-            foreach (VariableDefinitionNode variableDefinition in
-                operation.VariableDefinitions)
-            {
-                string typeName = variableDefinition.Type.NamedType().Name.Value;
-
-                if (!_schema.TryGetType(typeName, out INamedType namedType))
-                {
-                    throw new InvalidOperationException(
-                        $"The variable type `{typeName}` is not supported by the schema.");
-                }
-
-                IType type = variableDefinition.Type.ToType(namedType);
-                IInputClassDescriptor inputClassDescriptor = null;
-
-                if (namedType is InputObjectType inputObjectType)
-                {
-                    inputClassDescriptor =
-                        GenerateInputObjectType(inputObjectType);
-                }
-
-                arguments.Add(new ArgumentDescriptor(
-                    variableDefinition.Variable.Name.Value,
-                    type,
-                    variableDefinition,
-                    inputClassDescriptor));
-            }
-
-            string operationName =
-                CreateName(GetClassName(operation.Name.Value) + "Operation");
-
-            return new OperationDescriptor(
-                operationName,
-                _namespace,
-                operationType,
-                operation,
-                arguments,
-                _query,
-                resultType);
-        }
-
-        private IInputClassDescriptor GenerateInputObjectType(
-            InputObjectType inputObjectType)
-        {
-            return GenerateInputObjectType(
-                inputObjectType,
-                new Dictionary<string, IInputClassDescriptor>());
-        }
-
-        private IInputClassDescriptor GenerateInputObjectType(
-            InputObjectType inputObjectType,
-            IDictionary<string, IInputClassDescriptor> knownTypes)
-        {
-            if (knownTypes.TryGetValue(
-                inputObjectType.Name,
-                out IInputClassDescriptor descriptor))
-            {
-                return descriptor;
-            }
-
-            string typeName = CreateName(GetClassName(inputObjectType.Name));
-
-            var fields = new List<Descriptors.IInputFieldDescriptor>();
-            descriptor = new InputClassDescriptor(
-                typeName, _namespace, inputObjectType, fields);
-            knownTypes[inputObjectType.Name] = descriptor;
-
-            foreach (InputField field in inputObjectType.Fields)
-            {
-                if (field.Type.NamedType() is InputObjectType fieldType)
-                {
-                    fields.Add(new InputFieldDescriptor(
-                        field.Name, field.Type, field,
-                        GenerateInputObjectType(fieldType, knownTypes)));
-                }
-                else
-                {
-                    fields.Add(new InputFieldDescriptor(
-                        field.Name, field.Type, field, null));
-                }
-            }
-
-            return descriptor;
+            ));
         }
 
         private ICodeDescriptor GenerateOperationSelectionSet(
@@ -214,21 +146,42 @@ namespace StrawberryShake.Generators
            Path path,
            Queue<FieldSelection> backlog)
         {
-            FieldCollectionResult typeCase = _fieldCollector.CollectFields(
-                operationType,
-                operation.SelectionSet,
-                path);
-
-            EnqueueFields(backlog, typeCase.Fields);
-
-            return _operationTypes[operation] =
-                GenerateObjectSelectionSet(
-                    operation,
+            PossibleSelections possibleSelections =
+                _fieldCollector.CollectFields(
                     operationType,
-                    operationType,
-                    operation,
-                    typeCase,
+                    operation.SelectionSet,
                     path);
+
+            EnqueueFields(backlog, possibleSelections.ReturnType.Fields);
+
+            ICodeDescriptor resultDescriptor = _objectModelGenerator.Generate(
+                    _context,
+                    operation,
+                    operationType,
+                    new NonNullType(operationType),
+                    new FieldNode(
+                        null,
+                        new NameNode(operation.Name.Value),
+                        null,
+                        new[]
+                        {
+                            new DirectiveNode(
+                                GeneratorDirectives.Type,
+                                new ArgumentNode("name", operation.Name.Value)),
+                            new DirectiveNode(GeneratorDirectives.Operation)
+                        },
+                        Array.Empty<ArgumentNode>(),
+                        null),
+                    possibleSelections,
+                    path);
+
+            _operationModelGenerator.Generate(
+                _context,
+                operationType,
+                operation,
+                resultDescriptor);
+
+            return resultDescriptor;
         }
 
         private void GenerateFieldSelectionSet(
@@ -238,56 +191,64 @@ namespace StrawberryShake.Generators
             Path path,
             Queue<FieldSelection> backlog)
         {
-            INamedType namedType = fieldType.NamedType();
+            var namedType = (INamedOutputType)fieldType.NamedType();
 
-            IReadOnlyCollection<ObjectType> possibleTypes =
-                namedType is ObjectType ot
-                    ? new ObjectType[] { ot }
-                    : _schema.GetPossibleTypes(namedType);
-
-            var typeCases = new Dictionary<ObjectType, FieldCollectionResult>();
-
-            foreach (ObjectType objectType in possibleTypes)
-            {
-                FieldCollectionResult typeCase = _fieldCollector.CollectFields(
-                    objectType,
+            PossibleSelections possibleSelections =
+                _fieldCollector.CollectFields(
+                    namedType,
                     fieldSelection.SelectionSet,
                     path);
 
-                EnqueueFields(backlog, typeCase.Fields);
-
-                typeCases[objectType] = typeCase;
+            foreach (SelectionInfo selectionInfo in possibleSelections.Variants)
+            {
+                EnqueueFields(backlog, selectionInfo.Fields);
             }
 
             if (namedType is UnionType unionType)
             {
-                _fieldTypes[fieldSelection] = GenerateUnionSelectionSet(
+                _unionModelGenerator.Generate(
+                    _context,
                     operation,
                     unionType,
                     fieldType,
                     fieldSelection,
-                    typeCases.Values,
+                    possibleSelections,
                     path);
             }
             else if (namedType is InterfaceType interfaceType)
             {
-                _fieldTypes[fieldSelection] = GenerateInterfaceSelectionSet(
+                _interfaceModelGenerator.Generate(
+                    _context,
                     operation,
                     interfaceType,
                     fieldType,
                     fieldSelection,
-                    typeCases.Values,
+                    possibleSelections,
                     path);
             }
             else if (namedType is ObjectType objectType)
             {
-                _fieldTypes[fieldSelection] = GenerateObjectSelectionSet(
+                _objectModelGenerator.Generate(
+                    _context,
                     operation,
                     objectType,
                     fieldType,
                     fieldSelection,
-                    typeCases.Values.Single(),
+                    possibleSelections,
                     path);
+            }
+        }
+
+        private void GenerateEnumTypes()
+        {
+            IReadOnlyList<EnumType> enumTypes =
+                CollectUsedEnumTypesVisitor.Collect(
+                    _context.Schema,
+                    _context.Query.OriginalDocument);
+
+            foreach (EnumType enumType in enumTypes)
+            {
+                _enumModelGenerator.Generate(_context, enumType);
             }
         }
 
@@ -298,491 +259,6 @@ namespace StrawberryShake.Generators
             foreach (FieldSelection fieldSelection in fieldSelections)
             {
                 backlog.Enqueue(fieldSelection);
-            }
-        }
-
-        private ICodeDescriptor GenerateUnionSelectionSet(
-            OperationDefinitionNode operation,
-            UnionType unionType,
-            IType fieldType,
-            FieldNode fieldSelection,
-            IReadOnlyCollection<FieldCollectionResult> typeCases,
-            Path path)
-        {
-            IFragmentNode returnType = null;
-            FieldCollectionResult result = typeCases.First();
-            IReadOnlyList<IFragmentNode> fragments = result.Fragments;
-
-            while (fragments.Count == 1)
-            {
-                if (fragments[0].Fragment.TypeCondition == unionType)
-                {
-                    returnType = fragments[0];
-                    fragments = fragments[0].Children;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            InterfaceDescriptor unionInterface;
-
-            if (returnType is null)
-            {
-                string name = CreateName(
-                    fieldSelection,
-                    unionType,
-                    Utilities.NameUtils.GetInterfaceName);
-                unionInterface = new InterfaceDescriptor(
-                    name, _namespace, unionType);
-            }
-            else
-            {
-                unionInterface = CreateInterface(returnType, path);
-                unionInterface = unionInterface.RemoveAllImplements();
-            }
-
-            var resultParserTypes = new List<ResultParserTypeDescriptor>();
-
-            foreach (var typeCase in typeCases)
-            {
-                string className;
-                string interfaceName;
-
-                IFragmentNode fragment = typeCase.Fragments.FirstOrDefault(
-                    t => t.Fragment.TypeCondition == typeCase.Type);
-
-                if (fragment is null)
-                {
-                    className = CreateName(typeCase.Type.Name);
-                    interfaceName = CreateName(GetInterfaceName(className));
-                }
-                else
-                {
-                    className = CreateName(fragment.Fragment.Name);
-                    interfaceName = CreateName(GetInterfaceName(fragment.Fragment.Name));
-                }
-
-                var modelInterfaces = new List<IInterfaceDescriptor>();
-                modelInterfaces.Add(
-                    new InterfaceDescriptor(
-                        interfaceName,
-                        _namespace,
-                        typeCase.Type,
-                        typeCase.Fields.Select(t =>
-                        {
-                            string responseName = (t.Selection.Alias ?? t.Selection.Name).Value;
-                            return new FieldDescriptor(
-                                t.Field,
-                                t.Selection,
-                                t.Field.Type,
-                                t.Path.Append(responseName));
-                        }).ToList(),
-                        new[] { unionInterface }));
-                modelInterfaces.AddRange(CreateInterfaces(typeCase.Fragments, path));
-
-                var modelClass = new ClassDescriptor(
-                    className, _namespace, typeCase.Type, modelInterfaces);
-
-                RegisterDescriptors(modelInterfaces);
-                RegisterDescriptor(modelClass);
-
-                resultParserTypes.Add(new ResultParserTypeDescriptor(modelClass));
-            }
-
-            RegisterDescriptor(unionInterface);
-
-            RegisterDescriptor(
-                new ResultParserMethodDescriptor(
-                    GetPathName(path),
-                    operation,
-                    fieldType,
-                    fieldSelection,
-                    path,
-                    unionInterface,
-                    resultParserTypes));
-
-            return unionInterface;
-        }
-
-        private ICodeDescriptor GenerateInterfaceSelectionSet(
-            OperationDefinitionNode operation,
-            InterfaceType interfaceType,
-            IType fieldType,
-            FieldNode fieldSelection,
-            IReadOnlyCollection<FieldCollectionResult> typeCases,
-            Path path)
-        {
-            FieldCollectionResult firstCase = typeCases.First();
-
-            IFragmentNode returnType = HoistFragment(
-                interfaceType, firstCase.SelectionSet, firstCase.Fragments);
-
-            InterfaceDescriptor interfaceDescriptor;
-
-            if (returnType is null)
-            {
-                firstCase = _fieldCollector.CollectFields(
-                    interfaceType, firstCase.SelectionSet, path);
-                string name = CreateName(fieldSelection, interfaceType, GetClassName);
-
-                var interfaceSelectionSet = new SelectionSetNode(
-                    firstCase.Fields.Select(t => t.Selection).ToList());
-
-                returnType = new FragmentNode(new Fragment(
-                    name, interfaceType, interfaceSelectionSet));
-                _usedNames.Remove(name);
-            }
-
-            interfaceDescriptor = CreateInterface(returnType, path);
-
-            var resultParserTypes = new List<ResultParserTypeDescriptor>();
-
-            foreach (FieldCollectionResult typeCase in typeCases)
-            {
-                GenerateInterfaceTypeCaseModel(
-                    typeCase, returnType, resultParserTypes, path);
-            }
-
-            RegisterDescriptor(interfaceDescriptor);
-
-            RegisterDescriptor(
-                new ResultParserMethodDescriptor(
-                    GetPathName(path),
-                    operation,
-                    fieldType,
-                    fieldSelection,
-                    path,
-                    interfaceDescriptor,
-                    resultParserTypes));
-
-            return interfaceDescriptor;
-        }
-
-        private void GenerateInterfaceTypeCaseModel(
-            FieldCollectionResult typeCase,
-            IFragmentNode returnType,
-            ICollection<ResultParserTypeDescriptor> resultParser,
-            Path path)
-        {
-            string className;
-            IReadOnlyList<IFragmentNode> fragments;
-
-            IFragmentNode modelType = HoistFragment(
-                (ObjectType)typeCase.Type,
-                typeCase.SelectionSet,
-                typeCase.Fragments);
-
-            if (modelType is null)
-            {
-                fragments = typeCase.Fragments;
-                className = CreateName(GetClassName(typeCase.Type.Name));
-            }
-            else
-            {
-                fragments = modelType.Children;
-                className = CreateName(GetClassName(modelType.Fragment.Name));
-            }
-
-            var modelSelectionSet = new SelectionSetNode(
-                typeCase.Fields.Select(t => t.Selection).ToList());
-
-            var modelFragment = new FragmentNode(new Fragment(
-                className, typeCase.Type, modelSelectionSet));
-            modelFragment.Children.AddRange(fragments);
-            if (modelFragment.Children.All(t =>
-                t.Fragment.SelectionSet != returnType.Fragment.SelectionSet))
-            {
-                modelFragment.Children.Add(returnType);
-            }
-
-            IInterfaceDescriptor modelInterface =
-                CreateInterface(modelFragment, path);
-
-            var modelClass = new ClassDescriptor(
-                className, _namespace, typeCase.Type, modelInterface);
-
-
-            RegisterDescriptor(modelInterface);
-            RegisterDescriptor(modelClass);
-
-            resultParser.Add(new ResultParserTypeDescriptor(modelClass));
-        }
-
-        private ICodeDescriptor GenerateObjectSelectionSet(
-            OperationDefinitionNode operation,
-            ObjectType objectType,
-            IType fieldType,
-            WithDirectives fieldOrOperation,
-            FieldCollectionResult typeCase,
-            Path path)
-        {
-            IFragmentNode returnType = HoistFragment(
-                objectType, typeCase.SelectionSet, typeCase.Fragments);
-
-            IReadOnlyList<IFragmentNode> fragments;
-            string className;
-
-            if (returnType is null)
-            {
-                fragments = typeCase.Fragments;
-                className = CreateName(fieldOrOperation, objectType, GetClassName);
-            }
-            else
-            {
-                fragments = returnType.Children;
-                className = CreateName(GetClassName(returnType.Fragment.Name));
-            }
-
-            var modelSelectionSet = new SelectionSetNode(
-                typeCase.Fields.Select(t => t.Selection).ToList());
-
-            var modelFragment = new FragmentNode(new Fragment(
-                className, objectType, modelSelectionSet));
-            modelFragment.Children.AddRange(fragments);
-
-            IInterfaceDescriptor modelInterface =
-                CreateInterface(modelFragment, path);
-
-            var modelClass = new ClassDescriptor(
-                className, _namespace, typeCase.Type, modelInterface);
-
-            RegisterDescriptor(modelInterface);
-            RegisterDescriptor(modelClass);
-
-            RegisterDescriptor(
-                new ResultParserMethodDescriptor(
-                    GetPathName(path),
-                    operation,
-                    fieldType,
-                    fieldOrOperation as FieldNode,
-                    path,
-                    modelInterface,
-                    new[] { new ResultParserTypeDescriptor(modelClass) }));
-
-            return modelInterface;
-        }
-
-        private IFragmentNode HoistFragment(
-            INamedType typeContext,
-            SelectionSetNode selectionSet,
-            IReadOnlyList<IFragmentNode> fragments)
-        {
-            (SelectionSetNode s, IReadOnlyList<IFragmentNode> f) current =
-                (selectionSet, fragments);
-            IFragmentNode selected = null;
-
-            while (!current.s.Selections.OfType<FieldNode>().Any()
-                && current.f.Count == 1
-                && current.f[0].Fragment.TypeCondition == typeContext)
-            {
-                selected = current.f[0];
-                current = (selected.Fragment.SelectionSet, selected.Children);
-            }
-
-            return selected;
-        }
-
-        private IReadOnlyList<InterfaceDescriptor> CreateInterfaces(
-           IEnumerable<IFragmentNode> fragmentNodes,
-           Path path)
-        {
-            var list = new List<InterfaceDescriptor>();
-            foreach (IFragmentNode fragmentNode in fragmentNodes)
-            {
-                list.Add(CreateInterface(fragmentNode, path));
-            }
-            return list;
-        }
-
-        private InterfaceDescriptor CreateInterface(
-            IFragmentNode fragmentNode,
-            Path path)
-        {
-            var levels = new Stack<HashSet<string>>();
-            levels.Push(new HashSet<string>());
-            return CreateInterface(fragmentNode, path, levels);
-        }
-
-        private InterfaceDescriptor CreateInterface(
-            IFragmentNode fragmentNode,
-            Path path,
-            Stack<HashSet<string>> levels)
-        {
-            HashSet<string> implementedFields = levels.Peek();
-
-            var implementedByChildren = new HashSet<string>();
-            levels.Push(implementedByChildren);
-
-            var implements = new List<IInterfaceDescriptor>();
-
-            foreach (IFragmentNode child in fragmentNode.Children)
-            {
-                implements.Add(CreateInterface(child, path, levels));
-            }
-
-            levels.Pop();
-
-            foreach (string fieldName in implementedByChildren)
-            {
-                implementedFields.Add(fieldName);
-            }
-
-            IReadOnlyList<IFieldDescriptor> fieldDescriptors =
-                Array.Empty<IFieldDescriptor>();
-
-            if (fragmentNode.Fragment.TypeCondition is IComplexOutputType type)
-            {
-                fieldDescriptors = CreateFields(
-                    type,
-                    fragmentNode.Fragment.SelectionSet.Selections,
-                    name =>
-                    {
-                        if (implementedByChildren.Add(name))
-                        {
-                            implementedFields.Add(name);
-                            return true;
-                        }
-                        return false;
-                    },
-                    path);
-            }
-
-            string typeName = CreateName(
-                Utilities.NameUtils.GetInterfaceName(
-                    fragmentNode.Fragment.Name));
-
-            return new InterfaceDescriptor(
-                typeName,
-                _namespace,
-                fragmentNode.Fragment.TypeCondition,
-                fieldDescriptors,
-                implements);
-        }
-
-        private IReadOnlyList<IFieldDescriptor> CreateFields(
-            IComplexOutputType type,
-            IEnumerable<ISelectionNode> selections,
-            Func<string, bool> addField,
-            Path path)
-        {
-            var fields = new Dictionary<string, FieldSelection>();
-
-            foreach (FieldNode selection in selections.OfType<FieldNode>())
-            {
-                NameString responseName = selection.Alias == null
-                    ? selection.Name.Value
-                    : selection.Alias.Value;
-
-                if (addField(responseName))
-                {
-                    FieldCollector.ResolveFieldSelection(
-                        type,
-                        selection,
-                        path,
-                        fields);
-                }
-            }
-
-            return fields.Values.Select(t =>
-            {
-                string responseName = (t.Selection.Alias ?? t.Selection.Name).Value;
-                return new FieldDescriptor(
-                    t.Field,
-                    t.Selection,
-                    t.Field.Type,
-                    path.Append(responseName));
-            }).ToList();
-        }
-
-        private string CreateName(string name)
-        {
-            if (!_usedNames.Add(name))
-            {
-                for (int i = 0; i < int.MaxValue; i++)
-                {
-                    string n = name + i;
-                    if (_usedNames.Add(n))
-                    {
-                        return name;
-                    }
-                }
-
-                // TODO : resources
-                throw new InvalidOperationException(
-                    "Could not create a name.");
-            }
-            return name;
-        }
-
-        private string CreateName(
-            WithDirectives withDirectives,
-            IType returnType,
-            Func<string, string> nameFormatter)
-        {
-            if (TryGetTypeName(withDirectives, out string typeName))
-            {
-                return CreateName(nameFormatter(typeName));
-            }
-            else if (withDirectives is OperationDefinitionNode operation)
-            {
-                return CreateName(nameFormatter(operation.Name.Value));
-            }
-            return CreateName(nameFormatter(returnType.NamedType().Name));
-        }
-
-        private bool TryGetTypeName(
-            WithDirectives withDirectives,
-            out string typeName)
-        {
-            DirectiveNode directive =
-                withDirectives.Directives.FirstOrDefault(t =>
-                    t.Name.Value.EqualsOrdinal(GeneratorDirectives.Type));
-
-            if (directive is null)
-            {
-                typeName = null;
-                return false;
-            }
-
-            typeName = (string)directive.Arguments.Single(a =>
-                a.Name.Value.EqualsOrdinal("name")).Value.Value;
-            return true;
-        }
-
-        private bool Spread(FieldNode field)
-        {
-            return field.Directives.Any(t =>
-                t.Name.Value.EqualsOrdinal(GeneratorDirectives.Spread));
-        }
-
-        private void RegisterDescriptors(IEnumerable<ICodeDescriptor> descriptors)
-        {
-            foreach (ICodeDescriptor descriptor in descriptors)
-            {
-                RegisterDescriptor(descriptor);
-            }
-        }
-
-        private void RegisterDescriptor(ICodeDescriptor descriptor)
-        {
-            var queue = new Queue<ICodeDescriptor>();
-            queue.Enqueue(descriptor);
-
-            while (queue.Count > 0)
-            {
-                ICodeDescriptor current = queue.Dequeue();
-
-                if (!_descriptors.ContainsKey(current.Name))
-                {
-                    _descriptors.Add(current.Name, current);
-
-                    foreach (ICodeDescriptor child in current.GetChildren())
-                    {
-                        queue.Enqueue(child);
-                    }
-                }
             }
         }
     }

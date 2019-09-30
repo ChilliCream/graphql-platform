@@ -26,7 +26,7 @@ namespace StrawberryShake.Generators.Utilities
             _disposeWriter = true;
         }
 
-        public override Encoding Encoding { get; }
+        public override Encoding Encoding { get; } = Encoding.UTF8;
 
         public override void Write(char value) =>
             _writer.Write(value);
@@ -69,6 +69,25 @@ namespace StrawberryShake.Generators.Utilities
         public Task WriteIndentAsync() =>
             Task.Factory.StartNew(
                 WriteIndent,
+                CancellationToken.None,
+                TaskCreationOptions.DenyChildAttach,
+                TaskScheduler.Default);
+
+        public Task WriteIndentedLineAsync(string format, params object?[] args) =>
+            Task.Factory.StartNew(
+                () =>
+                {
+                    WriteIndent();
+                    if (args.Length == 0)
+                    {
+                        Write(format);
+                    }
+                    else
+                    {
+                        Write(format, args);
+                    }
+                    WriteLine();
+                },
                 CancellationToken.None,
                 TaskCreationOptions.DenyChildAttach,
                 TaskScheduler.Default);
