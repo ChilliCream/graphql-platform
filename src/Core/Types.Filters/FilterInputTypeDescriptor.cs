@@ -6,6 +6,7 @@ using System.Linq;
 using HotChocolate.Types.Descriptors;
 using System.Linq.Expressions;
 using HotChocolate.Utilities;
+using HotChocolate.Types.Filters.Properties;
 
 namespace HotChocolate.Types.Filters
 {
@@ -160,9 +161,8 @@ namespace HotChocolate.Types.Filters
                 return field;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
 
@@ -177,9 +177,8 @@ namespace HotChocolate.Types.Filters
                 return field;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
 
@@ -194,9 +193,8 @@ namespace HotChocolate.Types.Filters
                 return field;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
 
@@ -209,9 +207,8 @@ namespace HotChocolate.Types.Filters
                 return this;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
 
@@ -225,9 +222,8 @@ namespace HotChocolate.Types.Filters
                 return field;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
                 nameof(property));
         }
 
