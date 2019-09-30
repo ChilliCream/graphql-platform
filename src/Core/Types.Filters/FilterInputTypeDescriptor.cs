@@ -216,9 +216,9 @@ namespace HotChocolate.Types.Filters
         }
 
         public IObjectFilterFieldDescriptor<TObject> Filter<TObject>(
-            Expression<Func<T, TObject>> propertyOrMethod) where TObject : class
+            Expression<Func<T, TObject>> property) where TObject : class
         {
-            if (propertyOrMethod.ExtractMember() is PropertyInfo p)
+            if (property.ExtractMember() is PropertyInfo p)
             {
                 var field = new ObjectFilterFieldDescriptor<TObject>(Context, p);
                 Fields.Add(field);
@@ -228,7 +228,7 @@ namespace HotChocolate.Types.Filters
             // TODO : resources
             throw new ArgumentException(
                 "Only properties are allowed for input types.",
-                nameof(propertyOrMethod));
+                nameof(property));
         }
 
         public static FilterInputTypeDescriptor<T> New(
