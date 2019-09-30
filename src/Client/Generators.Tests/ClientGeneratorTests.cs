@@ -262,5 +262,47 @@ namespace StrawberryShake.Generators
             // assert
             outputHandler.Content.MatchSnapshot();
         }
+
+        [Fact]
+        public async Task Return_Type_Renamed()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo: Foo!
+                }
+
+                type Foo {
+                    bars: [Bar!]!
+                }
+
+                type Bar {
+                    baz: String!
+                }
+                ";
+
+            string query =
+               @"
+                query getBars {
+                    foo @type(name: ""FooNew"") {
+                        bars {
+                            baz
+                        }
+                    }
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
     }
 }
