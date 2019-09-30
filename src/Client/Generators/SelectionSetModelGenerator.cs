@@ -154,8 +154,12 @@ namespace StrawberryShake.Generators
             SelectionInfo selection,
             List<ResultParserTypeDescriptor> resultParserTypes)
         {
+            string className = context.GetOrCreateName(
+                returnType.Fragment.SelectionSet,
+                GetClassName(returnType.Name));
+
             var modelClass = new ClassDescriptor(
-                GetClassName(returnType.Name),
+                className,
                 context.Namespace,
                 selection.Type,
                 new[] { interfaceDescriptor });

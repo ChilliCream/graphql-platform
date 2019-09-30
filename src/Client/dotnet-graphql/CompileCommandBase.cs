@@ -19,37 +19,32 @@ namespace StrawberryShake.Tools
         [Argument(0, "path")]
         public string? Path { get; set; }
 
+        [Option("-s|--SearchForClients")]
+        public bool SearchForClients { get; set; }
+
         public async Task<int> OnExecute()
         {
             try
             {
-                if (Path is null)
+                if (Path is null || Path == string.Empty)
                 {
-                    foreach (string configFile in Directory.GetFiles(
-                        Environment.CurrentDirectory,
-                        "config.json",
-                        SearchOption.AllDirectories))
+                    foreach (string clientDirectory in FindDirectories(
+                        Environment.CurrentDirectory))
                     {
-                        string directory = IOPath.GetDirectoryName(configFile)!;
-                        if (Directory.GetFiles(directory, "*.graphql").Length > 0)
+                        if (!await Compile(clientDirectory))
                         {
-                            try
-                            {
-                                Configuration? config = await Configuration.LoadConfig(directory);
-                                if (config != null
-                                    && config.Schemas != null
-                                    && config.Schemas.Count > 0)
-                                {
-                                    if (!(await Compile(directory, config)))
-                                    {
-                                        return 1;
-                                    }
-                                }
-                            }
-                            catch
-                            {
-                                // ignore invalid configs
-                            }
+                            return 1;
+                        }
+                    }
+                    return 0;
+                }
+                else if (SearchForClients)
+                {
+                    foreach (string clientDirectory in FindDirectories(Path))
+                    {
+                        if (!await Compile(clientDirectory))
+                        {
+                            return 1;
                         }
                     }
                     return 0;
@@ -66,6 +61,20 @@ namespace StrawberryShake.Tools
             }
         }
 
+        private IEnumerable<string> FindDirectories(string path)
+        {
+            foreach (string configFile in Directory.GetFiles(
+                path,
+                WellKnownFiles.Config,
+                SearchOption.AllDirectories))
+            {
+                string directory = IOPath.GetDirectoryName(configFile)!;
+                if (Directory.GetFiles(directory, "*.graphql").Length > 0)
+                {
+                    yield return directory;
+                }
+            }
+        }
 
         private async Task<bool> Compile(string path)
         {

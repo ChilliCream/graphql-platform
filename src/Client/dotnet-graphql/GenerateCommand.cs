@@ -11,11 +11,14 @@ namespace StrawberryShake.Tools
     public class GenerateCommand
         : CompileCommandBase
     {
-        [Option]
+        [Option("-l|--LanguageVersion")]
         public string? LanguageVersion { get; set; }
 
-        [Option]
+        [Option("-d|--DISupport")]
         public bool DISupport { get; set; }
+
+        [Option("-n|--Namespace")]
+        public string? Namespace { get; set; }
 
         protected override async Task<bool> Compile(
             string path,
@@ -28,6 +31,11 @@ namespace StrawberryShake.Tools
             }
 
             generator.ModifyOptions(o => o.EnableDISupport = DISupport);
+
+            if (Namespace is { })
+            {
+                generator.SetNamespace(Namespace);
+            }
 
             IReadOnlyList<HCError> validationErrors = generator.Validate();
 

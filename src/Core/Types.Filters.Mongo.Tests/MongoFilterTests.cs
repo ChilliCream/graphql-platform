@@ -90,6 +90,44 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public async Task GetItems_ObjectEqualsFilter_FirstItems_Is_Returned()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<IMongoCollection<Model>>(sp =>
+            {
+                MongoClient client = new MongoClient();
+                IMongoDatabase database = client.GetDatabase(
+                    "db_" + Guid.NewGuid().ToString("N"));
+
+                var collection = database.GetCollection<Model>("col");
+                collection.InsertMany(new[]
+                {
+                    new Model { Nested= new Model { Nested= new Model { Foo = "abc", Bar = 1, Baz = true } } },
+                    new Model { Nested= new Model { Nested= new Model { Foo = "def", Bar = 2, Baz = false } } },
+                });
+                return collection;
+            });
+
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddServices(serviceCollection.BuildServiceProvider())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("{ items(where: { nested:{ nested: { foo: \"abc\" }}}) { nested { nested { foo } } } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task GetItems_With_Paging_EqualsFilter_FirstItems_Is_Returned()
         {
             // arrange
@@ -163,6 +201,7 @@ namespace HotChocolate.Types.Filters
             public string Foo { get; set; }
             public int Bar { get; set; }
             public bool Baz { get; set; }
+            public Model Nested { get; set; }
         }
     }
 }

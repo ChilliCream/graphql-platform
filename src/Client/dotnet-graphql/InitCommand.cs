@@ -25,7 +25,7 @@ namespace StrawberryShake.Tools
         [Required]
         public string? Url { get; set; }
 
-        [Option("-n|--schemaName")]
+        [Option("-n|--SchemaName")]
         public string? SchemaName { get; set; }
 
         [Option]
@@ -87,7 +87,7 @@ namespace StrawberryShake.Tools
                 Url = Url
             });
 
-            using (var stream = File.Create(IOPath.Combine(Path, "config.json")))
+            using (var stream = File.Create(IOPath.Combine(Path, WellKnownFiles.Config)))
             {
                 await JsonSerializer.SerializeAsync(stream, configuration);
             }
