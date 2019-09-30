@@ -8,6 +8,66 @@ namespace StrawberryShake.Generators
         : ModelGeneratorTestBase
     {
         [Fact]
+        public async Task Single_Nullable_Scalar_Argument()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo(a: String): String
+                }
+                ";
+
+            string query =
+               @"
+                query getBars($a: String) {
+                    foo(a: $a)
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Two_Nullable_Scalar_Arguments()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo(a: String b: Int): String
+                }
+                ";
+
+            string query =
+               @"
+                query getBars($a: String $b: Int) {
+                    foo(a: $a b: $b)
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task NonNull_Object_List()
         {
             // arrange
@@ -178,7 +238,7 @@ namespace StrawberryShake.Generators
                 }
                 ";
 
-            string extensions =  @"
+            string extensions = @"
                 extend enum Episode {
                     NEWHOPE @name(value: ""NewHope"")
                 }
