@@ -8,7 +8,7 @@ namespace StrawberryShake.Generators
         : ModelGeneratorTestBase
     {
         [Fact]
-        public async Task NonNull_Objects_With_Lists()
+        public async Task NonNull_Object_List()
         {
             // arrange
             var outputHandler = new TestOutputHandler();
@@ -23,7 +23,7 @@ namespace StrawberryShake.Generators
                 }
 
                 type Bar {
-                    baz: String
+                    baz: String!
                 }
                 ";
 
@@ -34,6 +34,42 @@ namespace StrawberryShake.Generators
                         bars {
                             baz
                         }
+                    }
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task NonNull_Scalar_List()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo: Foo!
+                }
+
+                type Foo {
+                    bars: [String!]!
+                }
+                ";
+
+            string query =
+               @"
+                query getBars {
+                    foo {
+                        bars
                     }
                 }
                 ";

@@ -51,12 +51,12 @@ namespace StrawberryShake.Client
         : IBar
     {
         public Bar(
-            string? baz)
+            string baz)
         {
             Baz = baz;
         }
 
-        public string? Baz { get; }
+        public string Baz { get; }
     }
 }
 
@@ -98,7 +98,7 @@ namespace StrawberryShake.Client
 {
     public interface IBar
     {
-        string? Baz { get; }
+        string Baz { get; }
     }
 }
 
@@ -172,7 +172,7 @@ namespace StrawberryShake.Client
             return list;
         }
 
-        private string? DeserializeNullableString(JsonElement obj, string fieldName)
+        private string DeserializeNullableString(JsonElement obj, string fieldName)
         {
             if (!obj.TryGetProperty(fieldName, out JsonElement value))
             {
@@ -185,7 +185,7 @@ namespace StrawberryShake.Client
             }
 
 
-            return (string?)_stringSerializer.Serialize(value.GetString());
+            return (string)_stringSerializer.Serialize(value.GetString());
         }
     }
 }

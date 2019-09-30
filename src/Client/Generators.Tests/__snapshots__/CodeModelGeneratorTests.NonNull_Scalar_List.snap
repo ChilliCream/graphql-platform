@@ -9,12 +9,12 @@ namespace StrawberryShake.Client
         : IGetBars
     {
         public GetBars(
-            IFoo? foo)
+            IFoo foo)
         {
             Foo = foo;
         }
 
-        public IFoo? Foo { get; }
+        public IFoo Foo { get; }
     }
 }
 
@@ -30,33 +30,12 @@ namespace StrawberryShake.Client
         : IFoo
     {
         public Foo(
-            IReadOnlyList<IBar>? bars)
+            IReadOnlyList<string> bars)
         {
             Bars = bars;
         }
 
-        public IReadOnlyList<IBar>? Bars { get; }
-    }
-}
-
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using StrawberryShake;
-
-namespace StrawberryShake.Client
-{
-    public class Bar
-        : IBar
-    {
-        public Bar(
-            string? baz)
-        {
-            Baz = baz;
-        }
-
-        public string? Baz { get; }
+        public IReadOnlyList<string> Bars { get; }
     }
 }
 
@@ -70,7 +49,7 @@ namespace StrawberryShake.Client
 {
     public interface IGetBars
     {
-        IFoo? Foo { get; }
+        IFoo Foo { get; }
     }
 }
 
@@ -84,21 +63,7 @@ namespace StrawberryShake.Client
 {
     public interface IFoo
     {
-        IReadOnlyList<IBar>? Bars { get; }
-    }
-}
-
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using StrawberryShake;
-
-namespace StrawberryShake.Client
-{
-    public interface IBar
-    {
-        string? Baz { get; }
+        IReadOnlyList<string> Bars { get; }
     }
 }
 
@@ -115,19 +80,10 @@ namespace StrawberryShake.Client
     public class GetBarsResultParser
         : JsonResultParserBase<IGetBars>
     {
-        private readonly IValueSerializer _stringSerializer;
 
         public GetBarsResultParser(IEnumerable<IValueSerializer> serializers)
         {
             IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
-
-            if (!map.TryGetValue("String", out IValueSerializer? serializer))
-            {
-                throw new ArgumentException(
-                    "There is no serializer specified for `String`.",
-                    nameof(serializers));
-            }
-            _stringSerializer = serializer;
         }
 
         protected override IGetBars ParserData(JsonElement data)
@@ -139,48 +95,19 @@ namespace StrawberryShake.Client
 
         }
 
-        private IFoo? ParseRootFoo(
+        private IFoo ParseRootFoo(
             JsonElement parent,
             string field)
         {
-            if (!parent.TryGetProperty(field, out JsonElement obj))
-            {
-                return null;
-            }
+            JsonElement obj = parent.GetProperty(field);
 
             return new Foo
             (
-                ParseRootFooBars(obj, "bars")
+                DeserializeNullableStringList(obj, "bars")
             );
-
         }
 
-        private IReadOnlyList<IBar>? ParseRootFooBars(
-            JsonElement parent,
-            string field)
-        {
-            if (!parent.TryGetProperty(field, out JsonElement obj))
-            {
-                return null;
-            }
-
-            int objLength = obj.GetArrayLength();
-            var list = new IBar[objLength];
-            for (int objIndex = 0; objIndex < objLength; objIndex++)
-            {
-                JsonElement element = obj[objIndex];
-                list[objIndex] = new Bar
-                (
-                    DeserializeNullableString(element, "baz")
-                );
-
-            }
-
-            return list;
-
-        }
-
-        private string? DeserializeNullableString(JsonElement obj, string fieldName)
+        private List<string> DeserializeNullableStringList(JsonElement obj, string fieldName)
         {
             if (!obj.TryGetProperty(fieldName, out JsonElement value))
             {
@@ -193,7 +120,15 @@ namespace StrawberryShake.Client
             }
 
 
-            return (string?)_stringSerializer.Serialize(value.GetString());
+            int arrayLength = value.GetArrayLength();
+            var list = new List<string>(arrayLength);
+
+            for (int i = 0; i < arrayLength; i++)
+            {
+                list.Add(($List<string>)_$StringSerializer.Serialize(value[i].GetString());
+            }
+
+        return list;
         }
     }
 }
@@ -306,6 +241,7 @@ namespace StrawberryShake.Client
 
             return serviceCollection;
         }
+
         public static IServiceCollection AddSchemaClient(
             this IServiceCollection serviceCollection)
         {
@@ -329,23 +265,27 @@ namespace StrawberryShake.Client
 
             return serviceCollection;
         }
+
         private static IServiceCollection AddEnumSerializers(
             this IServiceCollection serviceCollection)
         {
             return serviceCollection;
         }
+
         private static IServiceCollection AddResultParsers(
             this IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<IResultParser, GetBarsResultParser>();
             return serviceCollection;
         }
+
         private static IServiceCollection TryAddDefaultOperationSerializer(
             this IServiceCollection serviceCollection)
         {
             serviceCollection.TryAddSingleton<IOperationSerializer, JsonOperationSerializer>();
             return serviceCollection;
         }
+
         private static IServiceCollection TryAddDefaultHttpPipeline(
             this IServiceCollection serviceCollection)
         {
@@ -357,11 +297,13 @@ namespace StrawberryShake.Client
                     .Build(sp));
             return serviceCollection;
         }
+
         private static Func<HttpClient> ClientFactory(IServiceProvider services)
         {
             var clientFactory = services.GetRequiredService<IHttpClientFactory>();
             return () => clientFactory.CreateClient("SchemaClient");
         }
+
         private static OperationDelegate PipelineFactory(IServiceProvider services)
         {
             return services.GetRequiredService<OperationDelegate>();
