@@ -14,6 +14,7 @@ using StrawberryShake.Generators.CSharp;
 using IOPath = System.IO.Path;
 using HCError = HotChocolate.IError;
 using HCErrorBuilder = HotChocolate.ErrorBuilder;
+using StrawberryShake.Generators.Types;
 
 namespace StrawberryShake.Generators
 {
@@ -397,6 +398,9 @@ namespace StrawberryShake.Generators
             return SchemaBuilder.New()
                 .Use(next => context => Task.CompletedTask)
                 .AddDocument(schema)
+                .AddDirectiveType<NameDirectiveType>()
+                .AddDirectiveType<TypeDirectiveType>()
+                .AddDirectiveType<SerializationDirectiveType>()
                 .Create();
         }
 
