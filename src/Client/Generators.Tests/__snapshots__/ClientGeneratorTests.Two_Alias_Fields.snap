@@ -51,6 +51,27 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
+    public class Foo1
+        : IFoo1
+    {
+        public Foo1(
+            string? bar)
+        {
+            Bar = bar;
+        }
+
+        public string? Bar { get; }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
     public interface IGetBars
     {
         IFoo A { get; }
@@ -143,7 +164,7 @@ namespace StrawberryShake.Client
         {
             JsonElement obj = parent.GetProperty(field);
 
-            return new Foo
+            return new Foo1
             (
                 DeserializeNullableString(obj, "bar")
             );
