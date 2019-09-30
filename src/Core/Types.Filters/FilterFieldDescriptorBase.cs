@@ -243,6 +243,9 @@ namespace HotChocolate.Types.Filters
                 case FilterOperationKind.NotLowerThanOrEquals:
                     return Definition.Name + "_not_lte";
 
+                case FilterOperationKind.Object:
+                    return Definition.Name;
+
                 default:
                     throw new NotSupportedException();
             }

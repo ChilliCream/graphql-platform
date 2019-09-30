@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace StrawberryShake.Client
+namespace  StrawberryShake.Client.GraphQL
 {
     public interface IGetHero
     {

@@ -25,7 +25,7 @@ dotnet new starwars
 
 The GraphQL specification and more is available on the [Facebook GraphQL repository](https://github.com/graphql/graphql-spec).
 
-If you want to get in touch with us you can do so by joining our [slack group](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTBkZjNjZWIzMmNlZjQ5MDQyNDNjMmY3NzYzZjgyYTVmZDU2YjVmNDlhNjNlNTk2ZWRiYzIxMTkwYzA4ODA5Yzg).
+If you want to get in touch with us you can do so by joining our [slack group](https://join.slack.com/t/hotchocolategraphql/shared_invite/enQtNTA4NjA0ODYwOTQ0LTViMzA2MTM4OWYwYjIxYzViYmM0YmZhYjdiNzBjOTg2ZmU1YmMwNDZiYjUyZWZlMzNiMTk1OWUxNWZhMzQwY2Q).
 
 > This readme only provides a simple quickstart, in order to learn more about advanced features like schema stitching head over to our [documentation](http://hotchocolate.io).
 
@@ -214,4 +214,4 @@ More about GraphQL compatibility acceptance tests can be read [here](https://git
 
 For more examples and detailed documentation, click [here](http://hotchocolate.io).
 
-For documentation about our _DataLoader_ implementation click [here](https://github.com/ChilliCream/greendonut).
+For documentation about our _DataLoader_ implementation click [here](https://github.com/ChilliCream/hotchocolate/tree/master/src/DataLoader).
