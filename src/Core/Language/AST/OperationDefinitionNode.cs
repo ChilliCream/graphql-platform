@@ -4,8 +4,8 @@ using System.Collections.Generic;
 namespace HotChocolate.Language
 {
     public sealed class OperationDefinitionNode
-        : IExecutableDefinitionNode
-        , IHasDirectives
+        : NamedSyntaxNode
+        , IExecutableDefinitionNode
     {
         public OperationDefinitionNode(
             Location? location,
@@ -14,30 +14,20 @@ namespace HotChocolate.Language
             IReadOnlyList<VariableDefinitionNode> variableDefinitions,
             IReadOnlyList<DirectiveNode> directives,
             SelectionSetNode selectionSet)
+            : base(location, name, directives)
         {
-            Location = location;
-            Name = name;
             Operation = operation;
             VariableDefinitions = variableDefinitions
                 ?? throw new ArgumentNullException(nameof(variableDefinitions));
-            Directives = directives
-                ?? throw new ArgumentNullException(nameof(directives));
             SelectionSet = selectionSet
                 ?? throw new ArgumentNullException(nameof(selectionSet));
         }
 
-        public NodeKind Kind { get; } = NodeKind.OperationDefinition;
-
-        public Location? Location { get; }
-
-        public NameNode Name { get; }
+        public override NodeKind Kind { get; } = NodeKind.OperationDefinition;
 
         public OperationType Operation { get; }
 
-        public IReadOnlyList<VariableDefinitionNode> VariableDefinitions
-        { get; }
-
-        public IReadOnlyList<DirectiveNode> Directives { get; }
+        public IReadOnlyList<VariableDefinitionNode> VariableDefinitions { get; }
 
         public SelectionSetNode SelectionSet { get; }
 
