@@ -38,7 +38,7 @@ namespace HotChocolate.Language
             return new ListTypeNode(Location, type);
         }
 
-        public bool Equals(ListTypeNode other)
+        public bool Equals(ListTypeNode? other)
         {
             if (other is null)
             {
@@ -53,7 +53,7 @@ namespace HotChocolate.Language
             return Type.Equals(other.Type);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {

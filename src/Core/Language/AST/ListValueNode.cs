@@ -66,7 +66,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="ListValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(ListValueNode other)
+        public bool Equals(ListValueNode? other)
         {
             if (other is null)
             {
@@ -107,7 +107,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="ListValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(IValueNode other)
+        public bool Equals(IValueNode? other)
         {
             if (other is null)
             {
@@ -139,7 +139,7 @@ namespace HotChocolate.Language
         /// <c>true</c> if the specified <see cref="object"/> is equal to the
         /// current <see cref="ListValueNode"/>; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -178,6 +178,16 @@ namespace HotChocolate.Language
 
                 return _hash.Value;
             }
+        }
+
+        public override string ToString()
+        {
+            return QuerySyntaxSerializer.Serialize(this);
+        }
+
+        public Span<byte> AsSpan()
+        {
+            throw new NotImplementedException();
         }
 
         public ListValueNode WithLocation(Location? location)

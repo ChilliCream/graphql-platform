@@ -10,10 +10,4 @@ namespace HotChocolate.Language
 
         Span<byte> AsSpan();
     }
-
-    public interface IValueNode<out T>
-        : IValueNode
-    {
-        new T Value { get; }
-    }
 }
