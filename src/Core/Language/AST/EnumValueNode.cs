@@ -9,6 +9,7 @@ namespace HotChocolate.Language
     /// </summary>
     public sealed class EnumValueNode
         : IValueNode<string>
+        , IHasSpan
         , IEquatable<EnumValueNode?>
     {
         private ReadOnlyMemory<byte> _memory;

@@ -150,9 +150,6 @@ namespace HotChocolate.Language
 #endif
         }
 
-        public ReadOnlySpan<byte> AsSpan() =>
-            Value ? GraphQLKeywords.True : GraphQLKeywords.False;
-
         public BooleanValueNode WithLocation(Location? location) =>
             new BooleanValueNode(location, Value);
 

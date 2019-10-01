@@ -1,8 +1,0 @@
-﻿"""
-Description
-"""
-schema @foo(a: "123") {
-  query: Foo
-  mutation: Bar
-  subscription: Baz
-}

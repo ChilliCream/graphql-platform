@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Buffers.Text;
-using System.Globalization;
 
 namespace HotChocolate.Language
 {
@@ -9,43 +8,41 @@ namespace HotChocolate.Language
         , IEquatable<FloatValueNode>
     {
         private ReadOnlyMemory<byte> _memory;
-        private string? _value;
+        private string? _stringValue;
         private float? _floatValue;
         private double? _doubleValue;
         private decimal? _decimalValue;
+        private byte _type;
 
-        public FloatValueNode(float value)
-            : this(null, value.ToString(CultureInfo.InvariantCulture), FloatFormat.FixedPoint)
+        public FloatValueNode(double value)
+            : this(null, value)
         {
         }
 
-        public FloatValueNode(double value)
-            : this(value.ToString(CultureInfo.InvariantCulture), FloatFormat.FixedPoint)
+        public FloatValueNode(Location? location, double value)
         {
+            Location = location;
+            _doubleValue = value;
+            Format = FloatFormat.FixedPoint;
+            _type = 1;
         }
 
         public FloatValueNode(decimal value)
-            : this(null, value.ToString(CultureInfo.InvariantCulture), FloatFormat.FixedPoint)
+            : this(null, value)
         {
         }
 
-
-        public FloatValueNode(string value, FloatFormat format)
-            : this(null, value, format)
-        { }
-
-        public FloatValueNode(Location? location, string value, FloatFormat format)
+        public FloatValueNode(Location? location, decimal value)
         {
-            if (string.IsNullOrEmpty(value))
-            {
-                throw new ArgumentException(
-                    "The value of a float value node mustn't be null or empty.",
-                    nameof(value));
-            }
-
             Location = location;
-            _value = value;
-            Format = format;
+            _decimalValue = value;
+            Format = FloatFormat.FixedPoint;
+            _type = 2;
+        }
+
+        public FloatValueNode(ReadOnlyMemory<byte> value, FloatFormat format)
+            : this(null, value, format)
+        {
         }
 
         public FloatValueNode(Location? location, ReadOnlyMemory<byte> value, FloatFormat format)
@@ -62,6 +59,12 @@ namespace HotChocolate.Language
             Format = format;
         }
 
+        private FloatValueNode(Location? location, FloatFormat format)
+        {
+            Location = location;
+            Format = format;
+        }
+
         public NodeKind Kind { get; } = NodeKind.FloatValue;
 
         public Location? Location { get; }
@@ -72,11 +75,11 @@ namespace HotChocolate.Language
         {
             get
             {
-                if (_value is null)
+                if (_stringValue is null)
                 {
-                    _value = Utf8GraphQLReader.GetScalarValue(_memory.Span);
+                    _stringValue = Utf8GraphQLReader.GetScalarValue(AsSpan());
                 }
-                return _value;
+                return _stringValue;
             }
         }
 
@@ -107,7 +110,28 @@ namespace HotChocolate.Language
                 return true;
             }
 
-            return other.Value.Equals(Value, StringComparison.Ordinal);
+            if (other._floatValue.HasValue
+                && _floatValue.HasValue
+                && other._floatValue.Value.Equals(_floatValue.Value))
+            {
+                return true;
+            }
+
+            if (other._doubleValue.HasValue
+                && _doubleValue.HasValue
+                && other._doubleValue.Value.Equals(_doubleValue.Value))
+            {
+                return true;
+            }
+
+            if (other._decimalValue.HasValue
+                && _decimalValue.HasValue
+                && other._decimalValue.Value.Equals(_decimalValue.Value))
+            {
+                return true;
+            }
+
+            return other.AsSpan().SequenceEqual(AsSpan());
         }
 
         /// <summary>
@@ -251,15 +275,40 @@ namespace HotChocolate.Language
             throw new InvalidFormatException();
         }
 
-        public ReadOnlySpan<byte> AsSpan()
+        public unsafe ReadOnlySpan<byte> AsSpan()
         {
             if (_memory.IsEmpty)
             {
-                int length = checked(_value!.Length * 4);
-                Memory<byte> memory = new byte[length];
-                Span<byte> span = memory.Span;
-                int buffered = Utf8GraphQLParser.ConvertToBytes(_value, ref span);
-                _memory = memory.Slice(0, buffered);
+                if (_floatValue.HasValue || _doubleValue.HasValue || _decimalValue.HasValue)
+                {
+                    Span<byte> buffer = stackalloc byte[32];
+                    int written = 0;
+
+                    if (_floatValue.HasValue)
+                    {
+                        Utf8Formatter.TryFormat(_floatValue.Value, buffer, out written, 'f');
+                    }
+                    else if (_doubleValue.HasValue)
+                    {
+                        Utf8Formatter.TryFormat(_doubleValue.Value, buffer, out written, 'f');
+                    }
+                    else
+                    {
+                        Utf8Formatter.TryFormat(_decimalValue!.Value, buffer, out written, 'f');
+                    }
+
+                    var memory = new Memory<byte>(new byte[written]);
+                    buffer.Slice(0, written).CopyTo(memory.Span);
+                    _memory = memory;
+                }
+                else
+                {
+                    int length = checked(_stringValue!.Length * 4);
+                    Memory<byte> memory = new byte[length];
+                    Span<byte> span = memory.Span;
+                    int buffered = Utf8GraphQLParser.ConvertToBytes(_stringValue, ref span);
+                    _memory = memory.Slice(0, buffered);
+                }
             }
 
             return _memory.Span;
@@ -267,22 +316,46 @@ namespace HotChocolate.Language
 
         public FloatValueNode WithLocation(Location? location)
         {
-            return new FloatValueNode(location, Value, Format);
+            return new FloatValueNode(location, Format)
+            {
+                _memory = _memory,
+                _floatValue = _floatValue,
+                _doubleValue = _doubleValue,
+                _decimalValue = _decimalValue,
+                _stringValue = Value
+            };
         }
 
-        public FloatValueNode WithValue(string value)
+        public FloatValueNode WithValue(double value)
+        {
+            return new FloatValueNode(Location, value);
+        }
+
+        public FloatValueNode WithValue(decimal value)
+        {
+            return new FloatValueNode(Location, value);
+        }
+
+        public FloatValueNode WithValue(ReadOnlyMemory<byte> value)
         {
             return new FloatValueNode(Location, value, Format);
         }
 
-        public FloatValueNode WithValue(Memory<byte> value)
+        public FloatValueNode WithValue(ReadOnlySpan<byte> value)
         {
-            return new FloatValueNode(Location, value, Format);
+            return new FloatValueNode(Location, value.ToArray(), Format);
         }
 
         public FloatValueNode WithFormat(FloatFormat format)
         {
-            return new FloatValueNode(Location, Value, format);
+            return new FloatValueNode(Location, format)
+            {
+                _memory = _memory,
+                _floatValue = _floatValue,
+                _doubleValue = _doubleValue,
+                _decimalValue = _decimalValue,
+                _stringValue = Value
+            };
         }
     }
 }

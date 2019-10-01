@@ -1,1 +1,0 @@
-﻿union Foo @foo(a: "123") = BAR | BAZ

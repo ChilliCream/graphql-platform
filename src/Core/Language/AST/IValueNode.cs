@@ -7,7 +7,5 @@ namespace HotChocolate.Language
         , IEquatable<IValueNode?>
     {
         object? Value { get; }
-
-        ReadOnlySpan<byte> AsSpan();
     }
 }

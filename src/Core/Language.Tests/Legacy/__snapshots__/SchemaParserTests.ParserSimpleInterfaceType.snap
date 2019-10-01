@@ -1,4 +1,0 @@
-﻿interface a @foo(a: "123") {
-  b: String @foo(a: "123")
-  c(d: F = ENUMVALUE @foo(a: "123")): Int
-}

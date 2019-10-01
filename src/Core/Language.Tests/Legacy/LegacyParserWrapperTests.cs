@@ -1,11 +1,12 @@
-﻿using System.Linq;
-using ChilliCream.Testing;
+﻿using System;
+using System.Linq;
 using Snapshooter.Xunit;
 using Xunit;
 
 namespace HotChocolate.Language
 {
-    public class QueryParserTests
+    [Obsolete]
+    public class LegacyParserWrapperTests
     {
         [Fact]
         public void ParseSimpleShortHandFormQuery()
@@ -40,7 +41,7 @@ namespace HotChocolate.Language
                             Assert.Empty(field1.Arguments);
                             Assert.Empty(field1.Directives);
 
-                            Assert.Collection(field1.SelectionSet.Selections,
+                            Assert.Collection(field1.SelectionSet?.Selections,
                                 s2 =>
                                 {
                                     Assert.IsType<FieldNode>(s2);
@@ -75,7 +76,7 @@ namespace HotChocolate.Language
                     Assert.IsType<OperationDefinitionNode>(t);
                     var operationDefinition = (OperationDefinitionNode)t;
                     Assert.Equal(NodeKind.OperationDefinition, operationDefinition.Kind);
-                    Assert.Equal("a", operationDefinition.Name.Value);
+                    Assert.Equal("a", operationDefinition.Name?.Value);
                     Assert.Equal(expectedOperation, operationDefinition.Operation);
                     Assert.Empty(operationDefinition.Directives);
 
@@ -98,7 +99,7 @@ namespace HotChocolate.Language
                             Assert.Empty(field1.Arguments);
                             Assert.Empty(field1.Directives);
 
-                            Assert.Collection(field1.SelectionSet.Selections,
+                            Assert.Collection(field1.SelectionSet?.Selections,
                                 s2 =>
                                 {
                                     Assert.IsType<FieldNode>(s2);
@@ -132,7 +133,7 @@ namespace HotChocolate.Language
                     Assert.IsType<OperationDefinitionNode>(t);
                     var operationDefinition = (OperationDefinitionNode)t;
                     Assert.Equal(NodeKind.OperationDefinition, operationDefinition.Kind);
-                    Assert.Equal("a", operationDefinition.Name.Value);
+                    Assert.Equal("a", operationDefinition.Name?.Value);
                     Assert.Equal(OperationType.Query, operationDefinition.Operation);
                     Assert.Empty(operationDefinition.VariableDefinitions);
                     Assert.Empty(operationDefinition.Directives);
@@ -148,7 +149,7 @@ namespace HotChocolate.Language
                             Assert.Empty(field1.Arguments);
                             Assert.Empty(field1.Directives);
 
-                            Assert.Collection(field1.SelectionSet.Selections,
+                            Assert.Collection(field1.SelectionSet?.Selections,
                                 s2 =>
                                 {
                                     Assert.IsType<FragmentSpreadNode>(s2);
@@ -191,7 +192,7 @@ namespace HotChocolate.Language
             }";
 
             // act
-            DocumentNode document = Parser.Default.Parse(query,
+            DocumentNode document = Utf8GraphQLParser.Parse(query,
                 new ParserOptions(noLocations: true));
 
             // assert
@@ -206,7 +207,7 @@ namespace HotChocolate.Language
                 "query queryName($foo: ComplexType @foo) { bar }";
 
             // act
-            DocumentNode document = Parser.Default.Parse(sourceText);
+            DocumentNode document = Utf8GraphQLParser.Parse(sourceText);
 
             // assert
             Assert.Collection(
