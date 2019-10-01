@@ -8,8 +8,10 @@ namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLParser
     {
+        internal TokenKind Kind => _reader.Kind;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private NameNode ParseName()
+        internal NameNode ParseName()
         {
             TokenInfo start = Start();
             string name = ExpectName();
@@ -23,7 +25,7 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool MoveNext() => _reader.MoveNext();
+        internal bool MoveNext() => _reader.MoveNext();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private TokenInfo Start() =>
@@ -62,10 +64,10 @@ namespace HotChocolate.Language
                     _reader.Kind));
         }
 
-        private void ExpectColon() =>
+        internal void ExpectColon() =>
             Expect(TokenKind.Colon);
 
-        private void ExpectDollar() =>
+        internal void ExpectDollar() =>
             Expect(TokenKind.Dollar);
 
         private void ExpectAt() =>
@@ -110,7 +112,7 @@ namespace HotChocolate.Language
         private void ExpectSpread() =>
             Expect(TokenKind.Spread);
 
-        private void ExpectRightParenthesis() =>
+        internal void ExpectRightParenthesis() =>
             Expect(TokenKind.RightParenthesis);
 
         private void ExpectRightBrace() =>

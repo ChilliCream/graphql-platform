@@ -236,7 +236,7 @@ namespace HotChocolate.Language
                 code = _graphQLData[++_position];
             }
 
-            if (code == GraphQLConstants.Zero)
+            if (code == GraphQLConstants.Zero && !IsEndOfStream(_position + 1))
             {
                 code = _graphQLData[++_position];
                 if (GraphQLConstants.IsDigit(code))
@@ -672,6 +672,12 @@ namespace HotChocolate.Language
         public bool IsEndOfStream()
         {
             return _position >= _length;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private bool IsEndOfStream(int position)
+        {
+            return position >= _length;
         }
     }
 }
