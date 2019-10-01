@@ -10,7 +10,8 @@ namespace HotChocolate.Language
         public void CreateFloatValue(string value)
         {
             // act
-            var floatValueNode = new FloatValueNode(value);
+            var floatValueNode = new FloatValueNode(
+                value, FloatFormat.FixedPoint);
 
             // assert
             Assert.Equal(value, floatValueNode.Value);
@@ -27,7 +28,8 @@ namespace HotChocolate.Language
             var location = new Location(0, 0, 0, 0);
 
             // act
-            var floatValueNode = new FloatValueNode(location, value);
+            var floatValueNode = new FloatValueNode(
+                location, value, FloatFormat.FixedPoint);
 
             // assert
             Assert.Equal(value, floatValueNode.Value);
@@ -39,9 +41,9 @@ namespace HotChocolate.Language
         public void EqualsFloatValueNode()
         {
             // arrange
-            var a = new FloatValueNode("1.0");
-            var b = new FloatValueNode("1.0");
-            var c = new FloatValueNode("2.0");
+            var a = new FloatValueNode("1.0", FloatFormat.FixedPoint);
+            var b = new FloatValueNode("1.0", FloatFormat.FixedPoint);
+            var c = new FloatValueNode("2.0", FloatFormat.FixedPoint);
 
             // act
             bool ab_result = a.Equals(b);
@@ -60,9 +62,9 @@ namespace HotChocolate.Language
         public void EqualsIValueNode()
         {
             // arrange
-            var a = new FloatValueNode("1.0");
-            var b = new FloatValueNode("1.0");
-            var c = new FloatValueNode("2.0");
+            var a = new FloatValueNode("1.0", FloatFormat.FixedPoint);
+            var b = new FloatValueNode("1.0", FloatFormat.FixedPoint);
+            var c = new FloatValueNode("2.0", FloatFormat.FixedPoint);
             var d = new StringValueNode("foo");
 
             // act
@@ -84,9 +86,9 @@ namespace HotChocolate.Language
         public void EqualsObject()
         {
             // arrange
-            var a = new FloatValueNode("1.0");
-            var b = new FloatValueNode("1.0");
-            var c = new FloatValueNode("2.0");
+            var a = new FloatValueNode("1.0", FloatFormat.FixedPoint);
+            var b = new FloatValueNode("1.0", FloatFormat.FixedPoint);
+            var c = new FloatValueNode("2.0", FloatFormat.FixedPoint);
             var d = "foo";
             var e = 1;
 
@@ -111,9 +113,9 @@ namespace HotChocolate.Language
         public void CompareGetHashCode()
         {
             // arrange
-            var a = new FloatValueNode("1.0");
-            var b = new FloatValueNode("1.0");
-            var c = new FloatValueNode("2.0");
+            var a = new FloatValueNode("1.0", FloatFormat.FixedPoint);
+            var b = new FloatValueNode("1.0", FloatFormat.FixedPoint);
+            var c = new FloatValueNode("2.0", FloatFormat.FixedPoint);
 
             // act
             int ahash = a.GetHashCode();
@@ -129,12 +131,12 @@ namespace HotChocolate.Language
         public void StringRepresentation()
         {
             // arrange
-            var a = new FloatValueNode("1.0");
-            var b = new FloatValueNode("2.0");
+            var a = new FloatValueNode("1.0", FloatFormat.FixedPoint);
+            var b = new FloatValueNode("2.0", FloatFormat.FixedPoint);
 
             // act
-            string astring = a.ToString();
-            string bstring = b.ToString();
+            string? astring = a.ToString();
+            string? bstring = b.ToString();
 
             // assert
             Assert.Equal("1.0", astring);

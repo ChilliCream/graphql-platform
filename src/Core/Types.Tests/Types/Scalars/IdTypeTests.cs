@@ -67,7 +67,7 @@ namespace HotChocolate.Types
         {
             // arrange
             var type = new IdType();
-            var input = new FloatValueNode("123456");
+            var input = new FloatValueNode(123456.0);
 
             // act
             bool result = type.IsInstanceOfType(input);
@@ -236,7 +236,7 @@ namespace HotChocolate.Types
         {
             // arrange
             var type = new IdType();
-            var input = new FloatValueNode("123456");
+            var input = new FloatValueNode(123456.0);
 
             // act
             // assert

@@ -59,7 +59,7 @@ namespace HotChocolate.Language
                 Parser.ParseName);
             context.MoveNext();
 
-            return Parser.ParseValueLiteral(context, true);
+            return Utf8GraphQLParser. .ParseValueLiteral(context, true);
         }
     }
 }

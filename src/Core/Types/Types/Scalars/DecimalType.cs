@@ -81,7 +81,7 @@ namespace HotChocolate.Types
 
             if (value is decimal d)
             {
-                return new FloatValueNode(SerializeDecimal(d));
+                return new FloatValueNode(d);
             }
 
             throw new ScalarSerializationException(
@@ -136,8 +136,5 @@ namespace HotChocolate.Types
                 NumberStyles.Float,
                 CultureInfo.InvariantCulture,
                 out d);
-
-        private static string SerializeDecimal(decimal value) =>
-            value.ToString("E", CultureInfo.InvariantCulture);
     }
 }

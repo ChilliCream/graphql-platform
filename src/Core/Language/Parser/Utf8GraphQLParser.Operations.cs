@@ -27,7 +27,7 @@ namespace HotChocolate.Language
             TokenInfo start = Start();
 
             OperationType operation = ParseOperationType();
-            NameNode name = _reader.Kind == TokenKind.Name
+            NameNode? name = _reader.Kind == TokenKind.Name
                 ? ParseName()
                 : null;
             List<VariableDefinitionNode> variableDefinitions =
@@ -147,7 +147,7 @@ namespace HotChocolate.Language
             VariableNode variable = ParseVariable();
             ExpectColon();
             ITypeNode type = ParseTypeReference();
-            IValueNode defaultValue = SkipEqual()
+            IValueNode? defaultValue = SkipEqual()
                 ? ParseValueLiteral(true)
                 : null;
             List<DirectiveNode> directives =
@@ -259,7 +259,7 @@ namespace HotChocolate.Language
             TokenInfo start = Start();
 
             NameNode name = ParseName();
-            NameNode alias = null;
+            NameNode? alias = null;
 
             if (SkipColon())
             {
@@ -269,7 +269,7 @@ namespace HotChocolate.Language
 
             List<ArgumentNode> arguments = ParseArguments(false);
             List<DirectiveNode> directives = ParseDirectives(false);
-            SelectionSetNode selectionSet = _reader.Kind == TokenKind.LeftBrace
+            SelectionSetNode? selectionSet = _reader.Kind == TokenKind.LeftBrace
                 ? ParseSelectionSet()
                 : null;
 

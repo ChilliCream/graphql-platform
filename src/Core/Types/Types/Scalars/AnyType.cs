@@ -108,15 +108,9 @@ namespace HotChocolate.Types
                     return new StringValueNode(s);
                 case short s:
                     return new IntValueNode(s);
-                case ushort s:
-                    return new IntValueNode(s);
                 case int i:
                     return new IntValueNode(i);
-                case uint i:
-                    return new IntValueNode(i);
                 case long l:
-                    return new IntValueNode(l);
-                case ulong l:
                     return new IntValueNode(l);
                 case float f:
                     return new FloatValueNode(f);

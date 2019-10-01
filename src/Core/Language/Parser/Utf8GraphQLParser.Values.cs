@@ -66,7 +66,7 @@ namespace HotChocolate.Language
             TokenInfo start = Start();
 
             bool isBlock = _reader.Kind == TokenKind.BlockString;
-            string value = ExpectString();
+            ReadOnlyMemory<byte> value = ExpectString();
             Location? location = CreateLocation(in start);
 
             return new StringValueNode(location, value, isBlock);
@@ -174,7 +174,9 @@ namespace HotChocolate.Language
             TokenInfo start = Start();
 
             NameNode name = ParseName();
+
             ExpectColon();
+
             IValueNode value = ParseValueLiteral(isConstant);
 
             Location? location = CreateLocation(in start);
@@ -206,7 +208,7 @@ namespace HotChocolate.Language
                         _reader.Kind));
             }
 
-            Memory<byte> value = _reader.Value.ToArray();
+            ReadOnlyMemory<byte> value = _reader.Value.ToArray();
             FloatFormat? format = _reader.FloatFormat;
             MoveNext();
 
@@ -218,7 +220,7 @@ namespace HotChocolate.Language
                 (
                     location,
                     value,
-                    format
+                    format ?? FloatFormat.FixedPoint
                 );
             }
 
@@ -258,11 +260,15 @@ namespace HotChocolate.Language
             if (_reader.Value.SequenceEqual(GraphQLKeywords.Null))
             {
                 MoveNext();
-                location = CreateLocation(in start);
-                return new NullValueNode(location);
+                if (_createLocation)
+                {
+                    location = CreateLocation(in start);
+                    return new NullValueNode(location);
+                }
+                return NullValueNode.Default;
             }
 
-            Memory<byte> value = _reader.Value.ToArray();
+            ReadOnlyMemory<byte> value = _reader.Value.ToArray();
             MoveNext();
             location = CreateLocation(in start);
 

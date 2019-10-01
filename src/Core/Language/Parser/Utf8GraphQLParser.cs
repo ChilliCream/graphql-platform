@@ -11,7 +11,7 @@ namespace HotChocolate.Language
         private readonly bool _createLocation;
         private readonly bool _allowFragmentVars;
         private Utf8GraphQLReader _reader;
-        private StringValueNode _description;
+        private StringValueNode? _description;
 
         public Utf8GraphQLParser(
             ReadOnlySpan<byte> graphQLData)
@@ -196,7 +196,7 @@ namespace HotChocolate.Language
             bool useStackalloc =
                 length <= GraphQLConstants.StackallocThreshold;
 
-            byte[] source = null;
+            byte[]? source = null;
 
             Span<byte> sourceSpan = useStackalloc
                 ? stackalloc byte[length]

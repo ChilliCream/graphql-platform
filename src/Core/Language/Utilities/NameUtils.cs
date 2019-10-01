@@ -49,7 +49,7 @@
         /// A name that shall be made a value GraphQL name.
         /// </param>
         /// <returns>Returns a valid GraphQL name.</returns>
-        public static string MakeValidGraphQLName(string name)
+        public static string? MakeValidGraphQLName(string name)
         {
             if (name == null || name.Length == 0)
             {

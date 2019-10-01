@@ -20,7 +20,7 @@ namespace HotChocolate.Language
         /// StringValue
         /// </summary>
         /// <param name="context">The parser context.</param>
-        private StringValueNode ParseDescription()
+        private StringValueNode? ParseDescription()
         {
             if (TokenHelper.IsDescription(in _reader))
             {
@@ -294,7 +294,7 @@ namespace HotChocolate.Language
             NameNode name = ParseName();
             ExpectColon();
             ITypeNode type = ParseTypeReference();
-            IValueNode defaultValue = SkipEqual()
+            IValueNode? defaultValue = SkipEqual()
                 ? ParseValueLiteral(true)
                 : null;
             List<DirectiveNode> directives =

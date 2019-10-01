@@ -260,7 +260,7 @@ namespace HotChocolate.Types
                     for (int i = 1; i < name.Length; i++)
                     {
                         if (!name[i].IsLetterOrDigitOrUnderscore()
-                            && !name[i].IsDot())
+                            && name[i] != GraphQLConstants.Dot)
                         {
                             return false;
                         }

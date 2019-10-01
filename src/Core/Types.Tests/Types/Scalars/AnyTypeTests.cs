@@ -684,7 +684,7 @@ namespace HotChocolate.Types
             AnyType type = schema.GetType<AnyType>("Any");
 
             // act
-            bool result = type.IsInstanceOfType(new FloatValueNode("1.2"));
+            bool result = type.IsInstanceOfType(new FloatValueNode(1.2));
 
             // assert
             Assert.True(result);

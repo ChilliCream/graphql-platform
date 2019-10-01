@@ -11,7 +11,7 @@ namespace HotChocolate.Types
             new IntValueNode("1");
 
         protected override IValueNode GetWrongValueNode =>
-            new FloatValueNode("1.0f");
+            new FloatValueNode("1.0f", FloatFormat.FixedPoint);
 
         protected override byte GetValue => 1;
 

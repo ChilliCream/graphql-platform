@@ -98,7 +98,7 @@ namespace HotChocolate.Types
 
             if (value is double d)
             {
-                return new FloatValueNode(SerializeDouble(d));
+                return new FloatValueNode(d);
             }
 
             throw new ScalarSerializationException(
@@ -153,8 +153,5 @@ namespace HotChocolate.Types
                 NumberStyles.Float,
                 CultureInfo.InvariantCulture,
                 out d);
-
-        private static string SerializeDouble(double value) =>
-            value.ToString("E", CultureInfo.InvariantCulture);
     }
 }

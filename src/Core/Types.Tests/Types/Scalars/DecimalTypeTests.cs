@@ -7,7 +7,7 @@ namespace HotChocolate.Types
         : NumberTypeTests<decimal, DecimalType, FloatValueNode, decimal>
     {
         protected override FloatValueNode GetValueNode =>
-            new FloatValueNode("1.000000E+000");
+            new FloatValueNode("1.000000E+000", FloatFormat.Exponential);
 
         protected override IValueNode GetWrongValueNode =>
             new StringValueNode("1");

@@ -15,7 +15,7 @@ namespace HotChocolate.Utilities
             var obj = new ObjectValueNode(
                 new ObjectFieldNode("a", new StringValueNode("abc")),
                 new ObjectFieldNode("b", new IntValueNode("123")),
-                new ObjectFieldNode("c", new FloatValueNode("1.5")),
+                new ObjectFieldNode("c", new FloatValueNode(1.5d)),
                 new ObjectFieldNode("d", new BooleanValueNode(true)),
                 new ObjectFieldNode("e", new EnumValueNode("DEF")),
                 new ObjectFieldNode("f", NullValueNode.Default));
@@ -35,7 +35,7 @@ namespace HotChocolate.Utilities
             var child = new ObjectValueNode(
                 new ObjectFieldNode("a", new StringValueNode("abc")),
                 new ObjectFieldNode("b", new IntValueNode("123")),
-                new ObjectFieldNode("c", new FloatValueNode("1.5")),
+                new ObjectFieldNode("c", new FloatValueNode(1.5d)),
                 new ObjectFieldNode("d", new BooleanValueNode(true)),
                 new ObjectFieldNode("e", new EnumValueNode("DEF")),
                 new ObjectFieldNode("f", NullValueNode.Default));
@@ -58,7 +58,7 @@ namespace HotChocolate.Utilities
             var child = new ObjectValueNode(
                 new ObjectFieldNode("a", new StringValueNode("abc")),
                 new ObjectFieldNode("b", new IntValueNode("123")),
-                new ObjectFieldNode("c", new FloatValueNode("1.5")),
+                new ObjectFieldNode("c", new FloatValueNode(1.5d)),
                 new ObjectFieldNode("d", new BooleanValueNode(true)),
                 new ObjectFieldNode("e", new EnumValueNode("DEF")),
                 new ObjectFieldNode("f", NullValueNode.Default));
