@@ -4,30 +4,40 @@ using System.Collections.Generic;
 namespace HotChocolate.Language
 {
     public sealed class OperationDefinitionNode
-        : NamedSyntaxNode
-        , IExecutableDefinitionNode
+        : IExecutableDefinitionNode
+        , IHasDirectives
     {
         public OperationDefinitionNode(
             Location? location,
-            NameNode name,
+            NameNode? name,
             OperationType operation,
             IReadOnlyList<VariableDefinitionNode> variableDefinitions,
             IReadOnlyList<DirectiveNode> directives,
             SelectionSetNode selectionSet)
-            : base(location, name, directives)
         {
+            Location = location;
+            Name = name;
             Operation = operation;
             VariableDefinitions = variableDefinitions
                 ?? throw new ArgumentNullException(nameof(variableDefinitions));
+            Directives = directives
+                ?? throw new ArgumentNullException(nameof(directives));
             SelectionSet = selectionSet
                 ?? throw new ArgumentNullException(nameof(selectionSet));
         }
 
-        public override NodeKind Kind { get; } = NodeKind.OperationDefinition;
+        public NodeKind Kind { get; } = NodeKind.OperationDefinition;
+
+        public Location? Location { get; }
+
+        public NameNode? Name { get; }
 
         public OperationType Operation { get; }
 
-        public IReadOnlyList<VariableDefinitionNode> VariableDefinitions { get; }
+        public IReadOnlyList<VariableDefinitionNode> VariableDefinitions
+        { get; }
+
+        public IReadOnlyList<DirectiveNode> Directives { get; }
 
         public SelectionSetNode SelectionSet { get; }
 
@@ -39,7 +49,7 @@ namespace HotChocolate.Language
                 Directives, SelectionSet);
         }
 
-        public OperationDefinitionNode WithName(NameNode name)
+        public OperationDefinitionNode WithName(NameNode? name)
         {
             return new OperationDefinitionNode(
                 Location, name, Operation,

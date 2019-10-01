@@ -8,7 +8,7 @@ namespace HotChocolate.Language
         : IValueNode<string>
         , IEquatable<FloatValueNode>
     {
-        private Memory<byte> _memory;
+        private ReadOnlyMemory<byte> _memory;
         private string? _value;
         private float? _floatValue;
         private double? _doubleValue;
@@ -48,7 +48,7 @@ namespace HotChocolate.Language
             Format = format;
         }
 
-        public FloatValueNode(Location? location, Memory<byte> value, FloatFormat format)
+        public FloatValueNode(Location? location, ReadOnlyMemory<byte> value, FloatFormat format)
         {
             if (value.IsEmpty)
             {
@@ -251,7 +251,7 @@ namespace HotChocolate.Language
             throw new InvalidFormatException();
         }
 
-        public Span<byte> AsSpan()
+        public ReadOnlySpan<byte> AsSpan()
         {
             if (_memory.IsEmpty)
             {

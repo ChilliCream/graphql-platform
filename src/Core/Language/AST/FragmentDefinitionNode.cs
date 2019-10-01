@@ -6,6 +6,7 @@ namespace HotChocolate.Language
     public sealed class FragmentDefinitionNode
         : NamedSyntaxNode
         , IExecutableDefinitionNode
+        , INamedSyntaxNode
     {
         public FragmentDefinitionNode(
             Location? location,

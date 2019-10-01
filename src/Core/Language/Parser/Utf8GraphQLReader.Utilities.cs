@@ -31,7 +31,7 @@ namespace HotChocolate.Language
             bool useStackalloc =
                 length <= GraphQLConstants.StackallocThreshold;
 
-            byte[] unescapedArray = null;
+            byte[]? unescapedArray = null;
 
             Span<byte> unescapedSpan = useStackalloc
                 ? stackalloc byte[length]

@@ -38,7 +38,7 @@ namespace HotChocolate.Language
             return new NamedTypeNode(Location, name);
         }
 
-        public bool Equals(NamedTypeNode other)
+        public bool Equals(NamedTypeNode? other)
         {
             if (other is null)
             {
@@ -55,7 +55,7 @@ namespace HotChocolate.Language
                 StringComparison.Ordinal);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -74,7 +74,7 @@ namespace HotChocolate.Language
         {
             unchecked
             {
-                return Name.Value.GetHashCode() * 397;
+                return Name.GetHashCode() * 397;
             }
         }
 

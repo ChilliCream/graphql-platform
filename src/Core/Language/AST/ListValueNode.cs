@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.IO;
+using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language
@@ -8,6 +9,8 @@ namespace HotChocolate.Language
         , IEquatable<ListValueNode>
     {
         private int? _hash;
+        private ReadOnlyMemory<byte> _memory;
+        private string? _stringValue;
 
         public ListValueNode(IValueNode item)
             : this(null, item)
@@ -180,14 +183,26 @@ namespace HotChocolate.Language
             }
         }
 
-        public override string ToString()
+        public override string? ToString()
         {
-            return QuerySyntaxSerializer.Serialize(this);
+            if (_stringValue is null)
+            {
+                _stringValue = QuerySyntaxSerializer.Serialize(this, true);
+            }
+            return _stringValue;
         }
 
-        public Span<byte> AsSpan()
+        public ReadOnlySpan<byte> AsSpan()
         {
-            throw new NotImplementedException();
+            if (_memory.IsEmpty)
+            {
+                using (var stream = new MemoryStream())
+                {
+                    QuerySyntaxSerializer.Serialize(this, stream, true);
+                    _memory = stream.ToArray();
+                }
+            }
+            return _memory.Span;
         }
 
         public ListValueNode WithLocation(Location? location)

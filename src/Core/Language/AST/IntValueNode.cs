@@ -9,40 +9,34 @@ namespace HotChocolate.Language
         , IEquatable<IntValueNode>
     {
         private string? _value;
-        private Memory<byte> _memory;
+        private ReadOnlyMemory<byte> _memory;
         private byte? _byteValue;
         private short? _shortValue;
         private int? _intValue;
         private long? _longValue;
 
+        public IntValueNode(byte value)
+            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
+        {
+            _byteValue = value;
+        }
+
         public IntValueNode(short value)
             : this(null, value.ToString("D", CultureInfo.InvariantCulture))
         {
+            _shortValue = value;
         }
 
         public IntValueNode(int value)
             : this(null, value.ToString("D", CultureInfo.InvariantCulture))
         {
+            _intValue = value;
         }
 
         public IntValueNode(long value)
             : this(null, value.ToString("D", CultureInfo.InvariantCulture))
         {
-        }
-
-        public IntValueNode(ushort value)
-            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
-        {
-        }
-
-        public IntValueNode(uint value)
-            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
-        {
-        }
-
-        public IntValueNode(ulong value)
-            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
-        {
+            _longValue = value;
         }
 
         public IntValueNode(string value)
@@ -63,7 +57,7 @@ namespace HotChocolate.Language
             _value = value;
         }
 
-        public IntValueNode(Location? location, Memory<byte> value)
+        public IntValueNode(Location? location, ReadOnlyMemory<byte> value)
         {
             if (value.IsEmpty)
             {
@@ -276,7 +270,7 @@ namespace HotChocolate.Language
             throw new InvalidFormatException();
         }
 
-        public Span<byte> AsSpan()
+        public ReadOnlySpan<byte> AsSpan()
         {
             if (_memory.IsEmpty)
             {

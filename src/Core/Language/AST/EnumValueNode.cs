@@ -11,7 +11,7 @@ namespace HotChocolate.Language
         : IValueNode<string>
         , IEquatable<EnumValueNode?>
     {
-        private Memory<byte> _memory;
+        private ReadOnlyMemory<byte> _memory;
         private string? _value;
 
         public EnumValueNode(object value)
@@ -44,7 +44,7 @@ namespace HotChocolate.Language
             _value = value ?? throw new ArgumentNullException(nameof(value));
         }
 
-        public EnumValueNode(Location? location, Memory<byte> value)
+        public EnumValueNode(Location? location, ReadOnlyMemory<byte> value)
         {
             if (value.IsEmpty)
             {
@@ -193,11 +193,11 @@ namespace HotChocolate.Language
             return Value;
         }
 
-        public Span<byte> AsSpan()
+        public ReadOnlySpan<byte> AsSpan()
         {
             if (_memory.IsEmpty)
             {
-                int length = checked(_value.Length * 4);
+                int length = checked(_value!.Length * 4);
                 Memory<byte> memory = new byte[length];
                 Span<byte> span = memory.Span;
                 int buffered = Utf8GraphQLParser.ConvertToBytes(_value, ref span);

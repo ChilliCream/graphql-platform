@@ -24,7 +24,6 @@ namespace HotChocolate.Language
 
         public IReadOnlyList<DirectiveNode> Directives { get; }
 
-        public IReadOnlyList<OperationTypeDefinitionNode> OperationTypes
-        { get; }
+        public IReadOnlyList<OperationTypeDefinitionNode> OperationTypes { get; }
     }
 }

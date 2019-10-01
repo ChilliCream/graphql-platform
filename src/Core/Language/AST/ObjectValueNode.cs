@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 
 namespace HotChocolate.Language
@@ -9,6 +10,8 @@ namespace HotChocolate.Language
         , IEquatable<ObjectValueNode>
     {
         private int? _hash;
+        private Memory<byte> _memory;
+        private string? _stringValue;
 
         public ObjectValueNode(
             params ObjectFieldNode[] fields)
@@ -54,7 +57,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="ObjectValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(ObjectValueNode other)
+        public bool Equals(ObjectValueNode? other)
         {
             if (other is null)
             {
@@ -102,7 +105,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="ObjectValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(IValueNode other)
+        public bool Equals(IValueNode? other)
         {
             if (other is null)
             {
@@ -134,7 +137,7 @@ namespace HotChocolate.Language
         /// <c>true</c> if the specified <see cref="object"/> is equal to the
         /// current <see cref="ObjectValueNode"/>; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -175,6 +178,28 @@ namespace HotChocolate.Language
 
                 return _hash.Value;
             }
+        }
+
+        public override string? ToString()
+        {
+            if (_stringValue is null)
+            {
+                _stringValue = QuerySyntaxSerializer.Serialize(this, true);
+            }
+            return _stringValue;
+        }
+
+        public ReadOnlySpan<byte> AsSpan()
+        {
+            if (_memory.IsEmpty)
+            {
+                using (var stream = new MemoryStream())
+                {
+                    QuerySyntaxSerializer.Serialize(this, stream, true);
+                    _memory = stream.ToArray();
+                }
+            }
+            return _memory.Span;
         }
 
         public ObjectValueNode WithLocation(Location? location)

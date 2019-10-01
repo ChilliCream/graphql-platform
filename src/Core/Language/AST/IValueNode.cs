@@ -8,6 +8,6 @@ namespace HotChocolate.Language
     {
         object? Value { get; }
 
-        Span<byte> AsSpan();
+        ReadOnlySpan<byte> AsSpan();
     }
 }

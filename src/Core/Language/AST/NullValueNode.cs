@@ -3,9 +3,11 @@
 namespace HotChocolate.Language
 {
     public sealed class NullValueNode
-        : IValueNode<object>
+        : IValueNode<object?>
         , IEquatable<NullValueNode>
     {
+        private const string _null = "null";
+
         private NullValueNode()
         {
         }
@@ -19,7 +21,7 @@ namespace HotChocolate.Language
 
         public Location? Location { get; }
 
-        public object Value { get; }
+        public object? Value { get; }
 
         /// <summary>
         /// Determines whether the specified <see cref="NullValueNode"/>
@@ -34,7 +36,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="NullValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(NullValueNode other)
+        public bool Equals(NullValueNode? other)
         {
             if (other is null)
             {
@@ -57,7 +59,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="NullValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(IValueNode other)
+        public bool Equals(IValueNode? other)
         {
             if (other is null)
             {
@@ -69,12 +71,7 @@ namespace HotChocolate.Language
                 return true;
             }
 
-            if (other is NullValueNode n)
-            {
-                return Equals(n);
-            }
-
-            return false;
+            return other is NullValueNode;
         }
 
         /// <summary>
@@ -89,7 +86,7 @@ namespace HotChocolate.Language
         /// <c>true</c> if the specified <see cref="object"/> is equal to the
         /// current <see cref="NullValueNode"/>; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -101,7 +98,7 @@ namespace HotChocolate.Language
                 return true;
             }
 
-            return Equals(obj as NullValueNode);
+            return obj is NullValueNode;
         }
 
         /// <summary>
@@ -113,6 +110,10 @@ namespace HotChocolate.Language
         /// hashing algorithms and data structures such as a hash table.
         /// </returns>
         public override int GetHashCode() => 104729;
+
+        public override string? ToString() => _null;
+
+        public ReadOnlySpan<byte> AsSpan() => GraphQLKeywords.Null;
 
         public static NullValueNode Default { get; } = new NullValueNode();
 

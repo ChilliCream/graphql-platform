@@ -65,7 +65,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="ObjectFieldNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(ObjectFieldNode other)
+        public bool Equals(ObjectFieldNode? other)
         {
             if (other is null)
             {
@@ -92,7 +92,7 @@ namespace HotChocolate.Language
         /// <c>true</c> if the specified <see cref="object"/> is equal to the
         /// current <see cref="ObjectFieldNode"/>; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {

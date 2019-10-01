@@ -31,11 +31,6 @@ namespace HotChocolate.Language
                 {TokenKind.Comment, "Comment"}
             };
 
-        public static string Visualize(SyntaxToken token)
-        {
-            return token.Value ?? _visualization[token.Kind];
-        }
-
         public static string Visualize(in Utf8GraphQLReader reader)
         {
             return _visualization[reader.Kind];

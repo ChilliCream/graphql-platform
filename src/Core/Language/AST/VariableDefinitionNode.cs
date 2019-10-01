@@ -11,7 +11,7 @@ namespace HotChocolate.Language
             Location? location,
             VariableNode variable,
             ITypeNode type,
-            IValueNode defaultValue,
+            IValueNode? defaultValue,
             IReadOnlyList<DirectiveNode> directives)
         {
             Location = location;
@@ -32,7 +32,7 @@ namespace HotChocolate.Language
 
         public ITypeNode Type { get; }
 
-        public IValueNode DefaultValue { get; }
+        public IValueNode? DefaultValue { get; }
 
         public IReadOnlyList<DirectiveNode> Directives { get; }
 
@@ -57,7 +57,7 @@ namespace HotChocolate.Language
                 DefaultValue, Directives);
         }
 
-        public VariableDefinitionNode WithDefaultValue(IValueNode defaultValue)
+        public VariableDefinitionNode WithDefaultValue(IValueNode? defaultValue)
         {
             return new VariableDefinitionNode(
                 Location, Variable, Type,
