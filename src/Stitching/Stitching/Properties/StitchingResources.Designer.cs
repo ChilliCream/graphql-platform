@@ -10,8 +10,8 @@
 
 namespace HotChocolate.Stitching.Properties {
     using System;
-    
-    
+
+
     /// <summary>
     ///   A strongly-typed resource class, for looking up localized strings, etc.
     /// </summary>
@@ -23,15 +23,15 @@ namespace HotChocolate.Stitching.Properties {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class StitchingResources {
-        
+
         private static global::System.Resources.ResourceManager resourceMan;
-        
+
         private static global::System.Globalization.CultureInfo resourceCulture;
-        
+
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
         internal StitchingResources() {
         }
-        
+
         /// <summary>
         ///   Returns the cached ResourceManager instance used by this class.
         /// </summary>
@@ -45,7 +45,7 @@ namespace HotChocolate.Stitching.Properties {
                 return resourceMan;
             }
         }
-        
+
         /// <summary>
         ///   Overrides the current thread's CurrentUICulture property for all
         ///   resource lookups using this strongly typed resource class.
@@ -59,7 +59,7 @@ namespace HotChocolate.Stitching.Properties {
                 resourceCulture = value;
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The directive `{0}` was not specified in this schema and cannot be used..
         /// </summary>
@@ -68,7 +68,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("AddSchemaExtensionRewriter_DirectiveDoesNotExist", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The directive `{0}` is not marked as repeatable and can only be declared once..
         /// </summary>
@@ -77,7 +77,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("AddSchemaExtensionRewriter_DirectiveIsUnique", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to `{0}` is of type `{1}` and cannot be extended with `{2}`..
         /// </summary>
@@ -86,7 +86,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("AddSchemaExtensionRewriter_TypeMismatch", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to This resolver can only handle argument scopes..
         /// </summary>
@@ -95,7 +95,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("ArgumentScopedVariableResolver_CannotHandleVariable", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to An argument with the name `{0}` does not exist..
         /// </summary>
@@ -104,7 +104,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("ArgumentScopedVariableResolver_InvalidArgumentName", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Specifies the fields on which a computed field is dependent on..
         /// </summary>
@@ -113,7 +113,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("ComputedDirectiveType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to This resolver can only handle contextData scopes..
         /// </summary>
@@ -122,7 +122,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("ContextDataScopedVariableResolver_CannotHandleVariable", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name of the schema to which this field shall be delegated to..
         /// </summary>
@@ -131,7 +131,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("DelegateDirectiveType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The path element argument `{0}` was not found..
         /// </summary>
@@ -140,7 +140,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("DelegationMiddleware_ArgumentNotFound", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Only query results are supported in the delegation middleware..
         /// </summary>
@@ -149,7 +149,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("DelegationMiddleware_OnlyQueryResults", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The path element `{0}` has no corresponding field on type `{1}`..
         /// </summary>
@@ -158,7 +158,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("DelegationMiddleware_PathElementInvalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The scalar path elements are only allowed at the end..
         /// </summary>
@@ -167,7 +167,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("DelegationMiddleware_PathElementTypeUnexpected", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The extensions document mustn&apos;t be null or empty..
         /// </summary>
@@ -176,7 +176,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("Extensions_EmptyOrNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The schema extensions file path mustn&apos;t be null or empty..
         /// </summary>
@@ -185,7 +185,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("ExtensionsFilePath_EmptyOrNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to This resolver can only handle field scopes..
         /// </summary>
@@ -194,7 +194,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("FieldScopedVariableResolver_CannotHandleVariable", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A field with the name `{0}` does not exist..
         /// </summary>
@@ -203,7 +203,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("FieldScopedVariableResolver_InvalidFieldName", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to json mustn&apos;t be null or empty..
         /// </summary>
@@ -212,7 +212,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("IntrospectionDeserializer_Json_NullOrEmpty", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to No schema was specified..
         /// </summary>
@@ -221,7 +221,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("MergeSyntaxNodeExtensions_NoSchema", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified operation `{0}` does not exist..
         /// </summary>
@@ -230,7 +230,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("QueryRequestBuilder_OperationNameInvalid", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Specify an operation name in order to create a query request that contains multiple operations..
         /// </summary>
@@ -239,7 +239,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("QueryRequestBuilder_OperationNameMissing", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Specify a query in order to create a query request..
         /// </summary>
@@ -248,7 +248,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("QueryRequestBuilder_QueryIsNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot build a remote executor without a schema..
         /// </summary>
@@ -257,7 +257,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("RemoteExecutorBuilder_NoSchema", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Cannot build a remote executor without a schema name..
         /// </summary>
@@ -266,7 +266,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("RemoteExecutorBuilder_NoSchemaName", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified scope `{0}` is not supported..
         /// </summary>
@@ -275,7 +275,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("RootScopedVariableResolver_ScopeNotSupported", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The provided type must extend `HotChocolate.Types.ScalarType` in order to be recognised as valid scalar type..
         /// </summary>
@@ -284,7 +284,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("ScalarType_InvalidBaseType", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The schema mustn&apos;t be null or empty..
         /// </summary>
@@ -293,7 +293,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("Schema_EmptyOrNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The schema file path mustn&apos;t be null or empty..
         /// </summary>
@@ -302,7 +302,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("SchemaFilePath_EmptyOrNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to A type merge handler has to have one constructore that has only one parameter of the type MergeTypeDelegate..
         /// </summary>
@@ -311,7 +311,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("SchemaMergerExtensions_NoValidConstructor", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The schema name mustn&apos;t be null or empty..
         /// </summary>
@@ -320,7 +320,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("SchemaName_EmptyOrNull", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to There is no schema with the given name `{0}`..
         /// </summary>
@@ -329,7 +329,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("SchemaName_NotFound", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to This resolver can only handle scopedContextData scopes..
         /// </summary>
@@ -338,16 +338,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("ScopedCtxDataScopedVariableResolver_CannotHandleVariable", resourceCulture);
             }
         }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The first token must be a start of file token..
-        /// </summary>
-        internal static string SelectionPathParser_StartOfFileTokenExpected {
-            get {
-                return ResourceManager.GetString("SelectionPathParser_StartOfFileTokenExpected", resourceCulture);
-            }
-        }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Annotates the original name of a type..
         /// </summary>
@@ -356,7 +347,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("SourceDirectiveType_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The original name of the annotated type..
         /// </summary>
@@ -365,7 +356,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("SourceDirectiveType_Name_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The name of the schema to which this type belongs to..
         /// </summary>
@@ -374,7 +365,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("SourceDirectiveType_Schema_Description", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The specified schema name was already beeing used..
         /// </summary>
@@ -383,7 +374,7 @@ namespace HotChocolate.Stitching.Properties {
                 return ResourceManager.GetString("StitchingBuilder_SchemaNameInUse", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to The type definition is not yet supported..
         /// </summary>
