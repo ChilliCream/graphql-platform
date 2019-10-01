@@ -10,7 +10,7 @@ namespace HotChocolate.Language
         private static readonly List<OperationTypeDefinitionNode> _emptyOpDefs =
             new List<OperationTypeDefinitionNode>();
 
-        private ITypeExtensionNode ParseTypeExtension()
+        private ITypeSystemExtensionNode ParseTypeExtension()
         {
             TokenInfo start = Start();
 

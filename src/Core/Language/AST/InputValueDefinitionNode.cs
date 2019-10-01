@@ -3,6 +3,12 @@ using System.Collections.Generic;
 
 namespace HotChocolate.Language
 {
+    /// <summary>
+    /// A GraphQL Input Object defines a set of input fields; the input fields are either
+    /// scalars, enums, or other input objects. This allows arguments to accept arbitrarily
+    /// complex structs.
+    /// https://graphql.github.io/graphql-spec/June2018/#sec-Input-Objects
+    /// </summary>
     public sealed class InputValueDefinitionNode
         : NamedSyntaxNode
     {

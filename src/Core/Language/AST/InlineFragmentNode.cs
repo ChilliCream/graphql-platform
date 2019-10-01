@@ -8,7 +8,7 @@ namespace HotChocolate.Language
     {
         public InlineFragmentNode(
             Location? location,
-            NamedTypeNode typeCondition,
+            NamedTypeNode? typeCondition,
             IReadOnlyList<DirectiveNode> directives,
             SelectionSetNode selectionSet)
         {
@@ -24,7 +24,7 @@ namespace HotChocolate.Language
 
         public Location? Location { get; }
 
-        public NamedTypeNode TypeCondition { get; }
+        public NamedTypeNode? TypeCondition { get; }
 
         public IReadOnlyList<DirectiveNode> Directives { get; }
 
@@ -38,7 +38,7 @@ namespace HotChocolate.Language
         }
 
         public InlineFragmentNode WithTypeCondition(
-            NamedTypeNode typeCondition)
+            NamedTypeNode? typeCondition)
         {
             return new InlineFragmentNode(
                 Location, typeCondition,

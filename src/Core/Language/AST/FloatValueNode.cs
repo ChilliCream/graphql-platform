@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Buffers.Text;
 using System.Globalization;
 
 namespace HotChocolate.Language
@@ -9,6 +10,9 @@ namespace HotChocolate.Language
     {
         private Memory<byte> _memory;
         private string? _value;
+        private float? _floatValue;
+        private double? _doubleValue;
+        private decimal? _decimalValue;
 
         public FloatValueNode(float value)
             : this(null, value.ToString(CultureInfo.InvariantCulture), FloatFormat.FixedPoint)
@@ -35,7 +39,7 @@ namespace HotChocolate.Language
             if (string.IsNullOrEmpty(value))
             {
                 throw new ArgumentException(
-                    "The value of a float value node cannot be null or empty.",
+                    "The value of a float value node mustn't be null or empty.",
                     nameof(value));
             }
 
@@ -49,7 +53,7 @@ namespace HotChocolate.Language
             if (value.IsEmpty)
             {
                 throw new ArgumentNullException(
-                    "The value mustn't be empty.",
+                    "The value of a float value mustn't be empty.",
                     nameof(value));
             }
 
@@ -194,6 +198,57 @@ namespace HotChocolate.Language
         public override string? ToString()
         {
             return Value;
+        }
+
+        public float ToSingle()
+        {
+            if (_floatValue.HasValue)
+            {
+                return _floatValue.Value;
+            }
+
+            char format = Format == FloatFormat.FixedPoint ? 'f' : 'e';
+            if (Utf8Parser.TryParse(AsSpan(), out float value, out _, format))
+            {
+                _floatValue = value;
+                return value;
+            }
+
+            throw new InvalidFormatException();
+        }
+
+        public double ToDouble()
+        {
+            if (_doubleValue.HasValue)
+            {
+                return _doubleValue.Value;
+            }
+
+            char format = Format == FloatFormat.FixedPoint ? 'f' : 'e';
+            if (Utf8Parser.TryParse(AsSpan(), out double value, out _, format))
+            {
+                _doubleValue = value;
+                return value;
+            }
+
+            throw new InvalidFormatException();
+        }
+
+        public Decimal ToDecimal()
+        {
+            if (_decimalValue.HasValue)
+            {
+                return _decimalValue.Value;
+            }
+
+            char format = Format == FloatFormat.FixedPoint ? 'f' : 'e';
+            if (Utf8Parser.TryParse(AsSpan(), out Decimal value, out _, format))
+            {
+                _decimalValue = value;
+                return value;
+            }
+
+            throw new InvalidFormatException();
         }
 
         public Span<byte> AsSpan()

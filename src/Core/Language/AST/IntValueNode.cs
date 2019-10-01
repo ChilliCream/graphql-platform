@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Buffers.Text;
+using System;
 using System.Globalization;
 
 namespace HotChocolate.Language
@@ -9,6 +10,10 @@ namespace HotChocolate.Language
     {
         private string? _value;
         private Memory<byte> _memory;
+        private byte? _byteValue;
+        private short? _shortValue;
+        private int? _intValue;
+        private long? _longValue;
 
         public IntValueNode(short value)
             : this(null, value.ToString("D", CultureInfo.InvariantCulture))
@@ -50,7 +55,7 @@ namespace HotChocolate.Language
             if (string.IsNullOrEmpty(value))
             {
                 throw new ArgumentException(
-                    "The value of an int value node cannot be null or empty.",
+                    "The value of an int value node mustn't be null or empty.",
                     nameof(value));
             }
 
@@ -60,10 +65,10 @@ namespace HotChocolate.Language
 
         public IntValueNode(Location? location, Memory<byte> value)
         {
-            if (string.IsNullOrEmpty(value))
+            if (value.IsEmpty)
             {
-                throw new ArgumentException(
-                    "The value of an int value node cannot be null or empty.",
+                throw new ArgumentNullException(
+                    "The value of an int value node mustn't be empty.",
                     nameof(value));
             }
 
@@ -75,9 +80,19 @@ namespace HotChocolate.Language
 
         public Location? Location { get; }
 
-        public string Value { get; }
+        public string Value
+        {
+            get
+            {
+                if (_value is null)
+                {
+                    _value = Utf8GraphQLReader.GetScalarValue(_memory.Span);
+                }
+                return _value;
+            }
+        }
 
-        object IValueNode.Value => Value;
+        object? IValueNode.Value => Value;
 
         /// <summary>
         /// Determines whether the specified <see cref="IntValueNode"/>
@@ -92,7 +107,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="IntValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(IntValueNode other)
+        public bool Equals(IntValueNode? other)
         {
             if (other is null)
             {
@@ -120,7 +135,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="IntValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(IValueNode other)
+        public bool Equals(IValueNode? other)
         {
             if (other is null)
             {
@@ -152,7 +167,7 @@ namespace HotChocolate.Language
         /// <c>true</c> if the specified <see cref="object"/> is equal to the
         /// current <see cref="IntValueNode"/>; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -195,6 +210,84 @@ namespace HotChocolate.Language
         public override string? ToString()
         {
             return Value;
+        }
+
+        public byte ToByte()
+        {
+            if (_byteValue.HasValue)
+            {
+                return _byteValue.Value;
+            }
+
+            if (Utf8Parser.TryParse(AsSpan(), out byte value, out _))
+            {
+                _byteValue = value;
+                return value;
+            }
+
+            throw new InvalidFormatException();
+        }
+
+        public short ToInt16()
+        {
+            if (_shortValue.HasValue)
+            {
+                return _shortValue.Value;
+            }
+
+            if (Utf8Parser.TryParse(AsSpan(), out short value, out _))
+            {
+                _shortValue = value;
+                return value;
+            }
+
+            throw new InvalidFormatException();
+        }
+
+        public int ToInt32()
+        {
+            if (_intValue.HasValue)
+            {
+                return _intValue.Value;
+            }
+
+            if (Utf8Parser.TryParse(AsSpan(), out int value, out _))
+            {
+                _intValue = value;
+                return value;
+            }
+
+            throw new InvalidFormatException();
+        }
+
+        public long ToInt64()
+        {
+            if (_longValue.HasValue)
+            {
+                return _longValue.Value;
+            }
+
+            if (Utf8Parser.TryParse(AsSpan(), out long value, out _))
+            {
+                _longValue = value;
+                return value;
+            }
+
+            throw new InvalidFormatException();
+        }
+
+        public Span<byte> AsSpan()
+        {
+            if (_memory.IsEmpty)
+            {
+                int length = checked(_value!.Length * 4);
+                Memory<byte> memory = new byte[length];
+                Span<byte> span = memory.Span;
+                int buffered = Utf8GraphQLParser.ConvertToBytes(_value, ref span);
+                _memory = memory.Slice(0, buffered);
+            }
+
+            return _memory.Span;
         }
 
         public IntValueNode WithLocation(Location? location)

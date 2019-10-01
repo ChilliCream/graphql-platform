@@ -4,7 +4,7 @@ namespace HotChocolate.Language
 {
     public sealed class SchemaExtensionNode
         : SchemaDefinitionNodeBase
-        , ITypeExtensionNode
+        , ITypeSystemExtensionNode
     {
         public SchemaExtensionNode(
             Location? location,

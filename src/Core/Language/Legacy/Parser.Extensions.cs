@@ -4,7 +4,7 @@ namespace HotChocolate.Language
 {
     public partial class Parser
     {
-        private static ITypeExtensionNode ParseTypeExtension(
+        private static ITypeSystemExtensionNode ParseTypeExtension(
             ParserContext context)
         {
             SyntaxToken keywordToken = context.Current.Peek();
