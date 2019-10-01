@@ -6,6 +6,7 @@ namespace HotChocolate.Language
 {
     public sealed class IntValueNode
         : IValueNode<string>
+        , IHasSpan
         , IEquatable<IntValueNode>
     {
         private string? _value;

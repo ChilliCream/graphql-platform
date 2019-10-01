@@ -189,19 +189,6 @@ namespace HotChocolate.Language
             return _stringValue;
         }
 
-        public ReadOnlySpan<byte> AsSpan()
-        {
-            if (_memory.IsEmpty)
-            {
-                using (var stream = new MemoryStream())
-                {
-                    QuerySyntaxSerializer.Serialize(this, stream, true);
-                    _memory = stream.ToArray();
-                }
-            }
-            return _memory.Span;
-        }
-
         public ObjectValueNode WithLocation(Location? location)
         {
             return new ObjectValueNode(location, Fields);

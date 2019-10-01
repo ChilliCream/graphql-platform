@@ -10,6 +10,7 @@ namespace HotChocolate.Language
     /// </summary>
     public sealed class StringValueNode
         : IValueNode<string>
+        , IHasSpan
         , IEquatable<StringValueNode>
     {
         private ReadOnlyMemory<byte> _memory;

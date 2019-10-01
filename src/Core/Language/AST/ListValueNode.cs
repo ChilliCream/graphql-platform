@@ -9,7 +9,6 @@ namespace HotChocolate.Language
         , IEquatable<ListValueNode>
     {
         private int? _hash;
-        private ReadOnlyMemory<byte> _memory;
         private string? _stringValue;
 
         public ListValueNode(IValueNode item)
@@ -190,19 +189,6 @@ namespace HotChocolate.Language
                 _stringValue = QuerySyntaxSerializer.Serialize(this, true);
             }
             return _stringValue;
-        }
-
-        public ReadOnlySpan<byte> AsSpan()
-        {
-            if (_memory.IsEmpty)
-            {
-                using (var stream = new MemoryStream())
-                {
-                    QuerySyntaxSerializer.Serialize(this, stream, true);
-                    _memory = stream.ToArray();
-                }
-            }
-            return _memory.Span;
         }
 
         public ListValueNode WithLocation(Location? location)

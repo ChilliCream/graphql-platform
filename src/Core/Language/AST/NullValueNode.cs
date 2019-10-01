@@ -113,8 +113,6 @@ namespace HotChocolate.Language
 
         public override string? ToString() => _null;
 
-        public ReadOnlySpan<byte> AsSpan() => GraphQLKeywords.Null;
-
         public static NullValueNode Default { get; } = new NullValueNode();
 
         public NullValueNode WithLocation(Location? location)
