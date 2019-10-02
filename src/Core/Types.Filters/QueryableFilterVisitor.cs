@@ -124,7 +124,6 @@ namespace HotChocolate.Types.Filters
                         Closures.Peek().Level.Peek().Enqueue(expression);
                         break;
                     }
-                    return VisitorAction.Skip;
                 }
                 return VisitorAction.Skip;
             }
