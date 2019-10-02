@@ -16,22 +16,42 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            //var schema = CreateSchema(new FilterInputType<Foo>());
-            var schema = CreateSchema(new FooFilterType()); //<-- just a test line above correct
+            var schema = CreateSchema(new FilterInputType<Foo>());
 
             // assert
             schema.ToString().MatchSnapshot();
         }
-        /*
+
         [Fact]
-        public void Create_ObjectFilter_FooImplicitBarExplicit()
+        public void Create_ArrayObjectFilter_FooImplicitBarExplicit()
         {
             // arrange
             // act
             var schema = CreateSchema(
                 new FilterInputType<Foo>(
                     x => x.Filter(y => y.BarNested)
-                    .AllowObject(
+                    .AllowSome(
+                        y => y.BindFieldsExplicitly()
+                        .Filter(z => z.Baz)
+                        .BindFiltersExplicitly()
+                        .AllowContains()
+                        )
+                    )
+           );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+        [Fact]
+        public void Create_ArrayObjectFilter_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<Foo>(
+                    x => x.BindFieldsExplicitly()
+                    .Filter(y => y.BarNested)
+                    .AllowSome(
                         y => y.BindFieldsExplicitly()
                         .Filter(z => z.Baz)
                         .BindFiltersExplicitly()
@@ -45,7 +65,7 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_ObjectFilter_FooExplicitBarExplicit()
+        public void Create_ArrayObjectFilter_FooExplicitBarExplicitByGeneric()
         {
             // arrange
             // act
@@ -53,12 +73,7 @@ namespace HotChocolate.Types.Filters
                 new FilterInputType<Foo>(
                     x => x.BindFieldsExplicitly()
                     .Filter(y => y.BarNested)
-                    .AllowObject(
-                        y => y.BindFieldsExplicitly()
-                        .Filter(z => z.Baz)
-                        .BindFiltersExplicitly()
-                        .AllowContains()
-                        )
+                    .AllowSome<BarFilterType>()
                     )
            );
 
@@ -67,7 +82,7 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void Create_ObjectFilter_FooExplicitBarExplicitByGeneric()
+        public void Create_ArrayObjectFilter_FooExplicitBarImplicit()
         {
             // arrange
             // act
@@ -75,24 +90,7 @@ namespace HotChocolate.Types.Filters
                 new FilterInputType<Foo>(
                     x => x.BindFieldsExplicitly()
                     .Filter(y => y.BarNested)
-                    .AllowObject<BarFilterType>()
-                    )
-           );
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void Create_ObjectFilter_FooExplicitBarImplicit()
-        {
-            // arrange
-            // act
-            var schema = CreateSchema(
-                new FilterInputType<Foo>(
-                    x => x.BindFieldsExplicitly()
-                    .Filter(y => y.BarNested)
-                    .AllowObject()
+                    .AllowSome()
                     )
            );
 
@@ -102,13 +100,14 @@ namespace HotChocolate.Types.Filters
 
 
         [Fact]
-        public void Create_ObjectFilter_BindExplicitly()
+        public void Create_ArrayObjectFilter_BindExplicitly()
         {
             // arrange
             // act
-            var schema = CreateSchema(new FilterInputType<Foo>(descriptor => descriptor.BindFieldsExplicitly()
+            var schema = CreateSchema(
+                new FilterInputType<Foo>(descriptor => descriptor.BindFieldsExplicitly()
                     .Filter(x => x.BarNested)
-                    .AllowObject(x =>
+                    .AllowSome(x =>
                         x.BindFieldsExplicitly()
                         .Filter(y => y.Baz).BindFiltersExplicitly().AllowEquals()
                     )));
@@ -122,7 +121,7 @@ namespace HotChocolate.Types.Filters
         /// This test checks if the binding of all allow methods are correct
         /// </summary>
         [Fact]
-        public void Create_Filter_Declare_Operators_Explicitly()
+        public void Create_ArrayFilter_Declare_Operators_Explicitly()
         {
             // arrange
             // act
@@ -130,7 +129,7 @@ namespace HotChocolate.Types.Filters
             {
                 descriptor.Filter(x => x.BarNested)
                     .BindExplicitly()
-                    .AllowObject();
+                    .AllowSome();
             }));
 
             // assert
@@ -146,8 +145,8 @@ namespace HotChocolate.Types.Filters
             {
                 descriptor.Filter(x => x.BarNested)
                     .BindExplicitly()
-                    .AllowObject()
-                    .Name("custom_object");
+                    .AllowSome()
+                    .Name("custom_array");
             }));
 
             // assert
@@ -163,8 +162,8 @@ namespace HotChocolate.Types.Filters
             {
                 descriptor.Filter(x => x.BarNested)
                     .BindExplicitly()
-                    .AllowObject()
-                    .Description("custom_object_description");
+                    .AllowSome()
+                    .Description("custom_array_description");
             }));
 
             // assert
@@ -181,7 +180,7 @@ namespace HotChocolate.Types.Filters
                 {
                     d.Filter(x => x.BarNested)
                         .BindExplicitly()
-                        .AllowObject()
+                        .AllowSome()
                         .Directive("bar");
                 }))
                 .AddDirectiveType(new DirectiveType(d => d
@@ -202,7 +201,7 @@ namespace HotChocolate.Types.Filters
                 {
                     d.Filter(x => x.BarNested)
                         .BindExplicitly()
-                        .AllowObject()
+                        .AllowSome()
                         .Directive("bar",
                             new ArgumentNode("qux",
                                 new StringValueNode("foo")));
@@ -227,7 +226,7 @@ namespace HotChocolate.Types.Filters
                 {
                     d.Filter(x => x.BarNested)
                         .BindExplicitly()
-                        .AllowObject()
+                        .AllowSome()
                         .Directive<Bar>();
                 }))
                 .AddDirectiveType(new DirectiveType<Bar>(d => d
@@ -237,46 +236,8 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-        [Fact]
-        public void Declare_Directive_With_Clr_Instance()
-        {
-            // arrange
-            // act
-            var schema = CreateSchema(builder =>
-                builder.AddType(new FilterInputType<Foo>(d =>
-                {
-                    d.Filter(x => x.Bar)
-                        .BindFiltersExplicitly()
-                        .AllowEquals()
-                        .Directive(new Bar());
-                }))
-                .AddDirectiveType(new DirectiveType<Bar>(d => d
-                    .Location(DirectiveLocation.InputFieldDefinition))));
+         
 
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void Bind_Filter_Implicitly()
-        {
-            // arrange
-            // act
-            var schema = CreateSchema(
-                new FilterInputType<Foo>(descriptor =>
-                {
-                    descriptor
-                        .BindFieldsExplicitly()
-                        .Filter(x => x.Bar)
-                        .BindFiltersExplicitly()
-                        .BindFiltersImplicitly();
-                }));
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-     */
         public class Foo
         {
             public string Bar { get; set; }

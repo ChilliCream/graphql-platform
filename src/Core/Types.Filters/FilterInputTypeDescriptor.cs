@@ -7,6 +7,7 @@ using HotChocolate.Types.Descriptors;
 using HotChocolate.Utilities;
 using HotChocolate.Types.Filters.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using System.Collections;
 
 namespace HotChocolate.Types.Filters
 {
@@ -125,6 +126,15 @@ namespace HotChocolate.Types.Filters
                 definition = field.CreateDefinition();
                 return true;
             }
+
+            if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType))
+            {
+                var field = new ArrayFilterFieldDescriptor(
+                    Context, property, property.PropertyType.GetGenericArguments()[0]);
+                definition = field.CreateDefinition();
+                return true;
+            }
+
 
             if (property.PropertyType.IsClass)
             {
