@@ -26,43 +26,49 @@ namespace StrawberryShake.Generators.CSharp
         {
             await writer.WriteIndentedLineAsync(
                 "public class {0}ValueSerializer",
-                descriptor.Name);
+                descriptor.Name).ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentedLineAsync(": IValueSerializer");
+                await writer.WriteIndentedLineAsync(": IValueSerializer").ConfigureAwait(false);
             }
 
-            await writer.WriteIndentedLineAsync("{");
+            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
                 await writer.WriteIndentedLineAsync(
                     "public string Name => \"{0}\";",
-                    descriptor.Name);
-                await writer.WriteLineAsync();
+                    descriptor.Name)
+                    .ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
                 await writer.WriteIndentedLineAsync(
-                    "public ValueKind Kind => ValueKind.Enum;");
-                await writer.WriteLineAsync();
+                    "public ValueKind Kind => ValueKind.Enum;")
+                    .ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
                 await writer.WriteIndentedLineAsync(
                     "public Type ClrType => typeof({0});",
-                    descriptor.Name);
-                await writer.WriteLineAsync();
+                    descriptor.Name)
+                    .ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
                 await writer.WriteIndentedLineAsync(
-                    "public Type SerializationType => typeof(string);");
-                await writer.WriteLineAsync();
+                    "public Type SerializationType => typeof(string);")
+                    .ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
-                await WriteSerializeMethodAsync(writer, descriptor, typeLookup);
-                await writer.WriteLineAsync();
+                await WriteSerializeMethodAsync(writer, descriptor, typeLookup)
+                    .ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
-                await WriteDeserializeMethodAsync(writer, descriptor, typeLookup);
-                await writer.WriteLineAsync();
+                await WriteDeserializeMethodAsync(writer, descriptor, typeLookup)
+                    .ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
             }
 
-            await writer.WriteIndentedLineAsync("}");
+            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
         }
 
         private async Task WriteSerializeMethodAsync(
@@ -73,33 +79,36 @@ namespace StrawberryShake.Generators.CSharp
             if (_languageVersion == LanguageVersion.CSharp_8_0)
             {
                 await writer.WriteIndentedLineAsync(
-                    "public object? Serialize(object? value)");
+                    "public object? Serialize(object? value)")
+                    .ConfigureAwait(false);
             }
             else
             {
                 await writer.WriteIndentedLineAsync(
-                    "public object Serialize(object value)");
+                    "public object Serialize(object value)")
+                    .ConfigureAwait(false);
             }
-            await writer.WriteIndentedLineAsync("{");
+            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentedLineAsync("if(value is null)");
-                await writer.WriteIndentedLineAsync("{");
+                await writer.WriteIndentedLineAsync("if(value is null)").ConfigureAwait(false);
+                await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
                 using (writer.IncreaseIndent())
                 {
-                    await writer.WriteIndentedLineAsync("return null;");
+                    await writer.WriteIndentedLineAsync("return null;").ConfigureAwait(false);
                 }
-                await writer.WriteIndentedLineAsync("}");
-                await writer.WriteLineAsync();
+                await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
                 await writer.WriteIndentedLineAsync(
                     "var enumValue = ({0})value;",
-                    descriptor.Name);
-                await writer.WriteLineAsync();
+                    descriptor.Name)
+                    .ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
-                await writer.WriteIndentedLineAsync("switch(enumValue)");
-                await writer.WriteIndentedLineAsync("{");
+                await writer.WriteIndentedLineAsync("switch(enumValue)").ConfigureAwait(false);
+                await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
                 using (writer.IncreaseIndent())
                 {
@@ -108,27 +117,30 @@ namespace StrawberryShake.Generators.CSharp
                         await writer.WriteIndentedLineAsync(
                             "case {0}.{1}:",
                             descriptor.Name,
-                            value.Name);
+                            value.Name)
+                            .ConfigureAwait(false);
                         using (writer.IncreaseIndent())
                         {
                             await writer.WriteIndentedLineAsync(
                                 "return \"{0}\";",
-                                value.Value);
+                                value.Value)
+                                .ConfigureAwait(false);
                         }
                     }
 
-                    await writer.WriteIndentedLineAsync("default:");
+                    await writer.WriteIndentedLineAsync("default:").ConfigureAwait(false);
                     using (writer.IncreaseIndent())
                     {
                         await writer.WriteIndentedLineAsync(
-                            "throw new NotSupportedException();");
+                            "throw new NotSupportedException();")
+                            .ConfigureAwait(false);
                     }
                 }
 
-                await writer.WriteIndentedLineAsync("}");
+                await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
             }
 
-            await writer.WriteIndentedLineAsync("}");
+            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
         }
 
         private async Task WriteDeserializeMethodAsync(
@@ -139,34 +151,41 @@ namespace StrawberryShake.Generators.CSharp
             if (_languageVersion == LanguageVersion.CSharp_8_0)
             {
                 await writer.WriteIndentedLineAsync(
-                    "public object? Deserialize(object? serialized)");
+                    "public object? Deserialize(object? serialized)")
+                    .ConfigureAwait(false);
             }
             else
             {
                 await writer.WriteIndentedLineAsync(
-                    "public object Deserialize(object serialized)");
+                    "public object Deserialize(object serialized)")
+                    .ConfigureAwait(false);
             }
 
-            await writer.WriteIndentedLineAsync("{");
+            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentedLineAsync("if(serialized is null)");
-                await writer.WriteIndentedLineAsync("{");
+                await writer.WriteIndentedLineAsync("if(serialized is null)")
+                    .ConfigureAwait(false);
+                await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
                 using (writer.IncreaseIndent())
                 {
-                    await writer.WriteIndentedLineAsync("return null;");
+                    await writer.WriteIndentedLineAsync("return null;")
+                        .ConfigureAwait(false);
                 }
-                await writer.WriteIndentedLineAsync("}");
-                await writer.WriteLineAsync();
+                await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
                 await writer.WriteIndentedLineAsync(
                     "var stringValue = (string)serialized;",
-                    descriptor.Name);
-                await writer.WriteLineAsync();
+                    descriptor.Name)
+                    .ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
-                await writer.WriteIndentedLineAsync("switch(stringValue)");
-                await writer.WriteIndentedLineAsync("{");
+                await writer.WriteIndentedLineAsync("switch(stringValue)")
+                    .ConfigureAwait(false);
+                await writer.WriteIndentedLineAsync("{")
+                    .ConfigureAwait(false);
 
                 using (writer.IncreaseIndent())
                 {
@@ -174,28 +193,31 @@ namespace StrawberryShake.Generators.CSharp
                     {
                         await writer.WriteIndentedLineAsync(
                             "case \"{0}\":",
-                            value.Value);
+                            value.Value)
+                            .ConfigureAwait(false);
                         using (writer.IncreaseIndent())
                         {
                             await writer.WriteIndentedLineAsync(
                                 "return {0}.{1};",
                                 descriptor.Name,
-                                value.Name);
+                                value.Name)
+                                .ConfigureAwait(false);
                         }
                     }
 
-                    await writer.WriteIndentedLineAsync("default:");
+                    await writer.WriteIndentedLineAsync("default:").ConfigureAwait(false);
                     using (writer.IncreaseIndent())
                     {
                         await writer.WriteIndentedLineAsync(
-                            "throw new NotSupportedException();");
+                            "throw new NotSupportedException();")
+                            .ConfigureAwait(false);
                     }
                 }
 
-                await writer.WriteIndentedLineAsync("}");
+                await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
             }
 
-            await writer.WriteIndentedLineAsync("}");
+            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
         }
     }
 }

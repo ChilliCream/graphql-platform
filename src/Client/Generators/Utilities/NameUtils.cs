@@ -8,14 +8,6 @@ namespace StrawberryShake.Generators.Utilities
     {
         public static string GetInterfaceName(string typeName)
         {
-            if (typeName.Length > 1
-                && char.IsUpper(typeName[0])
-                && char.IsUpper(typeName[1])
-                && typeName[0] == 'I')
-            {
-                return GetPropertyName(typeName);
-            }
-
             return 'I' + GetPropertyName(typeName);
         }
 

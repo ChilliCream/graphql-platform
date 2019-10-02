@@ -58,7 +58,6 @@ namespace  StrawberryShake.Client.GraphQL
                 DeserializeNullableString(obj, "name"),
                 ParseRootHeroFriends(obj, "friends")
             );
-
         }
 
         private IFriend? ParseRootHeroFriends(
@@ -74,7 +73,6 @@ namespace  StrawberryShake.Client.GraphQL
             (
                 ParseRootHeroFriendsNodes(obj, "nodes")
             );
-
         }
 
         private IReadOnlyList<IHasName>? ParseRootHeroFriendsNodes(
@@ -99,7 +97,6 @@ namespace  StrawberryShake.Client.GraphQL
             }
 
             return list;
-
         }
 
         private double? DeserializeNullableFloat(JsonElement obj, string fieldName)

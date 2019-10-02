@@ -101,10 +101,9 @@ namespace StrawberryShake.Generators.CSharp
 
             using (writer.IncreaseIndent())
             {
-                if (!descriptor.ResultType.IsNonNullType())
-                {
-                    await WriteNullHandlingAsync(writer);
-                }
+                await WriteNullHandlingAsync(
+                    writer,
+                    descriptor.ResultType.IsNonNullType());
 
                 if (descriptor.ResultType.NamedType().IsAbstractType()
                     && descriptor.PossibleTypes.Count > 1)
@@ -240,8 +239,6 @@ namespace StrawberryShake.Generators.CSharp
                     "obj",
                     typeLookup);
             }
-
-            await writer.WriteLineAsync();
         }
 
         private async Task WriteListAsync(
@@ -436,20 +433,29 @@ namespace StrawberryShake.Generators.CSharp
             }
         }
 
-        private async Task WriteNullHandlingAsync(CodeWriter writer)
+        private async Task WriteNullHandlingAsync(CodeWriter writer, bool isNonNullType)
         {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("if (!parent.TryGetProperty(field, out JsonElement obj))");
-            await writer.WriteLineAsync();
-
-            await writer.WriteIndentAsync();
-            using (writer.WriteBraces())
+            if (isNonNullType)
+            {
+                await writer.WriteIndentedLineAsync(
+                    "JsonElement obj = parent.GetProperty(field);");
+                await writer.WriteLineAsync();
+            }
+            else
             {
                 await writer.WriteIndentAsync();
-                await writer.WriteAsync("return null;");
+                await writer.WriteAsync("if (!parent.TryGetProperty(field, out JsonElement obj))");
+                await writer.WriteLineAsync();
+
+                await writer.WriteIndentAsync();
+                using (writer.WriteBraces())
+                {
+                    await writer.WriteIndentAsync();
+                    await writer.WriteAsync("return null;");
+                }
+                await writer.WriteLineAsync();
+                await writer.WriteLineAsync();
             }
-            await writer.WriteLineAsync();
-            await writer.WriteLineAsync();
         }
     }
 }

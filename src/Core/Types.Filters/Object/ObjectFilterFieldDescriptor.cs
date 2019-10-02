@@ -65,7 +65,6 @@ namespace HotChocolate.Types.Filters
                     true,
                     true),
                 operation);
-            ;
         }
 
 

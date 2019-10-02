@@ -8,6 +8,7 @@ using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
 using WithDirectives = HotChocolate.Language.IHasDirectives;
 using static StrawberryShake.Generators.Utilities.NameUtils;
+using StrawberryShake.Generators.Types;
 
 namespace StrawberryShake.Generators
 {
@@ -154,8 +155,12 @@ namespace StrawberryShake.Generators
             SelectionInfo selection,
             List<ResultParserTypeDescriptor> resultParserTypes)
         {
+            string className = context.GetOrCreateName(
+                returnType.Fragment.SelectionSet,
+                GetClassName(returnType.Name));
+
             var modelClass = new ClassDescriptor(
-                GetClassName(returnType.Name),
+                className,
                 context.Namespace,
                 selection.Type,
                 new[] { interfaceDescriptor });
@@ -281,6 +286,19 @@ namespace StrawberryShake.Generators
             {
                 return nameFormatter(operation.Name.Value);
             }
+
+            INamedType type = returnType.NamedType();
+
+            if (type is HotChocolate.Types.IHasDirectives d)
+            {
+                IDirective directive =
+                    d.Directives[GeneratorDirectives.Name].FirstOrDefault();
+                if (directive is { })
+                {
+                    return nameFormatter(directive.ToObject<NameDirective>().Value);
+                }
+            }
+
             return nameFormatter(returnType.NamedType().Name);
         }
 
