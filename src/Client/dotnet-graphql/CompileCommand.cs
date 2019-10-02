@@ -10,6 +10,7 @@ namespace StrawberryShake.Tools
     {
         protected override Task<bool> Compile(
             string path,
+            IReadOnlyList<DocumentInfo> documents,
             Configuration config,
             ClientGenerator generator)
         {

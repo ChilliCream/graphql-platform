@@ -38,14 +38,14 @@ namespace  StrawberryShake.Client.GraphQL
             }
         }
 
-        public object? Deserialize(object? value)
+        public object? Deserialize(object? serialized)
         {
-            if(value is null)
+            if(serialized is null)
             {
                 return null;
             }
 
-            var stringValue = (string)value;
+            var stringValue = (string)serialized;
 
             switch(stringValue)
             {
