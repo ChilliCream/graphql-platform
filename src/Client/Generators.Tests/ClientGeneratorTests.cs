@@ -304,5 +304,82 @@ namespace StrawberryShake.Generators
             // assert
             outputHandler.Content.MatchSnapshot();
         }
+
+        [Fact]
+        public async Task Input_Objects_Arguments()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo(input: FooInput!): String
+                }
+
+                input FooInput {
+                    bar: BarInput
+                }
+
+                input BarInput {
+                    baz: Int
+                }
+                ";
+
+            string query =
+               @"
+                query getFoo($input: FooInput!) {
+                    foo(input: $input)
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Two_Input_Objects_Arguments()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo(input: FooInput!): String
+                }
+
+                input FooInput {
+                    bar: BarInput
+                }
+
+                input BarInput {
+                    baz: Int
+                }
+                ";
+
+            string query =
+               @"
+                query getFoo($input1: FooInput! $input2: FooInput!) {
+                    a: foo(input: $input1)
+                    b: foo(input: $input2)
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
     }
 }

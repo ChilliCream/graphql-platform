@@ -4,6 +4,7 @@ using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
 using IInputFieldDescriptor = StrawberryShake.Generators.Descriptors.IInputFieldDescriptor;
 using static StrawberryShake.Generators.Utilities.NameUtils;
+using System.Collections.Generic;
 
 namespace StrawberryShake.Generators.CSharp
 {
@@ -65,21 +66,26 @@ namespace StrawberryShake.Generators.CSharp
            CodeWriter writer,
            IInputClassDescriptor descriptor)
         {
+            var serializers = new HashSet<string>();
+
             foreach (IInputFieldDescriptor field in descriptor.Fields)
             {
                 string typeName = field.InputObjectType is null
                     ? field.Type.NamedType().Name.Value
                     : field.InputObjectType.Name;
 
-                await writer.WriteIndentAsync().ConfigureAwait(false);
-                await writer.WriteAsync("private readonly IValueSerializer")
-                    .ConfigureAwait(false);
-                await writer.WriteSpaceAsync().ConfigureAwait(false);
-                await writer.WriteAsync('_').ConfigureAwait(false);
-                await writer.WriteAsync(GetFieldName(typeName)).ConfigureAwait(false);
-                await writer.WriteAsync("Serializer").ConfigureAwait(false);
-                await writer.WriteAsync(';').ConfigureAwait(false);
-                await writer.WriteLineAsync().ConfigureAwait(false);
+                if (serializers.Add(typeName))
+                {
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
+                    await writer.WriteAsync("private readonly IValueSerializer")
+                        .ConfigureAwait(false);
+                    await writer.WriteSpaceAsync().ConfigureAwait(false);
+                    await writer.WriteAsync('_').ConfigureAwait(false);
+                    await writer.WriteAsync(GetFieldName(typeName)).ConfigureAwait(false);
+                    await writer.WriteAsync("Serializer").ConfigureAwait(false);
+                    await writer.WriteAsync(';').ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
+                }
             }
         }
 
@@ -87,6 +93,8 @@ namespace StrawberryShake.Generators.CSharp
            CodeWriter writer,
            IInputClassDescriptor descriptor)
         {
+            var serializers = new HashSet<string>();
+
             await writer.WriteIndentAsync().ConfigureAwait(false);
             await writer.WriteAsync("public ").ConfigureAwait(false);
             await writer.WriteAsync(descriptor.Name).ConfigureAwait(false);
@@ -108,6 +116,8 @@ namespace StrawberryShake.Generators.CSharp
                     .ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);
 
+                bool first = true;
+
                 for (int i = 0; i < descriptor.Fields.Count; i++)
                 {
                     IInputFieldDescriptor field = descriptor.Fields[i];
@@ -116,54 +126,58 @@ namespace StrawberryShake.Generators.CSharp
                         ? field.Type.NamedType().Name.Value
                         : field.InputObjectType.Name;
 
-                    string serializerType = i == 0
-                        ? "IValueSerializer "
-                        : string.Empty;
-
-                    await writer.WriteLineAsync().ConfigureAwait(false);
-                    await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync(
-                        "if (!map.TryGetValue" +
-                        $"(\"{typeName}\", out {serializerType}serializer))")
-                        .ConfigureAwait(false);
-                    await writer.WriteLineAsync().ConfigureAwait(false);
-
-                    await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync('{').ConfigureAwait(false);
-                    await writer.WriteLineAsync().ConfigureAwait(false);
-
-                    using (writer.IncreaseIndent())
+                    if (serializers.Add(typeName))
                     {
+                        string serializerType = first
+                            ? "IValueSerializer "
+                            : string.Empty;
+                        first = false;
+
+                        await writer.WriteLineAsync().ConfigureAwait(false);
                         await writer.WriteIndentAsync().ConfigureAwait(false);
-                        await writer.WriteAsync("throw new ArgumentException(")
+                        await writer.WriteAsync(
+                            "if (!map.TryGetValue" +
+                            $"(\"{typeName}\", out {serializerType}serializer))")
                             .ConfigureAwait(false);
+                        await writer.WriteLineAsync().ConfigureAwait(false);
+
+                        await writer.WriteIndentAsync().ConfigureAwait(false);
+                        await writer.WriteAsync('{').ConfigureAwait(false);
                         await writer.WriteLineAsync().ConfigureAwait(false);
 
                         using (writer.IncreaseIndent())
                         {
                             await writer.WriteIndentAsync().ConfigureAwait(false);
-                            await writer.WriteAsync(
-                                "\"There is no serializer specified for " +
-                                $"`{typeName}`.\",")
+                            await writer.WriteAsync("throw new ArgumentException(")
                                 .ConfigureAwait(false);
                             await writer.WriteLineAsync().ConfigureAwait(false);
 
-                            await writer.WriteIndentAsync().ConfigureAwait(false);
-                            await writer.WriteAsync("nameof(serializers));")
-                                .ConfigureAwait(false);
-                            await writer.WriteLineAsync().ConfigureAwait(false);
+                            using (writer.IncreaseIndent())
+                            {
+                                await writer.WriteIndentAsync().ConfigureAwait(false);
+                                await writer.WriteAsync(
+                                    "\"There is no serializer specified for " +
+                                    $"`{typeName}`.\",")
+                                    .ConfigureAwait(false);
+                                await writer.WriteLineAsync().ConfigureAwait(false);
+
+                                await writer.WriteIndentAsync().ConfigureAwait(false);
+                                await writer.WriteAsync("nameof(serializers));")
+                                    .ConfigureAwait(false);
+                                await writer.WriteLineAsync().ConfigureAwait(false);
+                            }
                         }
+
+                        await writer.WriteIndentAsync().ConfigureAwait(false);
+                        await writer.WriteAsync('}').ConfigureAwait(false);
+                        await writer.WriteLineAsync().ConfigureAwait(false);
+
+                        await writer.WriteIndentAsync().ConfigureAwait(false);
+                        await writer.WriteAsync('_').ConfigureAwait(false);
+                        await writer.WriteAsync(GetFieldName(typeName)).ConfigureAwait(false);
+                        await writer.WriteAsync("Serializer = serializer;").ConfigureAwait(false);
+                        await writer.WriteLineAsync().ConfigureAwait(false);
                     }
-
-                    await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync('}').ConfigureAwait(false);
-                    await writer.WriteLineAsync().ConfigureAwait(false);
-
-                    await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync('_').ConfigureAwait(false);
-                    await writer.WriteAsync(GetFieldName(typeName)).ConfigureAwait(false);
-                    await writer.WriteAsync("Serializer = serializer;").ConfigureAwait(false);
-                    await writer.WriteLineAsync().ConfigureAwait(false);
                 }
             }
 
