@@ -239,7 +239,7 @@ namespace HotChocolate.Types.Filters
 
 
         public IArrayFilterFieldDescriptor<TObject> Filter<TObject>(
-            Expression<Func<T, IEnumerable<TObject>>> propertyOrMethod) where TObject : class
+            Expression<Func<T, IEnumerable<TObject>>> property) where TObject : class
         {
             if (propertyOrMethod.ExtractMember() is PropertyInfo p)
             {
