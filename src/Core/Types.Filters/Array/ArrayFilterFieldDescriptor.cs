@@ -46,6 +46,40 @@ namespace HotChocolate.Types.Filters
             BindFilters(BindingBehavior.Implicit);
 
 
+
+
+        public IArrayFilterOperationDescriptor AllowSome()
+        {
+            ArrayFilterOperationDescriptor field =
+                CreateOperation(FilterOperationKind.ArraySome);
+            Filters.Add(field);
+            return field;
+        }
+
+        public IArrayFilterOperationDescriptor AllowNone()
+        {
+            ArrayFilterOperationDescriptor field =
+                CreateOperation(FilterOperationKind.ArrayNone);
+            Filters.Add(field);
+            return field;
+        }
+
+        public IArrayFilterOperationDescriptor AllowAll()
+        {
+            ArrayFilterOperationDescriptor field =
+                CreateOperation(FilterOperationKind.ArrayAll);
+            Filters.Add(field);
+            return field;
+        }
+
+        public IArrayBooleanFilterOperationDescriptor AllowAny()
+        {
+            ArrayBooleanFilterOperationDescriptor field =
+                CreateBooleanOperation(FilterOperationKind.ArrayAny);
+            Filters.Add(field);
+            return field;
+        }
+
         protected override FilterOperationDefintion CreateOperationDefinition(
             FilterOperationKind operationKind)
         {
@@ -114,39 +148,6 @@ namespace HotChocolate.Types.Filters
                 CreateFieldName(operationKind),
                 typeReference,
                 operation);
-        }
-
-
-        public IArrayFilterOperationDescriptor AllowSome()
-        {
-            ArrayFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.ArraySome);
-            Filters.Add(field);
-            return field;
-        }
-
-        public IArrayFilterOperationDescriptor AllowNone()
-        {
-            ArrayFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.ArrayNone);
-            Filters.Add(field);
-            return field;
-        }
-
-        public IArrayFilterOperationDescriptor AllowAll()
-        {
-            ArrayFilterOperationDescriptor field =
-                CreateOperation(FilterOperationKind.ArrayAll);
-            Filters.Add(field);
-            return field;
-        }
-
-        public IArrayBooleanFilterOperationDescriptor AllowAny()
-        {
-            ArrayBooleanFilterOperationDescriptor field =
-                CreateBooleanOperation(FilterOperationKind.ArrayAny);
-            Filters.Add(field);
-            return field;
         }
     }
 }
