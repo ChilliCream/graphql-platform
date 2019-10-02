@@ -37,53 +37,53 @@ namespace HotChocolate.Types.Filters
         IArrayFilterFieldDescriptor<TArray> BindImplicitly();
 
         /// <summary>
-        /// Allow object filter operations.
+        /// Allow array filter operations. Some returns true wehn one item matchs the filter
         /// </summary>
         IArrayFilterOperationDescriptor<TArray> AllowSome(Action<IFilterInputTypeDescriptor<TArray>> descriptor);
 
 
         /// <summary>
-        /// Allow object filter operations.
+        /// Allow array filter operations. Some returns true wehn one item matchs the filter
         /// </summary>
         IArrayFilterOperationDescriptor<TArray> AllowSome<TFilter>() where TFilter : FilterInputType<TArray>;
 
         /// <summary>
-        /// Allow object filter operations.
+        /// Allow array filter operations. Some returns true wehn one item matchs the filter
         /// </summary>
         IArrayFilterOperationDescriptor<TArray> AllowSome();
         /// <summary>
-        /// Allow object filter operations.
+        /// Allow array filter operations. None returns true when no item matchs the filter
         /// </summary>
         IArrayFilterOperationDescriptor<TArray> AllowNone(Action<IFilterInputTypeDescriptor<TArray>> descriptor);
 
 
         /// <summary>
-        /// Allow object filter operations.
+        /// Allow array filter operations. None returns true when no item matchs the filter
         /// </summary>
         IArrayFilterOperationDescriptor<TArray> AllowNone<TFilter>() where TFilter : FilterInputType<TArray>;
 
         /// <summary>
-        /// Allow object filter operations.
+        /// Allow array filter operations. None returns true when no item matchs the filter
         /// </summary>
         IArrayFilterOperationDescriptor<TArray> AllowNone();
         /// <summary>
-        /// Allow object filter operations.
+        /// Allow array filter operations. All returns true when all item match the filter
         /// </summary>
         IArrayFilterOperationDescriptor<TArray> AllowAll(Action<IFilterInputTypeDescriptor<TArray>> descriptor);
 
 
         /// <summary>
-        /// Allow object filter operations.
+        /// Allow array filter operations. All returns true when all item match the filter
         /// </summary>
         IArrayFilterOperationDescriptor<TArray> AllowAll<TFilter>() where TFilter : FilterInputType<TArray>;
 
         /// <summary>
-        /// Allow object filter operations.
+        /// Allow array filter operations. All returns true when all item match the filter
         /// </summary>
         IArrayFilterOperationDescriptor<TArray> AllowAll();
 
         /// <summary>
-        /// Allow object filter operations.
+        /// Allow array filter operations. Check if there are items or there are none
         /// </summary>
         IArrayBooleanFilterOperationDescriptor AllowAny();
 
