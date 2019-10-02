@@ -5,7 +5,7 @@ using System.Text.Json;
 using StrawberryShake;
 using StrawberryShake.Http;
 
-namespace  StrawberryShake.Client.GraphQL
+namespace StrawberryShake.Client.GraphQL
 {
     public class GetHeroResultParser
         : JsonResultParserBase<IGetHero>
@@ -25,7 +25,7 @@ namespace  StrawberryShake.Client.GraphQL
             }
             _floatSerializer = serializer;
 
-            if (!map.TryGetValue("String", out  serializer))
+            if (!map.TryGetValue("String", out serializer))
             {
                 throw new ArgumentException(
                     "There is no serializer specified for `String`.",
@@ -86,6 +86,7 @@ namespace  StrawberryShake.Client.GraphQL
 
             int objLength = obj.GetArrayLength();
             var list = new IHasName[objLength];
+
             for (int objIndex = 0; objIndex < objLength; objIndex++)
             {
                 JsonElement element = obj[objIndex];
@@ -99,36 +100,57 @@ namespace  StrawberryShake.Client.GraphQL
             return list;
         }
 
-        private double? DeserializeNullableFloat(JsonElement obj, string fieldName)
+        private IReadOnlyList<IReadOnlyList<double?>?>? DeserializeNullableFloat(JsonElement obj, string fieldName)
         {
-            if (!obj.TryGetProperty(fieldName, out JsonElement value))
+            if (!obj.TryGetProperty(fieldName, out JsonElement outer))
             {
                 return null;
             }
 
-            if (value.ValueKind == JsonValueKind.Null)
+            if (outer.ValueKind == JsonValueKind.Null)
             {
                 return null;
             }
 
+            int outerLength = outer.GetArrayLength();
+            var outerList = new IReadOnlyList<double?>?[outerLength];
 
-            return (double?)_floatSerializer.Serialize(value.GetDouble());
+            for (int i = 0; i < outerLength; i++)
+            {
+                JsonElement inner = outer[i];
+
+                if (inner.ValueKind == JsonValueKind.Null)
+                {
+                    outerList[i] = null;
+                }
+                else
+                {
+                    int innerLength = inner.GetArrayLength();
+                    var innerList = new double?[outerLength];
+
+                    for (int j = 0; j < innerLength; j++)
+                    {
+                        JsonElement element = inner[i];
+
+                        if (inner.ValueKind == JsonValueKind.Null)
+                        {
+                            innerList[j] = null;
+                        }
+                        else
+                        {
+                            innerList[j] = (double?)_floatSerializer.Serialize(element.GetDouble());
+                        }
+                    }
+
+                    outerList[i] = innerList;
+                }
+            }
         }
 
-        private string? DeserializeNullableString(JsonElement obj, string fieldName)
+        private string DeserializeNullableString(JsonElement obj, string fieldName)
         {
-            if (!obj.TryGetProperty(fieldName, out JsonElement value))
-            {
-                return null;
-            }
-
-            if (value.ValueKind == JsonValueKind.Null)
-            {
-                return null;
-            }
-
-
-            return (string?)_stringSerializer.Serialize(value.GetString());
+            JsonElement value = obj.GetProperty(fieldName);
+            return (string)_stringSerializer.Serialize(value.GetString())!;
         }
     }
 }
