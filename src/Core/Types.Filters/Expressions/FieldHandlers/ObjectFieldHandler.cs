@@ -20,7 +20,10 @@ namespace HotChocolate.Types.Filters.Expressions
         {
             if (field.Operation.Kind == FilterOperationKind.Object)
             {
-                var nestedProperty = Expression.Property(closures.Peek().Instance.Peek(), field.Operation.Property);
+                var nestedProperty = Expression.Property(
+                    closures.Peek().Instance.Peek(),
+                    field.Operation.Property
+                    );
                 closures.Peek().Instance.Push(nestedProperty);
 
                 action = VisitorAction.Continue;
@@ -37,13 +40,16 @@ namespace HotChocolate.Types.Filters.Expressions
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
             Stack<QueryableClosure> closures)
-        { 
+        {
             if (field.Operation.Kind == FilterOperationKind.Object)
             {
                 // Deque last expression to prefix with nullcheck
                 var condition = closures.Peek().Level.Peek().Dequeue();
                 // wrap current property with null check
-                var nullCheck = Expression.NotEqual(closures.Peek().Instance.Peek(), Expression.Constant(null, typeof(object)));
+                var nullCheck = Expression.NotEqual(
+                    closures.Peek().Instance.Peek(),
+                    Expression.Constant(null, typeof(object))
+                    );
                 // wrap last expression  
                 closures.Peek().Level.Peek().Enqueue(Expression.AndAlso(nullCheck, condition));
                 closures.Peek().Instance.Pop();
