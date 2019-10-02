@@ -13,8 +13,7 @@ namespace HotChocolate.Types.Filters.Expressions
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<Queue<Expression>> level,
-            Stack<Expression> instance,
+            Stack<QueryableClosure> closures,
             out VisitorAction action
         );
 
@@ -23,8 +22,7 @@ namespace HotChocolate.Types.Filters.Expressions
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<Queue<Expression>> level,
-            Stack<Expression> instance
+            Stack<QueryableClosure> closures
         );
     }
 }

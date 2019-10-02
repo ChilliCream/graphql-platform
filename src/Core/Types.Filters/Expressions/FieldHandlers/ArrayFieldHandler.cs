@@ -15,16 +15,20 @@ namespace HotChocolate.Types.Filters.Expressions
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<Queue<Expression>> level,
-            Stack<Expression> instance,
+            Stack<QueryableClosure> closures,
             out VisitorAction action
             )
         {
             if (field.Operation.Kind == FilterOperationKind.ArraySome)
             {
-                instance.Push(Expression.Property(instance.Peek(), field.Operation.Property));
-                // testc = Expression.Parameter(field.Operation.Type, "s");
-                //instance.Push(testc);
+                var nestedProperty = Expression.Property(
+                    closures.Peek().Instance.Peek(),
+                    field.Operation.Property
+                );
+
+                closures.Peek().Instance.Push(nestedProperty);
+
+                closures.Push(new QueryableClosure(field.Operation.Type, "_s" + closures.Count));
                 action = VisitorAction.Continue;
                 return true;
             }
@@ -38,23 +42,25 @@ namespace HotChocolate.Types.Filters.Expressions
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<Queue<Expression>> level,
-            Stack<Expression> instance)
+            Stack<QueryableClosure> closures)
         {
             if (field.Operation.Kind == FilterOperationKind.ArraySome)
             {
-                instance.Pop();
+                var nestedClosure = closures.Pop();
+                var lambda = nestedClosure.CreateLambda();
 
-                var anyMethod = typeof(Enumerable)
-                    .GetMethods()
-                    .Where(x => x.Name == "Any" && x.GetParameters().Length == 2)
-                    .First()
-                    .MakeGenericMethod(field.Operation.Type);
-                var condition = level.Peek().Dequeue();
-                var lambda = Expression.Lambda(condition, Expression.Parameter(field.Operation.Type, "s"));
 
-                level.Peek().Enqueue(Expression.Call(anyMethod, new[] { instance.Peek(), lambda }));
-                instance.Pop();
+                closures.Peek()
+                    .Level.Peek()
+                        .Enqueue(
+                            FilterExpressionBuilder.Any(
+                                field.Operation.Type,
+                                closures.Peek().Instance.Peek(),
+                                lambda
+                         )
+                     );
+
+                closures.Peek().Instance.Pop();
             }
         }
 

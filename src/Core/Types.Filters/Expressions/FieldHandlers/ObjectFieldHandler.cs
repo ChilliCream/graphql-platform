@@ -14,14 +14,15 @@ namespace HotChocolate.Types.Filters.Expressions
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<Queue<Expression>> level,
-            Stack<Expression> instance,
+            Stack<QueryableClosure> closures,
             out VisitorAction action
             )
         {
             if (field.Operation.Kind == FilterOperationKind.Object)
             {
-                instance.Push(Expression.Property(instance.Peek(), field.Operation.Property)); 
+                var nestedProperty = Expression.Property(closures.Peek().Instance.Peek(), field.Operation.Property);
+                closures.Peek().Instance.Push(nestedProperty);
+
                 action = VisitorAction.Continue;
                 return true;
             }
@@ -35,19 +36,17 @@ namespace HotChocolate.Types.Filters.Expressions
             ISyntaxNode parent,
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors,
-            Stack<Queue<Expression>> level,
-            Stack<Expression> instance)
-        {
-
+            Stack<QueryableClosure> closures)
+        { 
             if (field.Operation.Kind == FilterOperationKind.Object)
             {
                 // Deque last expression to prefix with nullcheck
-                var condition = level.Peek().Dequeue();
+                var condition = closures.Peek().Level.Peek().Dequeue();
                 // wrap current property with null check
-                var nullCheck = Expression.NotEqual(instance.Peek(), Expression.Constant(null, typeof(object)));
+                var nullCheck = Expression.NotEqual(closures.Peek().Instance.Peek(), Expression.Constant(null, typeof(object)));
                 // wrap last expression  
-                level.Peek().Enqueue(Expression.AndAlso(nullCheck, condition));
-                instance.Pop();
+                closures.Peek().Level.Peek().Enqueue(Expression.AndAlso(nullCheck, condition));
+                closures.Peek().Instance.Pop();
             }
         }
 

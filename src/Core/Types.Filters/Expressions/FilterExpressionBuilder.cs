@@ -130,12 +130,22 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         public static Expression Any(
-            MemberExpression property,
+            Type type,
+            Expression property,
             Expression body,
             params ParameterExpression[] parameterExpression)
         {
             var lambda = Expression.Lambda(body, parameterExpression);
-            return Expression.Call(_anyMethod, new Expression[] { property, lambda });
+            return Any(type, property, lambda);
+        }
+
+
+        public static Expression Any(
+            Type type,
+            Expression property,
+            LambdaExpression lambda)
+        {
+            return Expression.Call(_anyMethod.MakeGenericMethod(type), new Expression[] { property, lambda });
         }
     }
 }
