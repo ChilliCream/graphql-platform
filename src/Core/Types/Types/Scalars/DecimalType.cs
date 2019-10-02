@@ -28,14 +28,12 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (literal is FloatValueNode floatLiteral
-                && TryParseDecimal(floatLiteral.Value, out _))
+            if (literal is FloatValueNode floatLiteral)
             {
                 return true;
             }
 
-            if (literal is IntValueNode intLiteral
-                && TryParseDecimal(intLiteral.Value, out _))
+            if (literal is IntValueNode intLiteral)
             {
                 return true;
             }
@@ -45,26 +43,33 @@ namespace HotChocolate.Types
 
         public override object ParseLiteral(IValueNode literal)
         {
-            if (literal == null)
+            try
             {
-                throw new ArgumentNullException(nameof(literal));
-            }
+                if (literal == null)
+                {
+                    throw new ArgumentNullException(nameof(literal));
+                }
 
-            if (literal is NullValueNode)
-            {
-                return null;
-            }
+                if (literal is NullValueNode)
+                {
+                    return null;
+                }
 
-            if (literal is FloatValueNode floatLiteral
-                && TryParseDecimal(floatLiteral.Value, out var d))
-            {
-                return d;
-            }
+                if (literal is FloatValueNode floatLiteral)
+                {
+                    return floatLiteral.ToDecimal();
+                }
 
-            if (literal is IntValueNode intLiteral
-                && TryParseDecimal(intLiteral.Value, out d))
+                if (literal is IntValueNode intLiteral)
+                {
+                    return intLiteral.ToDecimal();
+                }
+            }
+            catch (Exception ex)
             {
-                return d;
+                throw new ScalarSerializationException(
+                    TypeResourceHelper.Scalar_Cannot_ParseLiteral(
+                        Name, literal.GetType()), ex);
             }
 
             throw new ScalarSerializationException(
@@ -129,12 +134,5 @@ namespace HotChocolate.Types
             value = null;
             return false;
         }
-
-        private static bool TryParseDecimal(string value, out decimal d) =>
-            decimal.TryParse(
-                value,
-                NumberStyles.Float,
-                CultureInfo.InvariantCulture,
-                out d);
     }
 }

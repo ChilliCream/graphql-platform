@@ -12,7 +12,6 @@ namespace HotChocolate.Language
         private float? _floatValue;
         private double? _doubleValue;
         private decimal? _decimalValue;
-        private byte _type;
 
         public FloatValueNode(double value)
             : this(null, value)
@@ -24,7 +23,6 @@ namespace HotChocolate.Language
             Location = location;
             _doubleValue = value;
             Format = FloatFormat.FixedPoint;
-            _type = 1;
         }
 
         public FloatValueNode(decimal value)
@@ -37,7 +35,6 @@ namespace HotChocolate.Language
             Location = location;
             _decimalValue = value;
             Format = FloatFormat.FixedPoint;
-            _type = 2;
         }
 
         public FloatValueNode(ReadOnlyMemory<byte> value, FloatFormat format)
@@ -279,36 +276,25 @@ namespace HotChocolate.Language
         {
             if (_memory.IsEmpty)
             {
-                if (_floatValue.HasValue || _doubleValue.HasValue || _decimalValue.HasValue)
+                Span<byte> buffer = stackalloc byte[32];
+                int written = 0;
+
+                if (_floatValue.HasValue)
                 {
-                    Span<byte> buffer = stackalloc byte[32];
-                    int written = 0;
-
-                    if (_floatValue.HasValue)
-                    {
-                        Utf8Formatter.TryFormat(_floatValue.Value, buffer, out written, 'f');
-                    }
-                    else if (_doubleValue.HasValue)
-                    {
-                        Utf8Formatter.TryFormat(_doubleValue.Value, buffer, out written, 'f');
-                    }
-                    else
-                    {
-                        Utf8Formatter.TryFormat(_decimalValue!.Value, buffer, out written, 'f');
-                    }
-
-                    var memory = new Memory<byte>(new byte[written]);
-                    buffer.Slice(0, written).CopyTo(memory.Span);
-                    _memory = memory;
+                    Utf8Formatter.TryFormat(_floatValue.Value, buffer, out written, 'f');
+                }
+                else if (_doubleValue.HasValue)
+                {
+                    Utf8Formatter.TryFormat(_doubleValue.Value, buffer, out written, 'f');
                 }
                 else
                 {
-                    int length = checked(_stringValue!.Length * 4);
-                    Memory<byte> memory = new byte[length];
-                    Span<byte> span = memory.Span;
-                    int buffered = Utf8GraphQLParser.ConvertToBytes(_stringValue, ref span);
-                    _memory = memory.Slice(0, buffered);
+                    Utf8Formatter.TryFormat(_decimalValue!.Value, buffer, out written, 'f');
                 }
+
+                var memory = new Memory<byte>(new byte[written]);
+                buffer.Slice(0, written).CopyTo(memory.Span);
+                _memory = memory;
             }
 
             return _memory.Span;
@@ -336,26 +322,14 @@ namespace HotChocolate.Language
             return new FloatValueNode(Location, value);
         }
 
-        public FloatValueNode WithValue(ReadOnlyMemory<byte> value)
+        public FloatValueNode WithValue(ReadOnlyMemory<byte> value, FloatFormat format)
         {
-            return new FloatValueNode(Location, value, Format);
+            return new FloatValueNode(Location, value, format);
         }
 
-        public FloatValueNode WithValue(ReadOnlySpan<byte> value)
+        public FloatValueNode WithValue(ReadOnlySpan<byte> value, FloatFormat format)
         {
-            return new FloatValueNode(Location, value.ToArray(), Format);
-        }
-
-        public FloatValueNode WithFormat(FloatFormat format)
-        {
-            return new FloatValueNode(Location, format)
-            {
-                _memory = _memory,
-                _floatValue = _floatValue,
-                _doubleValue = _doubleValue,
-                _decimalValue = _decimalValue,
-                _stringValue = Value
-            };
+            return new FloatValueNode(Location, value.ToArray(), format);
         }
     }
 }

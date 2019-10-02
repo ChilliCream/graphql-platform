@@ -9,53 +9,64 @@ namespace HotChocolate.Language
         , IHasSpan
         , IEquatable<IntValueNode>
     {
-        private string? _value;
         private ReadOnlyMemory<byte> _memory;
+        private string? _stringValue;
         private byte? _byteValue;
         private short? _shortValue;
         private int? _intValue;
         private long? _longValue;
+        private float? _floatValue;
+        private double? _doubleValue;
+        private decimal? _decimalValue;
 
         public IntValueNode(byte value)
-            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
-        {
-            _byteValue = value;
-        }
-
-        public IntValueNode(short value)
-            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
-        {
-            _shortValue = value;
-        }
-
-        public IntValueNode(int value)
-            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
-        {
-            _intValue = value;
-        }
-
-        public IntValueNode(long value)
-            : this(null, value.ToString("D", CultureInfo.InvariantCulture))
-        {
-            _longValue = value;
-        }
-
-        public IntValueNode(string value)
             : this(null, value)
         {
         }
 
-        public IntValueNode(Location? location, string value)
+        public IntValueNode(Location? location, byte value)
         {
-            if (string.IsNullOrEmpty(value))
-            {
-                throw new ArgumentException(
-                    "The value of an int value node mustn't be null or empty.",
-                    nameof(value));
-            }
-
             Location = location;
-            _value = value;
+            _byteValue = value;
+            _shortValue = value;
+        }
+
+        public IntValueNode(short value)
+            : this(null, value)
+        {
+        }
+
+        public IntValueNode(Location? location, short value)
+        {
+            Location = location;
+            _shortValue = value;
+        }
+
+        public IntValueNode(int value)
+            : this(null, value)
+        {
+        }
+
+        public IntValueNode(Location? location, int value)
+        {
+            Location = location;
+            _intValue = value;
+        }
+
+        public IntValueNode(long value)
+            : this(null, value)
+        {
+        }
+
+        public IntValueNode(Location? location, long value)
+        {
+            Location = location;
+            _longValue = value;
+        }
+
+        public IntValueNode(ReadOnlyMemory<byte> value)
+            : this(null, value)
+        {
         }
 
         public IntValueNode(Location? location, ReadOnlyMemory<byte> value)
@@ -71,6 +82,11 @@ namespace HotChocolate.Language
             _memory = value;
         }
 
+        private IntValueNode(Location? location)
+        {
+            Location = location;
+        }
+
         public NodeKind Kind { get; } = NodeKind.IntValue;
 
         public Location? Location { get; }
@@ -79,11 +95,11 @@ namespace HotChocolate.Language
         {
             get
             {
-                if (_value is null)
+                if (_stringValue is null)
                 {
-                    _value = Utf8GraphQLReader.GetScalarValue(_memory.Span);
+                    _stringValue = Utf8GraphQLReader.GetScalarValue(AsSpan());
                 }
-                return _value;
+                return _stringValue;
             }
         }
 
@@ -271,15 +287,77 @@ namespace HotChocolate.Language
             throw new InvalidFormatException();
         }
 
-        public ReadOnlySpan<byte> AsSpan()
+        public float ToSingle()
+        {
+            if (_floatValue.HasValue)
+            {
+                return _floatValue.Value;
+            }
+
+            if (Utf8Parser.TryParse(AsSpan(), out float value, out _, 'f'))
+            {
+                _floatValue = value;
+                return value;
+            }
+
+            throw new InvalidFormatException();
+        }
+
+        public double ToDouble()
+        {
+            if (_doubleValue.HasValue)
+            {
+                return _doubleValue.Value;
+            }
+
+            if (Utf8Parser.TryParse(AsSpan(), out double value, out _, 'f'))
+            {
+                _doubleValue = value;
+                return value;
+            }
+
+            throw new InvalidFormatException();
+        }
+
+        public Decimal ToDecimal()
+        {
+            if (_decimalValue.HasValue)
+            {
+                return _decimalValue.Value;
+            }
+
+            if (Utf8Parser.TryParse(AsSpan(), out Decimal value, out _, 'f'))
+            {
+                _decimalValue = value;
+                return value;
+            }
+
+            throw new InvalidFormatException();
+        }
+
+        public unsafe ReadOnlySpan<byte> AsSpan()
         {
             if (_memory.IsEmpty)
             {
-                int length = checked(_value!.Length * 4);
-                Memory<byte> memory = new byte[length];
-                Span<byte> span = memory.Span;
-                int buffered = Utf8GraphQLParser.ConvertToBytes(_value, ref span);
-                _memory = memory.Slice(0, buffered);
+                Span<byte> buffer = stackalloc byte[32];
+                int written = 0;
+
+                if (_shortValue.HasValue)
+                {
+                    Utf8Formatter.TryFormat(_shortValue.Value, buffer, out written, 'f');
+                }
+                else if (_intValue.HasValue)
+                {
+                    Utf8Formatter.TryFormat(_intValue.Value, buffer, out written, 'f');
+                }
+                else
+                {
+                    Utf8Formatter.TryFormat(_longValue!.Value, buffer, out written, 'f');
+                }
+
+                var memory = new Memory<byte>(new byte[written]);
+                buffer.Slice(0, written).CopyTo(memory.Span);
+                _memory = memory;
             }
 
             return _memory.Span;
@@ -287,10 +365,37 @@ namespace HotChocolate.Language
 
         public IntValueNode WithLocation(Location? location)
         {
-            return new IntValueNode(location, Value);
+            return new IntValueNode(location)
+            {
+                _stringValue = _stringValue,
+                _shortValue = _shortValue,
+                _intValue = _intValue,
+                _longValue = _longValue,
+                _memory = _memory
+            };
         }
 
-        public IntValueNode WithValue(string value)
+        public IntValueNode WithValue(byte value)
+        {
+            return new IntValueNode(Location, value);
+        }
+
+        public IntValueNode WithValue(short value)
+        {
+            return new IntValueNode(Location, value);
+        }
+
+        public IntValueNode WithValue(int value)
+        {
+            return new IntValueNode(Location, value);
+        }
+
+        public IntValueNode WithValue(long value)
+        {
+            return new IntValueNode(Location, value);
+        }
+
+        public IntValueNode WithValue(ReadOnlyMemory<byte> value)
         {
             return new IntValueNode(Location, value);
         }

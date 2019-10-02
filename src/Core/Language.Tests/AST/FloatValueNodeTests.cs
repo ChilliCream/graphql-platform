@@ -42,6 +42,57 @@ namespace HotChocolate.Language
             Assert.Equal(location, floatValueNode.Location);
         }
 
+        [InlineData("1.568", 1.568)]
+        [InlineData("2.0", 2.0)]
+        [Theory]
+        public void ToSingle(string value, float expected)
+        {
+            // arrange
+            byte[] buffer = Encoding.UTF8.GetBytes(value);
+            var location = new Location(0, 0, 0, 0);
+
+            // act
+            var floatValueNode = new FloatValueNode(
+                location, buffer, FloatFormat.FixedPoint);
+
+            // assert
+            Assert.Equal(expected, floatValueNode.ToSingle());
+        }
+
+        [InlineData("1.568", 1.568)]
+        [InlineData("2.0", 2.0)]
+        [Theory]
+        public void ToDouble(string value, double expected)
+        {
+            // arrange
+            byte[] buffer = Encoding.UTF8.GetBytes(value);
+            var location = new Location(0, 0, 0, 0);
+
+            // act
+            var floatValueNode = new FloatValueNode(
+                location, buffer, FloatFormat.FixedPoint);
+
+            // assert
+            Assert.Equal(expected, floatValueNode.ToDouble());
+        }
+
+        [InlineData("1.568", 1.568)]
+        [InlineData("2.0", 2.0)]
+        [Theory]
+        public void ToDecimal(string value, decimal expected)
+        {
+            // arrange
+            byte[] buffer = Encoding.UTF8.GetBytes(value);
+            var location = new Location(0, 0, 0, 0);
+
+            // act
+            var floatValueNode = new FloatValueNode(
+                location, buffer, FloatFormat.FixedPoint);
+
+            // assert
+            Assert.Equal(expected, floatValueNode.ToDecimal());
+        }
+
         [Fact]
         public void EqualsFloatValueNode()
         {
@@ -203,8 +254,8 @@ namespace HotChocolate.Language
             var b = new FloatValueNode(2.0);
 
             // act
-            string? astring = a.ToString();
-            string? bstring = b.ToString();
+            string astring = a.ToString();
+            string bstring = b.ToString();
 
             // assert
             Assert.Equal("1.00", astring);
@@ -222,7 +273,7 @@ namespace HotChocolate.Language
         {
             // act
             var a = new FloatValueNode(2.5);
-            var b = a.WithValue(a.AsSpan());
+            var b = a.WithValue(a.AsSpan(), FloatFormat.FixedPoint);
             string c = b.Value;
 
             // assert

@@ -1,7 +1,6 @@
 using System;
 using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Types
 {
