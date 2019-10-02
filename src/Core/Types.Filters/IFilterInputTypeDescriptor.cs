@@ -64,7 +64,7 @@ namespace HotChocolate.Types.Filters
         /// The property for which a filter shall be applied.
         /// </param>
         IComparableFilterFieldDescriptor Filter(
-            Expression<Func<T, IComparable>> propertyOrMethod);
+            Expression<Func<T, IComparable>> property);
 
         /// <summary>
         /// Define a object filter for the selected property.
@@ -73,7 +73,7 @@ namespace HotChocolate.Types.Filters
         /// The property for which a filter shall be applied.
         /// </param>
         IObjectFilterFieldDescriptor<TObject> Filter<TObject>(
-            Expression<Func<T, TObject>> propertyOrMethod)
+            Expression<Func<T, TObject>> property)
             where TObject : class;
 
         /// <summary>
@@ -83,7 +83,7 @@ namespace HotChocolate.Types.Filters
         /// The property for which a filter shall be applied.
         /// </param>
         IArrayFilterFieldDescriptor<TObject> Filter<TObject>(
-            Expression<Func<T, IEnumerable<TObject>>> propertyOrMethod)
+            Expression<Func<T, IEnumerable<TObject>>> property)
             where TObject : class;
 
         /// <summary>
