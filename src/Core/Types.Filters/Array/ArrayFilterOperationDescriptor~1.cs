@@ -4,7 +4,7 @@ using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Filters
 {
-    
+
     public class ArrayFilterOperationDescriptor<TArray>
         : ArrayFilterOperationDescriptor
         , IArrayFilterOperationDescriptor<TArray>
@@ -19,11 +19,6 @@ namespace HotChocolate.Types.Filters
             FilterOperation operation)
             : base(context, descriptor, name, type, operation)
         {
-            Definition.Name = name.EnsureNotEmpty(nameof(name));
-            Definition.Type = type
-                ?? throw new ArgumentNullException(nameof(type));
-            Definition.Operation = operation
-                ?? throw new ArgumentNullException(nameof(operation));
             _descriptor = descriptor
                 ?? throw new ArgumentNullException(nameof(descriptor));
         }
