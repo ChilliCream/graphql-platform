@@ -14,7 +14,6 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property)
             : base(context, property, typeof(TArray))
         {
-
         }
 
 
@@ -34,19 +33,6 @@ namespace HotChocolate.Types.Filters
         public new IArrayFilterFieldDescriptor<TArray> BindImplicitly() =>
             BindFilters(BindingBehavior.Implicit);
 
-
-        private ArrayFilterOperationDescriptor<TArray> CreateOperation(
-            FilterOperationKind operationKind)
-        {
-            var operation = GetFilterOperation(operationKind);
-            var typeReference = GetTypeReference();
-            return ArrayFilterOperationDescriptor<TArray>.New(
-                Context,
-                this,
-                CreateFieldName(operationKind),
-                typeReference,
-                operation);
-        }
 
         public IArrayFilterOperationDescriptor<TArray> AllowSome(
             Action<IFilterInputTypeDescriptor<TArray>> descriptor)
@@ -130,6 +116,19 @@ namespace HotChocolate.Types.Filters
         public new IArrayFilterOperationDescriptor<TArray> AllowAll()
         {
             return AllowAll<FilterInputType<TArray>>();
+        }
+
+        private ArrayFilterOperationDescriptor<TArray> CreateOperation(
+            FilterOperationKind operationKind)
+        {
+            var operation = GetFilterOperation(operationKind);
+            var typeReference = GetTypeReference();
+            return ArrayFilterOperationDescriptor<TArray>.New(
+                Context,
+                this,
+                CreateFieldName(operationKind),
+                typeReference,
+                operation);
         }
     }
 }
