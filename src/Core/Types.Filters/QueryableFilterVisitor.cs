@@ -13,6 +13,7 @@ namespace HotChocolate.Types.Filters
     {
         private const string _parameterName = "t";
         private readonly IReadOnlyList<IExpressionOperationHandler> _opHandlers;
+        private readonly IReadOnlyList<IExpressionFieldHandler> _fieldHandlers;
         private readonly ParameterExpression _parameter;
         private readonly ITypeConversion _converter;
 
@@ -24,6 +25,7 @@ namespace HotChocolate.Types.Filters
         {
             _parameter = Expression.Parameter(source, _parameterName);
             _opHandlers = ExpressionOperationHandlers.All;
+            _fieldHandlers = ExpressionFieldHandlers.All;
             _converter = converter;
 
             Level.Push(new Queue<Expression>());
@@ -33,7 +35,8 @@ namespace HotChocolate.Types.Filters
         public QueryableFilterVisitor(
             InputObjectType initialType,
             Type source,
-            IEnumerable<IExpressionOperationHandler> operationHandlers)
+            IEnumerable<IExpressionOperationHandler> operationHandlers,
+            IEnumerable<IExpressionFieldHandler> fieldHandlers)
             : base(initialType)
         {
             if (operationHandlers is null)
@@ -42,6 +45,7 @@ namespace HotChocolate.Types.Filters
             }
 
             _opHandlers = operationHandlers.ToArray();
+            _fieldHandlers = fieldHandlers.ToArray();
             _parameter = Expression.Parameter(source, _parameterName);
 
             Level.Push(new Queue<Expression>());
@@ -106,31 +110,28 @@ namespace HotChocolate.Types.Filters
 
             if (Operations.Peek() is FilterOperationField field)
             {
-                if (field.Operation.Kind == FilterOperationKind.Object)
+                for (var i = _fieldHandlers.Count - 1; i >= 0; i--)
                 {
-                    Instance.Push(Expression.Property(
-                        Instance.Peek(),
-                        field.Operation.Property));
-                    return VisitorAction.Continue;
-                }
-                else
-                {
-                    for (var i = _opHandlers.Count - 1; i >= 0; i--)
+                    if (_fieldHandlers[i].Enter(field, node, parent, path, ancestors, Level, Instance, out VisitorAction action))
                     {
-                        if (_opHandlers[i].TryHandle(
-                            field.Operation,
-                            field.Type,
-                            node.Value,
-                            Instance.Peek(),
-                            _converter,
-                            out Expression expression))
-                        {
-                            Level.Peek().Enqueue(expression);
-                            break;
-                        }
+                        return action;
                     }
-                    return VisitorAction.Skip;
                 }
+                for (var i = _opHandlers.Count - 1; i >= 0; i--)
+                {
+                    if (_opHandlers[i].TryHandle(
+                        field.Operation,
+                        field.Type,
+                        node.Value,
+                        Instance.Peek(),
+                        _converter,
+                        out Expression expression))
+                    {
+                        Level.Peek().Enqueue(expression);
+                        break;
+                    }
+                }
+                return VisitorAction.Skip;
             }
             return VisitorAction.Continue;
         }
@@ -141,15 +142,13 @@ namespace HotChocolate.Types.Filters
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            if (Operations.Peek() is FilterOperationField field
-                && field.Operation.Kind == FilterOperationKind.Object)
+            if (Operations.Peek() is FilterOperationField field)
             {
-                // Deque last expression to prefix with nullcheck
-                var condition = Level.Peek().Dequeue();
-                var nullCheck = Expression.NotEqual(Instance.Peek(), Expression.Constant(null, typeof(object)));
-                Level.Peek().Enqueue(Expression.AndAlso(nullCheck, condition));
-                Instance.Pop();
-            }
+                for (var i = _fieldHandlers.Count - 1; i >= 0; i--)
+                {
+                    _fieldHandlers[i].Leave(field, node, parent, path, ancestors, Level, Instance);
+                }
+            } 
             return base.Leave(node, parent, path, ancestors);
         }
 

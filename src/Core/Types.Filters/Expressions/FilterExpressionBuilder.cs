@@ -27,6 +27,10 @@ namespace HotChocolate.Types.Filters.Expressions
                 && m.GetParameters().Length == 1
                 && m.GetParameters().Single().ParameterType == typeof(string));
 
+        private static readonly MethodInfo _anyMethod = typeof(Enumerable)
+                    .GetMethods()
+                    .Single(x => x.Name == "Any" && x.GetParameters().Length == 2);
+
         public static Expression Not(Expression expression)
         {
             return Expression.Equal(expression, Expression.Constant(false));
@@ -123,6 +127,15 @@ namespace HotChocolate.Types.Filters.Expressions
                 Expression.NotEqual(property, Expression.Constant(null)),
                 Expression.Call(property, _contains,
                     new[] { Expression.Constant(value) }));
+        }
+
+        public static Expression Any(
+            MemberExpression property,
+            Expression body,
+            params ParameterExpression[] parameterExpression)
+        {
+            var lambda = Expression.Lambda(body, parameterExpression);
+            return Expression.Call(_anyMethod, new Expression[] { property, lambda });
         }
     }
 }

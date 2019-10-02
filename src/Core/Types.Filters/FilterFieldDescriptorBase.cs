@@ -246,6 +246,9 @@ namespace HotChocolate.Types.Filters
                 case FilterOperationKind.Object:
                     return Definition.Name;
 
+                case FilterOperationKind.ArraySome:
+                    return Definition.Name + "_some";
+
                 default:
                     throw new NotSupportedException();
             }

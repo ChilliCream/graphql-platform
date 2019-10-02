@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Filters
@@ -73,6 +74,16 @@ namespace HotChocolate.Types.Filters
         /// </param>
         IObjectFilterFieldDescriptor<TObject> Filter<TObject>(
             Expression<Func<T, TObject>> propertyOrMethod)
+            where TObject : class;
+
+        /// <summary>
+        /// Define a object filter for a IEnumerable of type object
+        /// </summary>
+        /// <param name="property">
+        /// The property for which a filter shall be applied.
+        /// </param>
+        IArrayFilterFieldDescriptor<TObject> Filter<TObject>(
+            Expression<Func<T, IEnumerable<TObject>>> propertyOrMethod)
             where TObject : class;
 
         /// <summary>
