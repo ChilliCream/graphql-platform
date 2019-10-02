@@ -5,7 +5,7 @@ using System.Text.Json;
 using StrawberryShake;
 using StrawberryShake.Http;
 
-namespace StrawberryShake.Client.GraphQL
+namespace  StrawberryShake.Client.GraphQL
 {
     public class GetHeroResultParser
         : JsonResultParserBase<IGetHero>
@@ -25,7 +25,7 @@ namespace StrawberryShake.Client.GraphQL
             }
             _floatSerializer = serializer;
 
-            if (!map.TryGetValue("String", out serializer))
+            if (!map.TryGetValue("String", out  serializer))
             {
                 throw new ArgumentException(
                     "There is no serializer specified for `String`.",
@@ -58,7 +58,6 @@ namespace StrawberryShake.Client.GraphQL
                 DeserializeNullableString(obj, "name"),
                 ParseRootHeroFriends(obj, "friends")
             );
-
         }
 
         private IFriend? ParseRootHeroFriends(
@@ -74,7 +73,6 @@ namespace StrawberryShake.Client.GraphQL
             (
                 ParseRootHeroFriendsNodes(obj, "nodes")
             );
-
         }
 
         private IReadOnlyList<IHasName>? ParseRootHeroFriendsNodes(
@@ -99,7 +97,6 @@ namespace StrawberryShake.Client.GraphQL
             }
 
             return list;
-
         }
 
         private double? DeserializeNullableFloat(JsonElement obj, string fieldName)

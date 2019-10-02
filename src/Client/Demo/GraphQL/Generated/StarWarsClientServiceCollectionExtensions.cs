@@ -28,6 +28,7 @@ namespace  StrawberryShake.Client.GraphQL
 
             return serviceCollection;
         }
+
         public static IServiceCollection AddStarWarsClient(
             this IServiceCollection serviceCollection)
         {
@@ -51,24 +52,28 @@ namespace  StrawberryShake.Client.GraphQL
 
             return serviceCollection;
         }
+
         private static IServiceCollection AddEnumSerializers(
             this IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<IValueSerializer, EpisodeValueSerializer>();
             return serviceCollection;
         }
+
         private static IServiceCollection AddResultParsers(
             this IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<IResultParser, GetHeroResultParser>();
             return serviceCollection;
         }
+
         private static IServiceCollection TryAddDefaultOperationSerializer(
             this IServiceCollection serviceCollection)
         {
             serviceCollection.TryAddSingleton<IOperationSerializer, JsonOperationSerializer>();
             return serviceCollection;
         }
+
         private static IServiceCollection TryAddDefaultHttpPipeline(
             this IServiceCollection serviceCollection)
         {
@@ -80,11 +85,13 @@ namespace  StrawberryShake.Client.GraphQL
                     .Build(sp));
             return serviceCollection;
         }
+
         private static Func<HttpClient> ClientFactory(IServiceProvider services)
         {
             var clientFactory = services.GetRequiredService<IHttpClientFactory>();
             return () => clientFactory.CreateClient("StarWarsClient");
         }
+
         private static OperationDelegate PipelineFactory(IServiceProvider services)
         {
             return services.GetRequiredService<OperationDelegate>();
