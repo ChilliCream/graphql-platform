@@ -7,11 +7,6 @@ namespace HotChocolate.Types.Filters
 {
     public class QueryableClosure
     {
-        public ParameterExpression Parameter { get; }
-        public Stack<Queue<Expression>> Level { get; }
-
-        public Stack<Expression> Instance { get; }
-
         public QueryableClosure(Type type, string parameterName)
         {
             Parameter = Expression.Parameter(type, parameterName);
@@ -21,6 +16,12 @@ namespace HotChocolate.Types.Filters
             Level.Push(new Queue<Expression>());
             Instance.Push(Parameter);
         }
+
+        public ParameterExpression Parameter { get; }
+        public Stack<Queue<Expression>> Level { get; }
+
+        public Stack<Expression> Instance { get; }
+
 
         public LambdaExpression CreateLambda()
         {
