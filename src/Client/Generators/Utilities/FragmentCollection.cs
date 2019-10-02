@@ -92,7 +92,6 @@ namespace StrawberryShake.Generators.Utilities
             {
                 fragment = CreateFragment(parentType, inlineFragment);
                 _fragments[fragmentName] = fragment;
-
             }
 
             return fragment;

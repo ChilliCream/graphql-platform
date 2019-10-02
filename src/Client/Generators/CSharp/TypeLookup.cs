@@ -224,6 +224,7 @@ namespace StrawberryShake.Generators.CSharp
             if (fieldType is NonNullType nnt)
             {
                 BuildTypeInfo(isValueType, nnt.Type, false, readOnly, typeInfo);
+                return;
             }
 
             if (fieldType is ListType lt)
@@ -231,6 +232,7 @@ namespace StrawberryShake.Generators.CSharp
                 typeInfo.ListLevel++;
                 BuildTypeInfo(isValueType, lt.ElementType, true, readOnly, typeInfo);
                 typeInfo.IsValueType = false;
+                return;
             }
 
             typeInfo.IsNullable = nullable;
