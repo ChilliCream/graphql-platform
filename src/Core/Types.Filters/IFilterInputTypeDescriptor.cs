@@ -87,16 +87,6 @@ namespace HotChocolate.Types.Filters
             where TObject : class;
 
         /// <summary>
-        /// Define a object filter for the selected property.
-        /// </summary>
-        /// <param name="property">
-        /// The property for which a filter shall be applied.
-        /// </param>
-        IObjectFilterFieldDescriptor<TObject> Filter<TObject>(
-            Expression<Func<T, TObject>> property)
-            where TObject : class;
-
-        /// <summary>
         /// Ignore the specified property.
         /// </summary>
         /// <param name="property">The property that hall be ignored.</param>
