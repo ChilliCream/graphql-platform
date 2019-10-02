@@ -404,7 +404,9 @@ namespace StrawberryShake.Generators.CSharp
                         true);
 
                     string deserializeMethod =
-                        ResultParserDeserializeMethodGenerator.CreateDeserializerName(typeInfo);
+                        ResultParserDeserializeMethodGenerator.CreateDeserializerName(
+                            fieldDescriptor.Type,
+                            typeInfo.SchemaTypeName);
 
                     await writer.WriteAsync(deserializeMethod);
                     await writer.WriteAsync('(');

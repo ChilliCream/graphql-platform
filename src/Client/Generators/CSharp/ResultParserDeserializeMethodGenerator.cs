@@ -41,6 +41,13 @@ namespace StrawberryShake.Generators.CSharp
                 { typeof(double?), "GetDouble" }
             };
 
+        private LanguageVersion _languageVersion;
+
+        public ResultParserDeserializeMethodGenerator(LanguageVersion languageVersion)
+        {
+            _languageVersion = languageVersion;
+        }
+
         protected override async Task WriteAsync(
             CodeWriter writer,
             IResultParserDescriptor descriptor,
@@ -72,7 +79,9 @@ namespace StrawberryShake.Generators.CSharp
                         fieldDescriptor.Type,
                         false);
 
-                    string methodName = CreateDeserializerName(typeInfo);
+                    string methodName = CreateDeserializerName(
+                        fieldDescriptor.Type,
+                        typeInfo.SchemaTypeName);
 
                     if (generatedMethods.Add(methodName))
                     {
@@ -361,42 +370,29 @@ namespace StrawberryShake.Generators.CSharp
             string elementName,
             Func<CodeWriter, Task> writeAddValue)
         {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync(
-                $"if ({elementName}.ValueKind == JsonValueKind.Null)");
-            await writer.WriteLineAsync();
+            await writer.WriteIndentedLineAsync(
+                $"if ({elementName}.ValueKind == JsonValueKind.Null)")
+                .ConfigureAwait(false);
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('{');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
-                await writer.WriteIndentAsync();
-                await writer.WriteAsync($"{listName}.Add(null);");
-                await writer.WriteLineAsync();
+                await writer.WriteIndentedLineAsync(
+                    $"{listName}.Add(null);")
+                    .ConfigureAwait(false);
             }
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('}');
-            await writer.WriteLineAsync();
-
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync("else");
-            await writer.WriteLineAsync();
-
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('{');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+            await writer.WriteIndentedLineAsync("else").ConfigureAwait(false);
+            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
                 await writeAddValue(writer);
             }
 
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync('}');
-            await writer.WriteLineAsync();
+            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
         }
 
         private async Task WriteAddElementAsync(
@@ -407,34 +403,35 @@ namespace StrawberryShake.Generators.CSharp
             string schemaTypeName,
             string serializerMethod)
         {
-            await writer.WriteIndentAsync();
-            await writer.WriteAsync(
+            await writer.WriteIndentedLineAsync(
                 $"{listName}.Add((${clrTypeName})_${schemaTypeName}Serializer" +
-                $".Serialize({elementName}.{serializerMethod}());");
-            await writer.WriteLineAsync();
+                $".Serialize({elementName}.{serializerMethod}());")
+                .ConfigureAwait(false);
         }
 
-        internal static string CreateDeserializerName(ITypeInfo typeInfo)
+        internal static string CreateDeserializerName(IType type, string typeName)
         {
+            IType current = type;
+            var types = new Stack<IType>();
+
             var sb = new StringBuilder();
             sb.Append("Deserialize");
 
-            if (typeInfo.ListLevel == 2)
+
+            while (!(current is INamedType))
             {
-                sb.Append("Nested");
+                if (current is ListType)
+                {
+                    if (types.Count == 0 || !(types.Peek() is NonNullType))
+                    {
+                        sb.Append("Nullable");
+                    }
+                    sb.Append("ListOf");
+                }
+                current = current.InnerType();
             }
 
-            if (typeInfo.IsNullable)
-            {
-                sb.Append("Nullable");
-            }
-
-            sb.Append(typeInfo.SchemaTypeName);
-
-            if (typeInfo.ListLevel > 0)
-            {
-                sb.Append("List");
-            }
+            sb.Append(typeName);
 
             return sb.ToString();
         }
