@@ -14,14 +14,7 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property)
             : base(context, property, typeof(TObject))
         {
-
-            AllowedOperations = new HashSet<FilterOperationKind>
-            {
-                FilterOperationKind.Object
-            };
         }
-
-        protected override ISet<FilterOperationKind> AllowedOperations { get; }
 
         /// <inheritdoc/>
         public new IObjectFilterFieldDescriptor<TObject> BindFilters(

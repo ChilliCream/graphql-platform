@@ -19,7 +19,11 @@ namespace HotChocolate.Types.Filters.Expressions
             out VisitorAction action
             )
         {
-            if (field.Operation.Kind == FilterOperationKind.ArraySome)
+            if (
+                field.Operation.Kind == FilterOperationKind.ArraySome ||
+                field.Operation.Kind == FilterOperationKind.ArrayNone ||
+                field.Operation.Kind == FilterOperationKind.ArrayAll
+               )
             {
                 var nestedProperty = Expression.Property(
                     closures.Peek().Instance.Peek(),
@@ -44,25 +48,49 @@ namespace HotChocolate.Types.Filters.Expressions
             IReadOnlyList<ISyntaxNode> ancestors,
             Stack<QueryableClosure> closures)
         {
-            if (field.Operation.Kind == FilterOperationKind.ArraySome)
+
+            if (
+               field.Operation.Kind == FilterOperationKind.ArraySome ||
+               field.Operation.Kind == FilterOperationKind.ArrayNone ||
+               field.Operation.Kind == FilterOperationKind.ArrayAll
+              )
             {
                 var nestedClosure = closures.Pop();
                 var lambda = nestedClosure.CreateLambda();
 
-
-                closures.Peek()
-                    .Level.Peek()
-                        .Enqueue(
+                Expression expression;
+                switch (field.Operation.Kind)
+                {
+                    case FilterOperationKind.ArraySome:
+                        expression = FilterExpressionBuilder.Any(
+                          field.Operation.Type,
+                          closures.Peek().Instance.Peek(),
+                          lambda
+                        );
+                        break;
+                    case FilterOperationKind.ArrayNone:
+                        expression = FilterExpressionBuilder.Not(
                             FilterExpressionBuilder.Any(
                                 field.Operation.Type,
                                 closures.Peek().Instance.Peek(),
                                 lambda
-                         )
-                     );
+                            )
+                        );
+                        break;
+                    case FilterOperationKind.ArrayAll:
+                        expression = FilterExpressionBuilder.All(
+                          field.Operation.Type,
+                          closures.Peek().Instance.Peek(),
+                          lambda
+                        );
+                        break;
+                    default:
+                        throw new NotSupportedException();
+                }
+                closures.Peek().Level.Peek().Enqueue(expression);
 
                 closures.Peek().Instance.Pop();
             }
         }
-
     }
 }

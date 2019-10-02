@@ -5,7 +5,7 @@ using HotChocolate.Types.Descriptors;
 namespace HotChocolate.Types.Filters
 {
     public class BooleanFilterOperationDescriptor
-        : FilterOperationDescriptorBase
+        : BooleanFilterOperationDescriptorBase
         , IBooleanFilterOperationDescriptor
     {
         private readonly BooleanFilterFieldDescriptor _descriptor;
@@ -16,13 +16,8 @@ namespace HotChocolate.Types.Filters
             NameString name,
             ITypeReference type,
             FilterOperation operation)
-            : base(context)
+           : base(context, name, type, operation)
         {
-            Definition.Name = name.EnsureNotEmpty(nameof(name));
-            Definition.Type = type
-                ?? throw new ArgumentNullException(nameof(type));
-            Definition.Operation = operation
-                ?? throw new ArgumentNullException(nameof(operation));
             _descriptor = descriptor
                 ?? throw new ArgumentNullException(nameof(descriptor));
         }
@@ -31,14 +26,14 @@ namespace HotChocolate.Types.Filters
         public IBooleanFilterFieldDescriptor And() => _descriptor;
 
         /// <inheritdoc/>
-        public new IBooleanFilterOperationDescriptor Name(NameString value)
+        IBooleanFilterOperationDescriptor IBooleanFilterOperationDescriptor.Name(NameString value)
         {
             base.Name(value);
             return this;
         }
 
         /// <inheritdoc/>
-        public new IBooleanFilterOperationDescriptor Description(
+        IBooleanFilterOperationDescriptor IBooleanFilterOperationDescriptor.Description(
             string value)
         {
             base.Description(value);
@@ -46,7 +41,7 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <inheritdoc/>
-        public new IBooleanFilterOperationDescriptor Directive<T>(
+        IBooleanFilterOperationDescriptor IBooleanFilterOperationDescriptor.Directive<T>(
             T directiveInstance)
            where T : class
         {
@@ -55,15 +50,14 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <inheritdoc/>
-        public new IBooleanFilterOperationDescriptor Directive<T>()
-            where T : class, new()
+        IBooleanFilterOperationDescriptor IBooleanFilterOperationDescriptor.Directive<T>()
         {
             base.Directive<T>();
             return this;
         }
 
         /// <inheritdoc/>
-        public new IBooleanFilterOperationDescriptor Directive(
+        IBooleanFilterOperationDescriptor IBooleanFilterOperationDescriptor.Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
@@ -98,5 +92,6 @@ namespace HotChocolate.Types.Filters
             FilterOperation operation) =>
             new BooleanFilterOperationDescriptor(
                 context, descriptor, name, type, operation);
+
     }
 }

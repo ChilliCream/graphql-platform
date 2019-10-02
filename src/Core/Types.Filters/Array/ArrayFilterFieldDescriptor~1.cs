@@ -15,13 +15,8 @@ namespace HotChocolate.Types.Filters
             : base(context, property, typeof(TArray))
         {
 
-            AllowedOperations = new HashSet<FilterOperationKind>
-            {
-                FilterOperationKind.ArraySome
-            };
         }
 
-        protected override ISet<FilterOperationKind> AllowedOperations { get; }
 
         /// <inheritdoc/>
         public new IArrayFilterFieldDescriptor<TArray> BindFilters(
@@ -40,23 +35,16 @@ namespace HotChocolate.Types.Filters
             BindFilters(BindingBehavior.Implicit);
 
 
-        protected override FilterOperationDefintion CreateOperationDefinition(
-            FilterOperationKind operationKind) =>
-            CreateOperation(operationKind).CreateDefinition();
-
         private ArrayFilterOperationDescriptor<TArray> CreateOperation(
             FilterOperationKind operationKind)
         {
-            var operation = new FilterOperation(
-                typeof(TArray),
-                operationKind,
-                Definition.Property);
-
+            var operation = GetFilterOperation(operationKind);
+            var typeReference = GetTypeReference();
             return ArrayFilterOperationDescriptor<TArray>.New(
                 Context,
                 this,
                 CreateFieldName(operationKind),
-                RewriteType(operationKind),
+                typeReference,
                 operation);
         }
 
@@ -86,6 +74,62 @@ namespace HotChocolate.Types.Filters
         public new IArrayFilterOperationDescriptor<TArray> AllowSome()
         {
             return AllowSome<FilterInputType<TArray>>();
+        }
+
+        public IArrayFilterOperationDescriptor<TArray> AllowNone(
+            Action<IFilterInputTypeDescriptor<TArray>> descriptor)
+        {
+            var type = new FilterInputType<TArray>(descriptor);
+            var typeReference = new SchemaTypeReference(type);
+            ArrayFilterOperationDescriptor<TArray> field =
+                CreateOperation(FilterOperationKind.ArrayNone);
+            field.Type(typeReference);
+            Filters.Add(field);
+            return field;
+        }
+
+        public IArrayFilterOperationDescriptor<TArray> AllowNone<TFilter>()
+            where TFilter : FilterInputType<TArray>
+        {
+            ArrayFilterOperationDescriptor<TArray> field =
+                CreateOperation(FilterOperationKind.ArrayNone);
+            field.Type<TFilter>();
+            Filters.Add(field);
+
+            return field;
+        }
+
+        public new IArrayFilterOperationDescriptor<TArray> AllowNone()
+        {
+            return AllowNone<FilterInputType<TArray>>();
+        }
+
+        public IArrayFilterOperationDescriptor<TArray> AllowAll(
+            Action<IFilterInputTypeDescriptor<TArray>> descriptor)
+        {
+            var type = new FilterInputType<TArray>(descriptor);
+            var typeReference = new SchemaTypeReference(type);
+            ArrayFilterOperationDescriptor<TArray> field =
+                CreateOperation(FilterOperationKind.ArrayAll);
+            field.Type(typeReference);
+            Filters.Add(field);
+            return field;
+        }
+
+        public IArrayFilterOperationDescriptor<TArray> AllowAll<TFilter>()
+            where TFilter : FilterInputType<TArray>
+        {
+            ArrayFilterOperationDescriptor<TArray> field =
+                CreateOperation(FilterOperationKind.ArrayAll);
+            field.Type<TFilter>();
+            Filters.Add(field);
+
+            return field;
+        }
+
+        public new IArrayFilterOperationDescriptor<TArray> AllowAll()
+        {
+            return AllowAll<FilterInputType<TArray>>();
         }
     }
 }

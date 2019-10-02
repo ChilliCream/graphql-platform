@@ -25,6 +25,7 @@ input FooFilter {
   AND: [FooFilter!]
   bar: String @Bar
   barNested: BarFilter
+  barNestedSecond: BarFilter
   OR: [FooFilter!]
 }
 

@@ -144,6 +144,11 @@ namespace HotChocolate.Types.Filters
         protected ITypeReference RewriteTypeToNullableType()
         {
             ITypeReference reference = Definition.Type;
+            return RewriteTypeToNullableType(reference);
+        }
+
+        protected ITypeReference RewriteTypeToNullableType(ITypeReference reference)
+        {
 
             if (reference is IClrTypeReference clrRef
                 && TypeInspector.Default.TryCreate(
@@ -248,6 +253,12 @@ namespace HotChocolate.Types.Filters
 
                 case FilterOperationKind.ArraySome:
                     return Definition.Name + "_some";
+                case FilterOperationKind.ArrayNone:
+                    return Definition.Name + "_none";
+                case FilterOperationKind.ArrayAll:
+                    return Definition.Name + "_all";
+                case FilterOperationKind.ArrayAny:
+                    return Definition.Name + "_any";
 
                 default:
                     throw new NotSupportedException();

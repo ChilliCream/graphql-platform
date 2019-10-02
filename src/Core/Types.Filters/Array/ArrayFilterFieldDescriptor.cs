@@ -20,7 +20,10 @@ namespace HotChocolate.Types.Filters
             _type = type;
             AllowedOperations = new HashSet<FilterOperationKind>
             {
-                FilterOperationKind.ArraySome
+                FilterOperationKind.ArraySome,
+                FilterOperationKind.ArrayNone,
+                FilterOperationKind.ArrayAll,
+                FilterOperationKind.ArrayAny
             };
         }
 
@@ -44,28 +47,73 @@ namespace HotChocolate.Types.Filters
 
 
         protected override FilterOperationDefintion CreateOperationDefinition(
-            FilterOperationKind operationKind) =>
-            CreateOperation(operationKind).CreateDefinition();
+            FilterOperationKind operationKind)
+        {
+            if (FilterOperationKind.ArrayAny == operationKind)
+            {
+                return CreateBooleanOperation(operationKind).CreateDefinition();
+            }
+            else
+            {
+                return CreateOperation(operationKind).CreateDefinition();
+            }
+
+        }
+
+
+        protected FilterOperation GetFilterOperation(
+            FilterOperationKind operationKind)
+        {
+            return new FilterOperation(
+                _type,
+                operationKind,
+                Definition.Property);
+        }
+
+        protected ClrTypeReference GetTypeReference()
+        {
+            return new ClrTypeReference(
+                    typeof(FilterInputType<>).MakeGenericType(_type),
+                        Definition.Type.Context,
+                        true,
+                        true
+           );
+        }
+
+
 
         private ArrayFilterOperationDescriptor CreateOperation(
             FilterOperationKind operationKind)
         {
-            var operation = new FilterOperation(
-                _type,
-                operationKind,
-                Definition.Property);
-
+            var operation = GetFilterOperation(operationKind);
+            var typeReference = GetTypeReference();
             return ArrayFilterOperationDescriptor.New(
                 Context,
                 this,
                 CreateFieldName(operationKind),
-                new ClrTypeReference(
-                    typeof(FilterInputType<>).MakeGenericType(_type),
-                    Definition.Type.Context,
-                    true,
-                    true),
+                typeReference,
                 operation);
             ;
+        }
+
+        private ArrayBooleanFilterOperationDescriptor CreateBooleanOperation(
+          FilterOperationKind operationKind)
+        {
+            var operation = GetFilterOperation(operationKind);
+
+            var typeReference = RewriteTypeToNullableType(
+                new ClrTypeReference(typeof(bool),
+                    Definition.Type.Context,
+                    true,
+                    true)
+                );
+
+            return ArrayBooleanFilterOperationDescriptor.New(
+                Context,
+                this,
+                CreateFieldName(operationKind),
+                typeReference,
+                operation);
         }
 
 
@@ -77,5 +125,28 @@ namespace HotChocolate.Types.Filters
             return field;
         }
 
+        public IArrayFilterOperationDescriptor AllowNone()
+        {
+            ArrayFilterOperationDescriptor field =
+                CreateOperation(FilterOperationKind.ArrayNone);
+            Filters.Add(field);
+            return field;
+        }
+
+        public IArrayFilterOperationDescriptor AllowAll()
+        {
+            ArrayFilterOperationDescriptor field =
+                CreateOperation(FilterOperationKind.ArrayAll);
+            Filters.Add(field);
+            return field;
+        }
+
+        public IArrayBooleanFilterOperationDescriptor AllowAny()
+        {
+            ArrayBooleanFilterOperationDescriptor field =
+                CreateBooleanOperation(FilterOperationKind.ArrayAny);
+            Filters.Add(field);
+            return field;
+        }
     }
 }

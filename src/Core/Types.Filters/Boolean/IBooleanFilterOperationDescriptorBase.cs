@@ -1,22 +1,21 @@
+using System;
+using System.Collections.Generic;
+using System.Text;
 using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters
 {
-    public interface IBooleanFilterOperationDescriptor
-        : IBooleanFilterOperationDescriptorBase
+    public interface IBooleanFilterOperationDescriptorBase
+        : IDescriptor<FilterOperationDefintion>
+        , IFluent
     {
-        /// <summary>
-        /// Define filter operations for another field.
-        /// </summary>
-        IBooleanFilterFieldDescriptor And();
-
         /// <summary>
         /// Specify the name of the filter operation.
         /// </summary>
         /// <param name="value">
         ///  The operation name.
         /// </param>
-        new IBooleanFilterOperationDescriptor Name(NameString value);
+        IBooleanFilterOperationDescriptorBase Name(NameString value);
 
         /// <summary>
         /// Specify the description of the filter operation.
@@ -24,7 +23,7 @@ namespace HotChocolate.Types.Filters
         /// <param name="value">
         ///  The operation description.
         /// </param>
-        new IBooleanFilterOperationDescriptor Description(string value);
+        IBooleanFilterOperationDescriptorBase Description(string value);
 
         /// <summary>
         /// Annotate the operation filter field with a directive.
@@ -35,7 +34,7 @@ namespace HotChocolate.Types.Filters
         /// <typeparam name="T">
         /// The directive type.
         /// </typeparam>
-        new IBooleanFilterOperationDescriptor Directive<T>(T directiveInstance)
+        IBooleanFilterOperationDescriptorBase Directive<T>(T directiveInstance)
             where T : class;
 
         /// <summary>
@@ -44,7 +43,7 @@ namespace HotChocolate.Types.Filters
         /// <typeparam name="T">
         /// The directive type.
         /// </typeparam>
-        new IBooleanFilterOperationDescriptor Directive<T>()
+        IBooleanFilterOperationDescriptorBase Directive<T>()
             where T : class, new();
 
         /// <summary>
@@ -56,8 +55,9 @@ namespace HotChocolate.Types.Filters
         /// <param name="arguments">
         /// The argument values of the directive.
         /// </param>
-        new IBooleanFilterOperationDescriptor Directive(
+        IBooleanFilterOperationDescriptorBase Directive(
             NameString name,
             params ArgumentNode[] arguments);
     }
 }
+

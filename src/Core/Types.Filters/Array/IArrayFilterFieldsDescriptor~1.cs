@@ -31,8 +31,8 @@ namespace HotChocolate.Types.Filters
         IArrayFilterFieldDescriptor<TArray> BindExplicitly();
 
         /// <summary>
-        /// The string filter field descriptor will add
-        /// all available string filter operations.
+        /// The array filter field descriptor will add
+        /// all available array filter operations.
         /// </summary>
         IArrayFilterFieldDescriptor<TArray> BindImplicitly();
 
@@ -51,6 +51,41 @@ namespace HotChocolate.Types.Filters
         /// Allow object filter operations.
         /// </summary>
         IArrayFilterOperationDescriptor<TArray> AllowSome();
+        /// <summary>
+        /// Allow object filter operations.
+        /// </summary>
+        IArrayFilterOperationDescriptor<TArray> AllowNone(Action<IFilterInputTypeDescriptor<TArray>> descriptor);
+
+
+        /// <summary>
+        /// Allow object filter operations.
+        /// </summary>
+        IArrayFilterOperationDescriptor<TArray> AllowNone<TFilter>() where TFilter : FilterInputType<TArray>;
+
+        /// <summary>
+        /// Allow object filter operations.
+        /// </summary>
+        IArrayFilterOperationDescriptor<TArray> AllowNone();
+        /// <summary>
+        /// Allow object filter operations.
+        /// </summary>
+        IArrayFilterOperationDescriptor<TArray> AllowAll(Action<IFilterInputTypeDescriptor<TArray>> descriptor);
+
+
+        /// <summary>
+        /// Allow object filter operations.
+        /// </summary>
+        IArrayFilterOperationDescriptor<TArray> AllowAll<TFilter>() where TFilter : FilterInputType<TArray>;
+
+        /// <summary>
+        /// Allow object filter operations.
+        /// </summary>
+        IArrayFilterOperationDescriptor<TArray> AllowAll();
+
+        /// <summary>
+        /// Allow object filter operations.
+        /// </summary>
+        IArrayBooleanFilterOperationDescriptor AllowAny();
 
     }
 }

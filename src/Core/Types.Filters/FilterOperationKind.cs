@@ -34,5 +34,11 @@ namespace HotChocolate.Types.Filters
 
         ArraySome = 0x0026,
 
+        ArrayNone = 0x0028,
+
+        ArrayAll = 0x0030,
+
+        ArrayAny = 0x0032,
+
     }
 }

@@ -40,6 +40,18 @@ namespace HotChocolate.Types.Filters
         /// Allow object filter operations.
         /// </summary>
         IArrayFilterOperationDescriptor AllowSome();
+        /// <summary>
+        /// Allow object filter operations.
+        /// </summary>
+        IArrayFilterOperationDescriptor AllowNone();
+        /// <summary>
+        /// Allow object filter operations.
+        /// </summary>
+        IArrayFilterOperationDescriptor AllowAll();
+        /// <summary>
+        /// Allow object filter operations.
+        /// </summary>
+        IArrayBooleanFilterOperationDescriptor AllowAny();
 
     }
 }

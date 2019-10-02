@@ -43,6 +43,35 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void Create_ObjectFilter_FooImplicitMultipleBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<Foo>(
+                    x =>
+                    {
+                        x.Filter(y => y.BarNested)
+                            .AllowObject(
+                                y => y.BindFieldsExplicitly()
+                                .Filter(z => z.Baz)
+                                .BindFiltersExplicitly()
+                                .AllowContains());
+                        x.Filter(y => y.BarNestedSecond)
+                            .AllowObject(
+                                y => y.BindFieldsExplicitly()
+                                .Filter(z => z.Baz)
+                                .BindFiltersExplicitly()
+                                .AllowEquals());
+                    }
+                    )
+           );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
         public void Create_ObjectFilter_FooExplicitBarExplicit()
         {
             // arrange
@@ -279,6 +308,7 @@ namespace HotChocolate.Types.Filters
         {
             public string Bar { get; set; }
             public Bar BarNested { get; set; }
+            public Bar BarNestedSecond { get; set; }
         }
 
         public class Bar

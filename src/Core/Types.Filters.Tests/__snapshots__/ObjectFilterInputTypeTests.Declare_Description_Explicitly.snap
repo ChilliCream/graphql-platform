@@ -35,6 +35,7 @@ input FooFilter {
   bar_starts_with: String
   "custom_object_description"
   barNested: BarFilter
+  barNestedSecond: BarFilter
   OR: [FooFilter!]
 }
 

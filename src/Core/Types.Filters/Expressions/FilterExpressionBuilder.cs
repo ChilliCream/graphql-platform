@@ -29,7 +29,15 @@ namespace HotChocolate.Types.Filters.Expressions
 
         private static readonly MethodInfo _anyMethod = typeof(Enumerable)
                     .GetMethods()
-                    .Single(x => x.Name == "Any" && x.GetParameters().Length == 2);
+                    .Single(x => x.Name == "Any" && x.GetParameters().Length == 1);
+
+        private static readonly MethodInfo _anyWithParameter = typeof(Enumerable)
+                        .GetMethods()
+                        .Single(x => x.Name == "Any" && x.GetParameters().Length == 2);
+
+        private static readonly MethodInfo _allMethod = typeof(Enumerable)
+                        .GetMethods()
+                        .Single(x => x.Name == "All" && x.GetParameters().Length == 2);
 
         public static Expression Not(Expression expression)
         {
@@ -139,13 +147,29 @@ namespace HotChocolate.Types.Filters.Expressions
             return Any(type, property, lambda);
         }
 
-
         public static Expression Any(
             Type type,
             Expression property,
             LambdaExpression lambda)
         {
-            return Expression.Call(_anyMethod.MakeGenericMethod(type), new Expression[] { property, lambda });
+            return Expression.Call(_anyWithParameter.MakeGenericMethod(type), new Expression[] { property, lambda });
         }
+
+        public static Expression Any(
+            Type type,
+            Expression property)
+        {
+            return Expression.Call(_anyMethod.MakeGenericMethod(type), new Expression[] { property });
+        }
+
+        public static Expression All(
+            Type type,
+            Expression property,
+            LambdaExpression lambda)
+        {
+            return Expression.Call(_allMethod.MakeGenericMethod(type), new Expression[] { property, lambda });
+        }
+
+
     }
 }

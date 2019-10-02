@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Filters
             // act
             var schema = CreateSchema(
                 new FilterInputType<Foo>(
-                    x => x.Filter(y => y.BarNested)
+                    x => x.Filter(y => y.BarNested).BindImplicitly()
                     .AllowSome(
                         y => y.BindFieldsExplicitly()
                         .Filter(z => z.Baz)
@@ -42,6 +42,33 @@ namespace HotChocolate.Types.Filters
             // assert
             schema.ToString().MatchSnapshot();
         }
+
+        [Fact]
+        public void Create_ArrayObjectFilter_FooImplicitMultipleBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<Foo>(
+                    x => x.Filter(y => y.BarNested).BindImplicitly()
+                        .AllowSome(
+                            y => y.BindFieldsExplicitly()
+                                .Filter(z => z.Baz)
+                                .BindFiltersExplicitly()
+                                .AllowContains())
+                        .And()
+                        .AllowNone(
+                            y => y.BindFieldsExplicitly()
+                            .Filter(z => z.Baz)
+                            .BindFiltersExplicitly()
+                            .AllowEquals()))
+           );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
         [Fact]
         public void Create_ArrayObjectFilter_FooExplicitBarExplicit()
         {
@@ -236,7 +263,7 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-         
+
 
         public class Foo
         {
