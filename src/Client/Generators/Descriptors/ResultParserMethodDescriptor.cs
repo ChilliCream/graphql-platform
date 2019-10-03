@@ -4,6 +4,7 @@ using System.Linq;
 using HotChocolate;
 using HotChocolate.Language;
 using HotChocolate.Types;
+using static StrawberryShake.Generators.Utilities.NameUtils;
 
 namespace StrawberryShake.Generators.Descriptors
 {
@@ -47,6 +48,8 @@ namespace StrawberryShake.Generators.Descriptors
             PossibleTypes = possibleTypes
                 ?? throw new ArgumentNullException(nameof(possibleTypes));
             UnknownType = unknownType;
+
+            Name = "Parse" + name;
         }
 
         public string Name { get; }

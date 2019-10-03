@@ -34,7 +34,16 @@ namespace  StrawberryShake.Client.GraphQL
             _floatSerializer = serializer;
         }
 
-        private IHero? ParseRootHuman(
+        protected override IGetHuman ParserData(JsonElement data)
+        {
+            return new GetHuman
+            (
+                ParseGetHumanHuman(data, "human")
+            );
+
+        }
+
+        private IHero? ParseGetHumanHuman(
             JsonElement parent,
             string field)
         {
@@ -47,11 +56,11 @@ namespace  StrawberryShake.Client.GraphQL
             (
                 DeserializeNullableString(obj, "name"),
                 DeserializeNullableFloat(obj, "height"),
-                ParseRootHumanFriends(obj, "friends")
+                ParseGetHumanHumanFriends(obj, "friends")
             );
         }
 
-        private IFriend? ParseRootHumanFriends(
+        private IFriend? ParseGetHumanHumanFriends(
             JsonElement parent,
             string field)
         {
@@ -62,8 +71,32 @@ namespace  StrawberryShake.Client.GraphQL
 
             return new Friend
             (
-                ParseRootHumanFriendsNodes(obj, "nodes")
+                ParseGetHumanHumanFriendsNodes(obj, "nodes")
             );
+        }
+
+        private IReadOnlyList<IHasName>? ParseGetHumanHumanFriendsNodes(
+            JsonElement parent,
+            string field)
+        {
+            if (!parent.TryGetProperty(field, out JsonElement obj))
+            {
+                return null;
+            }
+
+            int objLength = obj.GetArrayLength();
+            var list = new IHasName[objLength];
+            for (int objIndex = 0; objIndex < objLength; objIndex++)
+            {
+                JsonElement element = obj[objIndex];
+                list[objIndex] = new HasName
+                (
+                    DeserializeNullableString(element, "name")
+                );
+
+            }
+
+            return list;
         }
 
         private string? DeserializeNullableString(JsonElement obj, string fieldName)

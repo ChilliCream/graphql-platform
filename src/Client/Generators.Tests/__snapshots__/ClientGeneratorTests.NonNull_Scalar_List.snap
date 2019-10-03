@@ -90,12 +90,12 @@ namespace StrawberryShake.Client
         {
             return new GetBars
             (
-                ParseRootFoo(data, "foo")
+                ParseGetBarsFoo(data, "foo")
             );
 
         }
 
-        private IFoo ParseRootFoo(
+        private IFoo ParseGetBarsFoo(
             JsonElement parent,
             string field)
         {

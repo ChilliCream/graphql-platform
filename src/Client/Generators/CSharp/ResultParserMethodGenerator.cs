@@ -78,7 +78,6 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteAsync("private ");
             await writer.WriteAsync(resultTypeName);
             await writer.WriteSpaceAsync();
-            await writer.WriteAsync("Parse");
             await writer.WriteAsync(descriptor.Name);
 
             await writer.WriteAsync('(');

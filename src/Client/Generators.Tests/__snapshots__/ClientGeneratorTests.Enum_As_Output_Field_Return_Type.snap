@@ -129,12 +129,12 @@ namespace StrawberryShake.Client
         {
             return new GetFoo
             (
-                ParseRootFoo(data, "foo")
+                ParseGetFooFoo(data, "foo")
             );
 
         }
 
-        private IFoo? ParseRootFoo(
+        private IFoo? ParseGetFooFoo(
             JsonElement parent,
             string field)
         {

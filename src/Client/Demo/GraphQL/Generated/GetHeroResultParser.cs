@@ -38,12 +38,12 @@ namespace  StrawberryShake.Client.GraphQL
         {
             return new GetHero
             (
-                ParseRootHero(data, "hero")
+                ParseGetHeroHero(data, "hero")
             );
 
         }
 
-        private IHasName? ParseRootHero(
+        private IHasName? ParseGetHeroHero(
             JsonElement parent,
             string field)
         {
@@ -61,7 +61,7 @@ namespace  StrawberryShake.Client.GraphQL
                     (
                         DeserializeNullableString(obj, "name"),
                         DeserializeNullableFloat(obj, "height"),
-                        ParseRootHeroFriends(obj, "friends")
+                        ParseGetHeroHeroFriends(obj, "friends")
                     );
 
                 case "Human":
@@ -69,7 +69,7 @@ namespace  StrawberryShake.Client.GraphQL
                     (
                         DeserializeNullableString(obj, "name"),
                         DeserializeNullableFloat(obj, "height"),
-                        ParseRootHeroFriends(obj, "friends")
+                        ParseGetHeroHeroFriends(obj, "friends")
                     );
 
                 default:
@@ -77,7 +77,7 @@ namespace  StrawberryShake.Client.GraphQL
             }
         }
 
-        private IFriend? ParseRootHeroFriends(
+        private IFriend? ParseGetHeroHeroFriends(
             JsonElement parent,
             string field)
         {
@@ -88,11 +88,11 @@ namespace  StrawberryShake.Client.GraphQL
 
             return new Friend
             (
-                ParseRootHeroFriendsNodes(obj, "nodes")
+                ParseGetHeroHeroFriendsNodes(obj, "nodes")
             );
         }
 
-        private IReadOnlyList<IHasName>? ParseRootHeroFriendsNodes(
+        private IReadOnlyList<IHasName>? ParseGetHeroHeroFriendsNodes(
             JsonElement parent,
             string field)
         {

@@ -34,7 +34,16 @@ namespace  StrawberryShake.Client.GraphQL
             _floatSerializer = serializer;
         }
 
-        private IReadOnlyList<ISearchResult>? ParseRootSearch(
+        protected override ISearch ParserData(JsonElement data)
+        {
+            return new Search1
+            (
+                ParseSearchSearch(data, "search")
+            );
+
+        }
+
+        private IReadOnlyList<ISearchResult>? ParseSearchSearch(
             JsonElement parent,
             string field)
         {
@@ -64,7 +73,7 @@ namespace  StrawberryShake.Client.GraphQL
                         (
                             DeserializeNullableString(element, "name"),
                             DeserializeNullableFloat(element, "height"),
-                            ParseRootSearchFriends(element, "friends")
+                            ParseSearchSearchFriends(element, "friends")
                         );
                         break;
 
@@ -73,7 +82,7 @@ namespace  StrawberryShake.Client.GraphQL
                         (
                             DeserializeNullableString(element, "name"),
                             DeserializeNullableFloat(element, "height"),
-                            ParseRootSearchFriends(element, "friends")
+                            ParseSearchSearchFriends(element, "friends")
                         );
                         break;
 
@@ -86,7 +95,7 @@ namespace  StrawberryShake.Client.GraphQL
             return list;
         }
 
-        private IFriend? ParseRootSearchFriends(
+        private IFriend? ParseSearchSearchFriends(
             JsonElement parent,
             string field)
         {
@@ -97,8 +106,32 @@ namespace  StrawberryShake.Client.GraphQL
 
             return new Friend
             (
-                ParseRootSearchFriendsNodes(obj, "nodes")
+                ParseSearchSearchFriendsNodes(obj, "nodes")
             );
+        }
+
+        private IReadOnlyList<IHasName>? ParseSearchSearchFriendsNodes(
+            JsonElement parent,
+            string field)
+        {
+            if (!parent.TryGetProperty(field, out JsonElement obj))
+            {
+                return null;
+            }
+
+            int objLength = obj.GetArrayLength();
+            var list = new IHasName[objLength];
+            for (int objIndex = 0; objIndex < objLength; objIndex++)
+            {
+                JsonElement element = obj[objIndex];
+                list[objIndex] = new HasName
+                (
+                    DeserializeNullableString(element, "name")
+                );
+
+            }
+
+            return list;
         }
 
         private string? DeserializeNullableString(JsonElement obj, string fieldName)
