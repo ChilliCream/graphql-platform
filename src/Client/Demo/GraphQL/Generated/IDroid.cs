@@ -5,8 +5,10 @@ using StrawberryShake;
 
 namespace  StrawberryShake.Client.GraphQL
 {
-    public interface IGetHero
+    public interface IDroid
+        : IHasName
+        , IHasFriends
     {
-        IHasName? Hero { get; }
+        double? Height { get; }
     }
 }

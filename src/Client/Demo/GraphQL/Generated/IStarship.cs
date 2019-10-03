@@ -5,8 +5,8 @@ using StrawberryShake;
 
 namespace  StrawberryShake.Client.GraphQL
 {
-    public interface IGetHero
+    public interface IStarship
     {
-        IHasName? Hero { get; }
+        string? Name { get; }
     }
 }

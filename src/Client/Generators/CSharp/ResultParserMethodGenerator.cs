@@ -304,14 +304,18 @@ namespace StrawberryShake.Generators.CSharp
                             methodDescriptor,
                             typeLookup,
                             elementField,
-                            m => WriteCreateListElementAsync(
-                                writer,
-                                methodDescriptor,
-                                m,
-                                elementField,
-                                listField,
-                                indexField,
-                                typeLookup));
+                            async m =>
+                            {
+                                await WriteCreateListElementAsync(
+                                    writer,
+                                    methodDescriptor,
+                                    m,
+                                    elementField,
+                                    listField,
+                                    indexField,
+                                    typeLookup);
+                                await writer.WriteIndentedLineAsync("break;");
+                            });
                     }
                     else
                     {

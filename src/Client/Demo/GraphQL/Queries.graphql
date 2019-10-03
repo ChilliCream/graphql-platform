@@ -4,10 +4,39 @@ query getHero($episode: Episode) {
   }
 }
 
+query getHuman($id: String!) {
+  human(id: $id) {
+    ...Hero
+  }
+}
+
+query search($text: String!) {
+  search(text: $text) {
+    ...Hero
+    ...Starship
+  }
+}
+
 fragment Hero on Character {
+  ...HasName
+  ...Human
+  ...Droid
+}
+
+fragment Human on Human {
   ...HasName
   ...HasFriends
   height
+}
+
+fragment Droid on Droid {
+  ...HasName
+  ...HasFriends
+  height
+}
+
+fragment Starship on Starship {
+  name
 }
 
 fragment Friend on CharacterConnection {
