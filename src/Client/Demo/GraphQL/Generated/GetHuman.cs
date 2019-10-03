@@ -5,15 +5,15 @@ using StrawberryShake;
 
 namespace  StrawberryShake.Client.GraphQL
 {
-    public class GetHero
-        : IGetHero
+    public class GetHuman
+        : IGetHuman
     {
-        public GetHero(
-            IHasName? hero)
+        public GetHuman(
+            IHero? human)
         {
-            Hero = hero;
+            Human = human;
         }
 
-        public IHasName? Hero { get; }
+        public IHero? Human { get; }
     }
 }

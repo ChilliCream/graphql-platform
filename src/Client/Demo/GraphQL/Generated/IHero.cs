@@ -7,8 +7,7 @@ namespace  StrawberryShake.Client.GraphQL
 {
     public interface IHero
         : IHasName
-        , IHasFriends
+        , IHuman
     {
-        double? Height { get; }
     }
 }

@@ -134,12 +134,12 @@ namespace StrawberryShake.Client
         {
             return new GetBars
             (
-                ParseRootFoo(data, "foo")
+                ParseGetBarsFoo(data, "foo")
             );
 
         }
 
-        private IFooNew ParseRootFoo(
+        private IFooNew ParseGetBarsFoo(
             JsonElement parent,
             string field)
         {
@@ -147,11 +147,11 @@ namespace StrawberryShake.Client
 
             return new FooNew
             (
-                ParseRootFooBars(obj, "bars")
+                ParseGetBarsFooBars(obj, "bars")
             );
         }
 
-        private IReadOnlyList<IBar> ParseRootFooBars(
+        private IReadOnlyList<IBar> ParseGetBarsFooBars(
             JsonElement parent,
             string field)
         {
@@ -164,7 +164,7 @@ namespace StrawberryShake.Client
                 JsonElement element = obj[objIndex];
                 list[objIndex] = new Bar
                 (
-                    DeserializeNullableString(element, "baz")
+                    DeserializeString(element, "baz")
                 );
 
             }
@@ -172,20 +172,10 @@ namespace StrawberryShake.Client
             return list;
         }
 
-        private string DeserializeNullableString(JsonElement obj, string fieldName)
+        private string DeserializeString(JsonElement obj, string fieldName)
         {
-            if (!obj.TryGetProperty(fieldName, out JsonElement value))
-            {
-                return null;
-            }
-
-            if (value.ValueKind == JsonValueKind.Null)
-            {
-                return null;
-            }
-
-
-            return (string)_stringSerializer.Serialize(value.GetString());
+            JsonElement value = obj.GetProperty(fieldName);
+            return (string)_stringSerializer.Serialize(value.GetString())!;
         }
     }
 }

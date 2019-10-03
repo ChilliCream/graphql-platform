@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 using StrawberryShake.Generators.Descriptors;
@@ -13,16 +12,17 @@ namespace StrawberryShake.Generators.CSharp
         : CodeGenerator<IResultParserDescriptor>
         , IUsesComponents
     {
-        private static readonly ResultParserDeserializeMethodGenerator _desMethodGenerator =
-            new ResultParserDeserializeMethodGenerator();
         private static readonly ResultParserMethodGenerator _methodGenerator =
             new ResultParserMethodGenerator();
+        private readonly ResultParserDeserializeMethodGenerator _desMethodGenerator;
         private readonly ClientGeneratorOptions _options;
 
         public ResultParserGenerator(ClientGeneratorOptions options)
         {
             _options = options
                 ?? throw new ArgumentNullException(nameof(options));
+            _desMethodGenerator = new ResultParserDeserializeMethodGenerator(
+                options.LanguageVersion);
         }
 
         public IReadOnlyList<string> Components { get; } = new[]

@@ -5,16 +5,16 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    public class GetEpisode
-        : IGetEpisode
+    public class GetFoo
+        : IGetFoo
     {
-        public GetEpisode(
-            IReadOnlyList<Episode?>? appearsIn)
+        public GetFoo(
+            IFoo? foo)
         {
-            AppearsIn = appearsIn;
+            Foo = foo;
         }
 
-        public IReadOnlyList<Episode?>? AppearsIn { get; }
+        public IFoo? Foo { get; }
     }
 }
 
@@ -26,9 +26,74 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    public interface IGetEpisode
+    public class Foo
+        : IFoo
     {
-        IReadOnlyList<Episode?>? AppearsIn { get; }
+        public Foo(
+            Bar bar1, 
+            Bar? bar2, 
+            IReadOnlyList<Bar?>? bar3, 
+            IReadOnlyList<Bar?> bar4, 
+            IReadOnlyList<Bar>? bar5, 
+            IReadOnlyList<Bar> bar6)
+        {
+            Bar1 = bar1;
+            Bar2 = bar2;
+            Bar3 = bar3;
+            Bar4 = bar4;
+            Bar5 = bar5;
+            Bar6 = bar6;
+        }
+
+        public Bar Bar1 { get; }
+
+        public Bar? Bar2 { get; }
+
+        public IReadOnlyList<Bar?>? Bar3 { get; }
+
+        public IReadOnlyList<Bar?> Bar4 { get; }
+
+        public IReadOnlyList<Bar>? Bar5 { get; }
+
+        public IReadOnlyList<Bar> Bar6 { get; }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public interface IGetFoo
+    {
+        IFoo? Foo { get; }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public interface IFoo
+    {
+        Bar Bar1 { get; }
+
+        Bar? Bar2 { get; }
+
+        IReadOnlyList<Bar?>? Bar3 { get; }
+
+        IReadOnlyList<Bar?> Bar4 { get; }
+
+        IReadOnlyList<Bar>? Bar5 { get; }
+
+        IReadOnlyList<Bar> Bar6 { get; }
     }
 }
 
@@ -42,25 +107,75 @@ using StrawberryShake.Http;
 
 namespace StrawberryShake.Client
 {
-    public class GetEpisodeResultParser
-        : JsonResultParserBase<IGetEpisode>
+    public class GetFooResultParser
+        : JsonResultParserBase<IGetFoo>
     {
+        private readonly IValueSerializer _barSerializer;
 
-        public GetEpisodeResultParser(IEnumerable<IValueSerializer> serializers)
+        public GetFooResultParser(IEnumerable<IValueSerializer> serializers)
         {
             IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
+
+            if (!map.TryGetValue("Bar", out IValueSerializer? serializer))
+            {
+                throw new ArgumentException(
+                    "There is no serializer specified for `Bar`.",
+                    nameof(serializers));
+            }
+            _barSerializer = serializer;
         }
 
-        protected override IGetEpisode ParserData(JsonElement data)
+        protected override IGetFoo ParserData(JsonElement data)
         {
-            return new GetEpisode
+            return new GetFoo
             (
-                DeserializeNullableListOfNullableEpisode(data, "appearsIn")
+                ParseGetFooFoo(data, "foo")
             );
 
         }
 
-        private IReadOnlyList<Episode?>? DeserializeNullableListOfNullableEpisode(JsonElement obj, string fieldName)
+        private IFoo? ParseGetFooFoo(
+            JsonElement parent,
+            string field)
+        {
+            if (!parent.TryGetProperty(field, out JsonElement obj))
+            {
+                return null;
+            }
+
+            return new Foo
+            (
+                DeserializeBar(obj, "bar1"),
+                DeserializeNullableBar(obj, "bar2"),
+                DeserializeNullableListOfNullableBar(obj, "bar3"),
+                DeserializeListOfNullableBar(obj, "bar4"),
+                DeserializeNullableListOfBar(obj, "bar5"),
+                DeserializeListOfBar(obj, "bar6")
+            );
+        }
+
+        private Bar DeserializeBar(JsonElement obj, string fieldName)
+        {
+            JsonElement value = obj.GetProperty(fieldName);
+            return (Bar)_barSerializer.Serialize(value.GetString())!;
+        }
+
+        private Bar? DeserializeNullableBar(JsonElement obj, string fieldName)
+        {
+            if (!obj.TryGetProperty(fieldName, out JsonElement value))
+            {
+                return null;
+            }
+
+            if (value.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            return (Bar?)_barSerializer.Serialize(value.GetString())!;
+        }
+
+        private IReadOnlyList<Bar?>? DeserializeNullableListOfNullableBar(JsonElement obj, string fieldName)
         {
             if (!obj.TryGetProperty(fieldName, out JsonElement list))
             {
@@ -73,7 +188,7 @@ namespace StrawberryShake.Client
             }
 
             int listLength = list.GetArrayLength();
-            var listList = new Episode?[listLength];
+            var listList = new Bar?[listLength];
 
             for (int i = 0; i < listLength; i++)
             {
@@ -84,8 +199,63 @@ namespace StrawberryShake.Client
                 }
                 else
                 {
-                    list[i] = (Episode?)_episodeSerializer.Serialize(element.GetString())!;
+                    list[i] = (Bar?)_barSerializer.Serialize(element.GetString())!;
                 }
+            }
+        }
+
+        private IReadOnlyList<Bar?> DeserializeListOfNullableBar(JsonElement obj, string fieldName)
+        {
+            JsonElement list = obj.GetProperty(fieldName);
+            int listLength = list.GetArrayLength();
+            var listList = new Bar?[listLength];
+
+            for (int i = 0; i < listLength; i++)
+            {
+                JsonElement element = list[i];
+                if (element.ValueKind == JsonValueKind.Null)
+                {
+                    listList[i] = null;
+                }
+                else
+                {
+                    list[i] = (Bar?)_barSerializer.Serialize(element.GetString())!;
+                }
+            }
+        }
+
+        private IReadOnlyList<Bar>? DeserializeNullableListOfBar(JsonElement obj, string fieldName)
+        {
+            if (!obj.TryGetProperty(fieldName, out JsonElement list))
+            {
+                return null;
+            }
+
+            if (list.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            int listLength = list.GetArrayLength();
+            var listList = new Bar[listLength];
+
+            for (int i = 0; i < listLength; i++)
+            {
+                JsonElement element = list[i];
+                    list[i] = (Bar)_barSerializer.Serialize(element.GetString())!;
+            }
+        }
+
+        private IReadOnlyList<Bar> DeserializeListOfBar(JsonElement obj, string fieldName)
+        {
+            JsonElement list = obj.GetProperty(fieldName);
+            int listLength = list.GetArrayLength();
+            var listList = new Bar[listLength];
+
+            for (int i = 0; i < listLength; i++)
+            {
+                JsonElement element = list[i];
+                    list[i] = (Bar)_barSerializer.Serialize(element.GetString())!;
             }
         }
     }
@@ -99,14 +269,14 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    public class GetEpisodeOperation
-        : IOperation<IGetEpisode>
+    public class GetFooOperation
+        : IOperation<IGetFoo>
     {
-        public string Name => "getEpisode";
+        public string Name => "getFoo";
 
         public IDocument Document => Queries.Default;
 
-        public Type ResultType => typeof(IGetEpisode);
+        public Type ResultType => typeof(IGetFoo);
 
         public IReadOnlyList<VariableValue> GetVariableValues()
         {
@@ -127,9 +297,9 @@ namespace StrawberryShake.Client
 {
     public interface ISchemaClient
     {
-        Task<IOperationResult<IGetEpisode>> GetEpisodeAsync();
+        Task<IOperationResult<IGetFoo>> GetFooAsync();
 
-        Task<IOperationResult<IGetEpisode>> GetEpisodeAsync(
+        Task<IOperationResult<IGetFoo>> GetFooAsync(
             CancellationToken cancellationToken);
     }
 }
@@ -154,15 +324,15 @@ namespace StrawberryShake.Client
             _executor = executor ?? throw new ArgumentNullException(nameof(executor));
         }
 
-        public Task<IOperationResult<IGetEpisode>> GetEpisodeAsync() =>
-            GetEpisodeAsync(CancellationToken.None);
+        public Task<IOperationResult<IGetFoo>> GetFooAsync() =>
+            GetFooAsync(CancellationToken.None);
 
-        public Task<IOperationResult<IGetEpisode>> GetEpisodeAsync(
+        public Task<IOperationResult<IGetFoo>> GetFooAsync(
             CancellationToken cancellationToken)
         {
 
             return _executor.ExecuteAsync(
-                new GetEpisodeOperation(),
+                new GetFooOperation(),
                 cancellationToken);
         }
     }
@@ -176,11 +346,9 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    public enum Episode
+    public enum Bar
     {
-        NewHope,
-        Empire,
-        Jedi
+        Abc
     }
 }
 
@@ -192,14 +360,14 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client
 {
-    public class EpisodeValueSerializer
+    public class BarValueSerializer
         : IValueSerializer
     {
-        public string Name => "Episode";
+        public string Name => "Bar";
 
         public ValueKind Kind => ValueKind.Enum;
 
-        public Type ClrType => typeof(Episode);
+        public Type ClrType => typeof(Bar);
 
         public Type SerializationType => typeof(string);
 
@@ -210,16 +378,12 @@ namespace StrawberryShake.Client
                 return null;
             }
 
-            var enumValue = (Episode)value;
+            var enumValue = (Bar)value;
 
             switch(enumValue)
             {
-                case Episode.NewHope:
-                    return "NEWHOPE";
-                case Episode.Empire:
-                    return "EMPIRE";
-                case Episode.Jedi:
-                    return "JEDI";
+                case Bar.Abc:
+                    return "ABC";
                 default:
                     throw new NotSupportedException();
             }
@@ -236,12 +400,8 @@ namespace StrawberryShake.Client
 
             switch(stringValue)
             {
-                case "NEWHOPE":
-                    return Episode.NewHope;
-                case "EMPIRE":
-                    return Episode.Empire;
-                case "JEDI":
-                    return Episode.Jedi;
+                case "ABC":
+                    return Bar.Abc;
                 default:
                     throw new NotSupportedException();
             }
@@ -309,14 +469,14 @@ namespace StrawberryShake.Client
         private static IServiceCollection AddEnumSerializers(
             this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton<IValueSerializer, EpisodeValueSerializer>();
+            serviceCollection.AddSingleton<IValueSerializer, BarValueSerializer>();
             return serviceCollection;
         }
 
         private static IServiceCollection AddResultParsers(
             this IServiceCollection serviceCollection)
         {
-            serviceCollection.AddSingleton<IResultParser, GetEpisodeResultParser>();
+            serviceCollection.AddSingleton<IResultParser, GetFooResultParser>();
             return serviceCollection;
         }
 

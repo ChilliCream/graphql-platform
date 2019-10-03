@@ -7,13 +7,13 @@ using StrawberryShake.Http;
 
 namespace  StrawberryShake.Client.GraphQL
 {
-    public class GetHeroResultParser
-        : JsonResultParserBase<IGetHero>
+    public class SearchResultParser
+        : JsonResultParserBase<ISearch>
     {
         private readonly IValueSerializer _stringSerializer;
         private readonly IValueSerializer _floatSerializer;
 
-        public GetHeroResultParser(IEnumerable<IValueSerializer> serializers)
+        public SearchResultParser(IEnumerable<IValueSerializer> serializers)
         {
             IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
 
@@ -34,16 +34,16 @@ namespace  StrawberryShake.Client.GraphQL
             _floatSerializer = serializer;
         }
 
-        protected override IGetHero ParserData(JsonElement data)
+        protected override ISearch ParserData(JsonElement data)
         {
-            return new GetHero
+            return new Search1
             (
-                ParseGetHeroHero(data, "hero")
+                ParseSearchSearch(data, "search")
             );
 
         }
 
-        private IHasName? ParseGetHeroHero(
+        private IReadOnlyList<ISearchResult>? ParseSearchSearch(
             JsonElement parent,
             string field)
         {
@@ -52,32 +52,50 @@ namespace  StrawberryShake.Client.GraphQL
                 return null;
             }
 
-            string type = obj.GetProperty(TypeName).GetString();
-
-            switch(type)
+            int objLength = obj.GetArrayLength();
+            var list = new ISearchResult[objLength];
+            for (int objIndex = 0; objIndex < objLength; objIndex++)
             {
-                case "Droid":
-                    return new Droid
-                    (
-                        DeserializeNullableString(obj, "name"),
-                        DeserializeNullableFloat(obj, "height"),
-                        ParseGetHeroHeroFriends(obj, "friends")
-                    );
+                JsonElement element = obj[objIndex];
+                string type = element.GetProperty(TypeName).GetString();
 
-                case "Human":
-                    return new Human
-                    (
-                        DeserializeNullableString(obj, "name"),
-                        DeserializeNullableFloat(obj, "height"),
-                        ParseGetHeroHeroFriends(obj, "friends")
-                    );
+                switch(type)
+                {
+                    case "Starship":
+                        list[objIndex] = new Starship
+                        (
+                            DeserializeNullableString(element, "name")
+                        );
+                        break;
 
-                default:
-                    throw new UnknownSchemaTypeException(type);
+                    case "Human":
+                        list[objIndex] = new Human
+                        (
+                            DeserializeNullableString(element, "name"),
+                            DeserializeNullableFloat(element, "height"),
+                            ParseSearchSearchFriends(element, "friends")
+                        );
+                        break;
+
+                    case "Droid":
+                        list[objIndex] = new Droid
+                        (
+                            DeserializeNullableString(element, "name"),
+                            DeserializeNullableFloat(element, "height"),
+                            ParseSearchSearchFriends(element, "friends")
+                        );
+                        break;
+
+                    default:
+                        throw new UnknownSchemaTypeException(type);
+                }
+
             }
+
+            return list;
         }
 
-        private IFriend? ParseGetHeroHeroFriends(
+        private IFriend? ParseSearchSearchFriends(
             JsonElement parent,
             string field)
         {
@@ -88,11 +106,11 @@ namespace  StrawberryShake.Client.GraphQL
 
             return new Friend
             (
-                ParseGetHeroHeroFriendsNodes(obj, "nodes")
+                ParseSearchSearchFriendsNodes(obj, "nodes")
             );
         }
 
-        private IReadOnlyList<IHasName>? ParseGetHeroHeroFriendsNodes(
+        private IReadOnlyList<IHasName>? ParseSearchSearchFriendsNodes(
             JsonElement parent,
             string field)
         {
@@ -130,7 +148,6 @@ namespace  StrawberryShake.Client.GraphQL
 
             return (string?)_stringSerializer.Serialize(value.GetString())!;
         }
-
         private double? DeserializeNullableFloat(JsonElement obj, string fieldName)
         {
             if (!obj.TryGetProperty(fieldName, out JsonElement value))

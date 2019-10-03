@@ -5,10 +5,12 @@ using StrawberryShake;
 
 namespace  StrawberryShake.Client.GraphQL
 {
-    public class Hero
-        : IHero
+    public class Droid
+        : IHasName
+        , ISearchResult
+        , IDroid
     {
-        public Hero(
+        public Droid(
             string? name, 
             double? height, 
             IFriend? friends)

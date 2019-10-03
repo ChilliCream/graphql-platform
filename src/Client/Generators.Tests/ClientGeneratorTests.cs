@@ -264,6 +264,57 @@ namespace StrawberryShake.Generators
         }
 
         [Fact]
+        public async Task Enum_As_Output_Field_Return_Type()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo: Foo
+                }
+
+                type Foo {
+                    bar2: Bar
+                    bar1: Bar!
+                    bar3: [Bar]
+                    bar4: [Bar]!
+                    bar5: [Bar!]
+                    bar6: [Bar!]!
+                }
+
+                enum Bar {
+                    ABC
+                }
+                ";
+
+            string query =
+               @"
+                query getFoo {
+                    foo {
+                        bar1
+                        bar2
+                        bar3
+                        bar4
+                        bar5
+                        bar6
+                    }
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .ModifyOptions(o => o.LanguageVersion = LanguageVersion.CSharp_8_0)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Return_Type_Renamed()
         {
             // arrange

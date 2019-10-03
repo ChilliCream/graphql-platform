@@ -1,3 +1,4 @@
+using System;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -10,5 +11,11 @@ namespace StrawberryShake.Generators
         string GetTypeName(IType fieldType, string? typeName, bool readOnly);
 
         ITypeInfo GetTypeInfo(IType fieldType, bool readOnly);
+
+
+
+        string GetLeafClrTypeName(IType type);
+
+        Type GetSerializationType(IType type);
     }
 }
