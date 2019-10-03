@@ -12,8 +12,10 @@ namespace StrawberryShake.Generators
 
         ITypeInfo GetTypeInfo(IType fieldType, bool readOnly);
 
-        string GetTypeName(IType fieldType);
 
-        Type GetSerializationType(IType fieldType);
+
+        string GetLeafClrTypeName(IType type);
+
+        Type GetSerializationType(IType type);
     }
 }

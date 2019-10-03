@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using HotChocolate.Language;
 using HotChocolate.Types;
 
@@ -266,6 +267,85 @@ namespace StrawberryShake.Generators.CSharp
                 : typeName;
         }
 
+
+        public string GetLeafClrTypeName(IType type)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (!type.NamedType().IsLeafType())
+            {
+                throw new ArgumentException(
+                    "Only leaf types are allowed.",
+                    nameof(type));
+            }
+
+            return CreateLeafClrTypeName(type, true);
+        }
+
+        private string CreateLeafClrTypeName(IType type, bool nullable)
+        {
+            if (type.IsNonNullType())
+            {
+                return CreateLeafClrTypeName(type.InnerType(), false);
+            }
+
+            if (type.IsListType())
+            {
+                string elementType = CreateLeafClrTypeName(type.ElementType(), true);
+                string listType = $"IReadOnlyList<{elementType}>";
+                return nullable ? listType + "?" : listType;
+            }
+
+            string typeName = type.NamedType().Name;
+
+            if (type.IsEnumType())
+            {
+                return nullable ? typeName + "?" : typeName;
+            }
+
+            if (!_leafTypes.TryGetValue(typeName, out LeafTypeInfo? typeInfo))
+            {
+                throw new NotSupportedException(
+                    $"Leaf type `{typeName}` is not supported.");
+            }
+
+            string clrTypeName = GetTypeName(typeInfo.ClrType);
+            return nullable ? clrTypeName + "?" : clrTypeName;
+        }
+
+        public Type GetSerializationType(IType type)
+        {
+            if (type is null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            INamedType namedType = type.NamedType();
+
+            if (!namedType.IsLeafType())
+            {
+                throw new ArgumentException(
+                    "Only leaf types are allowed.",
+                    nameof(type));
+            }
+
+            if (namedType.IsEnumType())
+            {
+                return typeof(string);
+            }
+
+            if (!_leafTypes.TryGetValue(namedType.Name, out LeafTypeInfo? typeInfo))
+            {
+                throw new NotSupportedException(
+                    $"Leaf type `{namedType.Name}` is not supported.");
+            }
+
+            return typeInfo.SerializationType;
+        }
+
         private static string GetTypeName(Type type)
         {
             if (_aliases.TryGetValue(type, out string? alias))
@@ -304,6 +384,7 @@ namespace StrawberryShake.Generators.CSharp
                 Type declaringType = type.DeclaringType!;
                 return $"{GetNamespace(declaringType!)}.{declaringType.Name}";
             }
+
             return type.Namespace;
         }
 
