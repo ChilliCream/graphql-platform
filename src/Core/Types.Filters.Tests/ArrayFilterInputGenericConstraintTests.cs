@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Filters
 
         //
         [Theory]
-        [MemberData(nameof(GetData)]
+        [MemberData(nameof(GetData))]
         public void Create_ArrayObjectFilter_ShouldMatchSameSnapshotInAllCases(FilterInputType<Foo> input)
         {
             // arrange
@@ -25,16 +25,27 @@ namespace HotChocolate.Types.Filters
 
         public static IEnumerable<object[]> GetData => new List<FilterInputType<Foo>[]>
            {
-            new[] {new FilterInputType<Foo>(x => x.Filter(y => y.IEnumerable).AllowSome()) },
-            new[] {new FilterInputType<Foo>(x => x.Filter(y => y.List).AllowSome()) }
+            new[] {CreateFilterTypeFor(x => x.Filter(y => y.IEnumerable)) },
+            new[] {CreateFilterTypeFor(x => x.Filter(y => y.List)) }
            };
+
+        public static FilterInputType<Foo> CreateFilterTypeFor(
+            Func<IFilterInputTypeDescriptor<Foo>,
+                IArrayFilterFieldDescriptor<Bar>> expression)
+        {
+            return new FilterInputType<Foo>(
+                x => expression
+                .Invoke(x.BindFieldsExplicitly())
+                .BindExplicitly()
+                .AllowSome()
+                .Name("test")
+           );
+        }
 
         public class Foo
         {
             public List<Bar> List { get; set; }
             public IEnumerable<Bar> IEnumerable { get; set; }
-            public List<string> ListString { get; set; }
-            public IEnumerable<Bar> IEnumerableString { get; set; }
         }
 
         public class Bar
