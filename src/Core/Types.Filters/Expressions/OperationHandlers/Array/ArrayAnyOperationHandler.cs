@@ -24,8 +24,11 @@ namespace HotChocolate.Types.Filters.Expressions
                 type.ParseLiteral(value) is bool parsedValue
                 )
             {
-                MemberExpression property =
-                    Expression.Property(instance, operation.Property);
+                Expression property = instance;
+                if (!typeof(ISingleFilter).IsAssignableFrom(operation.Property.DeclaringType))
+                {
+                    property = Expression.Property(instance, operation.Property);
+                }
 
                 if (parsedValue)
                 {

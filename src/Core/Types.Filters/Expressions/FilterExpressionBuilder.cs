@@ -45,21 +45,21 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         public static Expression Equals(
-            MemberExpression property,
+            Expression property,
             object value)
         {
             return Expression.Equal(property, Expression.Constant(value));
         }
 
         public static Expression NotEquals(
-            MemberExpression property,
+            Expression property,
             object value)
         {
             return Expression.NotEqual(property, Expression.Constant(value));
         }
 
         public static Expression In(
-            MemberExpression property,
+            Expression property,
             Type genericType,
             object parsedValue)
         {
@@ -73,7 +73,7 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         public static Expression GreaterThan(
-            MemberExpression property,
+            Expression property,
             object value)
         {
             return Expression.GreaterThan(
@@ -82,7 +82,7 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         public static Expression GreaterThanOrEqual(
-            MemberExpression property,
+            Expression property,
             object value)
         {
             return Expression.GreaterThanOrEqual(
@@ -91,7 +91,7 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         public static Expression LowerThan(
-            MemberExpression property,
+            Expression property,
             object value)
         {
             return Expression.LessThan(
@@ -100,7 +100,7 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         public static Expression LowerThanOrEqual(
-            MemberExpression property,
+            Expression property,
             object value)
         {
             return Expression.LessThanOrEqual(
@@ -109,7 +109,7 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         public static Expression StartsWith(
-            MemberExpression property,
+            Expression property,
             object value)
         {
             return Expression.AndAlso(
@@ -119,7 +119,7 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
         public static Expression EndsWith(
-            MemberExpression property,
+            Expression property,
             object value)
         {
             return Expression.AndAlso(
@@ -128,7 +128,7 @@ namespace HotChocolate.Types.Filters.Expressions
                     new[] { Expression.Constant(value) }));
         }
         public static Expression Contains(
-            MemberExpression property,
+            Expression property,
             object value)
         {
             return Expression.AndAlso(

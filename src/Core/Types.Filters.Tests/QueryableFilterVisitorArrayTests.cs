@@ -10,6 +10,37 @@ namespace HotChocolate.Types.Filters
         : TypeTestBase
     {
         [Fact]
+        public void Create_ArraySomeStringEqual_Expression()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("bar_some",
+                    new ObjectValueNode(
+                        new ObjectFieldNode("el",
+                            new StringValueNode("a")
+                        )
+                    )
+                )
+            );
+
+            var fooType = CreateType(new FooSimpleFilterType());
+
+            // act
+            var filter = new QueryableFilterVisitor(
+                fooType,
+                typeof(FooSimple),
+                TypeConversion.Default);
+            value.Accept(filter);
+            Func<FooSimple, bool> func = filter.CreateFilter<FooSimple>().Compile();
+
+            // assert
+            var a = new FooSimple { Bar = new[] { "c", "d", "a" } };
+            Assert.True(func(a));
+
+            var b = new FooSimple { Bar = new[] { "c", "d", "b" } };
+            Assert.False(func(b));
+        }
+        [Fact]
         public void Create_ArraySomeObjectStringEqual_Expression()
         {
             // arrange
@@ -173,6 +204,11 @@ namespace HotChocolate.Types.Filters
             public IEnumerable<FooNested> FooNested { get; set; }
         }
 
+        public class FooSimple
+        {
+            public IEnumerable<string> Bar { get; set; }
+        }
+
         public class FooNested
         {
             public string Bar { get; set; }
@@ -185,6 +221,16 @@ namespace HotChocolate.Types.Filters
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
                 descriptor.Filter(t => t.FooNested).BindImplicitly();
+            }
+        }
+
+        public class FooSimpleFilterType
+            : FilterInputType<FooSimple>
+        {
+            protected override void Configure(
+                IFilterInputTypeDescriptor<FooSimple> descriptor)
+            {
+                descriptor.Filter(t => t.Bar).BindImplicitly();
             }
         }
 

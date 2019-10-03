@@ -32,7 +32,9 @@ namespace HotChocolate.Types.Filters.Expressions
 
                 closures.Peek().Instance.Push(nestedProperty);
 
-                closures.Push(new QueryableClosure(field.Operation.Type, "_s" + closures.Count));
+                Type closureType = GetTypeFor(field.Operation);
+
+                closures.Push(new QueryableClosure(closureType, "_s" + closures.Count));
                 action = VisitorAction.Continue;
                 return true;
             }
@@ -57,13 +59,14 @@ namespace HotChocolate.Types.Filters.Expressions
             {
                 var nestedClosure = closures.Pop();
                 var lambda = nestedClosure.CreateLambda();
+                Type closureType = GetTypeFor(field.Operation);
 
                 Expression expression;
                 switch (field.Operation.Kind)
                 {
                     case FilterOperationKind.ArraySome:
                         expression = FilterExpressionBuilder.Any(
-                          field.Operation.Type,
+                          closureType,
                           closures.Peek().Instance.Peek(),
                           lambda
                         );
@@ -71,7 +74,7 @@ namespace HotChocolate.Types.Filters.Expressions
                     case FilterOperationKind.ArrayNone:
                         expression = FilterExpressionBuilder.Not(
                             FilterExpressionBuilder.Any(
-                                field.Operation.Type,
+                                closureType,
                                 closures.Peek().Instance.Peek(),
                                 lambda
                             )
@@ -79,7 +82,7 @@ namespace HotChocolate.Types.Filters.Expressions
                         break;
                     case FilterOperationKind.ArrayAll:
                         expression = FilterExpressionBuilder.All(
-                          field.Operation.Type,
+                          closureType,
                           closures.Peek().Instance.Peek(),
                           lambda
                         );
@@ -91,6 +94,15 @@ namespace HotChocolate.Types.Filters.Expressions
 
                 closures.Peek().Instance.Pop();
             }
+        }
+
+        private Type GetTypeFor(FilterOperation operation)
+        {
+            if (typeof(ISingleFilter).IsAssignableFrom(operation.Type))
+            {
+                return operation.Type.GetGenericArguments()[0];
+            }
+            return operation.Type;
         }
     }
 }

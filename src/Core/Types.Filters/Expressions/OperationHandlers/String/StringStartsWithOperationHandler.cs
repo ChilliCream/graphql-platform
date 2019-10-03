@@ -7,9 +7,9 @@ namespace HotChocolate.Types.Filters.Expressions
     {
         protected override bool TryCreateExpression(
             FilterOperation operation,
-            MemberExpression property,
-            object parsedValue, out
-            Expression expression)
+            Expression property,
+            object parsedValue,
+            out Expression expression)
         {
             switch (operation.Kind)
             {

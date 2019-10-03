@@ -19,8 +19,12 @@ namespace HotChocolate.Types.Filters.Expressions
             if (operation.Type == typeof(IComparable)
                 && type.IsInstanceOfType(value))
             {
-                MemberExpression property =
-                    Expression.Property(instance, operation.Property);
+
+                Expression property = instance;
+                if (!typeof(ISingleFilter).IsAssignableFrom(operation.Property.DeclaringType))
+                {
+                    property = Expression.Property(instance, operation.Property);
+                } 
                 var parsedValue = type.ParseLiteral(value);
 
                 if (operation.Property.PropertyType
@@ -45,7 +49,7 @@ namespace HotChocolate.Types.Filters.Expressions
 
         protected abstract bool TryCreateExpression(
             FilterOperation operation,
-            MemberExpression property,
+            Expression property,
             object parsedValue,
             out Expression expression);
     }

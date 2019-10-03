@@ -18,8 +18,11 @@ namespace HotChocolate.Types.Filters.Expressions
             if (operation.Type == typeof(bool)
                 && type.IsInstanceOfType(value))
             {
-                MemberExpression property =
-                    Expression.Property(instance, operation.Property);
+                Expression property = instance;
+                if (!typeof(ISingleFilter).IsAssignableFrom(operation.Property.DeclaringType))
+                {
+                    property = Expression.Property(instance, operation.Property);
+                }
 
                 object parserValue = type.ParseLiteral(value);
 
