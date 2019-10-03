@@ -25,7 +25,8 @@ namespace HotChocolate.Types.Filters.Expressions
                 )
             {
                 Expression property = instance;
-                if (!typeof(ISingleFilter).IsAssignableFrom(operation.Property.DeclaringType))
+
+                if (!operation.IsSimpleArrayType)
                 {
                     property = Expression.Property(instance, operation.Property);
                 }
@@ -43,7 +44,7 @@ namespace HotChocolate.Types.Filters.Expressions
                         );
                 }
                 return true;
-            } 
+            }
             expression = null;
             return false;
         }

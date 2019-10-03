@@ -15,6 +15,15 @@ namespace HotChocolate.Types.Filters
             Kind = kind;
             Property = property
                 ?? throw new ArgumentNullException(nameof(property));
+
+            if (typeof(ISingleFilter).IsAssignableFrom(Type))
+            {
+                ArrayBaseType = Type.GetGenericArguments()[0];
+            }
+            if (typeof(ISingleFilter).IsAssignableFrom(property.DeclaringType))
+            {
+                ArrayBaseType = property.DeclaringType.GetGenericArguments()[0];
+            }
         }
 
         public Type Type { get; }
@@ -22,5 +31,8 @@ namespace HotChocolate.Types.Filters
         public FilterOperationKind Kind { get; }
 
         public PropertyInfo Property { get; }
+
+        public bool IsSimpleArrayType => ArrayBaseType != null;
+        public Type ArrayBaseType { get; }
     }
 }

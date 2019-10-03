@@ -18,8 +18,8 @@ namespace HotChocolate.Types.Filters.Expressions
             if (operation.Type == typeof(bool)
                 && type.IsInstanceOfType(value))
             {
-                Expression property = instance;
-                if (!typeof(ISingleFilter).IsAssignableFrom(operation.Property.DeclaringType))
+                Expression property = instance; 
+                if (!operation.IsSimpleArrayType)
                 {
                     property = Expression.Property(instance, operation.Property);
                 }

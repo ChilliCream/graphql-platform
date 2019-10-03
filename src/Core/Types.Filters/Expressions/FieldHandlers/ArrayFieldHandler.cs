@@ -98,9 +98,9 @@ namespace HotChocolate.Types.Filters.Expressions
 
         private Type GetTypeFor(FilterOperation operation)
         {
-            if (typeof(ISingleFilter).IsAssignableFrom(operation.Type))
+            if (operation.IsSimpleArrayType)
             {
-                return operation.Type.GetGenericArguments()[0];
+                return operation.ArrayBaseType;
             }
             return operation.Type;
         }

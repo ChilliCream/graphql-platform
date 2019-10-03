@@ -20,10 +20,12 @@ namespace HotChocolate.Types.Filters.Expressions
                 && type.IsInstanceOfType(value))
             {
                 Expression property = instance;
-                if (!typeof(ISingleFilter).IsAssignableFrom(operation.Property.DeclaringType))
+
+                if (!operation.IsSimpleArrayType)
                 {
                     property = Expression.Property(instance, operation.Property);
                 }
+
 
                 var parsedValue = type.ParseLiteral(value);
 
