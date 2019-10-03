@@ -15,6 +15,9 @@ using IOPath = System.IO.Path;
 using HCError = HotChocolate.IError;
 using HCErrorBuilder = HotChocolate.ErrorBuilder;
 using StrawberryShake.Generators.Types;
+using HotChocolate.Stitching.Utilities;
+using HotChocolate.Types;
+using HotChocolate.Stitching;
 
 namespace StrawberryShake.Generators
 {
@@ -283,6 +286,12 @@ namespace StrawberryShake.Generators
             DocumentNode mergedSchema = MergeSchema();
             mergedSchema = MergeSchemaExtensions(mergedSchema);
             ISchema schema = CreateSchema(mergedSchema);
+            IReadOnlyList<HCError> errors =
+                InitializeScalarTypes(schema, "schema.graphql", mergedSchema);
+            if (errors.Count > 0)
+            {
+                return errors;
+            }
 
             // parse queries
             return ValidateQueryDocuments(schema);
@@ -320,8 +329,15 @@ namespace StrawberryShake.Generators
             mergedSchema = MergeSchemaExtensions(mergedSchema);
             ISchema schema = CreateSchema(mergedSchema);
 
+            IReadOnlyList<HCError> errors =
+                InitializeScalarTypes(schema, "schema.graphql", mergedSchema);
+            if (errors.Count > 0)
+            {
+                throw new GeneratorException(errors);
+            }
+
             // parse queries
-            var errors = ValidateQueryDocuments(schema);
+            errors = ValidateQueryDocuments(schema);
             if (errors.Count > 0)
             {
                 throw new GeneratorException(errors);
@@ -359,17 +375,21 @@ namespace StrawberryShake.Generators
 
         private DocumentNode MergeSchema()
         {
-            if (_schemas.Count == 1)
-            {
-                return _schemas.First().Value;
-            }
-
             SchemaMerger merger = SchemaMerger.New();
 
             foreach (KeyValuePair<string, DocumentNode> schema in _schemas)
             {
                 merger.AddSchema(schema.Key, schema.Value);
             }
+
+            merger.AddSchema(
+                "____directives" + Guid.NewGuid().ToString("N"),
+                Utf8GraphQLParser.Parse(@"
+                    directive @runtimeType(name: String!) on SCALAR
+                    directive @serializationTypeType(name: String!) on SCALAR
+                "));
+
+            merger.AddTypeMergeHandler<ScalarTypeMergeHandler>();
 
             return merger.Merge();
         }
@@ -395,12 +415,22 @@ namespace StrawberryShake.Generators
 
         private static ISchema CreateSchema(DocumentNode schema)
         {
-            return SchemaBuilder.New()
-                .Use(next => context => Task.CompletedTask)
+            SchemaBuilder builder = SchemaBuilder.New();
+
+            foreach (CustomScalarType type in schema.Definitions
+                .OfType<ScalarTypeDefinitionNode>()
+                .Where(t => !Scalars.IsBuiltIn(t.Name.Value))
+                .Select(t => new CustomScalarType(t)))
+            {
+                builder.AddType(type);
+            }
+
+            return builder.Use(next => context => Task.CompletedTask)
                 .AddDocument(schema)
                 .AddDirectiveType<NameDirectiveType>()
                 .AddDirectiveType<TypeDirectiveType>()
                 .AddDirectiveType<SerializationDirectiveType>()
+                .AddDirectiveType<DelegateDirectiveType>()
                 .Create();
         }
 
@@ -441,6 +471,64 @@ namespace StrawberryShake.Generators
                     fieldTypes[fieldType.Key] = fieldType.Value;
                 }
             }
+        }
+        // new LeafTypeInfo("DateTime", typeof(DateTimeOffset), typeof(string)),
+
+        private IReadOnlyList<HCError> InitializeScalarTypes(
+            ISchema schema,
+            string schemaFile,
+            DocumentNode document)
+        {
+            var errors = new List<HCError>();
+
+            foreach (CustomScalarType scalarType in schema.Types.OfType<CustomScalarType>())
+            {
+                if (!_leafTypes.TryGetValue(scalarType.Name, out LeafTypeInfo? typeInfo))
+                {
+                    Type? clrType = GetTypeFromDirective(
+                        scalarType,
+                        GeneratorDirectives.ClrType);
+
+                    if (clrType is null)
+                    {
+                        errors.Add(HCErrorBuilder.New()
+                            .SetMessage($"The custom scalar {scalarType.Name} has to be declared.")
+                            .SetExtension("fileName", schemaFile)
+                            .SetExtension("document", document)
+                            .Build());
+                    }
+                    else
+                    {
+                        Type serializationType = GetTypeFromDirective(
+                            scalarType,
+                            GeneratorDirectives.ClrType) ??
+                            clrType;
+
+                        _leafTypes[scalarType.Name] =
+                            new LeafTypeInfo(scalarType.Name, clrType, serializationType);
+                    }
+                }
+            }
+
+            return errors;
+        }
+
+        private static Type? GetTypeFromDirective(
+            CustomScalarType scalarType,
+            string directiveName)
+        {
+            DirectiveNode typeDirective = scalarType.SyntaxNode.Directives
+                .FirstOrDefault(t => t.Name.Value.Equals(directiveName));
+
+            if (typeDirective is null)
+            {
+                return null;
+            }
+
+            ArgumentNode name = typeDirective.Arguments.First(t =>
+                t.Name.Value.Equals(GeneratorDirectives.Name));
+
+            return Type.GetType(((StringValueNode)name.Value).Value);
         }
 
         private IReadOnlyList<HCError> ValidateQueryDocuments(ISchema schema)
@@ -529,6 +617,31 @@ namespace StrawberryShake.Generators
             public int? MaxOperationComplexity => null;
 
             public bool? UseComplexityMultipliers => null;
+        }
+
+        internal class ScalarTypeMergeHandler
+            : ITypeMergeHandler
+        {
+            private readonly MergeTypeRuleDelegate _next;
+
+            public ScalarTypeMergeHandler(MergeTypeRuleDelegate next)
+            {
+                _next = next ?? throw new ArgumentNullException(nameof(next));
+            }
+
+            public void Merge(
+                ISchemaMergeContext context,
+                IReadOnlyList<HotChocolate.Stitching.Merge.ITypeInfo> types)
+            {
+                if (types.OfType<ITypeInfo<ScalarTypeDefinitionNode>>().Any())
+                {
+                    ITypeInfo<ScalarTypeDefinitionNode> scalar =
+                        types.OfType<ITypeInfo<ScalarTypeDefinitionNode>>().FirstOrDefault();
+                    context.AddType(scalar.Definition);
+                    return;
+                }
+                _next(context, types);
+            }
         }
     }
 }
