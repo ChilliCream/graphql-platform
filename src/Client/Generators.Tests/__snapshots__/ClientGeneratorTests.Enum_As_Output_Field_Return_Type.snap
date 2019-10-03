@@ -32,8 +32,8 @@ namespace StrawberryShake.Client
         public Foo(
             Bar bar1, 
             Bar? bar2, 
-            IReadOnlyList<Bar>? bar3, 
-            IReadOnlyList<Bar> bar4, 
+            IReadOnlyList<Bar?>? bar3, 
+            IReadOnlyList<Bar?> bar4, 
             IReadOnlyList<Bar>? bar5, 
             IReadOnlyList<Bar> bar6)
         {
@@ -49,9 +49,9 @@ namespace StrawberryShake.Client
 
         public Bar? Bar2 { get; }
 
-        public IReadOnlyList<Bar>? Bar3 { get; }
+        public IReadOnlyList<Bar?>? Bar3 { get; }
 
-        public IReadOnlyList<Bar> Bar4 { get; }
+        public IReadOnlyList<Bar?> Bar4 { get; }
 
         public IReadOnlyList<Bar>? Bar5 { get; }
 
@@ -87,9 +87,9 @@ namespace StrawberryShake.Client
 
         Bar? Bar2 { get; }
 
-        IReadOnlyList<Bar>? Bar3 { get; }
+        IReadOnlyList<Bar?>? Bar3 { get; }
 
-        IReadOnlyList<Bar> Bar4 { get; }
+        IReadOnlyList<Bar?> Bar4 { get; }
 
         IReadOnlyList<Bar>? Bar5 { get; }
 
@@ -145,22 +145,37 @@ namespace StrawberryShake.Client
 
             return new Foo
             (
-                DeserializeNullableBar(obj, "bar1"),
+                DeserializeBar(obj, "bar1"),
                 DeserializeNullableBar(obj, "bar2"),
                 DeserializeNullableListOfNullableBar(obj, "bar3"),
-                DeserializeNullableListOfNullableBar(obj, "bar4"),
-                DeserializeNullableListOfNullableBar(obj, "bar5"),
-                DeserializeNullableListOfNullableBar(obj, "bar6")
+                DeserializeListOfNullableBar(obj, "bar4"),
+                DeserializeNullableListOfBar(obj, "bar5"),
+                DeserializeListOfBar(obj, "bar6")
             );
         }
 
-        private Bar DeserializeNullableBar(JsonElement obj, string fieldName)
+        private Bar DeserializeBar(JsonElement obj, string fieldName)
         {
             JsonElement value = obj.GetProperty(fieldName);
             return (Bar)_barSerializer.Serialize(value.GetString())!;
         }
 
-        private Bar? DeserializeNullableListOfNullableBar(JsonElement obj, string fieldName)
+        private Bar? DeserializeNullableBar(JsonElement obj, string fieldName)
+        {
+            if (!obj.TryGetProperty(fieldName, out JsonElement value))
+            {
+                return null;
+            }
+
+            if (value.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            return (Bar?)_barSerializer.Serialize(value.GetString())!;
+        }
+
+        private IReadOnlyList<Bar?>? DeserializeNullableListOfNullableBar(JsonElement obj, string fieldName)
         {
             if (!obj.TryGetProperty(fieldName, out JsonElement list))
             {
@@ -186,6 +201,61 @@ namespace StrawberryShake.Client
                 {
                     list[i] = (Bar?)_barSerializer.Serialize(element.GetString())!;
                 }
+            }
+        }
+
+        private IReadOnlyList<Bar?> DeserializeListOfNullableBar(JsonElement obj, string fieldName)
+        {
+            JsonElement list = obj.GetProperty(fieldName);
+            int listLength = list.GetArrayLength();
+            var listList = new Bar?[listLength];
+
+            for (int i = 0; i < listLength; i++)
+            {
+                JsonElement element = list[i];
+                if (element.ValueKind == JsonValueKind.Null)
+                {
+                    listList[i] = null;
+                }
+                else
+                {
+                    list[i] = (Bar?)_barSerializer.Serialize(element.GetString())!;
+                }
+            }
+        }
+
+        private IReadOnlyList<Bar>? DeserializeNullableListOfBar(JsonElement obj, string fieldName)
+        {
+            if (!obj.TryGetProperty(fieldName, out JsonElement list))
+            {
+                return null;
+            }
+
+            if (list.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
+            int listLength = list.GetArrayLength();
+            var listList = new Bar[listLength];
+
+            for (int i = 0; i < listLength; i++)
+            {
+                JsonElement element = list[i];
+                    list[i] = (Bar)_barSerializer.Serialize(element.GetString())!;
+            }
+        }
+
+        private IReadOnlyList<Bar> DeserializeListOfBar(JsonElement obj, string fieldName)
+        {
+            JsonElement list = obj.GetProperty(fieldName);
+            int listLength = list.GetArrayLength();
+            var listList = new Bar[listLength];
+
+            for (int i = 0; i < listLength; i++)
+            {
+                JsonElement element = list[i];
+                    list[i] = (Bar)_barSerializer.Serialize(element.GetString())!;
             }
         }
     }

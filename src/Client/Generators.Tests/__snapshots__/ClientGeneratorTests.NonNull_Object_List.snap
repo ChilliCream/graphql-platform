@@ -164,7 +164,7 @@ namespace StrawberryShake.Client
                 JsonElement element = obj[objIndex];
                 list[objIndex] = new Bar
                 (
-                    DeserializeNullableString(element, "baz")
+                    DeserializeString(element, "baz")
                 );
 
             }
@@ -172,7 +172,7 @@ namespace StrawberryShake.Client
             return list;
         }
 
-        private string DeserializeNullableString(JsonElement obj, string fieldName)
+        private string DeserializeString(JsonElement obj, string fieldName)
         {
             JsonElement value = obj.GetProperty(fieldName);
             return (string)_stringSerializer.Serialize(value.GetString())!;

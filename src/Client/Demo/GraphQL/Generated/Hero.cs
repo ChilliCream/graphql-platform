@@ -3,14 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace  StrawberryShake.Client.GraphQL
+namespace StrawberryShake.Client.GraphQL
 {
     public class Hero
         : IHero
     {
         public Hero(
-            double? height, 
-            string? name, 
+            double? height,
+            string? name,
             IFriend? friends)
         {
             Height = height;

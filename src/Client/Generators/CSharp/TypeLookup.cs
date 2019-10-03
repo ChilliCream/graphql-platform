@@ -29,6 +29,7 @@ namespace StrawberryShake.Generators.CSharp
         private readonly IReadOnlyDictionary<string, LeafTypeInfo> _leafTypes;
         private readonly IReadOnlyDictionary<FieldNode, string> _generatedTypes;
         private readonly LanguageVersion _languageVersion;
+        private readonly bool _nullableRef;
 
         public TypeLookup(
             LanguageVersion languageVersion,
@@ -55,6 +56,8 @@ namespace StrawberryShake.Generators.CSharp
                 new LeafTypeInfo("Guid", typeof(Guid), typeof(string)),
                 new LeafTypeInfo("Uuid", typeof(Guid), typeof(string)),
             }.ToDictionary(t => t.TypeName);
+
+            _nullableRef = _languageVersion == LanguageVersion.CSharp_8_0;
         }
 
         public TypeLookup(
@@ -71,23 +74,14 @@ namespace StrawberryShake.Generators.CSharp
             _leafTypes = leafTypes.ToDictionary(t => t.TypeName);
             _generatedTypes = generatedTypes
                 ?? throw new ArgumentNullException(nameof(generatedTypes));
+            _nullableRef = _languageVersion == LanguageVersion.CSharp_8_0;
         }
 
         public string GetTypeName(IType fieldType, FieldNode? field, bool readOnly)
         {
-            if (fieldType.NamedType() is ScalarType scalarType)
+            if (fieldType.NamedType().IsLeafType())
             {
-                if (!_leafTypes.TryGetValue(scalarType.Name, out LeafTypeInfo? type))
-                {
-                    throw new NotSupportedException(
-                        $"Scalar type `{scalarType.Name}` is not supported.");
-                }
-                return BuildType(type.ClrType, fieldType, readOnly);
-            }
-
-            if (fieldType.NamedType() is EnumType enumType)
-            {
-                return BuildType(enumType.Name, fieldType, readOnly, true);
+                return GetLeafClrTypeName(fieldType);
             }
 
             if (field is null)
@@ -109,14 +103,9 @@ namespace StrawberryShake.Generators.CSharp
 
         public string GetTypeName(IType fieldType, string? typeName, bool readOnly)
         {
-            if (fieldType.NamedType() is ScalarType scalarType)
+            if (fieldType.NamedType().IsLeafType())
             {
-                if (!_leafTypes.TryGetValue(scalarType.Name, out LeafTypeInfo? type))
-                {
-                    throw new NotSupportedException(
-                        $"Scalar type `{scalarType.Name}` is not supported.");
-                }
-                return BuildType(type.ClrType, fieldType, readOnly, true);
+                return GetLeafClrTypeName(fieldType);
             }
 
             if (typeName is null)
@@ -295,7 +284,10 @@ namespace StrawberryShake.Generators.CSharp
             {
                 string elementType = CreateLeafClrTypeName(type.ElementType(), true);
                 string listType = $"IReadOnlyList<{elementType}>";
-                return nullable ? listType + "?" : listType;
+
+                return _nullableRef && nullable
+                    ? listType + "?"
+                    : listType;
             }
 
             string typeName = type.NamedType().Name;
@@ -312,7 +304,9 @@ namespace StrawberryShake.Generators.CSharp
             }
 
             string clrTypeName = GetTypeName(typeInfo.ClrType);
-            return nullable ? clrTypeName + "?" : clrTypeName;
+            return (_nullableRef || typeInfo.ClrType.IsValueType) && nullable
+                ? clrTypeName + "?"
+                : clrTypeName;
         }
 
         public Type GetSerializationType(IType type)

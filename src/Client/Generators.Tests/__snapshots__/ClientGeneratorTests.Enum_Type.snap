@@ -9,12 +9,12 @@ namespace StrawberryShake.Client
         : IGetEpisode
     {
         public GetEpisode(
-            IReadOnlyList<Episode>? appearsIn)
+            IReadOnlyList<Episode?>? appearsIn)
         {
             AppearsIn = appearsIn;
         }
 
-        public IReadOnlyList<Episode>? AppearsIn { get; }
+        public IReadOnlyList<Episode?>? AppearsIn { get; }
     }
 }
 
@@ -28,7 +28,7 @@ namespace StrawberryShake.Client
 {
     public interface IGetEpisode
     {
-        IReadOnlyList<Episode>? AppearsIn { get; }
+        IReadOnlyList<Episode?>? AppearsIn { get; }
     }
 }
 
@@ -60,7 +60,7 @@ namespace StrawberryShake.Client
 
         }
 
-        private Episode? DeserializeNullableListOfNullableEpisode(JsonElement obj, string fieldName)
+        private IReadOnlyList<Episode?>? DeserializeNullableListOfNullableEpisode(JsonElement obj, string fieldName)
         {
             if (!obj.TryGetProperty(fieldName, out JsonElement list))
             {

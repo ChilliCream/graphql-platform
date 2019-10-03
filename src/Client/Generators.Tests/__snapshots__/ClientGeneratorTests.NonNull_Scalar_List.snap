@@ -103,11 +103,11 @@ namespace StrawberryShake.Client
 
             return new Foo
             (
-                DeserializeNullableListOfNullableString(obj, "bars")
+                DeserializeListOfString(obj, "bars")
             );
         }
 
-        private string DeserializeNullableListOfNullableString(JsonElement obj, string fieldName)
+        private IReadOnlyList<string> DeserializeListOfString(JsonElement obj, string fieldName)
         {
             JsonElement list = obj.GetProperty(fieldName);
             int listLength = list.GetArrayLength();
