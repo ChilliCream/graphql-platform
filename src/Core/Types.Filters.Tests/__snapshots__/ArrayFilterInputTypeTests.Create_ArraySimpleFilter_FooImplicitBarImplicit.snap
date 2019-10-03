@@ -1,0 +1,257 @@
+﻿schema {
+  query: Query
+}
+
+type Query {
+  foo: String
+}
+
+input FooSimpleFilter {
+  AND: [FooSimpleFilter!]
+  barBool_all: ISingleFilterOfBooleanFilter
+  barBool_any: Boolean
+  barBool_none: ISingleFilterOfBooleanFilter
+  barBool_some: ISingleFilterOfBooleanFilter
+  barDatetime_all: ISingleFilterOfDateTimeFilter
+  barDatetime_any: Boolean
+  barDatetime_none: ISingleFilterOfDateTimeFilter
+  barDatetime_some: ISingleFilterOfDateTimeFilter
+  barDateTimeOffset_all: ISingleFilterOfDateTimeOffsetFilter
+  barDateTimeOffset_any: Boolean
+  barDateTimeOffset_none: ISingleFilterOfDateTimeOffsetFilter
+  barDateTimeOffset_some: ISingleFilterOfDateTimeOffsetFilter
+  barDecimal_all: ISingleFilterOfDecimalFilter
+  barDecimal_any: Boolean
+  barDecimal_none: ISingleFilterOfDecimalFilter
+  barDecimal_some: ISingleFilterOfDecimalFilter
+  barDouble_all: ISingleFilterOfDoubleFilter
+  barDouble_any: Boolean
+  barDouble_none: ISingleFilterOfDoubleFilter
+  barDouble_some: ISingleFilterOfDoubleFilter
+  barGuid_all: ISingleFilterOfGuidFilter
+  barGuid_any: Boolean
+  barGuid_none: ISingleFilterOfGuidFilter
+  barGuid_some: ISingleFilterOfGuidFilter
+  barInt16_all: ISingleFilterOfInt16Filter
+  barInt16_any: Boolean
+  barInt16_none: ISingleFilterOfInt16Filter
+  barInt16_some: ISingleFilterOfInt16Filter
+  barInt32_all: ISingleFilterOfInt32Filter
+  barInt32_any: Boolean
+  barInt32_none: ISingleFilterOfInt32Filter
+  barInt32_some: ISingleFilterOfInt32Filter
+  barInt64_all: ISingleFilterOfInt64Filter
+  barInt64_any: Boolean
+  barInt64_none: ISingleFilterOfInt64Filter
+  barInt64_some: ISingleFilterOfInt64Filter
+  barSingle_all: ISingleFilterOfSingleFilter
+  barSingle_any: Boolean
+  barSingle_none: ISingleFilterOfSingleFilter
+  barSingle_some: ISingleFilterOfSingleFilter
+  barString_all: ISingleFilterOfStringFilter
+  barString_any: Boolean
+  barString_none: ISingleFilterOfStringFilter
+  barString_some: ISingleFilterOfStringFilter
+  OR: [FooSimpleFilter!]
+}
+
+input ISingleFilterOfBooleanFilter {
+  AND: [ISingleFilterOfBooleanFilter!]
+  el: Boolean
+  el_not: Boolean
+  OR: [ISingleFilterOfBooleanFilter!]
+}
+
+input ISingleFilterOfDateTimeFilter {
+  AND: [ISingleFilterOfDateTimeFilter!]
+  el: DateTime
+  el_gt: DateTime
+  el_gte: DateTime
+  el_in: [DateTime!]
+  el_lt: DateTime
+  el_lte: DateTime
+  el_not: DateTime
+  el_not_gt: DateTime
+  el_not_gte: DateTime
+  el_not_in: [DateTime!]
+  el_not_lt: DateTime
+  el_not_lte: DateTime
+  OR: [ISingleFilterOfDateTimeFilter!]
+}
+
+input ISingleFilterOfDateTimeOffsetFilter {
+  AND: [ISingleFilterOfDateTimeOffsetFilter!]
+  el: DateTime
+  el_gt: DateTime
+  el_gte: DateTime
+  el_in: [DateTime!]
+  el_lt: DateTime
+  el_lte: DateTime
+  el_not: DateTime
+  el_not_gt: DateTime
+  el_not_gte: DateTime
+  el_not_in: [DateTime!]
+  el_not_lt: DateTime
+  el_not_lte: DateTime
+  OR: [ISingleFilterOfDateTimeOffsetFilter!]
+}
+
+input ISingleFilterOfDecimalFilter {
+  AND: [ISingleFilterOfDecimalFilter!]
+  el: Decimal
+  el_gt: Decimal
+  el_gte: Decimal
+  el_in: [Decimal!]
+  el_lt: Decimal
+  el_lte: Decimal
+  el_not: Decimal
+  el_not_gt: Decimal
+  el_not_gte: Decimal
+  el_not_in: [Decimal!]
+  el_not_lt: Decimal
+  el_not_lte: Decimal
+  OR: [ISingleFilterOfDecimalFilter!]
+}
+
+input ISingleFilterOfDoubleFilter {
+  AND: [ISingleFilterOfDoubleFilter!]
+  el: Float
+  el_gt: Float
+  el_gte: Float
+  el_in: [Float!]
+  el_lt: Float
+  el_lte: Float
+  el_not: Float
+  el_not_gt: Float
+  el_not_gte: Float
+  el_not_in: [Float!]
+  el_not_lt: Float
+  el_not_lte: Float
+  OR: [ISingleFilterOfDoubleFilter!]
+}
+
+input ISingleFilterOfGuidFilter {
+  AND: [ISingleFilterOfGuidFilter!]
+  el: Uuid
+  el_gt: Uuid
+  el_gte: Uuid
+  el_in: [Uuid!]
+  el_lt: Uuid
+  el_lte: Uuid
+  el_not: Uuid
+  el_not_gt: Uuid
+  el_not_gte: Uuid
+  el_not_in: [Uuid!]
+  el_not_lt: Uuid
+  el_not_lte: Uuid
+  OR: [ISingleFilterOfGuidFilter!]
+}
+
+input ISingleFilterOfInt16Filter {
+  AND: [ISingleFilterOfInt16Filter!]
+  el: Short
+  el_gt: Short
+  el_gte: Short
+  el_in: [Short!]
+  el_lt: Short
+  el_lte: Short
+  el_not: Short
+  el_not_gt: Short
+  el_not_gte: Short
+  el_not_in: [Short!]
+  el_not_lt: Short
+  el_not_lte: Short
+  OR: [ISingleFilterOfInt16Filter!]
+}
+
+input ISingleFilterOfInt32Filter {
+  AND: [ISingleFilterOfInt32Filter!]
+  el: Int
+  el_gt: Int
+  el_gte: Int
+  el_in: [Int!]
+  el_lt: Int
+  el_lte: Int
+  el_not: Int
+  el_not_gt: Int
+  el_not_gte: Int
+  el_not_in: [Int!]
+  el_not_lt: Int
+  el_not_lte: Int
+  OR: [ISingleFilterOfInt32Filter!]
+}
+
+input ISingleFilterOfInt64Filter {
+  AND: [ISingleFilterOfInt64Filter!]
+  el: Long
+  el_gt: Long
+  el_gte: Long
+  el_in: [Long!]
+  el_lt: Long
+  el_lte: Long
+  el_not: Long
+  el_not_gt: Long
+  el_not_gte: Long
+  el_not_in: [Long!]
+  el_not_lt: Long
+  el_not_lte: Long
+  OR: [ISingleFilterOfInt64Filter!]
+}
+
+input ISingleFilterOfSingleFilter {
+  AND: [ISingleFilterOfSingleFilter!]
+  el: Float
+  el_gt: Float
+  el_gte: Float
+  el_in: [Float!]
+  el_lt: Float
+  el_lte: Float
+  el_not: Float
+  el_not_gt: Float
+  el_not_gte: Float
+  el_not_in: [Float!]
+  el_not_lt: Float
+  el_not_lte: Float
+  OR: [ISingleFilterOfSingleFilter!]
+}
+
+input ISingleFilterOfStringFilter {
+  AND: [ISingleFilterOfStringFilter!]
+  el: String
+  el_contains: String
+  el_ends_with: String
+  el_in: [String]
+  el_not: String
+  el_not_contains: String
+  el_not_ends_with: String
+  el_not_in: [String]
+  el_not_starts_with: String
+  el_starts_with: String
+  OR: [ISingleFilterOfStringFilter!]
+}
+
+"The `Boolean` scalar type represents `true` or `false`."
+scalar Boolean
+
+"The `DateTime` scalar represents an ISO-8601 compliant date time type."
+scalar DateTime
+
+"The built-in `Decimal` scalar type."
+scalar Decimal
+
+"The `Float` scalar type represents signed double-precision fractional values as specified by [IEEE 754](http:\/\/en.wikipedia.org\/wiki\/IEEE_floating_point)."
+scalar Float
+
+"The `Int` scalar type represents non-fractional signed whole numeric values. Int can represent values between -(2^31) and 2^31 - 1."
+scalar Int
+
+"The `Long` scalar type represents non-fractional signed whole 64-bit numeric values. Long can represent values between -(2^63) and 2^63 - 1."
+scalar Long
+
+"The `Short` scalar type represents non-fractional signed whole 16-bit numeric values. Short can represent values between -(2^15) and 2^15 - 1."
+scalar Short
+
+"The `String` scalar type represents textual data, represented as UTF-8 character sequences. The String type is most often used by GraphQL to represent free-form human-readable text."
+scalar String
+
+scalar Uuid

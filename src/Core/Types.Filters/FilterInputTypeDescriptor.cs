@@ -129,8 +129,27 @@ namespace HotChocolate.Types.Filters
 
             if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType))
             {
-                var field = new ArrayFilterFieldDescriptor(
-                    Context, property, property.PropertyType.GetGenericArguments()[0]);
+                ArrayFilterFieldDescriptor field;
+
+                var genericTypeArgument = property.PropertyType.GetGenericArguments()[0];
+
+                if (genericTypeArgument == typeof(string)
+                    || genericTypeArgument == typeof(bool)
+                    || genericTypeArgument == typeof(bool?)
+                    || typeof(IComparable).IsAssignableFrom(genericTypeArgument))
+                {
+                    field = new ArrayFilterFieldDescriptor(
+                        Context,
+                        property,
+                        typeof(ISingleFilter<>).MakeGenericType(genericTypeArgument)
+                        );
+
+                }
+                else
+                {
+                    field = new ArrayFilterFieldDescriptor(Context, property, genericTypeArgument);
+
+                }
                 definition = field.CreateDefinition();
                 return true;
             }
@@ -238,9 +257,9 @@ namespace HotChocolate.Types.Filters
         }
 
 
-        public IArrayFilterFieldDescriptor<TObject> Filter<TObject>(
-            Expression<Func<T, IEnumerable<TObject>>> property)
-            where TObject : class
+
+        public IArrayFilterFieldDescriptor<TObject> ListFilter<TObject, TListType>(
+            Expression<Func<T, TListType>> property)
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
@@ -249,29 +268,34 @@ namespace HotChocolate.Types.Filters
                 return field;
             }
 
-            // TODO : resources
             throw new ArgumentException(
-                "Only properties are allowed for input types.",
+                FilterResources.FilterInputTypeDescriptor_OnlyProperties,
                 nameof(property));
+        }
+
+        public IArrayFilterFieldDescriptor<TObject> Filter<TObject>(
+            Expression<Func<T, IEnumerable<TObject>>> property)
+            where TObject : class
+        {
+            return ListFilter<TObject, IEnumerable<TObject>>(property);
         }
 
         public IArrayFilterFieldDescriptor<TObject> Filter<TObject>(
             Expression<Func<T, List<TObject>>> property)
             where TObject : class
         {
-            if (property.ExtractMember() is PropertyInfo p)
-            {
-                var field = new ArrayFilterFieldDescriptor<TObject>(Context, p);
-                Fields.Add(field);
-                return field;
-            }
-
-            // TODO : resources
-            throw new ArgumentException(
-                "Only properties are allowed for input types.",
-                nameof(property));
+            return ListFilter<TObject, List<TObject>>(property);
         }
 
+        public IArrayFilterFieldDescriptor<ISingleFilter<string>> Filter(Expression<Func<T, IEnumerable<string>>> property)
+        {
+            return ListFilter<ISingleFilter<string>, IEnumerable<string>>(property);
+        }
+
+        public IArrayFilterFieldDescriptor<ISingleFilter<string>> Filter(Expression<Func<T, List<string>>> property)
+        {
+            return ListFilter<ISingleFilter<string>, List<string>>(property);
+        }
         public static FilterInputTypeDescriptor<T> New(
             IDescriptorContext context, Type entityType) =>
             new FilterInputTypeDescriptor<T>(context, entityType);

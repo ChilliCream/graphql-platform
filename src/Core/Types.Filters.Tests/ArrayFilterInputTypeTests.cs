@@ -10,7 +10,51 @@ namespace HotChocolate.Types.Filters
         : TypeTestBase
     {
 
-        //
+
+        [Fact]
+        public void Create_ArraySimpleFilter_FooImplicitBarImplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>());
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_ArrayStringFilter_FooImplicitBarImplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooString>());
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_ArrayStringFilter_FooImplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<FooString>(
+                    x => x.Filter(y => y.BarString).BindImplicitly()
+                    .AllowSome(
+                        y => y.BindFieldsExplicitly()
+                        .Filter(z => z.El)
+                        .BindFiltersExplicitly()
+                        .AllowContains()
+                        )
+                    )
+           );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
         [Fact]
         public void Create_ArrayObjectFilter_FooImplicitBarImplicit()
         {
@@ -263,6 +307,26 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
+        public class FooString
+        {
+            public IEnumerable<string> BarString { get; set; }
+
+        }
+
+        public class FooSimple
+        {
+            public IEnumerable<string> BarString { get; set; }
+            public IEnumerable<bool> BarBool { get; set; }
+            public IEnumerable<short> BarInt16 { get; set; }
+            public IEnumerable<int> BarInt32 { get; set; }
+            public IEnumerable<long> BarInt64 { get; set; }
+            public IEnumerable<double> BarDouble { get; set; }
+            public IEnumerable<float> BarSingle { get; set; }
+            public IEnumerable<decimal> BarDecimal { get; set; }
+            public IEnumerable<Guid> BarGuid { get; set; }
+            public IEnumerable<DateTime> BarDatetime { get; set; }
+            public IEnumerable<DateTimeOffset> BarDateTimeOffset { get; set; }
+        }
 
 
         public class Foo
