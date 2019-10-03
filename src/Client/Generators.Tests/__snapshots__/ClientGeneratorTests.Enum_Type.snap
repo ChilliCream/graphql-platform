@@ -55,40 +55,38 @@ namespace StrawberryShake.Client
         {
             return new GetEpisode
             (
-                DeserializeNullableEpisodeList(data, "appearsIn")
+                DeserializeNullableListOfNullableEpisode(data, "appearsIn")
             );
 
         }
 
-        private List<Episode>? DeserializeNullableEpisodeList(JsonElement obj, string fieldName)
+        private Episode? DeserializeNullableListOfNullableEpisode(JsonElement obj, string fieldName)
         {
-            if (!obj.TryGetProperty(fieldName, out JsonElement value))
+            if (!obj.TryGetProperty(fieldName, out JsonElement list))
             {
                 return null;
             }
 
-            if (value.ValueKind == JsonValueKind.Null)
+            if (list.ValueKind == JsonValueKind.Null)
             {
                 return null;
             }
 
+            int listLength = list.GetArrayLength();
+            var listList = new Episode?[listLength];
 
-            int arrayLength = value.GetArrayLength();
-            var list = new List<string>(arrayLength);
-
-            for (int i = 0; i < arrayLength; i++)
+            for (int i = 0; i < listLength; i++)
             {
-                if (value[i].ValueKind == JsonValueKind.Null)
+                JsonElement element = list[i];
+                if (element.ValueKind == JsonValueKind.Null)
                 {
-                    list.Add(null);
+                    listList[i] = null;
                 }
                 else
                 {
-                    list.Add(($List<Episode>?)_$EpisodeSerializer.Serialize(value[i].GetString());
+                    list[i] = (Episode?)_episodeSerializer.Serialize(element.GetString())!;
                 }
             }
-
-        return list;
         }
     }
 }

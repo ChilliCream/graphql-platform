@@ -103,32 +103,21 @@ namespace StrawberryShake.Client
 
             return new Foo
             (
-                DeserializeNullableStringList(obj, "bars")
+                DeserializeNullableListOfNullableString(obj, "bars")
             );
         }
 
-        private List<string> DeserializeNullableStringList(JsonElement obj, string fieldName)
+        private string DeserializeNullableListOfNullableString(JsonElement obj, string fieldName)
         {
-            if (!obj.TryGetProperty(fieldName, out JsonElement value))
+            JsonElement list = obj.GetProperty(fieldName);
+            int listLength = list.GetArrayLength();
+            var listList = new string[listLength];
+
+            for (int i = 0; i < listLength; i++)
             {
-                return null;
+                JsonElement element = list[i];
+                    list[i] = (string)_stringSerializer.Serialize(element.GetString())!;
             }
-
-            if (value.ValueKind == JsonValueKind.Null)
-            {
-                return null;
-            }
-
-
-            int arrayLength = value.GetArrayLength();
-            var list = new List<string>(arrayLength);
-
-            for (int i = 0; i < arrayLength; i++)
-            {
-                list.Add(($List<string>)_$StringSerializer.Serialize(value[i].GetString());
-            }
-
-        return list;
         }
     }
 }

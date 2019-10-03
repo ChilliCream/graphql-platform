@@ -151,7 +151,7 @@ namespace StrawberryShake.Generators.CSharp
             string serializerMethod)
         {
             IType elementType = type.ElementType();
-            string clrTypeName = typeLookup.GetLeafClrTypeName(elementType);
+            string clrTypeName = typeLookup.GetLeafClrTypeName(type);
             string clrElementTypeName = typeLookup.GetLeafClrTypeName(elementType);
 
             await WriteDeserializerMethodAsync(
@@ -373,6 +373,7 @@ namespace StrawberryShake.Generators.CSharp
                     }
                     sb.Append("ListOf");
                 }
+                types.Push(current);
                 current = current.InnerType();
             }
 

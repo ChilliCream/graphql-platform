@@ -145,54 +145,48 @@ namespace StrawberryShake.Client
 
             return new Foo
             (
-                DeserializeBar(obj, "bar1"),
-                DeserializeBar(obj, "bar2"),
-                DeserializeNullableListBar(obj, "bar3"),
-                DeserializeNullableListBar(obj, "bar4"),
-                DeserializeNullableListBar(obj, "bar5"),
-                DeserializeNullableListBar(obj, "bar6")
+                DeserializeNullableBar(obj, "bar1"),
+                DeserializeNullableBar(obj, "bar2"),
+                DeserializeNullableListOfNullableBar(obj, "bar3"),
+                DeserializeNullableListOfNullableBar(obj, "bar4"),
+                DeserializeNullableListOfNullableBar(obj, "bar5"),
+                DeserializeNullableListOfNullableBar(obj, "bar6")
             );
         }
 
-        private Bar DeserializeBar(JsonElement obj, string fieldName)
+        private Bar DeserializeNullableBar(JsonElement obj, string fieldName)
         {
-            if (!obj.TryGetProperty(fieldName, out JsonElement value))
-            {
-                return null;
-            }
-
-            return (Bar)_barSerializer.Serialize(value.GetString());
+            JsonElement value = obj.GetProperty(fieldName);
+            return (Bar)_barSerializer.Serialize(value.GetString())!;
         }
 
-        private List<Bar>? DeserializeNullableListBar(JsonElement obj, string fieldName)
+        private Bar? DeserializeNullableListOfNullableBar(JsonElement obj, string fieldName)
         {
-            if (!obj.TryGetProperty(fieldName, out JsonElement value))
+            if (!obj.TryGetProperty(fieldName, out JsonElement list))
             {
                 return null;
             }
 
-            if (value.ValueKind == JsonValueKind.Null)
+            if (list.ValueKind == JsonValueKind.Null)
             {
                 return null;
             }
 
+            int listLength = list.GetArrayLength();
+            var listList = new Bar?[listLength];
 
-            int arrayLength = value.GetArrayLength();
-            var list = new List<string>(arrayLength);
-
-            for (int i = 0; i < arrayLength; i++)
+            for (int i = 0; i < listLength; i++)
             {
-                if (value[i].ValueKind == JsonValueKind.Null)
+                JsonElement element = list[i];
+                if (element.ValueKind == JsonValueKind.Null)
                 {
-                    list.Add(null);
+                    listList[i] = null;
                 }
                 else
                 {
-                    list.Add(($List<Bar>?)_$BarSerializer.Serialize(value[i].GetString());
+                    list[i] = (Bar?)_barSerializer.Serialize(element.GetString())!;
                 }
             }
-
-        return list;
         }
     }
 }

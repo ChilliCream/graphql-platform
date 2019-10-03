@@ -174,18 +174,8 @@ namespace StrawberryShake.Client
 
         private string DeserializeNullableString(JsonElement obj, string fieldName)
         {
-            if (!obj.TryGetProperty(fieldName, out JsonElement value))
-            {
-                return null;
-            }
-
-            if (value.ValueKind == JsonValueKind.Null)
-            {
-                return null;
-            }
-
-
-            return (string)_stringSerializer.Serialize(value.GetString());
+            JsonElement value = obj.GetProperty(fieldName);
+            return (string)_stringSerializer.Serialize(value.GetString())!;
         }
     }
 }
