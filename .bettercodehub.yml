@@ -1,8 +1,0 @@
-component_depth: 2
-languages:
-- csharp
-exclude:
-- /examples/.*
-- /benchmarks/.*
-- /src/Templates/.*
-- .*\.js
