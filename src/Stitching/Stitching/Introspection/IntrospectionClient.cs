@@ -102,7 +102,8 @@ namespace HotChocolate.Stitching.Introspection
 
             var request = new HttpQueryRequest
             {
-                Query = GetIntrospectionQuery(_phase1)
+                Query = GetIntrospectionQuery(_phase1),
+                OperationName = "introspection_phase_1",
             };
 
             (string json, HttpResponseMessage _) response =
@@ -138,7 +139,8 @@ namespace HotChocolate.Stitching.Introspection
 
             var request = new HttpQueryRequest
             {
-                Query = QuerySyntaxSerializer.Serialize(query)
+                Query = QuerySyntaxSerializer.Serialize(query),
+                OperationName = "introspection_phase_2"
             };
 
             (string json, HttpResponseMessage _) response =
