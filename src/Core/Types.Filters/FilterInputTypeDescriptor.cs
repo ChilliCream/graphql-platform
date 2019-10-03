@@ -239,7 +239,23 @@ namespace HotChocolate.Types.Filters
 
 
         public IArrayFilterFieldDescriptor<TObject> Filter<TObject>(
-            Expression<Func<T, IEnumerable<TObject>>> property) where TObject : class
+            Expression<Func<T, IEnumerable<TObject>>> property)
+        {
+            if (property.ExtractMember() is PropertyInfo p)
+            {
+                var field = new ArrayFilterFieldDescriptor<TObject>(Context, p);
+                Fields.Add(field);
+                return field;
+            }
+
+            // TODO : resources
+            throw new ArgumentException(
+                "Only properties are allowed for input types.",
+                nameof(property));
+        }
+
+        public IArrayFilterFieldDescriptor<TObject> Filter<TObject>(
+            Expression<Func<T, List<TObject>>> property)
         {
             if (property.ExtractMember() is PropertyInfo p)
             {

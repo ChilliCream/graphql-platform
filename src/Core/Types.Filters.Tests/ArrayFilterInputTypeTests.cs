@@ -265,6 +265,12 @@ namespace HotChocolate.Types.Filters
 
 
 
+        public class FooList
+        {
+            public string Bar { get; set; }
+            public IEnumerable<Bar> BarNested { get; set; }
+        }
+
         public class Foo
         {
             public string Bar { get; set; }

@@ -83,8 +83,16 @@ namespace HotChocolate.Types.Filters
         /// The property for which a filter shall be applied.
         /// </param>
         IArrayFilterFieldDescriptor<TObject> Filter<TObject>(
-            Expression<Func<T, IEnumerable<TObject>>> property)
-            where TObject : class;
+            Expression<Func<T, IEnumerable<TObject>>> property);
+
+        /// <summary>
+        /// Define a object filter for a List of type object
+        /// </summary>
+        /// <param name="property">
+        /// The property for which a filter shall be applied.
+        /// </param>
+        IArrayFilterFieldDescriptor<TObject> Filter<TObject>(
+            Expression<Func<T, List<TObject>>> property);
 
         /// <summary>
         /// Ignore the specified property.
