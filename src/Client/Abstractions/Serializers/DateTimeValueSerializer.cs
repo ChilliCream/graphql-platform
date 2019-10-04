@@ -9,7 +9,7 @@ namespace StrawberryShake.Serializers
         private const string _utcFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffZ";
         private const string _localFormat = "yyyy-MM-ddTHH\\:mm\\:ss.fffzzz";
 
-        public override string Name => WellKnownScalars.Date;
+        public override string Name => WellKnownScalars.DateTime;
 
         public override ValueKind Kind => ValueKind.String;
 
