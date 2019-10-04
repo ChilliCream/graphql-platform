@@ -375,21 +375,17 @@ namespace StrawberryShake.Generators
 
         private DocumentNode MergeSchema()
         {
+            if (_schemas.Count == 1)
+            {
+                return _schemas.First().Value;
+            }
+
             SchemaMerger merger = SchemaMerger.New();
 
             foreach (KeyValuePair<string, DocumentNode> schema in _schemas)
             {
                 merger.AddSchema(schema.Key, schema.Value);
             }
-
-            merger.AddSchema(
-                "____directives" + Guid.NewGuid().ToString("N"),
-                Utf8GraphQLParser.Parse(@"
-                    directive @runtimeType(name: String!) on SCALAR
-                    directive @serializationTypeType(name: String!) on SCALAR
-                "));
-
-            merger.AddTypeMergeHandler<ScalarTypeMergeHandler>();
 
             return merger.Merge();
         }
@@ -401,9 +397,77 @@ namespace StrawberryShake.Generators
                 return schema;
             }
 
-            var rewriter = new AddSchemaExtensionRewriter();
-            DocumentNode currentSchema = schema;
+            var rewriter = new AddSchemaExtensionRewriter(new[]
+            {
+                new DirectiveDefinitionNode
+                (
+                    null,
+                    new NameNode(GeneratorDirectives.ClrType),
+                    null,
+                    false,
+                    new[]
+                    {
+                        new InputValueDefinitionNode(
+                            null,
+                            new NameNode(GeneratorDirectives.NameArgument),
+                            null,
+                            new NonNullTypeNode(new NamedTypeNode("String")),
+                            null,
+                            Array.Empty<DirectiveNode>()
+                        )
+                    },
+                    new []
+                    {
+                        new NameNode(HotChocolate.Language.DirectiveLocation.Scalar.ToString())
+                    }
+                ),
+                new DirectiveDefinitionNode
+                (
+                    null,
+                    new NameNode(GeneratorDirectives.SerializationType),
+                    null,
+                    false,
+                    new[]
+                    {
+                        new InputValueDefinitionNode(
+                            null,
+                            new NameNode(GeneratorDirectives.NameArgument),
+                            null,
+                            new NonNullTypeNode(new NamedTypeNode("String")),
+                            null,
+                            Array.Empty<DirectiveNode>()
+                        )
+                    },
+                    new []
+                    {
+                        new NameNode(HotChocolate.Language.DirectiveLocation.Scalar.ToString())
+                    }
+                ),
+                new DirectiveDefinitionNode
+                (
+                    null,
+                    new NameNode(GeneratorDirectives.Name),
+                    null,
+                    false,
+                    new[]
+                    {
+                        new InputValueDefinitionNode(
+                            null,
+                            new NameNode(GeneratorDirectives.NameArgument),
+                            null,
+                            new NonNullTypeNode(new NamedTypeNode("String")),
+                            null,
+                            Array.Empty<DirectiveNode>()
+                        )
+                    },
+                    new []
+                    {
+                        new NameNode(HotChocolate.Language.DirectiveLocation.Scalar.ToString())
+                    }
+                )
+            });
 
+            DocumentNode currentSchema = schema;
             foreach (DocumentNode extension in _extensions)
             {
                 currentSchema = rewriter.AddExtensions(
