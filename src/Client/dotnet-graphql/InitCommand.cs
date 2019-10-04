@@ -78,7 +78,7 @@ namespace StrawberryShake.Tools
                 Directory.CreateDirectory(Path);
             }
 
-            SchemaName = SchemaName ?? "schema";
+            SchemaName = (SchemaName ?? "schema").Trim();
             string schemaFielName = SchemaName + ".graphql";
 
             var configuration = new Configuration();

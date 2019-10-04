@@ -8,6 +8,10 @@ namespace StrawberryShake.Generators
 
         public const string Name = "name";
 
+        public const string ClrType = "runtimeType";
+
+        public const string SerializationType = "serializationType";
+
         public const string Operation = "operation";
 
         public const string NameArgument = "name";

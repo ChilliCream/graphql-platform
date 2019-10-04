@@ -11,6 +11,23 @@ namespace HotChocolate.Stitching.Merge
     public class AddSchemaExtensionRewriter
         : SchemaSyntaxRewriter<AddSchemaExtensionRewriter.MergeContext>
     {
+        private Dictionary<string, DirectiveDefinitionNode> _gloabalDirectives;
+
+        public AddSchemaExtensionRewriter()
+        {
+            _gloabalDirectives = new Dictionary<string, DirectiveDefinitionNode>();
+        }
+
+        public AddSchemaExtensionRewriter(IEnumerable<DirectiveDefinitionNode> gloabalDirectives)
+        {
+            if (gloabalDirectives is null)
+            {
+                throw new ArgumentNullException(nameof(gloabalDirectives));
+            }
+
+            _gloabalDirectives = gloabalDirectives.ToDictionary(t => t.Name.Value);
+        }
+
         public DocumentNode AddExtensions(
             DocumentNode schema,
             DocumentNode extensions)
@@ -452,7 +469,7 @@ namespace HotChocolate.Stitching.Merge
             return base.RewriteScalarTypeDefinition(current, context);
         }
 
-        private static TDefinition AddDirectives<TDefinition, TExtension>(
+        private TDefinition AddDirectives<TDefinition, TExtension>(
             TDefinition typeDefinition,
             TExtension typeExtension,
             Func<IReadOnlyList<DirectiveNode>, TDefinition> withDirectives,
@@ -471,8 +488,10 @@ namespace HotChocolate.Stitching.Merge
 
             foreach (DirectiveNode directive in typeExtension.Directives)
             {
-                if (!context.Directives.TryGetValue(directive.Name.Value,
-                    out DirectiveDefinitionNode directiveDefinition))
+                if (!_gloabalDirectives.TryGetValue(directive.Name.Value,
+                    out DirectiveDefinitionNode directiveDefinition)
+                    && !context.Directives.TryGetValue(directive.Name.Value,
+                        out directiveDefinition))
                 {
                     throw new SchemaMergeException(
                         typeDefinition, typeExtension,

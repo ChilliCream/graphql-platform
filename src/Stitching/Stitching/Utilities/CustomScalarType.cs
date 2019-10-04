@@ -4,16 +4,19 @@ using HotChocolate.Types;
 
 namespace HotChocolate.Stitching.Utilities
 {
-    internal sealed class CustomScalarType
+    public sealed class CustomScalarType
         : ScalarType
     {
         public CustomScalarType(ScalarTypeDefinitionNode typeDefinition)
             : base(typeDefinition?.Name.Value)
         {
             Description = typeDefinition?.Description?.Value;
+            SyntaxNode = typeDefinition;
         }
 
         public override Type ClrType => typeof(object);
+
+        public ScalarTypeDefinitionNode SyntaxNode { get; }
 
         public override bool IsInstanceOfType(IValueNode literal)
         {

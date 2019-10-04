@@ -9,12 +9,15 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Merge;
 using HotChocolate.Validation;
+using HotChocolate.Stitching.Utilities;
+using HotChocolate.Types;
+using HotChocolate.Stitching;
 using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.CSharp;
+using StrawberryShake.Generators.Types;
 using IOPath = System.IO.Path;
 using HCError = HotChocolate.IError;
 using HCErrorBuilder = HotChocolate.ErrorBuilder;
-using StrawberryShake.Generators.Types;
 
 namespace StrawberryShake.Generators
 {
@@ -319,9 +322,10 @@ namespace StrawberryShake.Generators
             DocumentNode mergedSchema = MergeSchema();
             mergedSchema = MergeSchemaExtensions(mergedSchema);
             ISchema schema = CreateSchema(mergedSchema);
+            InitializeScalarTypes(schema);
 
             // parse queries
-            var errors = ValidateQueryDocuments(schema);
+            IReadOnlyList<HCError> errors = ValidateQueryDocuments(schema);
             if (errors.Count > 0)
             {
                 throw new GeneratorException(errors);
@@ -381,9 +385,77 @@ namespace StrawberryShake.Generators
                 return schema;
             }
 
-            var rewriter = new AddSchemaExtensionRewriter();
-            DocumentNode currentSchema = schema;
+            var rewriter = new AddSchemaExtensionRewriter(new[]
+            {
+                new DirectiveDefinitionNode
+                (
+                    null,
+                    new NameNode(GeneratorDirectives.ClrType),
+                    null,
+                    false,
+                    new[]
+                    {
+                        new InputValueDefinitionNode(
+                            null,
+                            new NameNode(GeneratorDirectives.NameArgument),
+                            null,
+                            new NonNullTypeNode(new NamedTypeNode("String")),
+                            null,
+                            Array.Empty<DirectiveNode>()
+                        )
+                    },
+                    new []
+                    {
+                        new NameNode(HotChocolate.Language.DirectiveLocation.Scalar.ToString())
+                    }
+                ),
+                new DirectiveDefinitionNode
+                (
+                    null,
+                    new NameNode(GeneratorDirectives.SerializationType),
+                    null,
+                    false,
+                    new[]
+                    {
+                        new InputValueDefinitionNode(
+                            null,
+                            new NameNode(GeneratorDirectives.NameArgument),
+                            null,
+                            new NonNullTypeNode(new NamedTypeNode("String")),
+                            null,
+                            Array.Empty<DirectiveNode>()
+                        )
+                    },
+                    new []
+                    {
+                        new NameNode(HotChocolate.Language.DirectiveLocation.Scalar.ToString())
+                    }
+                ),
+                new DirectiveDefinitionNode
+                (
+                    null,
+                    new NameNode(GeneratorDirectives.Name),
+                    null,
+                    false,
+                    new[]
+                    {
+                        new InputValueDefinitionNode(
+                            null,
+                            new NameNode(GeneratorDirectives.NameArgument),
+                            null,
+                            new NonNullTypeNode(new NamedTypeNode("String")),
+                            null,
+                            Array.Empty<DirectiveNode>()
+                        )
+                    },
+                    new []
+                    {
+                        new NameNode(HotChocolate.Language.DirectiveLocation.Scalar.ToString())
+                    }
+                )
+            });
 
+            DocumentNode currentSchema = schema;
             foreach (DocumentNode extension in _extensions)
             {
                 currentSchema = rewriter.AddExtensions(
@@ -395,12 +467,23 @@ namespace StrawberryShake.Generators
 
         private static ISchema CreateSchema(DocumentNode schema)
         {
-            return SchemaBuilder.New()
-                .Use(next => context => Task.CompletedTask)
+            SchemaBuilder builder = SchemaBuilder.New();
+
+            foreach (CustomScalarType type in schema.Definitions
+                .OfType<ScalarTypeDefinitionNode>()
+                .Where(t => !Scalars.IsBuiltIn(t.Name.Value))
+                .Select(t => new CustomScalarType(t)))
+            {
+                builder.AddType(type);
+            }
+
+            return builder.Use(next => context => Task.CompletedTask)
                 .AddDocument(schema)
                 .AddDirectiveType<NameDirectiveType>()
                 .AddDirectiveType<TypeDirectiveType>()
                 .AddDirectiveType<SerializationDirectiveType>()
+                .AddDirectiveType<DelegateDirectiveType>()
+                .ModifyOptions(t => t.StrictValidation = false)
                 .Create();
         }
 
@@ -441,6 +524,51 @@ namespace StrawberryShake.Generators
                     fieldTypes[fieldType.Key] = fieldType.Value;
                 }
             }
+        }
+        // new LeafTypeInfo("DateTime", typeof(DateTimeOffset), typeof(string)),
+
+        private void InitializeScalarTypes(ISchema schema)
+        {
+            foreach (CustomScalarType scalarType in schema.Types.OfType<CustomScalarType>())
+            {
+                if (!_leafTypes.TryGetValue(scalarType.Name, out LeafTypeInfo? typeInfo))
+                {
+                    Type? clrType = GetTypeFromDirective(
+                        scalarType,
+                        GeneratorDirectives.ClrType);
+
+                    if (clrType is null)
+                    {
+                        clrType = typeof(string);
+                    }
+
+                    Type serializationType = GetTypeFromDirective(
+                        scalarType,
+                        GeneratorDirectives.ClrType) ??
+                        clrType;
+
+                    _leafTypes[scalarType.Name] =
+                        new LeafTypeInfo(scalarType.Name, clrType, serializationType);
+                }
+            }
+        }
+
+        private static Type? GetTypeFromDirective(
+            CustomScalarType scalarType,
+            string directiveName)
+        {
+            DirectiveNode typeDirective = scalarType.SyntaxNode.Directives
+                .FirstOrDefault(t => t.Name.Value.Equals(directiveName));
+
+            if (typeDirective is null)
+            {
+                return null;
+            }
+
+            ArgumentNode name = typeDirective.Arguments.First(t =>
+                t.Name.Value.Equals(GeneratorDirectives.Name));
+
+            return Type.GetType(((StringValueNode)name.Value).Value);
         }
 
         private IReadOnlyList<HCError> ValidateQueryDocuments(ISchema schema)
@@ -529,6 +657,31 @@ namespace StrawberryShake.Generators
             public int? MaxOperationComplexity => null;
 
             public bool? UseComplexityMultipliers => null;
+        }
+
+        internal class ScalarTypeMergeHandler
+            : ITypeMergeHandler
+        {
+            private readonly MergeTypeRuleDelegate _next;
+
+            public ScalarTypeMergeHandler(MergeTypeRuleDelegate next)
+            {
+                _next = next ?? throw new ArgumentNullException(nameof(next));
+            }
+
+            public void Merge(
+                ISchemaMergeContext context,
+                IReadOnlyList<HotChocolate.Stitching.Merge.ITypeInfo> types)
+            {
+                if (types.OfType<ITypeInfo<ScalarTypeDefinitionNode>>().Any())
+                {
+                    ITypeInfo<ScalarTypeDefinitionNode> scalar =
+                        types.OfType<ITypeInfo<ScalarTypeDefinitionNode>>().FirstOrDefault();
+                    context.AddType(scalar.Definition);
+                    return;
+                }
+                _next(context, types);
+            }
         }
     }
 }

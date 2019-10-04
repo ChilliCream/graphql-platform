@@ -432,5 +432,47 @@ namespace StrawberryShake.Generators
             // assert
             outputHandler.Content.MatchSnapshot();
         }
+
+        [Fact]
+        public async Task Custom_Scalar_Types()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo: Bar
+                    baz: Qux
+                    abc: String
+                }
+
+                scalar String
+                scalar Bar
+                scalar Qux
+                ";
+
+            string extensions = @"
+                extend scalar Bar @runtimeType(name: ""System.String"")
+                extend scalar Qux @runtimeType(name: ""System.Int32"")";
+
+            string query =
+               @"
+                query getFoo {
+                    foo
+                    baz
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .AddSchemaDocumentFromString("Extensions", extensions)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
     }
 }
