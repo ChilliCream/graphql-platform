@@ -79,10 +79,23 @@ namespace StrawberryShake.Tools
                 return false;
             }
 
-            string newHash = string.Join(string.Empty, documents.Select(t => t.Hash));
+            string newHash = CreateHash(documents);
             string currentHash = await File.ReadAllTextAsync(hashFile);
 
             return string.Equals(newHash, currentHash, StringComparison.Ordinal);
+        }
+
+        private string CreateHash(IReadOnlyList<DocumentInfo> documents)
+        {
+            string? version = GetType().Assembly?.GetName().Version?.ToString();
+            string hash = string.Join("_", documents.Select(t => t.Hash));
+
+            if (version is { })
+            {
+                hash = "{version}__{newHash}";
+            }
+
+            return hash;
         }
 
         protected override void WriteCompileStartedMessage()

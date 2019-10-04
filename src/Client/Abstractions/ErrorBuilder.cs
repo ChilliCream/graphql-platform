@@ -1,3 +1,4 @@
+using System.Collections;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -71,6 +72,20 @@ namespace StrawberryShake
             return this;
         }
 
+        public ErrorBuilder AddLocations(IEnumerable<Location> locations)
+        {
+            if (locations is null)
+            {
+                throw new ArgumentNullException(nameof(locations));
+            }
+
+            CheckIfDirty();
+
+            _locations = new List<Location>(locations);
+
+            return this;
+        }
+
         public ErrorBuilder AddLocation(Location location)
         {
             if (location.Equals(default(Location)))
@@ -121,6 +136,23 @@ namespace StrawberryShake
         public ErrorBuilder SetException(Exception? exception)
         {
             _exception = exception;
+            return this;
+        }
+
+        public ErrorBuilder SetExtensions(
+            IEnumerable<KeyValuePair<string, object?>> extensions)
+        {
+            CheckIfDirty();
+
+            if (extensions is null)
+            {
+                _extensions = null;
+            }
+            else
+            {
+                _extensions = extensions.ToDictionary(t => t.Key, t => t.Value);
+            }
+
             return this;
         }
 

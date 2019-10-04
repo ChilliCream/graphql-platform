@@ -346,7 +346,7 @@ namespace StrawberryShake.Generators.CSharp
         {
             await writer.WriteAsync(
                 $"({clrTypeName})_{GetFieldName(schemaTypeName)}Serializer." +
-                $"Serialize({valueName}.{serializerMethod}())")
+                $"Deserialize({valueName}.{serializerMethod}())")
                 .ConfigureAwait(false);
 
             if (_languageVersion == LanguageVersion.CSharp_8_0)

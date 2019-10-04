@@ -10,6 +10,8 @@ namespace StrawberryShake
 
         IReadOnlyDictionary<string, object?> Extensions { get; }
 
+        bool HasErrors { get; }
+
         void EnsureNoErrors();
     }
 }

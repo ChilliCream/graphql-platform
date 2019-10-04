@@ -127,7 +127,6 @@ namespace StrawberryShake.Generators.CSharp
             IResultParserMethodDescriptor methodDescriptor,
             ITypeLookup typeLookup)
         {
-
             if (methodDescriptor.ResultType.IsListType())
             {
                 await WriteListAsync(
@@ -449,6 +448,19 @@ namespace StrawberryShake.Generators.CSharp
             {
                 await writer.WriteIndentAsync();
                 await writer.WriteAsync("if (!parent.TryGetProperty(field, out JsonElement obj))");
+                await writer.WriteLineAsync();
+
+                await writer.WriteIndentAsync();
+                using (writer.WriteBraces())
+                {
+                    await writer.WriteIndentAsync();
+                    await writer.WriteAsync("return null;");
+                }
+                await writer.WriteLineAsync();
+                await writer.WriteLineAsync();
+
+                await writer.WriteIndentAsync();
+                await writer.WriteAsync("if (obj.ValueKind == JsonValueKind.Null)");
                 await writer.WriteLineAsync();
 
                 await writer.WriteIndentAsync();
