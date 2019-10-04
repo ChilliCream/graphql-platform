@@ -214,6 +214,13 @@ namespace StrawberryShake
             return new ErrorBuilder(error);
         }
 
+        public static ErrorBuilder FromException(Exception exception)
+        {
+            return ErrorBuilder.New()
+                .SetMessage(exception.Message)
+                .SetException(exception);
+        }
+
         public static ErrorBuilder FromDictionary(
             IReadOnlyDictionary<string, object> dict)
         {

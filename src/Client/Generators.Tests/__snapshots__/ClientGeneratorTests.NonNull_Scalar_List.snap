@@ -116,7 +116,7 @@ namespace StrawberryShake.Client
             for (int i = 0; i < listLength; i++)
             {
                 JsonElement element = list[i];
-                    list[i] = (string)_stringSerializer.Serialize(element.GetString())!;
+                    list[i] = (string)_stringSerializer.Deserialize(element.GetString())!;
             }
         }
     }

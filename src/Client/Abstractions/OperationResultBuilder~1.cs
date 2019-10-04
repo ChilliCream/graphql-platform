@@ -1,24 +1,44 @@
 using System.Linq;
 using System;
-using System.Collections.Generic;
 
 namespace StrawberryShake
 {
 
     public class OperationResultBuilder<T>
-        where T : class
+        : IOperationResultBuilder
     {
-        private T? _data;
+        private readonly ConstructorInfo _createResult;
+        private readonly Type _resultType;
+        private object? _data;
         private List<IError>? _errors;
         private Dictionary<string, object?>? _extensions;
         private bool _dirty;
 
-        public OperationResultBuilder()
+        public OperationResultBuilder(Type resultType)
         {
+            if (resultType is null)
+            {
+                throw new ArgumentNullException(nameof(resultType));
+            }
+
+            _createResult = typeof(OperationResult<>)
+                .MakeGenericType(resultType)
+                .GetConstructors()[0];
+            _resultType = resultType;
         }
 
-        public OperationResultBuilder(IOperationResult<T> result)
+        public OperationResultBuilder(IOperationResult result)
         {
+            if (result is null)
+            {
+                throw new ArgumentNullException(nameof(result));
+            }
+
+            _createResult = typeof(OperationResult<>)
+                .MakeGenericType(result.ResultType)
+                .GetConstructors()[0];
+            _resultType = result.ResultType;
+
             _data = result.Data;
             _errors = result.Errors.Count == 0
                 ? null
@@ -28,7 +48,7 @@ namespace StrawberryShake
                 : result.Extensions.ToDictionary(t => t.Key, t => t.Value);
         }
 
-        public OperationResultBuilder<T> SetData(T data)
+        public OperationResultBuilder SetData(object data)
         {
             if (data is null)
             {
@@ -39,7 +59,7 @@ namespace StrawberryShake
             return this;
         }
 
-        public OperationResultBuilder<T> AddErrors(
+        public OperationResultBuilder AddErrors(
             IEnumerable<IError> errors)
         {
             CheckIfDirty();
@@ -54,7 +74,7 @@ namespace StrawberryShake
             return this;
         }
 
-        public OperationResultBuilder<T> AddError(IError error)
+        public OperationResultBuilder AddError(IError error)
         {
             CheckIfDirty();
 
@@ -68,14 +88,14 @@ namespace StrawberryShake
             return this;
         }
 
-        public OperationResultBuilder<T> ClearErrors()
+        public OperationResultBuilder ClearErrors()
         {
             CheckIfDirty();
             _errors = null;
             return this;
         }
 
-        public OperationResultBuilder<T> AddExtensions(
+        public OperationResultBuilder AddExtensions(
             IEnumerable<KeyValuePair<string, object?>> extensions)
         {
             CheckIfDirty();
@@ -93,7 +113,7 @@ namespace StrawberryShake
             return this;
         }
 
-        public OperationResultBuilder<T> AddExtension(
+        public OperationResultBuilder AddExtension(
             string key, object? value)
         {
             CheckIfDirty();
@@ -107,7 +127,7 @@ namespace StrawberryShake
             return this;
         }
 
-        public OperationResultBuilder<T> SetExtension(string key, object? value)
+        public OperationResultBuilder SetExtension(string key, object? value)
         {
             CheckIfDirty();
 
@@ -120,7 +140,7 @@ namespace StrawberryShake
             return this;
         }
 
-        public OperationResultBuilder<T> RemoveExtension(string key)
+        public OperationResultBuilder RemoveExtension(string key)
         {
             CheckIfDirty();
 
@@ -133,14 +153,23 @@ namespace StrawberryShake
             return this;
         }
 
-        public OperationResultBuilder<T> ClearExtension()
+        public OperationResultBuilder ClearExtension()
         {
             CheckIfDirty();
             _extensions = null;
             return this;
         }
 
-        public IOperationResult<T> Build()
+        public OperationResultBuilder ClearAll()
+        {
+            _data = null;
+            _errors = null;
+            _extensions = null;
+            _dirty = false;
+            return this;
+        }
+
+        public IOperationResult Build()
         {
             if (_data is null && (_errors is null || _errors.Count == 0))
             {
@@ -149,11 +178,14 @@ namespace StrawberryShake
             }
 
             _dirty = true;
-            return new OperationResult<T>
+            return (IOperationResult)_createResult.Invoke
             (
-                _data,
-                _errors,
-                _extensions
+                new object?[]
+                {
+                    _data,
+                    _errors,
+                    _extensions
+                }
             );
         }
 
@@ -173,11 +205,20 @@ namespace StrawberryShake
             }
         }
 
-        public static OperationResultBuilder<T> New() =>
+        public static OperationResultBuilder New(Type resultType) =>
+            new OperationResultBuilder(resultType);
+
+        public static OperationResultBuilder FromResult(
+            IOperationResult result) =>
+            new OperationResultBuilder(result);
+
+        public static OperationResultBuilder<T> New<T>()
+            where T : class =>
             new OperationResultBuilder<T>();
 
-        public static OperationResultBuilder<T> FromResult(
-            IOperationResult<T> result) =>
+        public static OperationResultBuilder<T> FromResult<T>(
+            IOperationResult<T> result)
+            where T : class =>
             new OperationResultBuilder<T>(result);
     }
 }

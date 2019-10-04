@@ -22,5 +22,6 @@
     }
   },
   "Errors": [],
-  "Extensions": {}
+  "Extensions": {},
+  "HasErrors": false
 }

@@ -143,6 +143,11 @@ namespace StrawberryShake.Client
                 return null;
             }
 
+            if (obj.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return new Foo
             (
                 DeserializeBar(obj, "bar1"),
@@ -157,7 +162,7 @@ namespace StrawberryShake.Client
         private Bar DeserializeBar(JsonElement obj, string fieldName)
         {
             JsonElement value = obj.GetProperty(fieldName);
-            return (Bar)_barSerializer.Serialize(value.GetString())!;
+            return (Bar)_barSerializer.Deserialize(value.GetString())!;
         }
 
         private Bar? DeserializeNullableBar(JsonElement obj, string fieldName)
@@ -172,7 +177,7 @@ namespace StrawberryShake.Client
                 return null;
             }
 
-            return (Bar?)_barSerializer.Serialize(value.GetString())!;
+            return (Bar?)_barSerializer.Deserialize(value.GetString())!;
         }
 
         private IReadOnlyList<Bar?>? DeserializeNullableListOfNullableBar(JsonElement obj, string fieldName)
@@ -199,7 +204,7 @@ namespace StrawberryShake.Client
                 }
                 else
                 {
-                    list[i] = (Bar?)_barSerializer.Serialize(element.GetString())!;
+                    list[i] = (Bar?)_barSerializer.Deserialize(element.GetString())!;
                 }
             }
         }
@@ -219,7 +224,7 @@ namespace StrawberryShake.Client
                 }
                 else
                 {
-                    list[i] = (Bar?)_barSerializer.Serialize(element.GetString())!;
+                    list[i] = (Bar?)_barSerializer.Deserialize(element.GetString())!;
                 }
             }
         }
@@ -242,7 +247,7 @@ namespace StrawberryShake.Client
             for (int i = 0; i < listLength; i++)
             {
                 JsonElement element = list[i];
-                    list[i] = (Bar)_barSerializer.Serialize(element.GetString())!;
+                    list[i] = (Bar)_barSerializer.Deserialize(element.GetString())!;
             }
         }
 
@@ -255,7 +260,7 @@ namespace StrawberryShake.Client
             for (int i = 0; i < listLength; i++)
             {
                 JsonElement element = list[i];
-                    list[i] = (Bar)_barSerializer.Serialize(element.GetString())!;
+                    list[i] = (Bar)_barSerializer.Deserialize(element.GetString())!;
             }
         }
     }

@@ -97,7 +97,7 @@ namespace StrawberryShake.Client
                 return null;
             }
 
-            return (string?)_barSerializer.Serialize(value.GetString())!;
+            return (string?)_barSerializer.Deserialize(value.GetString())!;
         }
 
         private int? DeserializeNullableQux(JsonElement obj, string fieldName)
@@ -112,7 +112,7 @@ namespace StrawberryShake.Client
                 return null;
             }
 
-            return (int?)_quxSerializer.Serialize(value.GetInt32())!;
+            return (int?)_quxSerializer.Deserialize(value.GetInt32())!;
         }
     }
 }
