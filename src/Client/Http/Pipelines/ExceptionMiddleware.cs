@@ -21,17 +21,19 @@ namespace StrawberryShake.Http.Pipelines
             }
             catch (HttpRequestException ex)
             {
-                IError error = ErrorBuilder.FromException(ex)
-                    .SetCode(ErrorCodes.HttpError)
-                    .Build();
-
-                context.Result = OperationResultBuilder.New()
-                    .AddError(error)
-                    .Build();
+                context.Result.ClearAll();
+                context.Result.AddError(
+                    ErrorBuilder.FromException(ex)
+                        .SetCode(ErrorCodes.Http)
+                        .Build());
             }
             catch (Exception ex)
             {
-                ErrorBuilder.
+                context.Result.ClearAll();
+                context.Result.AddError(
+                    ErrorBuilder.FromException(ex)
+                        .SetCode(ErrorCodes.Unexpected)
+                        .Build());
             }
         }
     }

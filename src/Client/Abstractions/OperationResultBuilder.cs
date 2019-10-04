@@ -8,12 +8,20 @@ namespace StrawberryShake
     public class OperationResultBuilder
         : IOperationResultBuilder
     {
-        private readonly ConstructorInfo _createResult;
         private readonly Type _resultType;
+        private ConstructorInfo? _createResult;
         private object? _data;
         private List<IError>? _errors;
         private Dictionary<string, object?>? _extensions;
         private bool _dirty;
+
+        public object? Data => _data;
+
+        public IReadOnlyList<IError>? Errors => _errors;
+
+        public IReadOnlyDictionary<string, object?>? Extensions => _extensions;
+
+        public bool IsDataOrErrorModified { get; private set; }
 
         public OperationResultBuilder(Type resultType)
         {
@@ -22,9 +30,6 @@ namespace StrawberryShake
                 throw new ArgumentNullException(nameof(resultType));
             }
 
-            _createResult = typeof(OperationResult<>)
-                .MakeGenericType(resultType)
-                .GetConstructors()[0];
             _resultType = resultType;
         }
 
@@ -49,6 +54,9 @@ namespace StrawberryShake
                 : result.Extensions.ToDictionary(t => t.Key, t => t.Value);
         }
 
+        IOperationResultBuilder IOperationResultBuilder.SetData(object data) =>
+            SetData(data);
+
         public OperationResultBuilder SetData(object data)
         {
             if (data is null)
@@ -57,6 +65,7 @@ namespace StrawberryShake
             }
 
             _data = data;
+            IsDataOrErrorModified = true;
             return this;
         }
 
@@ -75,6 +84,7 @@ namespace StrawberryShake
             }
 
             _errors.AddRange(errors);
+            IsDataOrErrorModified = true;
 
             return this;
         }
@@ -93,9 +103,13 @@ namespace StrawberryShake
             }
 
             _errors.Add(error);
+            IsDataOrErrorModified = true;
 
             return this;
         }
+
+        IOperationResultBuilder IOperationResultBuilder.ClearErrors() =>
+            ClearErrors();
 
         public OperationResultBuilder ClearErrors()
         {
@@ -103,6 +117,10 @@ namespace StrawberryShake
             _errors = null;
             return this;
         }
+
+        IOperationResultBuilder IOperationResultBuilder.AddExtensions(
+            IEnumerable<KeyValuePair<string, object?>> extensions) =>
+            AddExtensions(extensions);
 
         public OperationResultBuilder AddExtensions(
             IEnumerable<KeyValuePair<string, object?>> extensions)
@@ -140,6 +158,10 @@ namespace StrawberryShake
             return this;
         }
 
+        IOperationResultBuilder IOperationResultBuilder.SetExtension(
+            string key, object? value) =>
+            SetExtension(key, value);
+
         public OperationResultBuilder SetExtension(string key, object? value)
         {
             CheckIfDirty();
@@ -152,6 +174,9 @@ namespace StrawberryShake
 
             return this;
         }
+
+        IOperationResultBuilder IOperationResultBuilder.RemoveExtension(
+            string key) => RemoveExtension(key);
 
         public OperationResultBuilder RemoveExtension(string key)
         {
@@ -166,12 +191,18 @@ namespace StrawberryShake
             return this;
         }
 
-        public OperationResultBuilder ClearExtension()
+        IOperationResultBuilder IOperationResultBuilder.ClearExtensions() =>
+            ClearExtensions();
+
+        public OperationResultBuilder ClearExtensions()
         {
             CheckIfDirty();
             _extensions = null;
             return this;
         }
+
+        IOperationResultBuilder IOperationResultBuilder.ClearAll() =>
+            ClearAll();
 
         public OperationResultBuilder ClearAll()
         {
@@ -179,27 +210,15 @@ namespace StrawberryShake
             _errors = null;
             _extensions = null;
             _dirty = false;
+            IsDataOrErrorModified = false;
             return this;
         }
 
         public IOperationResult Build()
         {
-            if (_data is null && (_errors is null || _errors.Count == 0))
-            {
-                throw new InvalidOperationException(
-                    "An operation result must either have data or errors or both.");
-            }
-
-            _dirty = true;
-            return (IOperationResult)_createResult.Invoke
-            (
-                new object?[]
-                {
-                    _data,
-                    _errors,
-                    _extensions
-                }
-            );
+            Validate();
+            SetDirty();
+            return CreateResult();
         }
 
         private void CheckIfDirty()
@@ -218,42 +237,38 @@ namespace StrawberryShake
             }
         }
 
-
-
-
-        IOperationResultBuilder IOperationResultBuilder.AddExtensions(IEnumerable<KeyValuePair<string, object?>> extensions)
+        protected virtual void Validate()
         {
-            throw new NotImplementedException();
+            if (_data is null && (_errors is null || _errors.Count == 0))
+            {
+                throw new InvalidOperationException(
+                    "An operation result must either have data or errors or both.");
+            }
         }
 
-        IOperationResultBuilder IOperationResultBuilder.ClearErrors()
+        protected virtual IOperationResult CreateResult()
         {
-            throw new NotImplementedException();
+            if (_createResult is null)
+            {
+                _createResult = typeof(OperationResult<>)
+                    .MakeGenericType(_resultType)
+                    .GetConstructors()[0];
+            }
+
+            return (IOperationResult)_createResult.Invoke
+            (
+                new object?[]
+                {
+                    _data,
+                    _errors,
+                    _extensions
+                }
+            );
         }
 
-        IOperationResultBuilder IOperationResultBuilder.ClearExtension()
+        protected void SetDirty()
         {
-            throw new NotImplementedException();
-        }
-
-        IOperationResultBuilder IOperationResultBuilder.RemoveExtension(string key)
-        {
-            throw new NotImplementedException();
-        }
-
-        IOperationResultBuilder IOperationResultBuilder.SetData(object data)
-        {
-            throw new NotImplementedException();
-        }
-
-        IOperationResultBuilder IOperationResultBuilder.SetExtension(string key, object? value)
-        {
-            throw new NotImplementedException();
-        }
-
-        IOperationResultBuilder IOperationResultBuilder.ClearAll()
-        {
-            throw new NotImplementedException();
+            _dirty = true;
         }
 
         public static OperationResultBuilder New(Type resultType) =>
@@ -271,7 +286,5 @@ namespace StrawberryShake
             IOperationResult<T> result)
             where T : class =>
             new OperationResultBuilder<T>(result);
-
-
     }
 }
