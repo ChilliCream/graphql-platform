@@ -9,15 +9,15 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Merge;
 using HotChocolate.Validation;
-using StrawberryShake.Generators.Descriptors;
-using StrawberryShake.Generators.CSharp;
-using IOPath = System.IO.Path;
-using HCError = HotChocolate.IError;
-using HCErrorBuilder = HotChocolate.ErrorBuilder;
-using StrawberryShake.Generators.Types;
 using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
 using HotChocolate.Stitching;
+using StrawberryShake.Generators.Descriptors;
+using StrawberryShake.Generators.CSharp;
+using StrawberryShake.Generators.Types;
+using IOPath = System.IO.Path;
+using HCError = HotChocolate.IError;
+using HCErrorBuilder = HotChocolate.ErrorBuilder;
 
 namespace StrawberryShake.Generators
 {
@@ -286,12 +286,6 @@ namespace StrawberryShake.Generators
             DocumentNode mergedSchema = MergeSchema();
             mergedSchema = MergeSchemaExtensions(mergedSchema);
             ISchema schema = CreateSchema(mergedSchema);
-            IReadOnlyList<HCError> errors =
-                InitializeScalarTypes(schema, "schema.graphql", mergedSchema);
-            if (errors.Count > 0)
-            {
-                return errors;
-            }
 
             // parse queries
             return ValidateQueryDocuments(schema);
@@ -328,16 +322,10 @@ namespace StrawberryShake.Generators
             DocumentNode mergedSchema = MergeSchema();
             mergedSchema = MergeSchemaExtensions(mergedSchema);
             ISchema schema = CreateSchema(mergedSchema);
-
-            IReadOnlyList<HCError> errors =
-                InitializeScalarTypes(schema, "schema.graphql", mergedSchema);
-            if (errors.Count > 0)
-            {
-                throw new GeneratorException(errors);
-            }
+            InitializeScalarTypes(schema);
 
             // parse queries
-            errors = ValidateQueryDocuments(schema);
+            IReadOnlyList<HCError> errors = ValidateQueryDocuments(schema);
             if (errors.Count > 0)
             {
                 throw new GeneratorException(errors);
@@ -495,6 +483,7 @@ namespace StrawberryShake.Generators
                 .AddDirectiveType<TypeDirectiveType>()
                 .AddDirectiveType<SerializationDirectiveType>()
                 .AddDirectiveType<DelegateDirectiveType>()
+                .ModifyOptions(t => t.StrictValidation = false)
                 .Create();
         }
 
@@ -538,13 +527,8 @@ namespace StrawberryShake.Generators
         }
         // new LeafTypeInfo("DateTime", typeof(DateTimeOffset), typeof(string)),
 
-        private IReadOnlyList<HCError> InitializeScalarTypes(
-            ISchema schema,
-            string schemaFile,
-            DocumentNode document)
+        private void InitializeScalarTypes(ISchema schema)
         {
-            var errors = new List<HCError>();
-
             foreach (CustomScalarType scalarType in schema.Types.OfType<CustomScalarType>())
             {
                 if (!_leafTypes.TryGetValue(scalarType.Name, out LeafTypeInfo? typeInfo))
@@ -555,26 +539,18 @@ namespace StrawberryShake.Generators
 
                     if (clrType is null)
                     {
-                        errors.Add(HCErrorBuilder.New()
-                            .SetMessage($"The custom scalar {scalarType.Name} has to be declared.")
-                            .SetExtension("fileName", schemaFile)
-                            .SetExtension("document", document)
-                            .Build());
+                        clrType = typeof(string);
                     }
-                    else
-                    {
-                        Type serializationType = GetTypeFromDirective(
-                            scalarType,
-                            GeneratorDirectives.ClrType) ??
-                            clrType;
 
-                        _leafTypes[scalarType.Name] =
-                            new LeafTypeInfo(scalarType.Name, clrType, serializationType);
-                    }
+                    Type serializationType = GetTypeFromDirective(
+                        scalarType,
+                        GeneratorDirectives.ClrType) ??
+                        clrType;
+
+                    _leafTypes[scalarType.Name] =
+                        new LeafTypeInfo(scalarType.Name, clrType, serializationType);
                 }
             }
-
-            return errors;
         }
 
         private static Type? GetTypeFromDirective(
