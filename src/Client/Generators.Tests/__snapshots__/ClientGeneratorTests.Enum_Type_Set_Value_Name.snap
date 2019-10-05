@@ -84,7 +84,7 @@ namespace StrawberryShake.Client
                 }
                 else
                 {
-                    list[i] = (Episode?)_episodeSerializer.Serialize(element.GetString())!;
+                    list[i] = (Episode?)_episodeSerializer.Deserialize(element.GetString())!;
                 }
             }
         }

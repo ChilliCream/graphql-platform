@@ -8,7 +8,7 @@ namespace StrawberryShake.Http
     public interface IHttpOperationContext
     {
         IOperation Operation { get; }
-        IOperationResult? Result { get; set; }
+        IOperationResultBuilder Result { get; }
         HttpRequestMessage? HttpRequest { get; set; }
         HttpResponseMessage? HttpResponse { get; set; }
         IDictionary<string, object> ContextData { get; }

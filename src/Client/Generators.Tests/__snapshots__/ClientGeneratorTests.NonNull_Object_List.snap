@@ -175,7 +175,7 @@ namespace StrawberryShake.Client
         private string DeserializeString(JsonElement obj, string fieldName)
         {
             JsonElement value = obj.GetProperty(fieldName);
-            return (string)_stringSerializer.Serialize(value.GetString())!;
+            return (string)_stringSerializer.Deserialize(value.GetString())!;
         }
     }
 }

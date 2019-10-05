@@ -64,7 +64,7 @@ namespace StrawberryShake.Http.Pipelines
         private static Task ThrowExceptionMiddleware(
             IHttpOperationContext context)
         {
-            if (context.Result is null)
+            if (!context.Result.IsDataOrErrorModified)
             {
                 throw new InvalidOperationException(
                     "The operation was not be handled by any middleware.");
