@@ -133,6 +133,10 @@ namespace HotChocolate.Types.Filters
 
                 var genericTypeArgument = property.PropertyType.GetGenericArguments()[0];
 
+                if (genericTypeArgument.IsGenericType && Nullable.GetUnderlyingType(genericTypeArgument) is Type nullableType)
+                {
+                    genericTypeArgument = nullableType;
+                }
                 if (genericTypeArgument == typeof(string)
                     || genericTypeArgument == typeof(bool)
                     || genericTypeArgument == typeof(bool?)
@@ -299,5 +303,25 @@ namespace HotChocolate.Types.Filters
         public static FilterInputTypeDescriptor<T> New(
             IDescriptorContext context, Type entityType) =>
             new FilterInputTypeDescriptor<T>(context, entityType);
+
+        public IArrayFilterFieldDescriptor<ISingleFilter<bool>> Filter(Expression<Func<T, IEnumerable<bool>>> property)
+        {
+            return ListFilter<ISingleFilter<bool>, IEnumerable<bool>>(property);
+        }
+
+        public IArrayFilterFieldDescriptor<ISingleFilter<bool>> Filter(Expression<Func<T, List<bool>>> property)
+        {
+            return ListFilter<ISingleFilter<bool>, List<bool>>(property);
+        }
+
+        public IArrayFilterFieldDescriptor<ISingleFilter<IComparable>> Filter(Expression<Func<T, IEnumerable<IComparable>>> property)
+        {
+            return ListFilter<ISingleFilter<IComparable>, IEnumerable<IComparable>>(property);
+        }
+
+        public IArrayFilterFieldDescriptor<ISingleFilter<IComparable>> Filter(Expression<Func<T, List<IComparable>>> property)
+        {
+            return ListFilter<ISingleFilter<IComparable>, List<IComparable>>(property);
+        }
     }
 }

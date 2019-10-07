@@ -54,7 +54,6 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-
         [Fact]
         public void Create_ArrayObjectFilter_FooImplicitBarImplicit()
         {
@@ -323,6 +322,13 @@ namespace HotChocolate.Types.Filters
             public IEnumerable<double> BarDouble { get; set; }
             public IEnumerable<float> BarSingle { get; set; }
             public IEnumerable<decimal> BarDecimal { get; set; }
+            public IEnumerable<bool?> BarBoolNullable { get; set; }
+            public IEnumerable<short?> BarInt16Nullable { get; set; }
+            public IEnumerable<int?> BarInt32Nullable { get; set; }
+            public IEnumerable<long?> BarInt64Nullable { get; set; }
+            public IEnumerable<double?> BarDoubleNullable { get; set; }
+            public IEnumerable<float?> BarSingleNullable { get; set; }
+            public IEnumerable<decimal?> BarDecimalNullable { get; set; }
             public IEnumerable<Guid> BarGuid { get; set; }
             public IEnumerable<DateTime> BarDatetime { get; set; }
             public IEnumerable<DateTimeOffset> BarDateTimeOffset { get; set; }

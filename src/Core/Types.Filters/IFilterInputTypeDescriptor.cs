@@ -115,6 +115,25 @@ namespace HotChocolate.Types.Filters
         IArrayFilterFieldDescriptor<ISingleFilter<string>> Filter(
             Expression<Func<T, List<string>>> property);
 
+        /// <summary>
+        /// Define a object filter for a IEnumerable of type object
+        /// </summary>
+        /// <param name="property">
+        /// The property for which a filter shall be applied.
+        /// </param>
+        IArrayFilterFieldDescriptor<ISingleFilter<bool>> Filter(
+            Expression<Func<T, IEnumerable<bool>>> property);
+
+        /// <summary>
+        /// Define a object filter for a List of type object
+        /// </summary>
+        /// <param name="property">
+        /// The property for which a filter shall be applied.
+        /// </param>
+        IArrayFilterFieldDescriptor<ISingleFilter<bool>> Filter(
+            Expression<Func<T, List<bool>>> property);
+
+
 
         /// <summary>
         /// Ignore the specified property.
