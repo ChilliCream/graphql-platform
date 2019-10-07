@@ -7,6 +7,6 @@ namespace  StrawberryShake.Client.GraphQL
 {
     public interface IGetHero
     {
-        IHero? Hero { get; }
+        IHasName? Hero { get; }
     }
 }

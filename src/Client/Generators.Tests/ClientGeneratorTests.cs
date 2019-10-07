@@ -264,6 +264,57 @@ namespace StrawberryShake.Generators
         }
 
         [Fact]
+        public async Task Enum_As_Output_Field_Return_Type()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo: Foo
+                }
+
+                type Foo {
+                    bar2: Bar
+                    bar1: Bar!
+                    bar3: [Bar]
+                    bar4: [Bar]!
+                    bar5: [Bar!]
+                    bar6: [Bar!]!
+                }
+
+                enum Bar {
+                    ABC
+                }
+                ";
+
+            string query =
+               @"
+                query getFoo {
+                    foo {
+                        bar1
+                        bar2
+                        bar3
+                        bar4
+                        bar5
+                        bar6
+                    }
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .ModifyOptions(o => o.LanguageVersion = LanguageVersion.CSharp_8_0)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Return_Type_Renamed()
         {
             // arrange
@@ -298,6 +349,125 @@ namespace StrawberryShake.Generators
             await ClientGenerator.New()
                 .AddQueryDocumentFromString("Queries", query)
                 .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Input_Objects_Arguments()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo(input: FooInput!): String
+                }
+
+                input FooInput {
+                    bar: BarInput
+                }
+
+                input BarInput {
+                    baz: Int
+                }
+                ";
+
+            string query =
+               @"
+                query getFoo($input: FooInput!) {
+                    foo(input: $input)
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Two_Input_Objects_Arguments()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo(input: FooInput!): String
+                }
+
+                input FooInput {
+                    bar: BarInput
+                }
+
+                input BarInput {
+                    baz: Int
+                }
+                ";
+
+            string query =
+               @"
+                query getFoo($input1: FooInput! $input2: FooInput!) {
+                    a: foo(input: $input1)
+                    b: foo(input: $input2)
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Custom_Scalar_Types()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo: Bar
+                    baz: Qux
+                    abc: String
+                }
+
+                scalar String
+                scalar Bar
+                scalar Qux
+                ";
+
+            string extensions = @"
+                extend scalar Bar @runtimeType(name: ""System.String"")
+                extend scalar Qux @runtimeType(name: ""System.Int32"")";
+
+            string query =
+               @"
+                query getFoo {
+                    foo
+                    baz
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .AddSchemaDocumentFromString("Extensions", extensions)
                 .SetOutput(outputHandler)
                 .BuildAsync();
 

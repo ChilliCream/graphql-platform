@@ -73,11 +73,12 @@ namespace StrawberryShake.Generators
             GenerateEnumTypes();
 
             var backlog = new Queue<FieldSelection>();
-            Path root = Path.New("root");
 
             foreach (var operation in
                 _document.Definitions.OfType<OperationDefinitionNode>())
             {
+                Path root = Path.New(operation.Name.Value);
+
                 ObjectType operationType =
                     _schema.GetOperationType(operation.Operation);
 
@@ -89,6 +90,7 @@ namespace StrawberryShake.Generators
                 {
                     FieldSelection current = backlog.Dequeue();
                     Path path = current.Path.Append(current.ResponseName);
+
                     if (!current.Field.Type.NamedType().IsLeafType())
                     {
                         GenerateFieldSelectionSet(
@@ -136,15 +138,17 @@ namespace StrawberryShake.Generators
                 resultDescriptor,
                 _context.Descriptors
                     .OfType<IResultParserMethodDescriptor>()
-                    .Where(t => t.Operation == operation).ToList()
+                    .Where(t => t.Operation == operation)
+                    .OrderBy(t => t.Path.ToCollection().Count)
+                    .ThenBy(t => t.Path.ToString()).ToList()
             ));
         }
 
         private ICodeDescriptor GenerateOperationSelectionSet(
-           ObjectType operationType,
-           OperationDefinitionNode operation,
-           Path path,
-           Queue<FieldSelection> backlog)
+            ObjectType operationType,
+            OperationDefinitionNode operation,
+            Path path,
+            Queue<FieldSelection> backlog)
         {
             PossibleSelections possibleSelections =
                 _fieldCollector.CollectFields(
@@ -152,7 +156,7 @@ namespace StrawberryShake.Generators
                     operation.SelectionSet,
                     path);
 
-            EnqueueFields(backlog, possibleSelections.ReturnType.Fields);
+            EnqueueFields(backlog, possibleSelections.ReturnType.Fields, path);
 
             ICodeDescriptor resultDescriptor = _objectModelGenerator.Generate(
                     _context,
@@ -201,7 +205,7 @@ namespace StrawberryShake.Generators
 
             foreach (SelectionInfo selectionInfo in possibleSelections.Variants)
             {
-                EnqueueFields(backlog, selectionInfo.Fields);
+                EnqueueFields(backlog, selectionInfo.Fields, path);
             }
 
             if (namedType is UnionType unionType)
@@ -254,11 +258,15 @@ namespace StrawberryShake.Generators
 
         private static void EnqueueFields(
             Queue<FieldSelection> backlog,
-            IEnumerable<FieldSelection> fieldSelections)
+            IEnumerable<FieldSelection> fieldSelections,
+            Path path)
         {
             foreach (FieldSelection fieldSelection in fieldSelections)
             {
-                backlog.Enqueue(fieldSelection);
+                backlog.Enqueue(new FieldSelection(
+                    fieldSelection.Field,
+                    fieldSelection.Selection,
+                    path));
             }
         }
     }

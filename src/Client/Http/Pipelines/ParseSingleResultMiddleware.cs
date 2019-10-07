@@ -19,19 +19,31 @@ namespace StrawberryShake.Http.Pipelines
 
         public async Task InvokeAsync(IHttpOperationContext context)
         {
-            if (context.HttpResponse != null && context.Result is null)
+            if (context.HttpResponse != null && !context.Result.IsDataOrErrorModified)
             {
                 context.HttpResponse.EnsureSuccessStatusCode();
 
-                // TOOD : throw error if not exists
-                IResultParser resultParser = _resultParsers[context.Operation.ResultType];
-
-                using (var stream = await context.HttpResponse.Content.ReadAsStreamAsync()
-                    .ConfigureAwait(false))
+                if (!_resultParsers.TryGetValue(
+                    context.Operation.ResultType,
+                    out IResultParser? resultParser))
                 {
-                    context.Result = await resultParser.ParseAsync(
-                        stream, context.RequestAborted)
-                        .ConfigureAwait(false);
+                    context.Result.AddError(
+                        ErrorBuilder.New()
+                            .SetMessage(
+                                "There is no result parser registered for " +
+                                $"`{context.Operation.ResultType.FullName}`.")
+                            .SetCode(ErrorCodes.NoResultParser)
+                            .Build());
+                }
+                else
+                {
+                    using (var stream = await context.HttpResponse.Content.ReadAsStreamAsync()
+                        .ConfigureAwait(false))
+                    {
+                        await resultParser.ParseAsync(
+                            stream, context.Result, context.RequestAborted)
+                            .ConfigureAwait(false);
+                    }
                 }
             }
 

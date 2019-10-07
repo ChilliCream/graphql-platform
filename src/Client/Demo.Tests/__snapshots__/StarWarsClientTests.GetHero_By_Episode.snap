@@ -1,8 +1,8 @@
 ﻿{
   "Data": {
     "Hero": {
-      "Height": 1.72,
       "Name": "Luke Skywalker",
+      "Height": 1.72,
       "Friends": {
         "Nodes": [
           {

@@ -15,5 +15,19 @@ namespace  StrawberryShake.Client.GraphQL
         Task<IOperationResult<IGetHero>> GetHeroAsync(
             Episode? episode,
             CancellationToken cancellationToken);
+
+        Task<IOperationResult<IGetHuman>> GetHumanAsync(
+            string id);
+
+        Task<IOperationResult<IGetHuman>> GetHumanAsync(
+            string id,
+            CancellationToken cancellationToken);
+
+        Task<IOperationResult<ISearch>> SearchAsync(
+            string text);
+
+        Task<IOperationResult<ISearch>> SearchAsync(
+            string text,
+            CancellationToken cancellationToken);
     }
 }

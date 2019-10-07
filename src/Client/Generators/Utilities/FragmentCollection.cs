@@ -92,7 +92,6 @@ namespace StrawberryShake.Generators.Utilities
             {
                 fragment = CreateFragment(parentType, inlineFragment);
                 _fragments[fragmentName] = fragment;
-
             }
 
             return fragment;
@@ -114,7 +113,7 @@ namespace StrawberryShake.Generators.Utilities
                     inlineFragment.TypeCondition.Name.Value);
             }
 
-            return new Fragment(null, type, inlineFragment.SelectionSet);
+            return new Fragment(type.Name, type, inlineFragment.SelectionSet);
         }
 
         private static string CreateInlineFragmentName(

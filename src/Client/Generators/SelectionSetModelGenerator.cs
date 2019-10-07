@@ -8,6 +8,7 @@ using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
 using WithDirectives = HotChocolate.Language.IHasDirectives;
 using static StrawberryShake.Generators.Utilities.NameUtils;
+using StrawberryShake.Generators.Types;
 
 namespace StrawberryShake.Generators
 {
@@ -154,9 +155,13 @@ namespace StrawberryShake.Generators
             SelectionInfo selection,
             List<ResultParserTypeDescriptor> resultParserTypes)
         {
+            var fieldNames = new HashSet<string>(
+                selection.Fields.Select(t => GetPropertyName(t.ResponseName)));
+
             string className = context.GetOrCreateName(
                 returnType.Fragment.SelectionSet,
-                GetClassName(returnType.Name));
+                GetClassName(returnType.Name),
+                fieldNames);
 
             var modelClass = new ClassDescriptor(
                 className,
@@ -196,18 +201,41 @@ namespace StrawberryShake.Generators
                 interfaces.Insert(0, interfaceDescriptor);
 
                 NameString typeName = HoistName(selection.Type, modelType);
+                if (typeName.IsEmpty)
+                {
+                    typeName = selection.Type.Name;
+                }
+
+                bool update = false;
+
+                var fieldNames = new HashSet<string>(
+                    selection.Fields.Select(t => GetPropertyName(t.ResponseName)));
 
                 string className = context.GetOrCreateName(
                     modelType.Fragment.SelectionSet,
-                    GetClassName(typeName));
+                    GetClassName(typeName),
+                    fieldNames);
 
-                var modelClass = new ClassDescriptor(
+                if (context.TryGetDescriptor(className, out ClassDescriptor? modelClass))
+                {
+                    var interfaceNames = new HashSet<string>(interfaces.Select(t => t.Name));
+                    foreach (IInterfaceDescriptor item in modelClass!.Implements.Reverse())
+                    {
+                        if (!interfaceNames.Contains(item.Name))
+                        {
+                            interfaces.Insert(0, item);
+                        }
+                    }
+                    update = true;
+                }
+
+                modelClass = new ClassDescriptor(
                     className,
                     context.Namespace,
                     selection.Type,
                     interfaces);
 
-                context.Register(modelClass);
+                context.Register(modelClass, update);
                 resultParserTypes.Add(new ResultParserTypeDescriptor(modelClass));
             }
         }
@@ -285,6 +313,19 @@ namespace StrawberryShake.Generators
             {
                 return nameFormatter(operation.Name.Value);
             }
+
+            INamedType type = returnType.NamedType();
+
+            if (type is HotChocolate.Types.IHasDirectives d)
+            {
+                IDirective directive =
+                    d.Directives[GeneratorDirectives.Name].FirstOrDefault();
+                if (directive is { })
+                {
+                    return nameFormatter(directive.ToObject<NameDirective>().Value);
+                }
+            }
+
             return nameFormatter(returnType.NamedType().Name);
         }
 

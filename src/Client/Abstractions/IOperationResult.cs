@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace StrawberryShake
@@ -9,6 +10,10 @@ namespace StrawberryShake
         IReadOnlyList<IError> Errors { get; }
 
         IReadOnlyDictionary<string, object?> Extensions { get; }
+
+        Type ResultType { get; }
+
+        bool HasErrors { get; }
 
         void EnsureNoErrors();
     }

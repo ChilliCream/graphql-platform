@@ -9,11 +9,11 @@ namespace  StrawberryShake.Client.GraphQL
         : IGetHero
     {
         public GetHero(
-            IHero? hero)
+            IHasName? hero)
         {
             Hero = hero;
         }
 
-        public IHero? Hero { get; }
+        public IHasName? Hero { get; }
     }
 }
