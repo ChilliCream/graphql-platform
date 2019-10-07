@@ -61,6 +61,11 @@ namespace  StrawberryShake.Client.GitHub
                 return null;
             }
 
+            if (obj.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return new User
             (
                 DeserializeNullableString(obj, "name"),
@@ -94,18 +99,18 @@ namespace  StrawberryShake.Client.GitHub
                 return null;
             }
 
-            return (string?)_stringSerializer.Serialize(value.GetString())!;
+            return (string?)_stringSerializer.Deserialize(value.GetString())!;
         }
 
         private System.DateTimeOffset DeserializeDateTime(JsonElement obj, string fieldName)
         {
             JsonElement value = obj.GetProperty(fieldName);
-            return (System.DateTimeOffset)_dateTimeSerializer.Serialize(value.GetString())!;
+            return (System.DateTimeOffset)_dateTimeSerializer.Deserialize(value.GetString())!;
         }
         private int DeserializeInt(JsonElement obj, string fieldName)
         {
             JsonElement value = obj.GetProperty(fieldName);
-            return (int)_intSerializer.Serialize(value.GetInt32())!;
+            return (int)_intSerializer.Deserialize(value.GetInt32())!;
         }
     }
 }

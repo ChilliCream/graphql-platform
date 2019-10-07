@@ -65,7 +65,7 @@ namespace StrawberryShake.Tools
             await generator.BuildAsync();
             await File.WriteAllTextAsync(
                 hashFile,
-                string.Join(string.Empty, documents.Select(t => t.Hash)));
+                CreateHash(documents));
             return true;
         }
 
@@ -92,7 +92,7 @@ namespace StrawberryShake.Tools
 
             if (version is { })
             {
-                hash = "{version}__{newHash}";
+                hash = $"{version}__{hash}";
             }
 
             return hash;
