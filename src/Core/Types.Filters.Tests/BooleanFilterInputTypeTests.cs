@@ -222,6 +222,11 @@ namespace HotChocolate.Types.Filters
             public bool? BarNullable { get; set; }
         }
 
+        public class Bar
+        {
+
+        }
+
         public class FooArray
         {
             public List<bool> BarList { get; set; }

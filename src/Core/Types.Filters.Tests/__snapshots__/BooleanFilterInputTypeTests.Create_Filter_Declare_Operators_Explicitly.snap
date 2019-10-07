@@ -10,6 +10,8 @@ input FooFilter {
   AND: [FooFilter!]
   bar: Boolean
   bar_not: Boolean
+  barNullable: Boolean
+  barNullable_not: Boolean
   OR: [FooFilter!]
 }
 

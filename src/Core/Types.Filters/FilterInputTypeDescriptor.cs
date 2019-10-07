@@ -103,15 +103,21 @@ namespace HotChocolate.Types.Filters
             PropertyInfo property,
             out FilterFieldDefintion definition)
         {
-            if (property.PropertyType == typeof(string))
+            var type = property.PropertyType;
+
+            if (type.IsGenericType && Nullable.GetUnderlyingType(type) is Type nullableType)
+            {
+                type = nullableType;
+            }
+
+            if (type == typeof(string))
             {
                 var field = new StringFilterFieldDescriptor(Context, property);
                 definition = field.CreateDefinition();
                 return true;
             }
 
-            if (property.PropertyType == typeof(bool)
-                || property.PropertyType == typeof(bool?))
+            if (type == typeof(bool))
             {
                 var field = new BooleanFilterFieldDescriptor(
                     Context, property);
@@ -119,7 +125,7 @@ namespace HotChocolate.Types.Filters
                 return true;
             }
 
-            if (typeof(IComparable).IsAssignableFrom(property.PropertyType))
+            if (typeof(IComparable).IsAssignableFrom(type))
             {
                 var field = new ComparableFilterFieldDescriptor(
                     Context, property);
@@ -127,15 +133,16 @@ namespace HotChocolate.Types.Filters
                 return true;
             }
 
-            if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType))
+            if (typeof(IEnumerable).IsAssignableFrom(type))
             {
                 ArrayFilterFieldDescriptor field;
 
-                var genericTypeArgument = property.PropertyType.GetGenericArguments()[0];
+                var genericTypeArgument = type.GetGenericArguments()[0];
 
-                if (genericTypeArgument.IsGenericType && Nullable.GetUnderlyingType(genericTypeArgument) is Type nullableType)
+                if (genericTypeArgument.IsGenericType &&
+                    Nullable.GetUnderlyingType(genericTypeArgument) is Type nullableEnumerableType)
                 {
-                    genericTypeArgument = nullableType;
+                    genericTypeArgument = nullableEnumerableType;
                 }
                 if (genericTypeArgument == typeof(string)
                     || genericTypeArgument == typeof(bool)
@@ -159,7 +166,7 @@ namespace HotChocolate.Types.Filters
             }
 
 
-            if (property.PropertyType.IsClass)
+            if (type.IsClass)
             {
                 var field = new ObjectFilterFieldDescriptor(
                     Context, property, property.PropertyType);

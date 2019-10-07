@@ -167,13 +167,19 @@ namespace HotChocolate.Types.Filters
                 }
                 else
                 {
-                    if (clrRef.Type.IsValueType)
+                    var type = clrRef.Type;
+                    if(type.IsGenericType &&
+                        Nullable.GetUnderlyingType(type) is Type nullableType)
+                    {
+                        type = nullableType;
+                    }
+                    if (type.IsValueType)
                     {
                         return clrRef.WithType(
-                            typeof(Nullable<>).MakeGenericType(clrRef.Type));
+                            typeof(Nullable<>).MakeGenericType(type));
                     }
-                    else if (clrRef.Type.IsGenericType
-                        && clrRef.Type.GetGenericTypeDefinition() ==
+                    else if (type.IsGenericType
+                        && type.GetGenericTypeDefinition() ==
                             typeof(NonNullType<>))
                     {
                         return clrRef.WithType(typeInfo.Components[1]);
