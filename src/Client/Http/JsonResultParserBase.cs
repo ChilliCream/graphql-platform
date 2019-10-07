@@ -25,6 +25,11 @@ namespace StrawberryShake.Http
                 throw new ArgumentNullException(nameof(stream));
             }
 
+            if (resultBuilder is null)
+            {
+                throw new ArgumentNullException(nameof(resultBuilder));
+            }
+
             return ParseInternalAsync(stream, resultBuilder, cancellationToken);
         }
 
@@ -43,7 +48,7 @@ namespace StrawberryShake.Http
                 }
 
                 if (document.RootElement.TryGetProperty(
-                    _error, out JsonElement errors))
+                    _errors, out JsonElement errors))
                 {
                     resultBuilder.AddErrors(ParseErrors(errors));
                 }
@@ -54,12 +59,24 @@ namespace StrawberryShake.Http
                 {
                     resultBuilder.AddExtensions(extensions!);
                 }
+
+                if (!resultBuilder.IsDataOrErrorModified)
+                {
+                    resultBuilder.AddError(ErrorBuilder.New()
+                        .SetMessage(
+                            "The specified document is not a valid " +
+                            "GraphQL response document. Ensure that either " +
+                            "`data` or `errors` os provided. The document " +
+                            "parses property names case-sensitive.")
+                        .SetCode(ErrorCodes.InvalidResponse)
+                        .Build());
+                }
             }
         }
 
         protected abstract T ParserData(JsonElement parent);
 
-        protected IEnumerable<IError> ParseErrors(JsonElement parent)
+        private IEnumerable<IError> ParseErrors(JsonElement parent)
         {
             int length = parent.GetArrayLength();
 

@@ -52,6 +52,11 @@ namespace  StrawberryShake.Client.GraphQL
                 return null;
             }
 
+            if (obj.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
             int objLength = obj.GetArrayLength();
             var list = new ISearchResult[objLength];
             for (int objIndex = 0; objIndex < objLength; objIndex++)
@@ -104,6 +109,11 @@ namespace  StrawberryShake.Client.GraphQL
                 return null;
             }
 
+            if (obj.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return new Friend
             (
                 ParseSearchSearchFriendsNodes(obj, "nodes")
@@ -115,6 +125,11 @@ namespace  StrawberryShake.Client.GraphQL
             string field)
         {
             if (!parent.TryGetProperty(field, out JsonElement obj))
+            {
+                return null;
+            }
+
+            if (obj.ValueKind == JsonValueKind.Null)
             {
                 return null;
             }
@@ -146,7 +161,7 @@ namespace  StrawberryShake.Client.GraphQL
                 return null;
             }
 
-            return (string?)_stringSerializer.Serialize(value.GetString())!;
+            return (string?)_stringSerializer.Deserialize(value.GetString())!;
         }
         private double? DeserializeNullableFloat(JsonElement obj, string fieldName)
         {
@@ -160,7 +175,7 @@ namespace  StrawberryShake.Client.GraphQL
                 return null;
             }
 
-            return (double?)_floatSerializer.Serialize(value.GetDouble())!;
+            return (double?)_floatSerializer.Deserialize(value.GetDouble())!;
         }
     }
 }

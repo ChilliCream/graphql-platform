@@ -13,9 +13,9 @@
       // "args": ["generate", "-d", "-n StrawberryShake.Client.GraphQL", "-f"],
       "args": [
         "generate",
-        "./GitHub",
+        "./GraphQL",
         "-d",
-        "-n StrawberryShake.Client.GitHub",
+        "-n StrawberryShake.Client.GraphQL",
         "-f"
       ],
       "cwd": "${workspaceFolder}/Demo",

@@ -12,13 +12,14 @@ namespace StrawberryShake.Http
             (byte)'a'
         };
 
-        private static readonly byte[] _error = new byte[]
+        private static readonly byte[] _errors = new byte[]
         {
             (byte)'e',
             (byte)'r',
             (byte)'r',
             (byte)'o',
-            (byte)'r'
+            (byte)'r',
+            (byte)'s'
         };
 
         private static readonly byte[] _extensions = new byte[]

@@ -52,6 +52,11 @@ namespace  StrawberryShake.Client.GraphQL
                 return null;
             }
 
+            if (obj.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
             string type = obj.GetProperty(TypeName).GetString();
 
             switch(type)
@@ -86,6 +91,11 @@ namespace  StrawberryShake.Client.GraphQL
                 return null;
             }
 
+            if (obj.ValueKind == JsonValueKind.Null)
+            {
+                return null;
+            }
+
             return new Friend
             (
                 ParseGetHeroHeroFriendsNodes(obj, "nodes")
@@ -97,6 +107,11 @@ namespace  StrawberryShake.Client.GraphQL
             string field)
         {
             if (!parent.TryGetProperty(field, out JsonElement obj))
+            {
+                return null;
+            }
+
+            if (obj.ValueKind == JsonValueKind.Null)
             {
                 return null;
             }
@@ -128,7 +143,7 @@ namespace  StrawberryShake.Client.GraphQL
                 return null;
             }
 
-            return (string?)_stringSerializer.Serialize(value.GetString())!;
+            return (string?)_stringSerializer.Deserialize(value.GetString())!;
         }
 
         private double? DeserializeNullableFloat(JsonElement obj, string fieldName)
@@ -143,7 +158,7 @@ namespace  StrawberryShake.Client.GraphQL
                 return null;
             }
 
-            return (double?)_floatSerializer.Serialize(value.GetDouble())!;
+            return (double?)_floatSerializer.Deserialize(value.GetDouble())!;
         }
     }
 }

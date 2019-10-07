@@ -7,5 +7,7 @@ namespace StrawberryShake.Http
         public const string Unexpected = "UNEXPECTED_ERROR";
 
         public const string NoResultParser = "NO_RESULT_PARSER_FOUND";
+
+        public const string InvalidResponse = "INVALID_RESPONSE_DOCUMENT";
     }
 }
