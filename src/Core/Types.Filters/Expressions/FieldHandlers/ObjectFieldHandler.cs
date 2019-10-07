@@ -44,14 +44,10 @@ namespace HotChocolate.Types.Filters.Expressions
             if (field.Operation.Kind == FilterOperationKind.Object)
             {
                 // Deque last expression to prefix with nullcheck
-                var condition = closures.Peek().Level.Peek().Dequeue();
-                // wrap current property with null check
-                var nullCheck = Expression.NotEqual(
-                    closures.Peek().Instance.Peek(),
-                    Expression.Constant(null, typeof(object))
-                    );
+                var condition = closures.Peek().Level.Peek().Dequeue(); 
+                var property = closures.Peek().Instance.Peek();
                 // wrap last expression  
-                closures.Peek().Level.Peek().Enqueue(Expression.AndAlso(nullCheck, condition));
+                closures.Peek().Level.Peek().Enqueue(FilterExpressionBuilder.NotNullAndAlso(property, condition));
                 closures.Peek().Instance.Pop();
             }
         }

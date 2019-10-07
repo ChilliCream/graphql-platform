@@ -40,6 +40,39 @@ namespace HotChocolate.Types.Filters
             Assert.False(func(b));
         }
 
+
+        [Fact]
+        public void Create_ObjectStringEqualWithNull_Expression()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("fooNested",
+                    new ObjectValueNode(
+                        new ObjectFieldNode("bar",
+                            new StringValueNode("a")
+                        )
+                    )
+                )
+            );
+
+            var fooType = CreateType(new FooFilterType());
+
+            // act
+            var filter = new QueryableFilterVisitor(
+                fooType,
+                typeof(Foo),
+                TypeConversion.Default);
+            value.Accept(filter);
+            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+
+            // assert
+            var a = new Foo { FooNested = new FooNested { Bar = "a" } };
+            Assert.True(func(a));
+
+            Foo b = null;
+            Assert.False(func(b));
+        }
+
         [Fact]
         public void Create_ObjectStringEqualDeep_Expression()
         {

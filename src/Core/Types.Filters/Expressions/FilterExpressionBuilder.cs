@@ -39,6 +39,8 @@ namespace HotChocolate.Types.Filters.Expressions
                         .GetMethods()
                         .Single(x => x.Name == "All" && x.GetParameters().Length == 2);
 
+        private static readonly ConstantExpression _null = Expression.Constant(null, typeof(object));
+
         public static Expression Not(Expression expression)
         {
             return Expression.Equal(expression, Expression.Constant(false));
@@ -135,6 +137,15 @@ namespace HotChocolate.Types.Filters.Expressions
                 Expression.NotEqual(property, Expression.Constant(null)),
                 Expression.Call(property, _contains,
                     new[] { Expression.Constant(value) }));
+        }
+
+        public static Expression NotNull(Expression expression)
+        {
+            return Expression.NotEqual(expression, _null);
+        }
+        public static Expression NotNullAndAlso(Expression property, Expression condition)
+        {
+            return Expression.AndAlso(NotNull(property), condition);
         }
 
         public static Expression Any(

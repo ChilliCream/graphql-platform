@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Text;
+using HotChocolate.Types.Filters.Expressions;
 
 namespace HotChocolate.Types.Filters
 {
@@ -25,12 +26,17 @@ namespace HotChocolate.Types.Filters
 
         public LambdaExpression CreateLambda()
         {
-            return Expression.Lambda(Level.Peek().Peek(), Parameter);
+            return Expression.Lambda(GetSafeExpressioBody(), Parameter);
         }
 
         public Expression<T> CreateLambda<T>()
         {
-            return Expression.Lambda<T>(Level.Peek().Peek(), Parameter);
+            return Expression.Lambda<T>(GetSafeExpressioBody(), Parameter);
+        }
+
+        private Expression GetSafeExpressioBody()
+        {
+            return FilterExpressionBuilder.NotNullAndAlso(Parameter, Level.Peek().Peek()); 
         }
     }
 }

@@ -40,6 +40,70 @@ namespace HotChocolate.Types.Filters
             var b = new FooSimple { Bar = new[] { "c", "d", "b" } };
             Assert.False(func(b));
         }
+
+        [Fact]
+        public void Create_ArraySomeStringEqualWithNull_Expression()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("bar_some",
+                    new ObjectValueNode(
+                        new ObjectFieldNode("el",
+                            new StringValueNode("a")
+                        )
+                    )
+                )
+            );
+
+            var fooType = CreateType(new FooSimpleFilterType());
+
+            // act
+            var filter = new QueryableFilterVisitor(
+                fooType,
+                typeof(FooSimple),
+                TypeConversion.Default);
+            value.Accept(filter);
+            Func<FooSimple, bool> func = filter.CreateFilter<FooSimple>().Compile();
+
+            // assert
+            var a = new FooSimple { Bar = new[] { "c", null, "a" } };
+            Assert.True(func(a));
+
+            var b = new FooSimple { Bar = new[] { "c", null, "b" } };
+            Assert.False(func(b));
+        }
+
+        [Fact]
+        public void Create_ArraySomeObjectStringEqualWithNull_Expression()
+        {
+            // arrange
+            var value = new ObjectValueNode(
+                new ObjectFieldNode("fooNested_some",
+                    new ObjectValueNode(
+                        new ObjectFieldNode("bar",
+                            new StringValueNode("a")
+                        )
+                    )
+                )
+            );
+
+            var fooType = CreateType(new FooFilterType());
+
+            // act
+            var filter = new QueryableFilterVisitor(
+                fooType,
+                typeof(Foo),
+                TypeConversion.Default);
+            value.Accept(filter);
+            Func<Foo, bool> func = filter.CreateFilter<Foo>().Compile();
+
+            // assert
+            var a = new Foo { FooNested = new[] { new FooNested { Bar = "c" },null, new FooNested { Bar = "a" } } };
+            Assert.True(func(a));
+
+            var b = new Foo { FooNested = new[] { new FooNested { Bar = "c" },null, new FooNested { Bar = "b" } } };
+            Assert.False(func(b));
+        }
         [Fact]
         public void Create_ArraySomeObjectStringEqual_Expression()
         {
