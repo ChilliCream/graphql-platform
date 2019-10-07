@@ -114,9 +114,7 @@ namespace HotChocolate.Types.Filters.Expressions
             Expression property,
             object value)
         {
-            return Expression.AndAlso(
-                Expression.NotEqual(property, Expression.Constant(null)),
-                Expression.Call(property, _startsWith,
+            return NotNullAndAlso(property, Expression.Call(property, _startsWith,
                     new[] { Expression.Constant(value) }));
         }
 
@@ -124,8 +122,7 @@ namespace HotChocolate.Types.Filters.Expressions
             Expression property,
             object value)
         {
-            return Expression.AndAlso(
-                Expression.NotEqual(property, Expression.Constant(null)),
+            return NotNullAndAlso(property,
                 Expression.Call(property, _endsWith,
                     new[] { Expression.Constant(value) }));
         }
@@ -133,8 +130,7 @@ namespace HotChocolate.Types.Filters.Expressions
             Expression property,
             object value)
         {
-            return Expression.AndAlso(
-                Expression.NotEqual(property, Expression.Constant(null)),
+            return NotNullAndAlso(property,
                 Expression.Call(property, _contains,
                     new[] { Expression.Constant(value) }));
         }
