@@ -27,12 +27,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
     <ProjectReference Include="..\Http\Http.csproj" />
-    <ProjectReference Include="..\dotnet-graphql\dotnet-graphql.csproj">
-      <PrivateAssets>all</PrivateAssets>
-    </ProjectReference>
-    <ProjectReference Include="..\MSBuild\MSBuild.csproj">
-      <PrivateAssets>all</PrivateAssets>
-    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup Label="dotnet pack instructions">
@@ -48,6 +42,10 @@
     </Content>
     <None Remove="GraphQL.xaml" />
     <Content Include="GraphQL.xaml">
+      <Pack>true</Pack>
+      <PackagePath>build\</PackagePath>
+    </Content>
+    <Content Include="..\dotnet-graphql\bin\Release\netcoreapp2.1\**\*.*">
       <Pack>true</Pack>
       <PackagePath>build\</PackagePath>
     </Content>
