@@ -50,7 +50,7 @@
     DependsOnTargets="GraphQL_Compile"
     Condition="'$(GraphQLCompileOnBuild)' == 'true'" />
 
-  <<!-- Public Targets -->
+  <!-- Public Targets -->
   <Target Name="CompileGraphQL" DependsOnTargets="GraphQL_Compile" />
 
 </Project>
