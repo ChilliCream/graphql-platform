@@ -3,6 +3,7 @@
   <PropertyGroup>
     <GraphQLPropertyPageSchema>$(MSBuildThisFileDirectory)GraphQL.xaml</GraphQLPropertyPageSchema>
     <GraphQLCompiler>$([System.IO.Path]::Combine($(MSBuildThisFileDirectory), "..", "tools", "dotnet-graphql.dll"))</GraphQLCompiler>
+    <GraphQLCompileOnBuild>false</GraphQLCompileOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
