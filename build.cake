@@ -137,6 +137,18 @@ Task("Publish")
     }
 });
 
+Task("PublishClientTools")
+    .IsDependentOn("EnvironmentSetup")
+{
+    ReplaceTextInFiles("src/Client/Tools/StrawberryShake.nuspec", "10.0.1", packageVersion);
+
+    using(var process = StartAndReturnProcess("nuget.exe",
+        new ProcessSettings{ Arguments = "./src/Client/Tools/StrawberryShake.nuspec -Version " + packageVersion}))
+    {
+        process.WaitForExit();
+    }
+}
+
 Task("PublishTemplates")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
