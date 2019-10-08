@@ -1,0 +1,45 @@
+﻿{
+  "Data": {
+    "customer": null
+  },
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "Unexpected Execution Error",
+      "Code": "STITCHING_HTTP_REQUEST_EXCEPTION",
+      "Path": [
+        "customer"
+      ],
+      "Locations": [
+        {
+          "Line": 3,
+          "Column": 29
+        }
+      ],
+      "Exception": {
+        "StackTrace": "   at System.Net.Http.HttpResponseMessage.EnsureSuccessStatusCode()\n   at HotChocolate.Stitching.Utilities.HttpQueryClient.FetchInternalAsync(HttpQueryRequest request, HttpClient httpClient) in C:\\Dev\\GitHub\\hotchocolate\\src\\Stitching\\Stitching\\Utilities\\HttpQueryClient.cs:line 139\n   at HotChocolate.Stitching.Utilities.HttpQueryClient.FetchAsync(HttpQueryRequest request, HttpClient httpClient, IEnumerable`1 interceptors, CancellationToken cancellationToken) in C:\\Dev\\GitHub\\hotchocolate\\src\\Stitching\\Stitching\\Utilities\\HttpQueryClient.cs:line 46\n   at HotChocolate.Stitching.Delegation.RemoteQueryMiddleware.InvokeAsync(IQueryContext context) in C:\\Dev\\GitHub\\hotchocolate\\src\\Stitching\\Stitching\\Delegation\\RemoteQueryMiddleware.cs:line 39",
+        "Message": "Response status code does not indicate success: 503 (Service Unavailable).",
+        "Data": {},
+        "InnerException": null,
+        "HelpLink": null,
+        "Source": "System.Net.Http",
+        "HResult": -2146233088
+      },
+      "Extensions": {
+        "code": "STITCHING_HTTP_REQUEST_EXCEPTION",
+        "remote": {
+          "Message": "Unexpected Execution Error",
+          "Code": "STITCHING_HTTP_REQUEST_EXCEPTION",
+          "Path": null,
+          "Locations": [],
+          "Exception": null,
+          "Extensions": {
+            "code": "STITCHING_HTTP_REQUEST_EXCEPTION"
+          }
+        },
+        "schemaName": "customer"
+      }
+    }
+  ],
+  "ContextData": {}
+}
