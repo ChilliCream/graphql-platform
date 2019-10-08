@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
   <metadata>
     <id>StrawberryShake</id>
-    <version>11.0.0-preview.37</version>
+    <version>10.0.1</version>
     <authors>ChilliCream authors and contributors</authors>
     <owners>ChilliCream authors and contributors</owners>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
@@ -13,11 +13,15 @@
     <releaseNotes>Release notes: https://github.com/ChilliCream/hotchocolate/releases/</releaseNotes>
     <copyright>Copyright © 2019 ChilliCream (Michael &amp; Rafael Staib)</copyright>
     <tags>GraphQL ChilliCream</tags>
+    <dependencies>
+      <dependency id="StrawberryShake.Abstractions" version="10.0.1" exclude="Build,Analyzers" />
+      <dependency id="StrawberryShake.Http" version="10.0.1" exclude="Build,Analyzers" />
+    </dependencies>
   </metadata>
   <files>
     <file src="GraphQL.xaml" target="build\GraphQL.xaml" />
     <file src="StrawberryShake.props" target="build\StrawberryShake.props" />
     <file src="StrawberryShake.targets" target="build\StrawberryShake.targets" />
-    <file src="..\dotnet-graphql\bin\Debug\netcoreapp2.1\*.*" target="tools" />
+    <file src="..\dotnet-graphql\bin\Release\netcoreapp2.1\*.*" target="tools" />
   </files>
 </package>

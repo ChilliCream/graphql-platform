@@ -110,6 +110,8 @@ Task("Publish")
     .IsDependentOn("EnvironmentSetup")
     .Does(() =>
 {
+    ReplaceTextInFiles("src/Client/Tools/StrawberryShake.nuspec", "10.0.1", packageVersion);
+
     using(var process = StartAndReturnProcess("msbuild",
         new ProcessSettings{ Arguments = "./tools/Build.Core.sln /t:restore /p:configuration=" + configuration }))
     {
@@ -124,6 +126,12 @@ Task("Publish")
 
     using(var process = StartAndReturnProcess("msbuild",
         new ProcessSettings{ Arguments = "./tools/Build.Core.sln /t:pack /p:configuration=" + configuration + " /p:IncludeSource=true /p:IncludeSymbols=true" }))
+    {
+        process.WaitForExit();
+    }
+
+    using(var process = StartAndReturnProcess("nuget.exe",
+        new ProcessSettings{ Arguments = "./src/Client/Tools/StrawberryShake.nuspec -Version " + packageVersion}))
     {
         process.WaitForExit();
     }
