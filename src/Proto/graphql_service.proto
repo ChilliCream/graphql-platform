@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package hotchocolate.api.v1;
+
+import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+option csharp_namespace = "HotChocolate.Grpc.Graphql";
+
+service GraphqlService {
+    rpc Execute(Request) returns (stream Response) {}
+    rpc ExecuteStream(stream BatchRequest) returns (stream Response) {}
+    rpc Ping (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+}
+
+message Request {
+    string query = 1;
+    google.protobuf.Struct variables = 2;
+    string operation_name = 3;
+    repeated string batch_operations = 4;
+}
+
+message BatchRequest {
+    repeated Request request = 1;
+    repeated string batch_operations = 2;
+}
+
+message Response {
+    QueryType data = 1;
+
+    // TODO: path can be a number or string
+    google.protobuf.ListValue path = 2;
+
+    repeated Error errors = 3;
+
+    // Free-form extensions (starts with a map)
+    google.protobuf.Struct extensions = 4;
+}
+
+// GraphQL Data
+// All fields that can be returned by a query, mutation, stream or defer
+message QueryType {
+    oneof data {
+        string data_text = 1;
+        google.protobuf.Struct json = 2;
+    }
+}
+
+// GraphQL Error
+message Error {
+    // Description of the error intended for the developer.
+    string message = 1;
+
+    // The source location for the error.
+    repeated SourceLocation locations = 2;
+
+    // Path to the `null` value justified by this error.
+    google.protobuf.ListValue path = 3;
+
+    // Free-form extensions (starts with a map)
+    google.protobuf.Struct extensions = 4;
+}
+
+// The source location of an error.
+message SourceLocation {
+    // The line the error occurred at.
+    int32 line = 1;
+    // The column the error occurred at.
+    int32 column = 2;
+}

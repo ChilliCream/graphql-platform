@@ -77,6 +77,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.HttpPost", "AspN
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GreenDonut", "..\DataLoader\Core\GreenDonut.csproj", "{893BF07B-4171-4C10-8D41-E7704C19D7C0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.Grpc", "AspNetCore.Grpc\AspNetCore.Grpc.csproj", "{B0A278E0-C962-45CE-9A6A-89DCDB5BD3C1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AspNetCore.Grpc.Abstractions", "AspNetCore.Grpc.Abstractions\AspNetCore.Grpc.Abstractions.csproj", "{262676B0-0BB5-4E40-95ED-491F7C86AEDD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -227,6 +231,14 @@ Global
 		{893BF07B-4171-4C10-8D41-E7704C19D7C0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{893BF07B-4171-4C10-8D41-E7704C19D7C0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{893BF07B-4171-4C10-8D41-E7704C19D7C0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B0A278E0-C962-45CE-9A6A-89DCDB5BD3C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B0A278E0-C962-45CE-9A6A-89DCDB5BD3C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B0A278E0-C962-45CE-9A6A-89DCDB5BD3C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B0A278E0-C962-45CE-9A6A-89DCDB5BD3C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{262676B0-0BB5-4E40-95ED-491F7C86AEDD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{262676B0-0BB5-4E40-95ED-491F7C86AEDD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{262676B0-0BB5-4E40-95ED-491F7C86AEDD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{262676B0-0BB5-4E40-95ED-491F7C86AEDD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
