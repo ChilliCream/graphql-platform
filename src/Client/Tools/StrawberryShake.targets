@@ -29,7 +29,7 @@
       <BerryLangVersion Condition="'$(BerryLangVersion)'==''">CSharp_7_3</BerryLangVersion>
       <BerryEnableDI Condition="'$(BerryEnableDI)'==''">true</BerryEnableDI>
       <BerryNamespace Condition="'$(BerryNamespace)'=='' AND '$(RootNamespace)'!=''">$(RootNamespace)</BerryNamespace>
-      <BerryCommand>dotnet dotnet-graphql.dll generate "$(MSBuildProjectDirectory)" -s</BerryCommand>
+      <BerryCommand>dotnet "$(GraphQLCompiler)" generate "$(MSBuildProjectDirectory)" -s</BerryCommand>
       <BerryCommand>$(BerryCommand) -l $(BerryLangVersion)</BerryCommand>
       <BerryCommand Condition="'$(BerryEnableDI)'=='true'">$(BerryCommand) -d</BerryCommand>
       <BerryCommand Condition="'$(BerryNamespace)'!=''">$(BerryCommand) -n $(BerryNamespace)</BerryCommand>
