@@ -133,8 +133,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Http", "..\src\Client\Http\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "dotnet-graphql", "..\src\Client\dotnet-graphql\dotnet-graphql.csproj", "{5B5968F3-C19D-44CE-A368-86E1704B609C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Core", "..\src\Client\Core\Core.csproj", "{31CB6D65-BEA2-41DE-96F4-B5EF5B8E8DE8}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -769,18 +767,6 @@ Global
 		{5B5968F3-C19D-44CE-A368-86E1704B609C}.Release|x64.Build.0 = Release|Any CPU
 		{5B5968F3-C19D-44CE-A368-86E1704B609C}.Release|x86.ActiveCfg = Release|Any CPU
 		{5B5968F3-C19D-44CE-A368-86E1704B609C}.Release|x86.Build.0 = Release|Any CPU
-		{31CB6D65-BEA2-41DE-96F4-B5EF5B8E8DE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{31CB6D65-BEA2-41DE-96F4-B5EF5B8E8DE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{31CB6D65-BEA2-41DE-96F4-B5EF5B8E8DE8}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{31CB6D65-BEA2-41DE-96F4-B5EF5B8E8DE8}.Debug|x64.Build.0 = Debug|Any CPU
-		{31CB6D65-BEA2-41DE-96F4-B5EF5B8E8DE8}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{31CB6D65-BEA2-41DE-96F4-B5EF5B8E8DE8}.Debug|x86.Build.0 = Debug|Any CPU
-		{31CB6D65-BEA2-41DE-96F4-B5EF5B8E8DE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{31CB6D65-BEA2-41DE-96F4-B5EF5B8E8DE8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{31CB6D65-BEA2-41DE-96F4-B5EF5B8E8DE8}.Release|x64.ActiveCfg = Release|Any CPU
-		{31CB6D65-BEA2-41DE-96F4-B5EF5B8E8DE8}.Release|x64.Build.0 = Release|Any CPU
-		{31CB6D65-BEA2-41DE-96F4-B5EF5B8E8DE8}.Release|x86.ActiveCfg = Release|Any CPU
-		{31CB6D65-BEA2-41DE-96F4-B5EF5B8E8DE8}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -848,7 +834,6 @@ Global
 		{BA897634-FBDD-4256-B7B8-B846B61449FA} = {753999A3-9E0D-4B05-956B-37483F3C0038}
 		{549B444D-D78C-4565-A3C2-55FEE06DC559} = {753999A3-9E0D-4B05-956B-37483F3C0038}
 		{5B5968F3-C19D-44CE-A368-86E1704B609C} = {753999A3-9E0D-4B05-956B-37483F3C0038}
-		{31CB6D65-BEA2-41DE-96F4-B5EF5B8E8DE8} = {753999A3-9E0D-4B05-956B-37483F3C0038}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {A5A88C22-6FA8-4D86-9611-D6B69ADB807C}
