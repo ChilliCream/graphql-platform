@@ -1,26 +1,27 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <ItemGroup>
-    <Watch Include="**\*.graphql" />
-    <Watch Include="**\berry.json" />
-    <Compile Update="**\Generated\**\*.cs" Watch="false" />
-  </ItemGroup>
+  <ItemDefinitionGroup>
+    <GraphQL>
+      <Generator>MSBuild:GraphQL_Compile</Generator>
+    </GraphQL>
+  </ItemDefinitionGroup>
 
-  <Target Name="GenerateJsonResource" BeforeTargets="BeforeBuild" Condition="'@(JsonResource)' != ''" />
+  <ItemGroup>
+    <PropertyPageSchema Include="$(GraphQLPropertyPageSchema)">
+      <Context>File;BrowseObject</Context>
+    </PropertyPageSchema>
+    <AvailableItemName Include="GraphQL" />
+  </ItemGroup>
 
   <!-- Extension points. -->
   <Target Name="GraphQL_BeforeCompile" />
   <Target Name="GraphQL_AfterCompile" />
 
-  <!-- Main compile sequence. Certain steps are gated by the value $(DisableProtobufDesignTimeBuild),
-       so the sequence is good for either design time or build time. -->
-  <Target
-    Name="GraphQL_Compile"
-    Condition="'@(GraphQL)' != ''"
-    DependsOnTargets="GraphQL_BeforeCompile
-                  GraphQL_CoreCompile
-                  GraphQL_AfterCompile" />
-
+  <!-- Main compile sequence. -->
+  <Target Name="GraphQL_Compile" Condition="'@(GraphQL)' != ''"
+    DependsOnTargets="GraphQL_BeforeCompile;
+          GraphQL_CoreCompile;
+          GraphQL_AfterCompile" />
 
   <Target Name="GraphQL_CoreCompile">
     <PropertyGroup>
@@ -36,6 +37,10 @@
 
     <Message Text="$(BerryCommand)" Importance="High" />
     <Exec Command="$(BerryCommand)" WorkingDirectory="$(MSBuildProjectDirectory)" IgnoreExitCode="true" />
+  </Target>
+
+  <Target Name="GraphQL_Environment_Validation" BeforeTargets="BeforeBuild">
+    <Error Text="GraphQL content definition is missing." Condition="!Exists('$(GraphQLPropertyPageSchema)')" />
   </Target>
 
 </Project>

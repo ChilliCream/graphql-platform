@@ -1,24 +1,12 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <!--ItemGroup>
-    <Watch Include="**\*.graphql" />
-    <Watch Include="**\berry.json" />
-    <Compile Update="**\Generated\**\*.cs" Watch="false" />
-  </ItemGroup-->
+  <PropertyGroup>
+    <GraphQLPropertyPageSchema>$(MSBuildThisFileDirectory)GraphQL.xaml</GraphQLPropertyPageSchema>
+  </PropertyGroup>
 
   <ItemGroup>
     <None Remove="**/*.graphql" />
     <GraphQL Include="**/*.graphql" />
   </ItemGroup>
-
-  <ItemGroup>
-    <PropertyPageSchema Include="$(MSBuildThisFileDirectory)GraphQL.xaml" />
-  </ItemGroup>
-
-  <ItemDefinitionGroup>
-    <JsonResource>
-      <Generator>MSBuild:GraphQL_Compile</Generator>
-    </JsonResource>
-  </ItemDefinitionGroup>
 
 </Project>

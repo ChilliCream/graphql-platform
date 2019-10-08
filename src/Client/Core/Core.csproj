@@ -27,6 +27,12 @@
   <ItemGroup>
     <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
     <ProjectReference Include="..\Http\Http.csproj" />
+    <ProjectReference Include="..\dotnet-graphql\dotnet-graphql.csproj">
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+    <ProjectReference Include="..\MSBuild\MSBuild.csproj">
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup Label="dotnet pack instructions">
@@ -40,8 +46,8 @@
       <Pack>true</Pack>
       <PackagePath>build\</PackagePath>
     </Content>
-    <None Remove="GraphQL.xml" />
-    <Content Include="GraphQL.xml">
+    <None Remove="GraphQL.xaml" />
+    <Content Include="GraphQL.xaml">
       <Pack>true</Pack>
       <PackagePath>build\</PackagePath>
     </Content>
