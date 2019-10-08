@@ -49,6 +49,7 @@
             "code": "ERROR_CODE"
           }
         },
+        "schemaName": "contract",
         "STITCH": "SOMETHING"
       }
     },
@@ -83,6 +84,7 @@
             "code": "ERROR_CODE"
           }
         },
+        "schemaName": "contract",
         "STITCH": "SOMETHING"
       }
     }
