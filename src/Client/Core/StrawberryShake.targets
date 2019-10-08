@@ -6,7 +6,23 @@
     <Compile Update="**\Generated\**\*.cs" Watch="false" />
   </ItemGroup>
 
-  <Target Name="GenerateGraphQLClient" AfterTargets="PreBuildEvent">
+  <Target Name="GenerateJsonResource" BeforeTargets="BeforeBuild" Condition="'@(JsonResource)' != ''" />
+
+  <!-- Extension points. -->
+  <Target Name="GraphQL_BeforeCompile" />
+  <Target Name="GraphQL_AfterCompile" />
+
+  <!-- Main compile sequence. Certain steps are gated by the value $(DisableProtobufDesignTimeBuild),
+       so the sequence is good for either design time or build time. -->
+  <Target
+    Name="GraphQL_Compile"
+    Condition="'@(GraphQL)' != ''"
+    DependsOnTargets="GraphQL_BeforeCompile
+                  GraphQL_CoreCompile
+                  GraphQL_AfterCompile" />
+
+
+  <Target Name="GraphQL_CoreCompile">
     <PropertyGroup>
       <BerryLangVersion Condition="'$(Nullable)'=='enable' AND '$(LangVersion)'=='8.0'">CSharp_8_0</BerryLangVersion>
       <BerryLangVersion Condition="'$(BerryLangVersion)'==''">CSharp_7_3</BerryLangVersion>

@@ -30,8 +30,18 @@
   </ItemGroup>
 
   <ItemGroup Label="dotnet pack instructions">
+    <None Remove="*.props" />
+    <Content Include="*.props">
+      <Pack>true</Pack>
+      <PackagePath>build\</PackagePath>
+    </Content>
     <None Remove="*.targets" />
     <Content Include="*.targets">
+      <Pack>true</Pack>
+      <PackagePath>build\</PackagePath>
+    </Content>
+    <None Remove="GraphQL.xml" />
+    <Content Include="GraphQL.xml">
       <Pack>true</Pack>
       <PackagePath>build\</PackagePath>
     </Content>

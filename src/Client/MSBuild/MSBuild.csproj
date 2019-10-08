@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <PackageId>StrawberryShake.MSBuild</PackageId>
+    <AssemblyName>StrawberryShake.MSBuild</AssemblyName>
+    <RootNamespace>StrawberryShake.MSBuild</RootNamespace>
+    <TargetFrameworks>netstandard1.3;net45</TargetFrameworks>
+    <<IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+</Project>
