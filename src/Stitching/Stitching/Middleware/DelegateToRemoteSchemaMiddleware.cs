@@ -18,6 +18,7 @@ namespace HotChocolate.Stitching
     public class DelegateToRemoteSchemaMiddleware
     {
         private const string _remoteErrorField = "remote";
+        private const string _schemaNameErrorField = "schemaName";
         private static readonly RootScopedVariableResolver _resolvers =
             new RootScopedVariableResolver();
         private readonly FieldDelegate _next;
@@ -51,7 +52,7 @@ namespace HotChocolate.Stitching
 
                 context.Result = new SerializedData(
                     ExtractData(result.Data, path.Count()));
-                ReportErrors(context, result.Errors);
+                ReportErrors(delegateDirective.Schema, context, result.Errors);
             }
 
             await _next.Invoke(context).ConfigureAwait(false);
@@ -178,13 +179,15 @@ namespace HotChocolate.Stitching
         }
 
         private static void ReportErrors(
+            NameString schemaName,
             IResolverContext context,
             IEnumerable<IError> errors)
         {
             foreach (IError error in errors)
             {
                 IErrorBuilder builder = ErrorBuilder.FromError(error)
-                    .SetExtension(_remoteErrorField, error.RemoveException());
+                    .SetExtension(_remoteErrorField, error.RemoveException())
+                    .SetExtension(_schemaNameErrorField, schemaName.Value);
 
                 if (error.Path != null)
                 {
