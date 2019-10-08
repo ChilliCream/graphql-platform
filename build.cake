@@ -139,6 +139,7 @@ Task("Publish")
 
 Task("PublishClientTools")
     .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
 {
     ReplaceTextInFiles("src/Client/Tools/StrawberryShake.nuspec", "10.0.1", packageVersion);
 
@@ -147,7 +148,7 @@ Task("PublishClientTools")
     {
         process.WaitForExit();
     }
-}
+});
 
 Task("PublishTemplates")
     .IsDependentOn("EnvironmentSetup")
