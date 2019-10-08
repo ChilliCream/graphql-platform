@@ -137,7 +137,7 @@ namespace HotChocolate.Stitching.Delegation
             var context = new Mock<IMiddlewareContext>();
             context.SetupGet(t => t.Field).Returns(
                 schema.GetType<ObjectType>("Query").Fields["foo"]);
-            context.Setup(t => t.Argument<object>(It.IsAny<string>()))
+            context.Setup(t => t.Argument<object>(It.IsAny<NameString>()))
                 .Returns("Baz");
 
             // act
@@ -165,7 +165,7 @@ namespace HotChocolate.Stitching.Delegation
             var context = new Mock<IMiddlewareContext>();
             context.SetupGet(t => t.Field).Returns(
                 schema.GetType<ObjectType>("Query").Fields["foo"]);
-            context.Setup(t => t.Argument<object>(It.IsAny<string>()))
+            context.Setup(t => t.Argument<object>(It.IsAny<NameString>()))
                 .Returns("Baz");
 
             var scopedVariable = new ScopedVariableNode(
