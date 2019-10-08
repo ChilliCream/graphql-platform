@@ -195,6 +195,11 @@ namespace HotChocolate.Stitching
                     builder.SetPath(path)
                         .ClearLocations()
                         .AddLocation(context.FieldSelection);
+                } else if (IsHttpError(error))
+                {
+                    builder.SetPath(context.Path)
+                        .ClearLocations()
+                        .AddLocation(context.FieldSelection);
                 }
 
                 context.ReportError(builder.Build());
@@ -225,6 +230,8 @@ namespace HotChocolate.Stitching
 
             return current;
         }
+
+        private static bool IsHttpError(IError error) => error.Code == ErrorCodes.HttpRequestException;
 
         private static IReadOnlyCollection<VariableValue> CreateVariableValues(
             IMiddlewareContext context,
