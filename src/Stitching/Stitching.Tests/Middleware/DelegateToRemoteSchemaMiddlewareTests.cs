@@ -1144,7 +1144,7 @@ namespace HotChocolate.Stitching
             }
 
             // assert
-            Snapshot.Match(result);
+            result.MatchSnapshot(options => options.IgnoreField("Errors[0].Exception.StackTrace"));
         }
 
         private class ServiceUnavailableDelegatingHandler : DelegatingHandler
