@@ -1,9 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.0</TargetFramework>
     <IsPackable>false</IsPackable>
-    <LangVersion>7.2</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
   </PropertyGroup>
@@ -25,6 +25,14 @@
     <ProjectReference Include="..\..\src\Server\AspNetCore.GraphiQL\AspNetCore.GraphiQL.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore.Playground\AspNetCore.Playground.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore.Voyager\AspNetCore.Voyager.csproj" />
+
+    <ProjectReference Include="..\..\src\Server\AspNetCore.Grpc\AspNetCore.Grpc.csproj" />
+    <ProjectReference Include="..\..\src\Server\AspNetCore.Grpc.Client\AspNetCore.Grpc.Client.csproj" />
   </ItemGroup>
 
+<!--
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="$(GrpcDotNetPackageVersion)" />
+  </ItemGroup>
+-->
 </Project>

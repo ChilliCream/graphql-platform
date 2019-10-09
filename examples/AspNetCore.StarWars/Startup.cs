@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using HotChocolate;
 using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Grpc;
 using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Subscriptions;
@@ -46,6 +47,10 @@ namespace StarWars
                     TracingPreference = TracingPreference.Always
                 });
 
+            // Add gRPC Services
+            services.AddGrpc();
+            // Add test for gRPC to GraphQL
+            services.AddHostedService<TestGrpcToGraphqlHostedService>();
 
             // Add Authorization Policy
             services.AddAuthorization(options =>
@@ -88,6 +93,11 @@ namespace StarWars
                 .UseGraphiQL("/graphql")
                 .UsePlayground("/graphql")
                 .UseVoyager("/graphql");
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapGrpcService<GraphqlGrpcService>();
+            });
         }
     }
 }
