@@ -1,17 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
-
   <PropertyGroup>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
     <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
     <ChilliFramework>$([System.IO.Path]::Combine($(ChilliImport), 'CoreServerFramework.props'))</ChilliFramework>
     <ChilliBuild>$([System.IO.Path]::Combine($(ChilliImport), 'BuildSettings.props'))</ChilliBuild>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <Import Project="$(ChilliFramework)" />
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
-    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
+    <!-- TODO: need to do refactoring and consolidation of TargetFramework(s) -->
+    <!-- <TargetFramework>netcoreapp3.0</TargetFramework> -->
+    <TargetFrameworks>netcoreapp3.0</TargetFrameworks>
     <PackageId>HotChocolate.AspNetCore.Grpc</PackageId>
     <AssemblyName>HotChocolate.AspNetCore.Grpc</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Grpc</RootNamespace>
@@ -19,7 +21,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AspNetCore.Abstractions\AspNetCore.Abstractions.csproj" />
+    <Protobuf Include="$(CCGrpcProtoDirectory)\graphql_service.proto" GrpcServices="Server" Link="Proto\graphql_service.proto" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="$(GrpcDotNetPackageVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Core\Core.csproj" />
+    <!--<ProjectReference Include="..\AspNetCore.Grpc.Abstractions\AspNetCore.Grpc.Abstractions.csproj" />-->
+  </ItemGroup>
 </Project>

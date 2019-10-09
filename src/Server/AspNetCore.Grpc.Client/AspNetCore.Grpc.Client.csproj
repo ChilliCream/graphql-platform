@@ -12,20 +12,23 @@
 
   <PropertyGroup>
     <!-- TODO: need to do refactoring and consolidation of TargetFramework(s) -->
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <!-- <TargetFramework>netstandard2.1</TargetFramework> -->
     <TargetFrameworks>netstandard2.1</TargetFrameworks>
-    <PackageId>HotChocolate.AspNetCore.Grpc.Abstractions</PackageId>
-    <AssemblyName>HotChocolate.AspNetCore.Grpc.Abstractions</AssemblyName>
+    <PackageId>HotChocolate.AspNetCore.Grpc.Client</PackageId>
+    <AssemblyName>HotChocolate.AspNetCore.Grpc.Client</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Grpc</RootNamespace>
-    <Description>Contains the Hot Chocolate GraphQL gRPC middleware abstractions for ASP .Net core.</Description>
+    <Description>Contains the Hot Chocolate GraphQL gRPC client for ASP .Net core.</Description>
     <Nullable>enable</Nullable>
+    <IsPackable>true</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.Core" Version="$(GrpcPackageVersion)" />
-    <PackageReference Include="Grpc" Version="$(GrpcPackageVersion)" />
+    <Protobuf Include="$(CCGrpcProtoDirectory)\graphql_service.proto" GrpcServices="Client" Link="Proto\graphql_service.proto" />
+  </ItemGroup>
 
+  <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufPackageVersion)" />
+    <PackageReference Include="Grpc.Net.Client" Version="$(GrpcDotNetPackageVersion)" />
     <PackageReference Include="Grpc.Tools" Version="$(GrpcPackageVersion)">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
@@ -33,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AspNetCore.Abstractions\AspNetCore.Abstractions.csproj" />
+    <!--<ProjectReference Include="..\AspNetCore.Grpc.Abstractions\AspNetCore.Grpc.Abstractions.csproj" />-->
   </ItemGroup>
 
 </Project>

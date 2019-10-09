@@ -3,14 +3,18 @@ syntax = "proto3";
 package hotchocolate.api.v1;
 
 import "google/protobuf/struct.proto";
-import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
 
-option csharp_namespace = "HotChocolate.Grpc.Graphql";
+option csharp_namespace = "HotChocolate.AspNetCore.Grpc";
 
 service GraphqlService {
+    // Execute GraphQL query
     rpc Execute(Request) returns (stream Response) {}
+
+    // Execute GraphQL query through multiple queries
     rpc ExecuteStream(stream BatchRequest) returns (stream Response) {}
+
+    // TODO: Remove - only for testing purpose
     rpc Ping (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
 
@@ -27,24 +31,19 @@ message BatchRequest {
 }
 
 message Response {
-    QueryType data = 1;
+    // GraphQL Data
+    //   All fields that can be returned by a query, mutation, stream or defer
+    google.protobuf.Struct data = 1;
 
     // TODO: path can be a number or string
+    // GraphQL Path
     google.protobuf.ListValue path = 2;
 
     repeated Error errors = 3;
 
+    // GraphQL Extensions
     // Free-form extensions (starts with a map)
     google.protobuf.Struct extensions = 4;
-}
-
-// GraphQL Data
-// All fields that can be returned by a query, mutation, stream or defer
-message QueryType {
-    oneof data {
-        string data_text = 1;
-        google.protobuf.Struct json = 2;
-    }
 }
 
 // GraphQL Error
