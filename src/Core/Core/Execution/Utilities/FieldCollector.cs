@@ -293,18 +293,12 @@ namespace HotChocolate.Execution
                 }
                 else
                 {
-                    CreateArgumentValue(
-                        fieldInfo,
-                        argument,
-                        literal);
+                    CreateArgumentValue(fieldInfo, argument, literal);
                 }
             }
             else
             {
-                CreateArgumentValue(
-                    fieldInfo,
-                    argument,
-                    argument.DefaultValue);
+                CreateArgumentValue(fieldInfo, argument, argument.DefaultValue);
             }
         }
 
@@ -341,18 +335,43 @@ namespace HotChocolate.Execution
                 fieldInfo.Arguments[argument.Name] =
                     new ArgumentValue(argument.Type, error);
             }
-            else if (argument.Type.IsLeafType())
+            else if (argument.Type.IsLeafType() && IsLeafLiteral(literal))
             {
                 fieldInfo.Arguments[argument.Name] =
                     new ArgumentValue(
                         argument.Type,
+                        literal.GetValueKind(),
                         ParseLiteral(argument.Type, literal));
             }
             else
             {
                 fieldInfo.Arguments[argument.Name] =
-                    new ArgumentValue(argument.Type, literal);
+                    new ArgumentValue(
+                        argument.Type,
+                        literal.GetValueKind(),
+                        literal);
             }
+        }
+
+        private bool IsLeafLiteral(IValueNode value)
+        {
+            if (value is ObjectValueNode)
+            {
+                return false;
+            }
+
+            if (value is ListValueNode list)
+            {
+                for (int i = 0; i < list.Items.Count; i++)
+                {
+                    if (!IsLeafLiteral(list.Items[i]))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         private static void AddSelection(

@@ -1,12 +1,14 @@
 namespace HotChocolate.Types
 {
-    public enum ScalarValueKind
+    public enum ValueKind
     {
         String,
         Integer,
         Float,
         Boolean,
         Enum,
+        Object,
+        List,
         Null
     }
 }

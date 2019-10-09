@@ -150,8 +150,7 @@ namespace HotChocolate.Execution
 
             if (value is IValueNode literal)
             {
-                CheckForInvalidValueType(
-                    variableDefinition, variable, literal);
+                CheckForInvalidValueType(variableDefinition, variable, literal);
                 value = variable.Type.ParseLiteral(literal);
             }
 

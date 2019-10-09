@@ -101,6 +101,11 @@ namespace HotChocolate.Execution
 
         public IVariableValueCollection Variables => _executionContext.Variables;
 
+        public void ModifyScopedContext(ModifyScopedContext modify)
+        {
+            ScopedContextData = modify(ScopedContextData);
+        }
+
         public T Parent<T>()
         {
             if (SourceObject is null)
