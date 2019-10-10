@@ -17,7 +17,6 @@ namespace HotChocolate.Types
         {
         }
 
-
         public sealed override bool IsInstanceOfType(IValueNode literal)
         {
             if (literal == null)

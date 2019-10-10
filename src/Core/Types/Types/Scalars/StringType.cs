@@ -13,101 +13,42 @@ namespace HotChocolate.Types
     /// </summary>
     [SpecScalar]
     public sealed class StringType
-        : ScalarType
+        : ScalarType<string, StringValueNode>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="StringType"/> class.
         /// </summary>
         public StringType()
-            : base("String")
+            : base(ScalarNames.String)
         {
             Description = TypeResources.StringType_Description;
         }
 
-        public override Type ClrType => typeof(string);
-
-        public override bool IsInstanceOfType(IValueNode literal)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StringType"/> class.
+        /// </summary>
+        public StringType(NameString name)
+            : base(name)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            return literal is StringValueNode
-                || literal is NullValueNode;
         }
 
-        public override object ParseLiteral(IValueNode literal)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="StringType"/> class.
+        /// </summary>
+        public StringType(NameString name, string description)
+            : base(name)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (literal is StringValueNode stringLiteral)
-            {
-                return stringLiteral.Value;
-            }
-
-            if (literal is NullValueNode)
-            {
-                return null;
-            }
-
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
+            Description = description;
         }
 
-        public override IValueNode ParseValue(object value)
+        protected override string ParseLiteral(StringValueNode literal)
         {
-            if (value == null)
-            {
-                return new NullValueNode(null);
-            }
-
-            if (value is string s)
-            {
-                return new StringValueNode(null, s, false);
-            }
-
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseValue(
-                    Name, value.GetType()));
+            return literal.Value;
         }
 
-        public override object Serialize(object value)
+        protected override StringValueNode ParseValue(string value)
         {
-            if (value == null)
-            {
-                return null;
-            }
-
-            if (value is string s)
-            {
-                return s;
-            }
-
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
-        }
-
-        public override bool TryDeserialize(object serialized, out object value)
-        {
-            if (serialized is null)
-            {
-                value = null;
-                return true;
-            }
-
-            if (serialized is string s)
-            {
-                value = s;
-                return true;
-            }
-
-            value = null;
-            return false;
+            return new StringValueNode(value);
         }
     }
 }
