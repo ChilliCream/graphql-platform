@@ -15,6 +15,7 @@
     <PackageId>StrawberryShake.Abstractions</PackageId>
     <AssemblyName>StrawberryShake.Abstractions</AssemblyName>
     <RootNamespace>StrawberryShake</RootNamespace>
+    <PackageIconUrl>https://chillicream.com/img/projects/strawberryshake-signet.png</PackageIconUrl>
     <IsPackable>true</IsPackable>
     <Nullable>enable</Nullable>
   </PropertyGroup>
