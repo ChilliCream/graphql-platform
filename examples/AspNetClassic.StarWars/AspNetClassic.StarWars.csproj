@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
     <IsPackable>false</IsPackable>
-    <LangVersion>7.2</LangVersion>
+    <LangVersion>8.0</LangVersion>
     <ApplicationIcon />
     <OutputType>Exe</OutputType>
     <StartupObject>StarWars.Program</StartupObject>
@@ -36,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\AspNetCore.StarWars\**\*.cs" Exclude="..\AspNetCore.StarWars\bin\**\*.cs;..\AspNetCore.StarWars\obj\**\*.cs;..\AspNetCore.StarWars\Program.cs;..\AspNetCore.StarWars\Startup.cs;" />
+    <Compile Include="..\AspNetCore.StarWars\**\*.cs" Exclude="..\AspNetCore.StarWars\bin\**\*.cs;..\AspNetCore.StarWars\obj\**\*.cs;..\AspNetCore.StarWars\Program.cs;..\AspNetCore.StarWars\Startup.cs;..\AspNetCore.StarWars\Services\TestGrpcToGraphqlHostedService.cs;" />
   </ItemGroup>
 
 </Project>
