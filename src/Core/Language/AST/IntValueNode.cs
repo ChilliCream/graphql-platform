@@ -1,13 +1,12 @@
 ﻿using System.Buffers.Text;
 using System;
-using System.Globalization;
 
 namespace HotChocolate.Language
 {
     public sealed class IntValueNode
         : IValueNode<string>
-        , IHasSpan
         , IEquatable<IntValueNode>
+        , IIntValueLiteral
     {
         private ReadOnlyMemory<byte> _memory;
         private string? _stringValue;
@@ -335,7 +334,7 @@ namespace HotChocolate.Language
             throw new InvalidFormatException();
         }
 
-        public unsafe ReadOnlySpan<byte> AsSpan()
+        public ReadOnlySpan<byte> AsSpan()
         {
             if (_memory.IsEmpty)
             {

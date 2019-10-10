@@ -6,6 +6,7 @@ namespace HotChocolate.Language
     public sealed class FloatValueNode
         : IValueNode<string>
         , IEquatable<FloatValueNode>
+        , IFloatValueLiteral
     {
         private ReadOnlyMemory<byte> _memory;
         private string? _stringValue;
@@ -272,7 +273,7 @@ namespace HotChocolate.Language
             throw new InvalidFormatException();
         }
 
-        public unsafe ReadOnlySpan<byte> AsSpan()
+        public ReadOnlySpan<byte> AsSpan()
         {
             if (_memory.IsEmpty)
             {

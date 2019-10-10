@@ -10,7 +10,6 @@ namespace HotChocolate.Language
         , IEquatable<ObjectValueNode>
     {
         private int? _hash;
-        private Memory<byte> _memory;
         private string? _stringValue;
 
         public ObjectValueNode(

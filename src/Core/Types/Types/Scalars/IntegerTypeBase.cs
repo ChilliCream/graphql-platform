@@ -65,7 +65,8 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (TryConvertSerialized(serialized, ValueKind.Integer, out TClrType c))
+            if (TryConvertSerialized(serialized, ValueKind.Integer, out TClrType c)
+                && IsInstanceOfType(c))
             {
                 value = c;
                 return true;

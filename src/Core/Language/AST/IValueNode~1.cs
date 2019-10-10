@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace HotChocolate.Language
+﻿namespace HotChocolate.Language
 {
     public interface IValueNode<out T>
         : IValueNode
