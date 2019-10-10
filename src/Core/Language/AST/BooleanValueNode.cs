@@ -155,5 +155,9 @@ namespace HotChocolate.Language
 
         public BooleanValueNode WithValue(bool value) =>
             new BooleanValueNode(Location, value);
+
+        public static BooleanValueNode TrueLiteral { get; } = new BooleanValueNode(true);
+
+        public static BooleanValueNode FalseLiteral { get; } = new BooleanValueNode(false);
     }
 }
