@@ -25,14 +25,7 @@
     <ProjectReference Include="..\..\src\Server\AspNetCore.GraphiQL\AspNetCore.GraphiQL.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore.Playground\AspNetCore.Playground.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore.Voyager\AspNetCore.Voyager.csproj" />
-
     <ProjectReference Include="..\..\src\Server\AspNetCore.Grpc\AspNetCore.Grpc.csproj" />
-    <ProjectReference Include="..\..\src\Server\AspNetCore.Grpc.Client\AspNetCore.Grpc.Client.csproj" />
   </ItemGroup>
 
-<!--
-  <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="$(GrpcDotNetPackageVersion)" />
-  </ItemGroup>
--->
 </Project>

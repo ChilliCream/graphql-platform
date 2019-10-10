@@ -1,13 +1,12 @@
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Grpc.Net.Client;
 using HotChocolate.AspNetCore.Grpc;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace StarWars
 {
@@ -15,7 +14,7 @@ namespace StarWars
     /// Test the gRPC client with the gRPC GraphQL service
     /// </summary>
     public class TestGrpcToGraphqlHostedService
-        : IHostedService, IDisposable
+        : IHostedService
     {
         private readonly ILogger<TestGrpcToGraphqlHostedService> logger;
         private readonly IHostApplicationLifetime lifetime;
@@ -39,11 +38,13 @@ namespace StarWars
             {
                 this.logger.LogInformation("Test gRPC to GraphQL Service running.");
 
+                this.cancellationToken.ThrowIfCancellationRequested();
+
                 Task.Run(async () =>
                 {
                     try
                     {
-                        await ProcessTest(cancellationToken);
+                        await ProcessTest(this.cancellationToken);
 
                     }
                     catch (Exception error)
@@ -63,10 +64,6 @@ namespace StarWars
             return Task.CompletedTask;
         }
 
-        public void Dispose()
-        {
-
-        }
 
         private async Task ProcessTest(CancellationToken cancellationToken)
         {
@@ -74,68 +71,54 @@ namespace StarWars
 
             // The port number(5001) must match the port of the gRPC server.
             var channel = GrpcChannel.ForAddress("https://localhost:5001");
-            //var cl = new GraphqlGrpcService.GraphqlGrpcServiceClient(channel);
-            //var client = new GraphqlService. .GraphqlServiceClient(channel);
+            var client = new GraphqlService.GraphqlServiceClient(channel);
+            this.logger.LogDebug("Client created");
+            var pong = await client.PingAsync(new Empty());
 
-            //this.logger.LogInformation("Client created");
-            //this.logger.LogInformation($"Press space for continue...");
-            //Console.ReadKey();
+            var query = @"
+            query TestQuery {
+              Luke: character(characterIds: ""1000"") {
+		            ...CharacterFragment
+              }
+              
+              R2D2: character(characterIds: ""2001"") {
+                ...CharacterFragment
+              }
+            }
 
-            //var stopWatch = new Stopwatch();
-            //stopWatch.Start();
-            //var pong = await client.PingAsync(new Empty());
-            //stopWatch.Stop();
-            //this.logger.LogInformation($"GraphqlService.PingAsync: {pong} (time: {stopWatch.ElapsedMilliseconds}ms)");
-            //stopWatch.Reset();
-            //stopWatch.Start();
-            //var pong2 = await client.PingAsync(new Empty());
-            //stopWatch.Stop();
-            //this.logger.LogInformation($"GraphqlService.PingAsync: {pong2} (time: {stopWatch.ElapsedMilliseconds}ms)");
-            //this.logger.LogInformation("Press any other key to continue.");
-            //Console.ReadKey();
+            fragment CharacterFragment on  Character {
+                id
+                __typename
+                name
+            }
+            ";
+            var request = new Request
+            {
+                Query = query,
+                Variables = new Struct()
+                {
+                    Fields =
+                    {
+                        { "param1" , Value.ForNumber(1) },
+                        { "param2" , Value.ForString("test") }
+                    }
 
-            //var query = @"
-            //{
-            //      greetings {
-            //        hello
-            //      }
-            //}";
-            //var request = new Request
-            //{
-            //    Query = query,
-            //    Variables = new Struct()
-            //    {
-            //        Fields =
-            //        {
-            //            { "param1" , Value.ForNumber(1) },
-            //            { "param2" , Value.ForString("test") }
-            //        }
+                },
+                OperationName = "TestQuery"
+            };
 
-            //    },
-            //    OperationName = "test"
-            //};
+            using var call = client.Execute(
+                request: request,
+                headers: new Metadata
+                {
+                    new Metadata.Entry("client-name", typeof(Program).Namespace),
+                    new Metadata.Entry("authentication", "<bearer token>")
+                });
 
-            //stopWatch.Reset();
-            //stopWatch.Start();
-
-            //using (var call = client.Execute(request: request, headers: new Metadata { new Metadata.Entry("client-name", typeof(Program).Namespace) }))
-            //{
-            //    await foreach (var message in call.ResponseStream.ReadAllAsync())
-            //    {
-            //        this.logger.LogInformation();
-            //        this.logger.LogInformation($"Result:");
-            //        Console.ForegroundColor = ConsoleColor.Green;
-            //        this.logger.LogInformation(message.ToString());
-            //        this.logger.LogInformation($"Request time: {stopWatch.ElapsedMilliseconds}ms");
-            //        Console.ResetColor();
-            //    }
-            //}
-
-            //Console.ForegroundColor = ConsoleColor.Red;
-            //this.logger.LogInformation("Disconnected.");
-            //Console.ResetColor();
-            //this.logger.LogInformation("Press any key to exit...");
-            //Console.ReadKey();
+            await foreach (var message in call.ResponseStream.ReadAllAsync(cancellationToken: cancellationToken))
+            {
+                this.logger.LogDebug($"Result:{Environment.NewLine}{message}");
+            }
         }
     }
 }

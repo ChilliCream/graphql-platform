@@ -9,6 +9,7 @@ using HotChocolate.AspNetCore.Grpc;
 using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Subscriptions;
+using Microsoft.AspNetCore.Http;
 using StarWars.Data;
 using StarWars.Types;
 
@@ -20,6 +21,8 @@ namespace StarWars
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddHttpContextAccessor();
+
             // Add the custom services like repositories etc ...
             services.AddSingleton<CharacterRepository>();
             services.AddSingleton<ReviewRepository>();
@@ -48,7 +51,10 @@ namespace StarWars
                 });
 
             // Add gRPC Services
-            services.AddGrpc();
+            services.AddGrpc(options =>
+            {
+                options.EnableDetailedErrors = true;
+            });
             // Add test for gRPC to GraphQL
             services.AddHostedService<TestGrpcToGraphqlHostedService>();
 
@@ -85,10 +91,17 @@ namespace StarWars
                 app.UseDeveloperExceptionPage();
             }
 
+            // Enable HTTP2 only on HTTPS
+            app.UseHttpsRedirection();
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
+
             app.UseRouting();
 
             app
                 .UseWebSockets()
+                // TODO: When use gRPC services via endpoints.MapGrpcService<GraphqlGrpcService>() than not working routing for GraphQL/GraphiQL/Playground/Voyager
+                // More info here: https://hotchocolategraphql.slack.com/archives/CD9TNKT8T/p1570112005410200
                 .UseGraphQL("/graphql")
                 .UseGraphiQL("/graphql")
                 .UsePlayground("/graphql")
@@ -97,6 +110,11 @@ namespace StarWars
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGrpcService<GraphqlGrpcService>();
+
+                endpoints.MapGet("/", async context =>
+                {
+                    await context.Response.WriteAsync($"{nameof(StarWars)} - HotChocolate GraphQL API Server");
+                });
             });
         }
     }

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
   <PropertyGroup>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
     <ChilliImport>$([System.IO.Path]::Combine($(ChilliCurrentDirectory), '..', '..', '..', 'tools'))</ChilliImport>
@@ -21,15 +21,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Protobuf Include="$(CCGrpcProtoDirectory)\graphql_service.proto" GrpcServices="Server" Link="Proto\graphql_service.proto" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" Version="$(GrpcDotNetPackageVersion)" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Core\Core.csproj" />
-    <!--<ProjectReference Include="..\AspNetCore.Grpc.Abstractions\AspNetCore.Grpc.Abstractions.csproj" />-->
+    <ProjectReference Include="..\AspNetCore.Grpc.Abstractions\AspNetCore.Grpc.Abstractions.csproj" />
   </ItemGroup>
 </Project>

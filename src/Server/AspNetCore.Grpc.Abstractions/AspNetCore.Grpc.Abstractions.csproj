@@ -12,8 +12,8 @@
 
   <PropertyGroup>
     <!-- TODO: need to do refactoring and consolidation of TargetFramework(s) -->
-    <TargetFramework>netstandard2.1</TargetFramework>
-    <TargetFrameworks>netstandard2.1</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <PackageId>HotChocolate.AspNetCore.Grpc.Abstractions</PackageId>
     <AssemblyName>HotChocolate.AspNetCore.Grpc.Abstractions</AssemblyName>
     <RootNamespace>HotChocolate.AspNetCore.Grpc</RootNamespace>
@@ -24,7 +24,6 @@
   <ItemGroup>
     <PackageReference Include="Grpc.Core" Version="$(GrpcPackageVersion)" />
     <PackageReference Include="Grpc" Version="$(GrpcPackageVersion)" />
-
     <PackageReference Include="Google.Protobuf" Version="$(GoogleProtobufPackageVersion)" />
     <PackageReference Include="Grpc.Tools" Version="$(GrpcPackageVersion)">
       <PrivateAssets>all</PrivateAssets>
@@ -33,7 +32,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\AspNetCore.Abstractions\AspNetCore.Abstractions.csproj" />
+    <Protobuf Include="$(CCGrpcProtoDirectory)\graphql_service.proto" OutputDir="%(RelativePath)Generated" GrpcServices="Both" CompileOutputs="false" Link="Proto\graphql_service.proto" />
   </ItemGroup>
 
 </Project>
