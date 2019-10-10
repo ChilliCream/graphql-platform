@@ -15,8 +15,7 @@ namespace HotChocolate.Types
         private ObjectToDictionaryConverter _objectToDictConverter;
         private ITypeConversion _converter;
 
-        public AnyType()
-            : base("Any")
+        public AnyType() : base(ScalarNames.Any)
         {
         }
 
@@ -164,11 +163,12 @@ namespace HotChocolate.Types
         }
 
 
-        public override object Serialize(object value)
+        public override bool TrySerialize(object value, out object serialized)
         {
             if (value is null)
             {
-                return null;
+                serialized = null;
+                return true;
             }
 
             switch (value)
@@ -184,7 +184,8 @@ namespace HotChocolate.Types
                 case double _:
                 case decimal _:
                 case bool _:
-                    return value;
+                    serialized = value;
+                    return true;
 
                 default:
                     Type type = value.GetType();
@@ -193,10 +194,12 @@ namespace HotChocolate.Types
                         type, typeof(string), value, out object converted)
                         && converted is string c)
                     {
-                        return c;
+                        serialized = c;
+                        return true;
                     }
 
-                    return _objectToDictConverter.Convert(value);
+                    serialized = _objectToDictConverter.Convert(value);
+                    return true;
             }
         }
 
