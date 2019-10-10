@@ -21,7 +21,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="IdType"/> class.
         /// </summary>
         public IdType()
-            : base("ID")
+            : base(ScalarNames.ID)
         {
             Description = TypeResources.IdType_Description;
         }

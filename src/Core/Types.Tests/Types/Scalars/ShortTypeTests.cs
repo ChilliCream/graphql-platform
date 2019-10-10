@@ -8,7 +8,7 @@ namespace HotChocolate.Types
         : NumberTypeTests<short, ShortType, IntValueNode, short>
     {
         protected override IntValueNode GetValueNode =>
-            new IntValueNode("1");
+            new IntValueNode(1);
 
         protected override IValueNode GetWrongValueNode =>
             new FloatValueNode(1.0);

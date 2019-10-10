@@ -343,15 +343,15 @@ namespace HotChocolate.Language
 
                 if (_shortValue.HasValue)
                 {
-                    Utf8Formatter.TryFormat(_shortValue.Value, buffer, out written, 'f');
+                    Utf8Formatter.TryFormat(_shortValue.Value, buffer, out written);
                 }
                 else if (_intValue.HasValue)
                 {
-                    Utf8Formatter.TryFormat(_intValue.Value, buffer, out written, 'f');
+                    Utf8Formatter.TryFormat(_intValue.Value, buffer, out written);
                 }
                 else
                 {
-                    Utf8Formatter.TryFormat(_longValue!.Value, buffer, out written, 'f');
+                    Utf8Formatter.TryFormat(_longValue!.Value, buffer, out written);
                 }
 
                 var memory = new Memory<byte>(new byte[written]);

@@ -18,9 +18,9 @@ namespace HotChocolate.Types
             InputIsCoercedCorrectly<BooleanType, BooleanValueNode, bool>(
                 new BooleanValueNode(false), false);
             InputIsCoercedCorrectly<IntType, IntValueNode, int>(
-                new IntValueNode("123"), 123);
+                new IntValueNode(123), 123);
             InputIsCoercedCorrectly<FloatType, IntValueNode, double>(
-                new IntValueNode("123"), 123d);
+                new IntValueNode(123), 123d);
             InputIsCoercedCorrectly<FloatType, FloatValueNode, double>(
                 new FloatValueNode(123.456d), 123.456d);
             InputIsCoercedCorrectly<StringType, StringValueNode, string>(
@@ -36,7 +36,7 @@ namespace HotChocolate.Types
         public void ConvertAccordingToInputCoercionRules2()
         {
             InputCannotBeCoercedCorrectly<BooleanType, IntValueNode>(
-                new IntValueNode("123"));
+                new IntValueNode(123));
             InputCannotBeCoercedCorrectly<IntType, FloatValueNode>(
                 new FloatValueNode(123.123d));
             InputCannotBeCoercedCorrectly<IntType, BooleanValueNode>(

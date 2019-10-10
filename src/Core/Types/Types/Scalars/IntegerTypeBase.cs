@@ -10,7 +10,7 @@ namespace HotChocolate.Types
         protected IntegerTypeBase(NameString name, TClrType min, TClrType max)
             : base(name)
         {
-            MinValue = max;
+            MinValue = min;
             MaxValue = max;
         }
 

@@ -11,7 +11,7 @@ namespace HotChocolate.Types
         protected FloatTypeBase(NameString name, TClrType min, TClrType max)
            : base(name)
         {
-            MinValue = max;
+            MinValue = min;
             MaxValue = max;
         }
 
