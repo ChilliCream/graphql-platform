@@ -15,6 +15,7 @@
     <PackageId>StrawberryShake.Http</PackageId>
     <AssemblyName>StrawberryShake.Http</AssemblyName>
     <RootNamespace>StrawberryShake.Http</RootNamespace>
+    <PackageIconUrl>https://chillicream.com/img/projects/strawberryshake-signet.png</PackageIconUrl>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
