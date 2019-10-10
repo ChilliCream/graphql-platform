@@ -8,30 +8,58 @@ import "google/protobuf/empty.proto";
 option csharp_namespace = "HotChocolate.AspNetCore.Grpc";
 
 service GraphqlService {
-    // Execute GraphQL query
-    rpc Execute(Request) returns (stream Response) {}
 
-    // Execute GraphQL query through multiple queries
-    rpc ExecuteStream(stream BatchRequest) returns (stream Response) {}
+    // GraphQL query
+    rpc Query(QueryRequest) returns (stream QueryResponse) {}
+
+    // GraphQL request batching - https://hotchocolate.io/docs/next/batching#request-batching
+    //rpc QueryBatch(QueryBatchRequest) returns (stream QueryResponse) {}
+
+    // GraphQL mutation
+    //rpc Mutation(MutationRequest) returns (stream MutationResponse) {}
+
+    // GraphQL subscription
+    //rpc Subscription(stream SubscriptionRequest) returns (stream SubscriptionResponse) {}
 
     // TODO: Remove - only for testing purpose
     rpc Ping (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
 
-message Request {
+// GraphQL request
+message QueryRequest {
+
+    // The query document.
     string query = 1;
-    google.protobuf.Struct variables = 2;
-    string operation_name = 3;
-    repeated string batch_operations = 4;
+
+    // The name of the operation that shall be executed.
+    string operation_name = 2;
+
+    // A key under which a query document was safed on the server.
+    string named_query = 3;
+
+    // The variable values for this request.
+    google.protobuf.Struct variables = 4;
+
+    // Custom properties that can be passed to the execution engine context data.
+    google.protobuf.Struct extensions = 5;
+
+    // Operation Batching - Since we are sending in multiple operations, we specify the sequence
+    //    More info: https://hotchocolate.io/docs/next/batching#operation-batching
+    repeated string batch_operations = 6;
 }
 
-message BatchRequest {
-    repeated Request request = 1;
-    repeated string batch_operations = 2;
+// GraphQL batch request
+//   More info: https://hotchocolate.io/docs/next/batching#request-batching
+message QueryBatchRequest {
+
+    // Batch of GraphQL requests
+    repeated QueryRequest batch = 1;
 }
 
-message Response {
-    // GraphQL Data
+// GraphQL reponse
+message QueryResponse {
+
+    // GraphQL response Data
     //   All fields that can be returned by a query, mutation, stream or defer
     google.protobuf.Struct data = 1;
 
@@ -39,15 +67,17 @@ message Response {
     // GraphQL Path
     google.protobuf.ListValue path = 2;
 
+    // GraphQL Errors
     repeated Error errors = 3;
 
     // GraphQL Extensions
-    // Free-form extensions (starts with a map)
+    //    Free-form extensions (starts with a map)
     google.protobuf.Struct extensions = 4;
 }
 
 // GraphQL Error
 message Error {
+
     // Description of the error intended for the developer.
     string message = 1;
 
@@ -63,8 +93,10 @@ message Error {
 
 // The source location of an error.
 message SourceLocation {
+
     // The line the error occurred at.
     int32 line = 1;
+
     // The column the error occurred at.
     int32 column = 2;
 }

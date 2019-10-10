@@ -55,6 +55,8 @@ namespace StarWars
             {
                 options.EnableDetailedErrors = true;
             });
+
+            // TODO: Move to test client
             // Add test for gRPC to GraphQL
             services.AddHostedService<TestGrpcToGraphqlHostedService>();
 
@@ -91,10 +93,8 @@ namespace StarWars
                 app.UseDeveloperExceptionPage();
             }
 
-            // Enable HTTP2 only on HTTPS
+            // gRPC clients need to use HTTPS to call the server - https://docs.microsoft.com/en-us/aspnet/core/tutorials/grpc/grpc-start?view=aspnetcore-3.0&tabs=visual-studio#run-the-service
             app.UseHttpsRedirection();
-            app.UseDefaultFiles();
-            app.UseStaticFiles();
 
             app.UseRouting();
 
@@ -110,7 +110,10 @@ namespace StarWars
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGrpcService<GraphqlGrpcService>();
+            });
 
+            app.UseEndpoints(endpoints =>
+            {
                 endpoints.MapGet("/", async context =>
                 {
                     await context.Response.WriteAsync($"{nameof(StarWars)} - HotChocolate GraphQL API Server");

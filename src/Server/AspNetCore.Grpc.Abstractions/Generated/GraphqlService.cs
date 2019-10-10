@@ -26,33 +26,32 @@ namespace HotChocolate.AspNetCore.Grpc {
           string.Concat(
             "ChVncmFwaHFsX3NlcnZpY2UucHJvdG8SE2hvdGNob2NvbGF0ZS5hcGkudjEa",
             "HGdvb2dsZS9wcm90b2J1Zi9zdHJ1Y3QucHJvdG8aG2dvb2dsZS9wcm90b2J1",
-            "Zi9lbXB0eS5wcm90byJ2CgdSZXF1ZXN0Eg0KBXF1ZXJ5GAEgASgJEioKCXZh",
-            "cmlhYmxlcxgCIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSFgoOb3Bl",
-            "cmF0aW9uX25hbWUYAyABKAkSGAoQYmF0Y2hfb3BlcmF0aW9ucxgEIAMoCSJX",
-            "CgxCYXRjaFJlcXVlc3QSLQoHcmVxdWVzdBgBIAMoCzIcLmhvdGNob2NvbGF0",
-            "ZS5hcGkudjEuUmVxdWVzdBIYChBiYXRjaF9vcGVyYXRpb25zGAIgAygJIrQB",
-            "CghSZXNwb25zZRIlCgRkYXRhGAEgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0",
-            "cnVjdBIoCgRwYXRoGAIgASgLMhouZ29vZ2xlLnByb3RvYnVmLkxpc3RWYWx1",
-            "ZRIqCgZlcnJvcnMYAyADKAsyGi5ob3RjaG9jb2xhdGUuYXBpLnYxLkVycm9y",
-            "EisKCmV4dGVuc2lvbnMYBCABKAsyFy5nb29nbGUucHJvdG9idWYuU3RydWN0",
-            "IqcBCgVFcnJvchIPCgdtZXNzYWdlGAEgASgJEjYKCWxvY2F0aW9ucxgCIAMo",
-            "CzIjLmhvdGNob2NvbGF0ZS5hcGkudjEuU291cmNlTG9jYXRpb24SKAoEcGF0",
-            "aBgDIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5MaXN0VmFsdWUSKwoKZXh0ZW5z",
-            "aW9ucxgEIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiLgoOU291cmNl",
-            "TG9jYXRpb24SDAoEbGluZRgBIAEoBRIOCgZjb2x1bW4YAiABKAUy7wEKDkdy",
-            "YXBocWxTZXJ2aWNlEkoKB0V4ZWN1dGUSHC5ob3RjaG9jb2xhdGUuYXBpLnYx",
-            "LlJlcXVlc3QaHS5ob3RjaG9jb2xhdGUuYXBpLnYxLlJlc3BvbnNlIgAwARJX",
-            "Cg1FeGVjdXRlU3RyZWFtEiEuaG90Y2hvY29sYXRlLmFwaS52MS5CYXRjaFJl",
-            "cXVlc3QaHS5ob3RjaG9jb2xhdGUuYXBpLnYxLlJlc3BvbnNlIgAoATABEjgK",
-            "BFBpbmcSFi5nb29nbGUucHJvdG9idWYuRW1wdHkaFi5nb29nbGUucHJvdG9i",
-            "dWYuRW1wdHkiAEIfqgIcSG90Q2hvY29sYXRlLkFzcE5ldENvcmUuR3JwY2IG",
-            "cHJvdG8z"));
+            "Zi9lbXB0eS5wcm90byK9AQoMUXVlcnlSZXF1ZXN0Eg0KBXF1ZXJ5GAEgASgJ",
+            "EhYKDm9wZXJhdGlvbl9uYW1lGAIgASgJEhMKC25hbWVkX3F1ZXJ5GAMgASgJ",
+            "EioKCXZhcmlhYmxlcxgEIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QS",
+            "KwoKZXh0ZW5zaW9ucxgFIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QS",
+            "GAoQYmF0Y2hfb3BlcmF0aW9ucxgGIAMoCSJFChFRdWVyeUJhdGNoUmVxdWVz",
+            "dBIwCgViYXRjaBgBIAMoCzIhLmhvdGNob2NvbGF0ZS5hcGkudjEuUXVlcnlS",
+            "ZXF1ZXN0IrkBCg1RdWVyeVJlc3BvbnNlEiUKBGRhdGEYASABKAsyFy5nb29n",
+            "bGUucHJvdG9idWYuU3RydWN0EigKBHBhdGgYAiABKAsyGi5nb29nbGUucHJv",
+            "dG9idWYuTGlzdFZhbHVlEioKBmVycm9ycxgDIAMoCzIaLmhvdGNob2NvbGF0",
+            "ZS5hcGkudjEuRXJyb3ISKwoKZXh0ZW5zaW9ucxgEIAEoCzIXLmdvb2dsZS5w",
+            "cm90b2J1Zi5TdHJ1Y3QipwEKBUVycm9yEg8KB21lc3NhZ2UYASABKAkSNgoJ",
+            "bG9jYXRpb25zGAIgAygLMiMuaG90Y2hvY29sYXRlLmFwaS52MS5Tb3VyY2VM",
+            "b2NhdGlvbhIoCgRwYXRoGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLkxpc3RW",
+            "YWx1ZRIrCgpleHRlbnNpb25zGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0",
+            "cnVjdCIuCg5Tb3VyY2VMb2NhdGlvbhIMCgRsaW5lGAEgASgFEg4KBmNvbHVt",
+            "bhgCIAEoBTKeAQoOR3JhcGhxbFNlcnZpY2USUgoFUXVlcnkSIS5ob3RjaG9j",
+            "b2xhdGUuYXBpLnYxLlF1ZXJ5UmVxdWVzdBoiLmhvdGNob2NvbGF0ZS5hcGku",
+            "djEuUXVlcnlSZXNwb25zZSIAMAESOAoEUGluZxIWLmdvb2dsZS5wcm90b2J1",
+            "Zi5FbXB0eRoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eSIAQh+qAhxIb3RDaG9j",
+            "b2xhdGUuQXNwTmV0Q29yZS5HcnBjYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.StructReflection.Descriptor, global::Google.Protobuf.WellKnownTypes.EmptyReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.Request), global::HotChocolate.AspNetCore.Grpc.Request.Parser, new[]{ "Query", "Variables", "OperationName", "BatchOperations" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.BatchRequest), global::HotChocolate.AspNetCore.Grpc.BatchRequest.Parser, new[]{ "Request", "BatchOperations" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.Response), global::HotChocolate.AspNetCore.Grpc.Response.Parser, new[]{ "Data", "Path", "Errors", "Extensions" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.QueryRequest), global::HotChocolate.AspNetCore.Grpc.QueryRequest.Parser, new[]{ "Query", "OperationName", "NamedQuery", "Variables", "Extensions", "BatchOperations" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.QueryBatchRequest), global::HotChocolate.AspNetCore.Grpc.QueryBatchRequest.Parser, new[]{ "Batch" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.QueryResponse), global::HotChocolate.AspNetCore.Grpc.QueryResponse.Parser, new[]{ "Data", "Path", "Errors", "Extensions" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.Error), global::HotChocolate.AspNetCore.Grpc.Error.Parser, new[]{ "Message", "Locations", "Path", "Extensions" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.SourceLocation), global::HotChocolate.AspNetCore.Grpc.SourceLocation.Parser, new[]{ "Line", "Column" }, null, null, null)
           }));
@@ -61,11 +60,14 @@ namespace HotChocolate.AspNetCore.Grpc {
 
   }
   #region Messages
-  public sealed partial class Request : pb::IMessage<Request> {
-    private static readonly pb::MessageParser<Request> _parser = new pb::MessageParser<Request>(() => new Request());
+  /// <summary>
+  /// GraphQL request
+  /// </summary>
+  public sealed partial class QueryRequest : pb::IMessage<QueryRequest> {
+    private static readonly pb::MessageParser<QueryRequest> _parser = new pb::MessageParser<QueryRequest>(() => new QueryRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<Request> Parser { get { return _parser; } }
+    public static pb::MessageParser<QueryRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
@@ -78,29 +80,34 @@ namespace HotChocolate.AspNetCore.Grpc {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Request() {
+    public QueryRequest() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Request(Request other) : this() {
+    public QueryRequest(QueryRequest other) : this() {
       query_ = other.query_;
-      variables_ = other.variables_ != null ? other.variables_.Clone() : null;
       operationName_ = other.operationName_;
+      namedQuery_ = other.namedQuery_;
+      variables_ = other.variables_ != null ? other.variables_.Clone() : null;
+      extensions_ = other.extensions_ != null ? other.extensions_.Clone() : null;
       batchOperations_ = other.batchOperations_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Request Clone() {
-      return new Request(this);
+    public QueryRequest Clone() {
+      return new QueryRequest(this);
     }
 
     /// <summary>Field number for the "query" field.</summary>
     public const int QueryFieldNumber = 1;
     private string query_ = "";
+    /// <summary>
+    /// The query document.
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public string Query {
       get { return query_; }
@@ -109,20 +116,12 @@ namespace HotChocolate.AspNetCore.Grpc {
       }
     }
 
-    /// <summary>Field number for the "variables" field.</summary>
-    public const int VariablesFieldNumber = 2;
-    private global::Google.Protobuf.WellKnownTypes.Struct variables_;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::Google.Protobuf.WellKnownTypes.Struct Variables {
-      get { return variables_; }
-      set {
-        variables_ = value;
-      }
-    }
-
     /// <summary>Field number for the "operation_name" field.</summary>
-    public const int OperationNameFieldNumber = 3;
+    public const int OperationNameFieldNumber = 2;
     private string operationName_ = "";
+    /// <summary>
+    /// The name of the operation that shall be executed.
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public string OperationName {
       get { return operationName_; }
@@ -131,11 +130,57 @@ namespace HotChocolate.AspNetCore.Grpc {
       }
     }
 
+    /// <summary>Field number for the "named_query" field.</summary>
+    public const int NamedQueryFieldNumber = 3;
+    private string namedQuery_ = "";
+    /// <summary>
+    /// A key under which a query document was safed on the server.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string NamedQuery {
+      get { return namedQuery_; }
+      set {
+        namedQuery_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "variables" field.</summary>
+    public const int VariablesFieldNumber = 4;
+    private global::Google.Protobuf.WellKnownTypes.Struct variables_;
+    /// <summary>
+    /// The variable values for this request.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Google.Protobuf.WellKnownTypes.Struct Variables {
+      get { return variables_; }
+      set {
+        variables_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "extensions" field.</summary>
+    public const int ExtensionsFieldNumber = 5;
+    private global::Google.Protobuf.WellKnownTypes.Struct extensions_;
+    /// <summary>
+    /// Custom properties that can be passed to the execution engine context data.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::Google.Protobuf.WellKnownTypes.Struct Extensions {
+      get { return extensions_; }
+      set {
+        extensions_ = value;
+      }
+    }
+
     /// <summary>Field number for the "batch_operations" field.</summary>
-    public const int BatchOperationsFieldNumber = 4;
+    public const int BatchOperationsFieldNumber = 6;
     private static readonly pb::FieldCodec<string> _repeated_batchOperations_codec
-        = pb::FieldCodec.ForString(34);
+        = pb::FieldCodec.ForString(50);
     private readonly pbc::RepeatedField<string> batchOperations_ = new pbc::RepeatedField<string>();
+    /// <summary>
+    /// Operation Batching - Since we are sending in multiple operations, we specify the sequence
+    ///    More info: https://hotchocolate.io/docs/next/batching#operation-batching
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::RepeatedField<string> BatchOperations {
       get { return batchOperations_; }
@@ -143,11 +188,11 @@ namespace HotChocolate.AspNetCore.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
-      return Equals(other as Request);
+      return Equals(other as QueryRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(Request other) {
+    public bool Equals(QueryRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -155,8 +200,10 @@ namespace HotChocolate.AspNetCore.Grpc {
         return true;
       }
       if (Query != other.Query) return false;
-      if (!object.Equals(Variables, other.Variables)) return false;
       if (OperationName != other.OperationName) return false;
+      if (NamedQuery != other.NamedQuery) return false;
+      if (!object.Equals(Variables, other.Variables)) return false;
+      if (!object.Equals(Extensions, other.Extensions)) return false;
       if(!batchOperations_.Equals(other.batchOperations_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -165,8 +212,10 @@ namespace HotChocolate.AspNetCore.Grpc {
     public override int GetHashCode() {
       int hash = 1;
       if (Query.Length != 0) hash ^= Query.GetHashCode();
-      if (variables_ != null) hash ^= Variables.GetHashCode();
       if (OperationName.Length != 0) hash ^= OperationName.GetHashCode();
+      if (NamedQuery.Length != 0) hash ^= NamedQuery.GetHashCode();
+      if (variables_ != null) hash ^= Variables.GetHashCode();
+      if (extensions_ != null) hash ^= Extensions.GetHashCode();
       hash ^= batchOperations_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -185,13 +234,21 @@ namespace HotChocolate.AspNetCore.Grpc {
         output.WriteRawTag(10);
         output.WriteString(Query);
       }
-      if (variables_ != null) {
+      if (OperationName.Length != 0) {
         output.WriteRawTag(18);
+        output.WriteString(OperationName);
+      }
+      if (NamedQuery.Length != 0) {
+        output.WriteRawTag(26);
+        output.WriteString(NamedQuery);
+      }
+      if (variables_ != null) {
+        output.WriteRawTag(34);
         output.WriteMessage(Variables);
       }
-      if (OperationName.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(OperationName);
+      if (extensions_ != null) {
+        output.WriteRawTag(42);
+        output.WriteMessage(Extensions);
       }
       batchOperations_.WriteTo(output, _repeated_batchOperations_codec);
       if (_unknownFields != null) {
@@ -205,11 +262,17 @@ namespace HotChocolate.AspNetCore.Grpc {
       if (Query.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Query);
       }
+      if (OperationName.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(OperationName);
+      }
+      if (NamedQuery.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(NamedQuery);
+      }
       if (variables_ != null) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(Variables);
       }
-      if (OperationName.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(OperationName);
+      if (extensions_ != null) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(Extensions);
       }
       size += batchOperations_.CalculateSize(_repeated_batchOperations_codec);
       if (_unknownFields != null) {
@@ -219,12 +282,18 @@ namespace HotChocolate.AspNetCore.Grpc {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(Request other) {
+    public void MergeFrom(QueryRequest other) {
       if (other == null) {
         return;
       }
       if (other.Query.Length != 0) {
         Query = other.Query;
+      }
+      if (other.OperationName.Length != 0) {
+        OperationName = other.OperationName;
+      }
+      if (other.NamedQuery.Length != 0) {
+        NamedQuery = other.NamedQuery;
       }
       if (other.variables_ != null) {
         if (variables_ == null) {
@@ -232,8 +301,11 @@ namespace HotChocolate.AspNetCore.Grpc {
         }
         Variables.MergeFrom(other.Variables);
       }
-      if (other.OperationName.Length != 0) {
-        OperationName = other.OperationName;
+      if (other.extensions_ != null) {
+        if (extensions_ == null) {
+          Extensions = new global::Google.Protobuf.WellKnownTypes.Struct();
+        }
+        Extensions.MergeFrom(other.Extensions);
       }
       batchOperations_.Add(other.batchOperations_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
@@ -252,17 +324,28 @@ namespace HotChocolate.AspNetCore.Grpc {
             break;
           }
           case 18: {
+            OperationName = input.ReadString();
+            break;
+          }
+          case 26: {
+            NamedQuery = input.ReadString();
+            break;
+          }
+          case 34: {
             if (variables_ == null) {
               Variables = new global::Google.Protobuf.WellKnownTypes.Struct();
             }
             input.ReadMessage(Variables);
             break;
           }
-          case 26: {
-            OperationName = input.ReadString();
+          case 42: {
+            if (extensions_ == null) {
+              Extensions = new global::Google.Protobuf.WellKnownTypes.Struct();
+            }
+            input.ReadMessage(Extensions);
             break;
           }
-          case 34: {
+          case 50: {
             batchOperations_.AddEntriesFrom(input, _repeated_batchOperations_codec);
             break;
           }
@@ -272,11 +355,15 @@ namespace HotChocolate.AspNetCore.Grpc {
 
   }
 
-  public sealed partial class BatchRequest : pb::IMessage<BatchRequest> {
-    private static readonly pb::MessageParser<BatchRequest> _parser = new pb::MessageParser<BatchRequest>(() => new BatchRequest());
+  /// <summary>
+  /// GraphQL batch request
+  ///   More info: https://hotchocolate.io/docs/next/batching#request-batching
+  /// </summary>
+  public sealed partial class QueryBatchRequest : pb::IMessage<QueryBatchRequest> {
+    private static readonly pb::MessageParser<QueryBatchRequest> _parser = new pb::MessageParser<QueryBatchRequest>(() => new QueryBatchRequest());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<BatchRequest> Parser { get { return _parser; } }
+    public static pb::MessageParser<QueryBatchRequest> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
@@ -289,67 +376,57 @@ namespace HotChocolate.AspNetCore.Grpc {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BatchRequest() {
+    public QueryBatchRequest() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BatchRequest(BatchRequest other) : this() {
-      request_ = other.request_.Clone();
-      batchOperations_ = other.batchOperations_.Clone();
+    public QueryBatchRequest(QueryBatchRequest other) : this() {
+      batch_ = other.batch_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public BatchRequest Clone() {
-      return new BatchRequest(this);
+    public QueryBatchRequest Clone() {
+      return new QueryBatchRequest(this);
     }
 
-    /// <summary>Field number for the "request" field.</summary>
-    public const int RequestFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::HotChocolate.AspNetCore.Grpc.Request> _repeated_request_codec
-        = pb::FieldCodec.ForMessage(10, global::HotChocolate.AspNetCore.Grpc.Request.Parser);
-    private readonly pbc::RepeatedField<global::HotChocolate.AspNetCore.Grpc.Request> request_ = new pbc::RepeatedField<global::HotChocolate.AspNetCore.Grpc.Request>();
+    /// <summary>Field number for the "batch" field.</summary>
+    public const int BatchFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::HotChocolate.AspNetCore.Grpc.QueryRequest> _repeated_batch_codec
+        = pb::FieldCodec.ForMessage(10, global::HotChocolate.AspNetCore.Grpc.QueryRequest.Parser);
+    private readonly pbc::RepeatedField<global::HotChocolate.AspNetCore.Grpc.QueryRequest> batch_ = new pbc::RepeatedField<global::HotChocolate.AspNetCore.Grpc.QueryRequest>();
+    /// <summary>
+    /// Batch of GraphQL requests
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::HotChocolate.AspNetCore.Grpc.Request> Request {
-      get { return request_; }
-    }
-
-    /// <summary>Field number for the "batch_operations" field.</summary>
-    public const int BatchOperationsFieldNumber = 2;
-    private static readonly pb::FieldCodec<string> _repeated_batchOperations_codec
-        = pb::FieldCodec.ForString(18);
-    private readonly pbc::RepeatedField<string> batchOperations_ = new pbc::RepeatedField<string>();
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<string> BatchOperations {
-      get { return batchOperations_; }
+    public pbc::RepeatedField<global::HotChocolate.AspNetCore.Grpc.QueryRequest> Batch {
+      get { return batch_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
-      return Equals(other as BatchRequest);
+      return Equals(other as QueryBatchRequest);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(BatchRequest other) {
+    public bool Equals(QueryBatchRequest other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if(!request_.Equals(other.request_)) return false;
-      if(!batchOperations_.Equals(other.batchOperations_)) return false;
+      if(!batch_.Equals(other.batch_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      hash ^= request_.GetHashCode();
-      hash ^= batchOperations_.GetHashCode();
+      hash ^= batch_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -363,8 +440,7 @@ namespace HotChocolate.AspNetCore.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      request_.WriteTo(output, _repeated_request_codec);
-      batchOperations_.WriteTo(output, _repeated_batchOperations_codec);
+      batch_.WriteTo(output, _repeated_batch_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -373,8 +449,7 @@ namespace HotChocolate.AspNetCore.Grpc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      size += request_.CalculateSize(_repeated_request_codec);
-      size += batchOperations_.CalculateSize(_repeated_batchOperations_codec);
+      size += batch_.CalculateSize(_repeated_batch_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -382,12 +457,11 @@ namespace HotChocolate.AspNetCore.Grpc {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(BatchRequest other) {
+    public void MergeFrom(QueryBatchRequest other) {
       if (other == null) {
         return;
       }
-      request_.Add(other.request_);
-      batchOperations_.Add(other.batchOperations_);
+      batch_.Add(other.batch_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -400,11 +474,7 @@ namespace HotChocolate.AspNetCore.Grpc {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 10: {
-            request_.AddEntriesFrom(input, _repeated_request_codec);
-            break;
-          }
-          case 18: {
-            batchOperations_.AddEntriesFrom(input, _repeated_batchOperations_codec);
+            batch_.AddEntriesFrom(input, _repeated_batch_codec);
             break;
           }
         }
@@ -413,11 +483,14 @@ namespace HotChocolate.AspNetCore.Grpc {
 
   }
 
-  public sealed partial class Response : pb::IMessage<Response> {
-    private static readonly pb::MessageParser<Response> _parser = new pb::MessageParser<Response>(() => new Response());
+  /// <summary>
+  /// GraphQL reponse
+  /// </summary>
+  public sealed partial class QueryResponse : pb::IMessage<QueryResponse> {
+    private static readonly pb::MessageParser<QueryResponse> _parser = new pb::MessageParser<QueryResponse>(() => new QueryResponse());
     private pb::UnknownFieldSet _unknownFields;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public static pb::MessageParser<Response> Parser { get { return _parser; } }
+    public static pb::MessageParser<QueryResponse> Parser { get { return _parser; } }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
@@ -430,14 +503,14 @@ namespace HotChocolate.AspNetCore.Grpc {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Response() {
+    public QueryResponse() {
       OnConstruction();
     }
 
     partial void OnConstruction();
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Response(Response other) : this() {
+    public QueryResponse(QueryResponse other) : this() {
       data_ = other.data_ != null ? other.data_.Clone() : null;
       path_ = other.path_ != null ? other.path_.Clone() : null;
       errors_ = other.errors_.Clone();
@@ -446,15 +519,15 @@ namespace HotChocolate.AspNetCore.Grpc {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public Response Clone() {
-      return new Response(this);
+    public QueryResponse Clone() {
+      return new QueryResponse(this);
     }
 
     /// <summary>Field number for the "data" field.</summary>
     public const int DataFieldNumber = 1;
     private global::Google.Protobuf.WellKnownTypes.Struct data_;
     /// <summary>
-    /// GraphQL Data
+    /// GraphQL response Data
     ///   All fields that can be returned by a query, mutation, stream or defer
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -485,6 +558,9 @@ namespace HotChocolate.AspNetCore.Grpc {
     private static readonly pb::FieldCodec<global::HotChocolate.AspNetCore.Grpc.Error> _repeated_errors_codec
         = pb::FieldCodec.ForMessage(26, global::HotChocolate.AspNetCore.Grpc.Error.Parser);
     private readonly pbc::RepeatedField<global::HotChocolate.AspNetCore.Grpc.Error> errors_ = new pbc::RepeatedField<global::HotChocolate.AspNetCore.Grpc.Error>();
+    /// <summary>
+    /// GraphQL Errors
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public pbc::RepeatedField<global::HotChocolate.AspNetCore.Grpc.Error> Errors {
       get { return errors_; }
@@ -495,7 +571,7 @@ namespace HotChocolate.AspNetCore.Grpc {
     private global::Google.Protobuf.WellKnownTypes.Struct extensions_;
     /// <summary>
     /// GraphQL Extensions
-    /// Free-form extensions (starts with a map)
+    ///    Free-form extensions (starts with a map)
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public global::Google.Protobuf.WellKnownTypes.Struct Extensions {
@@ -507,11 +583,11 @@ namespace HotChocolate.AspNetCore.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
-      return Equals(other as Response);
+      return Equals(other as QueryResponse);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public bool Equals(Response other) {
+    public bool Equals(QueryResponse other) {
       if (ReferenceEquals(other, null)) {
         return false;
       }
@@ -583,7 +659,7 @@ namespace HotChocolate.AspNetCore.Grpc {
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public void MergeFrom(Response other) {
+    public void MergeFrom(QueryResponse other) {
       if (other == null) {
         return;
       }

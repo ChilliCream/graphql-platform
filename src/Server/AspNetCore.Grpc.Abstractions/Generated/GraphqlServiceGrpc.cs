@@ -12,24 +12,16 @@ namespace HotChocolate.AspNetCore.Grpc {
   {
     static readonly string __ServiceName = "hotchocolate.api.v1.GraphqlService";
 
-    static readonly grpc::Marshaller<global::HotChocolate.AspNetCore.Grpc.Request> __Marshaller_hotchocolate_api_v1_Request = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::HotChocolate.AspNetCore.Grpc.Request.Parser.ParseFrom);
-    static readonly grpc::Marshaller<global::HotChocolate.AspNetCore.Grpc.Response> __Marshaller_hotchocolate_api_v1_Response = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::HotChocolate.AspNetCore.Grpc.Response.Parser.ParseFrom);
-    static readonly grpc::Marshaller<global::HotChocolate.AspNetCore.Grpc.BatchRequest> __Marshaller_hotchocolate_api_v1_BatchRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::HotChocolate.AspNetCore.Grpc.BatchRequest.Parser.ParseFrom);
+    static readonly grpc::Marshaller<global::HotChocolate.AspNetCore.Grpc.QueryRequest> __Marshaller_hotchocolate_api_v1_QueryRequest = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::HotChocolate.AspNetCore.Grpc.QueryRequest.Parser.ParseFrom);
+    static readonly grpc::Marshaller<global::HotChocolate.AspNetCore.Grpc.QueryResponse> __Marshaller_hotchocolate_api_v1_QueryResponse = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::HotChocolate.AspNetCore.Grpc.QueryResponse.Parser.ParseFrom);
     static readonly grpc::Marshaller<global::Google.Protobuf.WellKnownTypes.Empty> __Marshaller_google_protobuf_Empty = grpc::Marshallers.Create((arg) => global::Google.Protobuf.MessageExtensions.ToByteArray(arg), global::Google.Protobuf.WellKnownTypes.Empty.Parser.ParseFrom);
 
-    static readonly grpc::Method<global::HotChocolate.AspNetCore.Grpc.Request, global::HotChocolate.AspNetCore.Grpc.Response> __Method_Execute = new grpc::Method<global::HotChocolate.AspNetCore.Grpc.Request, global::HotChocolate.AspNetCore.Grpc.Response>(
+    static readonly grpc::Method<global::HotChocolate.AspNetCore.Grpc.QueryRequest, global::HotChocolate.AspNetCore.Grpc.QueryResponse> __Method_Query = new grpc::Method<global::HotChocolate.AspNetCore.Grpc.QueryRequest, global::HotChocolate.AspNetCore.Grpc.QueryResponse>(
         grpc::MethodType.ServerStreaming,
         __ServiceName,
-        "Execute",
-        __Marshaller_hotchocolate_api_v1_Request,
-        __Marshaller_hotchocolate_api_v1_Response);
-
-    static readonly grpc::Method<global::HotChocolate.AspNetCore.Grpc.BatchRequest, global::HotChocolate.AspNetCore.Grpc.Response> __Method_ExecuteStream = new grpc::Method<global::HotChocolate.AspNetCore.Grpc.BatchRequest, global::HotChocolate.AspNetCore.Grpc.Response>(
-        grpc::MethodType.DuplexStreaming,
-        __ServiceName,
-        "ExecuteStream",
-        __Marshaller_hotchocolate_api_v1_BatchRequest,
-        __Marshaller_hotchocolate_api_v1_Response);
+        "Query",
+        __Marshaller_hotchocolate_api_v1_QueryRequest,
+        __Marshaller_hotchocolate_api_v1_QueryResponse);
 
     static readonly grpc::Method<global::Google.Protobuf.WellKnownTypes.Empty, global::Google.Protobuf.WellKnownTypes.Empty> __Method_Ping = new grpc::Method<global::Google.Protobuf.WellKnownTypes.Empty, global::Google.Protobuf.WellKnownTypes.Empty>(
         grpc::MethodType.Unary,
@@ -49,25 +41,13 @@ namespace HotChocolate.AspNetCore.Grpc {
     public abstract partial class GraphqlServiceBase
     {
       /// <summary>
-      /// Execute GraphQL query
+      /// GraphQL query
       /// </summary>
       /// <param name="request">The request received from the client.</param>
       /// <param name="responseStream">Used for sending responses back to the client.</param>
       /// <param name="context">The context of the server-side call handler being invoked.</param>
       /// <returns>A task indicating completion of the handler.</returns>
-      public virtual global::System.Threading.Tasks.Task Execute(global::HotChocolate.AspNetCore.Grpc.Request request, grpc::IServerStreamWriter<global::HotChocolate.AspNetCore.Grpc.Response> responseStream, grpc::ServerCallContext context)
-      {
-        throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
-      }
-
-      /// <summary>
-      /// Execute GraphQL query through multiple queries
-      /// </summary>
-      /// <param name="requestStream">Used for reading requests from the client.</param>
-      /// <param name="responseStream">Used for sending responses back to the client.</param>
-      /// <param name="context">The context of the server-side call handler being invoked.</param>
-      /// <returns>A task indicating completion of the handler.</returns>
-      public virtual global::System.Threading.Tasks.Task ExecuteStream(grpc::IAsyncStreamReader<global::HotChocolate.AspNetCore.Grpc.BatchRequest> requestStream, grpc::IServerStreamWriter<global::HotChocolate.AspNetCore.Grpc.Response> responseStream, grpc::ServerCallContext context)
+      public virtual global::System.Threading.Tasks.Task Query(global::HotChocolate.AspNetCore.Grpc.QueryRequest request, grpc::IServerStreamWriter<global::HotChocolate.AspNetCore.Grpc.QueryResponse> responseStream, grpc::ServerCallContext context)
       {
         throw new grpc::RpcException(new grpc::Status(grpc::StatusCode.Unimplemented, ""));
       }
@@ -109,46 +89,26 @@ namespace HotChocolate.AspNetCore.Grpc {
       }
 
       /// <summary>
-      /// Execute GraphQL query
+      /// GraphQL query
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
       /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
       /// <param name="cancellationToken">An optional token for canceling the call.</param>
       /// <returns>The call object.</returns>
-      public virtual grpc::AsyncServerStreamingCall<global::HotChocolate.AspNetCore.Grpc.Response> Execute(global::HotChocolate.AspNetCore.Grpc.Request request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
+      public virtual grpc::AsyncServerStreamingCall<global::HotChocolate.AspNetCore.Grpc.QueryResponse> Query(global::HotChocolate.AspNetCore.Grpc.QueryRequest request, grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
       {
-        return Execute(request, new grpc::CallOptions(headers, deadline, cancellationToken));
+        return Query(request, new grpc::CallOptions(headers, deadline, cancellationToken));
       }
       /// <summary>
-      /// Execute GraphQL query
+      /// GraphQL query
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
       /// <returns>The call object.</returns>
-      public virtual grpc::AsyncServerStreamingCall<global::HotChocolate.AspNetCore.Grpc.Response> Execute(global::HotChocolate.AspNetCore.Grpc.Request request, grpc::CallOptions options)
+      public virtual grpc::AsyncServerStreamingCall<global::HotChocolate.AspNetCore.Grpc.QueryResponse> Query(global::HotChocolate.AspNetCore.Grpc.QueryRequest request, grpc::CallOptions options)
       {
-        return CallInvoker.AsyncServerStreamingCall(__Method_Execute, null, options, request);
-      }
-      /// <summary>
-      /// Execute GraphQL query through multiple queries
-      /// </summary>
-      /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
-      /// <param name="deadline">An optional deadline for the call. The call will be cancelled if deadline is hit.</param>
-      /// <param name="cancellationToken">An optional token for canceling the call.</param>
-      /// <returns>The call object.</returns>
-      public virtual grpc::AsyncDuplexStreamingCall<global::HotChocolate.AspNetCore.Grpc.BatchRequest, global::HotChocolate.AspNetCore.Grpc.Response> ExecuteStream(grpc::Metadata headers = null, global::System.DateTime? deadline = null, global::System.Threading.CancellationToken cancellationToken = default(global::System.Threading.CancellationToken))
-      {
-        return ExecuteStream(new grpc::CallOptions(headers, deadline, cancellationToken));
-      }
-      /// <summary>
-      /// Execute GraphQL query through multiple queries
-      /// </summary>
-      /// <param name="options">The options for the call.</param>
-      /// <returns>The call object.</returns>
-      public virtual grpc::AsyncDuplexStreamingCall<global::HotChocolate.AspNetCore.Grpc.BatchRequest, global::HotChocolate.AspNetCore.Grpc.Response> ExecuteStream(grpc::CallOptions options)
-      {
-        return CallInvoker.AsyncDuplexStreamingCall(__Method_ExecuteStream, null, options);
+        return CallInvoker.AsyncServerStreamingCall(__Method_Query, null, options, request);
       }
       /// <summary>
       /// TODO: Remove - only for testing purpose
@@ -206,8 +166,7 @@ namespace HotChocolate.AspNetCore.Grpc {
     public static grpc::ServerServiceDefinition BindService(GraphqlServiceBase serviceImpl)
     {
       return grpc::ServerServiceDefinition.CreateBuilder()
-          .AddMethod(__Method_Execute, serviceImpl.Execute)
-          .AddMethod(__Method_ExecuteStream, serviceImpl.ExecuteStream)
+          .AddMethod(__Method_Query, serviceImpl.Query)
           .AddMethod(__Method_Ping, serviceImpl.Ping).Build();
     }
 
@@ -217,8 +176,7 @@ namespace HotChocolate.AspNetCore.Grpc {
     /// <param name="serviceImpl">An object implementing the server-side handling logic.</param>
     public static void BindService(grpc::ServiceBinderBase serviceBinder, GraphqlServiceBase serviceImpl)
     {
-      serviceBinder.AddMethod(__Method_Execute, serviceImpl == null ? null : new grpc::ServerStreamingServerMethod<global::HotChocolate.AspNetCore.Grpc.Request, global::HotChocolate.AspNetCore.Grpc.Response>(serviceImpl.Execute));
-      serviceBinder.AddMethod(__Method_ExecuteStream, serviceImpl == null ? null : new grpc::DuplexStreamingServerMethod<global::HotChocolate.AspNetCore.Grpc.BatchRequest, global::HotChocolate.AspNetCore.Grpc.Response>(serviceImpl.ExecuteStream));
+      serviceBinder.AddMethod(__Method_Query, serviceImpl == null ? null : new grpc::ServerStreamingServerMethod<global::HotChocolate.AspNetCore.Grpc.QueryRequest, global::HotChocolate.AspNetCore.Grpc.QueryResponse>(serviceImpl.Query));
       serviceBinder.AddMethod(__Method_Ping, serviceImpl == null ? null : new grpc::UnaryServerMethod<global::Google.Protobuf.WellKnownTypes.Empty, global::Google.Protobuf.WellKnownTypes.Empty>(serviceImpl.Ping));
     }
 
