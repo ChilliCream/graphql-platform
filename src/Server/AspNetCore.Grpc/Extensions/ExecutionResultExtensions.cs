@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using Google.Protobuf;
 using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using HotChocolate.Execution;
@@ -10,20 +9,26 @@ namespace HotChocolate.AspNetCore.Grpc
     internal static class ExecutionResultExtensions
     {
         /// <summary>
-        /// Mapper for mapping <see cref="IExecutionResult"/> to <see cref="Response"/>
+        /// Mapper for mapping <see cref="IExecutionResult"/> to <see cref="QueryResponse"/>
         /// </summary>
         /// <param name="result"><see cref="IExecutionResult"/></param>
-        /// <returns><see cref="Response"/></returns>
-        public static Response ToGrpcResponse(this IExecutionResult result)
+        /// <returns><see cref="QueryResponse"/></returns>
+        public static QueryResponse ToGrpcQueryResponse(this IExecutionResult result)
         {
-            var response = new Response
+            var queryResult = (IReadOnlyQueryResult)result;
+            var response = new QueryResponse
             {
-                // TODO: Must be reworked to avoid using HotChocolate.Execution.IExecutionResult -> Json -> Google.Protobuf.WellKnownTypes.Struct conversion
-                Data = JsonParser.Default.Parse<Struct>(result.ToJson()),
+                Data = queryResult.Data.ToStruct(),
                 Errors = { result.Errors.ToGrpcErrors() },
-                // TODO: Must be reworked to avoid using HotChocolate.Execution.IExecutionResult -> Json -> Google.Protobuf.WellKnownTypes.Struct conversion
-                Extensions = JsonParser.Default.Parse<Struct>(result.ToJson())
-                //Path =
+                Extensions = queryResult.Extensions.ToStruct(),
+                // TODO: Return all result with Path property - need use result.Path
+                Path = new ListValue
+                {
+                    Values =
+                    {
+                        Value.ForNull()
+                    }
+                }
             };
 
             return response;

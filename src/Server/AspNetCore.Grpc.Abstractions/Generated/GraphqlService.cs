@@ -25,33 +25,45 @@ namespace HotChocolate.AspNetCore.Grpc {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "ChVncmFwaHFsX3NlcnZpY2UucHJvdG8SE2hvdGNob2NvbGF0ZS5hcGkudjEa",
-            "HGdvb2dsZS9wcm90b2J1Zi9zdHJ1Y3QucHJvdG8aG2dvb2dsZS9wcm90b2J1",
-            "Zi9lbXB0eS5wcm90byK9AQoMUXVlcnlSZXF1ZXN0Eg0KBXF1ZXJ5GAEgASgJ",
-            "EhYKDm9wZXJhdGlvbl9uYW1lGAIgASgJEhMKC25hbWVkX3F1ZXJ5GAMgASgJ",
-            "EioKCXZhcmlhYmxlcxgEIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QS",
-            "KwoKZXh0ZW5zaW9ucxgFIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QS",
-            "GAoQYmF0Y2hfb3BlcmF0aW9ucxgGIAMoCSJFChFRdWVyeUJhdGNoUmVxdWVz",
-            "dBIwCgViYXRjaBgBIAMoCzIhLmhvdGNob2NvbGF0ZS5hcGkudjEuUXVlcnlS",
-            "ZXF1ZXN0IrkBCg1RdWVyeVJlc3BvbnNlEiUKBGRhdGEYASABKAsyFy5nb29n",
-            "bGUucHJvdG9idWYuU3RydWN0EigKBHBhdGgYAiABKAsyGi5nb29nbGUucHJv",
-            "dG9idWYuTGlzdFZhbHVlEioKBmVycm9ycxgDIAMoCzIaLmhvdGNob2NvbGF0",
-            "ZS5hcGkudjEuRXJyb3ISKwoKZXh0ZW5zaW9ucxgEIAEoCzIXLmdvb2dsZS5w",
-            "cm90b2J1Zi5TdHJ1Y3QipwEKBUVycm9yEg8KB21lc3NhZ2UYASABKAkSNgoJ",
-            "bG9jYXRpb25zGAIgAygLMiMuaG90Y2hvY29sYXRlLmFwaS52MS5Tb3VyY2VM",
-            "b2NhdGlvbhIoCgRwYXRoGAMgASgLMhouZ29vZ2xlLnByb3RvYnVmLkxpc3RW",
-            "YWx1ZRIrCgpleHRlbnNpb25zGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0",
-            "cnVjdCIuCg5Tb3VyY2VMb2NhdGlvbhIMCgRsaW5lGAEgASgFEg4KBmNvbHVt",
-            "bhgCIAEoBTKeAQoOR3JhcGhxbFNlcnZpY2USUgoFUXVlcnkSIS5ob3RjaG9j",
-            "b2xhdGUuYXBpLnYxLlF1ZXJ5UmVxdWVzdBoiLmhvdGNob2NvbGF0ZS5hcGku",
-            "djEuUXVlcnlSZXNwb25zZSIAMAESOAoEUGluZxIWLmdvb2dsZS5wcm90b2J1",
-            "Zi5FbXB0eRoWLmdvb2dsZS5wcm90b2J1Zi5FbXB0eSIAQh+qAhxIb3RDaG9j",
-            "b2xhdGUuQXNwTmV0Q29yZS5HcnBjYgZwcm90bzM="));
+            "HGdvb2dsZS9wcm90b2J1Zi9zdHJ1Y3QucHJvdG8ivQEKDFF1ZXJ5UmVxdWVz",
+            "dBINCgVxdWVyeRgBIAEoCRIWCg5vcGVyYXRpb25fbmFtZRgCIAEoCRITCgtu",
+            "YW1lZF9xdWVyeRgDIAEoCRIqCgl2YXJpYWJsZXMYBCABKAsyFy5nb29nbGUu",
+            "cHJvdG9idWYuU3RydWN0EisKCmV4dGVuc2lvbnMYBSABKAsyFy5nb29nbGUu",
+            "cHJvdG9idWYuU3RydWN0EhgKEGJhdGNoX29wZXJhdGlvbnMYBiADKAkiSQoR",
+            "UXVlcnlCYXRjaFJlcXVlc3QSNAoJb3BlcmF0aW9uGAEgAygLMiEuaG90Y2hv",
+            "Y29sYXRlLmFwaS52MS5RdWVyeVJlcXVlc3QiuQEKDVF1ZXJ5UmVzcG9uc2US",
+            "JQoEZGF0YRgBIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSKAoEcGF0",
+            "aBgCIAEoCzIaLmdvb2dsZS5wcm90b2J1Zi5MaXN0VmFsdWUSKgoGZXJyb3Jz",
+            "GAMgAygLMhouaG90Y2hvY29sYXRlLmFwaS52MS5FcnJvchIrCgpleHRlbnNp",
+            "b25zGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCIjCg9NdXRhdGlv",
+            "blJlcXVlc3QSEAoIbXV0YXRpb24YASABKAkiEgoQTXV0YXRpb25SZXNwb25z",
+            "ZSIrChNTdWJzY3JpcHRpb25SZXF1ZXN0EhQKDHN1YnNjcmlwdGlvbhgBIAEo",
+            "CSIWChRTdWJzY3JpcHRpb25SZXNwb25zZSKnAQoFRXJyb3ISDwoHbWVzc2Fn",
+            "ZRgBIAEoCRI2Cglsb2NhdGlvbnMYAiADKAsyIy5ob3RjaG9jb2xhdGUuYXBp",
+            "LnYxLlNvdXJjZUxvY2F0aW9uEigKBHBhdGgYAyABKAsyGi5nb29nbGUucHJv",
+            "dG9idWYuTGlzdFZhbHVlEisKCmV4dGVuc2lvbnMYBCABKAsyFy5nb29nbGUu",
+            "cHJvdG9idWYuU3RydWN0Ii4KDlNvdXJjZUxvY2F0aW9uEgwKBGxpbmUYASAB",
+            "KAUSDgoGY29sdW1uGAIgASgFMogDCg5HcmFwaHFsU2VydmljZRJSCgVRdWVy",
+            "eRIhLmhvdGNob2NvbGF0ZS5hcGkudjEuUXVlcnlSZXF1ZXN0GiIuaG90Y2hv",
+            "Y29sYXRlLmFwaS52MS5RdWVyeVJlc3BvbnNlIgAwARJcCgpRdWVyeUJhdGNo",
+            "EiYuaG90Y2hvY29sYXRlLmFwaS52MS5RdWVyeUJhdGNoUmVxdWVzdBoiLmhv",
+            "dGNob2NvbGF0ZS5hcGkudjEuUXVlcnlSZXNwb25zZSIAMAESWwoITXV0YXRp",
+            "b24SJC5ob3RjaG9jb2xhdGUuYXBpLnYxLk11dGF0aW9uUmVxdWVzdBolLmhv",
+            "dGNob2NvbGF0ZS5hcGkudjEuTXV0YXRpb25SZXNwb25zZSIAMAESZwoMU3Vi",
+            "c2NyaXB0aW9uEiguaG90Y2hvY29sYXRlLmFwaS52MS5TdWJzY3JpcHRpb25S",
+            "ZXF1ZXN0GikuaG90Y2hvY29sYXRlLmFwaS52MS5TdWJzY3JpcHRpb25SZXNw",
+            "b25zZSIAMAFCH6oCHEhvdENob2NvbGF0ZS5Bc3BOZXRDb3JlLkdycGNiBnBy",
+            "b3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.StructReflection.Descriptor, global::Google.Protobuf.WellKnownTypes.EmptyReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::Google.Protobuf.WellKnownTypes.StructReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.QueryRequest), global::HotChocolate.AspNetCore.Grpc.QueryRequest.Parser, new[]{ "Query", "OperationName", "NamedQuery", "Variables", "Extensions", "BatchOperations" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.QueryBatchRequest), global::HotChocolate.AspNetCore.Grpc.QueryBatchRequest.Parser, new[]{ "Batch" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.QueryBatchRequest), global::HotChocolate.AspNetCore.Grpc.QueryBatchRequest.Parser, new[]{ "Operation" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.QueryResponse), global::HotChocolate.AspNetCore.Grpc.QueryResponse.Parser, new[]{ "Data", "Path", "Errors", "Extensions" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.MutationRequest), global::HotChocolate.AspNetCore.Grpc.MutationRequest.Parser, new[]{ "Mutation" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.MutationResponse), global::HotChocolate.AspNetCore.Grpc.MutationResponse.Parser, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.SubscriptionRequest), global::HotChocolate.AspNetCore.Grpc.SubscriptionRequest.Parser, new[]{ "Subscription" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.SubscriptionResponse), global::HotChocolate.AspNetCore.Grpc.SubscriptionResponse.Parser, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.Error), global::HotChocolate.AspNetCore.Grpc.Error.Parser, new[]{ "Message", "Locations", "Path", "Extensions" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::HotChocolate.AspNetCore.Grpc.SourceLocation), global::HotChocolate.AspNetCore.Grpc.SourceLocation.Parser, new[]{ "Line", "Column" }, null, null, null)
           }));
@@ -384,7 +396,7 @@ namespace HotChocolate.AspNetCore.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public QueryBatchRequest(QueryBatchRequest other) : this() {
-      batch_ = other.batch_.Clone();
+      operation_ = other.operation_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -393,17 +405,17 @@ namespace HotChocolate.AspNetCore.Grpc {
       return new QueryBatchRequest(this);
     }
 
-    /// <summary>Field number for the "batch" field.</summary>
-    public const int BatchFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::HotChocolate.AspNetCore.Grpc.QueryRequest> _repeated_batch_codec
+    /// <summary>Field number for the "operation" field.</summary>
+    public const int OperationFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::HotChocolate.AspNetCore.Grpc.QueryRequest> _repeated_operation_codec
         = pb::FieldCodec.ForMessage(10, global::HotChocolate.AspNetCore.Grpc.QueryRequest.Parser);
-    private readonly pbc::RepeatedField<global::HotChocolate.AspNetCore.Grpc.QueryRequest> batch_ = new pbc::RepeatedField<global::HotChocolate.AspNetCore.Grpc.QueryRequest>();
+    private readonly pbc::RepeatedField<global::HotChocolate.AspNetCore.Grpc.QueryRequest> operation_ = new pbc::RepeatedField<global::HotChocolate.AspNetCore.Grpc.QueryRequest>();
     /// <summary>
     /// Batch of GraphQL requests
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::HotChocolate.AspNetCore.Grpc.QueryRequest> Batch {
-      get { return batch_; }
+    public pbc::RepeatedField<global::HotChocolate.AspNetCore.Grpc.QueryRequest> Operation {
+      get { return operation_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -419,14 +431,14 @@ namespace HotChocolate.AspNetCore.Grpc {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if(!batch_.Equals(other.batch_)) return false;
+      if(!operation_.Equals(other.operation_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      hash ^= batch_.GetHashCode();
+      hash ^= operation_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -440,7 +452,7 @@ namespace HotChocolate.AspNetCore.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      batch_.WriteTo(output, _repeated_batch_codec);
+      operation_.WriteTo(output, _repeated_operation_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -449,7 +461,7 @@ namespace HotChocolate.AspNetCore.Grpc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      size += batch_.CalculateSize(_repeated_batch_codec);
+      size += operation_.CalculateSize(_repeated_operation_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -461,7 +473,7 @@ namespace HotChocolate.AspNetCore.Grpc {
       if (other == null) {
         return;
       }
-      batch_.Add(other.batch_);
+      operation_.Add(other.operation_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -474,7 +486,7 @@ namespace HotChocolate.AspNetCore.Grpc {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 10: {
-            batch_.AddEntriesFrom(input, _repeated_batch_codec);
+            operation_.AddEntriesFrom(input, _repeated_operation_codec);
             break;
           }
         }
@@ -725,6 +737,488 @@ namespace HotChocolate.AspNetCore.Grpc {
   }
 
   /// <summary>
+  /// TODO: It is necessary to define
+  /// GraphQL mutation request
+  /// </summary>
+  public sealed partial class MutationRequest : pb::IMessage<MutationRequest> {
+    private static readonly pb::MessageParser<MutationRequest> _parser = new pb::MessageParser<MutationRequest>(() => new MutationRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<MutationRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::HotChocolate.AspNetCore.Grpc.GraphqlServiceReflection.Descriptor.MessageTypes[3]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public MutationRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public MutationRequest(MutationRequest other) : this() {
+      mutation_ = other.mutation_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public MutationRequest Clone() {
+      return new MutationRequest(this);
+    }
+
+    /// <summary>Field number for the "mutation" field.</summary>
+    public const int MutationFieldNumber = 1;
+    private string mutation_ = "";
+    /// <summary>
+    /// The mutation document.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Mutation {
+      get { return mutation_; }
+      set {
+        mutation_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as MutationRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(MutationRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Mutation != other.Mutation) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Mutation.Length != 0) hash ^= Mutation.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (Mutation.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Mutation);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (Mutation.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Mutation);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(MutationRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Mutation.Length != 0) {
+        Mutation = other.Mutation;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Mutation = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  /// <summary>
+  /// TODO: It is necessary to define
+  /// GraphQL mutation response
+  /// </summary>
+  public sealed partial class MutationResponse : pb::IMessage<MutationResponse> {
+    private static readonly pb::MessageParser<MutationResponse> _parser = new pb::MessageParser<MutationResponse>(() => new MutationResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<MutationResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::HotChocolate.AspNetCore.Grpc.GraphqlServiceReflection.Descriptor.MessageTypes[4]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public MutationResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public MutationResponse(MutationResponse other) : this() {
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public MutationResponse Clone() {
+      return new MutationResponse(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as MutationResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(MutationResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(MutationResponse other) {
+      if (other == null) {
+        return;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+        }
+      }
+    }
+
+  }
+
+  /// <summary>
+  /// TODO: It is necessary to define
+  /// GraphQL mutation request
+  /// </summary>
+  public sealed partial class SubscriptionRequest : pb::IMessage<SubscriptionRequest> {
+    private static readonly pb::MessageParser<SubscriptionRequest> _parser = new pb::MessageParser<SubscriptionRequest>(() => new SubscriptionRequest());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SubscriptionRequest> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::HotChocolate.AspNetCore.Grpc.GraphqlServiceReflection.Descriptor.MessageTypes[5]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SubscriptionRequest() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SubscriptionRequest(SubscriptionRequest other) : this() {
+      subscription_ = other.subscription_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SubscriptionRequest Clone() {
+      return new SubscriptionRequest(this);
+    }
+
+    /// <summary>Field number for the "subscription" field.</summary>
+    public const int SubscriptionFieldNumber = 1;
+    private string subscription_ = "";
+    /// <summary>
+    /// The mutation document.
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public string Subscription {
+      get { return subscription_; }
+      set {
+        subscription_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SubscriptionRequest);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SubscriptionRequest other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (Subscription != other.Subscription) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (Subscription.Length != 0) hash ^= Subscription.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (Subscription.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(Subscription);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (Subscription.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(Subscription);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SubscriptionRequest other) {
+      if (other == null) {
+        return;
+      }
+      if (other.Subscription.Length != 0) {
+        Subscription = other.Subscription;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            Subscription = input.ReadString();
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
+  /// <summary>
+  /// TODO: It is necessary to define
+  /// GraphQL mutation response
+  /// </summary>
+  public sealed partial class SubscriptionResponse : pb::IMessage<SubscriptionResponse> {
+    private static readonly pb::MessageParser<SubscriptionResponse> _parser = new pb::MessageParser<SubscriptionResponse>(() => new SubscriptionResponse());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<SubscriptionResponse> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::HotChocolate.AspNetCore.Grpc.GraphqlServiceReflection.Descriptor.MessageTypes[6]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SubscriptionResponse() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SubscriptionResponse(SubscriptionResponse other) : this() {
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public SubscriptionResponse Clone() {
+      return new SubscriptionResponse(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as SubscriptionResponse);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(SubscriptionResponse other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(SubscriptionResponse other) {
+      if (other == null) {
+        return;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+        }
+      }
+    }
+
+  }
+
+  /// <summary>
   /// GraphQL Error
   /// </summary>
   public sealed partial class Error : pb::IMessage<Error> {
@@ -735,7 +1229,7 @@ namespace HotChocolate.AspNetCore.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::HotChocolate.AspNetCore.Grpc.GraphqlServiceReflection.Descriptor.MessageTypes[3]; }
+      get { return global::HotChocolate.AspNetCore.Grpc.GraphqlServiceReflection.Descriptor.MessageTypes[7]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -967,7 +1461,7 @@ namespace HotChocolate.AspNetCore.Grpc {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::HotChocolate.AspNetCore.Grpc.GraphqlServiceReflection.Descriptor.MessageTypes[4]; }
+      get { return global::HotChocolate.AspNetCore.Grpc.GraphqlServiceReflection.Descriptor.MessageTypes[8]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

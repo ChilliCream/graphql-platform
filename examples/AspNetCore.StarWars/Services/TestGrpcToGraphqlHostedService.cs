@@ -73,7 +73,6 @@ namespace StarWars
             var channel = GrpcChannel.ForAddress("https://localhost:5001");
             var client = new GraphqlService.GraphqlServiceClient(channel);
             this.logger.LogDebug("Client created");
-            var pong = await client.PingAsync(new Empty());
 
             var query = @"
             query TestQuery {
@@ -92,10 +91,10 @@ namespace StarWars
                 name
             }
             ";
-            var request = new Request
+            var request = new QueryRequest
             {
                 Query = query,
-                Variables = new Struct()
+                Variables = new Struct
                 {
                     Fields =
                     {
@@ -107,7 +106,7 @@ namespace StarWars
                 OperationName = "TestQuery"
             };
 
-            using var call = client.Execute(
+            using var call = client.Query(
                 request: request,
                 headers: new Metadata
                 {
@@ -117,7 +116,28 @@ namespace StarWars
 
             await foreach (var message in call.ResponseStream.ReadAllAsync(cancellationToken: cancellationToken))
             {
-                this.logger.LogDebug($"Result:{Environment.NewLine}{message}");
+                this.logger.LogInformation($"Query Result:{Environment.NewLine}{message}");
+            }
+
+            var queryBatchRequest = new QueryBatchRequest
+            {
+                Operation =
+                {
+                    request
+                }
+            };
+
+            using var callBatchQuery = client.QueryBatch(
+                request: queryBatchRequest,
+                headers: new Metadata
+                {
+                    new Metadata.Entry("client-name", typeof(Program).Namespace),
+                    new Metadata.Entry("authentication", "<bearer token>")
+                });
+
+            await foreach (var message in callBatchQuery.ResponseStream.ReadAllAsync(cancellationToken: cancellationToken))
+            {
+                this.logger.LogInformation($"QueryBatch Result:{Environment.NewLine}{message}");
             }
         }
     }

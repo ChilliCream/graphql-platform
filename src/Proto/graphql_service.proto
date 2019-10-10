@@ -3,7 +3,6 @@ syntax = "proto3";
 package hotchocolate.api.v1;
 
 import "google/protobuf/struct.proto";
-import "google/protobuf/empty.proto";
 
 option csharp_namespace = "HotChocolate.AspNetCore.Grpc";
 
@@ -13,16 +12,13 @@ service GraphqlService {
     rpc Query(QueryRequest) returns (stream QueryResponse) {}
 
     // GraphQL request batching - https://hotchocolate.io/docs/next/batching#request-batching
-    //rpc QueryBatch(QueryBatchRequest) returns (stream QueryResponse) {}
+    rpc QueryBatch(QueryBatchRequest) returns (stream QueryResponse) {}
 
     // GraphQL mutation
-    //rpc Mutation(MutationRequest) returns (stream MutationResponse) {}
+    rpc Mutation(MutationRequest) returns (stream MutationResponse) {}
 
     // GraphQL subscription
-    //rpc Subscription(stream SubscriptionRequest) returns (stream SubscriptionResponse) {}
-
-    // TODO: Remove - only for testing purpose
-    rpc Ping (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+    rpc Subscription(SubscriptionRequest) returns (stream SubscriptionResponse) {}
 }
 
 // GraphQL request
@@ -53,7 +49,7 @@ message QueryRequest {
 message QueryBatchRequest {
 
     // Batch of GraphQL requests
-    repeated QueryRequest batch = 1;
+    repeated QueryRequest operation = 1;
 }
 
 // GraphQL reponse
@@ -73,6 +69,36 @@ message QueryResponse {
     // GraphQL Extensions
     //    Free-form extensions (starts with a map)
     google.protobuf.Struct extensions = 4;
+}
+
+// TODO: It is necessary to define
+// GraphQL mutation request
+message MutationRequest {
+
+  // The mutation document.
+  string mutation = 1;
+
+}
+
+// TODO: It is necessary to define
+// GraphQL mutation response
+message MutationResponse {
+
+}
+
+// TODO: It is necessary to define
+// GraphQL mutation request
+message SubscriptionRequest {
+
+  // The mutation document.
+  string subscription = 1;
+
+}
+
+// TODO: It is necessary to define
+// GraphQL mutation response
+message SubscriptionResponse {
+
 }
 
 // GraphQL Error
