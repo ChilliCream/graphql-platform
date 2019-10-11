@@ -1,15 +1,14 @@
 using System.Security.Claims;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using HotChocolate;
 using HotChocolate.AspNetCore;
-using HotChocolate.AspNetCore.Grpc;
 using HotChocolate.AspNetCore.Voyager;
 using HotChocolate.Execution.Configuration;
 using HotChocolate.Subscriptions;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using StarWars.Data;
 using StarWars.Types;
 
@@ -51,7 +50,7 @@ namespace StarWars
                 });
 
             // Add gRPC Services
-            services.AddGrpc(options =>
+            services.AddGraphQLOverGrpc(options =>
             {
                 options.EnableDetailedErrors = true;
             });
@@ -105,18 +104,15 @@ namespace StarWars
                 .UseGraphQL("/graphql")
                 .UseGraphiQL("/graphql")
                 .UsePlayground("/graphql")
-                .UseVoyager("/graphql");
+                .UseVoyager("/graphql")
+                .UseGraphQLOverGrpc();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapGrpcService<GraphqlGrpcService>();
-            });
-
+            // Default endpoint
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapGet("/", async context =>
                 {
-                    await context.Response.WriteAsync($"{nameof(StarWars)} - HotChocolate GraphQL API Server");
+                    await context.Response.WriteAsync($"{nameof(StarWars)} - HotChocolate GraphQL API Server (w/ gRPC API)");
                 });
             });
         }

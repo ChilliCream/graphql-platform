@@ -21,10 +21,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Extensions\GrpcServicesExtensions.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Grpc.AspNetCore" Version="$(GrpcDotNetPackageVersion)" />
   </ItemGroup>
 
