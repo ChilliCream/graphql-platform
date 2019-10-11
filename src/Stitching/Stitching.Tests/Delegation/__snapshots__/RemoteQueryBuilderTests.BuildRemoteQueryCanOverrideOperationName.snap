@@ -1,0 +1,15 @@
+﻿query BuildRemoteQueryCanOverrideOperationName($fields_bar: String) {
+  a {
+    b {
+      c {
+        bar: d(a: $fields_bar) {
+          baz {
+            ... on Baz {
+              qux
+            }
+          }
+        }
+      }
+    }
+  }
+}
