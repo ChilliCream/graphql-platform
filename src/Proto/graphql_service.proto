@@ -15,9 +15,11 @@ service GraphqlService {
     rpc QueryBatch(QueryBatchRequest) returns (stream QueryResponse) {}
 
     // GraphQL mutation
+    // TODO: Not implemented
     rpc Mutation(MutationRequest) returns (stream MutationResponse) {}
 
     // GraphQL subscription
+    // TODO: Not implemented
     rpc Subscription(SubscriptionRequest) returns (stream SubscriptionResponse) {}
 }
 

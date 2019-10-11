@@ -84,6 +84,7 @@ namespace HotChocolate.AspNetCore.Grpc {
 
       /// <summary>
       /// GraphQL mutation
+      /// TODO: Not implemented
       /// </summary>
       /// <param name="request">The request received from the client.</param>
       /// <param name="responseStream">Used for sending responses back to the client.</param>
@@ -96,6 +97,7 @@ namespace HotChocolate.AspNetCore.Grpc {
 
       /// <summary>
       /// GraphQL subscription
+      /// TODO: Not implemented
       /// </summary>
       /// <param name="request">The request received from the client.</param>
       /// <param name="responseStream">Used for sending responses back to the client.</param>
@@ -177,6 +179,7 @@ namespace HotChocolate.AspNetCore.Grpc {
       }
       /// <summary>
       /// GraphQL mutation
+      /// TODO: Not implemented
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -189,6 +192,7 @@ namespace HotChocolate.AspNetCore.Grpc {
       }
       /// <summary>
       /// GraphQL mutation
+      /// TODO: Not implemented
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>
@@ -199,6 +203,7 @@ namespace HotChocolate.AspNetCore.Grpc {
       }
       /// <summary>
       /// GraphQL subscription
+      /// TODO: Not implemented
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="headers">The initial metadata to send with the call. This parameter is optional.</param>
@@ -211,6 +216,7 @@ namespace HotChocolate.AspNetCore.Grpc {
       }
       /// <summary>
       /// GraphQL subscription
+      /// TODO: Not implemented
       /// </summary>
       /// <param name="request">The request to send to the server.</param>
       /// <param name="options">The options for the call.</param>

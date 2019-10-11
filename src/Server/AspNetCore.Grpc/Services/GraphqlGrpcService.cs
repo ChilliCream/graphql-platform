@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Batching;
@@ -25,9 +23,9 @@ namespace HotChocolate.AspNetCore.Grpc
             IQueryExecutor queryExecutor,
             IBatchQueryExecutor batchQueryExecutor)
         {
-            this.logger = logger;
-            this.queryExecutor = queryExecutor;
-            this.batchQueryExecutor = batchQueryExecutor;
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this.queryExecutor = queryExecutor ?? throw new ArgumentNullException(nameof(queryExecutor));
+            this.batchQueryExecutor = batchQueryExecutor ?? throw new ArgumentNullException(nameof(batchQueryExecutor));
         }
 
         /// <inheritdoc/>

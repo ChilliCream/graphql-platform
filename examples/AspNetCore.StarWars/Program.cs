@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace StarWars
 {
@@ -12,7 +12,14 @@ namespace StarWars
 
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
-                .UseConsoleLifetime()
+                .ConfigureLogging((hostingContext, logging) =>
+                {
+                    // Enable DEBUG info for gRPC module
+                    logging.AddFilter(nameof(Grpc), LogLevel.Debug);
+
+                    logging.ClearProviders();
+                    logging.AddConsole();
+                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();

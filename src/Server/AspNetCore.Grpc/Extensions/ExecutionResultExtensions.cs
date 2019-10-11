@@ -21,7 +21,7 @@ namespace HotChocolate.AspNetCore.Grpc
                 Data = queryResult.Data.ToStruct(),
                 Errors = { result.Errors.ToGrpcErrors() },
                 Extensions = queryResult.Extensions.ToStruct(),
-                // TODO: Return all result with Path property - need use result.Path
+                // TODO: Return correct Path
                 Path = new ListValue
                 {
                     Values =

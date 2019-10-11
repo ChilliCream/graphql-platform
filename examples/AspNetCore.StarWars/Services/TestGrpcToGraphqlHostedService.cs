@@ -77,9 +77,9 @@ namespace StarWars
             var query = @"
             query TestQuery {
               Luke: character(characterIds: ""1000"") {
-		            ...CharacterFragment
+              ...CharacterFragment
               }
-              
+
               R2D2: character(characterIds: ""2001"") {
                 ...CharacterFragment
               }
@@ -91,6 +91,7 @@ namespace StarWars
                 name
             }
             ";
+
             var request = new QueryRequest
             {
                 Query = query,

@@ -30,7 +30,7 @@ namespace HotChocolate.AspNetCore.Grpc
         /// </summary>
         /// <param name="dictionary"></param>
         /// <returns></returns>
-        public static Struct ToStruct(IDictionary<string, object?> dictionary)
+        public static Struct ToStruct(IEnumerable<KeyValuePair<string, object?>> dictionary)
         {
             var entries = dictionary.ToDictionary(x => x.Key, x => x.Value?.ToValue());
             var fields = new MapField<string, Value?>
@@ -49,30 +49,27 @@ namespace HotChocolate.AspNetCore.Grpc
         }
 
         /// <summary>
-        /// Convert IDictionary to Google.Protobuf.WellKnownTypes.Struct
-        /// </summary>
-        /// <param name="enumerable"></param>
-        /// <returns></returns>
-        public static Struct ToStruct(IEnumerable<KeyValuePair<string, object?>> enumerable)
-            => ToStruct(enumerable.ToDictionary(x => x.Key, x => x.Value));
-
-        /// <summary>
         /// Convert System.Object to Google.Protobuf.WellKnownTypes.Value
         /// </summary>
         /// <param name="object"></param>
         /// <returns></returns>
-        public static Value? ToValue(object @object) =>
-            @object switch
-            {
-                bool val => Value.ForBool(val),
-                double val => Value.ForNumber(val),
-                string val => Value.ForString(val),
-                IEnumerable<object> val => Value.ForList(val.Select(x => x.ToValue()).ToArray()),
-                // TODO: Throw exception...need find problem
-                IDictionary<string, object> val => val.ToStruct().ToValue(),
-                null => null,
-                _ => throw new ArgumentException(message: "Object is not a recognized Value", paramName: nameof(@object))
-            };
+        public static Value ToValue(object @object) => @object switch
+        {
+            NameString val when !val.HasValue => Value.ForNull(),
+            NameString val when val.HasValue => Value.ForString(val.ToString()),
+
+            IDictionary<string, object?> val => Value.ForStruct(val.ToStruct()),
+            IEnumerable<object> val => Value.ForList(val.Select(x => x.ToValue()).ToArray()),
+            bool val => Value.ForBool(val),
+            int val => Value.ForNumber(val),
+            double val => Value.ForNumber(val),
+            long val => Value.ForNumber(val),
+            string val => Value.ForString(val),
+            null => Value.ForNull(),
+            _ => throw new ArgumentException(message: @"Object is not a recognized Value",
+                paramName: nameof(@object))
+        };
+
 
         /// <summary>
         /// Convert Google.Protobuf.WellKnownTypes.Value to System.Object

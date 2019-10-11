@@ -35,4 +35,7 @@
     <Protobuf Include="$(CCGrpcProtoDirectory)\graphql_service.proto" OutputDir="%(RelativePath)Generated" GrpcServices="Both" CompileOutputs="false" Link="Proto\graphql_service.proto" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\Core\Abstractions\Abstractions.csproj" />
+  </ItemGroup>
 </Project>
