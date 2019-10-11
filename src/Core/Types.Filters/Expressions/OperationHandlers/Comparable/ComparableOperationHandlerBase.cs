@@ -22,7 +22,7 @@ namespace HotChocolate.Types.Filters.Expressions
 
                 Expression property = instance;
 
-                if (!operation.IsSimpleArrayType)
+                if (!operation.IsSimpleArrayType())
                 {
                     property = Expression.Property(instance, operation.Property);
                 }

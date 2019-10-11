@@ -1,3 +1,4 @@
+using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -18,8 +19,9 @@ namespace HotChocolate.Types.Filters.Expressions
             if (operation.Type == typeof(bool)
                 && type.IsInstanceOfType(value))
             {
-                Expression property = instance; 
-                if (!operation.IsSimpleArrayType)
+                Expression property = instance;
+
+                if (!operation.IsSimpleArrayType())
                 {
                     property = Expression.Property(instance, operation.Property);
                 }

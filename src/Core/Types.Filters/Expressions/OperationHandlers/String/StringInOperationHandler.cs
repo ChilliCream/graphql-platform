@@ -1,3 +1,4 @@
+using System;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -19,7 +20,7 @@ namespace HotChocolate.Types.Filters.Expressions
             {
                 Expression property = instance;
 
-                if (!operation.IsSimpleArrayType)
+                if (!operation.IsSimpleArrayType())
                 {
                     property = Expression.Property(instance, operation.Property);
                 }

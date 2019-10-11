@@ -16,14 +16,7 @@ namespace HotChocolate.Types.Filters
             Property = property
                 ?? throw new ArgumentNullException(nameof(property));
 
-            if (typeof(ISingleFilter).IsAssignableFrom(Type))
-            {
-                ArrayBaseType = Type.GetGenericArguments()[0];
-            }
-            if (typeof(ISingleFilter).IsAssignableFrom(property.DeclaringType))
-            {
-                ArrayBaseType = property.DeclaringType.GetGenericArguments()[0];
-            }
+
         }
 
         public Type Type { get; }
@@ -32,7 +25,34 @@ namespace HotChocolate.Types.Filters
 
         public PropertyInfo Property { get; }
 
-        public bool IsSimpleArrayType => ArrayBaseType != null;
-        public Type ArrayBaseType { get; }
+        private bool _singleFilterInitialized = false;
+
+        private Type _arrayBaseType;
+
+        public bool TryGetSimpleFilterBaseType(out Type baseType)
+        {
+            if (!_singleFilterInitialized)
+            {
+                if (typeof(ISingleFilter).IsAssignableFrom(Type))
+                {
+                    _arrayBaseType = Type.GetGenericArguments()[0];
+                }
+                if (typeof(ISingleFilter).IsAssignableFrom(Property.DeclaringType))
+                {
+                    _arrayBaseType = Property.DeclaringType.GetGenericArguments()[0];
+                }
+            }
+            baseType = _arrayBaseType;
+            return _arrayBaseType != null;
+        }
+
+        public bool IsSimpleArrayType()
+        {
+            if (TryGetSimpleFilterBaseType(out Type baseType))
+            {
+                return true;
+            }
+            return false;
+        }
     }
 }

@@ -98,9 +98,9 @@ namespace HotChocolate.Types.Filters.Expressions
 
         private Type GetTypeFor(FilterOperation operation)
         {
-            if (operation.IsSimpleArrayType)
+            if (operation.TryGetSimpleFilterBaseType(out Type baseType))
             {
-                return operation.ArrayBaseType;
+                return baseType;
             }
             return operation.Type;
         }
