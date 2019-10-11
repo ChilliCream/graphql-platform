@@ -25,7 +25,7 @@ namespace HotChocolate.Types
 
         protected override bool IsInstanceOfType(TClrType value)
         {
-            if (value.CompareTo(MinValue) == -1 || value.CompareTo(MaxValue) == 1)
+            if (value.CompareTo(MinValue) < 0 || value.CompareTo(MaxValue) > 0)
             {
                 return false;
             }
