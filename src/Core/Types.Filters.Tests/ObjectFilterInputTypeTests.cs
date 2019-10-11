@@ -28,7 +28,7 @@ namespace HotChocolate.Types.Filters
             // act
             var schema = CreateSchema(
                 new FilterInputType<Foo>(
-                    x => x.Filter(y => y.BarNested)
+                    x => x.Object(y => y.BarNested)
                     .AllowObject(
                         y => y.BindFieldsExplicitly()
                         .Filter(z => z.Baz)
@@ -51,13 +51,13 @@ namespace HotChocolate.Types.Filters
                 new FilterInputType<Foo>(
                     x =>
                     {
-                        x.Filter(y => y.BarNested)
+                        x.Object(y => y.BarNested)
                             .AllowObject(
                                 y => y.BindFieldsExplicitly()
                                 .Filter(z => z.Baz)
                                 .BindFiltersExplicitly()
                                 .AllowContains());
-                        x.Filter(y => y.BarNestedSecond)
+                        x.Object(y => y.BarNestedSecond)
                             .AllowObject(
                                 y => y.BindFieldsExplicitly()
                                 .Filter(z => z.Baz)
@@ -79,7 +79,7 @@ namespace HotChocolate.Types.Filters
             var schema = CreateSchema(
                 new FilterInputType<Foo>(
                     x => x.BindFieldsExplicitly()
-                    .Filter(y => y.BarNested)
+                    .Object(y => y.BarNested)
                     .AllowObject(
                         y => y.BindFieldsExplicitly()
                         .Filter(z => z.Baz)
@@ -101,7 +101,7 @@ namespace HotChocolate.Types.Filters
             var schema = CreateSchema(
                 new FilterInputType<Foo>(
                     x => x.BindFieldsExplicitly()
-                    .Filter(y => y.BarNested)
+                    .Object(y => y.BarNested)
                     .AllowObject<BarFilterType>()
                     )
            );
@@ -118,7 +118,7 @@ namespace HotChocolate.Types.Filters
             var schema = CreateSchema(
                 new FilterInputType<Foo>(
                     x => x.BindFieldsExplicitly()
-                    .Filter(y => y.BarNested)
+                    .Object(y => y.BarNested)
                     .AllowObject()
                     )
            );
@@ -134,7 +134,7 @@ namespace HotChocolate.Types.Filters
             // arrange
             // act
             var schema = CreateSchema(new FilterInputType<Foo>(descriptor => descriptor.BindFieldsExplicitly()
-                    .Filter(x => x.BarNested)
+                    .Object(x => x.BarNested)
                     .AllowObject(x =>
                         x.BindFieldsExplicitly()
                         .Filter(y => y.Baz).BindFiltersExplicitly().AllowEquals()
@@ -155,7 +155,7 @@ namespace HotChocolate.Types.Filters
             // act
             var schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
             {
-                descriptor.Filter(x => x.BarNested)
+                descriptor.Object(x => x.BarNested)
                     .BindExplicitly()
                     .AllowObject();
             }));
@@ -171,7 +171,7 @@ namespace HotChocolate.Types.Filters
             // act
             var schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
             {
-                descriptor.Filter(x => x.BarNested)
+                descriptor.Object(x => x.BarNested)
                     .BindExplicitly()
                     .AllowObject()
                     .Name("custom_object");
@@ -188,7 +188,7 @@ namespace HotChocolate.Types.Filters
             // act
             var schema = CreateSchema(new FilterInputType<Foo>(descriptor =>
             {
-                descriptor.Filter(x => x.BarNested)
+                descriptor.Object(x => x.BarNested)
                     .BindExplicitly()
                     .AllowObject()
                     .Description("custom_object_description");
@@ -206,7 +206,7 @@ namespace HotChocolate.Types.Filters
             var schema = CreateSchema(builder =>
                 builder.AddType(new FilterInputType<Foo>(d =>
                 {
-                    d.Filter(x => x.BarNested)
+                    d.Object(x => x.BarNested)
                         .BindExplicitly()
                         .AllowObject()
                         .Directive("bar");
@@ -227,7 +227,7 @@ namespace HotChocolate.Types.Filters
             var schema = CreateSchema(builder =>
                 builder.AddType(new FilterInputType<Foo>(d =>
                 {
-                    d.Filter(x => x.BarNested)
+                    d.Object(x => x.BarNested)
                         .BindExplicitly()
                         .AllowObject()
                         .Directive("bar",
@@ -252,7 +252,7 @@ namespace HotChocolate.Types.Filters
             var schema = CreateSchema(builder =>
                 builder.AddType(new FilterInputType<Foo>(d =>
                 {
-                    d.Filter(x => x.BarNested)
+                    d.Object(x => x.BarNested)
                         .BindExplicitly()
                         .AllowObject()
                         .Directive<Bar>();

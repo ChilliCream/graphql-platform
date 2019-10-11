@@ -252,7 +252,7 @@ namespace HotChocolate.Types.Filters
                 nameof(property));
         }
 
-        public IObjectFilterFieldDescriptor<TObject> Filter<TObject>(
+        public IObjectFilterFieldDescriptor<TObject> Object<TObject>(
             Expression<Func<T, TObject>> property) where TObject : class
         {
             if (property.ExtractMember() is PropertyInfo p)
@@ -284,51 +284,35 @@ namespace HotChocolate.Types.Filters
                 nameof(property));
         }
 
-        public IArrayFilterFieldDescriptor<TObject> Filter<TObject>(
+        public IArrayFilterFieldDescriptor<TObject> List<TObject>(
             Expression<Func<T, IEnumerable<TObject>>> property)
             where TObject : class
         {
             return ListFilter<TObject, IEnumerable<TObject>>(property);
         }
+         
 
-        public IArrayFilterFieldDescriptor<TObject> Filter<TObject>(
-            Expression<Func<T, List<TObject>>> property)
-            where TObject : class
-        {
-            return ListFilter<TObject, List<TObject>>(property);
-        }
-
-        public IArrayFilterFieldDescriptor<ISingleFilter<string>> Filter(Expression<Func<T, IEnumerable<string>>> property)
+        public IArrayFilterFieldDescriptor<ISingleFilter<string>> List(Expression<Func<T, IEnumerable<string>>> property)
         {
             return ListFilter<ISingleFilter<string>, IEnumerable<string>>(property);
         }
 
-        public IArrayFilterFieldDescriptor<ISingleFilter<string>> Filter(Expression<Func<T, List<string>>> property)
-        {
-            return ListFilter<ISingleFilter<string>, List<string>>(property);
-        }
-        public static FilterInputTypeDescriptor<T> New(
-            IDescriptorContext context, Type entityType) =>
-            new FilterInputTypeDescriptor<T>(context, entityType);
-
-        public IArrayFilterFieldDescriptor<ISingleFilter<bool>> Filter(Expression<Func<T, IEnumerable<bool>>> property)
+        public IArrayFilterFieldDescriptor<ISingleFilter<bool>> List(Expression<Func<T, IEnumerable<bool>>> property)
         {
             return ListFilter<ISingleFilter<bool>, IEnumerable<bool>>(property);
         }
 
-        public IArrayFilterFieldDescriptor<ISingleFilter<bool>> Filter(Expression<Func<T, List<bool>>> property)
+
+        public IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
+            Expression<Func<T, IEnumerable<TStruct>>> property,
+            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null) where TStruct : struct
         {
-            return ListFilter<ISingleFilter<bool>, List<bool>>(property);
+            return ListFilter<ISingleFilter<TStruct>, IEnumerable<TStruct>>(property);
         }
 
-        public IArrayFilterFieldDescriptor<ISingleFilter<IComparable>> Filter(Expression<Func<T, IEnumerable<IComparable>>> property)
-        {
-            return ListFilter<ISingleFilter<IComparable>, IEnumerable<IComparable>>(property);
-        }
+        public static FilterInputTypeDescriptor<T> New(
+            IDescriptorContext context, Type entityType) =>
+            new FilterInputTypeDescriptor<T>(context, entityType);
 
-        public IArrayFilterFieldDescriptor<ISingleFilter<IComparable>> Filter(Expression<Func<T, List<IComparable>>> property)
-        {
-            return ListFilter<ISingleFilter<IComparable>, List<IComparable>>(property);
-        }
     }
 }

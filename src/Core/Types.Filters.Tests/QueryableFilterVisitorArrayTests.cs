@@ -284,7 +284,7 @@ namespace HotChocolate.Types.Filters
             protected override void Configure(
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
-                descriptor.Filter(t => t.FooNested).BindImplicitly();
+                descriptor.List(t => t.FooNested).BindImplicitly();
             }
         }
 
@@ -294,7 +294,7 @@ namespace HotChocolate.Types.Filters
             protected override void Configure(
                 IFilterInputTypeDescriptor<FooSimple> descriptor)
             {
-                descriptor.Filter(t => t.Bar).BindImplicitly();
+                descriptor.List(t => t.Bar).BindImplicitly();
             }
         }
 

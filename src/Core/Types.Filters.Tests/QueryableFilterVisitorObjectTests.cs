@@ -268,7 +268,7 @@ namespace HotChocolate.Types.Filters
             protected override void Configure(
                 IFilterInputTypeDescriptor<Foo> descriptor)
             {
-                descriptor.Filter(t => t.FooNested).AllowObject(x => x.Filter(y => y.Bar));
+                descriptor.Object(t => t.FooNested).AllowObject(x => x.Filter(y => y.Bar));
             }
         }
 
@@ -278,7 +278,7 @@ namespace HotChocolate.Types.Filters
             protected override void Configure(
                 IFilterInputTypeDescriptor<EvenDeeper> descriptor)
             {
-                descriptor.Filter(t => t.Foo).AllowObject(x => x.Filter(y => y.FooNested).AllowObject(z => z.Filter(z => z.Bar)));
+                descriptor.Object(t => t.Foo).AllowObject(x => x.Object(y => y.FooNested).AllowObject(z => z.Filter(z => z.Bar)));
             }
         }
     }
