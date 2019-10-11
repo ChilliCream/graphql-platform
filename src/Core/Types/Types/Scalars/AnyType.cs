@@ -184,11 +184,8 @@ namespace HotChocolate.Types
             {
                 case string _:
                 case short _:
-                case ushort _:
                 case int _:
-                case uint _:
                 case long _:
-                case ulong _:
                 case float _:
                 case double _:
                 case decimal _:
