@@ -6,6 +6,7 @@
     <PackageId>StrawberryShake.Tools</PackageId>
     <AssemblyName>dotnet-graphql</AssemblyName>
     <RootNamespace>StrawberryShake.Tools</RootNamespace>
+    <PackageIconUrl>https://chillicream.com/img/projects/strawberryshake-signet.png</PackageIconUrl>
     <IsPackable>true</IsPackable>
     <PackAsTool>true</PackAsTool>
     <Nullable>enable</Nullable>

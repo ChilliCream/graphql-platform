@@ -1,4 +1,4 @@
-![GreenDonut](https://cdn.rawgit.com/ChilliCream/greendonut-logo/master/img/greendonut-banner.svg)
+![GreenDonut](https://chillicream.com/img/projects/greendonut-banner.svg)
 
 [![GitHub release](https://img.shields.io/github/release/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/releases) [![NuGet Package](https://img.shields.io/nuget/v/GreenDonut.svg)](https://www.nuget.org/packages/GreenDonut/) [![License](https://img.shields.io/github/license/ChilliCream/hotchocolate.svg)](https://github.com/ChilliCream/hotchocolate/blob/master/LICENSE)
 
