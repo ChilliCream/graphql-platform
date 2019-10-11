@@ -109,7 +109,7 @@ namespace HotChocolate.Stitching
                     context, scopedVariables, extractedField);
 
             DocumentNode query = RemoteQueryBuilder.New()
-                .SetOperation(operationType)
+                .SetOperation(context.Operation.Name, operationType)
                 .SetSelectionPath(path)
                 .SetRequestField(extractedField.Field)
                 .AddVariables(CreateVariableDefs(variableValues))
