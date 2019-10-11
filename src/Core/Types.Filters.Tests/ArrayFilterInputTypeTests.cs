@@ -28,20 +28,307 @@ namespace HotChocolate.Types.Filters
         {
             // arrange
             // act
-            var schema = CreateSchema(new FilterInputType<FooSimple>(x => x.BindFieldsExplicitly()
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
+                x.BindFieldsExplicitly()
                     .List(y => y.BarDouble)
                     .BindExplicitly()
                     .AllowSome(z => z.BindFieldsExplicitly()
                         .Filter(m => m.El)
                         .BindFiltersExplicitly()
                         .AllowEquals()
-                     )
-                )
-            );
+                     );
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarDoubleNullable)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+            }
+            ));
 
             // assert
             schema.ToString().MatchSnapshot();
         }
+
+
+        [Fact]
+        public void Create_ArraySimpleFilterBool_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarBool)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarBoolNullable)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
+        [Fact]
+        public void Create_ArraySimpleFilterInt32_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarInt32)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarInt32Nullable)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
+        [Fact]
+        public void Create_ArraySimpleFilterInt64_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarInt64)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarInt64Nullable)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
+        [Fact]
+        public void Create_ArraySimpleFilterSingle_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarSingle)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarSingleNullable)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
+
+        [Fact]
+        public void Create_ArraySimpleFilterInt16_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarInt16)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarInt16Nullable)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
+        [Fact]
+        public void Create_ArraySimpleFilterDatetime_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarDatetime)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarDatetimeNullable)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+        [Fact]
+        public void Create_ArraySimpleFilterDatetimeOffset_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarDatetimeOffset)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarDatetimeOffsetNullable)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+        [Fact]
+        public void Create_ArraySimpleFilterGuid_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarGuid)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarGuidNullable)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
+        [Fact]
+        public void Create_ArraySimpleFilterDecimal_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarDecimal)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarDecimalNullable)
+                    .BindExplicitly()
+                    .AllowSome(z => z.BindFieldsExplicitly()
+                        .Filter(m => m.El)
+                        .BindFiltersExplicitly()
+                        .AllowEquals()
+                     );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
 
         [Fact]
         public void Create_ArrayStringFilter_FooImplicitBarImplicit()
@@ -343,6 +630,9 @@ namespace HotChocolate.Types.Filters
             public IEnumerable<double> BarDouble { get; set; }
             public IEnumerable<float> BarSingle { get; set; }
             public IEnumerable<decimal> BarDecimal { get; set; }
+            public IEnumerable<Guid> BarGuid { get; set; }
+            public IEnumerable<DateTime> BarDatetime { get; set; }
+            public IEnumerable<DateTimeOffset> BarDatetimeOffset { get; set; }
             public IEnumerable<bool?> BarBoolNullable { get; set; }
             public IEnumerable<short?> BarInt16Nullable { get; set; }
             public IEnumerable<int?> BarInt32Nullable { get; set; }
@@ -350,9 +640,9 @@ namespace HotChocolate.Types.Filters
             public IEnumerable<double?> BarDoubleNullable { get; set; }
             public IEnumerable<float?> BarSingleNullable { get; set; }
             public IEnumerable<decimal?> BarDecimalNullable { get; set; }
-            public IEnumerable<Guid> BarGuid { get; set; }
-            public IEnumerable<DateTime> BarDatetime { get; set; }
-            public IEnumerable<DateTimeOffset> BarDateTimeOffset { get; set; }
+            public IEnumerable<Guid?> BarGuidNullable { get; set; }
+            public IEnumerable<DateTime?> BarDatetimeNullable { get; set; }
+            public IEnumerable<DateTimeOffset?> BarDatetimeOffsetNullable { get; set; }
         }
 
 

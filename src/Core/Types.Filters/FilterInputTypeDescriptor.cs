@@ -290,7 +290,7 @@ namespace HotChocolate.Types.Filters
         {
             return ListFilter<TObject, IEnumerable<TObject>>(property);
         }
-         
+
 
         public IArrayFilterFieldDescriptor<ISingleFilter<string>> List(Expression<Func<T, IEnumerable<string>>> property)
         {
@@ -308,6 +308,13 @@ namespace HotChocolate.Types.Filters
             IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null) where TStruct : struct
         {
             return ListFilter<ISingleFilter<TStruct>, IEnumerable<TStruct>>(property);
+        }
+
+        public IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
+            Expression<Func<T, IEnumerable<TStruct?>>> property,
+            IFilterInputTypeDescriptor<T>.RequireStruct<TStruct> ignore = null) where TStruct : struct
+        {
+            return ListFilter<ISingleFilter<TStruct>, IEnumerable<TStruct?>>(property);
         }
 
         public static FilterInputTypeDescriptor<T> New(

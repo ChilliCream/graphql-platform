@@ -105,6 +105,15 @@ namespace HotChocolate.Types.Filters
         IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
             Expression<Func<T, IEnumerable<TStruct>>> property, RequireStruct<TStruct> ignore = null) where TStruct : struct;
 
+        /// <summary>
+        /// Define a object filter for a IEnumerable of type object
+        /// </summary>
+        /// <param name="property">
+        /// The property for which a filter shall be applied.
+        /// </param>
+        IArrayFilterFieldDescriptor<ISingleFilter<TStruct>> List<TStruct>(
+            Expression<Func<T, IEnumerable<TStruct?>>> property, RequireStruct<TStruct> ignore = null) where TStruct : struct;
+
 
 
 
