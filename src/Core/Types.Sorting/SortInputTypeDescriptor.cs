@@ -34,8 +34,8 @@ namespace HotChocolate.Types.Sorting
         protected sealed override SortInputTypeDefinition Definition { get; } =
             new SortInputTypeDefinition();
 
-        protected ICollection<SortFieldDescriptor> Fields { get; } =
-            new List<SortFieldDescriptor>();
+        protected ICollection<SortFieldDescriptorBase> Fields { get; } =
+            new List<SortFieldDescriptorBase>();
 
         public ISortInputTypeDescriptor<T> BindFields(
             BindingBehavior behavior)
@@ -56,6 +56,21 @@ namespace HotChocolate.Types.Sorting
             if (property.ExtractMember() is PropertyInfo p)
             {
                 var field = new SortFieldDescriptor(Context, p);
+                Fields.Add(field);
+                return field;
+            }
+
+            // TODO : resources
+            throw new ArgumentException(
+                "Only properties are allowed for input types.",
+                nameof(property));
+        }
+
+        public ISortObjectFieldDescriptor<TObject> SortableObject<TObject>(Expression<Func<T, TObject>> property) where TObject: class
+        {
+            if (property.ExtractMember() is PropertyInfo p)
+            {
+                var field = new SortObjectFieldDescriptor<TObject>(Context, p);
                 Fields.Add(field);
                 return field;
             }
@@ -140,5 +155,6 @@ namespace HotChocolate.Types.Sorting
         public static SortInputTypeDescriptor<T> New(
             IDescriptorContext context, Type entityType) =>
             new SortInputTypeDescriptor<T>(context, entityType);
+
     }
 }

@@ -47,5 +47,14 @@ namespace HotChocolate.Types.Sorting
         /// </param>
         ISortFieldDescriptor Sortable(
             Expression<Func<T, IComparable>> property);
+
+        /// <summary>
+        /// Defines that the selected property is sortable.
+        /// </summary>
+        /// <param name="property">
+        /// The property that is sortable.
+        /// </param>
+        ISortObjectFieldDescriptor<TObject> SortableObject<TObject>(
+            Expression<Func<T, TObject>> property) where TObject : class;
     }
 }

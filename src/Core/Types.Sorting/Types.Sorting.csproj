@@ -21,4 +21,8 @@
     <ProjectReference Include="..\Types\Types.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Object\" />
+  </ItemGroup>
+
 </Project>
