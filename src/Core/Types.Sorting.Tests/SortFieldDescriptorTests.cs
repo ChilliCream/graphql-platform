@@ -8,15 +8,16 @@ namespace HotChocolate.Types.Sorting
     public class SortFieldDescriptorTests
         : DescriptorTestBase
     {
+        /**
         [Fact]
         public void Ctor_PropertyNull_ShouldThrowArgumentNullException()
         {
             // act
-            SortFieldDescriptor Create()
-                => new SortFieldDescriptor(Context, null);
+            SortOperationDescriptor Create()
+                => new SortOperationDescriptor(Context, null);
 
             // assert
-            Assert.Throws<ArgumentNullException>((Func<SortFieldDescriptor>) Create);
+            Assert.Throws<ArgumentNullException>((Func<SortOperationDescriptor>) Create);
         }
 
         [Fact]
@@ -70,7 +71,7 @@ namespace HotChocolate.Types.Sorting
             Assert.Equal("qux", descriptor.DefinitionAccessor.Name);
         }
 
-        private class SortFieldDescriptorInternal : SortFieldDescriptor
+        private class SortFieldDescriptorInternal : SortOperationDescriptor
         {
             public SortFieldDescriptorInternal(
                 IDescriptorContext context,
@@ -85,5 +86,6 @@ namespace HotChocolate.Types.Sorting
         {
             public string Bar { get; set; }
         }
+    **/
     }
 }

@@ -34,8 +34,8 @@ namespace HotChocolate.Types.Sorting
         protected sealed override SortInputTypeDefinition Definition { get; } =
             new SortInputTypeDefinition();
 
-        protected ICollection<SortFieldDescriptorBase> Fields { get; } =
-            new List<SortFieldDescriptorBase>();
+        protected ICollection<SortOperationDescriptor> Fields { get; } =
+            new List<SortOperationDescriptor>();
 
         public ISortInputTypeDescriptor<T> BindFields(
             BindingBehavior behavior)
@@ -50,12 +50,12 @@ namespace HotChocolate.Types.Sorting
         public ISortInputTypeDescriptor<T> BindFieldsExplicitly() =>
             BindFields(BindingBehavior.Explicit);
 
-        public ISortFieldDescriptor Sortable(
+        public ISortOperationDescriptor Sortable(
             Expression<Func<T, IComparable>> property)
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                var field = new SortFieldDescriptor(Context, p);
+                var field = SortOperationDescriptor.CreateOperation(p, Context);
                 Fields.Add(field);
                 return field;
             }
@@ -66,11 +66,11 @@ namespace HotChocolate.Types.Sorting
                 nameof(property));
         }
 
-        public ISortObjectFieldDescriptor<TObject> SortableObject<TObject>(Expression<Func<T, TObject>> property) where TObject: class
+        public ISortObjectOperationDescriptor<TObject> SortableObject<TObject>(Expression<Func<T, TObject>> property) where TObject : class
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
-                var field = new SortObjectFieldDescriptor<TObject>(Context, p);
+                var field = SortObjectOperationDescriptor<TObject>.CreateOperation(p, Context);
                 Fields.Add(field);
                 return field;
             }
@@ -87,18 +87,18 @@ namespace HotChocolate.Types.Sorting
             var fields = new Dictionary<NameString, SortOperationDefintion>();
             var handledProperties = new HashSet<PropertyInfo>();
 
-            List<SortFieldDefinition> explicitFields =
-                Fields.Select(t => t.CreateDefinition()).ToList();
+            List<SortOperationDefintion> explicitFields =
+                Fields.Select(x => x.CreateDefinition()).ToList();
 
             FieldDescriptorUtilities.AddExplicitFields(
-                explicitFields.Where(t => !t.Ignore).SelectMany(t => t.SortableFields),
+                explicitFields.Where(t => !t.Ignore),
                     f => f.Operation.Property,
                     fields,
                     handledProperties);
 
-            foreach (SortFieldDefinition field in explicitFields.Where(t => t.Ignore))
+            foreach (SortOperationDefintion field in explicitFields.Where(t => t.Ignore))
             {
-                handledProperties.Add(field.Property);
+                handledProperties.Add(field.Operation.Property);
             }
 
             OnCompleteFields(fields, handledProperties);
@@ -120,18 +120,15 @@ namespace HotChocolate.Types.Sorting
                 .GetMembers(Definition.EntityType)
                 .OfType<PropertyInfo>())
             {
-                if (handledProperties.Contains(property)
-                    || !TryCreateImplicitSorting(property, out SortFieldDefinition definition))
+                if (handledProperties.Contains(property))
                 {
                     continue;
                 }
-
-                foreach (SortOperationDefintion sortOperation in
-                    definition.SortableFields)
+                if (TryCreateImplicitSorting(property, out SortOperationDefintion definition))
                 {
-                    if (!fields.ContainsKey(sortOperation.Name))
+                    if (!fields.ContainsKey(definition.Name))
                     {
-                        fields[sortOperation.Name] = sortOperation;
+                        fields[definition.Name] = definition;
                     }
                 }
             }
@@ -139,12 +136,22 @@ namespace HotChocolate.Types.Sorting
 
         private bool TryCreateImplicitSorting(
             PropertyInfo property,
-            out SortFieldDefinition definition)
+            out SortOperationDefintion definition)
         {
             if (typeof(IComparable).IsAssignableFrom(property.PropertyType))
             {
-                var field = new SortFieldDescriptor(Context, property);
-                definition = field.CreateDefinition();
+                definition = SortOperationDescriptor
+                    .CreateOperation(property, Context)
+                    .CreateDefinition();
+                return true;
+            }
+            if (
+                property.PropertyType.IsClass &&
+                !typeof(IEnumerable<>).IsAssignableFrom(property.PropertyType))
+            {
+                definition = SortObjectOperationDescriptor
+                    .CreateOperation(property, Context)
+                    .CreateDefinition();
                 return true;
             }
 
