@@ -48,6 +48,11 @@ namespace StrawberryShake.Tools
 
             var httpClient = new HttpClient();
             httpClient.BaseAddress = new Uri(Url);
+            httpClient.DefaultRequestHeaders.UserAgent.Add(
+                new ProductInfoHeaderValue(
+                    new ProductHeaderValue(
+                        "StrawberryShake",
+                        GetType()!.Assembly!.GetName()!.Version!.ToString())));
 
             if (Token != null)
             {
@@ -73,7 +78,7 @@ namespace StrawberryShake.Tools
                 Directory.CreateDirectory(Path);
             }
 
-            SchemaName = SchemaName ?? "schema";
+            SchemaName = (SchemaName ?? "schema").Trim();
             string schemaFielName = SchemaName + ".graphql";
 
             var configuration = new Configuration();

@@ -20,10 +20,18 @@ input FooSimpleFilter {
   barDatetime_any: Boolean
   barDatetime_none: ISingleFilterOfDateTimeFilter
   barDatetime_some: ISingleFilterOfDateTimeFilter
-  barDateTimeOffset_all: ISingleFilterOfDateTimeOffsetFilter
-  barDateTimeOffset_any: Boolean
-  barDateTimeOffset_none: ISingleFilterOfDateTimeOffsetFilter
-  barDateTimeOffset_some: ISingleFilterOfDateTimeOffsetFilter
+  barDatetimeNullable_all: ISingleFilterOfDateTimeFilter
+  barDatetimeNullable_any: Boolean
+  barDatetimeNullable_none: ISingleFilterOfDateTimeFilter
+  barDatetimeNullable_some: ISingleFilterOfDateTimeFilter
+  barDatetimeOffset_all: ISingleFilterOfDateTimeOffsetFilter
+  barDatetimeOffset_any: Boolean
+  barDatetimeOffset_none: ISingleFilterOfDateTimeOffsetFilter
+  barDatetimeOffset_some: ISingleFilterOfDateTimeOffsetFilter
+  barDatetimeOffsetNullable_all: ISingleFilterOfDateTimeOffsetFilter
+  barDatetimeOffsetNullable_any: Boolean
+  barDatetimeOffsetNullable_none: ISingleFilterOfDateTimeOffsetFilter
+  barDatetimeOffsetNullable_some: ISingleFilterOfDateTimeOffsetFilter
   barDecimal_all: ISingleFilterOfDecimalFilter
   barDecimal_any: Boolean
   barDecimal_none: ISingleFilterOfDecimalFilter
@@ -44,6 +52,10 @@ input FooSimpleFilter {
   barGuid_any: Boolean
   barGuid_none: ISingleFilterOfGuidFilter
   barGuid_some: ISingleFilterOfGuidFilter
+  barGuidNullable_all: ISingleFilterOfGuidFilter
+  barGuidNullable_any: Boolean
+  barGuidNullable_none: ISingleFilterOfGuidFilter
+  barGuidNullable_some: ISingleFilterOfGuidFilter
   barInt16_all: ISingleFilterOfInt16Filter
   barInt16_any: Boolean
   barInt16_none: ISingleFilterOfInt16Filter

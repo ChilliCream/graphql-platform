@@ -90,12 +90,12 @@ namespace StrawberryShake.Client
         {
             return new GetBars
             (
-                ParseRootFoo(data, "foo")
+                ParseGetBarsFoo(data, "foo")
             );
 
         }
 
-        private IFoo ParseRootFoo(
+        private IFoo ParseGetBarsFoo(
             JsonElement parent,
             string field)
         {
@@ -103,32 +103,21 @@ namespace StrawberryShake.Client
 
             return new Foo
             (
-                DeserializeNullableStringList(obj, "bars")
+                DeserializeListOfString(obj, "bars")
             );
         }
 
-        private List<string> DeserializeNullableStringList(JsonElement obj, string fieldName)
+        private IReadOnlyList<string> DeserializeListOfString(JsonElement obj, string fieldName)
         {
-            if (!obj.TryGetProperty(fieldName, out JsonElement value))
+            JsonElement list = obj.GetProperty(fieldName);
+            int listLength = list.GetArrayLength();
+            var listList = new string[listLength];
+
+            for (int i = 0; i < listLength; i++)
             {
-                return null;
+                JsonElement element = list[i];
+                    list[i] = (string)_stringSerializer.Deserialize(element.GetString())!;
             }
-
-            if (value.ValueKind == JsonValueKind.Null)
-            {
-                return null;
-            }
-
-
-            int arrayLength = value.GetArrayLength();
-            var list = new List<string>(arrayLength);
-
-            for (int i = 0; i < arrayLength; i++)
-            {
-                list.Add(($List<string>)_$StringSerializer.Serialize(value[i].GetString());
-            }
-
-        return list;
         }
     }
 }

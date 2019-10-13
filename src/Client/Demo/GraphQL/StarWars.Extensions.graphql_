@@ -1,4 +1,0 @@
-# Only needed for custom types
-extend scalar String
-  @clrType(type: "System.String")
-  @serializationType(type: "System.String")

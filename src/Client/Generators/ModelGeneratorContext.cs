@@ -57,7 +57,10 @@ namespace StrawberryShake.Generators
             Path path) =>
             _collector.CollectFields(type, selectionSet, path);
 
-        public NameString GetOrCreateName(ISyntaxNode node, NameString name)
+        public NameString GetOrCreateName(ISyntaxNode node, NameString name) =>
+            GetOrCreateName(node, name, new HashSet<string>());
+
+        public NameString GetOrCreateName(ISyntaxNode node, NameString name, ISet<string> skipNames)
         {
             if (!_names.TryGetValue(node, out ISet<NameString>? n))
             {
@@ -65,19 +68,19 @@ namespace StrawberryShake.Generators
                 _names.Add(node, n);
             }
 
-            if (n.Contains(name))
+            if (!skipNames.Contains(name) && n.Contains(name))
             {
                 return name;
             }
 
             var current = name;
 
-            if (_usedNames.Contains(current))
+            if (skipNames.Contains(name) || _usedNames.Contains(current))
             {
                 for (int i = 1; i < int.MaxValue; i++)
                 {
                     current = name + i;
-                    if (_usedNames.Add(current))
+                    if (!skipNames.Contains(current) && _usedNames.Add(current))
                     {
                         break;
                     }
@@ -89,7 +92,26 @@ namespace StrawberryShake.Generators
             return current;
         }
 
+        public bool TryGetDescriptor<T>(string name, out T? descriptor)
+            where T : class, ICodeDescriptor
+        {
+            if (_descriptors.TryGetValue(name, out ICodeDescriptor? d)
+                && d is T casted)
+            {
+                descriptor = casted;
+                return true;
+            }
+
+            descriptor = null;
+            return false;
+        }
+
         public void Register(ICodeDescriptor descriptor)
+        {
+            Register(descriptor, false);
+        }
+
+        public void Register(ICodeDescriptor descriptor, bool update)
         {
             var queue = new Queue<ICodeDescriptor>();
             queue.Enqueue(descriptor);
@@ -98,9 +120,9 @@ namespace StrawberryShake.Generators
             {
                 ICodeDescriptor current = queue.Dequeue();
 
-                if (!_descriptors.ContainsKey(current.Name))
+                if (update || !_descriptors.ContainsKey(current.Name))
                 {
-                    _descriptors.Add(current.Name, current);
+                    _descriptors[current.Name] = current;
 
                     foreach (ICodeDescriptor child in current.GetChildren())
                     {

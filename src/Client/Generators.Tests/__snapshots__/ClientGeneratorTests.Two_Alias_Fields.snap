@@ -140,13 +140,13 @@ namespace StrawberryShake.Client
         {
             return new GetBars
             (
-                ParseRootA(data, "a"),
-                ParseRootB(data, "b")
+                ParseGetBarsA(data, "a"),
+                ParseGetBarsB(data, "b")
             );
 
         }
 
-        private IFoo ParseRootA(
+        private IFoo ParseGetBarsA(
             JsonElement parent,
             string field)
         {
@@ -158,7 +158,7 @@ namespace StrawberryShake.Client
             );
         }
 
-        private IFoo1 ParseRootB(
+        private IFoo1 ParseGetBarsB(
             JsonElement parent,
             string field)
         {
@@ -182,8 +182,7 @@ namespace StrawberryShake.Client
                 return null;
             }
 
-
-            return (string?)_stringSerializer.Serialize(value.GetString());
+            return (string?)_stringSerializer.Deserialize(value.GetString())!;
         }
     }
 }

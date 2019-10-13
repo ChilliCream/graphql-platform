@@ -78,7 +78,6 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteAsync("private ");
             await writer.WriteAsync(resultTypeName);
             await writer.WriteSpaceAsync();
-            await writer.WriteAsync("Parse");
             await writer.WriteAsync(descriptor.Name);
 
             await writer.WriteAsync('(');
@@ -128,7 +127,6 @@ namespace StrawberryShake.Generators.CSharp
             IResultParserMethodDescriptor methodDescriptor,
             ITypeLookup typeLookup)
         {
-
             if (methodDescriptor.ResultType.IsListType())
             {
                 await WriteListAsync(
@@ -304,14 +302,18 @@ namespace StrawberryShake.Generators.CSharp
                             methodDescriptor,
                             typeLookup,
                             elementField,
-                            m => WriteCreateListElementAsync(
-                                writer,
-                                methodDescriptor,
-                                m,
-                                elementField,
-                                listField,
-                                indexField,
-                                typeLookup));
+                            async m =>
+                            {
+                                await WriteCreateListElementAsync(
+                                    writer,
+                                    methodDescriptor,
+                                    m,
+                                    elementField,
+                                    listField,
+                                    indexField,
+                                    typeLookup);
+                                await writer.WriteIndentedLineAsync("break;");
+                            });
                     }
                     else
                     {
@@ -404,7 +406,8 @@ namespace StrawberryShake.Generators.CSharp
                         true);
 
                     string deserializeMethod =
-                        ResultParserDeserializeMethodGenerator.CreateDeserializerName(typeInfo);
+                        ResultParserDeserializeMethodGenerator.CreateDeserializerName(
+                            fieldDescriptor.Type);
 
                     await writer.WriteAsync(deserializeMethod);
                     await writer.WriteAsync('(');
@@ -445,6 +448,19 @@ namespace StrawberryShake.Generators.CSharp
             {
                 await writer.WriteIndentAsync();
                 await writer.WriteAsync("if (!parent.TryGetProperty(field, out JsonElement obj))");
+                await writer.WriteLineAsync();
+
+                await writer.WriteIndentAsync();
+                using (writer.WriteBraces())
+                {
+                    await writer.WriteIndentAsync();
+                    await writer.WriteAsync("return null;");
+                }
+                await writer.WriteLineAsync();
+                await writer.WriteLineAsync();
+
+                await writer.WriteIndentAsync();
+                await writer.WriteAsync("if (obj.ValueKind == JsonValueKind.Null)");
                 await writer.WriteLineAsync();
 
                 await writer.WriteIndentAsync();

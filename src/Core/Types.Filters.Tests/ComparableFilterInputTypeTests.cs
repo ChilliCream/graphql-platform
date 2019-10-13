@@ -227,6 +227,19 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Model_With_Nullable_Properties()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<FooNullable>(
+                    d => d.Filter(f => f.BarShort)));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public enum FooBar
         {
             Foo,
@@ -248,6 +261,11 @@ namespace HotChocolate.Types.Filters
             public double? BarDoubleNullable { get; set; }
             public decimal? BarDecimalNullable { get; set; }
             public FooBar FooBar { get; set; }
+        }
+
+        public class FooNullable
+        {
+            public short? BarShort { get; set; }
         }
 
         public class Bar

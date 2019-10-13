@@ -32,10 +32,8 @@ namespace StrawberryShake.Tools
                     WellKnownFiles.Config,
                     SearchOption.AllDirectories))
                 {
-                    string directory = IOPath.GetDirectoryName(configFile);
-                    if (Directory.GetFiles(
-                        directory,
-                        "*.graphql").Length > 0)
+                    string directory = IOPath.GetDirectoryName(configFile)!;
+                    if (Directory.GetFiles(directory, "*.graphql").Length > 0)
                     {
                         Configuration config = null;
                         try
@@ -99,7 +97,7 @@ namespace StrawberryShake.Tools
             stopwatch.Restart();
             Console.WriteLine("Client configuration started.");
 
-            string fileName = IOPath.Combine(path, schemaFile.Name);
+            string fileName = IOPath.Combine(path, schemaFile.Name + ".graphql");
             if (File.Exists(fileName))
             {
                 File.Delete(fileName);

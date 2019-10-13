@@ -81,8 +81,7 @@ namespace StrawberryShake.Client
                 return null;
             }
 
-
-            return (string?)_stringSerializer.Serialize(value.GetString());
+            return (string?)_stringSerializer.Deserialize(value.GetString())!;
         }
     }
 }

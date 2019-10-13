@@ -27,6 +27,13 @@ namespace HotChocolate.Types.Filters.Expressions
                 && m.GetParameters().Length == 1
                 && m.GetParameters().Single().ParameterType == typeof(string));
 
+        private static Expression NullableSafeConstantExpression(object value, Type type)
+        {
+            return Nullable.GetUnderlyingType(type) == null
+                ? (Expression)Expression.Constant(value)
+                : Expression.Convert(Expression.Constant(value), type);
+        }
+
         private static readonly MethodInfo _anyMethod = typeof(Enumerable)
                     .GetMethods()
                     .Single(x => x.Name == "Any" && x.GetParameters().Length == 1);
@@ -50,14 +57,14 @@ namespace HotChocolate.Types.Filters.Expressions
             Expression property,
             object value)
         {
-            return Expression.Equal(property, Expression.Constant(value));
+            return Expression.Equal(property, NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression NotEquals(
             Expression property,
             object value)
         {
-            return Expression.NotEqual(property, Expression.Constant(value));
+            return Expression.NotEqual(property, NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression In(
@@ -78,61 +85,54 @@ namespace HotChocolate.Types.Filters.Expressions
             Expression property,
             object value)
         {
-            return Expression.GreaterThan(
-                property,
-                Expression.Constant(value));
+            return Expression.GreaterThan(property, NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression GreaterThanOrEqual(
             Expression property,
             object value)
         {
-            return Expression.GreaterThanOrEqual(
-                property,
-                Expression.Constant(value));
+            return Expression.GreaterThanOrEqual(property, NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression LowerThan(
             Expression property,
             object value)
         {
-            return Expression.LessThan(
-                property,
-                Expression.Constant(value));
+            return Expression.LessThan(property, NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression LowerThanOrEqual(
             Expression property,
             object value)
         {
-            return Expression.LessThanOrEqual(
-                property,
-                Expression.Constant(value));
+            return Expression.LessThanOrEqual(property, NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression StartsWith(
             Expression property,
             object value)
         {
-            return NotNullAndAlso(property, Expression.Call(property, _startsWith,
-                    new[] { Expression.Constant(value) }));
+            return Expression.AndAlso(
+                Expression.NotEqual(property, Expression.Constant(null)),
+                Expression.Call(property, _startsWith, Expression.Constant(value)));
         }
 
         public static Expression EndsWith(
             Expression property,
             object value)
         {
-            return NotNullAndAlso(property,
-                Expression.Call(property, _endsWith,
-                    new[] { Expression.Constant(value) }));
+            return Expression.AndAlso(
+                Expression.NotEqual(property, Expression.Constant(null)),
+                Expression.Call(property, _endsWith, Expression.Constant(value)));
         }
         public static Expression Contains(
             Expression property,
             object value)
         {
-            return NotNullAndAlso(property,
-                Expression.Call(property, _contains,
-                    new[] { Expression.Constant(value) }));
+            return Expression.AndAlso(
+                Expression.NotEqual(property, Expression.Constant(null)),
+                Expression.Call(property, _contains, Expression.Constant(value)));
         }
 
         public static Expression NotNull(Expression expression)

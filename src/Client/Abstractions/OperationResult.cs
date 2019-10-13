@@ -26,6 +26,10 @@ namespace StrawberryShake
 
         public IReadOnlyDictionary<string, object?> Extensions { get; }
 
+        public bool HasErrors => Errors.Count > 0;
+
+        public Type ResultType => typeof(T);
+
         object? IOperationResult.Data => Data;
 
         public void EnsureNoErrors()

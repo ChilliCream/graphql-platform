@@ -14,17 +14,19 @@ namespace StrawberryShake.Http
             IOperation operation,
             HttpClient client,
             IServiceProvider services,
+            IOperationResultBuilder result,
             CancellationToken requestAborted)
         {
             Operation = operation ?? throw new ArgumentNullException(nameof(operation));
             Client = client ?? throw new ArgumentNullException(nameof(client));
             Services = services ?? throw new ArgumentNullException(nameof(services));
+            Result = result;
             RequestAborted = requestAborted;
         }
 
         public IOperation Operation { get; }
 
-        public IOperationResult? Result { get; set; }
+        public IOperationResultBuilder Result { get; }
 
         public HttpRequestMessage? HttpRequest { get; set; }
 

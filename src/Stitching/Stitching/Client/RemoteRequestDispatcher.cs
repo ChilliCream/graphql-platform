@@ -46,6 +46,17 @@ namespace HotChocolate.Stitching.Client
             var rewriter = new MergeQueryRewriter();
             var variableValues = new Dictionary<string, object>();
 
+            var operationNames = requests
+                .Select(r => r.Request.OperationName)
+                .Where(n => n != null)
+                .Distinct()
+                .ToList();
+
+            if (operationNames.Count == 1)
+            {
+                rewriter.SetOperationName(new NameNode(operationNames[0]));
+            }
+
             for (int i = 0; i < requests.Count; i++)
             {
                 MergeRequest(requests[i], rewriter, variableValues, $"__{i}_");

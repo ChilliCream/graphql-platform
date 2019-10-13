@@ -9,18 +9,18 @@ namespace  StrawberryShake.Client.GraphQL
         : IHero
     {
         public Hero(
-            double? height, 
             string? name, 
+            double? height, 
             IFriend? friends)
         {
-            Height = height;
             Name = name;
+            Height = height;
             Friends = friends;
         }
 
-        public double? Height { get; }
-
         public string? Name { get; }
+
+        public double? Height { get; }
 
         public IFriend? Friends { get; }
     }
