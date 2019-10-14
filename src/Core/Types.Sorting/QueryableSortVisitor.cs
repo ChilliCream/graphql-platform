@@ -7,46 +7,44 @@ using HotChocolate.Language;
 namespace HotChocolate.Types.Sorting
 {
     public class QueryableSortVisitor
-            : SyntaxNodeVisitor
+            : SortVisitorBase
     {
-        private readonly ParameterExpression _parameter;
+        private const string _parameterName = "t";
 
         public QueryableSortVisitor(
             InputObjectType initialType,
-            Type source)
+            Type source) : base(initialType)
         {
             if (initialType is null)
             {
                 throw new ArgumentNullException(nameof(initialType));
             }
 
-            Types.Push(initialType);
-            _parameter = Expression.Parameter(source);
+            Closure = new SortQueryableClosure(source, _parameterName);
         }
 
-        protected Queue<SortOperationInvocation> Instance { get; } =
+        protected Queue<SortOperationInvocation> SortOperations { get; } =
             new Queue<SortOperationInvocation>();
+        protected SortQueryableClosure Closure { get; }
 
-        protected Stack<IType> Types { get; } =
-            new Stack<IType>();
 
         public IQueryable<TSource> Sort<TSource>(
             IQueryable<TSource> source)
         {
-            if (!Instance.Any())
+            if (!SortOperations.Any())
             {
                 return source;
             }
 
             IOrderedQueryable<TSource> sortedSource
                 = source.AddInitialSortOperation(
-                    Instance.Dequeue(), _parameter);
+                    SortOperations.Dequeue());
 
-            while (Instance.Any())
+            while (SortOperations.Any())
             {
                 sortedSource
                     = sortedSource.AddSortOperation(
-                        Instance.Dequeue(), _parameter);
+                        SortOperations.Dequeue());
             }
 
             return sortedSource;
@@ -82,25 +80,19 @@ namespace HotChocolate.Types.Sorting
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
-            if (!(Types.Peek().NamedType() is InputObjectType inputType))
-            {
-                // TODO : resources - invalid type
-                throw new NotSupportedException();
-            }
+            base.Enter(node, parent, path, ancestors);
 
-            if (!inputType.Fields.TryGetField(node.Name.Value,
-                out IInputField field))
+            if (Operations.Peek() is SortOperationField sortField)
             {
-                // TODO : resources - invalid field
-                throw new InvalidOperationException();
-            }
+                Closure.EnqueueProperty(sortField.Operation.Property);
+                if (!sortField.Operation.IsObject)
+                {
+                    var kind = (SortOperationKind)sortField.Type.Deserialize(node.Value.Value);
+                    SortOperations.Enqueue(
+                           Closure.CreateSortOperation(kind)
+                    );
 
-            if (field is SortOperationField sortField)
-            {
-                Instance.Enqueue(
-                    new SortOperationInvocation(
-                        (SortOperationKind) sortField.Type.Deserialize(node.Value.Value),
-                        sortField.Operation.Property));
+                }
             }
 
             return VisitorAction.Continue;
@@ -112,6 +104,11 @@ namespace HotChocolate.Types.Sorting
             IReadOnlyList<object> path,
             IReadOnlyList<ISyntaxNode> ancestors)
         {
+
+            if (Operations.Peek() is SortOperationField)
+            {
+                Closure.Instance.Pop();
+            }
             return VisitorAction.Continue;
         }
 

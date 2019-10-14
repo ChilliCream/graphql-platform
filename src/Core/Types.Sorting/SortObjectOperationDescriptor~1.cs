@@ -85,7 +85,7 @@ namespace HotChocolate.Types.Sorting
            PropertyInfo property,
            IDescriptorContext context)
         {
-            var operation = new SortOperation(property);
+            var operation = new SortOperation(property, true);
             var name = context.Naming.GetMemberName(
                property, MemberKind.InputObjectField);
             var typeReference = new ClrTypeReference(
