@@ -17,14 +17,21 @@ namespace HotChocolate.Stitching.Delegation
             new List<VariableDefinitionNode>();
         private readonly List<FragmentDefinitionNode> _fragments =
             new List<FragmentDefinitionNode>();
+        private NameNode _operationName = new NameNode("fetch");
         private OperationType _operation = OperationType.Query;
         private IImmutableStack<SelectionPathComponent> _path =
             ImmutableStack<SelectionPathComponent>.Empty;
         private FieldNode _requestField;
 
         public RemoteQueryBuilder SetOperation(
+            NameNode name,
             OperationType operation)
         {
+            if (name != null)
+            {
+                _operationName = name;
+            }
+            
             _operation = operation;
             return this;
         }
@@ -172,6 +179,7 @@ namespace HotChocolate.Stitching.Delegation
 
             var definitions = new List<IDefinitionNode>();
             definitions.Add(CreateOperation(
+                _operationName,
                 operation,
                 new List<FieldNode> { current },
                 _variables.Where(t =>
@@ -243,13 +251,14 @@ namespace HotChocolate.Stitching.Delegation
         }
 
         private static OperationDefinitionNode CreateOperation(
+            NameNode name,
             OperationType operation,
             IReadOnlyList<FieldNode> fields,
             IReadOnlyList<VariableDefinitionNode> variables)
         {
             return new OperationDefinitionNode(
                 null,
-                new NameNode("fetch"),
+                name,
                 operation,
                 variables,
                 Array.Empty<DirectiveNode>(),

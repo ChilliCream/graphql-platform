@@ -27,6 +27,13 @@ namespace HotChocolate.Types.Filters.Expressions
                 && m.GetParameters().Length == 1
                 && m.GetParameters().Single().ParameterType == typeof(string));
 
+        private static Expression NullableSafeConstantExpression(object value, Type type)
+        {
+            return Nullable.GetUnderlyingType(type) == null
+                ? (Expression)Expression.Constant(value)
+                : Expression.Convert(Expression.Constant(value), type);
+        }
+
         public static Expression Not(Expression expression)
         {
             return Expression.Equal(expression, Expression.Constant(false));
@@ -36,14 +43,14 @@ namespace HotChocolate.Types.Filters.Expressions
             MemberExpression property,
             object value)
         {
-            return Expression.Equal(property, Expression.Constant(value));
+            return Expression.Equal(property, NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression NotEquals(
             MemberExpression property,
             object value)
         {
-            return Expression.NotEqual(property, Expression.Constant(value));
+            return Expression.NotEqual(property, NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression In(
@@ -64,36 +71,28 @@ namespace HotChocolate.Types.Filters.Expressions
             MemberExpression property,
             object value)
         {
-            return Expression.GreaterThan(
-                property,
-                Expression.Constant(value));
+            return Expression.GreaterThan(property, NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression GreaterThanOrEqual(
             MemberExpression property,
             object value)
         {
-            return Expression.GreaterThanOrEqual(
-                property,
-                Expression.Constant(value));
+            return Expression.GreaterThanOrEqual(property, NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression LowerThan(
             MemberExpression property,
             object value)
         {
-            return Expression.LessThan(
-                property,
-                Expression.Constant(value));
+            return Expression.LessThan(property, NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression LowerThanOrEqual(
             MemberExpression property,
             object value)
         {
-            return Expression.LessThanOrEqual(
-                property,
-                Expression.Constant(value));
+            return Expression.LessThanOrEqual(property, NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression StartsWith(
@@ -102,8 +101,7 @@ namespace HotChocolate.Types.Filters.Expressions
         {
             return Expression.AndAlso(
                 Expression.NotEqual(property, Expression.Constant(null)),
-                Expression.Call(property, _startsWith,
-                    new[] { Expression.Constant(value) }));
+                Expression.Call(property, _startsWith, Expression.Constant(value)));
         }
 
         public static Expression EndsWith(
@@ -112,8 +110,7 @@ namespace HotChocolate.Types.Filters.Expressions
         {
             return Expression.AndAlso(
                 Expression.NotEqual(property, Expression.Constant(null)),
-                Expression.Call(property, _endsWith,
-                    new[] { Expression.Constant(value) }));
+                Expression.Call(property, _endsWith, Expression.Constant(value)));
         }
         public static Expression Contains(
             MemberExpression property,
@@ -121,8 +118,7 @@ namespace HotChocolate.Types.Filters.Expressions
         {
             return Expression.AndAlso(
                 Expression.NotEqual(property, Expression.Constant(null)),
-                Expression.Call(property, _contains,
-                    new[] { Expression.Constant(value) }));
+                Expression.Call(property, _contains, Expression.Constant(value)));
         }
     }
 }

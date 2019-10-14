@@ -84,13 +84,60 @@ namespace HotChocolate.Stitching
 
             // assert
             Assert.Equal(1, count);
-            query.MatchSnapshot("DispatchMultipleQueries_MergedQuery");
+            query.MatchSnapshot($"{nameof(DispatchMultipleQueries)}_MergedQuery");
 
             IExecutionResult result_a = await task_a;
-            result_a.MatchSnapshot("DispatchMultipleQueries_Result_A");
+            result_a.MatchSnapshot($"{nameof(DispatchMultipleQueries)}_Result_A");
 
             IExecutionResult result_b = await task_b;
-            result_b.MatchSnapshot("DispatchMultipleQueries_Result_B");
+            result_b.MatchSnapshot($"{nameof(DispatchMultipleQueries)}_Result_B");
+        }
+
+        [Fact]
+        public async Task DispatchMultipleQueriesDistinctOperationName()
+        {
+            // arrange
+            string query = null;
+            int count = 0;
+
+            var result = new QueryResult();
+            result.Data["__0__a"] = "a";
+            result.Data["__1__a"] = "b";
+            result.Data["__1__b"] = "c";
+
+            var executor = new Mock<IQueryExecutor>();
+            executor.Setup(t => t.ExecuteAsync(
+                It.IsAny<IReadOnlyQueryRequest>(),
+                It.IsAny<CancellationToken>()))
+                .Returns(new Func<IReadOnlyQueryRequest,
+                    CancellationToken, Task<IExecutionResult>>((r, ct) =>
+                    {
+                        count++;
+                        query = r.Query.ToString();
+                        return Task.FromResult<IExecutionResult>(result);
+                    }));
+
+            var request_a = QueryRequestBuilder.New().SetQuery("query a { a }").SetOperation("a").Create();
+            var request_b = QueryRequestBuilder.New().SetQuery("query b { a b }").SetOperation("a").Create();
+
+            var client = new RemoteQueryClient(
+                new EmptyServiceProvider(),
+                executor.Object);
+
+            // act
+            Task<IExecutionResult> task_a = client.ExecuteAsync(request_a);
+            Task<IExecutionResult> task_b = client.ExecuteAsync(request_b);
+            await client.DispatchAsync(CancellationToken.None);
+
+            // assert
+            Assert.Equal(1, count);
+            query.MatchSnapshot($"{nameof(DispatchMultipleQueriesDistinctOperationName)}_MergedQuery");
+
+            IExecutionResult result_a = await task_a;
+            result_a.MatchSnapshot($"{nameof(DispatchMultipleQueriesDistinctOperationName)}_Result_A");
+
+            IExecutionResult result_b = await task_b;
+            result_b.MatchSnapshot($"{nameof(DispatchMultipleQueriesDistinctOperationName)}_Result_B");
         }
 
         [Fact]
