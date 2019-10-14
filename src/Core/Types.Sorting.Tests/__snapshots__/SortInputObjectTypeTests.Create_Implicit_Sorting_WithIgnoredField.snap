@@ -1,4 +1,4 @@
-﻿schema {
+schema {
   query: Query
 }
 
@@ -6,18 +6,8 @@ type Query {
   foo: String
 }
 
-input BarSort {
-  barProperty: SortOperationKind
-  baz: BazSort
-}
-
 input BazSort {
-  barProperty: SortOperationKind
   bazProperty: SortOperationKind
-}
-
-input FooSort {
-  bar: BarSort
 }
 
 enum SortOperationKind {

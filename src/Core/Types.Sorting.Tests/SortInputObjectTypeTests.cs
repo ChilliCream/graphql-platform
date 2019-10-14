@@ -35,8 +35,8 @@ namespace HotChocolate.Types.Sorting
             // arrange
             // act
             ISchema schema = CreateSchema(
-                new SortInputType<Foo>(d => d.BindFieldsImplicitly()
-                    .SortableObject(f => f.Bar).Ignore()));
+                new SortInputType<Baz>(d => d.BindFieldsImplicitly()
+                    .SortableObject(f => f.BarProperty).Ignore()));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -64,10 +64,44 @@ namespace HotChocolate.Types.Sorting
                 new SortInputType<Foo>(d => d
                     .BindFieldsExplicitly()
                     .SortableObject(f => f.Bar)
-                ));
+                        .Type(x => x.BindFieldsExplicitly()
+                        .SortableObject(y => y.Baz)
+                        .Type(z => z.BindFieldsExplicitly().Sortable(x => x.BarProperty)
+                        )
+                    )
+                )
+                );
 
             // assert
             schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Explicit_Sorting_ByType()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new SortInputType<Foo>(d => d
+                    .BindFieldsExplicitly()
+                    .SortableObject(f => f.Bar)
+                        .Type<SortInputType<Bar>>()
+                        )
+                );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
+
+        private class BarType : SortInputType<Bar>
+        {
+            protected override void Configure(ISortInputTypeDescriptor<Bar> descriptor)
+            {
+                base.Configure(descriptor);
+                descriptor.BindFieldsExplicitly().Sortable(x => x.BarProperty);
+            }
         }
 
         private class Foo

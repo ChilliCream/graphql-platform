@@ -69,11 +69,11 @@ namespace HotChocolate.Types.Sorting
             SortOperation operation) =>
             new SortObjectOperationDescriptor(context, name, type, operation);
 
-        public static SortObjectOperationDescriptor CreateOperation(
-           Type type,
-           PropertyInfo property,
-           IDescriptorContext context)
+        public new static SortObjectOperationDescriptor CreateOperation(
+   PropertyInfo property,
+   IDescriptorContext context)
         {
+            var type = property.PropertyType;
             var operation = new SortOperation(property);
             var name = context.Naming.GetMemberName(
                property, MemberKind.InputObjectField);

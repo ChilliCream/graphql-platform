@@ -6,8 +6,18 @@ type Query {
   foo: String
 }
 
+input BarSort {
+  barProperty: SortOperationKind
+  baz: BazSort
+}
+
+input BazSort {
+  barProperty: SortOperationKind
+  bazProperty: SortOperationKind
+}
+
 input FooSort {
-  bar: SortOperationKind
+  bar: BarSort
 }
 
 enum SortOperationKind {
