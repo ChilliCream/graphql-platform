@@ -1,8 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using HotChocolate.Execution;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
@@ -244,48 +239,6 @@ namespace HotChocolate.Types.Filters
             // assert
             schema.ToString().MatchSnapshot();
         }
-
-
-        [Fact]
-        public async Task Query_DateTimeGte_Integration()
-        {
-
-            ISchema schema = SchemaBuilder.New()
-                .AddQueryType(new ObjectType<QueryFooDateTime>(x => x.Field(y => y.Foo).UseFiltering())) 
-                .Create();
-
-            IQueryExecutor executor = schema.MakeExecutable();
-
-            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                    .SetQuery("{ foo(where: { foo_gte: \"2019-06-01\"}) {foo}}")
-                    .Create();
-
-
-            IReadOnlyQueryRequest requestVariables = QueryRequestBuilder.New()
-                    .SetQuery("query TestQuery($where: FooDateTimeFilter){ foo(where: $where) {foo}}")
-                    .SetVariableValue("where", new { foo_gte = "2019-06-01" })
-                    .Create();
-
-            // act
-            IExecutionResult result = await executor.ExecuteAsync(request);
-            IExecutionResult resultVariables = await executor.ExecuteAsync(requestVariables);
-
-            // assert
-            result.MatchSnapshot();
-            resultVariables.MatchSnapshot();
-        }
-
-        public class FooDateTime
-        {
-            public DateTime Foo { get; set; }
-        }
-
-        public class QueryFooDateTime
-        {
-            public IEnumerable<FooDateTime> Foo { get; set; }
-        }
-
-
 
         public enum FooBar
         {
