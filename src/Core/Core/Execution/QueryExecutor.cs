@@ -52,15 +52,14 @@ namespace HotChocolate.Execution
                 throw new ArgumentNullException(nameof(request));
             }
 
-            IRequestServiceScope serviceScope = CreateServiceScope(
-                request.Services);
+            IRequestServiceScope serviceScope = CreateServiceScope(request.Services);
 
             var context = new QueryContext(
                 Schema,
                 serviceScope,
                 request,
-                (field, selection) =>
-                    _fieldMiddlewareCompiler.GetMiddleware(field));
+                (field, selection) => _fieldMiddlewareCompiler.GetMiddleware(field),
+                cancellationToken);
 
             return ExecuteMiddlewareAsync(context);
         }

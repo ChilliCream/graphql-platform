@@ -1,0 +1,28 @@
+﻿{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "Unexpected Execution Error",
+      "Code": null,
+      "Path": null,
+      "Locations": [],
+      "Exception": {
+        "ClassName": "System.OperationCanceledException",
+        "Message": "The operation was canceled.",
+        "Data": null,
+        "InnerException": null,
+        "HelpURL": null,
+        "StackTraceString": "   at System.Threading.CancellationToken.ThrowOperationCanceledException()\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteResolversAsync(IExecutionContext executionContext, IEnumerable`1 initialBatch, BatchOperationHandler batchOperationHandler, CancellationToken cancellationToken) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/ExecutionStrategyBase.cs:line 103\n   at HotChocolate.Execution.ExecutionStrategyBase.ExecuteQueryAsync(IExecutionContext executionContext, BatchOperationHandler batchOperationHandler, CancellationToken cancellationToken) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/ExecutionStrategyBase.cs:line 34\n   at HotChocolate.Execution.QueryExecutionStrategy.ExecuteInternalAsync(IExecutionContext executionContext, CancellationToken cancellationToken) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/QueryExecutionStrategy.cs:line 31\n   at HotChocolate.Execution.ExecuteOperationMiddleware.InvokeAsync(IQueryContext context) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Middleware/ExecuteOperationMiddleware.cs:line 54\n   at HotChocolate.Execution.ValidateQueryMiddleware.InvokeAsync(IQueryContext context) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Middleware/ValidateQueryMiddleware.cs:line 67\n   at HotChocolate.Execution.ParseQueryMiddleware.InvokeAsync(IQueryContext context) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Middleware/ParseQueryMiddleware.cs:line 91\n   at HotChocolate.Execution.ExceptionMiddleware.InvokeAsync(IQueryContext context) in /Users/michael/Local/hotchocolate/src/Core/Core/Execution/Middleware/ExceptionMiddleware.cs:line 26",
+        "RemoteStackTraceString": null,
+        "RemoteStackIndex": 0,
+        "ExceptionMethod": null,
+        "HResult": -2146233029,
+        "Source": "System.Private.CoreLib",
+        "WatsonBuckets": null
+      },
+      "Extensions": {}
+    }
+  ],
+  "ContextData": {}
+}
