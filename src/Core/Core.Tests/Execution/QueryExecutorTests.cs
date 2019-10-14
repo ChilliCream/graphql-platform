@@ -2,7 +2,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Execution;
-using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -10,6 +9,28 @@ namespace HotChocolate.Types
 {
     public class QueryExecutorTests
     {
+        [Fact]
+        public async Task Request_Is_Null_ArgumentNullException()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(t => t
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            Func<Task> action = () => executor.ExecuteAsync(null, default);
+
+            // assert
+            ArgumentException exception =
+                await Assert.ThrowsAsync<ArgumentNullException>(action);
+            Assert.Equal("request", exception.ParamName);
+        }
+
+
         [Fact]
         public async Task CancellationToken_Is_Passed_Correctly()
         {
