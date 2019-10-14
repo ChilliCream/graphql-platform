@@ -30,6 +30,22 @@ namespace HotChocolate.Types
             Assert.Equal("request", exception.ParamName);
         }
 
+        [Fact]
+        public void Schema_Property_IsCorrectly_Set()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(t => t
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // act
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // assert
+            Assert.Equal(schema, executor.Schema);
+        }
 
         [Fact]
         public async Task CancellationToken_Is_Passed_Correctly()
