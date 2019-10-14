@@ -42,16 +42,22 @@ namespace HotChocolate.Types.Descriptors
         protected void Type<TOutputType>()
             where TOutputType : IOutputType
         {
-            Type type = Context.Inspector.ExtractType(typeof(TOutputType));
-            if (Context.Inspector.IsSchemaType(type)
-                && !typeof(IOutputType).IsAssignableFrom(type))
+            Type(typeof(TOutputType));
+        }
+
+        protected void Type(Type type)
+        {
+            Type extractedType = Context.Inspector.ExtractType(type);
+
+            if (Context.Inspector.IsSchemaType(extractedType)
+                && !typeof(IOutputType).IsAssignableFrom(extractedType))
             {
                 throw new ArgumentException(
                     TypeResources.ObjectFieldDescriptorBase_FieldType);
             }
 
             Definition.SetMoreSpecificType(
-                typeof(TOutputType),
+                type,
                 TypeContext.Output);
         }
 

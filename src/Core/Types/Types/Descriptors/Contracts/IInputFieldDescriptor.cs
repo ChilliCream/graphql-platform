@@ -1,4 +1,5 @@
-﻿using HotChocolate.Language;
+using System;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types
@@ -21,6 +22,8 @@ namespace HotChocolate.Types
             where TInputType : class, IInputType;
 
         IInputFieldDescriptor Type(ITypeNode typeNode);
+
+        IInputFieldDescriptor Type(Type type);
 
         IInputFieldDescriptor Ignore();
 

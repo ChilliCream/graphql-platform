@@ -7,7 +7,17 @@ namespace HotChocolate.Language
         : IValueNode<string>
         , IEquatable<FloatValueNode>
     {
+        public FloatValueNode(float value)
+            : this(null, value.ToString(CultureInfo.InvariantCulture))
+        {
+        }
+
         public FloatValueNode(double value)
+            : this(null, value.ToString(CultureInfo.InvariantCulture))
+        {
+        }
+
+        public FloatValueNode(decimal value)
             : this(null, value.ToString(CultureInfo.InvariantCulture))
         {
         }
