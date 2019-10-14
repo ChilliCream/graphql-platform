@@ -1,3 +1,4 @@
+using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
@@ -37,6 +38,86 @@ namespace HotChocolate.Types.Sorting
             ISchema schema = CreateSchema(
                 new SortInputType<Baz>(d => d.BindFieldsImplicitly()
                     .SortableObject(f => f.BarProperty).Ignore()));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
+        [Fact]
+        public void Create_Description_Explicitly()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new SortInputType<Foo>(descriptor =>
+            {
+                descriptor.BindFieldsExplicitly()
+                    .SortableObject(x => x.Bar)
+                    .Description("custom_description");
+            }));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Directive_By_Name()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(builder =>
+                builder.AddType(new SortInputType<Foo>(d =>
+                {
+                    d.BindFieldsExplicitly().
+                    SortableObject(x => x.Bar)
+                        .Directive("bar");
+                }))
+                .AddDirectiveType(new DirectiveType(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.InputFieldDefinition))));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Directive_By_Name_With_Argument()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(builder =>
+                builder.AddType(new SortInputType<Foo>(d =>
+                {
+                    d.BindFieldsExplicitly()
+                        .SortableObject(x => x.Bar)
+                        .Directive("bar",
+                            new ArgumentNode("qux",
+                                new StringValueNode("foo")));
+                }))
+                .AddDirectiveType(new DirectiveType(d => d
+                    .Name("bar")
+                    .Location(DirectiveLocation.InputFieldDefinition)
+                    .Argument("qux")
+                    .Type<StringType>())));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_Directive_With_Clr_Type()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(builder =>
+                builder.AddType(new SortInputType<Foo>(d =>
+                {
+                    d.BindFieldsExplicitly()
+                    .SortableObject(x => x.Bar)
+                    .Directive<FooDirective>();
+                }))
+                .AddDirectiveType(new DirectiveType<FooDirective>(d => d
+                    .Location(DirectiveLocation.InputFieldDefinition))));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -104,6 +185,9 @@ namespace HotChocolate.Types.Sorting
             }
         }
 
+        private class FooDirective
+        {
+        }
         private class Foo
         {
             public Bar Bar { get; set; }
