@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using SysConv = System.Convert;
@@ -54,6 +54,9 @@ namespace HotChocolate.Utilities
                 from => ((DateTimeOffset)from).ToUnixTimeSeconds());
             registry.Register<long, DateTime>(
                 from => DateTimeOffset.FromUnixTimeSeconds(from).UtcDateTime);
+
+            registry.Register<string, DateTimeOffset>(
+                from => DateTimeOffset.Parse(from));
 
             registry.Register<DateTimeOffset, string>(
                 from =>
