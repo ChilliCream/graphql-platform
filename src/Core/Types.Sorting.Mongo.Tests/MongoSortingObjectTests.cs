@@ -119,7 +119,7 @@ namespace HotChocolate.Types.Sorting
             IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ paging(order_by: { model: {foo: DESC }} }) { nodes { model {foo } } } }")
+                .SetQuery("{ paging(order_by: { model: {foo: DESC } }) { nodes { model {foo } } } }")
                 .Create();
 
             // act
@@ -193,7 +193,7 @@ namespace HotChocolate.Types.Sorting
         {
             protected override void Configure(ISortInputTypeDescriptor<Parent> descriptor)
             {
-                descriptor.SortableObject(m => m.Model);
+                descriptor.SortableObject(m => m.Model).Type<ModelSortInputType>();
             }
         }
         public class ModelSortInputType : SortInputType<Model>
@@ -222,10 +222,14 @@ namespace HotChocolate.Types.Sorting
             {
                 descriptor.Field(t => t.Model)
                     .Type<ModelType>();
+                descriptor.Field(t => t.Id)
+                    .Type<IdType>()
+                    .Resolver(c => c.Parent<Model>().Id);
             }
         }
         public class Parent
         {
+            public ObjectId Id { get; set; }
             public Model Model { get; set; }
         }
 
