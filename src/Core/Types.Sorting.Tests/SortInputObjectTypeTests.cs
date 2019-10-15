@@ -175,6 +175,31 @@ namespace HotChocolate.Types.Sorting
         }
 
 
+        [Fact]
+        public void Create_Explicit_Sorting_DifferentDescirptorOfSameType()
+        {
+            // arrange
+            // act
+            ISchema schema = CreateSchema(
+                new SortInputType<FooDoubleBaz>(d =>
+                {
+                    d.BindFieldsExplicitly()
+                      .SortableObject(f => f.Baz1)
+                      .Type(x => x.BindFieldsExplicitly().Sortable(y => y.BarProperty)
+                            );
+                    d.SortableObject(f => f.Baz2)
+                    .Type(x => x.BindFieldsExplicitly()
+                    .Sortable(y => y.BazProperty)
+                        );
+                }
+                )
+            );
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
 
         private class BarType : SortInputType<Bar>
         {
@@ -202,6 +227,13 @@ namespace HotChocolate.Types.Sorting
         {
             public string BarProperty { get; set; }
             public string BazProperty { get; set; }
+        }
+
+
+        private class FooDoubleBaz
+        {
+            public Baz Baz2 { get; set; }
+            public Baz Baz1 { get; set; }
         }
     }
 }
