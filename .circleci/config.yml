@@ -10,12 +10,13 @@ jobs:
           name: Check that Templates Compile
           command: |
             export PATH="$PATH:/root/.dotnet/tools"
-            dotnet cake -target=TemplatesCompile
+            dotnet build src/Templates/StarWars/content/StarWars/StarWars.csproj
+            dotnet build src/Templates/Server/content/HotChocolate.Server.Template.csproj
       - run:
           name: Pull Request Build
           command: |
             export PATH="$PATH:/root/.dotnet/tools"
-            dotnet cake -target=CoreTests
+            dotnet test tools/Build.Core.sln
       - store_test_results:
           path: /work/testoutput
       - store_artifacts:
