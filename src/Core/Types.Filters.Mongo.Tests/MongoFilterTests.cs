@@ -100,15 +100,35 @@ namespace HotChocolate.Types.Filters
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton<IMongoCollection<Model>>(sp =>
             {
-                MongoClient client = new MongoClient();
-                IMongoDatabase database = client.GetDatabase(
-                    "db_" + Guid.NewGuid().ToString("N"));
+                IMongoDatabase database = _mongoResource.CreateDatabase();
 
                 var collection = database.GetCollection<Model>("col");
                 collection.InsertMany(new[]
                 {
-                    new Model { Nested= new Model { Nested= new Model { Foo = "abc", Bar = 1, Baz = true } } },
-                    new Model { Nested= new Model { Nested= new Model { Foo = "def", Bar = 2, Baz = false } } },
+                    new Model
+                    {
+                        Nested = new Model
+                        {
+                            Nested = new Model
+                            {
+                                Foo = "abc",
+                                Bar = 1,
+                                Baz = true
+                            }
+                        }
+                    },
+                    new Model
+                    {
+                        Nested = new Model
+                        {
+                            Nested= new Model
+                            {
+                                Foo = "def",
+                                Bar = 2,
+                                Baz = false
+                            }
+                        }
+                    },
                 });
                 return collection;
             });
@@ -121,7 +141,9 @@ namespace HotChocolate.Types.Filters
             IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ items(where: { nested:{ nested: { foo: \"abc\" }}}) { nested { nested { foo } } } }")
+                .SetQuery(
+                    "{ items(where: { nested:{ nested: { foo: \"abc\" " +
+                    "} } }) { nested { nested { foo } } } }")
                 .Create();
 
             // act
