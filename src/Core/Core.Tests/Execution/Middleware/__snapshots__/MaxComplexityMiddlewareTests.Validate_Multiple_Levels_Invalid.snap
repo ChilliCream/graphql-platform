@@ -1,0 +1,20 @@
+﻿{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "The operation that shall be executed has a complexity of 5.\nThe maximum allowed query complexity is 4.",
+      "Code": null,
+      "Path": null,
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 1
+        }
+      ],
+      "Exception": null,
+      "Extensions": {}
+    }
+  ],
+  "ContextData": {}
+}

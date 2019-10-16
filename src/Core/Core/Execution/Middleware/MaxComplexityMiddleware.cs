@@ -63,8 +63,7 @@ namespace HotChocolate.Execution
                         IError error = ErrorBuilder.New()
                             .SetMessage(string.Format(
                                 CultureInfo.InvariantCulture,
-                                CoreResources
-                                    .MaxComplexityMiddleware_NotAllowed,
+                                CoreResources.MaxComplexityMiddleware_NotAllowed,
                                 complexity,
                                 _options.MaxOperationComplexity))
                             .AddLocation(context.Operation.Definition)
