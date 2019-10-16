@@ -51,20 +51,19 @@ namespace HotChocolate.Validation
         {
             IDirective directive = fieldDefinition.Directives
                 .FirstOrDefault(t => t.Type is CostDirectiveType);
-            int complexity;
 
             CostDirective cost = directive == null
                 ? DefaultCost
                 : directive.ToObject<CostDirective>();
 
-            complexity = Complexity + CalculateComplexity(
+            Complexity = Complexity + CalculateComplexity(
                 new ComplexityContext(
                     fieldDefinition, fieldSelection,
                     FieldPath, _variables, cost));
 
-            if (complexity > MaxComplexity)
+            if (Complexity > MaxComplexity)
             {
-                MaxComplexity = complexity;
+                MaxComplexity = Complexity;
             }
 
             return new MaxComplexityWithMultipliersVisitorContext(
