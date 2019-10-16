@@ -15,16 +15,15 @@ namespace HotChocolate.Subscriptions.Redis
     public class RedisIntegrationTests
         : IClassFixture<RedisResource>
     {
+        private readonly ConnectionMultiplexer _connection;
         private readonly IEventSender _sender;
-        private readonly ConfigurationOptions _configuration;
 
         public RedisIntegrationTests(RedisResource redisResource)
         {
-            var redisEventRegistry = new RedisEventRegistry(
-                redisResource.GetConnection(),
+            _connection = redisResource.GetConnection();
+            _sender = new RedisEventRegistry(
+                _connection,
                 new JsonPayloadSerializer());
-
-            _sender = redisEventRegistry;
         }
 
         [Fact]
@@ -34,7 +33,7 @@ namespace HotChocolate.Subscriptions.Redis
             {
                 // arrange
                 var services = new ServiceCollection();
-                services.AddRedisSubscriptionProvider(_configuration);
+                services.AddRedisSubscriptionProvider(_connection);
 
                 IServiceProvider serviceProvider = services.BuildServiceProvider();
 
@@ -76,7 +75,7 @@ namespace HotChocolate.Subscriptions.Redis
             {
                 // arrange
                 var services = new ServiceCollection();
-                services.AddRedisSubscriptionProvider(_configuration);
+                services.AddRedisSubscriptionProvider(_connection);
 
                 IServiceProvider serviceProvider = services.BuildServiceProvider();
 
