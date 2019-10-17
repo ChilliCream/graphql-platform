@@ -42,7 +42,8 @@ namespace StarWars
                 .Create(),
                 new QueryExecutionOptions
                 {
-                    TracingPreference = TracingPreference.Always
+                    MaxOperationComplexity = 10,
+                    UseComplexityMultipliers = true
                 });
 
 
