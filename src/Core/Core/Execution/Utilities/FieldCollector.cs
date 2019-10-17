@@ -278,7 +278,7 @@ namespace HotChocolate.Execution
                     if (fieldInfo.VarArguments == null)
                     {
                         fieldInfo.VarArguments =
-                            new Dictionary<NameString, VariableValue>();
+                            new Dictionary<NameString, ArgumentVariableValue>();
                     }
 
                     object defaultValue = argument.Type.IsLeafType()
@@ -286,7 +286,7 @@ namespace HotChocolate.Execution
                         : argument.DefaultValue;
 
                     fieldInfo.VarArguments[argument.Name] =
-                        new VariableValue(
+                        new ArgumentVariableValue(
                             argument.Type,
                             variable.Name.Value,
                             defaultValue);

@@ -45,7 +45,7 @@ namespace HotChocolate.Execution
             IReadOnlyDictionary<string, object> variableValues)
         {
             var values = variableValues ?? _empty;
-            var coercedValues = new Dictionary<string, object>();
+            var coercedValues = new Dictionary<string, VariableValue>();
 
             if (_operation.VariableDefinitions.Count > 0)
             {
@@ -54,7 +54,9 @@ namespace HotChocolate.Execution
                 {
                     Variable variable = CreateVariable(variableDefinition);
                     variable = CoerceVariableValue(variableDefinition, values, variable);
-                    coercedValues[variable.Name] = variable.Value;
+
+                    coercedValues[variable.Name] = new VariableValue(
+                        variable.Name, variable.Type, variable.Value);
                 }
             }
 
@@ -68,9 +70,14 @@ namespace HotChocolate.Execution
 
             if (variableType is IInputType type)
             {
-                var defaultValue = variableDefinition.DefaultValue == null
-                    ? null
-                    : type.ParseLiteral(variableDefinition.DefaultValue);
+                object defaultValue = null;
+
+                if (!variableDefinition.DefaultValue.IsNull())
+                {
+                    defaultValue = variableType.NamedType().IsLeafType()
+                        ? type.ParseLiteral(variableDefinition.DefaultValue)
+                        : variableDefinition.DefaultValue;
+                }
 
                 return new Variable(variableName, type, defaultValue);
             }
@@ -112,24 +119,24 @@ namespace HotChocolate.Execution
                     .Build());
             }
 
-            NonNullValidationReport report =
-                NonNullValidator.Validate(
-                    variable.Type,
-                    variable.Value,
-                    _converter);
-
-            if (report.HasError)
+            if (variable.Value is ObjectValueNode objectValue)
             {
-                throw new QueryException(ErrorBuilder.New()
-                    .SetMessage(string.Format(
-                        CultureInfo.InvariantCulture,
-                        TypeResources.VariableValueBuilder_NonNull_In_Graph,
-                        variable.Name))
-                    .AddLocation(variableDefinition)
-                    .SetExtension("variableName", variable.Name)
-                    .SetExtension("variablePath", report.InputPath)
-                    .SetCode(ErrorCodes.Execution.NonNullViolation)
-                    .Build());
+                NonNullValidationReport report =
+                    NonNullValidator.Validate(variable.Type, objectValue);
+
+                if (report.HasError)
+                {
+                    throw new QueryException(ErrorBuilder.New()
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            TypeResources.VariableValueBuilder_NonNull_In_Graph,
+                            variable.Name))
+                        .AddLocation(variableDefinition)
+                        .SetExtension("variableName", variable.Name)
+                        .SetExtension("variablePath", report.InputPath)
+                        .SetCode(ErrorCodes.Execution.NonNullViolation)
+                        .Build());
+                }
             }
 
             CheckForInvalidValueType(variableDefinition, variable);
@@ -152,23 +159,55 @@ namespace HotChocolate.Execution
             if (value is IValueNode literal)
             {
                 CheckForInvalidValueType(variableDefinition, variable, literal);
-                value = variable.Type.ParseLiteral(literal);
+                if (variable.Type.NamedType().IsLeafType())
+                {
+                    return variable.Type.ParseLiteral(literal);
+                }
+                return literal;
             }
 
-            if (variable.Type.TryDeserialize(value, out object deserialized))
+            if (variable.Type.NamedType().IsLeafType())
             {
-                return deserialized;
+                if (variable.Type.TryDeserialize(value, out object deserialized))
+                {
+                    return deserialized;
+                }
+                else
+                {
+                    throw new QueryException(ErrorBuilder.New()
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            TypeResources.VariableValueBuilder_InvalidValue,
+                            variable.Name))
+                        .SetCode(ErrorCodes.Execution.InvalidType)
+                        .AddLocation(variableDefinition)
+                        .Build());
+                }
             }
 
-            return value;
+            return DictionaryToObjectValueConverter.Default.Convert(
+                value, variable.Type, variableDefinition);
         }
 
         private static void CheckForInvalidValueType(
             VariableDefinitionNode variableDefinition,
             Variable variable)
         {
-            if (variable.Value != null
-                && !variable.Type.IsInstanceOfType(variable.Value))
+            bool invalid = false;
+
+            if (variable.Value != null)
+            {
+                if (variable.Value is IValueNode literal)
+                {
+                    invalid = !variable.Type.IsInstanceOfType(literal);
+                }
+                else
+                {
+                    invalid = !variable.Type.IsInstanceOfType(variable.Value);
+                }
+            }
+
+            if (invalid)
             {
                 throw new QueryException(ErrorBuilder.New()
                     .SetMessage(string.Format(

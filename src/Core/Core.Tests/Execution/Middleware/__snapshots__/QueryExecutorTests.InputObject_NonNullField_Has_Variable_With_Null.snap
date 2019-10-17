@@ -4,7 +4,7 @@
   "Errors": [
     {
       "Message": "Variable `baz` of type `String!` must not be null.",
-      "Code": null,
+      "Code": "EXEC_NON_NULL_VIOLATION",
       "Path": null,
       "Locations": [
         {
@@ -14,7 +14,8 @@
       ],
       "Exception": null,
       "Extensions": {
-        "variableName": "baz"
+        "variableName": "baz",
+        "code": "EXEC_NON_NULL_VIOLATION"
       }
     }
   ],

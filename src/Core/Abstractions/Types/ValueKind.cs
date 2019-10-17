@@ -9,6 +9,7 @@ namespace HotChocolate.Types
         Enum,
         Object,
         List,
-        Null
+        Null,
+        Unknown
     }
 }

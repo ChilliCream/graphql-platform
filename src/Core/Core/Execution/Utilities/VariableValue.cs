@@ -1,23 +1,33 @@
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal readonly struct VariableValue
+    internal sealed class VariableValue
     {
         public VariableValue(
+            NameString name,
             IInputType type,
-            NameString variableName,
-            object defaultValue)
+            object value)
         {
+            Name = name;
             Type = type;
-            VariableName = variableName;
-            DefaultValue = defaultValue;
+            if (value is IValueNode literal)
+            {
+                Literal = literal;
+            }
+            else
+            {
+                Value = value;
+            }
         }
+
+        public NameString Name { get; }
 
         public IInputType Type { get; }
 
-        public NameString VariableName { get; }
+        public object Value { get; }
 
-        public object DefaultValue { get; }
+        public IValueNode Literal { get; }
     }
 }
