@@ -21,7 +21,7 @@ namespace HotChocolate.Execution
 
         public Dictionary<NameString, ArgumentValue> Arguments { get; set; }
 
-        public Dictionary<NameString, VariableValue> VarArguments { get; set; }
+        public Dictionary<NameString, ArgumentVariableValue> VarArguments { get; set; }
 
         public List<FieldVisibility> Visibilities { get; set; }
     }

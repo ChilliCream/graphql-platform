@@ -1,6 +1,6 @@
-{
+﻿{
+  "bar": "Bar",
   "__schema": "__Schema!",
   "__type": "__Type",
-  "__typename": "String!",
-  "bar": "Bar"
+  "__typename": "String!"
 }

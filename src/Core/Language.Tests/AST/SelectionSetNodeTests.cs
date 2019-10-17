@@ -149,6 +149,55 @@ namespace HotChocolate.Language
         }
 
         [Fact]
+        public void AddSelections_Two()
+        {
+            // arrange
+            Location location = AstTestHelper.CreateDummyLocation();
+            var selections = new List<ISelectionNode>
+            {
+                new FieldNode
+                (
+                    null,
+                    new NameNode("bar"),
+                    null,
+                    Array.Empty<DirectiveNode>(),
+                    Array.Empty<ArgumentNode>(),
+                    null
+                )
+            };
+
+            var selectionSet = new SelectionSetNode
+            (
+                location,
+                selections
+            );
+
+            // act
+            selectionSet = selectionSet.AddSelections(
+                new FieldNode
+                (
+                    null,
+                    new NameNode("baz"),
+                    null,
+                    Array.Empty<DirectiveNode>(),
+                    Array.Empty<ArgumentNode>(),
+                    null
+                ),
+                new FieldNode
+                (
+                    null,
+                    new NameNode("qux"),
+                    null,
+                    Array.Empty<DirectiveNode>(),
+                    Array.Empty<ArgumentNode>(),
+                    null
+                ));
+
+            // assert
+            selectionSet.MatchSnapshot();
+        }
+
+        [Fact]
         public void RemoveSelection()
         {
             // arrange
