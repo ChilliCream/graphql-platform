@@ -94,7 +94,7 @@ namespace HotChocolate.Types
 
         public object Serialize(object value)
         {
-            if (TryDeserialize(value, out object serialized))
+            if (TrySerialize(value, out object serialized))
             {
                 return serialized;
             }
