@@ -53,8 +53,7 @@ namespace HotChocolate.Execution
                     _operation.VariableDefinitions)
                 {
                     Variable variable = CreateVariable(variableDefinition);
-                    variable = CoerceVariableValue(
-                        variableDefinition, values, variable);
+                    variable = CoerceVariableValue(variableDefinition, values, variable);
                     coercedValues[variable.Name] = variable.Value;
                 }
             }
@@ -62,8 +61,7 @@ namespace HotChocolate.Execution
             return new VariableValueCollection(_converter, coercedValues);
         }
 
-        private Variable CreateVariable(
-            VariableDefinitionNode variableDefinition)
+        private Variable CreateVariable(VariableDefinitionNode variableDefinition)
         {
             var variableName = variableDefinition.Variable.Name.Value;
             IType variableType = GetType(variableDefinition.Type);
@@ -83,6 +81,7 @@ namespace HotChocolate.Execution
                     TypeResources.VariableValueBuilder_InputType,
                     variableName,
                     TypeVisualizer.Visualize(variableType)))
+                .SetCode(ErrorCodes.Execution.MustBeInputType)
                 .AddLocation(variableDefinition)
                 .Build());
         }
@@ -109,6 +108,7 @@ namespace HotChocolate.Execution
                         TypeVisualizer.Visualize(variable.Type)))
                     .AddLocation(variableDefinition)
                     .SetExtension("variableName", variable.Name)
+                    .SetCode(ErrorCodes.Execution.NonNullViolation)
                     .Build());
             }
 
@@ -128,6 +128,7 @@ namespace HotChocolate.Execution
                     .AddLocation(variableDefinition)
                     .SetExtension("variableName", variable.Name)
                     .SetExtension("variablePath", report.InputPath)
+                    .SetCode(ErrorCodes.Execution.NonNullViolation)
                     .Build());
             }
 
@@ -174,6 +175,7 @@ namespace HotChocolate.Execution
                         CultureInfo.InvariantCulture,
                         TypeResources.VariableValueBuilder_InvalidValue,
                         variable.Name))
+                    .SetCode(ErrorCodes.Execution.InvalidType)
                     .AddLocation(variableDefinition)
                     .Build());
             }
@@ -191,6 +193,7 @@ namespace HotChocolate.Execution
                         CultureInfo.InvariantCulture,
                         TypeResources.VariableValueBuilder_InvalidValue,
                         variable.Name))
+                    .SetCode(ErrorCodes.Execution.InvalidType)
                     .AddLocation(variableDefinition)
                     .Build());
             }
