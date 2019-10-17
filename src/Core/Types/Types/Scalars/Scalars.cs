@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using HotChocolate.Types.Descriptors;
@@ -83,32 +84,32 @@ namespace HotChocolate.Types
                     typeof(PaginationAmountType), TypeContext.None) },
            };
 
-        private static readonly Dictionary<Type, ScalarValueKind> _scalarKinds =
-            new Dictionary<Type, ScalarValueKind>
+        private static readonly Dictionary<Type, ValueKind> _scalarKinds =
+            new Dictionary<Type, ValueKind>
             {
-                { typeof(string), ScalarValueKind.String },
-                { typeof(long), ScalarValueKind.Integer },
-                { typeof(int), ScalarValueKind.Integer },
-                { typeof(short), ScalarValueKind.Integer },
-                { typeof(long?), ScalarValueKind.Integer },
-                { typeof(int?), ScalarValueKind.Integer },
-                { typeof(short?), ScalarValueKind.Integer },
-                { typeof(ulong), ScalarValueKind.Integer },
-                { typeof(uint), ScalarValueKind.Integer },
-                { typeof(ushort), ScalarValueKind.Integer },
-                { typeof(ulong?), ScalarValueKind.Integer },
-                { typeof(uint?), ScalarValueKind.Integer },
-                { typeof(ushort?), ScalarValueKind.Integer },
-                { typeof(byte), ScalarValueKind.Integer },
-                { typeof(byte?), ScalarValueKind.Integer },
-                { typeof(float), ScalarValueKind.Float },
-                { typeof(double), ScalarValueKind.Float },
-                { typeof(decimal), ScalarValueKind.Float },
-                { typeof(float?), ScalarValueKind.Float },
-                { typeof(double?), ScalarValueKind.Float },
-                { typeof(decimal?), ScalarValueKind.Float },
-                { typeof(bool), ScalarValueKind.Float },
-                { typeof(bool?), ScalarValueKind.Float }
+                { typeof(string), ValueKind.String },
+                { typeof(long), ValueKind.Integer },
+                { typeof(int), ValueKind.Integer },
+                { typeof(short), ValueKind.Integer },
+                { typeof(long?), ValueKind.Integer },
+                { typeof(int?), ValueKind.Integer },
+                { typeof(short?), ValueKind.Integer },
+                { typeof(ulong), ValueKind.Integer },
+                { typeof(uint), ValueKind.Integer },
+                { typeof(ushort), ValueKind.Integer },
+                { typeof(ulong?), ValueKind.Integer },
+                { typeof(uint?), ValueKind.Integer },
+                { typeof(ushort?), ValueKind.Integer },
+                { typeof(byte), ValueKind.Integer },
+                { typeof(byte?), ValueKind.Integer },
+                { typeof(float), ValueKind.Float },
+                { typeof(double), ValueKind.Float },
+                { typeof(decimal), ValueKind.Float },
+                { typeof(float?), ValueKind.Float },
+                { typeof(double?), ValueKind.Float },
+                { typeof(decimal?), ValueKind.Float },
+                { typeof(bool), ValueKind.Float },
+                { typeof(bool?), ValueKind.Float }
             };
 
         internal static bool TryGetScalar(
@@ -137,11 +138,11 @@ namespace HotChocolate.Types
             return typeName.HasValue && _nameLookup.ContainsKey(typeName);
         }
 
-        public static bool TryGetKind(object value, out ScalarValueKind kind)
+        public static bool TryGetKind(object value, out ValueKind kind)
         {
             if (value is null)
             {
-                kind = ScalarValueKind.Null;
+                kind = ValueKind.Null;
                 return true;
             }
 
@@ -149,11 +150,29 @@ namespace HotChocolate.Types
 
             if (valueType.IsEnum)
             {
-                kind = ScalarValueKind.Enum;
+                kind = ValueKind.Enum;
                 return true;
             }
 
-            return _scalarKinds.TryGetValue(valueType, out kind);
+            if (_scalarKinds.TryGetValue(valueType, out kind))
+            {
+                return true;
+            }
+
+            if (value is IDictionary)
+            {
+                kind = ValueKind.Object;
+                return true;
+            }
+
+            if (value is ICollection)
+            {
+                kind = ValueKind.List;
+                return true;
+            }
+
+            kind = ValueKind.Unknown;
+            return false;
         }
     }
 }

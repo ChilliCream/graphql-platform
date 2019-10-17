@@ -107,11 +107,7 @@ namespace HotChocolate.Execution
                 {
                     { "foo", new Dictionary<string, object>()
                         {
-                            { "bar", new Dictionary<string, object>()
-                                {
-
-                                }
-                            }
+                            { "bar", new Dictionary<string, object>() }
                         }
                     }
                 };

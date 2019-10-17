@@ -1,0 +1,25 @@
+﻿{
+  "data": {
+    "foo": {
+      "kind": "ObjectValue",
+      "location": null,
+      "fields": [
+        {
+          "kind": "ObjectField",
+          "location": null,
+          "name": {
+            "kind": "Name",
+            "location": null,
+            "value": "a"
+          },
+          "value": {
+            "kind": "StringValue",
+            "location": null,
+            "value": "b",
+            "block": false
+          }
+        }
+      ]
+    }
+  }
+}

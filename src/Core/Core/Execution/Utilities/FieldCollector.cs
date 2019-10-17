@@ -278,7 +278,7 @@ namespace HotChocolate.Execution
                     if (fieldInfo.VarArguments == null)
                     {
                         fieldInfo.VarArguments =
-                            new Dictionary<NameString, VariableValue>();
+                            new Dictionary<NameString, ArgumentVariableValue>();
                     }
 
                     object defaultValue = argument.Type.IsLeafType()
@@ -286,25 +286,19 @@ namespace HotChocolate.Execution
                         : argument.DefaultValue;
 
                     fieldInfo.VarArguments[argument.Name] =
-                        new VariableValue(
+                        new ArgumentVariableValue(
                             argument.Type,
                             variable.Name.Value,
                             defaultValue);
                 }
                 else
                 {
-                    CreateArgumentValue(
-                        fieldInfo,
-                        argument,
-                        literal);
+                    CreateArgumentValue(fieldInfo, argument, literal);
                 }
             }
             else
             {
-                CreateArgumentValue(
-                    fieldInfo,
-                    argument,
-                    argument.DefaultValue);
+                CreateArgumentValue(fieldInfo, argument, argument.DefaultValue);
             }
         }
 
@@ -341,18 +335,43 @@ namespace HotChocolate.Execution
                 fieldInfo.Arguments[argument.Name] =
                     new ArgumentValue(argument.Type, error);
             }
-            else if (argument.Type.IsLeafType())
+            else if (argument.Type.IsLeafType() && IsLeafLiteral(literal))
             {
                 fieldInfo.Arguments[argument.Name] =
                     new ArgumentValue(
                         argument.Type,
+                        literal.GetValueKind(),
                         ParseLiteral(argument.Type, literal));
             }
             else
             {
                 fieldInfo.Arguments[argument.Name] =
-                    new ArgumentValue(argument.Type, literal);
+                    new ArgumentValue(
+                        argument.Type,
+                        literal.GetValueKind(),
+                        literal);
             }
+        }
+
+        private bool IsLeafLiteral(IValueNode value)
+        {
+            if (value is ObjectValueNode)
+            {
+                return false;
+            }
+
+            if (value is ListValueNode list)
+            {
+                for (int i = 0; i < list.Items.Count; i++)
+                {
+                    if (!IsLeafLiteral(list.Items[i]))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         private static void AddSelection(

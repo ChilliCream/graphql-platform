@@ -1,7 +1,7 @@
 ﻿[
   {
     "Message": "Variable `test` got invalid value.",
-    "Code": null,
+    "Code": "EXEC_INVALID_TYPE",
     "Path": null,
     "Locations": [
       {
@@ -10,6 +10,8 @@
       }
     ],
     "Exception": null,
-    "Extensions": {}
+    "Extensions": {
+      "code": "EXEC_INVALID_TYPE"
+    }
   }
 ]
