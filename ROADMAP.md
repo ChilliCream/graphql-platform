@@ -88,7 +88,7 @@ We are currently working on the following features that are proposed for the nex
 
 - [x] [Limit directive uniqueness to explicitly marked directives](https://github.com/facebook/graphql/pull/472)
 - [x] ["Directive order is significant" section](https://github.com/facebook/graphql/pull/470)
-- [ ] [Add rules for how circular references in Input Objects are handled](https://github.com/facebook/graphql/pull/445) (in development - 9.1.0)
+- [ ] [Add rules for how circular references in Input Objects are handled](https://github.com/facebook/graphql/pull/445) (in development - 11.0.0)
 - [x] [Add description to Schema](https://github.com/facebook/graphql/pull/466)
 
 ## Experimental Features
@@ -109,7 +109,7 @@ We are currently working on the following features that are proposed for the nex
 ## Additional Directives
 
 - [x] Schema Stitching
-- [ ] HTTP Directives (in development - 10.0.0)
+- [ ] HTTP Directives (in development - 12.0.0)
 - [x] Custom Schema Directives
 - [x] Custom Query Directives
 
@@ -126,21 +126,7 @@ We are currently working on the following features that are proposed for the nex
 
 ## Supported Frameworks
 
-- [x] ASP.NET Classic
-
-  - [x] Get
-  - [x] Post
-  - [ ] _WebSockets_ (in development - 12.0.0)
-  - [x] .net Framework 4.7
-  - [x] .net Framework 4.6.1
-
 - [x] ASP.NET Core
   - [x] Get
   - [x] Post
   - [x] WebSockets
-
-## GraphQL Compatibility Acceptance Tests
-
-We are now investing to implement the GraphQL Compatibility Acceptance Tests for Hot Chocolate. We should have the first test running with Version 0.8.0 and should have this finished until Version 0.11.0.
-
-More about GraphQL compatibility acceptance tests can be read [here](https://github.com/graphql-cats/graphql-cats).
