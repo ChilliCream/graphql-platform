@@ -154,8 +154,14 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (_scalarKinds.TryGetValue(valueType, out kind)) ;
+            if (_scalarKinds.TryGetValue(valueType, out kind))
             {
+                return true;
+            }
+
+            if (value is IDictionary)
+            {
+                kind = ValueKind.Object;
                 return true;
             }
 

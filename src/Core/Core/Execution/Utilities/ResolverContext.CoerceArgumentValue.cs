@@ -32,6 +32,7 @@ namespace HotChocolate.Execution
             if (_arguments.TryGetValue(name, out ArgumentValue argumentValue))
             {
                 EnsureNoError(argumentValue);
+                return argumentValue.Kind ?? ValueKind.Unknown;
             }
 
             return ValueKind.Null;
