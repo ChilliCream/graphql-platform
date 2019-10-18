@@ -92,7 +92,7 @@ namespace HotChocolate.Types
             return false;
         }
 
-        private string Serialize(DateTimeOffset value)
+        private static string Serialize(DateTimeOffset value)
         {
             if (value.Offset == TimeSpan.Zero)
             {
@@ -106,7 +106,7 @@ namespace HotChocolate.Types
                 CultureInfo.InvariantCulture);
         }
 
-        private bool TryDeserializeFromString(string serialized, out DateTimeOffset? value)
+        private static bool TryDeserializeFromString(string serialized, out DateTimeOffset? value)
         {
             if (serialized != null
                 && serialized.EndsWith("Z")

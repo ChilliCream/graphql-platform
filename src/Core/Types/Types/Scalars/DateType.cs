@@ -80,14 +80,14 @@ namespace HotChocolate.Types
             return false;
         }
 
-        private string Serialize(DateTime value)
+        private static string Serialize(DateTime value)
         {
             return value.Date.ToString(
                 _dateFormat,
                 CultureInfo.InvariantCulture);
         }
 
-        private bool TryDeserializeFromString(string serialized, out DateTime? value)
+        private static bool TryDeserializeFromString(string serialized, out DateTime? value)
         {
             if (DateTime.TryParse(
                serialized,

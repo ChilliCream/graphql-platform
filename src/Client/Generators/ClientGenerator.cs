@@ -278,9 +278,6 @@ namespace StrawberryShake.Generators
                     "can generate any client APIs.");
             }
 
-            IDocumentHashProvider hashProvider = _hashProvider
-                ?? new MD5DocumentHashProvider();
-
             // create schema
             DocumentNode mergedSchema = MergeSchema();
             mergedSchema = MergeSchemaExtensions(mergedSchema);
@@ -331,7 +328,8 @@ namespace StrawberryShake.Generators
             }
 
             IReadOnlyList<IQueryDescriptor> queries =
-                await ParseQueriesAsync(schema, hashProvider);
+                await ParseQueriesAsync(schema, hashProvider)
+                    .ConfigureAwait(false);
 
             // generate abstarct client models
             var usedNames = new HashSet<string>();
@@ -357,7 +355,8 @@ namespace StrawberryShake.Generators
                 }
             }
 
-            await _output.WriteAllAsync(typeLookup);
+            await _output.WriteAllAsync(typeLookup)
+                .ConfigureAwait(false);
         }
 
         private DocumentNode MergeSchema()
@@ -487,7 +486,7 @@ namespace StrawberryShake.Generators
         }
 
         private async Task<IReadOnlyList<IQueryDescriptor>> ParseQueriesAsync(
-            ISchema schema, IDocumentHashProvider hashProvider)
+            IDocumentHashProvider hashProvider)
         {
             var queryCollection = new QueryCollection(hashProvider, _namespace!);
 
@@ -496,7 +495,8 @@ namespace StrawberryShake.Generators
                 await queryCollection.LoadFromDocumentAsync(
                     documentInfo.Name,
                     documentInfo.FileName,
-                    documentInfo.Document);
+                    documentInfo.Document)
+                    .ConfigureAwait(false);
             }
 
             return queryCollection.ToList();

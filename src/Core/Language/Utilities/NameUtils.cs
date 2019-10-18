@@ -54,7 +54,7 @@ namespace HotChocolate.Language
         /// </returns>
         public static bool IsValidGraphQLName(ReadOnlySpan<byte> name)
         {
-            if (name == null || name.Length == 0)
+            if (name.Length == 0)
             {
                 return false;
             }

@@ -11,7 +11,7 @@ namespace HotChocolate.Stitching.Merge
     public class AddSchemaExtensionRewriter
         : SchemaSyntaxRewriter<AddSchemaExtensionRewriter.MergeContext>
     {
-        private Dictionary<string, DirectiveDefinitionNode> _gloabalDirectives;
+        private readonly Dictionary<string, DirectiveDefinitionNode> _gloabalDirectives;
 
         public AddSchemaExtensionRewriter()
         {
