@@ -18,6 +18,7 @@ namespace HotChocolate.Types
         public MultiplierPathType()
             : base(ScalarNames.MultiplierPath)
         {
+            Description = TypeResources.MultiplierPathType_Description;
         }
 
         /// <summary>
