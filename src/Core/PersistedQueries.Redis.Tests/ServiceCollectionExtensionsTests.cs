@@ -12,7 +12,6 @@ namespace HotChocolate.PersistedQueries.Redis
     public class ServiceCollectionExtensionsTests
         : IClassFixture<RedisResource>
     {
-        private ConnectionMultiplexer _connectionMultiplexer;
         private IDatabase _database;
 
         public ServiceCollectionExtensionsTests(RedisResource redisResource)
