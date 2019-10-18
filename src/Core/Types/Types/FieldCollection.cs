@@ -20,7 +20,7 @@ namespace HotChocolate.Types
                 throw new ArgumentNullException(nameof(fields));
             }
 
-            _fields = fields.OrderBy(t => t.Name).ToList();
+            _fields = fields.OrderBy(t => t.Name.Value, StringComparer.OrdinalIgnoreCase).ToList();
             _fieldsLookup = _fields.ToDictionary(t => t.Name);
 
             IsEmpty = _fields.Count == 0;

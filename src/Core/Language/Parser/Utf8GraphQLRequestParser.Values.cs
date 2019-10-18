@@ -189,7 +189,7 @@ namespace HotChocolate.Language
                 case TokenKind.Float:
                     value = _reader.GetScalarValue();
                     _reader.MoveNext();
-                    return decimal.Parse(value, CultureInfo.InvariantCulture);
+                    return decimal.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
 
                 case TokenKind.Name:
                     if (_reader.Value.SequenceEqual(GraphQLKeywords.True))

@@ -503,6 +503,84 @@ namespace HotChocolate.Types
         }
 
         [Fact]
+        public async Task Input_Value_Object_As_Variable()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<ObjectValueNode>("input")))
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+               QueryRequestBuilder.New()
+                   .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+                   .SetVariableValue("foo", new { a = "b" })
+                   .Create());
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Input_Value_ObjectDict_As_Variable()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.Argument<ObjectValueNode>("input")))
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+               QueryRequestBuilder.New()
+                   .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+                   .SetVariableValue("foo", new Dictionary<string, object> { { "a", "b" } })
+                   .Create());
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Input_Value_ArgumentKind()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Type<AnyType>()
+                    .Argument("input", a => a.Type<AnyType>())
+                    .Resolver(ctx => ctx.ArgumentKind("input").ToString()))
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(
+               QueryRequestBuilder.New()
+                   .SetQuery("query ($foo: Any) { foo(input: $foo) }")
+                   .SetVariableValue("foo", new Dictionary<string, object> { { "a", "b" } })
+                   .Create());
+
+            // assert
+            result.ToJson().MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Input_Value_Boolean_As_Variable()
         {
             // arrange

@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using HotChocolate.Types.Descriptors;
@@ -153,7 +154,25 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            return _scalarKinds.TryGetValue(valueType, out kind);
+            if (_scalarKinds.TryGetValue(valueType, out kind))
+            {
+                return true;
+            }
+
+            if (value is IDictionary)
+            {
+                kind = ValueKind.Object;
+                return true;
+            }
+
+            if (value is ICollection)
+            {
+                kind = ValueKind.List;
+                return true;
+            }
+
+            kind = ValueKind.Unknown;
+            return false;
         }
     }
 }

@@ -7,6 +7,9 @@ namespace HotChocolate.Types
         Float,
         Boolean,
         Enum,
-        Null
+        Object,
+        List,
+        Null,
+        Unknown
     }
 }
