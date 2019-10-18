@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -66,7 +66,7 @@ namespace HotChocolate.Language
             }
         }
 
-        public override string? ToString()
+        public override string ToString()
         {
             return _value;
         }
