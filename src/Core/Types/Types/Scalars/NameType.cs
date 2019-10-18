@@ -14,7 +14,7 @@ namespace HotChocolate.Types
         /// Initializes a new instance of the <see cref="NameType"/> class.
         /// </summary>
         public NameType()
-            : base(ScalarNames.Url)
+            : base(ScalarNames.Name)
         {
         }
 
