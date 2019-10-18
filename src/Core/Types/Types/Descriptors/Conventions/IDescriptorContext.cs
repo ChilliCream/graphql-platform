@@ -11,5 +11,6 @@ namespace HotChocolate.Types.Descriptors
         ITypeInspector Inspector { get; }
 
         T GetConvention<T>() where T : IConvention;
+        bool TryGetConvention<T>(out T convention) where T : IConvention;
     }
 }
