@@ -66,7 +66,7 @@ namespace HotChocolate.Types
 
             if (value is TClrType t)
             {
-                return IsInstanceOfType(value);
+                return IsInstanceOfType(t);
             }
 
             return false;
