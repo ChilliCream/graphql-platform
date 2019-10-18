@@ -41,7 +41,7 @@ namespace StrawberryShake.Generators
                 new LeafTypeInfo(ScalarNames.Byte, typeof(byte) , typeof(byte)),
                 new LeafTypeInfo(ScalarNames.Short, typeof(short)),
                 new LeafTypeInfo(ScalarNames.Long, typeof(long)),
-                new LeafTypeInfo(ScalarNames.Decimal, typeof(Decimal), typeof(Decimal)),
+                new LeafTypeInfo(ScalarNames.Decimal, typeof(decimal), typeof(decimal)),
                 new LeafTypeInfo(ScalarNames.Uuid, typeof(Guid), typeof(string)),
                 new LeafTypeInfo("Guid", typeof(Guid), typeof(string)),
                 new LeafTypeInfo(ScalarNames.Url, typeof(Uri), typeof(string))
@@ -328,7 +328,7 @@ namespace StrawberryShake.Generators
             }
 
             IReadOnlyList<IQueryDescriptor> queries =
-                await ParseQueriesAsync(schema, hashProvider)
+                await ParseQueriesAsync(hashProvider)
                     .ConfigureAwait(false);
 
             // generate abstarct client models
