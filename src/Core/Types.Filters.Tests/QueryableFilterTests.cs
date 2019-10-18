@@ -258,7 +258,7 @@ namespace HotChocolate.Types.Filters
             IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ foo(where: { foo_gte: \"2019-06-01\"}) {foo}}")
+                .SetQuery("{ foo(where: { foo_gte: \"2019-06-01\"}) { foo } }")
                 .Create();
 
             // act
@@ -282,8 +282,13 @@ namespace HotChocolate.Types.Filters
             IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("query TestQuery($where: FooDateTimeFilter){ foo(where: $where) {foo}}")
-                .SetVariableValue("where", new { foo_gte = "2019-06-01" })
+                .SetQuery(
+                    "query TestQuery($where: FooDateTimeFilter) {" +
+                    "foo(where: $where) { foo } }")
+                .SetVariableValue("where", new Dictionary<string, object>
+                {
+                    { "foo_gte", "2019-06-01" }
+                })
                 .Create();
 
             // act
@@ -300,7 +305,11 @@ namespace HotChocolate.Types.Filters
 
         public class QueryFooDateTime
         {
-            public IEnumerable<FooDateTime> Foo { get; set; }
+            public IEnumerable<FooDateTime> Foo { get; set; } = new List<FooDateTime>
+            {
+                new FooDateTime { Foo = new DateTime(2020,01,01, 18, 0, 0) },
+                new FooDateTime { Foo = new DateTime(2018,01,01, 18, 0, 0) }
+            };
         }
 
         public class QueryType
