@@ -67,7 +67,7 @@ namespace HotChocolate.Language
                 throw new ArgumentNullException(nameof(selection));
             }
 
-            var selections = new List<ISelectionNode>(selection);
+            var selections = new List<ISelectionNode>(Selections);
             selections.AddRange(selection);
 
             return new SelectionSetNode(

@@ -94,42 +94,70 @@ namespace HotChocolate.Types
 
         public object Serialize(object value)
         {
-            if (value is null)
-            {
-                return null;
-            }
-
-            if (value is IReadOnlyDictionary<string, object>
-                || value is IDictionary<string, object>)
-            {
-                return value;
-            }
-
-            return _objectToDictionary.Convert(this, value);
-        }
-
-        public virtual object Deserialize(object serialized)
-        {
-            if (serialized is null)
-            {
-                return null;
-            }
-
-            if ((serialized is IReadOnlyDictionary<string, object>
-                || serialized is IDictionary<string, object>)
-                && ClrType == typeof(object))
+            if (TrySerialize(value, out object serialized))
             {
                 return serialized;
             }
-
-            return _dictionaryToObject.Convert(serialized, this);
+            throw new InvalidOperationException(
+                "The specified value is not a valid input object.");
         }
 
-        public bool TryDeserialize(object serialized, out object value)
+        public virtual bool TrySerialize(object value, out object serialized)
         {
             try
             {
-                value = Deserialize(serialized);
+                if (value is null)
+                {
+                    serialized = null;
+                    return true;
+                }
+
+                if (value is IReadOnlyDictionary<string, object>
+                    || value is IDictionary<string, object>)
+                {
+                    serialized = value;
+                    return true;
+                }
+
+                serialized = _objectToDictionary.Convert(this, value);
+                return true;
+            }
+            catch
+            {
+                serialized = null;
+                return false;
+            }
+        }
+
+        public object Deserialize(object serialized)
+        {
+            if (TryDeserialize(serialized, out object value))
+            {
+                return value;
+            }
+            throw new InvalidOperationException(
+                "The specified value is not a serialized input object.");
+        }
+
+        public virtual bool TryDeserialize(object serialized, out object value)
+        {
+            try
+            {
+                if (serialized is null)
+                {
+                    value = null;
+                    return true;
+                }
+
+                if ((serialized is IReadOnlyDictionary<string, object>
+                    || serialized is IDictionary<string, object>)
+                    && ClrType == typeof(object))
+                {
+                    value = serialized;
+                    return true;
+                }
+
+                value = _dictionaryToObject.Convert(serialized, this);
                 return true;
             }
             catch
