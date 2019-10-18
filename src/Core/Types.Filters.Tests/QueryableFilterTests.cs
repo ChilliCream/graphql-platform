@@ -307,8 +307,8 @@ namespace HotChocolate.Types.Filters
         {
             public IEnumerable<FooDateTime> Foo { get; set; } = new List<FooDateTime>
             {
-                new FooDateTime { Foo = new DateTime(2020,01,01, 18, 0, 0) },
-                new FooDateTime { Foo = new DateTime(2018,01,01, 18, 0, 0) }
+                new FooDateTime { Foo = new DateTime(2020,01,01, 18, 0, 0, DateTimeKind.Utc) },
+                new FooDateTime { Foo = new DateTime(2018,01,01, 18, 0, 0, DateTimeKind.Utc) }
             };
         }
 
