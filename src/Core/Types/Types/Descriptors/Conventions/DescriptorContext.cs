@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Configuration;
 
 namespace HotChocolate.Types.Descriptors
@@ -9,11 +11,13 @@ namespace HotChocolate.Types.Descriptors
         private DescriptorContext(
             IReadOnlySchemaOptions options,
             INamingConventions naming,
-            ITypeInspector inspector)
+            ITypeInspector inspector,
+            IDictionary<Type, IConvention> conventions)
         {
             Options = options;
             Naming = naming;
             Inspector = inspector;
+            _conventions = conventions;
         }
 
         public IReadOnlySchemaOptions Options { get; }
@@ -21,6 +25,8 @@ namespace HotChocolate.Types.Descriptors
         public INamingConventions Naming { get; }
 
         public ITypeInspector Inspector { get; }
+
+        private readonly IDictionary<Type, IConvention> _conventions;
 
         public static DescriptorContext Create(
             IReadOnlySchemaOptions options,
@@ -35,6 +41,16 @@ namespace HotChocolate.Types.Descriptors
             {
                 throw new ArgumentNullException(nameof(services));
             }
+
+
+
+            var conventionList =
+                (IEnumerable<IConvention>)services.GetService(
+                    typeof(IEnumerable<IConvention>)
+                    ) ?? new IConvention[] { };
+
+            var conventions =
+                conventionList.ToDictionary(x => x.GetType());
 
             var naming =
                 (INamingConventions)services.GetService(
@@ -57,7 +73,7 @@ namespace HotChocolate.Types.Descriptors
                 inspector = new DefaultTypeInspector();
             }
 
-            return new DescriptorContext(options, naming, inspector);
+            return new DescriptorContext(options, naming, inspector, conventions);
         }
 
         public static DescriptorContext Create()
@@ -65,7 +81,19 @@ namespace HotChocolate.Types.Descriptors
             return new DescriptorContext(
                 new SchemaOptions(),
                 new DefaultNamingConventions(),
-                new DefaultTypeInspector());
+                new DefaultTypeInspector(),
+                new Dictionary<Type, IConvention>());
+        }
+
+        public T GetConvention<T>() where T : IConvention
+        {
+            if (_conventions.TryGetValue(typeof(T), out IConvention convetion)
+                && convetion is T conventionOfT)
+            {
+                return conventionOfT;
+            }
+            throw new
+                NotImplementedException($"The convetion of type ${typeof(T)} is not registered");
         }
     }
 }

@@ -9,5 +9,7 @@ namespace HotChocolate.Types.Descriptors
         INamingConventions Naming { get; }
 
         ITypeInspector Inspector { get; }
+
+        T GetConvention<T>() where T : IConvention;
     }
 }
