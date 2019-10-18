@@ -32,20 +32,20 @@ namespace StrawberryShake.Generators
         private readonly Dictionary<string, LeafTypeInfo> _leafTypes =
             new[]
             {
-                new LeafTypeInfo("String", typeof(string)),
-                new LeafTypeInfo("Int", typeof(int)),
-                new LeafTypeInfo("Float", typeof(double)),
-                new LeafTypeInfo("Boolean", typeof(bool)),
-                new LeafTypeInfo("ID", typeof(string)),
-                new LeafTypeInfo("Date", typeof(DateTime), typeof(string)),
-                new LeafTypeInfo("DateTime", typeof(DateTimeOffset), typeof(string)),
-                new LeafTypeInfo("Byte", typeof(byte) , typeof(byte)),
-                new LeafTypeInfo("Short", typeof(short)),
-                new LeafTypeInfo("Long", typeof(long)),
-                new LeafTypeInfo("Decimal", typeof(Decimal), typeof(Decimal)),
-                new LeafTypeInfo("Uuid", typeof(Guid), typeof(string)),
+                new LeafTypeInfo(ScalarNames.String, typeof(string)),
+                new LeafTypeInfo(ScalarNames.Int, typeof(int)),
+                new LeafTypeInfo(ScalarNames.Float, typeof(double)),
+                new LeafTypeInfo(ScalarNames.Boolean, typeof(bool)),
+                new LeafTypeInfo(ScalarNames.ID, typeof(string)),
+                new LeafTypeInfo(ScalarNames.Date, typeof(DateTime), typeof(string)),
+                new LeafTypeInfo(ScalarNames.DateTime, typeof(DateTimeOffset), typeof(string)),
+                new LeafTypeInfo(ScalarNames.Byte, typeof(byte) , typeof(byte)),
+                new LeafTypeInfo(ScalarNames.Short, typeof(short)),
+                new LeafTypeInfo(ScalarNames.Long, typeof(long)),
+                new LeafTypeInfo(ScalarNames.Decimal, typeof(Decimal), typeof(Decimal)),
+                new LeafTypeInfo(ScalarNames.Uuid, typeof(Guid), typeof(string)),
                 new LeafTypeInfo("Guid", typeof(Guid), typeof(string)),
-                new LeafTypeInfo("Url", typeof(Uri), typeof(string))
+                new LeafTypeInfo(ScalarNames.Url, typeof(Uri), typeof(string))
             }.ToDictionary(t => t.TypeName);
 
         private readonly ClientGeneratorOptions _options = new ClientGeneratorOptions();
@@ -399,7 +399,7 @@ namespace StrawberryShake.Generators
                             null,
                             new NameNode(GeneratorDirectives.NameArgument),
                             null,
-                            new NonNullTypeNode(new NamedTypeNode("String")),
+                            new NonNullTypeNode(new NamedTypeNode(ScalarNames.String)),
                             null,
                             Array.Empty<DirectiveNode>()
                         )
@@ -421,7 +421,7 @@ namespace StrawberryShake.Generators
                             null,
                             new NameNode(GeneratorDirectives.NameArgument),
                             null,
-                            new NonNullTypeNode(new NamedTypeNode("String")),
+                            new NonNullTypeNode(new NamedTypeNode(ScalarNames.String)),
                             null,
                             Array.Empty<DirectiveNode>()
                         )
@@ -443,7 +443,7 @@ namespace StrawberryShake.Generators
                             null,
                             new NameNode(GeneratorDirectives.NameArgument),
                             null,
-                            new NonNullTypeNode(new NamedTypeNode("String")),
+                            new NonNullTypeNode(new NamedTypeNode(ScalarNames.String)),
                             null,
                             Array.Empty<DirectiveNode>()
                         )
