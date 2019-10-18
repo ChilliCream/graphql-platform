@@ -28,6 +28,8 @@ namespace HotChocolate
             new Dictionary<OperationType, ITypeReference>();
         private readonly Dictionary<FieldReference, FieldResolver> _resolvers =
             new Dictionary<FieldReference, FieldResolver>();
+        private readonly Dictionary<Type, Type> _conventionsTypes = new Dictionary<Type, Type>();
+        private readonly Dictionary<Type, IConvention> _conventions = new Dictionary<Type, IConvention>();
         private readonly Dictionary<ITypeReference, ITypeReference> _clrTypes =
             new Dictionary<ITypeReference, ITypeReference>();
         private readonly List<Type> _interceptors = new List<Type>();
@@ -148,6 +150,63 @@ namespace HotChocolate
                     type,
                     SchemaTypeReference.InferTypeContext(type)));
             }
+
+            return this;
+        }
+
+        public ISchemaBuilder AddConvention(
+            Type convention,
+            IConvention concreteConvention)
+        {
+            if (concreteConvention == null)
+            {
+                throw new ArgumentNullException(nameof(concreteConvention));
+            }
+            if (convention == null)
+            {
+                throw new ArgumentNullException(nameof(convention));
+            }
+
+            if (!typeof(IConvention).IsAssignableFrom(convention))
+            {
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilder_Convention_NotSuppported,
+                    nameof(convention));
+            }
+
+            _conventions[convention] = concreteConvention;
+
+            return this;
+        }
+
+        public ISchemaBuilder AddConvention(
+            Type convention,
+            Type concreteConvention)
+        {
+            if (concreteConvention == null)
+            {
+                throw new ArgumentNullException(nameof(concreteConvention));
+            }
+            if (convention == null)
+            {
+                throw new ArgumentNullException(nameof(convention));
+            }
+
+            if (!typeof(IConvention).IsAssignableFrom(convention))
+            {
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilder_Convention_NotSuppported,
+                    nameof(convention));
+            }
+
+            if (!typeof(IConvention).IsAssignableFrom(concreteConvention))
+            {
+                throw new ArgumentException(
+                    TypeResources.SchemaBuilder_Convention_NotSuppported,
+                    nameof(convention));
+            }
+
+            _conventionsTypes[convention] = concreteConvention;
 
             return this;
         }
@@ -379,7 +438,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(interceptor));
             }
 
-            if(!typeof(ITypeInitializationInterceptor).IsAssignableFrom(interceptor))
+            if (!typeof(ITypeInitializationInterceptor).IsAssignableFrom(interceptor))
             {
                 throw new ArgumentException(
                     TypeResources.SchemaBuilder_Interceptor_NotSuppported,

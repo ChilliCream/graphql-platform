@@ -4,6 +4,7 @@ using HotChocolate.Configuration.Bindings;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate
 {
@@ -56,6 +57,8 @@ namespace HotChocolate
         ISchemaBuilder ClearContextData();
 
         ISchemaBuilder AddTypeInterceptor(Type interceptor);
+        ISchemaBuilder AddConvention(Type convention, IConvention concreteConvention);
+        ISchemaBuilder AddConvention(Type convention, Type concreteConvention);
 
         ISchema Create();
     }

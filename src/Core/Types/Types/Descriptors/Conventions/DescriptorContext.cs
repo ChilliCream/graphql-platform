@@ -12,7 +12,7 @@ namespace HotChocolate.Types.Descriptors
             IReadOnlySchemaOptions options,
             INamingConventions naming,
             ITypeInspector inspector,
-            IDictionary<Type, IConvention> conventions)
+            IReadOnlyDictionary<Type, IConvention> conventions)
         {
             Options = options;
             Naming = naming;
@@ -26,11 +26,12 @@ namespace HotChocolate.Types.Descriptors
 
         public ITypeInspector Inspector { get; }
 
-        private readonly IDictionary<Type, IConvention> _conventions;
+        public IReadOnlyDictionary<Type, IConvention> _conventions;
 
         public static DescriptorContext Create(
             IReadOnlySchemaOptions options,
-            IServiceProvider services)
+            IServiceProvider services,
+            IReadOnlyDictionary<Type, IConvention> conventions)
         {
             if (options == null)
             {
@@ -42,15 +43,11 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(services));
             }
 
+            if (conventions == null)
+            {
+                throw new ArgumentNullException(nameof(conventions));
+            }
 
-
-            var conventionList =
-                (IEnumerable<IConvention>)services.GetService(
-                    typeof(IEnumerable<IConvention>)
-                    ) ?? new IConvention[] { };
-
-            var conventions =
-                conventionList.ToDictionary(x => x.GetType());
 
             var naming =
                 (INamingConventions)services.GetService(

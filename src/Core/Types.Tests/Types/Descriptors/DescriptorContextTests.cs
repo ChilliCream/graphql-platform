@@ -13,9 +13,10 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var options = new SchemaOptions();
+            var conventions = new Dictionary<Type, IConvention>();
 
             // act
-            Action action = () => DescriptorContext.Create(options, null);
+            Action action = () => DescriptorContext.Create(options, null, conventions);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -26,9 +27,24 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var service = new EmptyServiceProvider();
+            var conventions = new Dictionary<Type, IConvention>();
 
             // act
-            Action action = () => DescriptorContext.Create(null, service);
+            Action action = () => DescriptorContext.Create(null, service, conventions);
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void Create_ConventionsNull_ArgumentException()
+        {
+            // arrange
+            var service = new EmptyServiceProvider();
+            var options = new SchemaOptions();
+
+            // act
+            Action action = () => DescriptorContext.Create(options, service, null);
 
             // assert
             Assert.Throws<ArgumentNullException>(action);
@@ -40,13 +56,14 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             var options = new SchemaOptions();
             var naming = new DefaultNamingConventions();
+            var conventions = new Dictionary<Type, IConvention>();
             var services = new DictionaryServiceProvider(
                 typeof(INamingConventions),
                 naming);
 
             // act
             DescriptorContext context =
-                DescriptorContext.Create(options, services);
+                DescriptorContext.Create(options, services, conventions);
 
             // assert
             Assert.Equal(naming, context.Naming);
@@ -60,13 +77,14 @@ namespace HotChocolate.Types.Descriptors
             // arrange
             var options = new SchemaOptions();
             var inspector = new DefaultTypeInspector();
+            var conventions = new Dictionary<Type, IConvention>();
             var services = new DictionaryServiceProvider(
                 typeof(ITypeInspector),
                 inspector);
 
             // act
             DescriptorContext context =
-                DescriptorContext.Create(options, services);
+                DescriptorContext.Create(options, services, conventions);
 
             // assert
             Assert.Equal(inspector, context.Inspector);
@@ -103,16 +121,17 @@ namespace HotChocolate.Types.Descriptors
         [Fact]
         public void Create_Without_RegisteringConventions()
         {
+            // arrange
             var options = new SchemaOptions();
             var inspector = new DefaultTypeInspector();
+            var conventions = new Dictionary<Type, IConvention>();
             var services = new DictionaryServiceProvider(
                 new KeyValuePair<Type, object>(
                     typeof(ITypeInspector),
                     inspector));
-            // arrange
             // act
             DescriptorContext context =
-                DescriptorContext.Create(options, services);
+                DescriptorContext.Create(options, services, conventions);
 
             // assert
             Assert.False(context.TryGetConvention(out Convention convention));
@@ -123,19 +142,19 @@ namespace HotChocolate.Types.Descriptors
         [Fact]
         public void Create_With_RegisteringConventions()
         {
+            // arrange
             var options = new SchemaOptions();
             var inspector = new DefaultTypeInspector();
+            var conventions = new Dictionary<Type, IConvention>();
+            conventions.Add(typeof(Convention), Convention.Default);
             var services = new DictionaryServiceProvider(
                 new KeyValuePair<Type, object>(
                     typeof(ITypeInspector),
-                    inspector),
-                new KeyValuePair<Type, object>(
-                    typeof(IEnumerable<IConvention>),
-                    new IConvention[] { Convention.Default }));
-            // arrange
+                    inspector));
+
             // act
             DescriptorContext context =
-                DescriptorContext.Create(options, services);
+                DescriptorContext.Create(options, services, conventions);
 
             // assert
             Assert.True(context.TryGetConvention(out Convention convention));

@@ -19,7 +19,9 @@ namespace HotChocolate
             IServiceProvider services = _services
                 ?? new EmptyServiceProvider();
 
-            var descriptorContext = DescriptorContext.Create(_options, services);
+            var convetions = CreateConventions(_services);
+
+            var descriptorContext = DescriptorContext.Create(_options, services, convetions);
 
             IBindingLookup bindingLookup =
                  _bindingCompiler.Compile(descriptorContext);
@@ -323,6 +325,29 @@ namespace HotChocolate
             }
 
             return list;
+        }
+
+        private IReadOnlyDictionary<Type, IConvention> CreateConventions(
+            IServiceProvider services)
+        {
+            var conventions = new Dictionary<Type, IConvention>();
+
+            var serviceFactory = new ServiceFactory { Services = services };
+            foreach (var item in _conventionsTypes)
+            {
+                var obj = serviceFactory.CreateInstance(item.Value);
+                if (obj is IConvention convention)
+                {
+                    conventions[item.Key] = convention;
+                }
+            }
+            foreach (var item in _conventions)
+            {
+                conventions[item.Key] = item.Value;
+
+            }
+
+            return conventions;
         }
     }
 }
