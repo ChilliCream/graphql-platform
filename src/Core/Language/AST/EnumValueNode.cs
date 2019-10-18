@@ -22,7 +22,7 @@ namespace HotChocolate.Language
                 throw new ArgumentNullException(nameof(value));
             }
 
-            string? stringValue = value.ToString();
+            string? stringValue = value.ToString()?.ToUpperInvariant();
 
             if (stringValue is null)
             {
