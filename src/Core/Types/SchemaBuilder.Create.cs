@@ -19,9 +19,10 @@ namespace HotChocolate
             IServiceProvider services = _services
                 ?? new EmptyServiceProvider();
 
-            var convetions = CreateConventions(_services);
-
-            var descriptorContext = DescriptorContext.Create(_options, services, convetions);
+            var descriptorContext = DescriptorContext.Create(
+                _options,
+                services,
+                CreateConventions(_services));
 
             IBindingLookup bindingLookup =
                  _bindingCompiler.Compile(descriptorContext);
@@ -332,19 +333,9 @@ namespace HotChocolate
         {
             var conventions = new Dictionary<Type, IConvention>();
 
-            var serviceFactory = new ServiceFactory { Services = services };
-            foreach (var item in _conventionsTypes)
+            foreach (KeyValuePair<Type, CreateConvention> item in _conventions)
             {
-                var obj = serviceFactory.CreateInstance(item.Value);
-                if (obj is IConvention convention)
-                {
-                    conventions[item.Key] = convention;
-                }
-            }
-            foreach (var item in _conventions)
-            {
-                conventions[item.Key] = item.Value;
-
+                conventions[item.Key] = item.Value(services);
             }
 
             return conventions;

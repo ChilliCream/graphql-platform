@@ -10,6 +10,8 @@ namespace HotChocolate
 {
     public delegate DocumentNode LoadSchemaDocument(IServiceProvider services);
 
+    public delegate IConvention CreateConvention(IServiceProvider services);
+
     public interface ISchemaBuilder
     {
         ISchemaBuilder SetSchema(Type type);
@@ -57,8 +59,8 @@ namespace HotChocolate
         ISchemaBuilder ClearContextData();
 
         ISchemaBuilder AddTypeInterceptor(Type interceptor);
-        ISchemaBuilder AddConvention(Type convention, IConvention concreteConvention);
-        ISchemaBuilder AddConvention(Type convention, Type concreteConvention);
+
+        ISchemaBuilder AddConvention(Type convention, CreateConvention factory);
 
         ISchema Create();
     }
