@@ -9,7 +9,6 @@ using HotChocolate.Execution.Configuration;
 using HotChocolate.Language;
 using HotChocolate.Stitching.Merge;
 using HotChocolate.Validation;
-using HotChocolate.Stitching.Utilities;
 using HotChocolate.Types;
 using HotChocolate.Stitching;
 using StrawberryShake.Generators.Descriptors;
@@ -190,7 +189,7 @@ namespace StrawberryShake.Generators
             }
 
             string name = IOPath.GetFileNameWithoutExtension(fileName);
-            var document = Utf8GraphQLParser.Parse(File.ReadAllBytes(fileName));
+            DocumentNode document = Utf8GraphQLParser.Parse(File.ReadAllBytes(fileName));
             _queries.Add(name, new DocumentInfo(name, fileName, document));
             return this;
         }
@@ -467,7 +466,7 @@ namespace StrawberryShake.Generators
 
         private static ISchema CreateSchema(DocumentNode schema)
         {
-            SchemaBuilder builder = SchemaBuilder.New();
+            var builder = SchemaBuilder.New();
 
             foreach (CustomScalarType type in schema.Definitions
                 .OfType<ScalarTypeDefinitionNode>()
@@ -581,7 +580,7 @@ namespace StrawberryShake.Generators
                 serviceCollection.AddQueryValidation();
                 serviceCollection.AddDefaultValidationRules();
                 serviceCollection.AddSingleton<IValidateQueryOptionsAccessor, ValidationOptions>();
-                var validator = serviceCollection.BuildServiceProvider()
+                IQueryValidator validator = serviceCollection.BuildServiceProvider()
                     .GetService<IQueryValidator>();
 
                 foreach (DocumentInfo documentInfo in _queries.Values)
