@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using HotChocolate.Configuration;
 using HotChocolate.Utilities;
 using Xunit;
@@ -84,6 +85,67 @@ namespace HotChocolate.Types.Descriptors
             Assert.NotNull(context.Options);
             Assert.NotNull(context.Naming);
             Assert.NotNull(context.Inspector);
+        }
+
+        [Fact]
+        public void Create_Without_ServicesAndRegisteringConventions()
+        {
+            // arrange
+            // act
+            DescriptorContext context = DescriptorContext.Create();
+
+            // assert
+            Assert.False(context.TryGetConvention(out Convention convention));
+            Assert.Null(convention);
+            Assert.Null(context.GetConvention<Convention>());
+        }
+
+        [Fact]
+        public void Create_Without_RegisteringConventions()
+        {
+            var options = new SchemaOptions();
+            var inspector = new DefaultTypeInspector();
+            var services = new DictionaryServiceProvider(
+                new KeyValuePair<Type, object>(
+                    typeof(ITypeInspector),
+                    inspector));
+            // arrange
+            // act
+            DescriptorContext context =
+                DescriptorContext.Create(options, services);
+
+            // assert
+            Assert.False(context.TryGetConvention(out Convention convention));
+            Assert.Null(convention);
+            Assert.Null(context.GetConvention<Convention>());
+        }
+
+        [Fact]
+        public void Create_With_RegisteringConventions()
+        {
+            var options = new SchemaOptions();
+            var inspector = new DefaultTypeInspector();
+            var services = new DictionaryServiceProvider(
+                new KeyValuePair<Type, object>(
+                    typeof(ITypeInspector),
+                    inspector),
+                new KeyValuePair<Type, object>(
+                    typeof(IEnumerable<IConvention>),
+                    new IConvention[] { Convention.Default }));
+            // arrange
+            // act
+            DescriptorContext context =
+                DescriptorContext.Create(options, services);
+
+            // assert
+            Assert.True(context.TryGetConvention(out Convention convention));
+            Assert.Equal(Convention.Default, convention);
+            Assert.Equal(Convention.Default, context.GetConvention<Convention>());
+        }
+
+        private class Convention : IConvention
+        {
+            public static Convention Default { get; } = new Convention();
         }
     }
 }
