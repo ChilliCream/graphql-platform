@@ -16,6 +16,7 @@ namespace HotChocolate.Types
         public NameType()
             : base(ScalarNames.Name)
         {
+            Description = TypeResources.NameType_Description;
         }
 
         /// <summary>

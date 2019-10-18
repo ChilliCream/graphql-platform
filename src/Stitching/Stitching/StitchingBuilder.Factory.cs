@@ -137,9 +137,8 @@ namespace HotChocolate.Stitching
                 return extensions;
             }
 
-            private static IReadOnlyList<IRemoteExecutorAccessor>
-                CreateRemoteExecutors(
-                    IDictionary<NameString, DocumentNode> schemas)
+            private static IReadOnlyList<IRemoteExecutorAccessor> CreateRemoteExecutors(
+                IDictionary<NameString, DocumentNode> schemas)
             {
                 var executors = new List<IRemoteExecutorAccessor>();
 
@@ -159,7 +158,7 @@ namespace HotChocolate.Stitching
                         {
                             c.RegisterType(new StringType(
                                 typeDefinition.Name.Value,
-                                typeDefinition.Description.Value));
+                                typeDefinition.Description?.Value));
                         }
                     }).MakeExecutable(b => b.UseQueryDelegationPipeline(name));
 
