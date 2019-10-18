@@ -7,6 +7,7 @@ namespace HotChocolate.Language
     /// <summary>
     /// Represents a GraphQL source.
     /// </summary>
+    [Obsolete("Use the Utf8GraphQLParser.")]
     public sealed class Source
         : ISource
         , IEquatable<Source>
@@ -20,8 +21,6 @@ namespace HotChocolate.Language
         /// </param>
         public Source(string text)
         {
-            // TODO: the normalization might be problematic. FIX THIS
-            // the line count should still work
             Text = text ?? string.Empty;
             Text = Text.Replace("\r\n", "\n")
                 .Replace("\n\r", "\n");
@@ -48,7 +47,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="T:HotChocolate.Language.Source"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -76,7 +75,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="T:HotChocolate.Language.Source"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(Source other)
+        public bool Equals(Source? other)
         {
             if (other is null)
             {
@@ -112,7 +111,7 @@ namespace HotChocolate.Language
         /// A <see cref="T:System.String"/> that represents the current
         /// <see cref="T:HotChocolate.Language.Source"/>.
         /// </returns>
-        public override string ToString()
+        public override string? ToString()
         {
             return Text;
         }

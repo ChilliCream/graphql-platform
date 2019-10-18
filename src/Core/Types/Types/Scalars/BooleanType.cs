@@ -11,101 +11,43 @@ namespace HotChocolate.Types
     /// </summary>
     [SpecScalar]
     public sealed class BooleanType
-        : ScalarType
+        : ScalarType<bool, BooleanValueNode>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="BooleanType"/> class.
         /// </summary>
         public BooleanType()
-            : base("Boolean")
+            : base(ScalarNames.Boolean)
         {
             Description = TypeResources.BooleanType_Description;
         }
 
-        public override Type ClrType => typeof(bool);
-
-        public override bool IsInstanceOfType(IValueNode literal)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BooleanType"/> class.
+        /// </summary>
+        public BooleanType(NameString name)
+            : base(name)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            return literal is BooleanValueNode
-                || literal is NullValueNode;
+            Description = TypeResources.BooleanType_Description;
         }
 
-        public override object ParseLiteral(IValueNode literal)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="BooleanType"/> class.
+        /// </summary>
+        public BooleanType(NameString name, string description)
+            : base(name)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (literal is BooleanValueNode boolLiteral)
-            {
-                return boolLiteral.Value;
-            }
-
-            if (literal is NullValueNode)
-            {
-                return null;
-            }
-
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
+            Description = description;
         }
 
-        public override IValueNode ParseValue(object value)
+        protected override bool ParseLiteral(BooleanValueNode literal)
         {
-            if (value is null)
-            {
-                return NullValueNode.Default;
-            }
-
-            if (value is bool b)
-            {
-                return new BooleanValueNode(b);
-            }
-
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseValue(
-                    Name, value.GetType()));
+            return literal.Value;
         }
 
-        public override object Serialize(object value)
+        protected override BooleanValueNode ParseValue(bool value)
         {
-            if (value == null)
-            {
-                return null;
-            }
-
-            if (value is bool)
-            {
-                return value;
-            }
-
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
-        }
-
-        public override bool TryDeserialize(object serialized, out object value)
-        {
-            if (serialized is null)
-            {
-                value = null;
-                return true;
-            }
-
-            if (serialized is bool)
-            {
-                value = serialized;
-                return true;
-            }
-
-            value = null;
-            return false;
+            return value ? BooleanValueNode.TrueLiteral : BooleanValueNode.FalseLiteral;
         }
     }
 }

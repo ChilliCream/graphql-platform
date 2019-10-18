@@ -740,7 +740,7 @@ namespace HotChocolate.Types
             AnyType type = schema.GetType<AnyType>("Any");
 
             // act
-            bool result = type.IsInstanceOfType(new IntValueNode("123"));
+            bool result = type.IsInstanceOfType(new IntValueNode(123));
 
             // assert
             Assert.True(result);
@@ -762,7 +762,7 @@ namespace HotChocolate.Types
             AnyType type = schema.GetType<AnyType>("Any");
 
             // act
-            bool result = type.IsInstanceOfType(new FloatValueNode("1.2"));
+            bool result = type.IsInstanceOfType(new FloatValueNode(1.2));
 
             // assert
             Assert.True(result);
@@ -838,9 +838,6 @@ namespace HotChocolate.Types
         [InlineData((short)1, typeof(IntValueNode))]
         [InlineData((int)1, typeof(IntValueNode))]
         [InlineData((long)1, typeof(IntValueNode))]
-        [InlineData((ushort)1, typeof(IntValueNode))]
-        [InlineData((uint)1, typeof(IntValueNode))]
-        [InlineData((ulong)1, typeof(IntValueNode))]
         [InlineData((float)1, typeof(FloatValueNode))]
         [InlineData((double)1, typeof(FloatValueNode))]
         [InlineData(true, typeof(BooleanValueNode))]

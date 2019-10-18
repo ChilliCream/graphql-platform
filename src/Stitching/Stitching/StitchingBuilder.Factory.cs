@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Introspection;
 using HotChocolate.Stitching.Introspection;
+using HotChocolate.Types;
 
 namespace HotChocolate.Stitching
 {
@@ -136,9 +137,8 @@ namespace HotChocolate.Stitching
                 return extensions;
             }
 
-            private static IReadOnlyList<IRemoteExecutorAccessor>
-                CreateRemoteExecutors(
-                    IDictionary<NameString, DocumentNode> schemas)
+            private static IReadOnlyList<IRemoteExecutorAccessor> CreateRemoteExecutors(
+                IDictionary<NameString, DocumentNode> schemas)
             {
                 var executors = new List<IRemoteExecutorAccessor>();
 
@@ -156,7 +156,9 @@ namespace HotChocolate.Stitching
                         foreach (ScalarTypeDefinitionNode typeDefinition in
                             schema.Definitions.OfType<ScalarTypeDefinitionNode>())
                         {
-                            c.RegisterType(new CustomScalarType(typeDefinition));
+                            c.RegisterType(new StringType(
+                                typeDefinition.Name.Value,
+                                typeDefinition.Description?.Value));
                         }
                     }).MakeExecutable(b => b.UseQueryDelegationPipeline(name));
 

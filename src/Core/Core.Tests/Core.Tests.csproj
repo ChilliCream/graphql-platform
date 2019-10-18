@@ -24,4 +24,8 @@
     <ProjectReference Include="..\StarWars\StarWars.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Execution\__snapshots__\__mismatch__\" />
+  </ItemGroup>
+
 </Project>

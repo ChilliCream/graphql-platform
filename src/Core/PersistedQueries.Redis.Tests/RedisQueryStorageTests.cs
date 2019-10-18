@@ -15,7 +15,6 @@ namespace HotChocolate.PersistedQueries.Redis
     public class RedisQueryStorageTests
         : IClassFixture<RedisResource>
     {
-        private ConnectionMultiplexer _connectionMultiplexer;
         private IDatabase _database;
 
         public RedisQueryStorageTests(RedisResource redisResource)

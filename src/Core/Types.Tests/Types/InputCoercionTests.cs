@@ -18,11 +18,11 @@ namespace HotChocolate.Types
             InputIsCoercedCorrectly<BooleanType, BooleanValueNode, bool>(
                 new BooleanValueNode(false), false);
             InputIsCoercedCorrectly<IntType, IntValueNode, int>(
-                new IntValueNode("123"), 123);
+                new IntValueNode(123), 123);
             InputIsCoercedCorrectly<FloatType, IntValueNode, double>(
-                new IntValueNode("123"), 123d);
+                new IntValueNode(123), 123d);
             InputIsCoercedCorrectly<FloatType, FloatValueNode, double>(
-                new FloatValueNode("123.456"), 123.456d);
+                new FloatValueNode(123.456d), 123.456d);
             InputIsCoercedCorrectly<StringType, StringValueNode, string>(
                 new StringValueNode("abc123"), "abc123");
             InputIsCoercedCorrectly<IdType, StringValueNode, string>(
@@ -36,9 +36,9 @@ namespace HotChocolate.Types
         public void ConvertAccordingToInputCoercionRules2()
         {
             InputCannotBeCoercedCorrectly<BooleanType, IntValueNode>(
-                new IntValueNode("123"));
+                new IntValueNode(123));
             InputCannotBeCoercedCorrectly<IntType, FloatValueNode>(
-                new FloatValueNode("123.123"));
+                new FloatValueNode(123.123d));
             InputCannotBeCoercedCorrectly<IntType, BooleanValueNode>(
                 new BooleanValueNode(true));
             InputCannotBeCoercedCorrectly<IntType, StringValueNode>(
@@ -46,7 +46,7 @@ namespace HotChocolate.Types
             InputCannotBeCoercedCorrectly<FloatType, StringValueNode>(
                 new StringValueNode("123"));
             InputCannotBeCoercedCorrectly<StringType, FloatValueNode>(
-                new FloatValueNode("123.456"));
+                new FloatValueNode(123.456d));
             InputCannotBeCoercedCorrectly<StringType, BooleanValueNode>(
                 new BooleanValueNode(false));
             InputIsCoercedCorrectly<IdType, StringValueNode, string>(

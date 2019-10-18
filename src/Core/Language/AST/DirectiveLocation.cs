@@ -1,11 +1,11 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace HotChocolate.Language
 {
     public sealed class DirectiveLocation
-        : IEquatable<DirectiveLocation>
+        : IEquatable<DirectiveLocation?>
     {
         private readonly static Dictionary<string, DirectiveLocation> _cache;
 
@@ -28,7 +28,7 @@ namespace HotChocolate.Language
             _value = value;
         }
 
-        public bool Equals(DirectiveLocation other)
+        public bool Equals(DirectiveLocation? other)
         {
             if (ReferenceEquals(null, other))
             {
@@ -43,7 +43,7 @@ namespace HotChocolate.Language
             return other._value.Equals(_value, StringComparison.Ordinal);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (ReferenceEquals(null, obj))
             {
@@ -132,7 +132,7 @@ namespace HotChocolate.Language
 
         public static bool TryParse(
             string value,
-            out DirectiveLocation location)
+            out DirectiveLocation? location)
         {
             return _cache.TryGetValue(value, out location);
         }

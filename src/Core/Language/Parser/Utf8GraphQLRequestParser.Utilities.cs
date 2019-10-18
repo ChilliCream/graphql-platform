@@ -6,7 +6,7 @@ namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLRequestParser
     {
-        private string ParseStringOrNull()
+        private string? ParseStringOrNull()
         {
             if (_reader.Kind == TokenKind.String)
             {
@@ -33,7 +33,7 @@ namespace HotChocolate.Language
                     _reader.GetString()));
         }
 
-        private IReadOnlyDictionary<string, object> ParseObjectOrNull()
+        private IReadOnlyDictionary<string, object?>? ParseObjectOrNull()
         {
             if (_reader.Kind == TokenKind.LeftBrace)
             {
