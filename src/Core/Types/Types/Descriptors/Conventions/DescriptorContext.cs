@@ -87,13 +87,20 @@ namespace HotChocolate.Types.Descriptors
 
         public T GetConvention<T>() where T : IConvention
         {
-            if (_conventions.TryGetValue(typeof(T), out IConvention convetion)
-                && convetion is T conventionOfT)
+            TryGetConvention<T>(out T convention);
+            return convention;
+        }
+
+        public bool TryGetConvention<T>(out T convention) where T : IConvention
+        {
+            if (_conventions.TryGetValue(typeof(T), out IConvention noConvention)
+                && noConvention is T conventionOfT)
             {
-                return conventionOfT;
+                convention = conventionOfT;
+                return true;
             }
-            throw new
-                NotImplementedException($"The convetion of type ${typeof(T)} is not registered");
+            convention = default;
+            return false;
         }
     }
 }
