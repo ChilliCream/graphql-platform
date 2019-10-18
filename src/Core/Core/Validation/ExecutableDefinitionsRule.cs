@@ -36,12 +36,24 @@ namespace HotChocolate.Validation
                 throw new ArgumentNullException(nameof(queryDocument));
             }
 
-            ITypeSystemDefinitionNode typeSystemNode = queryDocument.Definitions
-                .OfType<ITypeSystemDefinitionNode>().FirstOrDefault();
-            if (typeSystemNode == null)
+            IDefinitionNode typeSystemNode = null;
+
+            for (int i = 0; i < queryDocument.Definitions.Count; i++)
+            {
+                IDefinitionNode node = queryDocument.Definitions[i];
+                if (node is ITypeSystemDefinitionNode
+                    || node is ITypeSystemExtensionNode)
+                {
+                    typeSystemNode = node;
+                    break;
+                }
+            }
+
+            if (typeSystemNode is null)
             {
                 return QueryValidationResult.OK;
             }
+
             return new QueryValidationResult(
                 new ValidationError(
                     "A document containing TypeSystemDefinition " +

@@ -7,8 +7,8 @@ namespace HotChocolate.Language
         , ITypeSystemDefinitionNode
     {
         public SchemaDefinitionNode(
-            Location location,
-            StringValueNode description,
+            Location? location,
+            StringValueNode? description,
             IReadOnlyList<DirectiveNode> directives,
             IReadOnlyList<OperationTypeDefinitionNode> operationTypes)
             : base(location, directives, operationTypes)
@@ -18,9 +18,9 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.SchemaDefinition;
 
-        public StringValueNode Description { get; }
+        public StringValueNode? Description { get; }
 
-        public SchemaDefinitionNode WithLocation(Location location)
+        public SchemaDefinitionNode WithLocation(Location? location)
         {
             return new SchemaDefinitionNode(
                 Location, Description, Directives, OperationTypes);
@@ -41,7 +41,7 @@ namespace HotChocolate.Language
         }
 
         public SchemaDefinitionNode WithDescription(
-            StringValueNode description)
+            StringValueNode? description)
         {
             return new SchemaDefinitionNode(
                 Location, description, Directives, OperationTypes);

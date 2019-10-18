@@ -6,7 +6,7 @@ namespace HotChocolate.Language
     {
         public GraphQLSocketMessage(
             string type,
-            string id,
+            string? id,
             ReadOnlySpan<byte> payload,
             bool hasPayload)
         {
@@ -21,7 +21,7 @@ namespace HotChocolate.Language
             HasPayload = hasPayload;
         }
 
-        public string Id { get; }
+        public string? Id { get; }
 
         public string Type { get; }
 

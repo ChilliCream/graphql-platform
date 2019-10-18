@@ -1,33 +1,24 @@
+using System.Linq;
 using System.Threading;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using HotChocolate.Language;
 using HotChocolate.Types;
-using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
 {
     internal static class NonNullValidator
     {
-        private static ThreadLocal<HashSet<object>> _processed =
-            new ThreadLocal<HashSet<object>>(() => new HashSet<object>());
-
         private static ThreadLocal<List<object>> _path =
             new ThreadLocal<List<object>>(() => new List<object>());
 
         public static NonNullValidationReport Validate(
-            IType type,
-            object value,
-            ITypeConversion converter)
+            IType type, ObjectValueNode value)
         {
             if (type is NonNullType && value == null)
             {
                 return new NonNullValidationReport(type, null);
             }
-
-            var processed = _processed.Value;
-            processed.Clear();
 
             var path = _path.Value;
             path.Clear();
@@ -35,23 +26,20 @@ namespace HotChocolate.Execution
             try
             {
                 return CheckForNullValueViolation(
-                    type, value, processed, path, converter);
+                    type, value, path);
             }
             finally
             {
-                processed.Clear();
                 path.Clear();
             }
         }
 
         private static NonNullValidationReport CheckForNullValueViolation(
             IType type,
-            object value,
-            ISet<object> processed,
-            IList<object> path,
-            ITypeConversion converter)
+            IValueNode value,
+            IList<object> path)
         {
-            if (value is null)
+            if (value.IsNull())
             {
                 if (type.IsNonNullType())
                 {
@@ -62,23 +50,12 @@ namespace HotChocolate.Execution
 
             if (type.IsListType())
             {
-                return CheckForNullListViolation(
-                    type.ListType(),
-                    value,
-                    processed,
-                    path,
-                    converter);
+                return CheckForNullListViolation(type.ListType(), value, path);
             }
 
-            if (type.IsInputObjectType()
-                && type.NamedType() is InputObjectType t)
+            if (type.IsInputObjectType() && type.NamedType() is InputObjectType t)
             {
-                return CheckForNullFieldViolation(
-                    t,
-                    value,
-                    processed,
-                    path,
-                    converter);
+                return CheckForNullFieldViolation(t, value, path);
             }
 
             return default;
@@ -86,37 +63,33 @@ namespace HotChocolate.Execution
 
         private static NonNullValidationReport CheckForNullFieldViolation(
             InputObjectType type,
-            object value,
-            ISet<object> processed,
-            IList<object> path,
-            ITypeConversion converter)
+            IValueNode value,
+            IList<object> path)
         {
-            if (!processed.Add(value))
+            if (value is ObjectValueNode objectValue)
             {
-                return default;
-            }
+                Dictionary<string, IValueNode> dict =
+                    objectValue.Fields.ToDictionary(t => t.Name.Value, t => t.Value);
 
-            object obj = (type.ClrType != null
-                && !type.ClrType.IsInstanceOfType(value)
-                && converter.TryConvert(typeof(object), type.ClrType,
-                    value, out object converted))
-                ? converted
-                : value;
-
-            foreach (InputField field in type.Fields)
-            {
-                path.Push(field.Name);
-
-                object fieldValue = field.GetValue(obj);
-                NonNullValidationReport report = CheckForNullValueViolation(
-                    field.Type, fieldValue, processed, path, converter);
-
-                if (report.HasError)
+                foreach (InputField field in type.Fields)
                 {
-                    return report;
-                }
+                    if (!dict.TryGetValue(field.Name, out IValueNode fieldValue))
+                    {
+                        fieldValue = field.DefaultValue;
+                    }
 
-                path.Pop();
+                    path.Push(field.Name);
+
+                    NonNullValidationReport report = CheckForNullValueViolation(
+                        field.Type, fieldValue, path);
+
+                    if (report.HasError)
+                    {
+                        return report;
+                    }
+
+                    path.Pop();
+                }
             }
 
             return default;
@@ -124,27 +97,25 @@ namespace HotChocolate.Execution
 
         private static NonNullValidationReport CheckForNullListViolation(
             ListType type,
-            object value,
-            ISet<object> processed,
-            IList<object> path,
-            ITypeConversion converter)
+            IValueNode value,
+            IList<object> path)
         {
-            IType elementType = type.ElementType();
-            int i = 0;
-
-            foreach (object item in (IEnumerable)value)
+            if (value is ListValueNode list)
             {
-                path.Push(i++);
-
-                NonNullValidationReport report = CheckForNullValueViolation(
-                    elementType, item, processed, path, converter);
-
-                if (report.HasError)
+                for (int i = 0; i < list.Items.Count; i++)
                 {
-                    return report;
-                }
+                    path.Push(i);
 
-                path.Pop();
+                    NonNullValidationReport report = CheckForNullValueViolation(
+                        type.ElementType, list.Items[i], path);
+
+                    if (report.HasError)
+                    {
+                        return report;
+                    }
+
+                    path.Pop();
+                }
             }
 
             return default;
@@ -158,10 +129,12 @@ namespace HotChocolate.Execution
             }
 
             var copy = new object[path.Count];
+
             for (int i = 0; i < path.Count; i++)
             {
                 copy[i] = path[i];
             }
+
             return copy;
         }
     }

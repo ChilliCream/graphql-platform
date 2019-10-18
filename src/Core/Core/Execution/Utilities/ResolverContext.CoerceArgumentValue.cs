@@ -4,6 +4,7 @@ using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Resolvers;
+using HotChocolate.Types;
 using HotChocolate.Utilities;
 
 namespace HotChocolate.Execution
@@ -13,17 +14,36 @@ namespace HotChocolate.Execution
     {
         public T Argument<T>(NameString name)
         {
-            if (string.IsNullOrEmpty(name))
-            {
-                throw new ArgumentNullException(nameof(name));
-            }
+            name.EnsureNotEmpty(nameof(name));
 
             if (_arguments.TryGetValue(name, out ArgumentValue argumentValue))
             {
+                EnsureNoError(argumentValue);
                 return CoerceArgumentValue<T>(name, argumentValue);
             }
 
             return default;
+        }
+
+        public ValueKind ArgumentKind(NameString name)
+        {
+            name.EnsureNotEmpty(nameof(name));
+
+            if (_arguments.TryGetValue(name, out ArgumentValue argumentValue))
+            {
+                EnsureNoError(argumentValue);
+                return argumentValue.Kind ?? ValueKind.Unknown;
+            }
+
+            return ValueKind.Null;
+        }
+
+        private void EnsureNoError(ArgumentValue argumentValue)
+        {
+            if (argumentValue.Error != null)
+            {
+                throw new QueryException(argumentValue.Error);
+            }
         }
 
         // TODO : simplify

@@ -7,6 +7,40 @@ namespace HotChocolate.Types
     public class IdTypeTests
     {
         [Fact]
+        public void Create_With_Default_Name()
+        {
+            // arrange
+            // act
+            var type = new IdType();
+
+            // assert
+            Assert.Equal(ScalarNames.ID, type.Name);
+        }
+
+        [Fact]
+        public void Create_With_Name()
+        {
+            // arrange
+            // act
+            var type = new IdType("Foo");
+
+            // assert
+            Assert.Equal("Foo", type.Name);
+        }
+
+        [Fact]
+        public void Create_With_Name_And_Description()
+        {
+            // arrange
+            // act
+            var type = new IdType("Foo", "Bar");
+
+            // assert
+            Assert.Equal("Foo", type.Name);
+            Assert.Equal("Bar", type.Description);
+        }
+
+        [Fact]
         public void EnsureStringTypeKindIsCorret()
         {
             // arrange
@@ -39,7 +73,7 @@ namespace HotChocolate.Types
         {
             // arrange
             var type = new IdType();
-            var input = new IntValueNode("123456");
+            var input = new IntValueNode(123456);
 
             // act
             bool result = type.IsInstanceOfType(input);
@@ -67,7 +101,7 @@ namespace HotChocolate.Types
         {
             // arrange
             var type = new IdType();
-            var input = new FloatValueNode("123456");
+            var input = new FloatValueNode(123456.0);
 
             // act
             bool result = type.IsInstanceOfType(input);
@@ -207,7 +241,7 @@ namespace HotChocolate.Types
         {
             // arrange
             var type = new IdType();
-            var input = new IntValueNode("123456");
+            var input = new IntValueNode(123456);
 
             // act
             object output = type.ParseLiteral(input);
@@ -236,7 +270,7 @@ namespace HotChocolate.Types
         {
             // arrange
             var type = new IdType();
-            var input = new FloatValueNode("123456");
+            var input = new FloatValueNode(123456.0);
 
             // act
             // assert
@@ -252,7 +286,8 @@ namespace HotChocolate.Types
 
             // act
             // assert
-            Assert.Throws<ArgumentNullException>(() => type.ParseLiteral(null));
+            Assert.Throws<ArgumentNullException>(() =>
+                type.ParseLiteral(null));
         }
 
         [Fact]

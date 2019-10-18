@@ -6,7 +6,7 @@ namespace HotChocolate.Language
         : ComplexTypeDefinitionNodeBase
     {
         protected InterfaceTypeDefinitionNodeBase(
-            Location location,
+            Location? location,
             NameNode name,
             IReadOnlyList<DirectiveNode> directives,
             IReadOnlyList<FieldDefinitionNode> fields)

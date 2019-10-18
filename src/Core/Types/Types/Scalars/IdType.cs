@@ -15,18 +15,33 @@ namespace HotChocolate.Types
     /// </summary>
     [SpecScalar]
     public sealed class IdType
-        : ScalarType
+        : ScalarType<string>
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="IdType"/> class.
         /// </summary>
         public IdType()
-            : base("ID")
+            : base(ScalarNames.ID)
         {
             Description = TypeResources.IdType_Description;
         }
 
-        public override Type ClrType => typeof(string);
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IdType"/> class.
+        /// </summary>
+        public IdType(NameString name)
+            : base(name)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="IdType"/> class.
+        /// </summary>
+        public IdType(NameString name, string description)
+            : base(name)
+        {
+            Description = description;
+        }
 
         public override bool IsInstanceOfType(IValueNode literal)
         {
@@ -84,20 +99,22 @@ namespace HotChocolate.Types
                     Name, value.GetType()));
         }
 
-        public override object Serialize(object value)
+        public override bool TrySerialize(object value, out object serialized)
         {
-            if (value == null)
+            if (value is null)
             {
-                return null;
+                serialized = null;
+                return true;
             }
 
-            if (value is string s)
+            if (value is string)
             {
-                return s;
+                serialized = value;
+                return true;
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
+            serialized = null;
+            return false;
         }
 
         public override bool TryDeserialize(object serialized, out object value)

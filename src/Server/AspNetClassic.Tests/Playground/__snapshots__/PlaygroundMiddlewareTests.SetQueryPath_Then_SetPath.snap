@@ -1,6 +1,0 @@
-﻿
-                window.Settings = {
-                    url: "http://localhost:5000/bar/../foo",
-                    subscriptionUrl: null,
-                }
-            

@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MongoDB.Driver" Version="2.8.1" />
+    <PackageReference Include="Squadron.Mongo" Version="0.3.0" />
   </ItemGroup>
 
   <ItemGroup>

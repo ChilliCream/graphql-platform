@@ -529,6 +529,21 @@ namespace HotChocolate.Language
                 });
         }
 
+        [Fact]
+        public void Parse_Float_Exponent_Format()
+        {
+            // arrange
+            byte[] source = Encoding.UTF8.GetBytes(
+                FileResource.Open("Float.json")
+                .NormalizeLineBreaks());
+
+            // act
+            object obj = Utf8GraphQLRequestParser.ParseJson(source);
+
+            // assert
+            obj.MatchSnapshot();
+        }
+
         private class GraphQLRequestDto
         {
             [JsonProperty("operationName")]
