@@ -90,8 +90,8 @@ namespace HotChocolate.Types.Descriptors
 
         public bool TryGetConvention<T>(out T convention) where T : IConvention
         {
-            if (_conventions.TryGetValue(typeof(T), out IConvention noConvention)
-                && noConvention is T conventionOfT)
+            if (_conventions.TryGetValue(typeof(T), out IConvention outConvetion)
+                && outConvetion is T conventionOfT)
             {
                 convention = conventionOfT;
                 return true;
