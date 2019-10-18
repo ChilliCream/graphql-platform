@@ -1429,7 +1429,29 @@ namespace HotChocolate
             Assert.Equal(dependencyOfConvention, (convention as TestConventionServiceDependency).Dependency);
         }
 
+        [Fact]
+        public void AddConvention_NamingConvention()
+        {
+            // arrange
+            var myNamingConvention = new DefaultNamingConventions();
 
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddConvention<INamingConventions>(myNamingConvention)
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
+            var convention = testType.Context.GetConvention<INamingConventions>();
+            Assert.IsType<DefaultNamingConventions>(convention);
+            Assert.Equal(convention, myNamingConvention);
+            Assert.Equal(testType.Context.Naming, myNamingConvention);
+        }
 
         public class DynamicFooType
             : ObjectType
@@ -1457,7 +1479,7 @@ namespace HotChocolate
 
         }
         public class TestConvention2 : ITestConvention
-        { 
+        {
         }
         public class TestConvention : ITestConvention
         {

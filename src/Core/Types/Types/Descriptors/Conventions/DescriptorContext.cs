@@ -52,6 +52,16 @@ namespace HotChocolate.Types.Descriptors
             var naming =
                 (INamingConventions)services.GetService(
                     typeof(INamingConventions));
+
+            if (naming == null &&
+                conventions.TryGetValue(
+                    typeof(INamingConventions),
+                    out IConvention convention) &&
+               convention is INamingConventions namingConvention)
+            {
+                naming = namingConvention;
+            }
+
             if (naming == null)
             {
                 naming = options.UseXmlDocumentation
