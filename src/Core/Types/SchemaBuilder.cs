@@ -438,7 +438,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(interceptor));
             }
 
-            if (!typeof(ITypeInitializationInterceptor).IsAssignableFrom(interceptor))
+            if(!typeof(ITypeInitializationInterceptor).IsAssignableFrom(interceptor))
             {
                 throw new ArgumentException(
                     TypeResources.SchemaBuilder_Interceptor_NotSuppported,
