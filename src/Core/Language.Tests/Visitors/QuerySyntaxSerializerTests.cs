@@ -140,7 +140,7 @@ namespace HotChocolate.Language
             // arrange
             string query = FileResource.Open("kitchen-sink.graphql");
 
-            var serializer = new QuerySyntaxSerializer();
+            var serializer = new QuerySyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 

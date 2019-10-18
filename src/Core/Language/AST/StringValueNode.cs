@@ -56,13 +56,6 @@ namespace HotChocolate.Language
             ReadOnlyMemory<byte> value,
             bool block)
         {
-            if (value.IsEmpty)
-            {
-                throw new ArgumentNullException(
-                    "The value of a string value node mustn't be empty.",
-                    nameof(value));
-            }
-
             Location = location;
             _memory = value;
             Block = block;
