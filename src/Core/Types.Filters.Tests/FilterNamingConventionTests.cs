@@ -22,16 +22,13 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
-        public void ServiceProvider_PascalCase()
+        public void Convention_PascalCase()
         {
-            var services = new ServiceCollection();
-            services.AddSingleton<IFilterNamingConvention, FilterNamingConventionPascalCase>();
             // arrange
-
             // act
             var schema = CreateSchema(
                 x => x.AddType<FilterInputType<Foo>>()
-                    .AddServices(services.BuildServiceProvider()));
+                    .AddConvention<IFilterNamingConvention, FilterNamingConventionPascalCase>());
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -39,32 +36,26 @@ namespace HotChocolate.Types.Filters
 
 
         [Fact]
-        public void ServiceProvider_SnakeCase()
+        public void Convention_SnakeCase()
         {
-            var services = new ServiceCollection();
-            services.AddSingleton<IFilterNamingConvention, FilterNamingConventionSnakeCase>();
             // arrange
-
             // act
             var schema = CreateSchema(
                 x => x.AddType<FilterInputType<Foo>>()
-                    .AddServices(services.BuildServiceProvider()));
+                    .AddConvention<IFilterNamingConvention, FilterNamingConventionSnakeCase>());
 
             // assert
             schema.ToString().MatchSnapshot();
         }
 
         [Fact]
-        public void ServiceProvider_CamelCase()
+        public void Convention_CamelCase()
         {
-            var services = new ServiceCollection();
-            services.AddSingleton<IFilterNamingConvention, FilterNamingConventionCamelCase>();
             // arrange
-
             // act
             var schema = CreateSchema(
                 x => x.AddType<FilterInputType<Foo>>()
-                    .AddServices(services.BuildServiceProvider()));
+                    .AddConvention<IFilterNamingConvention, FilterNamingConventionCamelCase>());
 
             // assert
             schema.ToString().MatchSnapshot();
