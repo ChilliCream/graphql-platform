@@ -25,6 +25,7 @@ namespace HotChocolate.Types.Filters
         /// <param name="value">The filter type description.</param>
         /// 
         IFilterInputTypeDescriptor<T> Description(string value);
+
         /// <summary>
         /// Defines the filter binding behavior.
         ///

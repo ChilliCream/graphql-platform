@@ -1,5 +1,6 @@
 using System;
 using System.Linq.Expressions;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types.Sorting
 {
@@ -7,6 +8,25 @@ namespace HotChocolate.Types.Sorting
         : IDescriptor<SortInputTypeDefinition>
         , IFluent
     {
+
+        /// <summary>
+        /// Defines the name of the <see cref="SortInputType{T}"/>.
+        /// </summary>
+        /// <param name="value">The sort type name.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="value"/> is <c>null</c> or
+        /// <see cref="string.Empty"/>.
+        /// </exception>
+        ISortInputTypeDescriptor<T> Name(NameString value);
+
+        /// <summary>
+        /// Adds explanatory text of the <see cref="SortInputType{T}"/>
+        /// that can be accessd via introspection.
+        /// </summary>
+        /// <param name="value">The sort type description.</param>
+        /// 
+        ISortInputTypeDescriptor<T> Description(string value);
+
         /// <summary>
         /// Defines the sort binding behavior.
         ///
@@ -47,5 +67,18 @@ namespace HotChocolate.Types.Sorting
         /// </param>
         ISortFieldDescriptor Sortable(
             Expression<Func<T, IComparable>> property);
+
+
+
+        ISortInputTypeDescriptor<T> Directive<TDirective>(
+            TDirective directiveInstance)
+            where TDirective : class;
+
+        ISortInputTypeDescriptor<T> Directive<TDirective>()
+            where TDirective : class, new();
+
+        ISortInputTypeDescriptor<T> Directive(
+            NameString name,
+            params ArgumentNode[] arguments);
     }
 }

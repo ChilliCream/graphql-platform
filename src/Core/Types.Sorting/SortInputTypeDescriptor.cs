@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 using HotChocolate.Types.Descriptors.Definitions;
 using HotChocolate.Utilities;
@@ -36,6 +37,43 @@ namespace HotChocolate.Types.Sorting
 
         protected ICollection<SortFieldDescriptor> Fields { get; } =
             new List<SortFieldDescriptor>();
+
+
+        public ISortInputTypeDescriptor<T> Name(NameString value)
+        {
+            Definition.Name = value.EnsureNotEmpty(nameof(value));
+            return this;
+        }
+
+        public ISortInputTypeDescriptor<T> Description(
+            string value)
+        {
+            Definition.Description = value;
+            return this;
+        }
+
+        public ISortInputTypeDescriptor<T> Directive<TDirective>(TDirective directiveInstance)
+            where TDirective : class
+        {
+            Definition.AddDirective(directiveInstance);
+            return this;
+        }
+
+        public ISortInputTypeDescriptor<T> Directive<TDirective>()
+            where TDirective : class, new()
+        {
+            Definition.AddDirective(new TDirective());
+            return this;
+        }
+
+        public ISortInputTypeDescriptor<T> Directive(
+            NameString name,
+            params ArgumentNode[] arguments)
+        {
+            Definition.AddDirective(name, arguments);
+            return this;
+        }
+
 
         public ISortInputTypeDescriptor<T> BindFields(
             BindingBehavior behavior)
