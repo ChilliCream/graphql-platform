@@ -1,5 +1,6 @@
 using System;
 using System.Linq.Expressions;
+using HotChocolate.Language;
 
 namespace HotChocolate.Types.Filters
 {
@@ -7,6 +8,24 @@ namespace HotChocolate.Types.Filters
         : IDescriptor<FilterInputTypeDefinition>
         , IFluent
     {
+        /// <summary>
+        /// Defines the name of the <see cref="FilterInputType{T}"/>.
+        /// </summary>
+        /// <param name="value">The filter type name.</param>
+        /// <exception cref="ArgumentNullException">
+        /// <paramref name="value"/> is <c>null</c> or
+        /// <see cref="string.Empty"/>.
+        /// </exception>
+        IFilterInputTypeDescriptor<T> Name(NameString value);
+
+        /// <summary>
+        /// Adds explanatory text of the <see cref="FilterInputType{T}"/>
+        /// that can be accessd via introspection.
+        /// </summary>
+        /// <param name="value">The filter type description.</param>
+        /// 
+        IFilterInputTypeDescriptor<T> Description(string value);
+
         /// <summary>
         /// Defines the filter binding behavior.
         ///
@@ -71,5 +90,16 @@ namespace HotChocolate.Types.Filters
         /// <param name="property">The property that hall be ignored.</param>
         IFilterInputTypeDescriptor<T> Ignore(
             Expression<Func<T, object>> property);
+
+        IFilterInputTypeDescriptor<T> Directive<TDirective>(
+            TDirective directiveInstance)
+            where TDirective : class;
+
+        IFilterInputTypeDescriptor<T> Directive<TDirective>()
+            where TDirective : class, new();
+
+        IFilterInputTypeDescriptor<T> Directive(
+            NameString name,
+            params ArgumentNode[] arguments);
     }
 }

@@ -1,86 +1,28 @@
+using System;
+using System.Text;
 using HotChocolate.Language;
 using Snapshooter.Xunit;
 using Xunit;
 
-namespace HotChocolate.Types.Sorting
+namespace HotChocolate.Types.Filters
 {
-    public class SortInputTypeTests
+    public class FilterInputTypeTest
         : TypeTestBase
     {
-        [Fact]
-        public void Create_Implicit_Sorting_NoBindInvocation()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema(new SortInputType<Foo>());
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
 
         [Fact]
-        public void Create_Implicit_Sorting()
+        public void FilterInputType_DynamicName()
         {
+
             // arrange
             // act
-            ISchema schema = CreateSchema(
-                new SortInputType<Foo>(d => d.BindFieldsImplicitly()));
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void Create_Implicit_Sorting_WithIgnoredField()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema(
-                new SortInputType<Foo>(d => d.BindFieldsImplicitly()
-                    .Sortable(f => f.Baz).Ignore()));
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void Create_Implicit_Sorting_WithRenamedField()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema(
-                new SortInputType<Foo>(d => d.BindFieldsImplicitly()
-                    .Sortable(f => f.Baz).Name("quux")));
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void Create_Explicit_Sorting()
-        {
-            // arrange
-            // act
-            ISchema schema = CreateSchema(
-                new SortInputType<Foo>(d => d
-                    .BindFieldsExplicitly()
-                    .Sortable(f => f.Bar)
-                ));
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
-        [Fact]
-        public void SortInputType_DynamicName()
-        {
-            // arrange
-            // act
-            var schema = CreateSchema(s => s.AddType(new SortInputType<Foo>(
+            var schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
                  d => d
                      .Name(dep => dep.Name + "Foo")
                      .DependsOn<StringType>()
-                     .Sortable(x => x.Bar)
+                     .Filter(x => x.Bar)
+                     .BindFiltersExplicitly()
+                     .AllowEquals()
                      )
                  )
              );
@@ -92,16 +34,18 @@ namespace HotChocolate.Types.Sorting
 
 
         [Fact]
-        public void SortInputType_DynamicName_NonGeneric()
+        public void FilterInputType_DynamicName_NonGeneric()
         {
 
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddType(new SortInputType<Foo>(
+            var schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
                  d => d
                      .Name(dep => dep.Name + "Foo")
                      .DependsOn(typeof(StringType))
-                     .Sortable(x => x.Bar)
+                     .Filter(x => x.Bar)
+                     .BindFiltersExplicitly()
+                     .AllowEquals()
                      )
                  )
              );
@@ -112,14 +56,16 @@ namespace HotChocolate.Types.Sorting
         }
 
         [Fact]
-        public void SortInputType_AddDirectives_NameArgs()
+        public void FilterInput_AddDirectives_NameArgs()
         {
             // arrange
             // act
             var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
-             .AddType(new SortInputType<Foo>(
+             .AddType(new FilterInputType<Foo>(
                  d => d.Directive("foo")
-                     .Sortable(x => x.Bar)
+                     .Filter(x => x.Bar)
+                     .BindFiltersExplicitly()
+                     .AllowEquals()
                      )
                 )
             );
@@ -130,14 +76,16 @@ namespace HotChocolate.Types.Sorting
         }
 
         [Fact]
-        public void SortInputType_AddDirectives_NameArgs2()
+        public void FilterInput_AddDirectives_NameArgs2()
         {
             // arrange
             // act
             var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
-             .AddType(new SortInputType<Foo>(
+             .AddType(new FilterInputType<Foo>(
                d => d.Directive(new NameString("foo"))
-                    .Sortable(x => x.Bar)
+                    .Filter(x => x.Bar)
+                    .BindFiltersExplicitly()
+                    .AllowEquals()
                     )
                 )
             );
@@ -147,15 +95,17 @@ namespace HotChocolate.Types.Sorting
         }
 
         [Fact]
-        public void SortInputType_AddDirectives_DirectiveNode()
+        public void FilterInput_AddDirectives_DirectiveNode()
         {
             // arrange
             // act
             var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
-             .AddType(new SortInputType<Foo>(
+             .AddType(new FilterInputType<Foo>(
                 d => d
                     .Directive(new DirectiveNode("foo"))
-                     .Sortable(x => x.Bar)
+                     .Filter(x => x.Bar)
+                     .BindFiltersExplicitly()
+                     .AllowEquals()
                      )
                 )
             );
@@ -165,15 +115,17 @@ namespace HotChocolate.Types.Sorting
         }
 
         [Fact]
-        public void SortInputType_AddDirectives_DirectiveClassInstance()
+        public void FilterInput_AddDirectives_DirectiveClassInstance()
         {
             // arrange
             // act
             var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
-             .AddType(new SortInputType<Foo>(
+             .AddType(new FilterInputType<Foo>(
                  d => d
                      .Directive(new FooDirective())
-                     .Sortable(x => x.Bar)
+                     .Filter(x => x.Bar)
+                     .BindFiltersExplicitly()
+                     .AllowEquals()
                      )
                 )
             );
@@ -183,15 +135,17 @@ namespace HotChocolate.Types.Sorting
         }
 
         [Fact]
-        public void SortInputType_AddDirectives_DirectiveType()
+        public void FilterInput_AddDirectives_DirectiveType()
         {
             // arrange
             // act
             var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
-             .AddType(new SortInputType<Foo>(
+             .AddType(new FilterInputType<Foo>(
                 d => d
                 .Directive<FooDirective>()
-                 .Sortable(x => x.Bar)
+                 .Filter(x => x.Bar)
+                 .BindFiltersExplicitly()
+                 .AllowEquals()
                  )
                 )
              );
@@ -201,13 +155,15 @@ namespace HotChocolate.Types.Sorting
         }
 
         [Fact]
-        public void SortInputType_AddDescription()
+        public void FilterInput_AddDescription()
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddType(new SortInputType<Foo>(
+            var schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
                 d => d.Description("Test")
-                 .Sortable(x => x.Bar)
+                 .Filter(x => x.Bar)
+                 .BindFiltersExplicitly()
+                 .AllowEquals()
                  )
                 )
              );
@@ -217,13 +173,15 @@ namespace HotChocolate.Types.Sorting
         }
 
         [Fact]
-        public void SortInputType_AddName()
+        public void FilterInput_AddName()
         {
             // arrange
             // act
-            var schema = CreateSchema(s => s.AddType(new SortInputType<Foo>(
+            var schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
                 d => d.Name("Test")
-                 .Sortable(x => x.Bar)
+                 .Filter(x => x.Bar)
+                 .BindFiltersExplicitly()
+                 .AllowEquals()
                  )
                 )
              );
@@ -248,7 +206,6 @@ namespace HotChocolate.Types.Sorting
         private class Foo
         {
             public string Bar { get; set; }
-            public string Baz { get; set; }
         }
     }
 }
