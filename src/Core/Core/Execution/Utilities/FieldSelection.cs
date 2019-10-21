@@ -116,12 +116,20 @@ namespace HotChocolate.Execution
                     if (value is IValueNode literal)
                     {
                         kind = literal.GetValueKind();
+<<<<<<< HEAD
                         args[var.Key] = new ArgumentValue(var.Value.Argument, kind, literal);
+=======
+                        args[var.Key] = new ArgumentValue(var.Value.Type, kind, literal);
+>>>>>>> version_10_0_0_master
                     }
                     else
                     {
                         Scalars.TryGetKind(value, out kind);
+<<<<<<< HEAD
                         args[var.Key] = new ArgumentValue(var.Value.Argument, kind, value);
+=======
+                        args[var.Key] = new ArgumentValue(var.Value.Type, kind, value);
+>>>>>>> version_10_0_0_master
                     }
                 }
                 else

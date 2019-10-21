@@ -5,7 +5,7 @@ using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal static class TypeNameHelper
+    public static class TypeNameHelper
     {
         public static void AddNameFunction<TDefinition>(
             IDescriptor<TDefinition> descriptor,

@@ -386,6 +386,27 @@ namespace HotChocolate.Execution
             return true;
         }
 
+        private bool IsLeafLiteral(IValueNode value)
+        {
+            if (value is ObjectValueNode)
+            {
+                return false;
+            }
+
+            if (value is ListValueNode list)
+            {
+                for (int i = 0; i < list.Items.Count; i++)
+                {
+                    if (!IsLeafLiteral(list.Items[i]))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
         private static void AddSelection(
             FieldInfo fieldInfo,
             FieldNode fieldSelection)
