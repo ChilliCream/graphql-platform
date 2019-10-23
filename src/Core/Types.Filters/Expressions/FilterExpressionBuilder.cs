@@ -120,5 +120,14 @@ namespace HotChocolate.Types.Filters.Expressions
                 Expression.NotEqual(property, Expression.Constant(null)),
                 Expression.Call(property, _contains, Expression.Constant(value)));
         }
+
+        public static Expression NotContains(
+            MemberExpression property,
+            object value)
+        {
+            return Expression.OrElse(
+                Expression.Equal(property, Expression.Constant(null)),
+                Expression.Not(Expression.Call(property, _contains, Expression.Constant(value))));
+        }
     }
 }
