@@ -27,17 +27,15 @@ Task("EnvironmentSetup")
 {
     if(string.IsNullOrEmpty(packageVersion))
     {
-        packageVersion = EnvironmentVariable("CIRCLE_TAG")
-            ?? EnvironmentVariable("APPVEYOR_REPO_TAG_NAME")
-            ?? EnvironmentVariable("Version");
+        packageVersion = EnvironmentVariable("Version");
     }
     Environment.SetEnvironmentVariable("Version", packageVersion);
 
     if(string.IsNullOrEmpty(sonarPrKey))
     {
-        sonarPrKey = EnvironmentVariable("APPVEYOR_PULL_REQUEST_NUMBER");
-        sonarBranch = EnvironmentVariable("APPVEYOR_PULL_REQUEST_HEAD_REPO_BRANCH");
-        sonarBranchBase = EnvironmentVariable("APPVEYOR_REPO_BRANCH");
+        sonarPrKey = EnvironmentVariable("PullRequestKey");
+        sonarBranch = EnvironmentVariable("PullRequestBranch");
+        sonarBranchBase = EnvironmentVariable("TargetBranch");
         sonarBranchBase = "master";
     }
 
