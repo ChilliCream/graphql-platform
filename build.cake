@@ -63,6 +63,7 @@ Task("SonarBegin")
 {
     SonarBegin(new SonarBeginSettings
     {
+        UseCoreClr = true,
         Url = "https://sonarcloud.io",
         Login = sonarLogin,
         Key = "HotChocolate",
@@ -70,7 +71,7 @@ Task("SonarBegin")
         VsTestReportsPath = "**/*.trx",
         OpenCoverReportsPath = "**/*.opencover.xml",
         Exclusions = "**/*.js,**/*.html,**/*.css,**/examples/**/*.*,**/StarWars/**/*.*,**/benchmarks/**/*.*,**/src/Templates/**/*.*",
-        Verbose = false,
+        Verbose = true,
         Version = packageVersion,
         ArgumentCustomization = a => {
             if(!string.IsNullOrEmpty(sonarPrKey))
@@ -92,7 +93,8 @@ Task("SonarEnd")
 {
     SonarEnd(new SonarEndSettings
     {
-        Login = sonarLogin,
+        UseCoreClr = true,
+        Login = sonarLogin
     });
 });
 
