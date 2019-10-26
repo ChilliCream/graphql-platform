@@ -71,7 +71,7 @@ Task("SonarBegin")
         VsTestReportsPath = "**/*.trx",
         OpenCoverReportsPath = "**/*.opencover.xml",
         Exclusions = "**/*.js,**/*.html,**/*.css,**/examples/**/*.*,**/StarWars/**/*.*,**/benchmarks/**/*.*,**/src/Templates/**/*.*",
-        Verbose = true,
+        Verbose = false,
         Version = packageVersion,
         ArgumentCustomization = a => {
             if(!string.IsNullOrEmpty(sonarPrKey))
