@@ -412,7 +412,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private object ParseLiteral(
+        private static object ParseLiteral(
             IInputType argumentType,
             IValueNode value)
         {
