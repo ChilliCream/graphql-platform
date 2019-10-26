@@ -18,7 +18,7 @@ namespace HotChocolate.Execution
         private readonly FragmentCollection _fragments;
         private readonly Func<ObjectField, FieldNode, FieldDelegate> _factory;
         private readonly ITypeConversion _converter;
-        private IReadOnlyList<IArgumentCoercionHandler> _coercionHandlers;
+        private readonly IReadOnlyList<IArgumentCoercionHandler> _coercionHandlers;
         private readonly Func<IInputField, object, object> _coerceArgumentValue;
 
         public FieldCollector(
