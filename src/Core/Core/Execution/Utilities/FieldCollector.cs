@@ -18,7 +18,7 @@ namespace HotChocolate.Execution
         private readonly FragmentCollection _fragments;
         private readonly Func<ObjectField, FieldNode, FieldDelegate> _factory;
         private readonly ITypeConversion _converter;
-        private IReadOnlyList<IArgumentCoercionHandler> _coercionHandlers;
+        private readonly IReadOnlyList<IArgumentCoercionHandler> _coercionHandlers;
         private readonly Func<IInputField, object, object> _coerceArgumentValue;
 
         public FieldCollector(
@@ -386,27 +386,6 @@ namespace HotChocolate.Execution
             return true;
         }
 
-        private bool IsLeafLiteral(IValueNode value)
-        {
-            if (value is ObjectValueNode)
-            {
-                return false;
-            }
-
-            if (value is ListValueNode list)
-            {
-                for (int i = 0; i < list.Items.Count; i++)
-                {
-                    if (!IsLeafLiteral(list.Items[i]))
-                    {
-                        return false;
-                    }
-                }
-            }
-
-            return true;
-        }
-
         private static void AddSelection(
             FieldInfo fieldInfo,
             FieldNode fieldSelection)
@@ -433,7 +412,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private object ParseLiteral(
+        private static object ParseLiteral(
             IInputType argumentType,
             IValueNode value)
         {
