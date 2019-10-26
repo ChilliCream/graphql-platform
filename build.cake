@@ -141,7 +141,7 @@ Task("Default")
 
 Task("Sonar")
     .IsDependentOn("SonarBegin")
-    .IsDependentOn("Build")
+    .IsDependentOn("Tests")
     .IsDependentOn("SonarEnd");
 
 //////////////////////////////////////////////////////////////////////
