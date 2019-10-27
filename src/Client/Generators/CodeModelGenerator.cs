@@ -165,7 +165,7 @@ namespace StrawberryShake.Generators
                     new NonNullType(operationType),
                     new FieldNode(
                         null,
-                        new NameNode(operation.Name.Value),
+                        new NameNode(operation.Name!.Value),
                         null,
                         new[]
                         {
