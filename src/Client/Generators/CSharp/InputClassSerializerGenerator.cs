@@ -147,9 +147,9 @@ namespace StrawberryShake.Generators.CSharp
                         await writer.WriteLineAsync().ConfigureAwait(false);
                     }
                 }
+                await writer.WriteIndentedLineAsync("_needsInitialization = false;");
             }
 
-            await writer.WriteIndentedLineAsync("_needsInitialization = false;");
             await writer.WriteIndentedLineAsync("}");
         }
 
@@ -233,6 +233,7 @@ namespace StrawberryShake.Generators.CSharp
 
                 await writer.WriteIndentedLineAsync("}")
                     .ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
                 await WriteNonNullHandling(writer).ConfigureAwait(false);
 
@@ -414,6 +415,7 @@ namespace StrawberryShake.Generators.CSharp
                 await writer.WriteIndentedLineAsync("return null;").ConfigureAwait(false);
             }
             await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+            await writer.WriteLineAsync();
         }
 
         private async Task WriteDeserializeMethod(

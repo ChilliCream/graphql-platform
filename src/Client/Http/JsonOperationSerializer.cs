@@ -76,14 +76,14 @@ namespace StrawberryShake.Http
         private IReadOnlyDictionary<string, object?>? SerializeVariables(
             IOperation operation)
         {
-            IReadOnlyList<VariableValue> variableValues =
+            IReadOnlyList<InputValue> variableValues =
                 operation.GetVariableValues();
 
             if (variableValues.Count > 0)
             {
                 var map = new Dictionary<string, object?>();
 
-                foreach (VariableValue variableValue in variableValues)
+                foreach (InputValue variableValue in variableValues)
                 {
                     if (!_serializers.TryGetValue(
                         variableValue.TypeName,

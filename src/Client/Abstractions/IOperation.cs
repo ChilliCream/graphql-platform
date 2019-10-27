@@ -11,6 +11,6 @@ namespace StrawberryShake
 
         Type ResultType { get; }
 
-        IReadOnlyList<VariableValue> GetVariableValues();
+        IReadOnlyList<InputValue> GetVariableValues();
     }
 }

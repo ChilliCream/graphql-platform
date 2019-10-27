@@ -28,13 +28,13 @@ namespace  StrawberryShake.Client.GraphQL
             }
         }
 
-        public IReadOnlyList<VariableValue> GetVariableValues()
+        public IReadOnlyList<InputValue> GetVariableValues()
         {
-            var variables = new List<VariableValue>();
+            var variables = new List<InputValue>();
 
             if(_modified_episode)
             {
-                variables.Add(new VariableValue("episode", "Episode", Episode));
+                variables.Add(new InputValue("episode", "Episode", Episode));
             }
 
             return variables;

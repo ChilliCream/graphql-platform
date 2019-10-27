@@ -406,7 +406,7 @@ namespace StrawberryShake.Generators.CSharp
                         true);
 
                     string deserializeMethod =
-                        ResultParserDeserializeMethodGenerator.CreateDeserializerName(
+                        SerializerNameUtils.CreateDeserializerName(
                             fieldDescriptor.Type);
 
                     await writer.WriteAsync(deserializeMethod);

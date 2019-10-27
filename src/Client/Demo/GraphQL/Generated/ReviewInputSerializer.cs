@@ -26,13 +26,12 @@ namespace StrawberryShake.Client.GraphQL
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-
             _stringSerializer = serializerResolver.GetValueSerializer("String");
             _intSerializer = serializerResolver.GetValueSerializer("Int");
             _needsInitialization = false;
         }
 
-        public object? Serialize(object? value) // TODO : must be nullable
+        public object? Serialize(object? value)
         {
             if (!_needsInitialization)
             {
@@ -47,23 +46,27 @@ namespace StrawberryShake.Client.GraphQL
 
             var input = (ReviewInput)value;
 
-            var map = new Dictionary<string, object?>();
+            var map = new Dictionary<string, object>();
             map.Add("commentary", SerializeNullableString(input.Commentary));
-            map.Add("stars", SerializeInt(input.Stars));
+            map.Add("stars", SerializeNullableInt(input.Stars));
             return map;
         }
 
-        private object? SerializeNullableString(string? value)
+        private object? SerializeNullableString(object? value)
         {
-            return _stringSerializer!.Serialize(value);
+            if (value is null)
+            {
+                return null;
+            }
+
+            return _stringSerializer.Serialize(value);
+        }
+        private object? SerializeNullableInt(object? value)
+        {
+            return _intSerializer.Serialize(value);
         }
 
-        private object? SerializeInt(int value)
-        {
-            return _intSerializer!.Serialize(value);
-        }
-
-        public object? Deserialize(object? value)
+        public object Deserialize(object value)
         {
             throw new NotSupportedException(
                 "Deserializing input values is not supported.");

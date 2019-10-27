@@ -28,13 +28,13 @@ namespace  StrawberryShake.Client.GitHub
             }
         }
 
-        public IReadOnlyList<VariableValue> GetVariableValues()
+        public IReadOnlyList<InputValue> GetVariableValues()
         {
-            var variables = new List<VariableValue>();
+            var variables = new List<InputValue>();
 
             if(_modified_login)
             {
-                variables.Add(new VariableValue("login", "String", Login));
+                variables.Add(new InputValue("login", "String", Login));
             }
 
             return variables;
