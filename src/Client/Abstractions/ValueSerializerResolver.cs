@@ -20,7 +20,7 @@ namespace StrawberryShake
 
             foreach (var serializer in _serializers.Values.OfType<IInputSerializer>())
             {
-                serializer.Initialize(_serializers.Values);
+                serializer.Initialize(this);
             }
         }
 
