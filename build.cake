@@ -33,10 +33,11 @@ Task("EnvironmentSetup")
 
     if(string.IsNullOrEmpty(sonarPrKey))
     {
-        sonarPrKey = EnvironmentVariable("PullRequestKey");
-        sonarBranch = EnvironmentVariable("PullRequestBranch");
-        sonarBranchBase = EnvironmentVariable("TargetBranch");
+        sonarPrKey = EnvironmentVariable("PR_NUMBER");
+        sonarBranch = EnvironmentVariable("PR_SOURCE_BRANCH");
+        sonarBranchBase = EnvironmentVariable("PR_TARGET_BRANCH");
         sonarBranchBase = "master";
+        System.Console.WriteLine("PrKey" + sonarPrKey);
     }
 
     if(string.IsNullOrEmpty(sonarLogin))
@@ -81,7 +82,7 @@ Task("Tests")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/full_{i++}\" --blame")
     };
 
-    DotNetCoreBuild("./tools/Build.Core.sln", buildSettings);
+    DotNetCoreBuild("./tools/Build.sln", buildSettings);
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
@@ -89,6 +90,38 @@ Task("Tests")
         {
             DotNetCoreTest(file.FullPath, testSettings);
         }
+    }
+});
+
+Task("AllTests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    var buildSettings = new DotNetCoreBuildSettings
+    {
+        Configuration = "Debug"
+    };
+
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = true,
+        NoBuild = true,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/full_{i++}\" --blame")
+    };
+
+    DotNetCoreBuild("./tools/Build.sln", buildSettings);
+
+    foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
+    {
+        DotNetCoreTest(file.FullPath, testSettings);
     }
 });
 
@@ -116,7 +149,6 @@ Task("SonarBegin")
                 a = a.Append($"/d:sonar.pullrequest.base=\"{sonarBranchBase}\"");
                 a = a.Append($"/d:sonar.pullrequest.provider=\"github\"");
                 a = a.Append($"/d:sonar.pullrequest.github.repository=\"ChilliCream/hotchocolate\"");
-                // a = a.Append($"/d:sonar.pullrequest.github.endpoint=\"https://api.github.com/\"");
             }
             return a;
         }
@@ -141,7 +173,7 @@ Task("Default")
 
 Task("Sonar")
     .IsDependentOn("SonarBegin")
-    .IsDependentOn("Tests")
+    .IsDependentOn("AllTests")
     .IsDependentOn("SonarEnd");
 
 //////////////////////////////////////////////////////////////////////
