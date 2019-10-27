@@ -29,5 +29,14 @@ namespace  StrawberryShake.Client.GraphQL
         Task<IOperationResult<ISearch>> SearchAsync(
             string text,
             CancellationToken cancellationToken);
+
+        Task<IOperationResult<ICreateReview>> CreateReviewAsync(
+            Episode episode,
+            ReviewInput review);
+
+        Task<IOperationResult<ICreateReview>> CreateReviewAsync(
+            Episode episode,
+            ReviewInput review,
+            CancellationToken cancellationToken);
     }
 }

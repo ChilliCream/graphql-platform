@@ -9,7 +9,7 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      "program": "${workspaceFolder}/dotnet-graphql/bin/Debug/netcoreapp3.0/dotnet-graphql.dll",
+      "program": "${workspaceFolder}/dotnet-graphql/bin/Debug/netcoreapp2.1/dotnet-graphql.dll",
       // "args": ["generate", "-d", "-n StrawberryShake.Client.GraphQL", "-f"],
       "args": [
         "generate",

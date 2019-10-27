@@ -66,5 +66,34 @@ namespace  StrawberryShake.Client.GraphQL
                 new SearchOperation {Text = text },
                 cancellationToken);
         }
+
+        public Task<IOperationResult<ICreateReview>> CreateReviewAsync(
+            Episode episode,
+            ReviewInput review) =>
+            CreateReviewAsync(episode, review, CancellationToken.None);
+
+        public Task<IOperationResult<ICreateReview>> CreateReviewAsync(
+            Episode episode,
+            ReviewInput review,
+            CancellationToken cancellationToken)
+        {
+            if (episode is null)
+            {
+                throw new ArgumentNullException(nameof(episode));
+            }
+
+            if (review is null)
+            {
+                throw new ArgumentNullException(nameof(review));
+            }
+
+            return _executor.ExecuteAsync(
+                new CreateReviewOperation
+                {
+                    Episode = episode, 
+                    Review = review
+                },
+                cancellationToken);
+        }
     }
 }
