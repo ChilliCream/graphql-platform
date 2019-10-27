@@ -33,10 +33,11 @@ Task("EnvironmentSetup")
 
     if(string.IsNullOrEmpty(sonarPrKey))
     {
-        sonarPrKey = EnvironmentVariable("PullRequestKey");
-        sonarBranch = EnvironmentVariable("PullRequestBranch");
-        sonarBranchBase = EnvironmentVariable("TargetBranch");
+        sonarPrKey = EnvironmentVariable("PR_NUMBER");
+        sonarBranch = EnvironmentVariable("PR_SOURCE_BRANCH");
+        sonarBranchBase = EnvironmentVariable("PR_TARGET_BRANCH");
         sonarBranchBase = "master";
+        System.Console.WriteLine("PrKey" + sonarPrKey);
     }
 
     if(string.IsNullOrEmpty(sonarLogin))
@@ -148,7 +149,6 @@ Task("SonarBegin")
                 a = a.Append($"/d:sonar.pullrequest.base=\"{sonarBranchBase}\"");
                 a = a.Append($"/d:sonar.pullrequest.provider=\"github\"");
                 a = a.Append($"/d:sonar.pullrequest.github.repository=\"ChilliCream/hotchocolate\"");
-                // a = a.Append($"/d:sonar.pullrequest.github.endpoint=\"https://api.github.com/\"");
             }
             return a;
         }
