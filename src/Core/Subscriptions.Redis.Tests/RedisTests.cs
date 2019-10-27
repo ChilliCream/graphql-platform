@@ -2,36 +2,22 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using Squadron;
 using StackExchange.Redis;
 using Xunit;
 
 namespace HotChocolate.Subscriptions.Redis
 {
     public class RedisTests
+        : IClassFixture<RedisResource>
     {
         private readonly IEventRegistry _registry;
         private readonly IEventSender _sender;
 
-        public RedisTests()
+        public RedisTests(RedisResource redisResource)
         {
-            string endpoint =
-                Environment.GetEnvironmentVariable("REDIS_ENDPOINT")
-                ?? "localhost:6379";
-
-            string password =
-                Environment.GetEnvironmentVariable("REDIS_PASSWORD");
-
-            var configuration = new ConfigurationOptions
-            {
-                Ssl = !string.IsNullOrEmpty(password),
-                AbortOnConnectFail = false,
-                Password = password
-            };
-
-            configuration.EndPoints.Add(endpoint);
-
             var redisEventRegistry = new RedisEventRegistry(
-                ConnectionMultiplexer.Connect(configuration),
+                redisResource.GetConnection(),
                 new JsonPayloadSerializer());
 
             _sender = redisEventRegistry;

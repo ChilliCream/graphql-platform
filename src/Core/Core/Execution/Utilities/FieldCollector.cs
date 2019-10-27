@@ -18,7 +18,7 @@ namespace HotChocolate.Execution
         private readonly FragmentCollection _fragments;
         private readonly Func<ObjectField, FieldNode, FieldDelegate> _factory;
         private readonly ITypeConversion _converter;
-        private IReadOnlyList<IArgumentCoercionHandler> _coercionHandlers;
+        private readonly IReadOnlyList<IArgumentCoercionHandler> _coercionHandlers;
         private readonly Func<IInputField, object, object> _coerceArgumentValue;
 
         public FieldCollector(
@@ -286,7 +286,7 @@ namespace HotChocolate.Execution
                     if (fieldInfo.VarArguments == null)
                     {
                         fieldInfo.VarArguments =
-                            new Dictionary<NameString, VariableValue>();
+                            new Dictionary<NameString, ArgumentVariableValue>();
                     }
 
                     object defaultValue = argument.Type.IsLeafType()
@@ -295,7 +295,7 @@ namespace HotChocolate.Execution
                     defaultValue = CoerceArgumentValue(argument, defaultValue);
 
                     fieldInfo.VarArguments[argument.Name] =
-                        new VariableValue(
+                        new ArgumentVariableValue(
                             argument,
                             variable.Name.Value,
                             defaultValue,
@@ -303,18 +303,12 @@ namespace HotChocolate.Execution
                 }
                 else
                 {
-                    CreateArgumentValue(
-                        fieldInfo,
-                        argument,
-                        literal);
+                    CreateArgumentValue(fieldInfo, argument, literal);
                 }
             }
             else
             {
-                CreateArgumentValue(
-                    fieldInfo,
-                    argument,
-                    argument.DefaultValue);
+                CreateArgumentValue(fieldInfo, argument, argument.DefaultValue);
             }
         }
 
@@ -350,21 +344,46 @@ namespace HotChocolate.Execution
                 fieldInfo.Arguments[argument.Name] =
                     new ArgumentValue(argument, error);
             }
-            else if (argument.Type.IsLeafType())
+            else if (argument.Type.IsLeafType() && IsLeafLiteral(literal))
             {
                 object coerced = CoerceArgumentValue(argument,
                     ParseLiteral(argument.Type, literal));
                 fieldInfo.Arguments[argument.Name] =
-                    new ArgumentValue(argument, coerced);
+                    new ArgumentValue(
+                        argument,
+                        literal.GetValueKind(),
+                        coerced);
             }
             else
             {
                 object coerced = CoerceArgumentValue(argument, literal);
                 fieldInfo.Arguments[argument.Name] =
-                    coerced is IValueNode coercedLiteral
-                        ? new ArgumentValue(argument, coercedLiteral)
-                        : new ArgumentValue(argument, coerced);
+                    new ArgumentValue(
+                        argument,
+                        literal.GetValueKind(),
+                        coerced);
             }
+        }
+
+        private bool IsLeafLiteral(IValueNode value)
+        {
+            if (value is ObjectValueNode)
+            {
+                return false;
+            }
+
+            if (value is ListValueNode list)
+            {
+                for (int i = 0; i < list.Items.Count; i++)
+                {
+                    if (!IsLeafLiteral(list.Items[i]))
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         private static void AddSelection(
@@ -393,7 +412,7 @@ namespace HotChocolate.Execution
             }
         }
 
-        private object ParseLiteral(
+        private static object ParseLiteral(
             IInputType argumentType,
             IValueNode value)
         {

@@ -19,10 +19,8 @@ namespace HotChocolate.Types.Filters.Expressions
                     return true;
 
                 case FilterOperationKind.NotContains:
-                    expression = FilterExpressionBuilder.Not(
-                        FilterExpressionBuilder.Contains(
-                            property, parsedValue)
-                    );
+                    expression = FilterExpressionBuilder.NotContains(
+                        property, parsedValue);
                     return true;
 
                 default:

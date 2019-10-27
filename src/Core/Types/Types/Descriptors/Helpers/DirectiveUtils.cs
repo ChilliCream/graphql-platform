@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HotChocolate.Language;
@@ -6,7 +6,7 @@ using HotChocolate.Types.Descriptors.Definitions;
 
 namespace HotChocolate.Types.Descriptors
 {
-    internal static class DirectiveUtils
+    public static class DirectiveUtils
     {
         public static void AddDirective<T>(
             this IHasDirectiveDefinition directivesContainer,

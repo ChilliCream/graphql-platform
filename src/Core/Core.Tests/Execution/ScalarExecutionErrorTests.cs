@@ -198,20 +198,23 @@ namespace HotChocolate.Execution
                     "String is not a.");
             }
 
-            public override object Serialize(object value)
+            public override bool TrySerialize(
+                object value, out object serialized)
             {
                 if (value == null)
                 {
-                    return null;
+                    serialized = null;
+                    return true;
                 }
 
                 if (value is string s && s == "a")
                 {
-                    return new StringValueNode("a");
+                    serialized = new StringValueNode("a");
+                    return true;
                 }
 
-                throw new ScalarSerializationException(
-                    "Cannot serialize foo value.");
+                serialized = null;
+                return false;
             }
 
             public override bool TryDeserialize(

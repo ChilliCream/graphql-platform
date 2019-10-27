@@ -286,10 +286,11 @@ namespace HotChocolate.Types.Relay
 
         private static bool IsBase64Char(in char c)
         {
-            return c.IsLetter()
-                || c.IsDigit()
-                || c.IsPlus()
-                || c == _forwardSlash;
+            byte b = (byte)c;
+            return (b.IsLetterOrUnderscore() && b != GraphQLConstants.Underscore)
+                || b.IsDigit()
+                || c == GraphQLConstants.Dollar
+                || c == GraphQLConstants.Forwardslash;
         }
 
         private static int GetAllocationSize<T>(in T value)

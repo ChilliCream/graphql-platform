@@ -92,19 +92,22 @@ namespace HotChocolate.Stitching.Schemas.SpecialCases
             throw new ScalarSerializationException("some text");
         }
 
-        public override object Serialize(object value)
+        public override bool TrySerialize(object value, out object serialized)
         {
             if (value == null)
             {
-                return null;
+                serialized = null;
+                return true;
             }
 
             if (value is string s)
             {
-                return s;
+                serialized =  s;
+                return true;
             }
 
-            throw new ScalarSerializationException("some text");
+            serialized = null;
+            return false;
         }
 
         public override bool TryDeserialize(object serialized, out object value)

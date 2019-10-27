@@ -45,7 +45,7 @@ namespace HotChocolate.Execution
             IReadOnlyDictionary<string, object> variableValues)
         {
             var values = variableValues ?? _empty;
-            var coercedValues = new Dictionary<string, object>();
+            var coercedValues = new Dictionary<string, VariableValue>();
 
             if (_operation.VariableDefinitions.Count > 0)
             {
@@ -53,26 +53,31 @@ namespace HotChocolate.Execution
                     _operation.VariableDefinitions)
                 {
                     Variable variable = CreateVariable(variableDefinition);
-                    variable = CoerceVariableValue(
-                        variableDefinition, values, variable);
-                    coercedValues[variable.Name] = variable.Value;
+                    variable = CoerceVariableValue(variableDefinition, values, variable);
+
+                    coercedValues[variable.Name] = new VariableValue(
+                        variable.Name, variable.Type, variable.Value);
                 }
             }
 
             return new VariableValueCollection(_converter, coercedValues);
         }
 
-        private Variable CreateVariable(
-            VariableDefinitionNode variableDefinition)
+        private Variable CreateVariable(VariableDefinitionNode variableDefinition)
         {
             var variableName = variableDefinition.Variable.Name.Value;
             IType variableType = GetType(variableDefinition.Type);
 
             if (variableType is IInputType type)
             {
-                var defaultValue = variableDefinition.DefaultValue == null
-                    ? null
-                    : type.ParseLiteral(variableDefinition.DefaultValue);
+                object defaultValue = null;
+
+                if (!variableDefinition.DefaultValue.IsNull())
+                {
+                    defaultValue = variableType.NamedType().IsLeafType()
+                        ? type.ParseLiteral(variableDefinition.DefaultValue)
+                        : variableDefinition.DefaultValue;
+                }
 
                 return new Variable(variableName, type, defaultValue);
             }
@@ -83,6 +88,7 @@ namespace HotChocolate.Execution
                     TypeResources.VariableValueBuilder_InputType,
                     variableName,
                     TypeVisualizer.Visualize(variableType)))
+                .SetCode(ErrorCodes.Execution.MustBeInputType)
                 .AddLocation(variableDefinition)
                 .Build());
         }
@@ -109,26 +115,28 @@ namespace HotChocolate.Execution
                         TypeVisualizer.Visualize(variable.Type)))
                     .AddLocation(variableDefinition)
                     .SetExtension("variableName", variable.Name)
+                    .SetCode(ErrorCodes.Execution.NonNullViolation)
                     .Build());
             }
 
-            NonNullValidationReport report =
-                NonNullValidator.Validate(
-                    variable.Type,
-                    variable.Value,
-                    _converter);
-
-            if (report.HasError)
+            if (variable.Value is ObjectValueNode objectValue)
             {
-                throw new QueryException(ErrorBuilder.New()
-                    .SetMessage(string.Format(
-                        CultureInfo.InvariantCulture,
-                        TypeResources.VariableValueBuilder_NonNull_In_Graph,
-                        variable.Name))
-                    .AddLocation(variableDefinition)
-                    .SetExtension("variableName", variable.Name)
-                    .SetExtension("variablePath", report.InputPath)
-                    .Build());
+                NonNullValidationReport report =
+                    NonNullValidator.Validate(variable.Type, objectValue);
+
+                if (report.HasError)
+                {
+                    throw new QueryException(ErrorBuilder.New()
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            TypeResources.VariableValueBuilder_NonNull_In_Graph,
+                            variable.Name))
+                        .AddLocation(variableDefinition)
+                        .SetExtension("variableName", variable.Name)
+                        .SetExtension("variablePath", report.InputPath)
+                        .SetCode(ErrorCodes.Execution.NonNullViolation)
+                        .Build());
+                }
             }
 
             CheckForInvalidValueType(variableDefinition, variable);
@@ -150,31 +158,63 @@ namespace HotChocolate.Execution
 
             if (value is IValueNode literal)
             {
-                CheckForInvalidValueType(
-                    variableDefinition, variable, literal);
-                value = variable.Type.ParseLiteral(literal);
+                CheckForInvalidValueType(variableDefinition, variable, literal);
+                if (variable.Type.NamedType().IsLeafType())
+                {
+                    return variable.Type.ParseLiteral(literal);
+                }
+                return literal;
             }
 
-            if (variable.Type.TryDeserialize(value, out object deserialized))
+            if (variable.Type.NamedType().IsLeafType())
             {
-                return deserialized;
+                if (variable.Type.TryDeserialize(value, out object deserialized))
+                {
+                    return deserialized;
+                }
+                else
+                {
+                    throw new QueryException(ErrorBuilder.New()
+                        .SetMessage(string.Format(
+                            CultureInfo.InvariantCulture,
+                            TypeResources.VariableValueBuilder_InvalidValue,
+                            variable.Name))
+                        .SetCode(ErrorCodes.Execution.InvalidType)
+                        .AddLocation(variableDefinition)
+                        .Build());
+                }
             }
 
-            return value;
+            return DictionaryToObjectValueConverter.Default.Convert(
+                value, variable.Type, variableDefinition);
         }
 
         private static void CheckForInvalidValueType(
             VariableDefinitionNode variableDefinition,
             Variable variable)
         {
-            if (variable.Value != null
-                && !variable.Type.IsInstanceOfType(variable.Value))
+            bool invalid = false;
+
+            if (variable.Value != null)
+            {
+                if (variable.Value is IValueNode literal)
+                {
+                    invalid = !variable.Type.IsInstanceOfType(literal);
+                }
+                else
+                {
+                    invalid = !variable.Type.IsInstanceOfType(variable.Value);
+                }
+            }
+
+            if (invalid)
             {
                 throw new QueryException(ErrorBuilder.New()
                     .SetMessage(string.Format(
                         CultureInfo.InvariantCulture,
                         TypeResources.VariableValueBuilder_InvalidValue,
                         variable.Name))
+                    .SetCode(ErrorCodes.Execution.InvalidType)
                     .AddLocation(variableDefinition)
                     .Build());
             }
@@ -192,6 +232,7 @@ namespace HotChocolate.Execution
                         CultureInfo.InvariantCulture,
                         TypeResources.VariableValueBuilder_InvalidValue,
                         variable.Name))
+                    .SetCode(ErrorCodes.Execution.InvalidType)
                     .AddLocation(variableDefinition)
                     .Build());
             }

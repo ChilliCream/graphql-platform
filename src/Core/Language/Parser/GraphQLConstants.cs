@@ -80,9 +80,21 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsLetterOrDigitOrUnderscore(this char c)
+        {
+            return _isLetterOrDigitOrUnderscore[(byte)c];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsLetterOrUnderscore(this byte c)
         {
             return _isLetterOrUnderscore[c];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool IsLetterOrUnderscore(this char c)
+        {
+            return _isLetterOrUnderscore[(byte)c];
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

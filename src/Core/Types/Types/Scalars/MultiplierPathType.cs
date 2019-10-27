@@ -10,54 +10,44 @@ namespace HotChocolate.Types
     /// and can be used to refer to fields or types.
     /// </summary>
     public sealed class MultiplierPathType
-        : ScalarType
+        : ScalarType<MultiplierPathString, StringValueNode>
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MultiplierPathType"/> class.
+        /// </summary>
         public MultiplierPathType()
-            : base("MultiplierPath")
+            : base(ScalarNames.MultiplierPath)
         {
             Description = TypeResources.MultiplierPathType_Description;
         }
 
-        public override Type ClrType => typeof(MultiplierPathString);
-
-        public override bool IsInstanceOfType(IValueNode literal)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MultiplierPathType"/> class.
+        /// </summary>
+        public MultiplierPathType(NameString name)
+            : base(name)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (literal is NullValueNode)
-            {
-                return true;
-            }
-
-            return literal is StringValueNode s
-                && MultiplierPathString.IsValidName(s.Value);
         }
 
-        public override object ParseLiteral(IValueNode literal)
+        /// <summary>
+        /// Initializes a new instance of the <see cref="MultiplierPathType"/> class.
+        /// </summary>
+        public MultiplierPathType(NameString name, string description)
+            : base(name)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
+            Description = description;
+        }
 
-            if (literal is StringValueNode stringLiteral)
-            {
-                if (!MultiplierPathString.IsValidName(stringLiteral.Value))
-                {
-                    throw new ScalarSerializationException(
-                        string.Format(CultureInfo.InvariantCulture,
-                            AbstractionResources.Type_NameIsNotValid,
-                            stringLiteral.Value ?? "null"));
-                }
-                return new MultiplierPathString(stringLiteral.Value);
-            }
+        protected override bool IsInstanceOfType(StringValueNode literal)
+        {
+            return MultiplierPathString.IsValidPath(literal.AsSpan());
+        }
 
-            if (literal is NullValueNode)
+        protected override MultiplierPathString ParseLiteral(StringValueNode literal)
+        {
+            if (IsInstanceOfType(literal))
             {
-                return null;
+                return new MultiplierPathString(literal.Value);
             }
 
             throw new ScalarSerializationException(
@@ -65,37 +55,27 @@ namespace HotChocolate.Types
                     Name, literal.GetType()));
         }
 
-        public override IValueNode ParseValue(object value)
+        protected override StringValueNode ParseValue(MultiplierPathString value)
         {
-            if (value == null)
-            {
-                return new NullValueNode(null);
-            }
-
-            if (value is MultiplierPathString n)
-            {
-                return new StringValueNode(null, n, false);
-            }
-
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseValue(
-                    Name, value.GetType()));
+            return new StringValueNode(value.Value);
         }
 
-        public override object Serialize(object value)
+        public override bool TrySerialize(object value, out object serialized)
         {
-            if (value == null)
+            if (value is null)
             {
-                return null;
+                serialized = null;
+                return true;
             }
 
-            if (value is MultiplierPathString n)
+            if (value is MultiplierPathString path)
             {
-                return (string)n;
+                serialized = path.Value;
+                return true;
             }
 
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
+            serialized = null;
+            return false;
         }
 
         public override bool TryDeserialize(object serialized, out object value)
@@ -112,9 +92,9 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            if (serialized is MultiplierPathString n)
+            if (serialized is MultiplierPathString p)
             {
-                value = n;
+                value = p;
                 return true;
             }
 

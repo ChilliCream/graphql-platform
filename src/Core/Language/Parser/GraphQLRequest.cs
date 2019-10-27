@@ -20,8 +20,8 @@ namespace HotChocolate.Language
             string? queryName,
             string? queryHash,
             string? operationName,
-            IReadOnlyDictionary<string, object>? variables,
-            IReadOnlyDictionary<string, object>? extensions)
+            IReadOnlyDictionary<string, object?>? variables,
+            IReadOnlyDictionary<string, object?>? extensions)
         {
             if (query is null && queryName is null)
             {
@@ -44,8 +44,8 @@ namespace HotChocolate.Language
 
         public string? OperationName { get; }
 
-        public IReadOnlyDictionary<string, object>? Variables { get; }
+        public IReadOnlyDictionary<string, object?>? Variables { get; }
 
-        public IReadOnlyDictionary<string, object>? Extensions { get; }
+        public IReadOnlyDictionary<string, object?>? Extensions { get; }
     }
 }

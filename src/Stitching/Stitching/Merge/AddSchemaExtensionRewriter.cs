@@ -11,7 +11,7 @@ namespace HotChocolate.Stitching.Merge
     public class AddSchemaExtensionRewriter
         : SchemaSyntaxRewriter<AddSchemaExtensionRewriter.MergeContext>
     {
-        private Dictionary<string, DirectiveDefinitionNode> _gloabalDirectives;
+        private readonly Dictionary<string, DirectiveDefinitionNode> _gloabalDirectives;
 
         public AddSchemaExtensionRewriter()
         {
@@ -116,7 +116,7 @@ namespace HotChocolate.Stitching.Merge
 
             if (context.Extensions.TryGetValue(
                 current.Name.Value,
-                out INamedTypeExtensionNode extension))
+                out ITypeExtensionNode extension))
             {
                 if (extension is UnionTypeExtensionNode unionTypeExtension)
                 {
@@ -175,7 +175,7 @@ namespace HotChocolate.Stitching.Merge
 
             if (context.Extensions.TryGetValue(
                 current.Name.Value,
-                out INamedTypeExtensionNode extension))
+                out ITypeExtensionNode extension))
             {
                 if (extension is ObjectTypeExtensionNode objectTypeExtension)
                 {
@@ -252,7 +252,7 @@ namespace HotChocolate.Stitching.Merge
 
             if (context.Extensions.TryGetValue(
                 current.Name.Value,
-                out INamedTypeExtensionNode extension))
+                out ITypeExtensionNode extension))
             {
                 if (extension is InterfaceTypeExtensionNode ite)
                 {
@@ -324,7 +324,7 @@ namespace HotChocolate.Stitching.Merge
 
             if (context.Extensions.TryGetValue(
                 current.Name.Value,
-                out INamedTypeExtensionNode extension))
+                out ITypeExtensionNode extension))
             {
                 if (extension is InputObjectTypeExtensionNode iote)
                 {
@@ -384,7 +384,7 @@ namespace HotChocolate.Stitching.Merge
 
             if (context.Extensions.TryGetValue(
                 current.Name.Value,
-                out INamedTypeExtensionNode extension))
+                out ITypeExtensionNode extension))
             {
                 if (extension is EnumTypeExtensionNode ete)
                 {
@@ -444,7 +444,7 @@ namespace HotChocolate.Stitching.Merge
 
             if (context.Extensions.TryGetValue(
                 current.Name.Value,
-                out INamedTypeExtensionNode extension))
+                out ITypeExtensionNode extension))
             {
                 if (extension is ScalarTypeExtensionNode ste)
                 {
@@ -475,7 +475,7 @@ namespace HotChocolate.Stitching.Merge
             Func<IReadOnlyList<DirectiveNode>, TDefinition> withDirectives,
             MergeContext context)
             where TDefinition : NamedSyntaxNode, ITypeDefinitionNode
-            where TExtension : NamedSyntaxNode, INamedTypeExtensionNode
+            where TExtension : NamedSyntaxNode, ITypeExtensionNode
         {
             if (typeExtension.Directives.Count == 0)
             {
@@ -523,7 +523,7 @@ namespace HotChocolate.Stitching.Merge
             public MergeContext(DocumentNode schema, DocumentNode extensions)
             {
                 Extensions = extensions.Definitions
-                    .OfType<INamedTypeExtensionNode>()
+                    .OfType<ITypeExtensionNode>()
                     .ToDictionary(t => t.Name.Value);
 
                 Directives = schema.Definitions
@@ -531,11 +531,9 @@ namespace HotChocolate.Stitching.Merge
                     .ToDictionary(t => t.Name.Value);
             }
 
-            public IDictionary<string, INamedTypeExtensionNode> Extensions
-            { get; }
+            public IDictionary<string, ITypeExtensionNode> Extensions { get; }
 
-            public IDictionary<string, DirectiveDefinitionNode> Directives
-            { get; }
+            public IDictionary<string, DirectiveDefinitionNode> Directives { get; }
         }
     }
 }

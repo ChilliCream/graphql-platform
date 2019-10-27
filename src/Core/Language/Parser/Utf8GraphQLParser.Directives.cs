@@ -12,7 +12,7 @@ namespace HotChocolate.Language
         {
             TokenInfo start = Start();
 
-            StringValueNode description = ParseDescription();
+            StringValueNode? description = ParseDescription();
 
             ExpectDirectiveKeyword();
             ExpectAt();
@@ -26,7 +26,7 @@ namespace HotChocolate.Language
 
             List<NameNode> locations = ParseDirectiveLocations();
 
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new DirectiveDefinitionNode
             (
@@ -94,7 +94,7 @@ namespace HotChocolate.Language
             NameNode name = ParseName();
             List<ArgumentNode> arguments = ParseArguments(isConstant);
 
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new DirectiveNode
             (
