@@ -8,9 +8,9 @@ namespace StrawberryShake.Client.GraphQL
     public class ReviewInputSerializer
         : IInputSerializer
     {
+        private bool _needsInitialization = true;
         private IValueSerializer? _stringSerializer;
         private IValueSerializer? _intSerializer;
-        private bool _needsInitialization = true;
 
         public string Name { get; } = "ReviewInput";
 
@@ -32,7 +32,7 @@ namespace StrawberryShake.Client.GraphQL
             _needsInitialization = false;
         }
 
-        public object? Serialize(object value) // TODO : must be nullable
+        public object? Serialize(object? value) // TODO : must be nullable
         {
             if (!_needsInitialization)
             {

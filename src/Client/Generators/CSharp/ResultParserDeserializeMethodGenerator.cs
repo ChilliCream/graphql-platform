@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Text;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Types;
@@ -75,7 +74,7 @@ namespace StrawberryShake.Generators.CSharp
                 .Where(t => t.Type.NamedType().IsLeafType())
                 .Select(t => t.Type))
             {
-                string methodName = CreateDeserializerName(type);
+                string methodName = SerializerNameUtils.CreateDeserializerName(type);
 
                 if (generatedMethods.Add(methodName))
                 {
@@ -167,7 +166,8 @@ namespace StrawberryShake.Generators.CSharp
                             writer, clrElementTypeName, schemaTypeName,
                             "list", "i", "element", serializerMethod))
                         .ConfigureAwait(false);
-                }).ConfigureAwait(false); ;
+                }).ConfigureAwait(false);
+            ;
         }
 
         private Task WriteDeserializeNestedLeafList(
@@ -353,37 +353,6 @@ namespace StrawberryShake.Generators.CSharp
             {
                 await writer.WriteAsync('!').ConfigureAwait(false);
             }
-        }
-
-        internal static string CreateDeserializerName(IType type)
-        {
-            IType current = type;
-            var types = new Stack<IType>();
-
-            var sb = new StringBuilder();
-            sb.Append("Deserialize");
-
-            while (!(current is INamedType))
-            {
-                if (current is ListType)
-                {
-                    if (types.Count == 0 || !(types.Peek() is NonNullType))
-                    {
-                        sb.Append("Nullable");
-                    }
-                    sb.Append("ListOf");
-                }
-                types.Push(current);
-                current = current.InnerType();
-            }
-
-            if (types.Count == 0 || !(types.Peek() is NonNullType))
-            {
-                sb.Append("Nullable");
-            }
-            sb.Append(type.NamedType().Name);
-
-            return sb.ToString();
         }
     }
 }
