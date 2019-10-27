@@ -81,7 +81,7 @@ Task("Tests")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/full_{i++}\" --blame")
     };
 
-    DotNetCoreBuild("./tools/Build.Core.sln", buildSettings);
+    DotNetCoreBuild("./tools/Build.sln", buildSettings);
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
@@ -89,6 +89,38 @@ Task("Tests")
         {
             DotNetCoreTest(file.FullPath, testSettings);
         }
+    }
+});
+
+Task("AllTests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    var buildSettings = new DotNetCoreBuildSettings
+    {
+        Configuration = "Debug"
+    };
+
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = true,
+        NoBuild = true,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/full_{i++}\" --blame")
+    };
+
+    DotNetCoreBuild("./tools/Build.sln", buildSettings);
+
+    foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
+    {
+        DotNetCoreTest(file.FullPath, testSettings);
     }
 });
 
@@ -141,7 +173,7 @@ Task("Default")
 
 Task("Sonar")
     .IsDependentOn("SonarBegin")
-    .IsDependentOn("Tests")
+    .IsDependentOn("AllTests")
     .IsDependentOn("SonarEnd");
 
 //////////////////////////////////////////////////////////////////////
