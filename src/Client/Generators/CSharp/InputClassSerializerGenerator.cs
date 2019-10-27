@@ -274,6 +274,8 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteAsync('}').ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
+
+            await WriteTypeSerializerMethodsAsync(writer, descriptor).ConfigureAwait(false);
         }
 
         private async Task WriteTypeSerializerMethodsAsync(
