@@ -202,6 +202,78 @@ namespace HotChocolate.Types.Filters
             result.MatchSnapshot();
         }
 
+        [Fact]
+        public async Task Boolean_Filter_Equals()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<IMongoCollection<Model>>(sp =>
+            {
+                IMongoDatabase database = _mongoResource.CreateDatabase();
+
+                var collection = database.GetCollection<Model>("col");
+                collection.InsertMany(new[]
+                {
+                    new Model { Foo = "abc", Bar = 1, Baz = true },
+                    new Model { Foo = "def", Bar = 2, Baz = false },
+                });
+                return collection;
+            });
+
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddServices(serviceCollection.BuildServiceProvider())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("{ paging(where: { baz: true }) { nodes { foo } } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Boolean_Filter_Not_Equals()
+        {
+            // arrange
+            var serviceCollection = new ServiceCollection();
+            serviceCollection.AddSingleton<IMongoCollection<Model>>(sp =>
+            {
+                IMongoDatabase database = _mongoResource.CreateDatabase();
+
+                var collection = database.GetCollection<Model>("col");
+                collection.InsertMany(new[]
+                {
+                    new Model { Foo = "abc", Bar = 1, Baz = true },
+                    new Model { Foo = "def", Bar = 2, Baz = false },
+                });
+                return collection;
+            });
+
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<QueryType>()
+                .AddServices(serviceCollection.BuildServiceProvider())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery("{ paging(where: { baz_not: false }) { nodes { foo } } }")
+                .Create();
+
+            // act
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
         public class QueryType : ObjectType
         {
             protected override void Configure(IObjectTypeDescriptor descriptor)
