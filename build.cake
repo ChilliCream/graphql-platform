@@ -82,11 +82,11 @@ Task("Tests")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/full_{i++}\" --blame")
     };
 
-    DotNetCoreBuild("./tools/Build.sln", buildSettings);
+    DotNetCoreBuild("./tools/Build.Core.sln", buildSettings);
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
-        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        if(!file.FullPath.Contains("Classic") && !file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
         {
             DotNetCoreTest(file.FullPath, testSettings);
         }
@@ -117,11 +117,14 @@ Task("AllTests")
             .Append($"/p:CoverletOutput=\"../../{testOutputDir}/full_{i++}\" --blame")
     };
 
-    DotNetCoreBuild("./tools/Build.sln", buildSettings);
+    DotNetCoreBuild("./tools/Build.Core.sln", buildSettings);
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
-        DotNetCoreTest(file.FullPath, testSettings);
+        if(!file.FullPath.Contains("Classic"))
+        {
+            DotNetCoreTest(file.FullPath, testSettings);
+        }
     }
 });
 
