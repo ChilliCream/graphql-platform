@@ -465,8 +465,6 @@ namespace HotChocolate.Execution
                         .Create());
 
             // assert
-            IExecutionResult result = await executor.ExecuteAsync(request);
-
             result.MatchSnapshot();
         }
 
@@ -537,11 +535,10 @@ namespace HotChocolate.Execution
                         .Create());
 
             // assert
-            IExecutionResult result = await executor.ExecuteAsync(request);
-
             result.MatchSnapshot();
         }
 
+        [Fact]
         public async Task Valid_InputObject_SecondLevel_Provided_As_Variable()
         {
             ISchema schema = SchemaBuilder.New()
@@ -587,7 +584,6 @@ namespace HotChocolate.Execution
             result.MatchSnapshot();
         }
 
-        [Fact]
         public class Query
         {
             public Bar SingleFoo(Foo foo)
