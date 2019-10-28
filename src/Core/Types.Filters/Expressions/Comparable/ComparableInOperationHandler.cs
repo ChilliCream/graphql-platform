@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -21,7 +22,6 @@ namespace HotChocolate.Types.Filters.Expressions
             {
                 MemberExpression property =
                     Expression.Property(instance, operation.Property);
-                var parsedValue = type.ParseLiteral(value);
 
                 switch (operation.Kind)
                 {
@@ -29,7 +29,7 @@ namespace HotChocolate.Types.Filters.Expressions
                         expression = FilterExpressionBuilder.In(
                             property,
                             operation.Property.PropertyType,
-                            parsedValue);
+                            ParseValue());
                         return true;
 
                     case FilterOperationKind.NotIn:
@@ -37,7 +37,7 @@ namespace HotChocolate.Types.Filters.Expressions
                             FilterExpressionBuilder.In(
                                 property,
                                 operation.Property.PropertyType,
-                                parsedValue)
+                                ParseValue())
                         );
                         return true;
                 }
@@ -45,6 +45,25 @@ namespace HotChocolate.Types.Filters.Expressions
 
             expression = null;
             return false;
+
+            object ParseValue()
+            {
+                var parsedValue = type.ParseLiteral(value);
+                Type elementType = type.ElementType().ToClrType();
+
+                if (operation.Property.PropertyType != elementType)
+                {
+                    Type listType = typeof(List<>).MakeGenericType(
+                        operation.Property.PropertyType);
+
+                    parsedValue = converter.Convert(
+                        typeof(object),
+                        listType,
+                        parsedValue);
+                }
+
+                return parsedValue;
+            }
         }
     }
 }
