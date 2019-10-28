@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
@@ -285,6 +286,44 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
+        public async Task Invalid_InputObject_Provided_As_Variable()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"input MyInput {
+                        someField: String
+                    }
+
+                    type Query {
+                        x(arg: MyInput): String
+                    }")
+                .Map(new FieldReference("Query", "x"),
+                    next => ctx =>
+                    {
+                        ctx.Result = "Foo";
+                        return Task.CompletedTask;
+                    })
+                .Create();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query MyQuery($value: MyInput) {
+                        x(arg: $value)
+                    }")
+                .AddVariableValue("value", new Dictionary<string, object>
+                {
+                    { "clearlyNonsense", "bar" }
+                })
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Extend_Argument_Coercion_With_Variables()
         {
             // arrange
@@ -351,6 +390,52 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
+        public async Task Invalid_InputObject_SecondLevel_Provided_As_Variable()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"input MyInput {
+                        someObj: SecondInput
+                    }
+
+                    input SecondInput {
+                        someField: String
+                    }
+
+                    type Query {
+                        x(arg: MyInput): String
+                    }")
+                .Map(new FieldReference("Query", "x"),
+                    next => ctx =>
+                    {
+                        ctx.Result = "Foo";
+                        return Task.CompletedTask;
+                    })
+                .Create();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query MyQuery($value: MyInput) {
+                        x(arg: $value)
+                    }")
+                .AddVariableValue("value", new Dictionary<string, object>
+                {
+                    { "someObj", new Dictionary<string, object>
+                        {
+                            { "clearlyNonsense", "baz" }
+                        }
+                    }
+                })
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Extend_Argument_Coercion_With_Variables_DefaultValue()
         {
             // arrange
@@ -380,6 +465,45 @@ namespace HotChocolate.Execution
                         .Create());
 
             // assert
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            result.MatchSnapshot();
+        }
+
+        public async Task Valid_InputObject_Provided_As_Variable()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"input MyInput {
+                        someField: String
+                    }
+
+                    type Query {
+                        x(arg: MyInput): String
+                    }")
+                .Map(new FieldReference("Query", "x"),
+                    next => ctx =>
+                    {
+                        ctx.Result = "Foo";
+                        return Task.CompletedTask;
+                    })
+                .Create();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query MyQuery($value: MyInput) {
+                        x(arg: $value)
+                    }")
+                .AddVariableValue("value", new Dictionary<string, object>
+                {
+                    { "someField", "bar" }
+                })
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
             result.MatchSnapshot();
         }
 
@@ -413,9 +537,57 @@ namespace HotChocolate.Execution
                         .Create());
 
             // assert
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
             result.MatchSnapshot();
         }
 
+        public async Task Valid_InputObject_SecondLevel_Provided_As_Variable()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"input MyInput {
+                        someObj: SecondInput
+                    }
+
+                    input SecondInput {
+                        someField: String
+                    }
+
+                    type Query {
+                        x(arg: MyInput): String
+                    }")
+                .Map(new FieldReference("Query", "x"),
+                    next => ctx =>
+                    {
+                        ctx.Result = "Foo";
+                        return Task.CompletedTask;
+                    })
+                .Create();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query MyQuery($value: MyInput) {
+                        x(arg: $value)
+                    }")
+                .AddVariableValue("value", new Dictionary<string, object>
+                {
+                    { "someObj", new Dictionary<string, object>
+                        {
+                            { "someField", "baz" }
+                        }
+                    }
+                })
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public class Query
         {
             public Bar SingleFoo(Foo foo)

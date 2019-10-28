@@ -84,7 +84,7 @@ namespace HotChocolate.Execution
             KeyValuePair<string, object> field,
             ConverterContext context)
         {
-            VisitValue(field.Value, context);
+            Visit(field.Value, context);
         }
 
         protected override void VisitList(
