@@ -20,6 +20,19 @@ namespace HotChocolate.Types.Filters.Expressions
                 && type.IsInstanceOfType(value))
             {
                 MemberExpression property = Expression.Property(instance, operation.Property);
+
+                return TryCreateExpression(
+                    operation,
+                    property,
+                    ParseValue,
+                    out expression);
+            }
+
+            expression = null;
+            return false;
+
+            object ParseValue()
+            {
                 var parsedValue = type.ParseLiteral(value);
 
                 if (!operation.Property.PropertyType.IsInstanceOfType(parsedValue))
@@ -30,21 +43,14 @@ namespace HotChocolate.Types.Filters.Expressions
                         parsedValue);
                 }
 
-                return TryCreateExpression(
-                    operation,
-                    property,
-                    parsedValue,
-                    out expression);
+                return parsedValue;
             }
-
-            expression = null;
-            return false;
         }
 
         protected abstract bool TryCreateExpression(
             FilterOperation operation,
             MemberExpression property,
-            object parsedValue,
+            Func<object> parseValue,
             out Expression expression);
     }
 }

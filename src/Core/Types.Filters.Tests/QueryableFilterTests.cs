@@ -223,6 +223,42 @@ namespace HotChocolate.Types.Filters
         }
 
         [Fact]
+        public void Execute_Filter_Nullable_Equals_1()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos(where: { qux: 1 }) { bar qux } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public void Execute_Filter_Nullable_Equals_Null()
+        {
+            // arrange
+            ISchema schema = SchemaBuilder.New()
+                .AddQueryType<Query>(d => d.Field(t => t.Foos).UseFiltering())
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            // act
+            IExecutionResult result = executor.Execute(
+                "{ foos(where: { qux: null }) { bar qux } }");
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public void Execute_Filter_Equals_And()
         {
             // arrange
@@ -274,7 +310,7 @@ namespace HotChocolate.Types.Filters
         {
             public IEnumerable<Foo> Foos { get; } = new[]
             {
-                new Foo { Bar = "aa", Baz = 1 },
+                new Foo { Bar = "aa", Baz = 1, Qux = 1 },
                 new Foo { Bar = "ba", Baz = 1 },
                 new Foo { Bar = "ca", Baz = 2 },
                 new Foo { Bar = "ab", Baz = 2 },
@@ -290,6 +326,9 @@ namespace HotChocolate.Types.Filters
 
             [GraphQLType(typeof(NonNullType<IntType>))]
             public long Baz { get; set; }
+
+            [GraphQLType(typeof(IntType))]
+            public int? Qux { get; set; }
         }
     }
 }

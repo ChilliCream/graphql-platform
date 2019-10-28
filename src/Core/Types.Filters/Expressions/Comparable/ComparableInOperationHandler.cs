@@ -22,6 +22,32 @@ namespace HotChocolate.Types.Filters.Expressions
             {
                 MemberExpression property =
                     Expression.Property(instance, operation.Property);
+
+                switch (operation.Kind)
+                {
+                    case FilterOperationKind.In:
+                        expression = FilterExpressionBuilder.In(
+                            property,
+                            operation.Property.PropertyType,
+                            ParseValue());
+                        return true;
+
+                    case FilterOperationKind.NotIn:
+                        expression = FilterExpressionBuilder.Not(
+                            FilterExpressionBuilder.In(
+                                property,
+                                operation.Property.PropertyType,
+                                ParseValue())
+                        );
+                        return true;
+                }
+            }
+
+            expression = null;
+            return false;
+
+            object ParseValue()
+            {
                 var parsedValue = type.ParseLiteral(value);
                 Type elementType = type.ElementType().ToClrType();
 
@@ -36,28 +62,8 @@ namespace HotChocolate.Types.Filters.Expressions
                         parsedValue);
                 }
 
-                switch (operation.Kind)
-                {
-                    case FilterOperationKind.In:
-                        expression = FilterExpressionBuilder.In(
-                            property,
-                            operation.Property.PropertyType,
-                            parsedValue);
-                        return true;
-
-                    case FilterOperationKind.NotIn:
-                        expression = FilterExpressionBuilder.Not(
-                            FilterExpressionBuilder.In(
-                                property,
-                                operation.Property.PropertyType,
-                                parsedValue)
-                        );
-                        return true;
-                }
+                return parsedValue;
             }
-
-            expression = null;
-            return false;
         }
     }
 }

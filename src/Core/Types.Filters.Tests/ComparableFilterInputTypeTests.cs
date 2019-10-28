@@ -240,6 +240,18 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
+        [Fact]
+        public void Infer_Nullable_Fields()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(
+                new FilterInputType<FooNullable>());
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
         public enum FooBar
         {
             Foo,

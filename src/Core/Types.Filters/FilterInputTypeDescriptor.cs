@@ -154,7 +154,7 @@ namespace HotChocolate.Types.Filters
                 return true;
             }
 
-            if (typeof(IComparable).IsAssignableFrom(property.PropertyType))
+            if (IsComparable(property.PropertyType))
             {
                 var field = new ComparableFilterFieldDescriptor(
                     Context, property);
@@ -163,6 +163,24 @@ namespace HotChocolate.Types.Filters
             }
 
             definition = null;
+            return false;
+        }
+
+        private bool IsComparable(Type type)
+        {
+            if (typeof(IComparable).IsAssignableFrom(type))
+            {
+                return true;
+            }
+
+            if (type.IsValueType
+                && type.IsGenericType
+                && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                return typeof(IComparable).IsAssignableFrom(
+                    Nullable.GetUnderlyingType(type));
+            }
+
             return false;
         }
 
