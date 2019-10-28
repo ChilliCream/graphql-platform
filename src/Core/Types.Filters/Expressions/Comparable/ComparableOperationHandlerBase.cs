@@ -6,7 +6,7 @@ using HotChocolate.Utilities;
 namespace HotChocolate.Types.Filters.Expressions
 {
     public abstract class ComparableOperationHandlerBase
-        : IExpressionOperationHandler
+       : IExpressionOperationHandler
     {
         public bool TryHandle(
             FilterOperation operation,
@@ -19,12 +19,10 @@ namespace HotChocolate.Types.Filters.Expressions
             if (operation.Type == typeof(IComparable)
                 && type.IsInstanceOfType(value))
             {
-                MemberExpression property =
-                    Expression.Property(instance, operation.Property);
+                MemberExpression property = Expression.Property(instance, operation.Property);
                 var parsedValue = type.ParseLiteral(value);
 
-                if (operation.Property.PropertyType
-                    .IsInstanceOfType(parsedValue))
+                if (!operation.Property.PropertyType.IsInstanceOfType(parsedValue))
                 {
                     parsedValue = converter.Convert(
                         typeof(object),

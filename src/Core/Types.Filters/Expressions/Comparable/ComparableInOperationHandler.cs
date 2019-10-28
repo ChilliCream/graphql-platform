@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using HotChocolate.Language;
 using HotChocolate.Utilities;
@@ -22,6 +23,18 @@ namespace HotChocolate.Types.Filters.Expressions
                 MemberExpression property =
                     Expression.Property(instance, operation.Property);
                 var parsedValue = type.ParseLiteral(value);
+                Type elementType = type.ElementType().ToClrType();
+
+                if (operation.Property.PropertyType != elementType)
+                {
+                    Type listType = typeof(List<>).MakeGenericType(
+                        operation.Property.PropertyType);
+
+                    parsedValue = converter.Convert(
+                        typeof(object),
+                        listType,
+                        parsedValue);
+                }
 
                 switch (operation.Kind)
                 {
