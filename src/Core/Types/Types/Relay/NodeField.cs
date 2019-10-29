@@ -15,8 +15,7 @@ namespace HotChocolate.Types.Relay
         private static ObjectFieldDefinition CreateDefinition(
             IDescriptorContext context)
         {
-            var descriptor = ObjectFieldDescriptor
-                .New(context, "node");
+            var descriptor = ObjectFieldDescriptor.New(context, "node");
 
             IIdSerializer _serializer = null;
 
