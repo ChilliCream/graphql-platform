@@ -12,19 +12,16 @@ namespace HotChocolate.Types.Relay
         {
         }
 
-        public override bool IsIntrospectionField { get; } = true;
-
         private static ObjectFieldDefinition CreateDefinition(
             IDescriptorContext context)
         {
-            var descriptor = ObjectFieldDescriptor
-                .New(context, "node");
+            var descriptor = ObjectFieldDescriptor.New(context, "node");
 
             IIdSerializer _serializer = null;
 
             descriptor
                 .Argument("id", a => a.Type<NonNullType<IdType>>())
-                .Type<NonNullType<NodeType>>()
+                .Type<NodeType>()
                 .Resolver(async ctx =>
                 {
                     if (_serializer is null)
