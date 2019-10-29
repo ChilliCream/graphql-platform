@@ -85,7 +85,7 @@ Task("Tests")
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
-        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        if(!file.FullPath.Contains("Classic") && !file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
         {
             DotNetCoreTest(file.FullPath, testSettings);
         }

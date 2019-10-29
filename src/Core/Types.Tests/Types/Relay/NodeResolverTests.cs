@@ -163,7 +163,6 @@ namespace HotChocolate.Types
             result.MatchSnapshot();
         }
 
-
         public class Query
         {
             public Entity GetEntity(string name) => new Entity { Name = name };

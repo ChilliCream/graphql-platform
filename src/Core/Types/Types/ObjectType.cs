@@ -143,8 +143,7 @@ namespace HotChocolate.Types
                 {
                     // TODO : resources
                     context.ReportError(SchemaErrorBuilder.New()
-                        .SetMessage(
-                           "COULD NOT RESOLVE INTERFACE")
+                        .SetMessage("COULD NOT RESOLVE INTERFACE")
                         .SetCode(ErrorCodes.Schema.MissingType)
                         .SetTypeSystemObject(this)
                         .AddSyntaxNode(SyntaxNode)

@@ -262,7 +262,7 @@ namespace HotChocolate.Types.Filters
             result.MatchSnapshot();
         }
 
-         [Fact]
+        [Fact]
         public async Task DateTimeType_GreaterThan_Filter()
         {
             // arrange

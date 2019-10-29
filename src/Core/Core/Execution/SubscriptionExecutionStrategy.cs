@@ -1,14 +1,15 @@
+using System.Runtime.InteropServices.ComTypes;
+using System.IO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution.Configuration;
-using HotChocolate.Language;
 using HotChocolate.Properties;
-using HotChocolate.Resolvers;
 using HotChocolate.Subscriptions;
-using HotChocolate.Types;
+using HotChocolate.Language;
 
 namespace HotChocolate.Execution
 {
@@ -71,14 +72,27 @@ namespace HotChocolate.Execution
             if (selections.Count == 1)
             {
                 FieldSelection selection = selections.Single();
-                return new EventDescription(
-                    selection.Field.Name,
-                    selection.Selection.Arguments);
+                var arguments = new List<ArgumentNode>();
+                IVariableValueCollection variables = executionContext.Variables;
+
+                foreach (ArgumentNode argument in selection.Selection.Arguments)
+                {
+                    if (argument.Value is VariableNode v)
+                    {
+                        IValueNode value = variables.GetVariable<IValueNode>(v.Name.Value);
+                        arguments.Add(argument.WithValue(value));
+                    }
+                    else
+                    {
+                        arguments.Add(argument);
+                    }
+                }
+
+                return new EventDescription(selection.Field.Name, arguments);
             }
             else
             {
-                throw new QueryException(
-                    CoreResources.Subscriptions_SingleRootField);
+                throw new QueryException(CoreResources.Subscriptions_SingleRootField);
             }
         }
 
@@ -86,15 +100,13 @@ namespace HotChocolate.Execution
             IServiceProvider services,
             IEventDescription @event)
         {
-            var eventRegistry = (IEventRegistry)services
-                .GetService(typeof(IEventRegistry));
+            var eventRegistry = services.GetService<IEventRegistry>();
 
             if (eventRegistry == null)
             {
                 throw new QueryException(
                     ErrorBuilder.New()
-                        .SetMessage(CoreResources
-                            .SubscriptionExecutionStrategy_NoEventRegistry)
+                        .SetMessage(CoreResources.SubscriptionExecutionStrategy_NoEventRegistry)
                         .Build());
             }
 
@@ -121,7 +133,7 @@ namespace HotChocolate.Execution
                         executionContext,
                         batchOperationHandler,
                         cancellationToken)
-                            .ConfigureAwait(false);
+                        .ConfigureAwait(false);
 
                     return result.AsReadOnly();
                 }
