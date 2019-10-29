@@ -27,7 +27,7 @@ Task("EnvironmentSetup")
 {
     if(string.IsNullOrEmpty(sonarVersion))
     {
-        sonarVersion = EnvironmentVariable(SONAR_VERSION);
+        sonarVersion = EnvironmentVariable("SONAR_VERSION");
     }
 
     if(string.IsNullOrEmpty(sonarPrKey))
