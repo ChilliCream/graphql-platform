@@ -12,7 +12,7 @@ namespace HotChocolate.Subscriptions
     public class SubscriptionTests
     {
         [Fact]
-        public async Task Subscribe_RaiseEvent_ReceiveSubscriptionResult()
+        public async Task Subscribe_RaiseEvent_No_Arguments()
         {
             // arrange
             var registry = new InMemoryEventRegistry();
