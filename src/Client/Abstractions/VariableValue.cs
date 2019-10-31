@@ -1,8 +1,8 @@
 namespace StrawberryShake
 {
-    public readonly struct InputValue
+    public readonly struct VariableValue
     {
-        public InputValue(string name, string typeName, object? value)
+        public VariableValue(string name, string typeName, object? value)
         {
             Name = name;
             TypeName = typeName;

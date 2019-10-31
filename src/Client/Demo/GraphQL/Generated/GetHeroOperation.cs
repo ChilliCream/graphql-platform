@@ -3,38 +3,26 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace  StrawberryShake.Client.GraphQL
+namespace StrawberryShake.Client.GraphQL
 {
     public class GetHeroOperation
         : IOperation<IGetHero>
     {
-        private bool _modified_episode;
-
-        private Episode? _value_episode;
-
         public string Name => "getHero";
 
         public IDocument Document => Queries.Default;
 
         public Type ResultType => typeof(IGetHero);
 
-        public Episode? Episode
-        {
-            get => _value_episode;
-            set
-            {
-                _value_episode = value;
-                _modified_episode = true;
-            }
-        }
+        public Optional<Episode?> Episode { get; set; }
 
         public IReadOnlyList<VariableValue> GetVariableValues()
         {
             var variables = new List<VariableValue>();
 
-            if(_modified_episode)
+            if (Episode.HasValue)
             {
-                variables.Add(new VariableValue("episode", "Episode", Episode));
+                variables.Add(new VariableValue("episode", "Episode", Episode.Value));
             }
 
             return variables;
