@@ -243,8 +243,17 @@ namespace StrawberryShake.Generators.CSharp
                 await writer.WriteLineAsync().ConfigureAwait(false);
 
                 await writer.WriteIndentAsync().ConfigureAwait(false);
-                await writer.WriteAsync("var map = new Dictionary<string, object>();")
-                    .ConfigureAwait(false);
+                if (_languageVersion == LanguageVersion.CSharp_8_0)
+                {
+                    await writer.WriteAsync("var map = new Dictionary<string, object?>();")
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    await writer.WriteAsync("var map = new Dictionary<string, object>();")
+                        .ConfigureAwait(false);
+                }
+                await writer.WriteLineAsync().ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);
 
                 foreach (IInputFieldDescriptor field in descriptor.Fields)
@@ -267,7 +276,7 @@ namespace StrawberryShake.Generators.CSharp
                         await writer.WriteAsync($"map.Add(\"{field.Field.Name}\", ")
                             .ConfigureAwait(false);
                         await writer.WriteAsync($"{serializerName}(").ConfigureAwait(false);
-                        await writer.WriteAsync($"input.{GetPropertyName(field.Name)});")
+                        await writer.WriteAsync($"input.{GetPropertyName(field.Name)}.Value));")
                             .ConfigureAwait(false);
                         await writer.WriteLineAsync().ConfigureAwait(false);
                     }
@@ -276,7 +285,6 @@ namespace StrawberryShake.Generators.CSharp
                     await writer.WriteLineAsync().ConfigureAwait(false);
                 }
 
-                await writer.WriteLineAsync().ConfigureAwait(false);
                 await writer.WriteIndentAsync().ConfigureAwait(false);
                 await writer.WriteAsync("return map;").ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);
@@ -385,7 +393,7 @@ namespace StrawberryShake.Generators.CSharp
                     }
 
                     await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteIndentedLineAsync(
+                    await writer.WriteAsync(
                         "return _")
                         .ConfigureAwait(false);
                     await writer.WriteAsync(GetFieldName(actualType.NamedType().Name))
