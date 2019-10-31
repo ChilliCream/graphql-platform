@@ -1,10 +1,10 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Types;
 using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
 using IInputFieldDescriptor = StrawberryShake.Generators.Descriptors.IInputFieldDescriptor;
 using static StrawberryShake.Generators.Utilities.NameUtils;
-using System.Collections.Generic;
 
 namespace StrawberryShake.Generators.CSharp
 {
@@ -241,7 +241,6 @@ namespace StrawberryShake.Generators.CSharp
                 await writer.WriteAsync($"var input = ({descriptor.Name})value;")
                     .ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);
-                await writer.WriteLineAsync().ConfigureAwait(false);
 
                 await writer.WriteIndentAsync().ConfigureAwait(false);
                 await writer.WriteAsync("var map = new Dictionary<string, object>();")
@@ -257,15 +256,27 @@ namespace StrawberryShake.Generators.CSharp
                     IType type = field.Type.IsNonNullType() ? field.Type.InnerType() : field.Type;
                     string serializerName = SerializerNameUtils.CreateSerializerName(type);
 
-                    await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync($"map.Add(\"{field.Field.Name}\", ")
+                    await writer.WriteIndentedLineAsync(
+                        $"if (input.{GetPropertyName(field.Name)}.HasValue)")
                         .ConfigureAwait(false);
-                    await writer.WriteAsync($"{serializerName}(").ConfigureAwait(false);
-                    await writer.WriteAsync($"input.{GetPropertyName(field.Name)});")
-                        .ConfigureAwait(false);
+                    await writer.WriteIndentedLineAsync("{");
+
+                    using (writer.IncreaseIndent())
+                    {
+                        await writer.WriteIndentAsync().ConfigureAwait(false);
+                        await writer.WriteAsync($"map.Add(\"{field.Field.Name}\", ")
+                            .ConfigureAwait(false);
+                        await writer.WriteAsync($"{serializerName}(").ConfigureAwait(false);
+                        await writer.WriteAsync($"input.{GetPropertyName(field.Name)});")
+                            .ConfigureAwait(false);
+                        await writer.WriteLineAsync().ConfigureAwait(false);
+                    }
+
+                    await writer.WriteIndentedLineAsync("}");
                     await writer.WriteLineAsync().ConfigureAwait(false);
                 }
 
+                await writer.WriteLineAsync().ConfigureAwait(false);
                 await writer.WriteIndentAsync().ConfigureAwait(false);
                 await writer.WriteAsync("return map;").ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);
@@ -379,7 +390,7 @@ namespace StrawberryShake.Generators.CSharp
                         .ConfigureAwait(false);
                     await writer.WriteAsync(GetFieldName(actualType.NamedType().Name))
                         .ConfigureAwait(false);
-                    await writer.WriteAsync("Serializer.Serialize(value);").ConfigureAwait(false);
+                    await writer.WriteAsync("Serializer!.Serialize(value);").ConfigureAwait(false);
                     await writer.WriteLineAsync().ConfigureAwait(false);
                 }
                 await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
@@ -424,7 +435,7 @@ namespace StrawberryShake.Generators.CSharp
         {
             await writer.WriteIndentAsync().ConfigureAwait(false);
             await writer.WriteAsync(
-                "public object Deserialize(object value)")
+                "public object? Deserialize(object? value)")
                 .ConfigureAwait(false);
             await writer.WriteLineAsync().ConfigureAwait(false);
 
