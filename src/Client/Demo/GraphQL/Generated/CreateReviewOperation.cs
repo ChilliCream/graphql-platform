@@ -8,50 +8,28 @@ namespace  StrawberryShake.Client.GraphQL
     public class CreateReviewOperation
         : IOperation<ICreateReview>
     {
-        private bool _modified_episode;
-        private bool _modified_review;
-
-        private Episode _value_episode;
-        private ReviewInput _value_review;
-
         public string Name => "createReview";
 
         public IDocument Document => Queries.Default;
 
         public Type ResultType => typeof(ICreateReview);
 
-        public Episode Episode
-        {
-            get => _value_episode;
-            set
-            {
-                _value_episode = value;
-                _modified_episode = true;
-            }
-        }
+        public Optional<Episode> Episode { get; set; }
 
-        public ReviewInput Review
-        {
-            get => _value_review;
-            set
-            {
-                _value_review = value;
-                _modified_review = true;
-            }
-        }
+        public Optional<ReviewInput> Review { get; set; }
 
         public IReadOnlyList<VariableValue> GetVariableValues()
         {
             var variables = new List<VariableValue>();
 
-            if(_modified_episode)
+            if(Episode.HasValue)
             {
-                variables.Add(new VariableValue("episode", "Episode", Episode));
+                variables.Add(new VariableValue("episode", "Episode", Episode.Value));
             }
 
-            if(_modified_review)
+            if(Review.HasValue)
             {
-                variables.Add(new VariableValue("review", "ReviewInput", Review));
+                variables.Add(new VariableValue("review", "ReviewInput", Review.Value));
             }
 
             return variables;

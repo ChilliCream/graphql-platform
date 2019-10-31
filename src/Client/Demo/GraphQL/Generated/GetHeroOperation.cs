@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using StrawberryShake;
 
-namespace StrawberryShake.Client.GraphQL
+namespace  StrawberryShake.Client.GraphQL
 {
     public class GetHeroOperation
         : IOperation<IGetHero>
@@ -20,7 +20,7 @@ namespace StrawberryShake.Client.GraphQL
         {
             var variables = new List<VariableValue>();
 
-            if (Episode.HasValue)
+            if(Episode.HasValue)
             {
                 variables.Add(new VariableValue("episode", "Episode", Episode.Value));
             }
