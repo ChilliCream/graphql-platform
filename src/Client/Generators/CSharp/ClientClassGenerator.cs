@@ -59,12 +59,12 @@ namespace StrawberryShake.Generators.CSharp
 
                     await writer.WriteLineAsync().ConfigureAwait(false);
 
-                    await WriteOperationOverloadAsync(
+                    await WriteOperationAsync(
                         writer, operation, typeName, typeLookup)
                         .ConfigureAwait(false);
                     await writer.WriteLineAsync().ConfigureAwait(false);
 
-                    await WriteOperationAsync(
+                    await WriteOperationRequestAsync(
                         writer, operation, typeName, typeLookup)
                         .ConfigureAwait(false);
                 }
@@ -168,50 +168,6 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
-        private async Task WriteOperationOverloadAsync(
-            CodeWriter writer,
-            IOperationDescriptor operation,
-            string operationTypeName,
-            ITypeLookup typeLookup)
-        {
-            await WriteOperationSignature(
-                writer, operation, operationTypeName, false, typeLookup)
-                .ConfigureAwait(false);
-
-            using (writer.IncreaseIndent())
-            {
-                await writer.WriteIndentAsync().ConfigureAwait(false);
-                await writer.WriteAsync(
-                    $"{GetPropertyName(operation.Operation.Name.Value)}Async(")
-                    .ConfigureAwait(false);
-
-                for (int j = 0; j < operation.Arguments.Count; j++)
-                {
-                    Descriptors.IArgumentDescriptor argument =
-                        operation.Arguments[j];
-
-                    if (j > 0)
-                    {
-                        await writer.WriteAsync(',').ConfigureAwait(false);
-                        await writer.WriteSpaceAsync().ConfigureAwait(false);
-                    }
-
-                    await writer.WriteAsync(GetFieldName(argument.Name)).ConfigureAwait(false);
-                }
-
-                if (operation.Arguments.Count > 0)
-                {
-                    await writer.WriteAsync(',').ConfigureAwait(false);
-                    await writer.WriteSpaceAsync().ConfigureAwait(false);
-                }
-
-                await writer.WriteAsync("CancellationToken.None").ConfigureAwait(false);
-                await writer.WriteAsync(')').ConfigureAwait(false);
-                await writer.WriteAsync(';').ConfigureAwait(false);
-                await writer.WriteLineAsync().ConfigureAwait(false);
-            }
-        }
-
         private async Task WriteOperationAsync(
             CodeWriter writer,
             IOperationDescriptor operation,
@@ -219,7 +175,7 @@ namespace StrawberryShake.Generators.CSharp
             ITypeLookup typeLookup)
         {
             await WriteOperationSignature(
-                writer, operation, operationTypeName, true, typeLookup)
+                writer, operation, operationTypeName, typeLookup)
                 .ConfigureAwait(false);
 
             await writer.WriteIndentAsync().ConfigureAwait(false);
@@ -263,11 +219,58 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
+        private async Task WriteOperationRequestAsync(
+            CodeWriter writer,
+            IOperationDescriptor operation,
+            string operationTypeName,
+            ITypeLookup typeLookup)
+        {
+            await WriteOperationRequestSignature(
+                writer, operation, operationTypeName, typeLookup)
+                .ConfigureAwait(false);
+
+            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
+
+            using (writer.IncreaseIndent())
+            {
+                await writer.WriteIndentedLineAsync("if(operation is null)")
+                    .ConfigureAwait(false);
+                await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
+                using (writer.IncreaseIndent())
+                {
+                    await writer.WriteIndentedLineAsync(
+                        "throw new ArgumentNullException(nameof(operation));")
+                        .ConfigureAwait(false);
+                }
+                await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+
+                await writer.WriteLineAsync().ConfigureAwait(false);
+
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                if (operation.Operation.Operation == OperationType.Subscription)
+                {
+                    await writer.WriteAsync("return _streamExecutor.ExecuteAsync(")
+                        .ConfigureAwait(false);
+                }
+                else
+                {
+                    await writer.WriteAsync("return _executor.ExecuteAsync(")
+                        .ConfigureAwait(false);
+                }
+
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                await writer.WriteAsync("operation, cancellationToken);")
+                    .ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
+            }
+
+            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+        }
+
         private async Task WriteOperationSignature(
             CodeWriter writer,
             IOperationDescriptor operation,
             string operationTypeName,
-            bool cancellationToken,
             ITypeLookup typeLookup)
         {
             await writer.WriteIndentAsync().ConfigureAwait(false);
@@ -285,7 +288,7 @@ namespace StrawberryShake.Generators.CSharp
                     .ConfigureAwait(false);
             }
             await writer.WriteAsync(
-                $"{GetPropertyName(operation.Operation.Name.Value)}Async(")
+                $"{GetPropertyName(operation.Operation.Name!.Value)}Async(")
                 .ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
@@ -310,30 +313,70 @@ namespace StrawberryShake.Generators.CSharp
                         true);
 
                     await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync(argumentType).ConfigureAwait(false);
+                    await writer.WriteAsync($"Optional<{argumentType}>").ConfigureAwait(false);
                     await writer.WriteSpaceAsync().ConfigureAwait(false);
                     await writer.WriteAsync(GetFieldName(argument.Name)).ConfigureAwait(false);
+                    await writer.WriteAsync(" = default").ConfigureAwait(false);
                 }
 
-                if (cancellationToken)
+                if (operation.Arguments.Count > 0)
                 {
-                    if (operation.Arguments.Count > 0)
-                    {
-                        await writer.WriteAsync(',').ConfigureAwait(false);
-                    }
-                    await writer.WriteLineAsync().ConfigureAwait(false);
+                    await writer.WriteAsync(',').ConfigureAwait(false);
+                }
+                await writer.WriteLineAsync().ConfigureAwait(false);
 
-                    await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync("CancellationToken cancellationToken")
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                await writer.WriteAsync(
+                    "CancellationToken cancellationToken = default")
+                    .ConfigureAwait(false);
+                await writer.WriteAsync(')').ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
+            }
+        }
+
+        private async Task WriteOperationRequestSignature(
+           CodeWriter writer,
+           IOperationDescriptor operation,
+           string operationTypeName,
+           ITypeLookup typeLookup)
+        {
+            await writer.WriteIndentAsync().ConfigureAwait(false);
+            await writer.WriteAsync("public ").ConfigureAwait(false);
+            if (operation.Operation.Operation == OperationType.Subscription)
+            {
+                await writer.WriteAsync(
+                    $"Task<IResponseStream<{operationTypeName}>> ")
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                await writer.WriteAsync(
+                    $"Task<IOperationResult<{operationTypeName}>> ")
+                    .ConfigureAwait(false);
+            }
+            await writer.WriteAsync(
+                $"{GetPropertyName(operation.Operation.Name!.Value)}Async(")
+                .ConfigureAwait(false);
+
+            using (writer.IncreaseIndent())
+            {
+                await writer.WriteLineAsync()
                         .ConfigureAwait(false);
-                    await writer.WriteAsync(')').ConfigureAwait(false);
-                    await writer.WriteLineAsync().ConfigureAwait(false);
-                }
-                else
-                {
-                    await writer.WriteAsync(") =>").ConfigureAwait(false);
-                    await writer.WriteLineAsync().ConfigureAwait(false);
-                }
+
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                await writer.WriteAsync(operation.Name).ConfigureAwait(false);
+                await writer.WriteSpaceAsync().ConfigureAwait(false);
+                await writer.WriteAsync("operation").ConfigureAwait(false);
+
+                await writer.WriteAsync(',').ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
+
+                await writer.WriteIndentAsync().ConfigureAwait(false);
+                await writer.WriteAsync(
+                    "CancellationToken cancellationToken = default")
+                    .ConfigureAwait(false);
+                await writer.WriteAsync(')').ConfigureAwait(false);
+                await writer.WriteLineAsync().ConfigureAwait(false);
             }
         }
 
@@ -369,7 +412,8 @@ namespace StrawberryShake.Generators.CSharp
                     checks++;
 
                     await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync($"if ({argument.Name} is null)")
+                    await writer.WriteAsync(
+                        $"if ({argument.Name}.HasValue && {argument.Name}.Value is null)")
                         .ConfigureAwait(false);
                     await writer.WriteLineAsync().ConfigureAwait(false);
 
