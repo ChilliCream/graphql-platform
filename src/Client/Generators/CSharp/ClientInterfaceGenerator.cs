@@ -60,7 +60,7 @@ namespace StrawberryShake.Generators.CSharp
                     await writer.WriteLineAsync().ConfigureAwait(false);
 
                     await WriteOperationRequestAsync(
-                        writer, operation, typeName, true, typeLookup)
+                        writer, operation, typeName, true)
                         .ConfigureAwait(false);
                 }
             }
@@ -146,8 +146,7 @@ namespace StrawberryShake.Generators.CSharp
             CodeWriter writer,
             IOperationDescriptor operation,
             string operationTypeName,
-            bool cancellationToken,
-            ITypeLookup typeLookup)
+            bool cancellationToken)
         {
             await writer.WriteIndentAsync().ConfigureAwait(false);
             if (operation.Operation.Operation == OperationType.Subscription)
