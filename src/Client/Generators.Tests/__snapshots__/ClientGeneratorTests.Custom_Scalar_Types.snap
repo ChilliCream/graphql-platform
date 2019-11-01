@@ -9,7 +9,7 @@ namespace StrawberryShake.Client
         : IGetFoo
     {
         public GetFoo(
-            string? foo,
+            string? foo, 
             int? baz)
         {
             Foo = foo;

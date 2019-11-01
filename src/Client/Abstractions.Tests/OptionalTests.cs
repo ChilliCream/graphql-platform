@@ -3,7 +3,7 @@ using Xunit;
 
 namespace StrawberryShake
 {
-    public class UnitTest1
+    public class OptionalTests
     {
         [Fact]
         public void Optional_Is_Not_Set()
