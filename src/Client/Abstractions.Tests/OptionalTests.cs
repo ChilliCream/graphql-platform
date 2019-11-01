@@ -113,7 +113,7 @@ namespace StrawberryShake
             Assert.True(result);
         }
 
-         [Fact]
+        [Fact]
         public void Optional_Equals_Operator_False()
         {
             // arrange
@@ -155,7 +155,7 @@ namespace StrawberryShake
             Assert.False(result);
         }
 
-         [Fact]
+        [Fact]
         public void Optional_Not_Equals_Operator_False()
         {
             // arrange

@@ -26,7 +26,12 @@ namespace StrawberryShake
 
         public IValueSerializer GetValueSerializer(string typeName)
         {
-            if(!_serializers.TryGetValue(typeName, out IValueSerializer? serializer))
+            if (typeName is null)
+            {
+                throw new ArgumentNullException(nameof(typeName));
+            }
+
+            if (!_serializers.TryGetValue(typeName, out IValueSerializer? serializer))
             {
                 throw new ArgumentException(
                     $"The type `{typeName}` has no value serializer " +
