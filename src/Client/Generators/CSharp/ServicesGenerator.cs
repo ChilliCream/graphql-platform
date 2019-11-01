@@ -26,13 +26,16 @@ namespace StrawberryShake.Generators.CSharp
             ITypeLookup typeLookup) =>
             WriteStaticClassAsync(writer, descriptor.Name, async () =>
             {
-                await WriteAddSerializersAsync(writer, descriptor.Client);
-                await writer.WriteLineAsync();
-
                 await WriteAddClientAsync(writer, descriptor.Client);
                 await writer.WriteLineAsync();
 
+                await WriteAddSerializersAsync(writer, descriptor.Client);
+                await writer.WriteLineAsync();
+
                 await WriteAddEnumSerializersAsync(writer, descriptor);
+                await writer.WriteLineAsync();
+
+                await WriteAddInputSerializersAsync(writer, descriptor);
                 await writer.WriteLineAsync();
 
                 await WriteAddResultParsersAsync(writer, descriptor);
@@ -112,9 +115,16 @@ namespace StrawberryShake.Generators.CSharp
                     await writer.WriteLineAsync();
 
                     await writer.WriteIndentedLineAsync(
+                        "serviceCollection.AddDefaultScalarSerializers();");
+                    await writer.WriteIndentedLineAsync(
                         "serviceCollection.AddEnumSerializers();");
                     await writer.WriteIndentedLineAsync(
+                        "serviceCollection.AddInputSerializers();");
+                    await writer.WriteIndentedLineAsync(
                         "serviceCollection.AddResultParsers();");
+
+                    await writer.WriteLineAsync();
+
                     await writer.WriteIndentedLineAsync(
                         "serviceCollection.TryAddDefaultOperationSerializer();");
                     await writer.WriteIndentedLineAsync(
@@ -138,6 +148,25 @@ namespace StrawberryShake.Generators.CSharp
                         await writer.WriteIndentedLineAsync(
                             "serviceCollection.AddSingleton<IValueSerializer, {0}>();",
                             GetClassName(enumType.Name + "ValueSerializer"));
+                    }
+                });
+        }
+
+        private async Task WriteAddInputSerializersAsync(
+            CodeWriter writer,
+            IServicesDescriptor descriptor)
+        {
+            await WriteMethodAsync(
+                writer,
+                "AddInputSerializers",
+                false,
+                async () =>
+                {
+                    foreach (IInputClassDescriptor inputType in descriptor.InputTypes)
+                    {
+                        await writer.WriteIndentedLineAsync(
+                            "serviceCollection.AddSingleton<IValueSerializer, {0}>();",
+                            GetClassName(inputType.Name + "Serializer"));
                     }
                 });
         }

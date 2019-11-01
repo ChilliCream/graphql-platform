@@ -111,6 +111,7 @@ namespace StrawberryShake.Generators
                 _context.ClientName + "ServiceCollectionExtensions",
                 _context.Namespace,
                 clientDescriptor,
+                _context.Descriptors.OfType<IInputClassDescriptor>().ToList(),
                 _context.Descriptors.OfType<IEnumDescriptor>().ToList(),
                 _context.Descriptors.OfType<IResultParserDescriptor>().ToList());
 

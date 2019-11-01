@@ -13,22 +13,6 @@ namespace  StrawberryShake.Client.GraphQL
 {
     public static class StarWarsClientServiceCollectionExtensions
     {
-        public static IServiceCollection AddDefaultScalarSerializers(
-            this IServiceCollection serviceCollection)
-        {
-            if (serviceCollection is null)
-            {
-                throw new ArgumentNullException(nameof(serviceCollection));
-            }
-
-            foreach (IValueSerializer serializer in ValueSerializers.All)
-            {
-                serviceCollection.AddSingleton(serializer);
-            }
-
-            return serviceCollection;
-        }
-
         public static IServiceCollection AddStarWarsClient(
             this IServiceCollection serviceCollection)
         {
@@ -45,10 +29,29 @@ namespace  StrawberryShake.Client.GraphQL
                     .SetPipeline(PipelineFactory)
                     .Build());
 
+            serviceCollection.AddDefaultScalarSerializers();
             serviceCollection.AddEnumSerializers();
+            serviceCollection.AddInputSerializers();
             serviceCollection.AddResultParsers();
+
             serviceCollection.TryAddDefaultOperationSerializer();
             serviceCollection.TryAddDefaultHttpPipeline();
+
+            return serviceCollection;
+        }
+
+        public static IServiceCollection AddDefaultScalarSerializers(
+            this IServiceCollection serviceCollection)
+        {
+            if (serviceCollection is null)
+            {
+                throw new ArgumentNullException(nameof(serviceCollection));
+            }
+
+            foreach (IValueSerializer serializer in ValueSerializers.All)
+            {
+                serviceCollection.AddSingleton(serializer);
+            }
 
             return serviceCollection;
         }
@@ -57,6 +60,14 @@ namespace  StrawberryShake.Client.GraphQL
             this IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<IValueSerializer, EpisodeValueSerializer>();
+            return serviceCollection;
+        }
+
+        private static IServiceCollection AddInputSerializers(
+            this IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddSingleton<IValueSerializer, ReviewInputSerializer>();
+            serviceCollection.AddSingleton<IValueSerializer, AuthorSerializer>();
             return serviceCollection;
         }
 

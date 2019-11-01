@@ -119,7 +119,7 @@ namespace StrawberryShake.Generators.Utilities
         private static string CreateInlineFragmentName(
             InlineFragmentNode inlineFragment)
         {
-            return $"^__{inlineFragment.Location.Start}_" +
+            return $"^__{inlineFragment.Location!.Start}_" +
                 inlineFragment.Location.End;
         }
     }
