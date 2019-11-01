@@ -97,33 +97,21 @@ namespace StrawberryShake.Client
     public class GetBarsOperation
         : IOperation<IGetBars>
     {
-        private bool _modified_a;
-
-        private string? _value_a;
-
         public string Name => "getBars";
 
         public IDocument Document => Queries.Default;
 
         public Type ResultType => typeof(IGetBars);
 
-        public string? A
-        {
-            get => _value_a;
-            set
-            {
-                _value_a = value;
-                _modified_a = true;
-            }
-        }
+        public Optional<string?> A { get; set; }
 
         public IReadOnlyList<VariableValue> GetVariableValues()
         {
             var variables = new List<VariableValue>();
 
-            if(_modified_a)
+            if(A.HasValue)
             {
-                variables.Add(new VariableValue("a", "String", A));
+                variables.Add(new VariableValue("a", "String", A.Value));
             }
 
             return variables;
@@ -144,11 +132,12 @@ namespace StrawberryShake.Client
     public interface ISchemaClient
     {
         Task<IOperationResult<IGetBars>> GetBarsAsync(
-            string? a);
+            Optional<string?> a = default,
+            CancellationToken cancellationToken = default);
 
         Task<IOperationResult<IGetBars>> GetBarsAsync(
-            string? a,
-            CancellationToken cancellationToken);
+            GetBarsOperation operation,
+            CancellationToken cancellationToken = default);
     }
 }
 
@@ -173,17 +162,25 @@ namespace StrawberryShake.Client
         }
 
         public Task<IOperationResult<IGetBars>> GetBarsAsync(
-            string? a) =>
-            GetBarsAsync(a, CancellationToken.None);
-
-        public Task<IOperationResult<IGetBars>> GetBarsAsync(
-            string? a,
-            CancellationToken cancellationToken)
+            Optional<string?> a = default,
+            CancellationToken cancellationToken = default)
         {
 
             return _executor.ExecuteAsync(
-                new GetBarsOperation {A = a },
+                new GetBarsOperation { A = a },
                 cancellationToken);
+        }
+
+        public Task<IOperationResult<IGetBars>> GetBarsAsync(
+            GetBarsOperation operation,
+            CancellationToken cancellationToken = default)
+        {
+            if(operation is null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            return _executor.ExecuteAsync(operation, cancellationToken);
         }
     }
 }

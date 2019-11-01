@@ -258,7 +258,6 @@ namespace StrawberryShake.Generators.CSharp
                         .ConfigureAwait(false);
                 }
 
-                await writer.WriteIndentAsync().ConfigureAwait(false);
                 await writer.WriteAsync("operation, cancellationToken);")
                     .ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);
@@ -402,7 +401,7 @@ namespace StrawberryShake.Generators.CSharp
                     needsNullCheck = !argumentType.IsValueType;
                 }
 
-                if (argument.Type.IsNonNullType())
+                if (needsNullCheck)
                 {
                     if (checks > 0)
                     {
@@ -453,7 +452,7 @@ namespace StrawberryShake.Generators.CSharp
             }
             else if (operation.Arguments.Count == 1)
             {
-                await writer.WriteAsync(" {").ConfigureAwait(false);
+                await writer.WriteAsync(" { ").ConfigureAwait(false);
 
                 Descriptors.IArgumentDescriptor argument =
                     operation.Arguments[0];

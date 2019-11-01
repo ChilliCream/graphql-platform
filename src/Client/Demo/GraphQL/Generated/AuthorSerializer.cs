@@ -5,19 +5,17 @@ using StrawberryShake;
 
 namespace  StrawberryShake.Client.GraphQL
 {
-    public class ReviewInputSerializer
+    public class AuthorSerializer
         : IInputSerializer
     {
         private bool _needsInitialization = true;
-        private IValueSerializer? _authorSerializer;
         private IValueSerializer? _stringSerializer;
-        private IValueSerializer? _intSerializer;
 
-        public string Name { get; } = "ReviewInput";
+        public string Name { get; } = "Author";
 
         public ValueKind Kind { get; } = ValueKind.InputObject;
 
-        public Type ClrType => typeof(ReviewInput);
+        public Type ClrType => typeof(Author);
 
         public Type SerializationType => typeof(IReadOnlyDictionary<string, object>);
 
@@ -27,9 +25,7 @@ namespace  StrawberryShake.Client.GraphQL
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _authorSerializer = serializerResolver.GetValueSerializer("Author");
             _stringSerializer = serializerResolver.GetValueSerializer("String");
-            _intSerializer = serializerResolver.GetValueSerializer("Int");
             _needsInitialization = false;
         }
 
@@ -46,50 +42,20 @@ namespace  StrawberryShake.Client.GraphQL
                 return null;
             }
 
-            var input = (ReviewInput)value;
+            var input = (Author)value;
             var map = new Dictionary<string, object?>();
 
-            if (input.Author.HasValue)
+            if (input.Name.HasValue)
             {
-                map.Add("author", SerializeNullableAuthor(input.Author.Value));
-            }
-
-            if (input.Commentary.HasValue)
-            {
-                map.Add("commentary", SerializeNullableString(input.Commentary.Value));
-            }
-
-            if (input.Stars.HasValue)
-            {
-                map.Add("stars", SerializeNullableInt(input.Stars.Value));
+                map.Add("name", SerializeNullableString(input.Name.Value));
             }
 
             return map;
         }
 
-        private object? SerializeNullableAuthor(object? value)
-        {
-            if(value is null)
-            {
-                return null;
-            }
-
-
-            return _authorSerializer!.Serialize(value);
-        }
         private object? SerializeNullableString(object? value)
         {
-            if(value is null)
-            {
-                return null;
-            }
-
-
             return _stringSerializer!.Serialize(value);
-        }
-        private object? SerializeNullableInt(object? value)
-        {
-            return _intSerializer!.Serialize(value);
         }
 
         public object? Deserialize(object? value)

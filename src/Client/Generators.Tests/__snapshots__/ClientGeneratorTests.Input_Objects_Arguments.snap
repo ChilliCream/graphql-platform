@@ -28,7 +28,21 @@ namespace StrawberryShake.Client
 {
     public class FooInput
     {
-        public BarInput? Bar { get; set; }
+        public Optional<BarInput?> Bar { get; set; }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public class BarInput
+    {
+        public Optional<int?> Baz { get; set; }
     }
 }
 
@@ -41,22 +55,10 @@ using StrawberryShake;
 namespace StrawberryShake.Client
 {
     public class FooInputSerializer
-        : IValueSerializer
+        : IInputSerializer
     {
-        private readonly IValueSerializer _barInputSerializer;
-
-        public FooInputSerializer(IEnumerable<IValueSerializer> serializers)
-        {
-            IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
-
-            if (!map.TryGetValue("BarInput", out IValueSerializer serializer))
-            {
-                throw new ArgumentException(
-                    "There is no serializer specified for `BarInput`.",
-                    nameof(serializers));
-            }
-            _barInputSerializer = serializer;
-        }
+        private bool _needsInitialization = true;
+        private IValueSerializer? _barInputSerializer;
 
         public string Name { get; } = "FooInput";
 
@@ -66,38 +68,127 @@ namespace StrawberryShake.Client
 
         public Type SerializationType => typeof(IReadOnlyDictionary<string, object>);
 
-        public object Serialize(object value)
+        public void Initialize(IValueSerializerResolver serializerResolver)
         {
+            if (serializerResolver is null)
+            {
+                throw new ArgumentNullException(nameof(serializerResolver));
+            }
+            _barInputSerializer = serializerResolver.GetValueSerializer("BarInput");
+            _needsInitialization = false;
+        }
+
+        public object? Serialize(object? value)
+        {
+            if (!_needsInitialization)
+            {
+                throw new InvalidOperationException(
+                    $"The serializer for type `{Name}` has not been initialized.");
+            }
+
             if(value is null)
             {
                 return null;
             }
 
             var input = (FooInput)value;
+            var map = new Dictionary<string, object?>();
 
-            var map = new Dictionary<string, object>();
-            map["bar"] = Serialize(input.Bar, _barInputSerializer);
+            if (input.Bar.HasValue)
+            {
+                map.Add("bar", SerializeNullableBarInput(input.Bar.Value));
+            }
+
             return map;
         }
 
-        public object Serialize(object value, IValueSerializer serializer)
+        private object? SerializeNullableBarInput(object? value)
         {
-            if (value is IList list)
+            if(value is null)
             {
-                var serializedList = new List<object>();
-
-                foreach (object element in list)
-                {
-                    serializedList.Add(Serialize(value, serializer));
-                }
-
-                return serializedList;
+                return null;
             }
 
-            return serializer.Serialize(value);
+
+            return _barInputSerializer!.Serialize(value);
         }
 
-        public object Deserialize(object value)
+        public object? Deserialize(object? value)
+        {
+            throw new NotSupportedException(
+                "Deserializing input values is not supported.");
+        }
+    }
+}
+
+
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using StrawberryShake;
+
+namespace StrawberryShake.Client
+{
+    public class BarInputSerializer
+        : IInputSerializer
+    {
+        private bool _needsInitialization = true;
+        private IValueSerializer? _intSerializer;
+
+        public string Name { get; } = "BarInput";
+
+        public ValueKind Kind { get; } = ValueKind.InputObject;
+
+        public Type ClrType => typeof(BarInput);
+
+        public Type SerializationType => typeof(IReadOnlyDictionary<string, object>);
+
+        public void Initialize(IValueSerializerResolver serializerResolver)
+        {
+            if (serializerResolver is null)
+            {
+                throw new ArgumentNullException(nameof(serializerResolver));
+            }
+            _intSerializer = serializerResolver.GetValueSerializer("Int");
+            _needsInitialization = false;
+        }
+
+        public object? Serialize(object? value)
+        {
+            if (!_needsInitialization)
+            {
+                throw new InvalidOperationException(
+                    $"The serializer for type `{Name}` has not been initialized.");
+            }
+
+            if(value is null)
+            {
+                return null;
+            }
+
+            var input = (BarInput)value;
+            var map = new Dictionary<string, object?>();
+
+            if (input.Baz.HasValue)
+            {
+                map.Add("baz", SerializeNullableInt(input.Baz.Value));
+            }
+
+            return map;
+        }
+
+        private object? SerializeNullableInt(object? value)
+        {
+            if(value is null)
+            {
+                return null;
+            }
+
+
+            return _intSerializer!.Serialize(value);
+        }
+
+        public object? Deserialize(object? value)
         {
             throw new NotSupportedException(
                 "Deserializing input values is not supported.");
@@ -184,33 +275,21 @@ namespace StrawberryShake.Client
     public class GetFooOperation
         : IOperation<IGetFoo>
     {
-        private bool _modified_input;
-
-        private FooInput _value_input;
-
         public string Name => "getFoo";
 
         public IDocument Document => Queries.Default;
 
         public Type ResultType => typeof(IGetFoo);
 
-        public FooInput Input
-        {
-            get => _value_input;
-            set
-            {
-                _value_input = value;
-                _modified_input = true;
-            }
-        }
+        public Optional<FooInput> Input { get; set; }
 
         public IReadOnlyList<VariableValue> GetVariableValues()
         {
             var variables = new List<VariableValue>();
 
-            if(_modified_input)
+            if(Input.HasValue)
             {
-                variables.Add(new VariableValue("input", "FooInput", Input));
+                variables.Add(new VariableValue("input", "FooInput", Input.Value));
             }
 
             return variables;
@@ -231,11 +310,12 @@ namespace StrawberryShake.Client
     public interface ISchemaClient
     {
         Task<IOperationResult<IGetFoo>> GetFooAsync(
-            FooInput input);
+            Optional<FooInput> input = default,
+            CancellationToken cancellationToken = default);
 
         Task<IOperationResult<IGetFoo>> GetFooAsync(
-            FooInput input,
-            CancellationToken cancellationToken);
+            GetFooOperation operation,
+            CancellationToken cancellationToken = default);
     }
 }
 
@@ -260,21 +340,29 @@ namespace StrawberryShake.Client
         }
 
         public Task<IOperationResult<IGetFoo>> GetFooAsync(
-            FooInput input) =>
-            GetFooAsync(input, CancellationToken.None);
-
-        public Task<IOperationResult<IGetFoo>> GetFooAsync(
-            FooInput input,
-            CancellationToken cancellationToken)
+            Optional<FooInput> input = default,
+            CancellationToken cancellationToken = default)
         {
-            if (input is null)
+            if (input.HasValue && input.Value is null)
             {
                 throw new ArgumentNullException(nameof(input));
             }
 
             return _executor.ExecuteAsync(
-                new GetFooOperation {Input = input },
+                new GetFooOperation { Input = input },
                 cancellationToken);
+        }
+
+        public Task<IOperationResult<IGetFoo>> GetFooAsync(
+            GetFooOperation operation,
+            CancellationToken cancellationToken = default)
+        {
+            if(operation is null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            return _executor.ExecuteAsync(operation, cancellationToken);
         }
     }
 }

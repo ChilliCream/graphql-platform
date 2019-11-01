@@ -127,10 +127,12 @@ namespace StrawberryShake.Client
 {
     public interface ISchemaClient
     {
-        Task<IOperationResult<IGetEpisode>> GetEpisodeAsync();
+        Task<IOperationResult<IGetEpisode>> GetEpisodeAsync(
+            CancellationToken cancellationToken = default);
 
         Task<IOperationResult<IGetEpisode>> GetEpisodeAsync(
-            CancellationToken cancellationToken);
+            GetEpisodeOperation operation,
+            CancellationToken cancellationToken = default);
     }
 }
 
@@ -154,16 +156,25 @@ namespace StrawberryShake.Client
             _executor = executor ?? throw new ArgumentNullException(nameof(executor));
         }
 
-        public Task<IOperationResult<IGetEpisode>> GetEpisodeAsync() =>
-            GetEpisodeAsync(CancellationToken.None);
-
         public Task<IOperationResult<IGetEpisode>> GetEpisodeAsync(
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
 
             return _executor.ExecuteAsync(
                 new GetEpisodeOperation(),
                 cancellationToken);
+        }
+
+        public Task<IOperationResult<IGetEpisode>> GetEpisodeAsync(
+            GetEpisodeOperation operation,
+            CancellationToken cancellationToken = default)
+        {
+            if(operation is null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            return _executor.ExecuteAsync(operation, cancellationToken);
         }
     }
 }

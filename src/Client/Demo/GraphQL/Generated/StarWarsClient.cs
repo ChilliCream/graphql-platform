@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake;
 
-namespace StrawberryShake.Client.GraphQL
+namespace  StrawberryShake.Client.GraphQL
 {
     public class StarWarsClient
         : IStarWarsClient
@@ -21,6 +21,7 @@ namespace StrawberryShake.Client.GraphQL
             Optional<Episode?> episode = default,
             CancellationToken cancellationToken = default)
         {
+
             return _executor.ExecuteAsync(
                 new GetHeroOperation { Episode = episode },
                 cancellationToken);
@@ -30,7 +31,7 @@ namespace StrawberryShake.Client.GraphQL
             GetHeroOperation operation,
             CancellationToken cancellationToken = default)
         {
-            if (operation is null)
+            if(operation is null)
             {
                 throw new ArgumentNullException(nameof(operation));
             }
@@ -56,7 +57,7 @@ namespace StrawberryShake.Client.GraphQL
             GetHumanOperation operation,
             CancellationToken cancellationToken = default)
         {
-            if (operation is null)
+            if(operation is null)
             {
                 throw new ArgumentNullException(nameof(operation));
             }
@@ -82,7 +83,7 @@ namespace StrawberryShake.Client.GraphQL
             SearchOperation operation,
             CancellationToken cancellationToken = default)
         {
-            if (operation is null)
+            if(operation is null)
             {
                 throw new ArgumentNullException(nameof(operation));
             }
@@ -95,11 +96,6 @@ namespace StrawberryShake.Client.GraphQL
             Optional<ReviewInput> review = default,
             CancellationToken cancellationToken = default)
         {
-            if (episode.HasValue && episode.Value is null)
-            {
-                throw new ArgumentNullException(nameof(episode));
-            }
-
             if (review.HasValue && review.Value is null)
             {
                 throw new ArgumentNullException(nameof(review));
@@ -108,7 +104,7 @@ namespace StrawberryShake.Client.GraphQL
             return _executor.ExecuteAsync(
                 new CreateReviewOperation
                 {
-                    Episode = episode,
+                    Episode = episode, 
                     Review = review
                 },
                 cancellationToken);
@@ -118,7 +114,7 @@ namespace StrawberryShake.Client.GraphQL
             CreateReviewOperation operation,
             CancellationToken cancellationToken = default)
         {
-            if (operation is null)
+            if(operation is null)
             {
                 throw new ArgumentNullException(nameof(operation));
             }

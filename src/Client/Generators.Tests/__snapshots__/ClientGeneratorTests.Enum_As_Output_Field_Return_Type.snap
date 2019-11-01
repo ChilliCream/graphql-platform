@@ -302,10 +302,12 @@ namespace StrawberryShake.Client
 {
     public interface ISchemaClient
     {
-        Task<IOperationResult<IGetFoo>> GetFooAsync();
+        Task<IOperationResult<IGetFoo>> GetFooAsync(
+            CancellationToken cancellationToken = default);
 
         Task<IOperationResult<IGetFoo>> GetFooAsync(
-            CancellationToken cancellationToken);
+            GetFooOperation operation,
+            CancellationToken cancellationToken = default);
     }
 }
 
@@ -329,16 +331,25 @@ namespace StrawberryShake.Client
             _executor = executor ?? throw new ArgumentNullException(nameof(executor));
         }
 
-        public Task<IOperationResult<IGetFoo>> GetFooAsync() =>
-            GetFooAsync(CancellationToken.None);
-
         public Task<IOperationResult<IGetFoo>> GetFooAsync(
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
 
             return _executor.ExecuteAsync(
                 new GetFooOperation(),
                 cancellationToken);
+        }
+
+        public Task<IOperationResult<IGetFoo>> GetFooAsync(
+            GetFooOperation operation,
+            CancellationToken cancellationToken = default)
+        {
+            if(operation is null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            return _executor.ExecuteAsync(operation, cancellationToken);
         }
     }
 }
