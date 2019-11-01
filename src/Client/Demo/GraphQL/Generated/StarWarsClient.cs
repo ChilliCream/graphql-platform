@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake;
 
-namespace  StrawberryShake.Client.GraphQL
+namespace StrawberryShake.Client.GraphQL
 {
     public class StarWarsClient
         : IStarWarsClient
@@ -18,53 +18,108 @@ namespace  StrawberryShake.Client.GraphQL
         }
 
         public Task<IOperationResult<IGetHero>> GetHeroAsync(
-            Episode? episode) =>
-            GetHeroAsync(episode, CancellationToken.None);
-
-        public Task<IOperationResult<IGetHero>> GetHeroAsync(
-            Episode? episode,
-            CancellationToken cancellationToken)
+            Optional<Episode?> episode = default,
+            CancellationToken cancellationToken = default)
         {
 
             return _executor.ExecuteAsync(
-                new GetHeroOperation {Episode = episode },
+                new GetHeroOperation { Episode = episode },
                 cancellationToken);
         }
 
-        public Task<IOperationResult<IGetHuman>> GetHumanAsync(
-            string id) =>
-            GetHumanAsync(id, CancellationToken.None);
+        public Task<IOperationResult<IGetHero>> GetHeroAsync(
+            GetHeroOperation operation,
+            CancellationToken cancellationToken = default)
+        {
+            if(operation is null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            return _executor.ExecuteAsync(operation, cancellationToken);
+        }
 
         public Task<IOperationResult<IGetHuman>> GetHumanAsync(
-            string id,
-            CancellationToken cancellationToken)
+            Optional<string> id = default,
+            CancellationToken cancellationToken = default)
         {
-            if (id is null)
+            if (id.HasValue && id.Value is null)
             {
                 throw new ArgumentNullException(nameof(id));
             }
 
             return _executor.ExecuteAsync(
-                new GetHumanOperation {Id = id },
+                new GetHumanOperation { Id = id },
                 cancellationToken);
         }
 
-        public Task<IOperationResult<ISearch>> SearchAsync(
-            string text) =>
-            SearchAsync(text, CancellationToken.None);
+        public Task<IOperationResult<IGetHuman>> GetHumanAsync(
+            GetHumanOperation operation,
+            CancellationToken cancellationToken = default)
+        {
+            if(operation is null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            return _executor.ExecuteAsync(operation, cancellationToken);
+        }
 
         public Task<IOperationResult<ISearch>> SearchAsync(
-            string text,
-            CancellationToken cancellationToken)
+            Optional<string> text = default,
+            CancellationToken cancellationToken = default)
         {
-            if (text is null)
+            if (text.HasValue && text.Value is null)
             {
                 throw new ArgumentNullException(nameof(text));
             }
 
             return _executor.ExecuteAsync(
-                new SearchOperation {Text = text },
+                new SearchOperation { Text = text },
                 cancellationToken);
+        }
+
+        public Task<IOperationResult<ISearch>> SearchAsync(
+            SearchOperation operation,
+            CancellationToken cancellationToken = default)
+        {
+            if(operation is null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            return _executor.ExecuteAsync(operation, cancellationToken);
+        }
+
+        public Task<IOperationResult<ICreateReview>> CreateReviewAsync(
+            Optional<Episode> episode = default,
+            Optional<ReviewInput> review = default,
+            CancellationToken cancellationToken = default)
+        {
+            if (review.HasValue && review.Value is null)
+            {
+                throw new ArgumentNullException(nameof(review));
+            }
+
+            return _executor.ExecuteAsync(
+                new CreateReviewOperation
+                {
+                    Episode = episode, 
+                    Review = review
+                },
+                cancellationToken);
+        }
+
+        public Task<IOperationResult<ICreateReview>> CreateReviewAsync(
+            CreateReviewOperation operation,
+            CancellationToken cancellationToken = default)
+        {
+            if(operation is null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            return _executor.ExecuteAsync(operation, cancellationToken);
         }
     }
 }

@@ -9,26 +9,10 @@ using StrawberryShake.Http;
 using StrawberryShake.Http.Pipelines;
 using StrawberryShake.Serializers;
 
-namespace  StrawberryShake.Client.GraphQL
+namespace StrawberryShake.Client.GraphQL
 {
     public static class StarWarsClientServiceCollectionExtensions
     {
-        public static IServiceCollection AddDefaultScalarSerializers(
-            this IServiceCollection serviceCollection)
-        {
-            if (serviceCollection is null)
-            {
-                throw new ArgumentNullException(nameof(serviceCollection));
-            }
-
-            foreach (IValueSerializer serializer in ValueSerializers.All)
-            {
-                serviceCollection.AddSingleton(serializer);
-            }
-
-            return serviceCollection;
-        }
-
         public static IServiceCollection AddStarWarsClient(
             this IServiceCollection serviceCollection)
         {
@@ -45,10 +29,31 @@ namespace  StrawberryShake.Client.GraphQL
                     .SetPipeline(PipelineFactory)
                     .Build());
 
+            serviceCollection.AddDefaultScalarSerializers();
             serviceCollection.AddEnumSerializers();
+            serviceCollection.AddInputSerializers();
             serviceCollection.AddResultParsers();
+
             serviceCollection.TryAddDefaultOperationSerializer();
             serviceCollection.TryAddDefaultHttpPipeline();
+
+            return serviceCollection;
+        }
+
+        public static IServiceCollection AddDefaultScalarSerializers(
+            this IServiceCollection serviceCollection)
+        {
+            if (serviceCollection is null)
+            {
+                throw new ArgumentNullException(nameof(serviceCollection));
+            }
+
+            serviceCollection.AddSingleton<IValueSerializerResolver, ValueSerializerResolver>();
+
+            foreach (IValueSerializer serializer in ValueSerializers.All)
+            {
+                serviceCollection.AddSingleton(serializer);
+            }
 
             return serviceCollection;
         }
@@ -60,12 +65,22 @@ namespace  StrawberryShake.Client.GraphQL
             return serviceCollection;
         }
 
+        private static IServiceCollection AddInputSerializers(
+            this IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddSingleton<IValueSerializer, ReviewInputSerializer>();
+            serviceCollection.AddSingleton<IValueSerializer, AuthorSerializer>();
+            return serviceCollection;
+        }
+
         private static IServiceCollection AddResultParsers(
             this IServiceCollection serviceCollection)
         {
+            serviceCollection.AddSingleton<IResultParserResolver, ResultParserResolver>();
             serviceCollection.AddSingleton<IResultParser, GetHeroResultParser>();
             serviceCollection.AddSingleton<IResultParser, GetHumanResultParser>();
             serviceCollection.AddSingleton<IResultParser, SearchResultParser>();
+            serviceCollection.AddSingleton<IResultParser, CreateReviewResultParser>();
             return serviceCollection;
         }
 
