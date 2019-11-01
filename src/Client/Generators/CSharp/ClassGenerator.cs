@@ -1,6 +1,4 @@
 using System.Threading.Tasks;
-using HotChocolate.Language;
-using HotChocolate.Types;
 using StrawberryShake.Generators.Descriptors;
 using StrawberryShake.Generators.Utilities;
 using static StrawberryShake.Generators.Utilities.NameUtils;
@@ -92,7 +90,9 @@ namespace StrawberryShake.Generators.CSharp
             IClassDescriptor descriptor,
             ITypeLookup typeLookup)
         {
-            await writer.WriteIndentedLineAsync("public {0}(", descriptor.Name);
+            await writer.WriteIndentedLineAsync(
+                "public {0}(", descriptor.Name)
+                .ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
@@ -108,24 +108,25 @@ namespace StrawberryShake.Generators.CSharp
                     string parameterName = GetFieldName(
                         fieldDescriptor.ResponseName);
 
-                    await writer.WriteIndentAsync();
+                    await writer.WriteIndentAsync().ConfigureAwait(false);
                     await writer.WriteAsync(string.Format(
-                        "{0} {1}", typeName, parameterName));
+                        "{0} {1}", typeName, parameterName))
+                        .ConfigureAwait(false);
 
                     if (i < descriptor.Fields.Count - 1)
                     {
-                        await writer.WriteAsync(", ");
+                        await writer.WriteAsync(", ").ConfigureAwait(false);
                     }
                     else
                     {
-                        await writer.WriteAsync(")");
+                        await writer.WriteAsync(")").ConfigureAwait(false);
                     }
 
-                    await writer.WriteLineAsync();
+                    await writer.WriteLineAsync().ConfigureAwait(false);
                 }
             }
 
-            await writer.WriteIndentedLineAsync("{");
+            await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
 
             using (writer.IncreaseIndent())
             {
@@ -142,11 +143,12 @@ namespace StrawberryShake.Generators.CSharp
                     await writer.WriteIndentedLineAsync(
                         "{0} = {1};",
                         propetyName,
-                        parameterName);
+                        parameterName)
+                        .ConfigureAwait(false);
                 }
             }
 
-            await writer.WriteIndentedLineAsync("}");
+            await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
         }
     }
 }
