@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
@@ -12,13 +12,13 @@
 
   <PropertyGroup>
     <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
-    <AssemblyName>StrawberryShake.Generators.Tests</AssemblyName>
-    <RootNamespace>StrawberryShake.Generators</RootNamespace>
+    <AssemblyName>StrawberryShake.Abstractions.Tests</AssemblyName>
+    <RootNamespace>StrawberryShake.Abstractions</RootNamespace>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Generators\Generators.csproj" />
+    <ProjectReference Include="..\Abstractions\Abstractions.csproj" />
   </ItemGroup>
 
 </Project>
