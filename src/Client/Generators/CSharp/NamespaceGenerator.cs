@@ -1,0 +1,106 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using StrawberryShake.Generators.Utilities;
+
+namespace StrawberryShake.Generators.CSharp
+{
+    public class NamespaceGenerator
+        : ICodeGenerator
+    {
+        private readonly ICodeGenerator _innerGenerator;
+        private readonly string _namespace;
+
+        public NamespaceGenerator(ICodeGenerator innerGenerator, string ns)
+        {
+            _innerGenerator = innerGenerator
+                ?? throw new ArgumentNullException(nameof(innerGenerator));
+            _namespace = ns?.Trim() ?? throw new ArgumentNullException(nameof(ns));
+        }
+
+        public bool CanHandle(ICodeDescriptor descriptor) =>
+            _innerGenerator.CanHandle(descriptor);
+
+        public string CreateFileName(ICodeDescriptor descriptor) =>
+            _innerGenerator.CreateFileName(descriptor);
+
+        public async Task WriteAsync(
+            CodeWriter writer,
+            ICodeDescriptor descriptor,
+            ITypeLookup typeLookup)
+        {
+            await WriteUsings(writer, _innerGenerator);
+            await writer.WriteLineAsync();
+
+            await writer.WriteAsync($"namespace {_namespace}");
+            await writer.WriteLineAsync();
+            await writer.WriteAsync('{');
+            await writer.WriteLineAsync();
+
+            using (writer.IncreaseIndent())
+            {
+                await _innerGenerator.WriteAsync(
+                    writer, descriptor, typeLookup);
+            }
+
+            await writer.WriteAsync('}');
+            await writer.WriteLineAsync();
+        }
+
+        private static async Task WriteUsings(CodeWriter writer, ICodeGenerator generator)
+        {
+            var components = generator is IUsesComponents c
+                ? new HashSet<string>(c.Components)
+                : new HashSet<string>();
+
+            await WriteUsing(writer, "System");
+            await WriteUsing(writer, "System.Collections");
+            await WriteUsing(writer, "System.Collections.Generic");
+
+            if (components.Contains(WellKnownComponents.Http))
+            {
+                await WriteUsing(writer, "System.Net.Http");
+            }
+
+            if (components.Contains(WellKnownComponents.Json))
+            {
+                await WriteUsing(writer, "System.Text.Json");
+            }
+
+            if (components.Contains(WellKnownComponents.Task))
+            {
+                await WriteUsing(writer, "System.Threading");
+                await WriteUsing(writer, "System.Threading.Tasks");
+            }
+
+            if (components.Contains(WellKnownComponents.DI))
+            {
+                await WriteUsing(writer, "Microsoft.Extensions.DependencyInjection");
+                await WriteUsing(writer, "Microsoft.Extensions.DependencyInjection.Extensions");
+            }
+
+            await WriteUsing(writer, "StrawberryShake");
+
+            if (components.Contains(WellKnownComponents.HttpExecutor))
+            {
+                await WriteUsing(writer, "StrawberryShake.Http");
+            }
+
+            if (components.Contains(WellKnownComponents.HttpExecutorPipeline))
+            {
+                await WriteUsing(writer, "StrawberryShake.Http.Pipelines");
+            }
+
+            if (components.Contains(WellKnownComponents.Serializer))
+            {
+                await WriteUsing(writer, "StrawberryShake.Serializers");
+            }
+        }
+
+        private static async Task WriteUsing(CodeWriter writer, string ns)
+        {
+            await writer.WriteAsync($"using {ns};");
+            await writer.WriteLineAsync();
+        }
+    }
+}

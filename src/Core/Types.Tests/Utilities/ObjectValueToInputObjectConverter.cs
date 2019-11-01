@@ -23,7 +23,7 @@ namespace HotChocolate.Utilities
             InputObjectType type = schema.GetType<InputObjectType>("FooInput");
 
             var baz = new ObjectValueNode(
-                new ObjectFieldNode("number", new FloatValueNode("1.5")));
+                new ObjectFieldNode("number", new FloatValueNode(1.5d)));
 
             var bar = new ObjectValueNode(
                 new ObjectFieldNode("state", new EnumValueNode("ON")),

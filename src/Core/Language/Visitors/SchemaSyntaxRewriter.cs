@@ -18,7 +18,7 @@ namespace HotChocolate.Language
                 case DocumentNode document:
                     return RewriteDocument(document, context);
 
-                case ITypeExtensionNode extension:
+                case ITypeSystemExtensionNode extension:
                     return RewriteTypeExtensionDefinition(extension, context);
 
                 case ITypeSystemDefinitionNode definition:
@@ -36,7 +36,7 @@ namespace HotChocolate.Language
             IReadOnlyList<IDefinitionNode> rewrittenDefinitions =
                 RewriteMany(node.Definitions, context, (n, c) =>
                 {
-                    if (n is ITypeExtensionNode extension)
+                    if (n is ITypeSystemExtensionNode extension)
                     {
                         return RewriteTypeExtensionDefinition(extension, c);
                     }
@@ -88,8 +88,8 @@ namespace HotChocolate.Language
             }
         }
 
-        protected virtual ITypeExtensionNode RewriteTypeExtensionDefinition(
-            ITypeExtensionNode node,
+        protected virtual ITypeSystemExtensionNode RewriteTypeExtensionDefinition(
+            ITypeSystemExtensionNode node,
             TContext context)
         {
             switch (node)

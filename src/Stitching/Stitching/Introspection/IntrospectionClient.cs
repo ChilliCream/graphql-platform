@@ -9,6 +9,7 @@ using HotChocolate.Language;
 using HotChocolate.Stitching.Introspection.Models;
 using HotChocolate.Stitching.Properties;
 using HotChocolate.Stitching.Utilities;
+using HotChocolate.Types.Introspection;
 using Newtonsoft.Json;
 
 namespace HotChocolate.Stitching.Introspection
@@ -49,6 +50,37 @@ namespace HotChocolate.Stitching.Introspection
             return LoadSchemaInternalAsync(httpClient);
         }
 
+        public static DocumentNode RemoveBuiltInTypes(DocumentNode schema)
+        {
+            var definitions = new List<IDefinitionNode>();
+
+            foreach (IDefinitionNode definition in schema.Definitions)
+            {
+                if (definition is INamedSyntaxNode type)
+                {
+                    if (!IntrospectionTypes.IsIntrospectionType(
+                        type.Name.Value)
+                        && !Types.Scalars.IsBuiltIn(type.Name.Value))
+                    {
+                        definitions.Add(definition);
+                    }
+                }
+                else if (definition is DirectiveDefinitionNode directive)
+                {
+                    if (!Types.Directives.IsBuiltIn(directive.Name.Value))
+                    {
+                        definitions.Add(definition);
+                    }
+                }
+                else
+                {
+                    definitions.Add(definition);
+                }
+            }
+
+            return new DocumentNode(definitions);
+        }
+
         private static async Task<DocumentNode> LoadSchemaInternalAsync(
             HttpClient httpClient)
         {
@@ -70,7 +102,8 @@ namespace HotChocolate.Stitching.Introspection
 
             var request = new HttpQueryRequest
             {
-                Query = GetIntrospectionQuery(_phase1)
+                Query = GetIntrospectionQuery(_phase1),
+                OperationName = "introspection_phase_1",
             };
 
             (string json, HttpResponseMessage _) response =
@@ -106,7 +139,8 @@ namespace HotChocolate.Stitching.Introspection
 
             var request = new HttpQueryRequest
             {
-                Query = QuerySyntaxSerializer.Serialize(query)
+                Query = QuerySyntaxSerializer.Serialize(query),
+                OperationName = "introspection_phase_2"
             };
 
             (string json, HttpResponseMessage _) response =

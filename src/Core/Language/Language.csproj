@@ -11,11 +11,13 @@
   <Import Project="$(ChilliBuild)" />
 
   <PropertyGroup>
+    <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
     <PackageId>HotChocolate.Language</PackageId>
     <AssemblyName>HotChocolate.Language</AssemblyName>
     <RootNamespace>HotChocolate.Language</RootNamespace>
     <Description>Contains the Hot Chocolate GraphQL parser and lexer. Also included are syntax visitor and syntax rewriter base classes.</Description>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,25 +1,46 @@
-using System.Globalization;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
     public sealed class ByteType
-        : NumericTypeBase<byte>
+        : IntegerTypeBase<byte>
     {
         public ByteType()
-            : base("Byte")
+            : this(byte.MinValue, byte.MaxValue)
+        {
+        }
+
+        public ByteType(byte min, byte max)
+            : this(ScalarNames.Byte, min, max)
         {
             Description = TypeResources.ByteType_Description;
         }
 
-        protected override bool TryParseValue(string s, out byte value) =>
-            byte.TryParse(
-                s,
-                NumberStyles.Integer,
-                CultureInfo.InvariantCulture,
-                out value);
+        public ByteType(NameString name)
+            : this(name, byte.MinValue, byte.MaxValue)
+        {
+        }
 
-        protected override string SerializeValue(byte value) =>
-            value.ToString("D", CultureInfo.InvariantCulture);
+        public ByteType(NameString name, byte min, byte max)
+            : base(name, min, max)
+        {
+        }
+
+        public ByteType(NameString name, string description, byte min, byte max)
+            : base(name, min, max)
+        {
+            Description = description;
+        }
+
+        protected override byte ParseLiteral(IntValueNode literal)
+        {
+            return literal.ToByte();
+        }
+
+        protected override IntValueNode ParseValue(byte value)
+        {
+            return new IntValueNode(value);
+        }
     }
 }

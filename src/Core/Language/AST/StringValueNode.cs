@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace HotChocolate.Language
 {
@@ -9,8 +10,12 @@ namespace HotChocolate.Language
     /// </summary>
     public sealed class StringValueNode
         : IValueNode<string>
+        , IHasSpan
         , IEquatable<StringValueNode>
     {
+        private ReadOnlyMemory<byte> _memory;
+        private string? _value;
+
         /// <summary>
         /// Initializes a new instance of the
         /// <see cref="StringValueNode"/> class.
@@ -37,20 +42,40 @@ namespace HotChocolate.Language
         /// <paramref name="value"/> is <c>null</c>.
         /// </exception>
         public StringValueNode(
-            Location location,
+            Location? location,
             string value,
             bool block)
         {
             Location = location;
-            Value = value ?? throw new ArgumentNullException(nameof(value));
+            _value = value ?? throw new ArgumentNullException(nameof(value));
+            Block = block;
+        }
+
+        public StringValueNode(
+            Location? location,
+            ReadOnlyMemory<byte> value,
+            bool block)
+        {
+            Location = location;
+            _memory = value;
             Block = block;
         }
 
         public NodeKind Kind { get; } = NodeKind.StringValue;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
-        public string Value { get; }
+        public string Value
+        {
+            get
+            {
+                if (_value is null)
+                {
+                    _value = Utf8GraphQLReader.GetString(_memory.Span, Block);
+                }
+                return _value;
+            }
+        }
 
         object IValueNode.Value => Value;
 
@@ -77,7 +102,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="StringValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(StringValueNode other)
+        public bool Equals(StringValueNode? other)
         {
             if (other is null)
             {
@@ -105,7 +130,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="StringValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(IValueNode other)
+        public bool Equals(IValueNode? other)
         {
             if (other is null)
             {
@@ -137,7 +162,7 @@ namespace HotChocolate.Language
         /// <c>true</c> if the specified <see cref="object"/> is equal to the
         /// current <see cref="StringValueNode"/>; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -177,12 +202,21 @@ namespace HotChocolate.Language
         /// A <see cref="string"/> that represents the current
         /// <see cref="StringValueNode"/>.
         /// </returns>
-        public override string ToString()
+        public override string? ToString()
         {
             return Value;
         }
 
-        public StringValueNode WithLocation(Location location)
+        public ReadOnlySpan<byte> AsSpan()
+        {
+            if (_memory.IsEmpty)
+            {
+                _memory = Encoding.UTF8.GetBytes(_value!);
+            }
+            return _memory.Span;
+        }
+
+        public StringValueNode WithLocation(Location? location)
         {
             return new StringValueNode(location, Value, Block);
         }

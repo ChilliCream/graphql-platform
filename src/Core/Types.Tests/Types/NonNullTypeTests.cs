@@ -155,7 +155,7 @@ namespace HotChocolate.Types
 
             var type = new NonNullType(innerType);
             bool shouldBeFalse = ((IInputType)type).IsInstanceOfType(
-                new IntValueNode("123"));
+                new IntValueNode(123));
             bool shouldBeTrue = ((IInputType)type).IsInstanceOfType(
                 new ListValueNode(new[] { new StringValueNode("foo") }));
 

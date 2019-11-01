@@ -1,0 +1,10 @@
+query getUser($login: String!) {
+  user(login: $login) {
+    name
+    company
+    createdAt
+    followers {
+      totalCount
+    }
+  }
+}

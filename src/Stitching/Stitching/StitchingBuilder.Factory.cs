@@ -11,6 +11,8 @@ using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Configuration;
 using HotChocolate.Types.Introspection;
+using HotChocolate.Stitching.Introspection;
+using HotChocolate.Types;
 
 namespace HotChocolate.Stitching
 {
@@ -87,7 +89,7 @@ namespace HotChocolate.Stitching
                 DocumentNode mergedSchema = MergeSchemas(builder, allSchemas);
                 mergedSchema = AddExtensions(mergedSchema, extensions);
                 mergedSchema = RewriteMerged(builder, mergedSchema);
-                mergedSchema = RemoveBuiltInTypes(mergedSchema);
+                mergedSchema = IntrospectionClient.RemoveBuiltInTypes(mergedSchema);
 
                 VisitMerged(builder, mergedSchema);
 
@@ -135,15 +137,15 @@ namespace HotChocolate.Stitching
                 return extensions;
             }
 
-            private static IReadOnlyList<IRemoteExecutorAccessor>
-                CreateRemoteExecutors(
-                    IDictionary<NameString, DocumentNode> schemas)
+            private static IReadOnlyList<IRemoteExecutorAccessor> CreateRemoteExecutors(
+                IDictionary<NameString, DocumentNode> schemas)
             {
                 var executors = new List<IRemoteExecutorAccessor>();
 
                 foreach (NameString name in schemas.Keys)
                 {
-                    DocumentNode schema = RemoveBuiltInTypes(schemas[name]);
+                    DocumentNode schema =
+                        IntrospectionClient.RemoveBuiltInTypes(schemas[name]);
 
                     IQueryExecutor executor = Schema.Create(schema, c =>
                     {
@@ -154,7 +156,9 @@ namespace HotChocolate.Stitching
                         foreach (ScalarTypeDefinitionNode typeDefinition in
                             schema.Definitions.OfType<ScalarTypeDefinitionNode>())
                         {
-                            c.RegisterType(new CustomScalarType(typeDefinition));
+                            c.RegisterType(new StringType(
+                                typeDefinition.Name.Value,
+                                typeDefinition.Description?.Value));
                         }
                     }).MakeExecutable(b => b.UseQueryDelegationPipeline(name));
 
@@ -252,37 +256,6 @@ namespace HotChocolate.Stitching
                         visitor.Invoke(schema);
                     }
                 }
-            }
-
-            private static DocumentNode RemoveBuiltInTypes(DocumentNode schema)
-            {
-                var definitions = new List<IDefinitionNode>();
-
-                foreach (IDefinitionNode definition in schema.Definitions)
-                {
-                    if (definition is INamedSyntaxNode type)
-                    {
-                        if (!IntrospectionTypes.IsIntrospectionType(
-                            type.Name.Value)
-                            && !Types.Scalars.IsBuiltIn(type.Name.Value))
-                        {
-                            definitions.Add(definition);
-                        }
-                    }
-                    else if (definition is DirectiveDefinitionNode directive)
-                    {
-                        if (!Types.Directives.IsBuiltIn(directive.Name.Value))
-                        {
-                            definitions.Add(definition);
-                        }
-                    }
-                    else
-                    {
-                        definitions.Add(definition);
-                    }
-                }
-
-                return new DocumentNode(definitions);
             }
         }
     }

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <LangVersion>7.2</LangVersion>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -19,16 +19,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.6" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\src\Core\Subscriptions.InMemory\Subscriptions.InMemory.csproj" />
-    <ProjectReference Include="..\..\src\Server\AspNetCore.Voyager\AspNetCore.Voyager.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore\AspNetCore.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore.Authorization\AspNetCore.Authorization.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore.GraphiQL\AspNetCore.GraphiQL.csproj" />
     <ProjectReference Include="..\..\src\Server\AspNetCore.Playground\AspNetCore.Playground.csproj" />
+    <ProjectReference Include="..\..\src\Server\AspNetCore.Voyager\AspNetCore.Voyager.csproj" />
   </ItemGroup>
 
 </Project>

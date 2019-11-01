@@ -1,6 +1,6 @@
-using System.ComponentModel;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using HotChocolate.Language;
 using HotChocolate.Properties;
@@ -8,7 +8,6 @@ using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using HotChocolate.Utilities;
 using static HotChocolate.Execution.ArgumentNonNullValidator;
-using System.Globalization;
 
 namespace HotChocolate.Execution
 {
@@ -19,11 +18,14 @@ namespace HotChocolate.Execution
         private readonly FragmentCollection _fragments;
         private readonly Func<ObjectField, FieldNode, FieldDelegate> _factory;
         private readonly ITypeConversion _converter;
+        private readonly IReadOnlyList<IArgumentCoercionHandler> _coercionHandlers;
+        private readonly Func<IInputField, object, object> _coerceArgumentValue;
 
         public FieldCollector(
             FragmentCollection fragments,
             Func<ObjectField, FieldNode, FieldDelegate> middlewareFactory,
-            ITypeConversion converter)
+            ITypeConversion converter,
+            IEnumerable<IArgumentCoercionHandler> argumentCoercionHandlers)
         {
             _fragments = fragments
                 ?? throw new ArgumentNullException(nameof(fragments));
@@ -31,6 +33,12 @@ namespace HotChocolate.Execution
                 ?? throw new ArgumentNullException(nameof(middlewareFactory));
             _converter = converter
                 ?? throw new ArgumentNullException(nameof(converter));
+
+            _coercionHandlers = argumentCoercionHandlers is null
+                ? Array.Empty<IArgumentCoercionHandler>()
+                : argumentCoercionHandlers.ToArray();
+
+            _coerceArgumentValue = CoerceArgumentValue;
         }
 
         public IReadOnlyList<FieldSelection> CollectFields(
@@ -253,7 +261,7 @@ namespace HotChocolate.Execution
                 {
                     fieldInfo.Arguments[argument.Name] =
                         new ArgumentValue(
-                            argument.Type,
+                            argument,
                             ErrorBuilder.New()
                                 .SetMessage(ex.Message)
                                 .AddLocation(fieldInfo.Selection)
@@ -284,12 +292,14 @@ namespace HotChocolate.Execution
                     object defaultValue = argument.Type.IsLeafType()
                         ? ParseLiteral(argument.Type, argument.DefaultValue)
                         : argument.DefaultValue;
+                    defaultValue = CoerceArgumentValue(argument, defaultValue);
 
                     fieldInfo.VarArguments[argument.Name] =
                         new ArgumentVariableValue(
-                            argument.Type,
+                            argument,
                             variable.Name.Value,
-                            defaultValue);
+                            defaultValue,
+                            _coerceArgumentValue);
                 }
                 else
                 {
@@ -309,8 +319,7 @@ namespace HotChocolate.Execution
         {
             if (fieldInfo.Arguments == null)
             {
-                fieldInfo.Arguments =
-                    new Dictionary<NameString, ArgumentValue>();
+                fieldInfo.Arguments = new Dictionary<NameString, ArgumentValue>();
             }
 
             Report report = ArgumentNonNullValidator.Validate(
@@ -333,23 +342,26 @@ namespace HotChocolate.Execution
                     .Build();
 
                 fieldInfo.Arguments[argument.Name] =
-                    new ArgumentValue(argument.Type, error);
+                    new ArgumentValue(argument, error);
             }
             else if (argument.Type.IsLeafType() && IsLeafLiteral(literal))
             {
+                object coerced = CoerceArgumentValue(argument,
+                    ParseLiteral(argument.Type, literal));
                 fieldInfo.Arguments[argument.Name] =
                     new ArgumentValue(
-                        argument.Type,
+                        argument,
                         literal.GetValueKind(),
-                        ParseLiteral(argument.Type, literal));
+                        coerced);
             }
             else
             {
+                object coerced = CoerceArgumentValue(argument, literal);
                 fieldInfo.Arguments[argument.Name] =
                     new ArgumentValue(
-                        argument.Type,
+                        argument,
                         literal.GetValueKind(),
-                        literal);
+                        coerced);
             }
         }
 
@@ -408,6 +420,23 @@ namespace HotChocolate.Execution
                 ? (IInputType)argumentType.InnerType()
                 : argumentType;
             return type.ParseLiteral(value);
+        }
+
+        private object CoerceArgumentValue(IInputField argument, object value)
+        {
+            if (_coercionHandlers.Count == 0)
+            {
+                return value;
+            }
+
+            object current = value;
+
+            for (int i = 0; i < _coercionHandlers.Count; i++)
+            {
+                current = _coercionHandlers[i].CoerceValue(argument, current);
+            }
+
+            return current;
         }
     }
 }
