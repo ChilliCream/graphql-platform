@@ -20,29 +20,38 @@ namespace HotChocolate.Types.Filters
             InputObjectType initialType,
             Type source,
             ITypeConversion converter)
-            : base(initialType)
+            : this(initialType, source, converter, ExpressionOperationHandlers.All)
         {
-            _parameter = Expression.Parameter(source, _parameterName);
-            _opHandlers = ExpressionOperationHandlers.All;
-            _converter = converter;
-
-            Level.Push(new Queue<Expression>());
-            Instance.Push(_parameter);
         }
 
         public QueryableFilterVisitor(
             InputObjectType initialType,
             Type source,
+            ITypeConversion converter,
             IEnumerable<IExpressionOperationHandler> operationHandlers)
             : base(initialType)
         {
+            if (initialType is null)
+            {
+                throw new ArgumentNullException(nameof(initialType));
+            }
+            if (source is null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
             if (operationHandlers is null)
             {
                 throw new ArgumentNullException(nameof(operationHandlers));
             }
+            if (converter is null)
+            {
+                throw new ArgumentNullException(nameof(converter));
+            }
 
             _opHandlers = operationHandlers.ToArray();
+
             _parameter = Expression.Parameter(source, _parameterName);
+            _converter = converter;
 
             Level.Push(new Queue<Expression>());
             Instance.Push(_parameter);
