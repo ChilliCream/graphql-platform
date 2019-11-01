@@ -75,7 +75,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
-        private async Task WriteFieldsAsync(
+        private static async Task WriteFieldsAsync(
             CodeWriter writer,
             IClientDescriptor descriptor)
         {
@@ -100,7 +100,7 @@ namespace StrawberryShake.Generators.CSharp
             }
         }
 
-        private async Task WriteConstructorAsync(
+        private static async Task WriteConstructorAsync(
             CodeWriter writer,
             IClientDescriptor descriptor)
         {
@@ -168,13 +168,13 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
-        private async Task WriteOperationAsync(
+        private static async Task WriteOperationAsync(
             CodeWriter writer,
             IOperationDescriptor operation,
             string operationTypeName,
             ITypeLookup typeLookup)
         {
-            await WriteOperationSignature(
+            await WriteOperationSignatureAsync(
                 writer, operation, operationTypeName, typeLookup)
                 .ConfigureAwait(false);
 
@@ -219,14 +219,14 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
-        private async Task WriteOperationRequestAsync(
+        private static async Task WriteOperationRequestAsync(
             CodeWriter writer,
             IOperationDescriptor operation,
             string operationTypeName,
             ITypeLookup typeLookup)
         {
-            await WriteOperationRequestSignature(
-                writer, operation, operationTypeName, typeLookup)
+            await WriteOperationRequestSignatureAsync(
+                writer, operation, operationTypeName)
                 .ConfigureAwait(false);
 
             await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
@@ -266,7 +266,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
         }
 
-        private async Task WriteOperationSignature(
+        private static async Task WriteOperationSignatureAsync(
             CodeWriter writer,
             IOperationDescriptor operation,
             string operationTypeName,
@@ -333,11 +333,10 @@ namespace StrawberryShake.Generators.CSharp
             }
         }
 
-        private async Task WriteOperationRequestSignature(
+        private static async Task WriteOperationRequestSignatureAsync(
            CodeWriter writer,
            IOperationDescriptor operation,
-           string operationTypeName,
-           ITypeLookup typeLookup)
+           string operationTypeName)
         {
             await writer.WriteIndentAsync().ConfigureAwait(false);
             await writer.WriteAsync("public ").ConfigureAwait(false);
@@ -379,7 +378,7 @@ namespace StrawberryShake.Generators.CSharp
             }
         }
 
-        private async Task WriteOperationNullChecksAsync(
+        private static async Task WriteOperationNullChecksAsync(
             CodeWriter writer,
             IOperationDescriptor operation,
             ITypeLookup typeLookup)
@@ -436,7 +435,7 @@ namespace StrawberryShake.Generators.CSharp
             }
         }
 
-        private async Task WriteCreateOperationAsync(
+        private static async Task WriteCreateOperationAsync(
            CodeWriter writer,
            IOperationDescriptor operation,
            ITypeLookup typeLookup)

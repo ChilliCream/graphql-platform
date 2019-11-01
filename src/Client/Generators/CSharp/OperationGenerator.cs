@@ -57,7 +57,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
-        private async Task WriteOperationPropertiesAsync(
+        private static async Task WriteOperationPropertiesAsync(
             CodeWriter writer,
             IOperationDescriptor descriptor,
             ITypeLookup typeLookup)
@@ -87,7 +87,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
-        private async Task WriteArgumentsAsync(
+        private static async Task WriteArgumentsAsync(
             CodeWriter writer,
             IOperationDescriptor descriptor,
             ITypeLookup typeLookup)
@@ -107,7 +107,7 @@ namespace StrawberryShake.Generators.CSharp
             }
         }
 
-        private async Task WriteArgumentAsync(
+        private static async Task WriteArgumentAsync(
             CodeWriter writer,
             Descriptors.IArgumentDescriptor argument,
             ITypeLookup typeLookup)
@@ -122,7 +122,7 @@ namespace StrawberryShake.Generators.CSharp
                 .ConfigureAwait(false);
         }
 
-        private async Task WriteVariablesAsync(
+        private static async Task WriteVariablesAsync(
             CodeWriter writer,
             IOperationDescriptor descriptor,
             ITypeLookup typeLookup)
@@ -183,7 +183,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
-        private async Task WriteVariableAsync(
+        private static async Task WriteVariableAsync(
             CodeWriter writer,
             Descriptors.IArgumentDescriptor argument,
             ITypeLookup typeLookup)

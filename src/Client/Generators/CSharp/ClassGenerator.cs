@@ -87,7 +87,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
-        private async Task WriteConstructorAsync(
+        private static async Task WriteConstructorAsync(
             CodeWriter writer,
             IClassDescriptor descriptor,
             ITypeLookup typeLookup)

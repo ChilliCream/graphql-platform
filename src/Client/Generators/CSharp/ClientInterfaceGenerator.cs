@@ -70,7 +70,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync().ConfigureAwait(false);
         }
 
-        private async Task WriteOperationAsync(
+        private static async Task WriteOperationAsync(
             CodeWriter writer,
             IOperationDescriptor operation,
             string operationTypeName,
@@ -142,7 +142,7 @@ namespace StrawberryShake.Generators.CSharp
             }
         }
 
-        private async Task WriteOperationRequestAsync(
+        private static async Task WriteOperationRequestAsync(
             CodeWriter writer,
             IOperationDescriptor operation,
             string operationTypeName,

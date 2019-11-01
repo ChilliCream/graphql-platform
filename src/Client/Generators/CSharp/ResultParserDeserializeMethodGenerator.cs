@@ -58,7 +58,8 @@ namespace StrawberryShake.Generators.CSharp
                 descriptor.ParseMethods.SelectMany(t => t.PossibleTypes))
             {
                 await WriteDeserializeMethodAsync(
-                    writer, possibleType, typeLookup, generatedMethods);
+                    writer, possibleType, typeLookup, generatedMethods)
+                    .ConfigureAwait(false);
             }
         }
 
@@ -83,12 +84,13 @@ namespace StrawberryShake.Generators.CSharp
 
                     if (!first)
                     {
-                        await writer.WriteLineAsync();
+                        await writer.WriteLineAsync().ConfigureAwait(false);
                     }
                     first = false;
 
                     if (type.IsListType() && type.ListType().ElementType.IsListType())
                     {
+                        // TODO : implement this
                         throw new NotImplementedException();
                     }
                     else if (type.IsListType()
@@ -100,23 +102,25 @@ namespace StrawberryShake.Generators.CSharp
                             methodName,
                             type,
                             type.NamedType().Name,
-                            serializerMethod);
+                            serializerMethod)
+                            .ConfigureAwait(false);
                     }
                     else
                     {
-                        await WriteDeserializeLeaf(
+                        await WriteDeserializeLeafAsync(
                             writer,
                             methodName,
                             typeLookup.GetLeafClrTypeName(type),
                             type.NamedType().Name,
                             serializerMethod,
-                            type.IsNonNullType());
+                            type.IsNonNullType())
+                            .ConfigureAwait(false);
                     }
                 }
             }
         }
 
-        private async Task WriteDeserializeLeaf(
+        private async Task WriteDeserializeLeafAsync(
             CodeWriter writer,
             string methodName,
             string clrTypeName,
