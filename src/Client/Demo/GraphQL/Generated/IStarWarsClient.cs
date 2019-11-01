@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake;
 
-namespace  StrawberryShake.Client.GraphQL
+namespace StrawberryShake.Client.GraphQL
 {
     public interface IStarWarsClient
     {

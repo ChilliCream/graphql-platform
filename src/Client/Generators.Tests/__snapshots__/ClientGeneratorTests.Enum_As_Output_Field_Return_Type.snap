@@ -460,7 +460,6 @@ namespace StrawberryShake.Client
 
             serviceCollection.AddDefaultScalarSerializers();
             serviceCollection.AddEnumSerializers();
-            serviceCollection.AddInputSerializers();
             serviceCollection.AddResultParsers();
 
             serviceCollection.TryAddDefaultOperationSerializer();
@@ -477,6 +476,8 @@ namespace StrawberryShake.Client
                 throw new ArgumentNullException(nameof(serviceCollection));
             }
 
+            serviceCollection.AddSingleton<IValueSerializerResolver, ValueSerializerResolver>();
+
             foreach (IValueSerializer serializer in ValueSerializers.All)
             {
                 serviceCollection.AddSingleton(serializer);
@@ -492,15 +493,11 @@ namespace StrawberryShake.Client
             return serviceCollection;
         }
 
-        private static IServiceCollection AddInputSerializers(
-            this IServiceCollection serviceCollection)
-        {
-            return serviceCollection;
-        }
 
         private static IServiceCollection AddResultParsers(
             this IServiceCollection serviceCollection)
         {
+            serviceCollection.AddSingleton<IResultParserResolver, ResultParserResolver>();
             serviceCollection.AddSingleton<IResultParser, GetFooResultParser>();
             return serviceCollection;
         }

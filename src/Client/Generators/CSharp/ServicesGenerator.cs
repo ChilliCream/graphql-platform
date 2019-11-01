@@ -26,7 +26,7 @@ namespace StrawberryShake.Generators.CSharp
             ITypeLookup typeLookup) =>
             WriteStaticClassAsync(writer, descriptor.Name, async () =>
             {
-                await WriteAddClientAsync(writer, descriptor.Client).ConfigureAwait(false);
+                await WriteAddClientAsync(writer, descriptor).ConfigureAwait(false);
                 await writer.WriteLineAsync().ConfigureAwait(false);
 
                 await WriteAddSerializersAsync(writer, descriptor.Client).ConfigureAwait(false);
@@ -64,6 +64,12 @@ namespace StrawberryShake.Generators.CSharp
                 async () =>
                 {
                     await writer.WriteIndentedLineAsync(
+                        "serviceCollection.AddSingleton<IValueSerializerResolver, " +
+                        "ValueSerializerResolver>();")
+                        .ConfigureAwait(false);
+                    await writer.WriteLineAsync().ConfigureAwait(false);
+
+                    await writer.WriteIndentedLineAsync(
                         "foreach (IValueSerializer serializer in ValueSerializers.All)")
                         .ConfigureAwait(false);
                     await writer.WriteIndentedLineAsync("{").ConfigureAwait(false);
@@ -77,23 +83,24 @@ namespace StrawberryShake.Generators.CSharp
 
                     await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
                     await writer.WriteLineAsync().ConfigureAwait(false);
-                }).ConfigureAwait(false);;
+                }).ConfigureAwait(false);
+            ;
         }
 
         private async Task WriteAddClientAsync(
             CodeWriter writer,
-            IClientDescriptor descriptor)
+            IServicesDescriptor descriptor)
         {
             await WriteMethodAsync(
                 writer,
-                $"Add{descriptor.Name}",
+                $"Add{descriptor.Client.Name}",
                 true,
                 async () =>
                 {
                     await writer.WriteIndentedLineAsync(
                         "serviceCollection.AddSingleton<{0}, {1}>();",
-                        GetInterfaceName(descriptor.Name),
-                        GetClassName(descriptor.Name))
+                        GetInterfaceName(descriptor.Client.Name),
+                        GetClassName(descriptor.Client.Name))
                         .ConfigureAwait(false);
 
                     await writer.WriteIndentedLineAsync(
@@ -126,12 +133,21 @@ namespace StrawberryShake.Generators.CSharp
                     await writer.WriteIndentedLineAsync(
                         "serviceCollection.AddDefaultScalarSerializers();")
                         .ConfigureAwait(false);
-                    await writer.WriteIndentedLineAsync(
-                        "serviceCollection.AddEnumSerializers();")
-                        .ConfigureAwait(false);
-                    await writer.WriteIndentedLineAsync(
-                        "serviceCollection.AddInputSerializers();")
-                        .ConfigureAwait(false);
+
+                    if (descriptor.EnumTypes.Count > 0)
+                    {
+                        await writer.WriteIndentedLineAsync(
+                            "serviceCollection.AddEnumSerializers();")
+                            .ConfigureAwait(false);
+                    }
+
+                    if (descriptor.InputTypes.Count > 0)
+                    {
+                        await writer.WriteIndentedLineAsync(
+                            "serviceCollection.AddInputSerializers();")
+                            .ConfigureAwait(false);
+                    }
+
                     await writer.WriteIndentedLineAsync(
                         "serviceCollection.AddResultParsers();")
                         .ConfigureAwait(false);
@@ -152,6 +168,11 @@ namespace StrawberryShake.Generators.CSharp
             CodeWriter writer,
             IServicesDescriptor descriptor)
         {
+            if (descriptor.EnumTypes.Count == 0)
+            {
+                return;
+            }
+
             await WriteMethodAsync(
                 writer,
                 "AddEnumSerializers",
@@ -172,6 +193,11 @@ namespace StrawberryShake.Generators.CSharp
             CodeWriter writer,
             IServicesDescriptor descriptor)
         {
+            if (descriptor.InputTypes.Count == 0)
+            {
+                return;
+            }
+
             await WriteMethodAsync(
                 writer,
                 "AddInputSerializers",
@@ -185,7 +211,8 @@ namespace StrawberryShake.Generators.CSharp
                             GetClassName(inputType.Name + "Serializer"))
                             .ConfigureAwait(false);
                     }
-                }).ConfigureAwait(false);;
+                }).ConfigureAwait(false);
+            ;
         }
 
         private async Task WriteAddResultParsersAsync(
@@ -198,6 +225,11 @@ namespace StrawberryShake.Generators.CSharp
                 false,
                 async () =>
                 {
+                    await writer.WriteIndentedLineAsync(
+                        "serviceCollection.AddSingleton<IResultParserResolver, " +
+                        "ResultParserResolver>();")
+                        .ConfigureAwait(false);
+
                     foreach (IResultParserDescriptor resultParser in descriptor.ResultParsers)
                     {
                         await writer.WriteIndentedLineAsync(

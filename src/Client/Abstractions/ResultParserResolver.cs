@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace StrawberryShake
 {
-    public class ResultParserResolver
+    public sealed class ResultParserResolver
         : IResultParserResolver
     {
         private readonly IReadOnlyDictionary<Type, IResultParser> _parsers;

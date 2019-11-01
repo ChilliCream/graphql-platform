@@ -4,7 +4,7 @@ using System.Linq;
 
 namespace StrawberryShake
 {
-    public class ValueSerializerResolver
+    public sealed class ValueSerializerResolver
         : IValueSerializerResolver
     {
         private readonly IReadOnlyDictionary<string, IValueSerializer> _serializers;

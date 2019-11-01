@@ -9,7 +9,7 @@ using StrawberryShake.Http;
 using StrawberryShake.Http.Pipelines;
 using StrawberryShake.Serializers;
 
-namespace  StrawberryShake.Client.GraphQL
+namespace StrawberryShake.Client.GraphQL
 {
     public static class StarWarsClientServiceCollectionExtensions
     {
@@ -48,6 +48,8 @@ namespace  StrawberryShake.Client.GraphQL
                 throw new ArgumentNullException(nameof(serviceCollection));
             }
 
+            serviceCollection.AddSingleton<IValueSerializerResolver, ValueSerializerResolver>();
+
             foreach (IValueSerializer serializer in ValueSerializers.All)
             {
                 serviceCollection.AddSingleton(serializer);
@@ -74,6 +76,7 @@ namespace  StrawberryShake.Client.GraphQL
         private static IServiceCollection AddResultParsers(
             this IServiceCollection serviceCollection)
         {
+            serviceCollection.AddSingleton<IResultParserResolver, ResultParserResolver>();
             serviceCollection.AddSingleton<IResultParser, GetHeroResultParser>();
             serviceCollection.AddSingleton<IResultParser, GetHumanResultParser>();
             serviceCollection.AddSingleton<IResultParser, SearchResultParser>();
