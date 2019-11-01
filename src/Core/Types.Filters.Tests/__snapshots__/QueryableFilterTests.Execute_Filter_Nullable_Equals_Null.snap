@@ -1,0 +1,33 @@
+﻿{
+  "Data": {
+    "foos": [
+      {
+        "bar": "ba",
+        "qux": null
+      },
+      {
+        "bar": "ca",
+        "qux": null
+      },
+      {
+        "bar": "ab",
+        "qux": null
+      },
+      {
+        "bar": "ac",
+        "qux": null
+      },
+      {
+        "bar": "ad",
+        "qux": null
+      },
+      {
+        "bar": null,
+        "qux": null
+      }
+    ]
+  },
+  "Extensions": {},
+  "Errors": [],
+  "ContextData": {}
+}
