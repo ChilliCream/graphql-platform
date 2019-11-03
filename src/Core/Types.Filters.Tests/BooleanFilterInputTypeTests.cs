@@ -224,7 +224,7 @@ namespace HotChocolate.Types.Filters
 
         public class Bar
         {
-
+            public string Qux { get; set; }
         }
 
         public class FooArray

@@ -14,7 +14,7 @@ input FooFilter {
   OR: [FooFilter!]
 }
 
-directive @Bar on INPUT_FIELD_DEFINITION
+directive @Bar(qux: String) on INPUT_FIELD_DEFINITION
 
 "The `Boolean` scalar type represents `true` or `false`."
 scalar Boolean
