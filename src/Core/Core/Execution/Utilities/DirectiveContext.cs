@@ -120,5 +120,11 @@ namespace HotChocolate.Execution
             ObjectType typeContext, SelectionSetNode selectionSet) =>
             _middlewareContext.CollectFields(
                 typeContext, FieldSelection.SelectionSet);
+
+        public ValueKind ArgumentKind(NameString name) =>
+            _middlewareContext.ArgumentKind(name);
+
+        public void ModifyScopedContext(ModifyScopedContext modify) =>
+            _middlewareContext.ModifyScopedContext(modify);
     }
 }

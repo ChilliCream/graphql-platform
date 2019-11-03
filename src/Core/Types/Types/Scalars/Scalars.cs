@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using HotChocolate.Types.Descriptors;
@@ -47,39 +48,39 @@ namespace HotChocolate.Types
         private static readonly Dictionary<NameString, IClrTypeReference> _nameLookup =
            new Dictionary<NameString, IClrTypeReference>
            {
-                { "String", new ClrTypeReference(
+                { ScalarNames.String, new ClrTypeReference(
                     typeof(StringType), TypeContext.None) },
-                { "ID", new ClrTypeReference(
+                { ScalarNames.ID, new ClrTypeReference(
                     typeof(IdType), TypeContext.None) },
-                { "Boolean", new ClrTypeReference(
+                { ScalarNames.Boolean, new ClrTypeReference(
                     typeof(BooleanType), TypeContext.None) },
-                { "Byte", new ClrTypeReference(
+                { ScalarNames.Byte, new ClrTypeReference(
                     typeof(ByteType), TypeContext.None) },
-                { "Short", new ClrTypeReference(
+                { ScalarNames.Short, new ClrTypeReference(
                     typeof(ShortType), TypeContext.None) },
-                { "Int", new ClrTypeReference(
+                { ScalarNames.Int, new ClrTypeReference(
                     typeof(IntType), TypeContext.None) },
-                { "Long", new ClrTypeReference(
+                { ScalarNames.Long, new ClrTypeReference(
                     typeof(LongType), TypeContext.None) },
 
-                { "Float", new ClrTypeReference(
+                { ScalarNames.Float, new ClrTypeReference(
                     typeof(FloatType), TypeContext.None) },
-                { "Decimal", new ClrTypeReference(
+                { ScalarNames.Decimal, new ClrTypeReference(
                     typeof(DecimalType), TypeContext.None) },
 
-                { "Url", new ClrTypeReference(
+                { ScalarNames.Url, new ClrTypeReference(
                     typeof(UrlType), TypeContext.None) },
-                { "Uuid", new ClrTypeReference(
+                { ScalarNames.Uuid, new ClrTypeReference(
                     typeof(UuidType), TypeContext.None) },
-                { "DateTime", new ClrTypeReference(
+                { ScalarNames.DateTime, new ClrTypeReference(
                     typeof(DateTimeType), TypeContext.None) },
-                { "Date", new ClrTypeReference(
+                { ScalarNames.Date, new ClrTypeReference(
                     typeof(DateType), TypeContext.None) },
-                { "MultiplierPath", new ClrTypeReference(
+                { ScalarNames.MultiplierPath, new ClrTypeReference(
                     typeof(MultiplierPathType), TypeContext.None) },
-                { "Name", new ClrTypeReference(
+                { ScalarNames.Name, new ClrTypeReference(
                     typeof(NameType), TypeContext.None) },
-                { "PaginationAmount", new ClrTypeReference(
+                { ScalarNames.PaginationAmount, new ClrTypeReference(
                     typeof(PaginationAmountType), TypeContext.None) },
            };
 
@@ -153,7 +154,25 @@ namespace HotChocolate.Types
                 return true;
             }
 
-            return _scalarKinds.TryGetValue(valueType, out kind);
+            if (_scalarKinds.TryGetValue(valueType, out kind))
+            {
+                return true;
+            }
+
+            if (value is IDictionary)
+            {
+                kind = ValueKind.Object;
+                return true;
+            }
+
+            if (value is ICollection)
+            {
+                kind = ValueKind.List;
+                return true;
+            }
+
+            kind = ValueKind.Unknown;
+            return false;
         }
     }
 }

@@ -19,6 +19,8 @@ namespace HotChocolate
             public const string QueryNotFound = "PERSISTED_QUERY_NOT_FOUND";
             public const string NonNullViolation = "EXEC_NON_NULL_VIOLATION";
             public const string CachedQueryNotFound = "CACHED_QUERY_NOT_FOUND";
+            public const string MustBeInputType = "EXEC_INPUT_TYPE_REQUIRED";
+            public const string InvalidType = "EXEC_INVALID_TYPE";
         }
 
         internal static class Schema

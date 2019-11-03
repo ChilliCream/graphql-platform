@@ -334,5 +334,16 @@ namespace HotChocolate.Language
             var serializer = new QuerySyntaxSerializer(useIndentation);
             serializer.Visit(node, new DocumentWriter(writer));
         }
+
+        public static void Serialize(
+            ISyntaxNode node,
+            Stream stream,
+            bool useIndentation)
+        {
+            using (var writer = new StreamWriter(stream, Encoding.UTF8))
+            {
+                Serialize(node, writer, useIndentation);
+            }
+        }
     }
 }

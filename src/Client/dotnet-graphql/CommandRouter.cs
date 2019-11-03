@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using McMaster.Extensions.CommandLineUtils;
@@ -17,6 +18,8 @@ namespace StrawberryShake.Tools
 
         public Task<int> OnExecute()
         {
+            RemainingArgs = RemainingArgs ?? Array.Empty<string>();
+
             switch (Command)
             {
                 case Command.Init:

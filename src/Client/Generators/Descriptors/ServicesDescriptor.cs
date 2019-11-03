@@ -11,6 +11,7 @@ namespace StrawberryShake.Generators.Descriptors
             string name,
             string ns,
             IClientDescriptor client,
+            IReadOnlyCollection<IInputClassDescriptor> inputTypes,
             IReadOnlyCollection<IEnumDescriptor> enumTypes,
             IReadOnlyCollection<IResultParserDescriptor> resultParsers)
         {
@@ -22,6 +23,8 @@ namespace StrawberryShake.Generators.Descriptors
                 ?? throw new ArgumentNullException(nameof(client));
             EnumTypes = enumTypes
                 ?? throw new ArgumentNullException(nameof(enumTypes));
+            InputTypes = inputTypes
+                ?? throw new ArgumentNullException(nameof(inputTypes));
             ResultParsers = resultParsers
                 ?? throw new ArgumentNullException(nameof(resultParsers));
         }
@@ -31,6 +34,8 @@ namespace StrawberryShake.Generators.Descriptors
         public string Namespace { get; }
 
         public IClientDescriptor Client { get; }
+
+        public IReadOnlyCollection<IInputClassDescriptor> InputTypes { get; }
 
         public IReadOnlyCollection<IEnumDescriptor> EnumTypes { get; }
 

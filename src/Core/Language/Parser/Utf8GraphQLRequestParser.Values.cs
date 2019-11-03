@@ -8,7 +8,7 @@ namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLRequestParser
     {
-        private object ParseValue()
+        private object? ParseValue()
         {
             switch (_reader.Kind)
             {
@@ -51,11 +51,11 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IReadOnlyDictionary<string, object> ParseObject()
+        private IReadOnlyDictionary<string, object?> ParseObject()
         {
             _reader.Expect(TokenKind.LeftBrace);
 
-            var obj = new Dictionary<string, object>();
+            var obj = new Dictionary<string, object?>();
 
             while (_reader.Kind != TokenKind.RightBrace)
             {
@@ -86,7 +86,7 @@ namespace HotChocolate.Language
 
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void ParseObjectField(IDictionary<string, object> obj)
+        private void ParseObjectField(IDictionary<string, object?> obj)
         {
             if (_reader.Kind != TokenKind.String)
             {
@@ -101,7 +101,7 @@ namespace HotChocolate.Language
             string name = _reader.GetString();
             _reader.MoveNext();
             _reader.Expect(TokenKind.Colon);
-            object value = ParseValue();
+            object? value = ParseValue();
             obj.Add(name, value);
         }
 
@@ -124,7 +124,7 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private IReadOnlyList<object> ParseList()
+        private IReadOnlyList<object?> ParseList()
         {
             if (_reader.Kind != TokenKind.LeftBracket)
             {
@@ -136,7 +136,7 @@ namespace HotChocolate.Language
                         TokenVisualizer.Visualize(in _reader)));
             }
 
-            var list = new List<object>();
+            var list = new List<object?>();
 
             // skip opening token
             _reader.MoveNext();
@@ -170,9 +170,9 @@ namespace HotChocolate.Language
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private object ParseScalar()
+        private object? ParseScalar()
         {
-            string value = null;
+            string? value = null;
 
             switch (_reader.Kind)
             {
@@ -189,7 +189,7 @@ namespace HotChocolate.Language
                 case TokenKind.Float:
                     value = _reader.GetScalarValue();
                     _reader.MoveNext();
-                    return decimal.Parse(value, CultureInfo.InvariantCulture);
+                    return decimal.Parse(value, NumberStyles.Float, CultureInfo.InvariantCulture);
 
                 case TokenKind.Name:
                     if (_reader.Value.SequenceEqual(GraphQLKeywords.True))

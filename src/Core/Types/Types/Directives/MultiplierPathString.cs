@@ -23,7 +23,7 @@ namespace HotChocolate.Types
         /// <exception cref="ArgumentException"
         public MultiplierPathString(string value)
         {
-            if (!IsValidName(value))
+            if (!IsValidPath(value))
             {
                 throw new ArgumentException(
                     TypeResourceHelper.Type_Name_IsNotValid(value),
@@ -246,7 +246,7 @@ namespace HotChocolate.Types
                 ? new MultiplierPathString()
                 : new MultiplierPathString(s);
 
-        public static bool IsValidName(string name)
+        public static bool IsValidPath(string name)
         {
             if (name == null || name.Length == 0)
             {
@@ -260,7 +260,34 @@ namespace HotChocolate.Types
                     for (int i = 1; i < name.Length; i++)
                     {
                         if (!name[i].IsLetterOrDigitOrUnderscore()
-                            && !name[i].IsDot())
+                            && name[i] != GraphQLConstants.Dot)
+                        {
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsValidPath(ReadOnlySpan<byte> name)
+        {
+            if (name == null || name.Length == 0)
+            {
+                return false;
+            }
+
+            if (name[0].IsLetterOrUnderscore())
+            {
+                if (name.Length > 1)
+                {
+                    for (int i = 1; i < name.Length; i++)
+                    {
+                        if (!name[i].IsLetterOrDigitOrUnderscore()
+                            && name[i] != GraphQLConstants.Dot)
                         {
                             return false;
                         }

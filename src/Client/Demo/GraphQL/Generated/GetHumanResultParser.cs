@@ -5,7 +5,7 @@ using System.Text.Json;
 using StrawberryShake;
 using StrawberryShake.Http;
 
-namespace  StrawberryShake.Client.GraphQL
+namespace StrawberryShake.Client.GraphQL
 {
     public class GetHumanResultParser
         : JsonResultParserBase<IGetHuman>

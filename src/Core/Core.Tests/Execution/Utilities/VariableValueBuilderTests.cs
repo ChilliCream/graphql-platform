@@ -629,8 +629,7 @@ namespace HotChocolate.Execution
 
         private OperationDefinitionNode CreateQuery(string query)
         {
-            var parser = new Parser();
-            return parser.Parse(query)
+            return Utf8GraphQLParser.Parse(query)
                 .Definitions.OfType<OperationDefinitionNode>().First();
         }
 

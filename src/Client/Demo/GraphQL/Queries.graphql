@@ -17,6 +17,12 @@ query search($text: String!) {
   }
 }
 
+mutation createReview($episode: Episode! $review: ReviewInput!) {
+  createReview(episode: $episode review: $review) {
+    commentary
+  }
+}
+
 fragment Hero on Character {
   ...HasName
   ...Human

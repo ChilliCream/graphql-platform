@@ -6,7 +6,7 @@ namespace HotChocolate.Language
 {
     public ref partial struct Utf8GraphQLRequestParser
     {
-        private string ParseStringOrNull()
+        private string? ParseStringOrNull()
         {
             if (_reader.Kind == TokenKind.String)
             {
@@ -27,13 +27,13 @@ namespace HotChocolate.Language
                 _reader,
                 string.Format(
                     CultureInfo.InvariantCulture,
-                    "Exprected a string-token or a null-token, " +
+                    "Expected a string-token or a null-token, " +
                     "but found a {0}-token with value `{1}`.",
                     _reader.Kind.ToString(),
                     _reader.GetString()));
         }
 
-        private IReadOnlyDictionary<string, object> ParseObjectOrNull()
+        private IReadOnlyDictionary<string, object?>? ParseObjectOrNull()
         {
             if (_reader.Kind == TokenKind.LeftBrace)
             {
@@ -52,7 +52,7 @@ namespace HotChocolate.Language
                 _reader,
                 string.Format(
                     CultureInfo.InvariantCulture,
-                    "Exprected an object or a null-token, " +
+                    "Expected an object or a null-token, " +
                     "but found a {0}-token with value `{1}`.",
                     _reader.Kind.ToString(),
                     _reader.GetString()));

@@ -8,10 +8,10 @@ namespace HotChocolate.Language
         , IHasDirectives
     {
         public VariableDefinitionNode(
-            Location location,
+            Location? location,
             VariableNode variable,
             ITypeNode type,
-            IValueNode defaultValue,
+            IValueNode? defaultValue,
             IReadOnlyList<DirectiveNode> directives)
         {
             Location = location;
@@ -26,17 +26,17 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.VariableDefinition;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public VariableNode Variable { get; }
 
         public ITypeNode Type { get; }
 
-        public IValueNode DefaultValue { get; }
+        public IValueNode? DefaultValue { get; }
 
         public IReadOnlyList<DirectiveNode> Directives { get; }
 
-        public VariableDefinitionNode WithLocation(Location location)
+        public VariableDefinitionNode WithLocation(Location? location)
         {
             return new VariableDefinitionNode(
                 location, Variable, Type,
@@ -57,7 +57,7 @@ namespace HotChocolate.Language
                 DefaultValue, Directives);
         }
 
-        public VariableDefinitionNode WithDefaultValue(IValueNode defaultValue)
+        public VariableDefinitionNode WithDefaultValue(IValueNode? defaultValue)
         {
             return new VariableDefinitionNode(
                 Location, Variable, Type,

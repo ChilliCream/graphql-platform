@@ -4,10 +4,10 @@ namespace HotChocolate.Language
 {
     public sealed class ScalarTypeExtensionNode
         : ScalarTypeDefinitionNodeBase
-        , INamedTypeExtensionNode
+        , ITypeExtensionNode
     {
         public ScalarTypeExtensionNode(
-            Location location,
+            Location? location,
             NameNode name,
             IReadOnlyList<DirectiveNode> directives)
             : base(location, name, directives)
@@ -16,7 +16,7 @@ namespace HotChocolate.Language
 
         public override NodeKind Kind { get; } = NodeKind.ScalarTypeExtension;
 
-        public ScalarTypeExtensionNode WithLocation(Location location)
+        public ScalarTypeExtensionNode WithLocation(Location? location)
         {
             return new ScalarTypeExtensionNode(
                 location, Name, Directives);

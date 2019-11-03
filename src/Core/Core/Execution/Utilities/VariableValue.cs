@@ -1,33 +1,33 @@
-using System;
+using HotChocolate.Language;
 using HotChocolate.Types;
 
 namespace HotChocolate.Execution
 {
-    internal readonly struct VariableValue
+    internal sealed class VariableValue
     {
-        private readonly Func<IInputField, object, object> _coerceArgumentValue;
-
         public VariableValue(
-            IInputField argument,
-            NameString variableName,
-            object defaultValue,
-            Func<IInputField, object, object> coerceArgumentValue)
+            NameString name,
+            IInputType type,
+            object value)
         {
-            Argument = argument;
-            VariableName = variableName;
-            DefaultValue = defaultValue;
-            _coerceArgumentValue = coerceArgumentValue;
+            Name = name;
+            Type = type;
+            if (value is IValueNode literal)
+            {
+                Literal = literal;
+            }
+            else
+            {
+                Value = value;
+            }
         }
 
-        public IInputField Argument { get; }
+        public NameString Name { get; }
 
-        public IInputType Type => Argument.Type;
+        public IInputType Type { get; }
 
-        public NameString VariableName { get; }
+        public object Value { get; }
 
-        public object DefaultValue { get; }
-
-        public object CoerceValue(object value) =>
-            _coerceArgumentValue(Argument, value);
+        public IValueNode Literal { get; }
     }
 }

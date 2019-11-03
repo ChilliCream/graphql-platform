@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using ChilliCream.Testing;
 using HotChocolate.DataLoader;
 using HotChocolate.Execution;
 using HotChocolate.Execution.Configuration;
@@ -697,7 +696,7 @@ namespace HotChocolate.Integration.StarWarsCodeFirst
             IReadOnlyQueryResult eventResult;
             using (var cts = new CancellationTokenSource(2000))
             {
-                eventResult = await responseStream.ReadAsync();
+                eventResult = await responseStream.ReadAsync(cts.Token);
             }
 
             eventResult.MatchSnapshot();

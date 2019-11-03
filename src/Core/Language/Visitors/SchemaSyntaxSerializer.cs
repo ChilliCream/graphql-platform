@@ -353,7 +353,7 @@ namespace HotChocolate.Language
         }
 
         private void WriteDescription(
-            StringValueNode description,
+            StringValueNode? description,
             DocumentWriter writer)
         {
             if (description != null)

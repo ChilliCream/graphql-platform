@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using HotChocolate.Language;
+using HotChocolate.Types;
 using HotChocolate.Types.Descriptors;
-using HotChocolate.Utilities;
 using HotChocolate.Types.Filters.Properties;
 using HotChocolate.Types.Descriptors.Definitions;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Filters
 {
@@ -42,6 +44,42 @@ namespace HotChocolate.Types.Filters
 
         protected List<FilterFieldDescriptorBase> Fields { get; } =
             new List<FilterFieldDescriptorBase>();
+
+
+        public IFilterInputTypeDescriptor<T> Name(NameString value)
+        {
+            Definition.Name = value.EnsureNotEmpty(nameof(value));
+            return this;
+        }
+
+        public IFilterInputTypeDescriptor<T> Description(
+            string value)
+        {
+            Definition.Description = value;
+            return this;
+        }
+
+        public IFilterInputTypeDescriptor<T> Directive<TDirective>(TDirective directiveInstance)
+            where TDirective : class
+        {
+            Definition.AddDirective(directiveInstance);
+            return this;
+        }
+
+        public IFilterInputTypeDescriptor<T> Directive<TDirective>()
+            where TDirective : class, new()
+        {
+            Definition.AddDirective(new TDirective());
+            return this;
+        }
+
+        public IFilterInputTypeDescriptor<T> Directive(
+            NameString name,
+            params ArgumentNode[] arguments)
+        {
+            Definition.AddDirective(name, arguments);
+            return this;
+        }
 
         protected override void OnCreateDefinition(
             FilterInputTypeDefinition definition)
@@ -118,7 +156,7 @@ namespace HotChocolate.Types.Filters
                 return true;
             }
 
-            if (typeof(IComparable).IsAssignableFrom(property.PropertyType))
+            if (IsComparable(property.PropertyType))
             {
                 var field = new ComparableFilterFieldDescriptor(
                     Context, property);
@@ -135,6 +173,24 @@ namespace HotChocolate.Types.Filters
             }
 
             definition = null;
+            return false;
+        }
+
+        private bool IsComparable(Type type)
+        {
+            if (typeof(IComparable).IsAssignableFrom(type))
+            {
+                return true;
+            }
+
+            if (type.IsValueType
+                && type.IsGenericType
+                && type.GetGenericTypeDefinition() == typeof(Nullable<>))
+            {
+                return typeof(IComparable).IsAssignableFrom(
+                    Nullable.GetUnderlyingType(type));
+            }
+
             return false;
         }
 

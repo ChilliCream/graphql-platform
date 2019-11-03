@@ -20,7 +20,7 @@ namespace HotChocolate.Language
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
-            DocumentNode queryDocument = Parser.Default.Parse(query);
+            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
 
             // act
             serializer.Visit(queryDocument, new DocumentWriter(writer));
@@ -42,7 +42,7 @@ namespace HotChocolate.Language
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
-            DocumentNode queryDocument = Parser.Default.Parse(query);
+            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
 
             // act
             serializer.Visit(queryDocument, new DocumentWriter(writer));
@@ -61,7 +61,7 @@ namespace HotChocolate.Language
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
-            DocumentNode queryDocument = Parser.Default.Parse(query);
+            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
 
             // act
             serializer.Visit(queryDocument, new DocumentWriter(writer));
@@ -80,7 +80,7 @@ namespace HotChocolate.Language
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
-            DocumentNode queryDocument = Parser.Default.Parse(query);
+            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
 
 
             // act
@@ -100,7 +100,7 @@ namespace HotChocolate.Language
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
-            DocumentNode queryDocument = Parser.Default.Parse(query);
+            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
 
             // act
             serializer.Visit(queryDocument, new DocumentWriter(writer));
@@ -119,14 +119,14 @@ namespace HotChocolate.Language
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
-            DocumentNode queryDocument = Parser.Default.Parse(query);
+            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
 
             // act
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
             string serializedQuery = content.ToString();
-            DocumentNode parsedQuery = Parser.Default.Parse(serializedQuery);
+            DocumentNode parsedQuery = Utf8GraphQLParser.Parse(serializedQuery);
 
             content.Clear();
             serializer.Visit(parsedQuery, new DocumentWriter(writer));
@@ -140,18 +140,18 @@ namespace HotChocolate.Language
             // arrange
             string query = FileResource.Open("kitchen-sink.graphql");
 
-            var serializer = new QuerySyntaxSerializer();
+            var serializer = new QuerySyntaxSerializer(true);
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
-            DocumentNode queryDocument = Parser.Default.Parse(query);
+            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
 
             // act
             serializer.Visit(queryDocument, new DocumentWriter(writer));
 
             // assert
             string serializedQuery = content.ToString();
-            DocumentNode parsedQuery = Parser.Default.Parse(serializedQuery);
+            DocumentNode parsedQuery = Utf8GraphQLParser.Parse(serializedQuery);
 
             content.Clear();
             serializer.Visit(parsedQuery, new DocumentWriter(writer));
@@ -170,7 +170,7 @@ namespace HotChocolate.Language
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
-            DocumentNode queryDocument = Parser.Default.Parse(query);
+            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query);
 
             // act
             serializer.Visit(queryDocument, new DocumentWriter(writer));
@@ -191,7 +191,7 @@ namespace HotChocolate.Language
             var content = new StringBuilder();
             var writer = new StringWriter(content);
 
-            DocumentNode queryDocument = Parser.Default.Parse(query,
+            DocumentNode queryDocument = Utf8GraphQLParser.Parse(query,
                 new ParserOptions(allowFragmentVariables: true));
 
             // act

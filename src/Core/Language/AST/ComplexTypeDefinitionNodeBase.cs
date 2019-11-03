@@ -7,7 +7,7 @@ namespace HotChocolate.Language
         : NamedSyntaxNode
     {
         protected ComplexTypeDefinitionNodeBase(
-            Location location,
+            Location? location,
             NameNode name,
             IReadOnlyList<DirectiveNode> directives,
             IReadOnlyList<FieldDefinitionNode> fields)

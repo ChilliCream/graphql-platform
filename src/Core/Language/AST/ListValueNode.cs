@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.IO;
+using System;
 using System.Collections.Generic;
 
 namespace HotChocolate.Language
@@ -8,13 +9,14 @@ namespace HotChocolate.Language
         , IEquatable<ListValueNode>
     {
         private int? _hash;
+        private string? _stringValue;
 
         public ListValueNode(IValueNode item)
             : this(null, item)
         {
         }
 
-        public ListValueNode(Location location, IValueNode item)
+        public ListValueNode(Location? location, IValueNode item)
         {
             if (item == null)
             {
@@ -35,7 +37,7 @@ namespace HotChocolate.Language
         }
 
         public ListValueNode(
-            Location location,
+            Location? location,
             IReadOnlyList<IValueNode> items)
         {
             Location = location;
@@ -44,7 +46,7 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.ListValue;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public IReadOnlyList<IValueNode> Items { get; }
 
@@ -66,7 +68,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="ListValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(ListValueNode other)
+        public bool Equals(ListValueNode? other)
         {
             if (other is null)
             {
@@ -107,7 +109,7 @@ namespace HotChocolate.Language
         /// to the current <see cref="ListValueNode"/>;
         /// otherwise, <c>false</c>.
         /// </returns>
-        public bool Equals(IValueNode other)
+        public bool Equals(IValueNode? other)
         {
             if (other is null)
             {
@@ -139,7 +141,7 @@ namespace HotChocolate.Language
         /// <c>true</c> if the specified <see cref="object"/> is equal to the
         /// current <see cref="ListValueNode"/>; otherwise, <c>false</c>.
         /// </returns>
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             if (obj is null)
             {
@@ -180,7 +182,16 @@ namespace HotChocolate.Language
             }
         }
 
-        public ListValueNode WithLocation(Location location)
+        public override string? ToString()
+        {
+            if (_stringValue is null)
+            {
+                _stringValue = QuerySyntaxSerializer.Serialize(this, true);
+            }
+            return _stringValue;
+        }
+
+        public ListValueNode WithLocation(Location? location)
         {
             return new ListValueNode(location, Items);
         }

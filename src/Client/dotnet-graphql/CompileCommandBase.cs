@@ -100,7 +100,7 @@ namespace StrawberryShake.Tools
 
             if (!string.IsNullOrEmpty(config.ClientName))
             {
-                generator.SetClientName(config.ClientName);
+                generator.SetClientName(config.ClientName!);
             }
 
             var errors = new List<HCError>();

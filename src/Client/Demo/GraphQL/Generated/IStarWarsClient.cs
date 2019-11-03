@@ -5,29 +5,41 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake;
 
-namespace  StrawberryShake.Client.GraphQL
+namespace StrawberryShake.Client.GraphQL
 {
     public interface IStarWarsClient
     {
         Task<IOperationResult<IGetHero>> GetHeroAsync(
-            Episode? episode);
+            Optional<Episode?> episode = default,
+            CancellationToken cancellationToken = default);
 
         Task<IOperationResult<IGetHero>> GetHeroAsync(
-            Episode? episode,
-            CancellationToken cancellationToken);
+            GetHeroOperation operation,
+            CancellationToken cancellationToken = default);
 
         Task<IOperationResult<IGetHuman>> GetHumanAsync(
-            string id);
+            Optional<string> id = default,
+            CancellationToken cancellationToken = default);
 
         Task<IOperationResult<IGetHuman>> GetHumanAsync(
-            string id,
-            CancellationToken cancellationToken);
+            GetHumanOperation operation,
+            CancellationToken cancellationToken = default);
 
         Task<IOperationResult<ISearch>> SearchAsync(
-            string text);
+            Optional<string> text = default,
+            CancellationToken cancellationToken = default);
 
         Task<IOperationResult<ISearch>> SearchAsync(
-            string text,
-            CancellationToken cancellationToken);
+            SearchOperation operation,
+            CancellationToken cancellationToken = default);
+
+        Task<IOperationResult<ICreateReview>> CreateReviewAsync(
+            Optional<Episode> episode = default,
+            Optional<ReviewInput> review = default,
+            CancellationToken cancellationToken = default);
+
+        Task<IOperationResult<ICreateReview>> CreateReviewAsync(
+            CreateReviewOperation operation,
+            CancellationToken cancellationToken = default);
     }
 }

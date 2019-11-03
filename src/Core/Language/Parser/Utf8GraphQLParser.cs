@@ -11,7 +11,7 @@ namespace HotChocolate.Language
         private readonly bool _createLocation;
         private readonly bool _allowFragmentVars;
         private Utf8GraphQLReader _reader;
-        private StringValueNode _description;
+        private StringValueNode? _description;
 
         public Utf8GraphQLParser(
             ReadOnlySpan<byte> graphQLData)
@@ -78,7 +78,7 @@ namespace HotChocolate.Language
                 definitions.Add(ParseDefinition());
             }
 
-            Location location = CreateLocation(in start);
+            Location? location = CreateLocation(in start);
 
             return new DocumentNode(location, definitions);
         }
@@ -196,7 +196,7 @@ namespace HotChocolate.Language
             bool useStackalloc =
                 length <= GraphQLConstants.StackallocThreshold;
 
-            byte[] source = null;
+            byte[]? source = null;
 
             Span<byte> sourceSpan = useStackalloc
                 ? stackalloc byte[length]
@@ -218,7 +218,7 @@ namespace HotChocolate.Language
             }
         }
 
-        internal unsafe static void ConvertToBytes(
+        internal unsafe static int ConvertToBytes(
             string text,
             ref Span<byte> buffer)
         {
@@ -230,6 +230,7 @@ namespace HotChocolate.Language
                         stringPtr, text.Length,
                         bytePtr, buffer.Length);
                     buffer = buffer.Slice(0, length);
+                    return length;
                 }
             }
         }
