@@ -1,6 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System.Linq;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using HotChocolate.Language;
+using HotChocolate.Resolvers;
 using HotChocolate.Types;
 using Microsoft.Extensions.DependencyInjection;
 using Snapshooter.Xunit;
@@ -284,6 +286,44 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
+        public async Task Invalid_InputObject_Provided_As_Variable()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"input MyInput {
+                        someField: String
+                    }
+
+                    type Query {
+                        x(arg: MyInput): String
+                    }")
+                .Map(new FieldReference("Query", "x"),
+                    next => ctx =>
+                    {
+                        ctx.Result = "Foo";
+                        return Task.CompletedTask;
+                    })
+                .Create();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query MyQuery($value: MyInput) {
+                        x(arg: $value)
+                    }")
+                .AddVariableValue("value", new Dictionary<string, object>
+                {
+                    { "clearlyNonsense", "bar" }
+                })
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Extend_Argument_Coercion_With_Variables()
         {
             // arrange
@@ -350,6 +390,52 @@ namespace HotChocolate.Execution
         }
 
         [Fact]
+        public async Task Invalid_InputObject_SecondLevel_Provided_As_Variable()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"input MyInput {
+                        someObj: SecondInput
+                    }
+
+                    input SecondInput {
+                        someField: String
+                    }
+
+                    type Query {
+                        x(arg: MyInput): String
+                    }")
+                .Map(new FieldReference("Query", "x"),
+                    next => ctx =>
+                    {
+                        ctx.Result = "Foo";
+                        return Task.CompletedTask;
+                    })
+                .Create();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query MyQuery($value: MyInput) {
+                        x(arg: $value)
+                    }")
+                .AddVariableValue("value", new Dictionary<string, object>
+                {
+                    { "someObj", new Dictionary<string, object>
+                        {
+                            { "clearlyNonsense", "baz" }
+                        }
+                    }
+                })
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            result.MatchSnapshot();
+        }
+
+        [Fact]
         public async Task Extend_Argument_Coercion_With_Variables_DefaultValue()
         {
             // arrange
@@ -379,6 +465,122 @@ namespace HotChocolate.Execution
                         .Create());
 
             // assert
+            result.MatchSnapshot();
+        }
+
+        public async Task Valid_InputObject_Provided_As_Variable()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"input MyInput {
+                        someField: String
+                    }
+
+                    type Query {
+                        x(arg: MyInput): String
+                    }")
+                .Map(new FieldReference("Query", "x"),
+                    next => ctx =>
+                    {
+                        ctx.Result = "Foo";
+                        return Task.CompletedTask;
+                    })
+                .Create();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query MyQuery($value: MyInput) {
+                        x(arg: $value)
+                    }")
+                .AddVariableValue("value", new Dictionary<string, object>
+                {
+                    { "someField", "bar" }
+                })
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task InputObject_As_Variable_Is_Converted_To_ObjectLiteral()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            services.AddSingleton<IArgumentCoercionHandler, ModifyObjectHandler>();
+            services.AddGraphQLSchema(builder => builder
+                .AddQueryType<Query>()
+                .Create());
+
+            QueryExecutionBuilder
+                .New()
+                .UseDefaultPipeline()
+                .Populate(services);
+
+            IQueryExecutor executor = services.BuildServiceProvider()
+                .GetRequiredService<IQueryExecutor>();
+
+            // act
+            IExecutionResult result =
+                await executor.ExecuteAsync(
+                    QueryRequestBuilder.New()
+                        .SetQuery("query foo($a: FooInput) { singleFoo(foo: $a) { foo } }")
+                        .AddVariableValue("a", new Dictionary<string, object>
+                        {
+                            { "bar", "TEST_123" }
+                        })
+                        .Create());
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Valid_InputObject_SecondLevel_Provided_As_Variable()
+        {
+            ISchema schema = SchemaBuilder.New()
+                .AddDocumentFromString(
+                    @"input MyInput {
+                        someObj: SecondInput
+                    }
+
+                    input SecondInput {
+                        someField: String
+                    }
+
+                    type Query {
+                        x(arg: MyInput): String
+                    }")
+                .Map(new FieldReference("Query", "x"),
+                    next => ctx =>
+                    {
+                        ctx.Result = "Foo";
+                        return Task.CompletedTask;
+                    })
+                .Create();
+
+            IReadOnlyQueryRequest request = QueryRequestBuilder.New()
+                .SetQuery(
+                    @"query MyQuery($value: MyInput) {
+                        x(arg: $value)
+                    }")
+                .AddVariableValue("value", new Dictionary<string, object>
+                {
+                    { "someObj", new Dictionary<string, object>
+                        {
+                            { "someField", "baz" }
+                        }
+                    }
+                })
+                .Create();
+
+            IQueryExecutor executor = schema.MakeExecutable();
+
+            IExecutionResult result = await executor.ExecuteAsync(request);
+
             result.MatchSnapshot();
         }
 
@@ -434,6 +636,21 @@ namespace HotChocolate.Execution
                 if (argument.Type is StringType && value is string s)
                 {
                     return s + "123";
+                }
+                return value;
+            }
+        }
+
+        public class ModifyObjectHandler
+            : IArgumentCoercionHandler
+        {
+            public object CoerceValue(IInputField argument, object value)
+            {
+                if (value is ObjectValueNode o)
+                {
+                    var fields = o.Fields.ToList();
+                    fields[0] = fields[0].WithValue(new StringValueNode("Bar_123"));
+                    return o.WithFields(fields);
                 }
                 return value;
             }

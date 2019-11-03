@@ -39,6 +39,7 @@ namespace HotChocolate.Utilities
             if (obj is null)
             {
                 setValue(null);
+                return;
             }
 
             switch (obj)
@@ -65,6 +66,7 @@ namespace HotChocolate.Utilities
                 && converted is string s)
             {
                 setValue(s);
+                return;
             }
             else if (!typeof(IReadOnlyDictionary<string, object>).IsAssignableFrom(type)
                 && obj is ICollection list)

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Types;
 
 namespace StrawberryShake.Generators.Descriptors
@@ -27,9 +28,9 @@ namespace StrawberryShake.Generators.Descriptors
 
         public IReadOnlyList<IInputFieldDescriptor> Fields { get; }
 
-        public IEnumerable<ICodeDescriptor> GetChildren()
-        {
-            yield break;
-        }
+        public IEnumerable<ICodeDescriptor> GetChildren() =>
+            Fields.Where(t => t.InputObjectType is { })
+                .Select(t => t.InputObjectType)
+                .Cast<ICodeDescriptor>();
     }
 }

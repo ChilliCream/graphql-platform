@@ -4,6 +4,6 @@
     {
         NodeKind Kind { get; }
 
-        Location Location { get; }
+        Location? Location { get; }
     }
 }

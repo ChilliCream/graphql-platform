@@ -4,7 +4,7 @@
   "Errors": [
     {
       "Message": "Detected non-null violation in variable `foo`.",
-      "Code": null,
+      "Code": "EXEC_NON_NULL_VIOLATION",
       "Path": null,
       "Locations": [
         {
@@ -18,7 +18,8 @@
         "variablePath": [
           "bar",
           "baz"
-        ]
+        ],
+        "code": "EXEC_NON_NULL_VIOLATION"
       }
     }
   ],

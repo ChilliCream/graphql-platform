@@ -12,7 +12,7 @@ namespace HotChocolate.Language
         }
 
         public DocumentNode(
-            Location location,
+            Location? location,
             IReadOnlyList<IDefinitionNode> definitions)
         {
             Location = location;
@@ -22,11 +22,11 @@ namespace HotChocolate.Language
 
         public NodeKind Kind { get; } = NodeKind.Document;
 
-        public Location Location { get; }
+        public Location? Location { get; }
 
         public IReadOnlyList<IDefinitionNode> Definitions { get; }
 
-        public DocumentNode WithLocation(Location location)
+        public DocumentNode WithLocation(Location? location)
         {
             return new DocumentNode(location, Definitions);
         }

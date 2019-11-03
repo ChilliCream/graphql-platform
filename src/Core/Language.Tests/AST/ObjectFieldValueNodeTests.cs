@@ -13,7 +13,7 @@ namespace HotChocolate.Language
 
             // assert
             Assert.Equal("abc", obj.Name.Value);
-            Assert.Equal("1.2", Assert.IsType<FloatValueNode>(obj.Value).Value);
+            Assert.Equal("1.20", Assert.IsType<FloatValueNode>(obj.Value).Value);
         }
 
         [Fact]

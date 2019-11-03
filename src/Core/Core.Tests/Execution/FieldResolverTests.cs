@@ -27,7 +27,7 @@ namespace HotChocolate.Execution
 
             var variables = new VariableValueCollection(
                 TypeConversion.Default,
-                new Dictionary<string, object>());
+                new Dictionary<string, VariableValue>());
             var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -78,7 +78,7 @@ namespace HotChocolate.Execution
 
             var variables = new VariableValueCollection(
                 TypeConversion.Default,
-                new Dictionary<string, object>());
+                new Dictionary<string, VariableValue>());
             var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -113,7 +113,7 @@ namespace HotChocolate.Execution
 
             var variables = new VariableValueCollection(
                 TypeConversion.Default,
-                new Dictionary<string, object>());
+                new Dictionary<string, VariableValue>());
             var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -154,7 +154,7 @@ namespace HotChocolate.Execution
 
             var variables = new VariableValueCollection(
                 TypeConversion.Default,
-                new Dictionary<string, object>());
+                new Dictionary<string, VariableValue>());
             var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -195,7 +195,7 @@ namespace HotChocolate.Execution
 
             var variables = new VariableValueCollection(
                 TypeConversion.Default,
-                new Dictionary<string, object>());
+                new Dictionary<string, VariableValue>());
             var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -241,7 +241,7 @@ namespace HotChocolate.Execution
 
             var variables = new VariableValueCollection(
                 TypeConversion.Default,
-                new Dictionary<string, object>());
+                new Dictionary<string, VariableValue>());
             var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -296,7 +296,7 @@ namespace HotChocolate.Execution
 
             var variables = new VariableValueCollection(
                 TypeConversion.Default,
-                new Dictionary<string, object>());
+                new Dictionary<string, VariableValue>());
             var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -347,7 +347,7 @@ namespace HotChocolate.Execution
 
             var variables = new VariableValueCollection(
                 TypeConversion.Default,
-                new Dictionary<string, object>());
+                new Dictionary<string, VariableValue>());
             var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -409,7 +409,7 @@ namespace HotChocolate.Execution
 
             var variables = new VariableValueCollection(
                 TypeConversion.Default,
-                new Dictionary<string, object>());
+                new Dictionary<string, VariableValue>());
             var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -474,7 +474,7 @@ namespace HotChocolate.Execution
 
             var variables = new VariableValueCollection(
                 TypeConversion.Default,
-                new Dictionary<string, object>());
+                new Dictionary<string, VariableValue>());
             var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions
@@ -522,7 +522,7 @@ namespace HotChocolate.Execution
 
             var variables = new VariableValueCollection(
                 TypeConversion.Default,
-                new Dictionary<string, object>());
+                new Dictionary<string, VariableValue>());
             var fragments = new FragmentCollection(schema, query);
 
             OperationDefinitionNode operation = query.Definitions

@@ -18,14 +18,13 @@ namespace HotChocolate.Types.Relay
         private static ObjectFieldDefinition CreateDefinition(
             IDescriptorContext context)
         {
-            var descriptor = ObjectFieldDescriptor
-                .New(context, _node);
+            var descriptor = ObjectFieldDescriptor.New(context, _node);
 
             IIdSerializer _serializer = null;
 
             descriptor
                 .Argument(_id, a => a.Type<NonNullType<IdType>>())
-                .Type<NonNullType<NodeType>>()
+                .Type<NodeType>()
                 .Resolver(async ctx =>
                 {
                     IServiceProvider services = ctx.Service<IServiceProvider>();

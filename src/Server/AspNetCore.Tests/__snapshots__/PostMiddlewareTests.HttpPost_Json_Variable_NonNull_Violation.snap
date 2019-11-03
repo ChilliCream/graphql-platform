@@ -10,7 +10,8 @@
         }
       ],
       "extensions": {
-        "variableName": "ep"
+        "variableName": "ep",
+        "code": "EXEC_NON_NULL_VIOLATION"
       }
     }
   ],

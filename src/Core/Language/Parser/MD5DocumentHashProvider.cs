@@ -23,7 +23,7 @@ namespace HotChocolate.Language
 
         protected override byte[] ComputeHash(byte[] document, int length)
         {
-            return _md5.Value.ComputeHash(document, 0, length);
+            return _md5.Value!.ComputeHash(document, 0, length);
         }
     }
 }

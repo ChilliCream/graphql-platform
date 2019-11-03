@@ -20,6 +20,17 @@ namespace HotChocolate.Execution
             ISchema schema,
             IRequestServiceScope serviceScope,
             IReadOnlyQueryRequest request,
+            Func<ObjectField, FieldNode, FieldDelegate> middlewareResolver,
+            CancellationToken requestAborted)
+            : this(schema, serviceScope, request, middlewareResolver)
+        {
+            RequestAborted = requestAborted;
+        }
+
+        public QueryContext(
+            ISchema schema,
+            IRequestServiceScope serviceScope,
+            IReadOnlyQueryRequest request,
             Func<ObjectField, FieldNode, FieldDelegate> middlewareResolver)
         {
             Schema = schema

@@ -35,7 +35,7 @@ namespace StrawberryShake.Tools
                     string directory = IOPath.GetDirectoryName(configFile)!;
                     if (Directory.GetFiles(directory, "*.graphql").Length > 0)
                     {
-                        Configuration config = null;
+                        Configuration? config = null;
                         try
                         {
                             config = await Configuration.LoadConfig(directory);
@@ -45,7 +45,7 @@ namespace StrawberryShake.Tools
                             // ignore invalid configs
                         }
 
-                        if (config != null && config.Schemas.Count > 0)
+                        if (config != null && config.Schemas != null && config.Schemas.Count > 0)
                         {
                             await UpdateSchemaAsync(directory, config);
                         }
@@ -56,7 +56,10 @@ namespace StrawberryShake.Tools
             {
                 Configuration? config = await Configuration.LoadConfig(
                     IOPath.Combine(Path, WellKnownFiles.Config));
-                await UpdateSchemaAsync(Path, config);
+                if (config != null)
+                {
+                    await UpdateSchemaAsync(Path, config);
+                }
             }
             return 0;
         }
@@ -64,7 +67,7 @@ namespace StrawberryShake.Tools
 
         private async Task UpdateSchemaAsync(string path, Configuration configuration)
         {
-            foreach (SchemaFile schema in configuration.Schemas)
+            foreach (SchemaFile schema in configuration.Schemas!)
             {
                 if (schema.Type == "http")
                 {

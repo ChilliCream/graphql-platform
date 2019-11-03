@@ -45,7 +45,7 @@ namespace StrawberryShake.Generators
 
             string operationName = context.GetOrCreateName(
                 operation,
-                GetClassName(operation.Name.Value) + "Operation");
+                GetClassName(operation.Name!.Value) + "Operation");
 
             var descriptor = new OperationDescriptor(
                 operationName,

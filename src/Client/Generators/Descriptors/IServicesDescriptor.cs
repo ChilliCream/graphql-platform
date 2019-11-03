@@ -7,6 +7,8 @@ namespace StrawberryShake.Generators.Descriptors
     {
         IClientDescriptor Client { get; }
 
+        IReadOnlyCollection<IInputClassDescriptor> InputTypes { get; }
+
         IReadOnlyCollection<IEnumDescriptor> EnumTypes { get; }
 
         IReadOnlyCollection<IResultParserDescriptor> ResultParsers { get; }

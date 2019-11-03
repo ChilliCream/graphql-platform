@@ -14,7 +14,6 @@
     <TargetFramework Condition="'$(TargetFrameworks)'==''">netcoreapp3.0</TargetFramework>
     <AssemblyName>HotChocolate.Language.Tests</AssemblyName>
     <RootNamespace>HotChocolate.Language</RootNamespace>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

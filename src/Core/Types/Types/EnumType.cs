@@ -176,6 +176,12 @@ namespace HotChocolate.Types
                 return true;
             }
 
+            if (_valueToValues.TryGetValue(serialized, out enumValue))
+            {
+                value = enumValue.Value;
+                return true;
+            }
+
             value = null;
             return false;
         }

@@ -1,4 +1,0 @@
-﻿input a @foo(a: "123") {
-  b: String @foo(a: "123")
-  c: Int = 123
-}

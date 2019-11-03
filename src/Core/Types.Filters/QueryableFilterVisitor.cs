@@ -22,24 +22,33 @@ namespace HotChocolate.Types.Filters
             InputObjectType initialType,
             Type source,
             ITypeConversion converter)
-            : base(initialType)
+            : this(initialType, source, converter, ExpressionOperationHandlers.All, ExpressionFieldHandlers.All)
         {
-            _opHandlers = ExpressionOperationHandlers.All;
-            _fieldHandlers = ExpressionFieldHandlers.All;
-            _converter = converter;
-            Closures.Push(new QueryableClosure(source, "r"));
         }
 
         public QueryableFilterVisitor(
             InputObjectType initialType,
             Type source,
+            ITypeConversion converter,
             IEnumerable<IExpressionOperationHandler> operationHandlers,
             IEnumerable<IExpressionFieldHandler> fieldHandlers)
             : base(initialType)
         {
+            if (initialType is null)
+            {
+                throw new ArgumentNullException(nameof(initialType));
+            }
+            if (source is null)
+            {
+                throw new ArgumentNullException(nameof(source));
+            }
             if (operationHandlers is null)
             {
                 throw new ArgumentNullException(nameof(operationHandlers));
+            }
+            if (converter is null)
+            {
+                throw new ArgumentNullException(nameof(converter));
             }
 
             _opHandlers = operationHandlers.ToArray();

@@ -33,7 +33,7 @@ namespace HotChocolate.Execution
 
             var variables = new VariableValueCollection(
                 TypeConversion.Default,
-                new Dictionary<string, object>());
+                new Dictionary<string, VariableValue>());
 
             // act
             var collector = new FieldCollector(
@@ -84,7 +84,7 @@ namespace HotChocolate.Execution
 
             var variables = new VariableValueCollection(
                 TypeConversion.Default,
-                new Dictionary<string, object>());
+                new Dictionary<string, VariableValue>());
 
             var collector = new FieldCollector(
                 fragments,
@@ -125,7 +125,7 @@ namespace HotChocolate.Execution
 
             var variables = new VariableValueCollection(
                 TypeConversion.Default,
-                new Dictionary<string, object>());
+                new Dictionary<string, VariableValue>());
 
             var collector = new FieldCollector(
                 fragments,
@@ -163,7 +163,7 @@ namespace HotChocolate.Execution
 
             var variables = new VariableValueCollection(
                 TypeConversion.Default,
-                new Dictionary<string, object>());
+                new Dictionary<string, VariableValue>());
 
             var collector = new FieldCollector(
                 fragments,
@@ -201,7 +201,7 @@ namespace HotChocolate.Execution
 
             var variables = new VariableValueCollection(
                 TypeConversion.Default,
-                new Dictionary<string, object>());
+                new Dictionary<string, VariableValue>());
 
             var collector = new FieldCollector(
                 fragments,

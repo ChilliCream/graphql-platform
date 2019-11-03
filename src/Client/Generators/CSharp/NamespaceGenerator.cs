@@ -15,7 +15,7 @@ namespace StrawberryShake.Generators.CSharp
         {
             _innerGenerator = innerGenerator
                 ?? throw new ArgumentNullException(nameof(innerGenerator));
-            _namespace = ns ?? throw new ArgumentNullException(nameof(ns));
+            _namespace = ns?.Trim() ?? throw new ArgumentNullException(nameof(ns));
         }
 
         public bool CanHandle(ICodeDescriptor descriptor) =>
@@ -47,7 +47,7 @@ namespace StrawberryShake.Generators.CSharp
             await writer.WriteLineAsync();
         }
 
-        private async Task WriteUsings(CodeWriter writer, ICodeGenerator generator)
+        private static async Task WriteUsings(CodeWriter writer, ICodeGenerator generator)
         {
             var components = generator is IUsesComponents c
                 ? new HashSet<string>(c.Components)
@@ -97,7 +97,7 @@ namespace StrawberryShake.Generators.CSharp
             }
         }
 
-        private async Task WriteUsing(CodeWriter writer, string ns)
+        private static async Task WriteUsing(CodeWriter writer, string ns)
         {
             await writer.WriteAsync($"using {ns};");
             await writer.WriteLineAsync();

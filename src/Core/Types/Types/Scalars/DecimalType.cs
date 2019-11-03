@@ -1,143 +1,46 @@
-using System;
-using System.Globalization;
 using HotChocolate.Language;
 using HotChocolate.Properties;
 
 namespace HotChocolate.Types
 {
     public sealed class DecimalType
-        : ScalarType
+        : FloatTypeBase<decimal>
     {
         public DecimalType()
-            : base("Decimal")
+            : this(decimal.MinValue, decimal.MaxValue)
+        {
+        }
+
+        public DecimalType(decimal min, decimal max)
+            : this(ScalarNames.Decimal, min, max)
         {
             Description = TypeResources.DecimalType_Description;
         }
 
-        public override Type ClrType => typeof(decimal);
-
-        public override bool IsInstanceOfType(IValueNode literal)
+        public DecimalType(NameString name)
+            : this(name, decimal.MinValue, decimal.MaxValue)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (literal is NullValueNode)
-            {
-                return true;
-            }
-
-            if (literal is FloatValueNode floatLiteral
-                && TryParseDecimal(floatLiteral.Value, out _))
-            {
-                return true;
-            }
-
-            if (literal is IntValueNode intLiteral
-                && TryParseDecimal(intLiteral.Value, out _))
-            {
-                return true;
-            }
-
-            return false;
         }
 
-        public override object ParseLiteral(IValueNode literal)
+        public DecimalType(NameString name, decimal min, decimal max)
+            : base(name, min, max)
         {
-            if (literal == null)
-            {
-                throw new ArgumentNullException(nameof(literal));
-            }
-
-            if (literal is NullValueNode)
-            {
-                return null;
-            }
-
-            if (literal is FloatValueNode floatLiteral
-                && TryParseDecimal(floatLiteral.Value, out var d))
-            {
-                return d;
-            }
-
-            if (literal is IntValueNode intLiteral
-                && TryParseDecimal(intLiteral.Value, out d))
-            {
-                return d;
-            }
-
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseLiteral(
-                    Name, literal.GetType()));
         }
 
-        public override IValueNode ParseValue(object value)
+        public DecimalType(NameString name, string description, decimal min, decimal max)
+            : base(name, min, max)
         {
-            if (value is null)
-            {
-                return NullValueNode.Default;
-            }
-
-            if (value is decimal d)
-            {
-                return new FloatValueNode(SerializeDecimal(d));
-            }
-
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_ParseValue(
-                    Name, value.GetType()));
+            Description = description;
         }
 
-        public override object Serialize(object value)
+        protected override decimal ParseLiteral(IFloatValueLiteral literal)
         {
-            if (value == null)
-            {
-                return null;
-            }
-
-            if (value is decimal d)
-            {
-                return d;
-            }
-
-            throw new ScalarSerializationException(
-                TypeResourceHelper.Scalar_Cannot_Serialize(Name));
+            return literal.ToDecimal();
         }
 
-        public override bool TryDeserialize(object serialized, out object value)
+        protected override FloatValueNode ParseValue(decimal value)
         {
-            if (serialized is null)
-            {
-                value = null;
-                return true;
-            }
-
-            if (serialized is decimal)
-            {
-                value = serialized;
-                return true;
-            }
-
-            if (TryConvertSerialized(serialized, ValueKind.Float, out decimal c)
-                || TryConvertSerialized(serialized, ValueKind.Integer, out c))
-            {
-                value = c;
-                return true;
-            }
-
-            value = null;
-            return false;
+            return new FloatValueNode(value);
         }
-
-        private static bool TryParseDecimal(string value, out decimal d) =>
-            decimal.TryParse(
-                value,
-                NumberStyles.Float,
-                CultureInfo.InvariantCulture,
-                out d);
-
-        private static string SerializeDecimal(decimal value) =>
-            value.ToString("E", CultureInfo.InvariantCulture);
     }
 }

@@ -7,7 +7,6 @@ namespace HotChocolate.Types.Filters.Expressions
 {
     public static class FilterExpressionBuilder
     {
-
         private static readonly MethodInfo _startsWith =
             typeof(string).GetMethods().Single(m =>
                 m.Name.Equals("StartsWith")
@@ -57,14 +56,18 @@ namespace HotChocolate.Types.Filters.Expressions
             Expression property,
             object value)
         {
-            return Expression.Equal(property, NullableSafeConstantExpression(value, property.Type));
+            return Expression.Equal(
+                property,
+                NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression NotEquals(
             Expression property,
             object value)
         {
-            return Expression.NotEqual(property, NullableSafeConstantExpression(value, property.Type));
+            return Expression.NotEqual(
+                property,
+                NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression In(
@@ -85,28 +88,36 @@ namespace HotChocolate.Types.Filters.Expressions
             Expression property,
             object value)
         {
-            return Expression.GreaterThan(property, NullableSafeConstantExpression(value, property.Type));
+            return Expression.GreaterThan(
+                property,
+                NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression GreaterThanOrEqual(
             Expression property,
             object value)
         {
-            return Expression.GreaterThanOrEqual(property, NullableSafeConstantExpression(value, property.Type));
+            return Expression.GreaterThanOrEqual(
+                property,
+                NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression LowerThan(
             Expression property,
             object value)
         {
-            return Expression.LessThan(property, NullableSafeConstantExpression(value, property.Type));
+            return Expression.LessThan(
+                property,
+                NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression LowerThanOrEqual(
             Expression property,
             object value)
         {
-            return Expression.LessThanOrEqual(property, NullableSafeConstantExpression(value, property.Type));
+            return Expression.LessThanOrEqual(
+                property,
+                NullableSafeConstantExpression(value, property.Type));
         }
 
         public static Expression StartsWith(
@@ -178,5 +189,15 @@ namespace HotChocolate.Types.Filters.Expressions
         }
 
 
+
+        public static Expression NotContains(
+            Expression property,
+            object value)
+        {
+            return Expression.OrElse(
+                Expression.Equal(property, Expression.Constant(null)),
+                Expression.Not(Expression.Call(
+                    property, _contains, Expression.Constant(value))));
+        }
     }
 }

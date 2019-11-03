@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HotChocolate.Language;
 using HotChocolate.Properties;
 using HotChocolate.Utilities;
 
@@ -9,11 +10,11 @@ namespace HotChocolate.Execution
         : IVariableValueCollection
     {
         private readonly ITypeConversion _converter;
-        private readonly Dictionary<string, object> _variables;
+        private readonly Dictionary<string, VariableValue> _variables;
 
         public VariableValueCollection(
             ITypeConversion converter,
-            Dictionary<string, object> values)
+            Dictionary<string, VariableValue> values)
         {
             _converter = converter
                 ?? throw new ArgumentNullException(nameof(converter));
@@ -41,16 +42,46 @@ namespace HotChocolate.Execution
         {
             name.EnsureNotEmpty("name");
 
-            if (_variables.TryGetValue(name, out object coercedValue))
+            if (_variables.TryGetValue(name, out VariableValue variableValue))
             {
+                object coercedValue = null;
+
+                if (typeof(T) == typeof(object))
+                {
+                    coercedValue = variableValue.Literal == null
+                        ? variableValue.Value
+                        : variableValue.Literal;
+                }
+                else if (typeof(IValueNode).IsAssignableFrom(typeof(T)))
+                {
+                    if (variableValue.Literal == null)
+                    {
+                        coercedValue = variableValue.Type.ParseValue(variableValue.Value);
+                    }
+                    else
+                    {
+                        coercedValue = variableValue.Literal;
+                    }
+                }
+                else
+                {
+                    if (variableValue.Literal == null)
+                    {
+                        coercedValue = variableValue.Value;
+                    }
+                    else
+                    {
+                        coercedValue = variableValue.Type.ParseLiteral(variableValue.Literal);
+                    }
+                }
+
                 if (coercedValue is T castedValue)
                 {
                     value = castedValue;
                 }
                 else
                 {
-                    value = (T)_converter.Convert(
-                        typeof(object), typeof(T), coercedValue);
+                    value = (T)_converter.Convert(typeof(object), typeof(T), coercedValue);
                 }
                 return true;
             }

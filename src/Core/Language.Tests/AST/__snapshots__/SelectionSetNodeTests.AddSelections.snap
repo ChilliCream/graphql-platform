@@ -16,7 +16,7 @@
       "Name": {
         "Kind": "Name",
         "Location": null,
-        "Value": "baz"
+        "Value": "bar"
       },
       "Directives": []
     },

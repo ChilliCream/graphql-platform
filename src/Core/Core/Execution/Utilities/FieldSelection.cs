@@ -18,7 +18,7 @@ namespace HotChocolate.Execution
         private static IReadOnlyDictionary<NameString, ArgumentValue> _empty =
             ImmutableDictionary<NameString, ArgumentValue>.Empty;
         private readonly IReadOnlyDictionary<NameString, ArgumentValue> _args;
-        private readonly IReadOnlyDictionary<NameString, VariableValue> _vars;
+        private readonly IReadOnlyDictionary<NameString, ArgumentVariableValue> _vars;
         private readonly IReadOnlyList<FieldVisibility> _visibility;
         private readonly Path _path;
         private readonly bool _hasArgumentErrors;
@@ -73,7 +73,7 @@ namespace HotChocolate.Execution
 
             var args = _args.ToDictionary(t => t.Key, t => t.Value);
 
-            foreach (KeyValuePair<NameString, VariableValue> var in _vars)
+            foreach (KeyValuePair<NameString, ArgumentVariableValue> var in _vars)
             {
                 IError error = null;
 
@@ -86,6 +86,12 @@ namespace HotChocolate.Execution
                 else
                 {
                     value = var.Value.DefaultValue;
+
+                    if (var.Value.Type.NamedType().IsLeafType()
+                        && value is IValueNode literal)
+                    {
+                        value = var.Value.Type.ParseLiteral(literal);
+                    }
 
                     if (var.Value.Type.IsNonNullType()
                         && (value is null || value is NullValueNode))
@@ -105,9 +111,18 @@ namespace HotChocolate.Execution
 
                 if (error is null)
                 {
-                    args[var.Key] = value is IValueNode literal
-                        ? new ArgumentValue(var.Value.Argument, literal)
-                        : new ArgumentValue(var.Value.Argument, value);
+                    ValueKind kind = ValueKind.Unknown;
+
+                    if (value is IValueNode literal)
+                    {
+                        kind = literal.GetValueKind();
+                        args[var.Key] = new ArgumentValue(var.Value.Argument, kind, literal);
+                    }
+                    else
+                    {
+                        Scalars.TryGetKind(value, out kind);
+                        args[var.Key] = new ArgumentValue(var.Value.Argument, kind, value);
+                    }
                 }
                 else
                 {

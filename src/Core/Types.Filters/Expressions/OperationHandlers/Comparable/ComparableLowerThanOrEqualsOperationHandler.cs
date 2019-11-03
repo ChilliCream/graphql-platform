@@ -1,3 +1,4 @@
+using System;
 using System.Linq.Expressions;
 
 namespace HotChocolate.Types.Filters.Expressions
@@ -8,20 +9,20 @@ namespace HotChocolate.Types.Filters.Expressions
         protected override bool TryCreateExpression(
             FilterOperation operation,
             Expression property,
-            object parsedValue,
+            Func<object> parseValue,
             out Expression expression)
         {
             switch (operation.Kind)
             {
                 case FilterOperationKind.LowerThanOrEquals:
                     expression = FilterExpressionBuilder.LowerThanOrEqual(
-                        property, parsedValue);
+                        property, parseValue());
                     return true;
 
                 case FilterOperationKind.NotLowerThanOrEquals:
                     expression = FilterExpressionBuilder.Not(
                         FilterExpressionBuilder.LowerThanOrEqual(
-                            property, parsedValue));
+                            property, parseValue()));
                     return true;
 
                 default:
