@@ -38,6 +38,21 @@ namespace HotChocolate.Types.Filters
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
+        [Fact]
+        public void Create_ArraySimpleFilterDoubleNullable_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
                 x.BindFieldsExplicitly()
                     .List(y => y.BarDoubleNullable)
                     .BindExplicitly()
@@ -69,6 +84,20 @@ namespace HotChocolate.Types.Filters
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_ArraySimpleFilterBoolNullable_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
                 x.BindFieldsExplicitly()
                     .List(y => y.BarBoolNullable)
                     .BindExplicitly()
@@ -100,6 +129,21 @@ namespace HotChocolate.Types.Filters
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
+        [Fact]
+        public void Create_ArraySimpleFilterInt32Nullable_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
                 x.BindFieldsExplicitly()
                     .List(y => y.BarInt32Nullable)
                     .BindExplicitly()
@@ -131,6 +175,20 @@ namespace HotChocolate.Types.Filters
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_ArraySimpleFilterInt64Nullable_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
                 x.BindFieldsExplicitly()
                     .List(y => y.BarInt64Nullable)
                     .BindExplicitly()
@@ -162,6 +220,21 @@ namespace HotChocolate.Types.Filters
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
+        [Fact]
+        public void Create_ArraySimpleFilterSingleNullable_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
                 x.BindFieldsExplicitly()
                     .List(y => y.BarSingleNullable)
                     .BindExplicitly()
@@ -176,7 +249,6 @@ namespace HotChocolate.Types.Filters
             // assert
             schema.ToString().MatchSnapshot();
         }
-
 
 
         [Fact]
@@ -194,6 +266,21 @@ namespace HotChocolate.Types.Filters
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
+        [Fact]
+        public void Create_ArraySimpleFilterInt16Nullable_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
                 x.BindFieldsExplicitly()
                     .List(y => y.BarInt16Nullable)
                     .BindExplicitly()
@@ -225,6 +312,20 @@ namespace HotChocolate.Types.Filters
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_ArraySimpleFilterDatetimeNullable_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
                 x.BindFieldsExplicitly()
                     .List(y => y.BarDatetimeNullable)
                     .BindExplicitly()
@@ -239,6 +340,7 @@ namespace HotChocolate.Types.Filters
             // assert
             schema.ToString().MatchSnapshot();
         }
+
         [Fact]
         public void Create_ArraySimpleFilterDatetimeOffset_FooExplicitBarExplicit()
         {
@@ -254,6 +356,20 @@ namespace HotChocolate.Types.Filters
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_ArraySimpleFilterDatetimeOffsetNullable_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
                 x.BindFieldsExplicitly()
                     .List(y => y.BarDatetimeOffsetNullable)
                     .BindExplicitly()
@@ -268,6 +384,7 @@ namespace HotChocolate.Types.Filters
             // assert
             schema.ToString().MatchSnapshot();
         }
+
         [Fact]
         public void Create_ArraySimpleFilterGuid_FooExplicitBarExplicit()
         {
@@ -283,6 +400,20 @@ namespace HotChocolate.Types.Filters
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_ArraySimpleFilterGuidNullable_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
                 x.BindFieldsExplicitly()
                     .List(y => y.BarGuidNullable)
                     .BindExplicitly()
@@ -314,6 +445,20 @@ namespace HotChocolate.Types.Filters
                         .BindFiltersExplicitly()
                         .AllowEquals()
                      );
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+        [Fact]
+        public void Create_ArraySimpleFilterDecimalNullable_FooExplicitBarExplicit()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
                 x.BindFieldsExplicitly()
                     .List(y => y.BarDecimalNullable)
                     .BindExplicitly()
@@ -451,6 +596,7 @@ namespace HotChocolate.Types.Filters
                 new FilterInputType<Foo>(
                     x => x.BindFieldsExplicitly()
                     .List(y => y.BarNested)
+                    .BindExplicitly()
                     .AllowSome<BarFilterType>()
                     )
            );
