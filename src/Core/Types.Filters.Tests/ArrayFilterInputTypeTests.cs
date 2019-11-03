@@ -24,6 +24,25 @@ namespace HotChocolate.Types.Filters
 
 
         [Fact]
+        public void Create_ArraySimpleFilterBool_FooExplicitBarExplicitAny()
+        {
+            // arrange
+            // act
+            var schema = CreateSchema(new FilterInputType<FooSimple>(x =>
+            {
+                x.BindFieldsExplicitly()
+                    .List(y => y.BarBool)
+                    .BindExplicitly()
+                    .AllowAny();
+            }
+            ));
+
+            // assert
+            schema.ToString().MatchSnapshot();
+        }
+
+
+        [Fact]
         public void Create_ArraySimpleFilterDouble_FooExplicitBarExplicit()
         {
             // arrange

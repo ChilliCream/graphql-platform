@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate.Types.Filters
@@ -25,6 +26,46 @@ namespace HotChocolate.Types.Filters
             return _descriptor;
         }
 
+        /// <inheritdoc/>
+        public new IArrayBooleanFilterOperationDescriptor Name(NameString value)
+        {
+            base.Name(value);
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public new IArrayBooleanFilterOperationDescriptor Description(
+            string value)
+        {
+            base.Description(value);
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public new IArrayBooleanFilterOperationDescriptor Directive<T>(
+            T directiveInstance)
+           where T : class
+        {
+            base.Directive(directiveInstance);
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public new IArrayBooleanFilterOperationDescriptor Directive<T>()
+           where T : class, new()
+        {
+            base.Directive<T>();
+            return this;
+        }
+
+        /// <inheritdoc/>
+        public new IArrayBooleanFilterOperationDescriptor Directive(
+            NameString name,
+            params ArgumentNode[] arguments)
+        {
+            base.Directive(name, arguments);
+            return this;
+        }
 
 
         /// <summary>

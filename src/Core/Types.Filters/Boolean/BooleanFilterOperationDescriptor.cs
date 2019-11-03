@@ -26,14 +26,14 @@ namespace HotChocolate.Types.Filters
         public IBooleanFilterFieldDescriptor And() => _descriptor;
 
         /// <inheritdoc/>
-        IBooleanFilterOperationDescriptor IBooleanFilterOperationDescriptor.Name(NameString value)
+        public new IBooleanFilterOperationDescriptor Name(NameString value)
         {
             base.Name(value);
             return this;
         }
 
         /// <inheritdoc/>
-        IBooleanFilterOperationDescriptor IBooleanFilterOperationDescriptor.Description(
+        public new IBooleanFilterOperationDescriptor Description(
             string value)
         {
             base.Description(value);
@@ -41,7 +41,7 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <inheritdoc/>
-        IBooleanFilterOperationDescriptor IBooleanFilterOperationDescriptor.Directive<T>(
+        public new IBooleanFilterOperationDescriptor Directive<T>(
             T directiveInstance)
            where T : class
         {
@@ -50,14 +50,15 @@ namespace HotChocolate.Types.Filters
         }
 
         /// <inheritdoc/>
-        IBooleanFilterOperationDescriptor IBooleanFilterOperationDescriptor.Directive<T>()
+        public new IBooleanFilterOperationDescriptor Directive<T>()
+           where T : class, new()
         {
             base.Directive<T>();
             return this;
         }
 
         /// <inheritdoc/>
-        IBooleanFilterOperationDescriptor IBooleanFilterOperationDescriptor.Directive(
+        public new IBooleanFilterOperationDescriptor Directive(
             NameString name,
             params ArgumentNode[] arguments)
         {
