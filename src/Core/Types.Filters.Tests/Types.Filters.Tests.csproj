@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
+<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
 
   <PropertyGroup>
     <ChilliCurrentDirectory>$(MSBuildThisFileDirectory.TrimEnd('\').TrimEnd('/'))</ChilliCurrentDirectory>
@@ -21,6 +21,10 @@
     <ProjectReference Include="..\Types\Types.csproj" />
     <ProjectReference Include="..\Types.Filters\Types.Filters.csproj" />
     <ProjectReference Include="..\Types.Tests\Types.Tests.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="__snapshots__\__mismatch__\" />
   </ItemGroup>
 
 </Project>

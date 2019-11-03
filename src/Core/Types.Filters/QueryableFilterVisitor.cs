@@ -53,6 +53,7 @@ namespace HotChocolate.Types.Filters
 
             _opHandlers = operationHandlers.ToArray();
             _fieldHandlers = fieldHandlers.ToArray();
+            _converter = converter;
             Closures.Push(new QueryableClosure(source, "r"));
         }
 
