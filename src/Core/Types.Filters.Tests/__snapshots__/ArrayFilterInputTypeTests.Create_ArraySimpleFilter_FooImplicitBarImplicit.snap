@@ -8,86 +8,86 @@ type Query {
 
 input FooSimpleFilter {
   AND: [FooSimpleFilter!]
-  barBool_all: ISingleFilterOfBooleanFilter
-  barBool_any: Boolean
-  barBool_none: ISingleFilterOfBooleanFilter
-  barBool_some: ISingleFilterOfBooleanFilter
   barBoolNullable_all: ISingleFilterOfBooleanFilter
   barBoolNullable_any: Boolean
   barBoolNullable_none: ISingleFilterOfBooleanFilter
   barBoolNullable_some: ISingleFilterOfBooleanFilter
-  barDatetime_all: ISingleFilterOfDateTimeFilter
-  barDatetime_any: Boolean
-  barDatetime_none: ISingleFilterOfDateTimeFilter
-  barDatetime_some: ISingleFilterOfDateTimeFilter
+  barBool_all: ISingleFilterOfBooleanFilter
+  barBool_any: Boolean
+  barBool_none: ISingleFilterOfBooleanFilter
+  barBool_some: ISingleFilterOfBooleanFilter
   barDatetimeNullable_all: ISingleFilterOfDateTimeFilter
   barDatetimeNullable_any: Boolean
   barDatetimeNullable_none: ISingleFilterOfDateTimeFilter
   barDatetimeNullable_some: ISingleFilterOfDateTimeFilter
-  barDatetimeOffset_all: ISingleFilterOfDateTimeOffsetFilter
-  barDatetimeOffset_any: Boolean
-  barDatetimeOffset_none: ISingleFilterOfDateTimeOffsetFilter
-  barDatetimeOffset_some: ISingleFilterOfDateTimeOffsetFilter
   barDatetimeOffsetNullable_all: ISingleFilterOfDateTimeOffsetFilter
   barDatetimeOffsetNullable_any: Boolean
   barDatetimeOffsetNullable_none: ISingleFilterOfDateTimeOffsetFilter
   barDatetimeOffsetNullable_some: ISingleFilterOfDateTimeOffsetFilter
-  barDecimal_all: ISingleFilterOfDecimalFilter
-  barDecimal_any: Boolean
-  barDecimal_none: ISingleFilterOfDecimalFilter
-  barDecimal_some: ISingleFilterOfDecimalFilter
+  barDatetimeOffset_all: ISingleFilterOfDateTimeOffsetFilter
+  barDatetimeOffset_any: Boolean
+  barDatetimeOffset_none: ISingleFilterOfDateTimeOffsetFilter
+  barDatetimeOffset_some: ISingleFilterOfDateTimeOffsetFilter
+  barDatetime_all: ISingleFilterOfDateTimeFilter
+  barDatetime_any: Boolean
+  barDatetime_none: ISingleFilterOfDateTimeFilter
+  barDatetime_some: ISingleFilterOfDateTimeFilter
   barDecimalNullable_all: ISingleFilterOfDecimalFilter
   barDecimalNullable_any: Boolean
   barDecimalNullable_none: ISingleFilterOfDecimalFilter
   barDecimalNullable_some: ISingleFilterOfDecimalFilter
-  barDouble_all: ISingleFilterOfDoubleFilter
-  barDouble_any: Boolean
-  barDouble_none: ISingleFilterOfDoubleFilter
-  barDouble_some: ISingleFilterOfDoubleFilter
+  barDecimal_all: ISingleFilterOfDecimalFilter
+  barDecimal_any: Boolean
+  barDecimal_none: ISingleFilterOfDecimalFilter
+  barDecimal_some: ISingleFilterOfDecimalFilter
   barDoubleNullable_all: ISingleFilterOfDoubleFilter
   barDoubleNullable_any: Boolean
   barDoubleNullable_none: ISingleFilterOfDoubleFilter
   barDoubleNullable_some: ISingleFilterOfDoubleFilter
-  barGuid_all: ISingleFilterOfGuidFilter
-  barGuid_any: Boolean
-  barGuid_none: ISingleFilterOfGuidFilter
-  barGuid_some: ISingleFilterOfGuidFilter
+  barDouble_all: ISingleFilterOfDoubleFilter
+  barDouble_any: Boolean
+  barDouble_none: ISingleFilterOfDoubleFilter
+  barDouble_some: ISingleFilterOfDoubleFilter
   barGuidNullable_all: ISingleFilterOfGuidFilter
   barGuidNullable_any: Boolean
   barGuidNullable_none: ISingleFilterOfGuidFilter
   barGuidNullable_some: ISingleFilterOfGuidFilter
-  barInt16_all: ISingleFilterOfInt16Filter
-  barInt16_any: Boolean
-  barInt16_none: ISingleFilterOfInt16Filter
-  barInt16_some: ISingleFilterOfInt16Filter
+  barGuid_all: ISingleFilterOfGuidFilter
+  barGuid_any: Boolean
+  barGuid_none: ISingleFilterOfGuidFilter
+  barGuid_some: ISingleFilterOfGuidFilter
   barInt16Nullable_all: ISingleFilterOfInt16Filter
   barInt16Nullable_any: Boolean
   barInt16Nullable_none: ISingleFilterOfInt16Filter
   barInt16Nullable_some: ISingleFilterOfInt16Filter
-  barInt32_all: ISingleFilterOfInt32Filter
-  barInt32_any: Boolean
-  barInt32_none: ISingleFilterOfInt32Filter
-  barInt32_some: ISingleFilterOfInt32Filter
+  barInt16_all: ISingleFilterOfInt16Filter
+  barInt16_any: Boolean
+  barInt16_none: ISingleFilterOfInt16Filter
+  barInt16_some: ISingleFilterOfInt16Filter
   barInt32Nullable_all: ISingleFilterOfInt32Filter
   barInt32Nullable_any: Boolean
   barInt32Nullable_none: ISingleFilterOfInt32Filter
   barInt32Nullable_some: ISingleFilterOfInt32Filter
-  barInt64_all: ISingleFilterOfInt64Filter
-  barInt64_any: Boolean
-  barInt64_none: ISingleFilterOfInt64Filter
-  barInt64_some: ISingleFilterOfInt64Filter
+  barInt32_all: ISingleFilterOfInt32Filter
+  barInt32_any: Boolean
+  barInt32_none: ISingleFilterOfInt32Filter
+  barInt32_some: ISingleFilterOfInt32Filter
   barInt64Nullable_all: ISingleFilterOfInt64Filter
   barInt64Nullable_any: Boolean
   barInt64Nullable_none: ISingleFilterOfInt64Filter
   barInt64Nullable_some: ISingleFilterOfInt64Filter
-  barSingle_all: ISingleFilterOfSingleFilter
-  barSingle_any: Boolean
-  barSingle_none: ISingleFilterOfSingleFilter
-  barSingle_some: ISingleFilterOfSingleFilter
+  barInt64_all: ISingleFilterOfInt64Filter
+  barInt64_any: Boolean
+  barInt64_none: ISingleFilterOfInt64Filter
+  barInt64_some: ISingleFilterOfInt64Filter
   barSingleNullable_all: ISingleFilterOfSingleFilter
   barSingleNullable_any: Boolean
   barSingleNullable_none: ISingleFilterOfSingleFilter
   barSingleNullable_some: ISingleFilterOfSingleFilter
+  barSingle_all: ISingleFilterOfSingleFilter
+  barSingle_any: Boolean
+  barSingle_none: ISingleFilterOfSingleFilter
+  barSingle_some: ISingleFilterOfSingleFilter
   barString_all: ISingleFilterOfStringFilter
   barString_any: Boolean
   barString_none: ISingleFilterOfStringFilter
