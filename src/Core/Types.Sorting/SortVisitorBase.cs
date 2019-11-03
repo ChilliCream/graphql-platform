@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using HotChocolate.Language;
+using HotChocolate.Types.Sorting.Properties;
 
 namespace HotChocolate.Types.Sorting
 {
@@ -39,13 +40,15 @@ namespace HotChocolate.Types.Sorting
                     return VisitorAction.Continue;
                 }
 
-                // TODO : resources - invalid field
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(
+                                SortingResources.SortObjectTypeFieldVisitor_InvalidType
+                );
             }
             else
             {
-                // TODO : resources - invalid type
-                throw new InvalidOperationException();
+                throw new InvalidOperationException(
+                                SortingResources.SortObjectTypeVisitor_InvalidType
+                );
             }
         }
 
