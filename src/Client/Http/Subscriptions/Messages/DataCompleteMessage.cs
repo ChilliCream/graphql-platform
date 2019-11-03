@@ -1,4 +1,4 @@
-namespace StrawberryShake.Http.Subscriptions
+namespace StrawberryShake.Http.Subscriptions.Messages
 {
     public sealed class DataCompleteMessage
         : OperationMessage

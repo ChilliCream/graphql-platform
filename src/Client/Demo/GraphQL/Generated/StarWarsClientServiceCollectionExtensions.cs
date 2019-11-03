@@ -69,7 +69,6 @@ namespace StrawberryShake.Client.GraphQL
             this IServiceCollection serviceCollection)
         {
             serviceCollection.AddSingleton<IValueSerializer, ReviewInputSerializer>();
-            serviceCollection.AddSingleton<IValueSerializer, AuthorSerializer>();
             return serviceCollection;
         }
 
@@ -81,6 +80,7 @@ namespace StrawberryShake.Client.GraphQL
             serviceCollection.AddSingleton<IResultParser, GetHumanResultParser>();
             serviceCollection.AddSingleton<IResultParser, SearchResultParser>();
             serviceCollection.AddSingleton<IResultParser, CreateReviewResultParser>();
+            serviceCollection.AddSingleton<IResultParser, OnReviewResultParser>();
             return serviceCollection;
         }
 

@@ -56,8 +56,7 @@ namespace StrawberryShake.Http.Subscriptions
                             .ConfigureAwait(false);
 
                         // Skip the message which was read.
-                        buffer = buffer
-                            .Slice(buffer.GetPosition(1, position.Value));
+                        buffer = buffer.Slice(buffer.GetPosition(1, position.Value));
                     }
                 }
                 while (position != null);

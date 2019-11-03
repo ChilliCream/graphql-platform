@@ -1,4 +1,4 @@
-﻿namespace StrawberryShake.Http.Subscriptions
+﻿namespace StrawberryShake.Http.Subscriptions.Messages
 {
     internal static class MessageTypes
     {

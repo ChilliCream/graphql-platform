@@ -4,8 +4,6 @@ using System.Net.WebSockets;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Server;
-using Microsoft.AspNetCore.Http;
 
 namespace StrawberryShake.Http.Subscriptions
 {
@@ -29,11 +27,7 @@ namespace StrawberryShake.Http.Subscriptions
             _webSocket == null
             || _webSocket.CloseStatus.HasValue;
 
-        public HttpContext HttpContext { get; }
-
         public ISubscriptionManager Subscriptions { get; }
-
-        public IServiceProvider RequestServices => HttpContext.RequestServices;
 
         public async Task<bool> TryOpenAsync()
         {

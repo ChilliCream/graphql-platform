@@ -2,8 +2,11 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using HotChocolate.Language;
+using StrawberryShake.Http.Subscriptions.Messages;
 
 namespace StrawberryShake.Http.Subscriptions
 {
@@ -43,7 +46,7 @@ namespace StrawberryShake.Http.Subscriptions
 
         private static bool TryParseMessage(
             ReadOnlySequence<byte> slice,
-            out OperationMessage message)
+            out OperationMessage? message)
         {
             ReadOnlySpan<byte> messageData;
             byte[] buffer = null;
@@ -113,25 +116,25 @@ namespace StrawberryShake.Http.Subscriptions
 
         private static bool TryDeserializeMessage(
             GraphQLSocketMessage parsedMessage,
-            out OperationMessage message)
+            out OperationMessage? message)
         {
             switch (parsedMessage.Type)
             {
-                case MessageTypes.Connection.Initialize:
-                    message = DeserializeInitConnMessage(
-                        parsedMessage);
+                case MessageTypes.Connection.Error:
                     return true;
 
-                case MessageTypes.Connection.Terminate:
-                    message = TerminateConnectionMessage.Default;
+                case MessageTypes.Connection.Accept:
+                    message = AcceptConnectionMessage.Default;
                     return true;
 
-                case MessageTypes.Subscription.Start:
-                    return TryDeserializeDataStartMessage(
-                        parsedMessage, out message);
+                case MessageTypes.Subscription.Data:
+                    return true;
 
-                case MessageTypes.Subscription.Stop:
-                    message = DeserializeDataStopMessage(parsedMessage);
+                case MessageTypes.Subscription.Error:
+                    return true;
+
+                case MessageTypes.Subscription.Complete:
+                    message = DeserializeSubscriptionCompleteMessage(parsedMessage);
                     return true;
 
                 default:
@@ -140,20 +143,15 @@ namespace StrawberryShake.Http.Subscriptions
             }
         }
 
-        private static InitializeConnectionMessage DeserializeInitConnMessage(
+        private static DataCompleteMessage DeserializeSubscriptionCompleteMessage(
             GraphQLSocketMessage parsedMessage)
         {
-            if (parsedMessage.HasPayload)
+            if (parsedMessage.Id is null)
             {
-                object parsed = Utf8GraphQLRequestParser.ParseJson(
-                    parsedMessage.Payload);
-
-                if (parsed is IReadOnlyDictionary<string, object> payload)
-                {
-                    return new InitializeConnectionMessage(payload);
-                }
+                throw new InvalidOperationException(
+                    "Invalid message structure.");
             }
-            return new InitializeConnectionMessage(null);
+            return new DataCompleteMessage(parsedMessage.Id);
         }
 
         private static bool TryDeserializeDataStartMessage(

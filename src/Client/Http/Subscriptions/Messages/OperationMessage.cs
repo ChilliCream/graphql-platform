@@ -1,6 +1,6 @@
 using System;
 
-namespace StrawberryShake.Http.Subscriptions
+namespace StrawberryShake.Http.Subscriptions.Messages
 {
     public class OperationMessage
     {

@@ -41,5 +41,13 @@ namespace StrawberryShake.Client.GraphQL
         Task<IOperationResult<ICreateReview>> CreateReviewAsync(
             CreateReviewOperation operation,
             CancellationToken cancellationToken = default);
+
+        Task<IResponseStream<IOnReview>> OnReviewAsync(
+            Optional<Episode> episode = default,
+            CancellationToken cancellationToken = default);
+
+        Task<IResponseStream<IOnReview>> OnReviewAsync(
+            OnReviewOperation operation,
+            CancellationToken cancellationToken = default);
     }
 }

@@ -5,8 +5,8 @@ using StrawberryShake;
 
 namespace StrawberryShake.Client.GraphQL
 {
-    public class Author
+    public interface IOnReview
     {
-        public Optional<string> Name { get; set; }
+        IReview OnReview { get; }
     }
 }

@@ -19,7 +19,13 @@ query search($text: String!) {
 
 mutation createReview($episode: Episode! $review: ReviewInput!) {
   createReview(episode: $episode review: $review) {
-    commentary
+    ... Review
+  }
+}
+
+subscription onReview($episode: Episode!) {
+  onReview(episode: $episode) {
+    ... Review
   }
 }
 
@@ -59,4 +65,8 @@ fragment HasFriends on Character {
   friends {
     ...Friend
   }
+}
+
+fragment Review on Review {
+  commentary
 }

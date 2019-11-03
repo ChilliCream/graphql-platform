@@ -10,14 +10,10 @@ namespace StrawberryShake.Http.Subscriptions
     {
         bool Closed { get; }
 
-        ISubscriptionManager Subscriptions { get; }
-
-        IServiceProvider RequestServices { get; }
-
         Task<bool> TryOpenAsync();
 
         Task SendAsync(
-            byte[] message,
+            ReadOnlyMemory<byte> message,
             CancellationToken cancellationToken);
 
         Task ReceiveAsync(

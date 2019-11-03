@@ -1,7 +1,6 @@
 using System.Buffers;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Server;
 
 namespace StrawberryShake.Http.Subscriptions
 {

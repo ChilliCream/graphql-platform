@@ -51,5 +51,40 @@ namespace StrawberryShake.Demo
             // assert
             result.MatchSnapshot();
         }
+
+        // [Fact]
+        public async Task OnReview_By_Episode()
+        {
+            // arrange
+            TestServer httpServer = ServerFactory.Create(
+                services => services.AddStarWars(),
+                app => app.UseGraphQL());
+
+            HttpClient httpClient = httpServer.CreateClient();
+            httpClient.BaseAddress = new Uri("http://localhost:5000");
+
+            var clientFactory = new Mock<IHttpClientFactory>();
+            clientFactory.Setup(t => t.CreateClient(It.IsAny<string>())).Returns(httpClient);
+
+            var serviceCollection = new ServiceCollection();
+
+            serviceCollection.AddSingleton<IHttpClientFactory>(clientFactory.Object);
+            serviceCollection.AddDefaultScalarSerializers();
+            serviceCollection.AddStarWarsClient();
+
+            var services = serviceCollection.BuildServiceProvider();
+
+            // act
+            IStarWarsClient client = services.GetRequiredService<IStarWarsClient>();
+            IResponseStream<IOnReview> result = await client.OnReviewAsync(Episode.Empire);
+
+            await foreach (IOnReview review in result)
+            {
+
+            }
+
+            // assert
+            result.MatchSnapshot();
+        }
     }
 }

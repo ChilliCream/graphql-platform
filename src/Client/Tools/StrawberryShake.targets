@@ -48,9 +48,10 @@
   <Target Name="GraphQL_Compile_OnBuild"
     BeforeTargets="BeforeBuild"
     DependsOnTargets="GraphQL_Compile"
-    Condition="'$(GraphQLCompileOnBuild)' == 'true'" />
+    Condition="'$(GraphQLCompileOnBuild)' == 'true' OR '$(GraphQLGenerateOnBuild)' == 'true'" />
 
   <!-- Public Targets -->
   <Target Name="CompileGraphQL" DependsOnTargets="GraphQL_Compile" />
+  <Target Name="GenerateGraphQL" DependsOnTargets="GraphQL_Compile" />
 
 </Project>

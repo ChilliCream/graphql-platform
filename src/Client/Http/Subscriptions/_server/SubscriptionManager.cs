@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
 using System.Linq;
-using HotChocolate.Server;
 
 namespace StrawberryShake.Http.Subscriptions
 {
@@ -57,7 +56,7 @@ namespace StrawberryShake.Http.Subscriptions
             }
 
             if (_subs.TryRemove(subscriptionId,
-                out ISubscription subscription))
+                out ISubscription? subscription))
             {
                 subscription.Dispose();
             }
@@ -75,11 +74,11 @@ namespace StrawberryShake.Http.Subscriptions
             {
                 if (disposing && _subs.Count > 0)
                 {
-                    ISubscription[] subs = _subs.Values.ToArray();
+                    ISubscription?[] subs = _subs.Values.ToArray();
 
                     for (int i = 0; i < subs.Length; i++)
                     {
-                        subs[i].Dispose();
+                        subs[i]!.Dispose();
                         subs[i] = null;
                     }
 
