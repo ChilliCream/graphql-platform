@@ -154,60 +154,10 @@ namespace HotChocolate
             return this;
         }
 
-        public ISchemaBuilder AddConvention(
-            Type convention,
-            IConvention concreteConvention)
+
+        public ISchemaBuilder AddConvention(Type convention, CreateConvention factory)
         {
-            if (concreteConvention == null)
-            {
-                throw new ArgumentNullException(nameof(concreteConvention));
-            }
-            if (convention == null)
-            {
-                throw new ArgumentNullException(nameof(convention));
-            }
-
-            if (!typeof(IConvention).IsAssignableFrom(convention))
-            {
-                throw new ArgumentException(
-                    TypeResources.SchemaBuilder_Convention_NotSuppported,
-                    nameof(convention));
-            }
-
-            _conventions[convention] = concreteConvention;
-
-            return this;
-        }
-
-        public ISchemaBuilder AddConvention(
-            Type convention,
-            Type concreteConvention)
-        {
-            if (concreteConvention == null)
-            {
-                throw new ArgumentNullException(nameof(concreteConvention));
-            }
-            if (convention == null)
-            {
-                throw new ArgumentNullException(nameof(convention));
-            }
-
-            if (!typeof(IConvention).IsAssignableFrom(convention))
-            {
-                throw new ArgumentException(
-                    TypeResources.SchemaBuilder_Convention_NotSuppported,
-                    nameof(convention));
-            }
-
-            if (!typeof(IConvention).IsAssignableFrom(concreteConvention))
-            {
-                throw new ArgumentException(
-                    TypeResources.SchemaBuilder_Convention_NotSuppported,
-                    nameof(convention));
-            }
-
-            _conventionsTypes[convention] = concreteConvention;
-
+            _conventions[convention] = factory;
             return this;
         }
 
@@ -450,5 +400,6 @@ namespace HotChocolate
         }
 
         public static SchemaBuilder New() => new SchemaBuilder();
+
     }
 }

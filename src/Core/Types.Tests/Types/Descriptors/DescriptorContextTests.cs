@@ -144,12 +144,8 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var options = new SchemaOptions();
-            var inspector = new DefaultTypeInspector();
             var conventions = new Dictionary<Type, IConvention>();
-            var services = new DictionaryServiceProvider(
-                new KeyValuePair<Type, object>(
-                    typeof(ITypeInspector),
-                    inspector));
+            var services = new DictionaryServiceProvider();
             // act
             DescriptorContext context =
                 DescriptorContext.Create(options, services, conventions);
@@ -165,13 +161,9 @@ namespace HotChocolate.Types.Descriptors
         {
             // arrange
             var options = new SchemaOptions();
-            var inspector = new DefaultTypeInspector();
             var conventions = new Dictionary<Type, IConvention>();
             conventions.Add(typeof(Convention), Convention.Default);
-            var services = new DictionaryServiceProvider(
-                new KeyValuePair<Type, object>(
-                    typeof(ITypeInspector),
-                    inspector));
+            var services = new DictionaryServiceProvider();
 
             // act
             DescriptorContext context =
