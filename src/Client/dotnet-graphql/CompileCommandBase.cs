@@ -213,7 +213,9 @@ namespace StrawberryShake.Tools
                     if (document.Definitions.Count > 0)
                     {
                         DocumentKind kind =
-                            document.Definitions.Any(t => t is ITypeSystemDefinitionNode)
+                            document.Definitions.Any(t =>
+                                t is ITypeSystemDefinitionNode
+                                ||t is ITypeSystemExtensionNode)
                                 ? DocumentKind.Schema
                                 : DocumentKind.Query;
 
