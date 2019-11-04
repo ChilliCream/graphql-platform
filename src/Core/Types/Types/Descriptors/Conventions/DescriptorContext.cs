@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using HotChocolate.Configuration;
 
 namespace HotChocolate.Types.Descriptors
@@ -26,7 +25,7 @@ namespace HotChocolate.Types.Descriptors
 
         public ITypeInspector Inspector { get; }
 
-        public IReadOnlyDictionary<Type, IConvention> _conventions;
+        public readonly IReadOnlyDictionary<Type, IConvention> _conventions;
 
         public static DescriptorContext Create(
             IReadOnlySchemaOptions options,

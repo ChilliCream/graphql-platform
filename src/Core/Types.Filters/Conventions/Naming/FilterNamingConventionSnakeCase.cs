@@ -63,7 +63,7 @@ namespace HotChocolate.Types.Filters
             }
         }
 
-        public static FilterNamingConventionSnakeCase Default =
+        public static FilterNamingConventionSnakeCase Default { get; } =
             new FilterNamingConventionSnakeCase();
     }
 }
