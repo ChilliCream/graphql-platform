@@ -157,6 +157,16 @@ namespace HotChocolate
 
         public ISchemaBuilder AddConvention(Type convention, CreateConvention factory)
         {
+            if (convention is null)
+            {
+                throw new ArgumentNullException(nameof(convention));
+            }
+
+            if (factory is null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
             _conventions[convention] = factory;
             return this;
         }
