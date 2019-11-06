@@ -175,7 +175,7 @@ namespace HotChocolate.Types.Sorting
         }
 
 
-        [Fact]
+        [Fact(Skip= "Skipped till issue 1194 is solved")]
         public void Create_Explicit_Sorting_DifferentDescirptorOfSameType()
         {
             // arrange
