@@ -558,7 +558,7 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-        [Fact]
+        [Fact(Skip = "Skipped till issue 1194 is solved")]
         public void Create_ArrayObjectFilter_FooImplicitMultipleBarExplicit()
         {
             // arrange
