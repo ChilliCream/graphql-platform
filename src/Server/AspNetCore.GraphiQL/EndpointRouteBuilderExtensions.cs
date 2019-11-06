@@ -27,7 +27,7 @@ namespace HotChocolate.AspNetCore
             });
 
         public static IEndpointConventionBuilder MapGraphiQL(this IEndpointRouteBuilder endpoints, GraphiQLOptions options) =>
-            MapGraphiQL(
+            MapGraphiQLCore(
                 endpoints ?? throw new ArgumentNullException(nameof(endpoints)),
                 options ?? throw new ArgumentNullException(nameof(options)));
 

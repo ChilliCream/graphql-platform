@@ -27,7 +27,7 @@ namespace HotChocolate.AspNetCore
             });
 
         public static IEndpointConventionBuilder MapPlayground(this IEndpointRouteBuilder endpoints, PlaygroundOptions options) =>
-            MapPlayground(
+            MapPlaygroundCore(
                 endpoints ?? throw new ArgumentNullException(nameof(endpoints)),
                 options ?? throw new ArgumentNullException(nameof(options)));
 

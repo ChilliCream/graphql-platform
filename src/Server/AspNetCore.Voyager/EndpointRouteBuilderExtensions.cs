@@ -27,7 +27,7 @@ namespace HotChocolate.AspNetCore
             });
 
         public static IEndpointConventionBuilder MapVoyager(this IEndpointRouteBuilder endpoints, VoyagerOptions options) =>
-            MapVoyager(
+            MapVoyagerCore(
                 endpoints ?? throw new ArgumentNullException(nameof(endpoints)),
                 options ?? throw new ArgumentNullException(nameof(options)));
 
