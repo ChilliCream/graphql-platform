@@ -58,6 +58,16 @@ namespace HotChocolate.Types.Filters
                 case FilterOperationKind.Object:
                     return GetNameForDefintion(definition);
 
+
+                case FilterOperationKind.ArraySome:
+                    return definition.Name + "_Some";
+                case FilterOperationKind.ArrayNone:
+                    return definition.Name + "_None";
+                case FilterOperationKind.ArrayAll:
+                    return definition.Name + "_All";
+                case FilterOperationKind.ArrayAny:
+                    return definition.Name + "_Any";
+
                 default:
                     throw new NotSupportedException();
             }
