@@ -1421,8 +1421,8 @@ namespace HotChocolate
         {
             // arrange
             var services = new ServiceCollection();
-            ServiceProvider provider = services.AddConvention<IConvention, TestConvention>()
-                .BuildServiceProvider();
+            services.AddTransient<ITestConvention, TestConvention>();
+            ServiceProvider provider = services.BuildServiceProvider();
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -1447,8 +1447,8 @@ namespace HotChocolate
             // arrange
             var services = new ServiceCollection();
             var conventionImpl = new TestConvention();
-            var provider = services.AddConvention<IConvention>(conventionImpl)
-                .BuildServiceProvider();
+            services.AddSingleton<ITestConvention>(conventionImpl);
+            var provider = services.BuildServiceProvider();
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -1473,8 +1473,8 @@ namespace HotChocolate
         {
             // arrange
             var services = new ServiceCollection();
-            var provider = services.AddConvention<IConvention, TestConvention>()
-                .BuildServiceProvider();
+            services.AddSingleton<IConvention, TestConvention>();
+            var provider = services.BuildServiceProvider();
 
             // act
             ISchema schema = SchemaBuilder.New()
@@ -1517,6 +1517,26 @@ namespace HotChocolate
             Assert.IsType<DefaultNamingConventions>(convention);
             Assert.Equal(convention, myNamingConvention);
             Assert.Equal(testType.Context.Naming, myNamingConvention);
+        }
+
+        [Fact]
+        public void UseDefaultConvention()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention2());
+            Assert.IsType<TestConvention2>(convention);
         }
 
         public class DynamicFooType

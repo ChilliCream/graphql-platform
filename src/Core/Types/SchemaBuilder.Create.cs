@@ -332,25 +332,11 @@ namespace HotChocolate
             IServiceProvider services)
         {
             var serviceFactory = new ServiceFactory { Services = services };
-
-            if (services.GetService(typeof(IEnumerable<ConventionRecord>)) is
-                 IEnumerable<ConventionRecord> conventionRecords)
-            {
-                foreach (var record in conventionRecords)
-                {
-                    if (!_conventions.ContainsKey(record.Convention))
-                    {
-                        _conventions[record.Convention] = record.CreateConvention;
-                    }
-                }
-            }
-
-
             var conventions = new Dictionary<Type, IConvention>();
 
             foreach (KeyValuePair<Type, CreateConvention> item in _conventions)
             {
-                conventions[item.Key] = item.Value(serviceFactory);
+                conventions.Add(item.Key, item.Value(serviceFactory));
             }
 
             return conventions;
