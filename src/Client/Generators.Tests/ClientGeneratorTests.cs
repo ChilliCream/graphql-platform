@@ -38,6 +38,67 @@ namespace StrawberryShake.Generators
         }
 
         [Fact]
+        public async Task Nested_List_Nullable_ReturnType()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo(a: String): [String]
+                } 
+                ";
+
+            string query =
+               @"
+                query getBars($a: String) {
+                    foo(a: $a)
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task Nested_List_ReturnType()
+        {
+            // arrange
+            var outputHandler = new TestOutputHandler();
+
+            string schema = @"
+                type Query {
+                    foo(a: String): [String!]!
+                } 
+                ";
+
+            string query =
+               @"
+                query getBars($a: String) {
+                    foo(a: $a)
+                }
+                ";
+
+            // act
+            await ClientGenerator.New()
+                .AddQueryDocumentFromString("Queries", query)
+                .AddSchemaDocumentFromString("Schema", schema)
+                .SetOutput(outputHandler)
+                .BuildAsync();
+
+            // assert
+            outputHandler.Content.MatchSnapshot();
+        }
+
+
+        [Fact]
         public async Task Two_Nullable_Scalar_Arguments()
         {
             // arrange

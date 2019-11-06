@@ -212,7 +212,7 @@ namespace StrawberryShake.Generators.CSharp
             using (writer.IncreaseIndent())
             {
                 await writer.WriteIndentedLineAsync(
-                    "if (!_needsInitialization)")
+                    "if (_needsInitialization)")
                     .ConfigureAwait(false);
                 await writer.WriteIndentedLineAsync("{")
                     .ConfigureAwait(false);

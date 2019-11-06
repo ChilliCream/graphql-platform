@@ -590,4 +590,7 @@ Type: `{0}`</value>
   <data name="IdSerializer_UnableToDecode" xml:space="preserve">
     <value>Unable to decode the id string.</value>
   </data>
+  <data name="SchemaBuilder_Convention_NotSuppported" xml:space="preserve">
+    <value>The specified convention type is not supported.</value>
+  </data>
 </root>

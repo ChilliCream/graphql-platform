@@ -954,6 +954,15 @@ namespace HotChocolate.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The specified convention type is not supported..
+        /// </summary>
+        internal static string SchemaBuilder_Convention_NotSuppported {
+            get {
+                return ResourceManager.GetString("SchemaBuilder_Convention_NotSuppported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The specified interceptor type is not supported..
         /// </summary>
         internal static string SchemaBuilder_Interceptor_NotSuppported {
