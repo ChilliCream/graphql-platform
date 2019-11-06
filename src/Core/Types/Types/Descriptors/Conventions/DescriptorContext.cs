@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HotChocolate.Configuration;
 using HotChocolate.Utilities;
 
@@ -9,7 +10,7 @@ namespace HotChocolate.Types.Descriptors
         : IDescriptorContext
     {
         private readonly IServiceProvider _services;
-        public readonly Dictionary<Type, IConvention> _conventions;
+        private readonly Dictionary<Type, IConvention> _conventions;
         private INamingConventions _naming;
         private ITypeInspector _inspector;
 
@@ -19,7 +20,7 @@ namespace HotChocolate.Types.Descriptors
             IServiceProvider services)
         {
             Options = options;
-            _conventions = new Dictionary<Type, IConvention>(conventions);
+            _conventions = conventions.ToDictionary(t => t.Key, t => t.Value);
             _services = services;
         }
 

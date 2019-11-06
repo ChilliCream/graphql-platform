@@ -1275,7 +1275,7 @@ namespace HotChocolate
         [Fact]
         public void AddConvention_WithImplementation_Generic()
         {
-            // arrange  
+            // arrange
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<ITestConvention>(TestConvention.Default)
@@ -1288,14 +1288,15 @@ namespace HotChocolate
 
             // assert
             var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConvention<ITestConvention>();
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention());
             Assert.Equal(TestConvention.Default, convention);
         }
 
         [Fact]
         public void AddConvention_WithImplementation()
         {
-            // arrange  
+            // arrange
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddConvention(typeof(ITestConvention), TestConvention.Default)
@@ -1308,7 +1309,8 @@ namespace HotChocolate
 
             // assert
             var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConvention<ITestConvention>();
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention2());
             Assert.NotNull(convention);
             Assert.Equal(TestConvention.Default, convention);
         }
@@ -1316,7 +1318,7 @@ namespace HotChocolate
         [Fact]
         public void AddConvention_NoImplementation_Generic()
         {
-            // arrange  
+            // arrange
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddConvention<ITestConvention, TestConvention>()
@@ -1329,7 +1331,8 @@ namespace HotChocolate
 
             // assert
             var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConvention<ITestConvention>();
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention2());
             Assert.NotNull(convention);
             Assert.IsType<TestConvention>(convention);
         }
@@ -1337,7 +1340,7 @@ namespace HotChocolate
         [Fact]
         public void AddConvention_NoImplementation()
         {
-            // arrange  
+            // arrange
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddConvention(typeof(ITestConvention), typeof(TestConvention))
@@ -1350,7 +1353,8 @@ namespace HotChocolate
 
             // assert
             var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConvention<ITestConvention>();
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention2());
             Assert.NotNull(convention);
             Assert.IsType<TestConvention>(convention);
         }
@@ -1359,7 +1363,7 @@ namespace HotChocolate
         [Fact]
         public void AddConvention_Override_TypeOverType()
         {
-            // arrange  
+            // arrange
             // act
             ISchema schema = SchemaBuilder.New()
                 .AddConvention(typeof(ITestConvention), typeof(TestConvention))
@@ -1373,7 +1377,8 @@ namespace HotChocolate
 
             // assert
             var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConvention<ITestConvention>();
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention());
             Assert.NotNull(convention);
             Assert.IsType<TestConvention2>(convention);
         }
@@ -1382,7 +1387,7 @@ namespace HotChocolate
         [Fact]
         public void AddConvention_ServiceDependency()
         {
-            // arrange  
+            // arrange
             var services = new ServiceCollection();
             var provider = services.AddSingleton<MyInterceptor, MyInterceptor>()
                 .BuildServiceProvider();
@@ -1403,17 +1408,20 @@ namespace HotChocolate
 
             // assert
             var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConvention<ITestConvention>();
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention());
             Assert.IsType<TestConventionServiceDependency>(convention);
-            Assert.Equal(dependencyOfConvention, (convention as TestConventionServiceDependency).Dependency);
+            Assert.Equal(
+                dependencyOfConvention,
+                ((TestConventionServiceDependency)convention).Dependency);
         }
 
         [Fact]
         public void AddConvention_Through_ServiceCollection()
         {
-            // arrange  
+            // arrange
             var services = new ServiceCollection();
-            var provider = services.AddConvention<IConvention, TestConvention>()
+            ServiceProvider provider = services.AddConvention<IConvention, TestConvention>()
                 .BuildServiceProvider();
 
             // act
@@ -1428,14 +1436,15 @@ namespace HotChocolate
 
             // assert
             var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConvention<IConvention>();
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention2());
             Assert.IsType<TestConvention>(convention);
         }
 
         [Fact]
         public void AddConvention_Through_ServiceCollection_ProvideImplementation()
         {
-            // arrange  
+            // arrange
             var services = new ServiceCollection();
             var conventionImpl = new TestConvention();
             var provider = services.AddConvention<IConvention>(conventionImpl)
@@ -1453,7 +1462,8 @@ namespace HotChocolate
 
             // assert
             var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConvention<IConvention>();
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention2());
             Assert.IsType<TestConvention>(convention);
             Assert.Equal(convention, conventionImpl);
         }
@@ -1461,7 +1471,7 @@ namespace HotChocolate
         [Fact]
         public void AddConvention_Through_ServiceCollection_And_SchemaBuilderOverrides()
         {
-            // arrange  
+            // arrange
             var services = new ServiceCollection();
             var provider = services.AddConvention<IConvention, TestConvention>()
                 .BuildServiceProvider();
@@ -1479,7 +1489,8 @@ namespace HotChocolate
 
             // assert
             var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConvention<IConvention>();
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention2());
             Assert.IsType<TestConvention2>(convention);
         }
 
@@ -1501,7 +1512,8 @@ namespace HotChocolate
 
             // assert
             var testType = schema.GetType<ConventionTestType>("ConventionTestType");
-            var convention = testType.Context.GetConvention<INamingConventions>();
+            var convention = testType.Context.GetConventionOrDefault<INamingConventions>(
+                new DefaultNamingConventions());
             Assert.IsType<DefaultNamingConventions>(convention);
             Assert.Equal(convention, myNamingConvention);
             Assert.Equal(testType.Context.Naming, myNamingConvention);
