@@ -22,10 +22,6 @@
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="2.2.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)'=='netcoreapp3.0'">
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\Core\Core\Core.csproj" />
     <ProjectReference Include="..\AspNetCore.Authorization\AspNetCore.Authorization.csproj" />

@@ -1,13 +1,12 @@
 #if NETCOREAPP3_0
 using System;
-using HotChocolate.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 
 namespace HotChocolate.AspNetCore
 {
-    public static class GraphQLEndpointRouteBuilderExtensions
+    public static class EndpointRouteBuilderExtensions
     {
         public static IEndpointConventionBuilder MapGraphQL(this IEndpointRouteBuilder endpoints, PathString path) =>
             MapGraphQLCore(
