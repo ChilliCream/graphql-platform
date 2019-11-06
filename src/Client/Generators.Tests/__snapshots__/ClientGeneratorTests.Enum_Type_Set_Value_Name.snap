@@ -46,9 +46,12 @@ namespace StrawberryShake.Client
         : JsonResultParserBase<IGetEpisode>
     {
 
-        public GetEpisodeResultParser(IEnumerable<IValueSerializer> serializers)
+        public GetEpisodeResultParser(IValueSerializerResolver serializerResolver)
         {
-            IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
+            if(serializerResolver is null)
+            {
+                throw new ArgumentNullException(nameof(serializerResolver));
+            }
         }
 
         protected override IGetEpisode ParserData(JsonElement data)
@@ -84,9 +87,10 @@ namespace StrawberryShake.Client
                 }
                 else
                 {
-                    list[i] = (Episode?)_episodeSerializer.Deserialize(element.GetString())!;
+                    listList[i] = (Episode?)_episodeSerializer.Deserialize(element.GetString())!;
                 }
             }
+            return listList;
         }
     }
 }
@@ -127,10 +131,12 @@ namespace StrawberryShake.Client
 {
     public interface ISchemaClient
     {
-        Task<IOperationResult<IGetEpisode>> GetEpisodeAsync();
+        Task<IOperationResult<IGetEpisode>> GetEpisodeAsync(
+            CancellationToken cancellationToken = default);
 
         Task<IOperationResult<IGetEpisode>> GetEpisodeAsync(
-            CancellationToken cancellationToken);
+            GetEpisodeOperation operation,
+            CancellationToken cancellationToken = default);
     }
 }
 
@@ -154,16 +160,25 @@ namespace StrawberryShake.Client
             _executor = executor ?? throw new ArgumentNullException(nameof(executor));
         }
 
-        public Task<IOperationResult<IGetEpisode>> GetEpisodeAsync() =>
-            GetEpisodeAsync(CancellationToken.None);
-
         public Task<IOperationResult<IGetEpisode>> GetEpisodeAsync(
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
 
             return _executor.ExecuteAsync(
                 new GetEpisodeOperation(),
                 cancellationToken);
+        }
+
+        public Task<IOperationResult<IGetEpisode>> GetEpisodeAsync(
+            GetEpisodeOperation operation,
+            CancellationToken cancellationToken = default)
+        {
+            if(operation is null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            return _executor.ExecuteAsync(operation, cancellationToken);
         }
     }
 }
@@ -266,22 +281,6 @@ namespace StrawberryShake.Client
 {
     public static class SchemaClientServiceCollectionExtensions
     {
-        public static IServiceCollection AddDefaultScalarSerializers(
-            this IServiceCollection serviceCollection)
-        {
-            if (serviceCollection is null)
-            {
-                throw new ArgumentNullException(nameof(serviceCollection));
-            }
-
-            foreach (IValueSerializer serializer in ValueSerializers.All)
-            {
-                serviceCollection.AddSingleton(serializer);
-            }
-
-            return serviceCollection;
-        }
-
         public static IServiceCollection AddSchemaClient(
             this IServiceCollection serviceCollection)
         {
@@ -298,10 +297,30 @@ namespace StrawberryShake.Client
                     .SetPipeline(PipelineFactory)
                     .Build());
 
+            serviceCollection.AddDefaultScalarSerializers();
             serviceCollection.AddEnumSerializers();
             serviceCollection.AddResultParsers();
+
             serviceCollection.TryAddDefaultOperationSerializer();
             serviceCollection.TryAddDefaultHttpPipeline();
+
+            return serviceCollection;
+        }
+
+        public static IServiceCollection AddDefaultScalarSerializers(
+            this IServiceCollection serviceCollection)
+        {
+            if (serviceCollection is null)
+            {
+                throw new ArgumentNullException(nameof(serviceCollection));
+            }
+
+            serviceCollection.AddSingleton<IValueSerializerResolver, ValueSerializerResolver>();
+
+            foreach (IValueSerializer serializer in ValueSerializers.All)
+            {
+                serviceCollection.AddSingleton(serializer);
+            }
 
             return serviceCollection;
         }
@@ -313,9 +332,11 @@ namespace StrawberryShake.Client
             return serviceCollection;
         }
 
+
         private static IServiceCollection AddResultParsers(
             this IServiceCollection serviceCollection)
         {
+            serviceCollection.AddSingleton<IResultParserResolver, ResultParserResolver>();
             serviceCollection.AddSingleton<IResultParser, GetEpisodeResultParser>();
             return serviceCollection;
         }

@@ -15,7 +15,6 @@
     <AssemblyName>StrawberryShake.Generators.Tests</AssemblyName>
     <RootNamespace>StrawberryShake.Generators</RootNamespace>
     <IsPackable>false</IsPackable>
-    <Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -14,7 +14,7 @@ namespace HotChocolate.Types.Relay
         public async Task TakeFirst()
         {
             // arrange
-            var list = new List<string> {"a", "b", "c", "d", "e", "f", "g",};
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
             var pagingDetails = new PagingDetails
             {
@@ -54,7 +54,7 @@ namespace HotChocolate.Types.Relay
         public async Task TakeLast()
         {
             // arrange
-            var list = new List<string> {"a", "b", "c", "d", "e", "f", "g",};
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
             var pagingDetails = new PagingDetails
             {
@@ -94,10 +94,10 @@ namespace HotChocolate.Types.Relay
         public async Task TakeFirstAfter()
         {
             // arrange
-            var list = new List<string> {"a", "b", "c", "d", "e", "f", "g",};
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
             var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), new PagingDetails {First = 1});
+                list.AsQueryable(), new PagingDetails { First = 1 });
 
             Connection<string> connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
@@ -141,11 +141,11 @@ namespace HotChocolate.Types.Relay
         public async Task TakeTwoAfterSecondTime()
         {
             // arrange
-            var list = new List<string> {"a", "b", "c", "d", "e", "f", "g",};
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
             // 1. Page
             var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), new PagingDetails {First = 2});
+                list.AsQueryable(), new PagingDetails { First = 2 });
 
             Connection<string> connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
@@ -203,10 +203,10 @@ namespace HotChocolate.Types.Relay
         public async Task TakeLastBefore()
         {
             // arrange
-            var list = new List<string> {"a", "b", "c", "d", "e", "f", "g",};
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
             var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), new PagingDetails {First = 5});
+                list.AsQueryable(), new PagingDetails { First = 5 });
 
             Connection<string> connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
@@ -250,7 +250,7 @@ namespace HotChocolate.Types.Relay
         public async Task HasNextPage_True()
         {
             // arrange
-            var list = new List<string> {"a", "b", "c", "d", "e", "f", "g",};
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
             var pagingDetails = new PagingDetails
             {
@@ -272,7 +272,7 @@ namespace HotChocolate.Types.Relay
         public async Task HasNextPage_False()
         {
             // arrange
-            var list = new List<string> {"a", "b", "c", "d", "e", "f", "g",};
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
             var pagingDetails = new PagingDetails
             {
@@ -294,10 +294,10 @@ namespace HotChocolate.Types.Relay
         public async Task HasPrevious_True()
         {
             // arrange
-            var list = new List<string> {"a", "b", "c", "d", "e", "f", "g",};
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
             var connectionFactory = new QueryableConnectionResolver<string>(
-                list.AsQueryable(), new PagingDetails {First = 1});
+                list.AsQueryable(), new PagingDetails { First = 1 });
 
             Connection<string> connection = await connectionFactory.ResolveAsync(
                 CancellationToken.None);
@@ -323,7 +323,7 @@ namespace HotChocolate.Types.Relay
         public async Task HasPrevious_False()
         {
             // arrange
-            var list = new List<string> {"a", "b", "c", "d", "e", "f", "g",};
+            var list = new List<string> { "a", "b", "c", "d", "e", "f", "g", };
 
             var pagingDetails = new PagingDetails();
 

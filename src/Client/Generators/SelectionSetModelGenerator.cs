@@ -311,7 +311,7 @@ namespace StrawberryShake.Generators
             }
             else if (withDirectives is OperationDefinitionNode operation)
             {
-                return nameFormatter(operation.Name.Value);
+                return nameFormatter(operation.Name!.Value);
             }
 
             INamedType type = returnType.NamedType();
@@ -343,8 +343,8 @@ namespace StrawberryShake.Generators
                 return false;
             }
 
-            typeName = (string)directive.Arguments.Single(a =>
-                a.Name.Value.EqualsOrdinal("name")).Value.Value;
+            typeName = directive.Arguments.Single(a =>
+                a.Name.Value.EqualsOrdinal("name")).Value.Value as string;
             return true;
         }
 

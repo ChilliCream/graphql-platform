@@ -613,7 +613,7 @@ namespace StrawberryShake.Generators
         {
             yield return new ClassGenerator();
             yield return new InputClassGenerator();
-            yield return new InputClassSerializerGenerator();
+            yield return new InputClassSerializerGenerator(options.LanguageVersion);
             yield return new InterfaceGenerator();
             yield return new ResultParserGenerator(options);
             yield return new OperationGenerator();

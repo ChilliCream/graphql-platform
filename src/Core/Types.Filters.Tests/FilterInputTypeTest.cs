@@ -13,7 +13,6 @@ namespace HotChocolate.Types.Filters
         [Fact]
         public void FilterInputType_DynamicName()
         {
-
             // arrange
             // act
             var schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
@@ -36,7 +35,6 @@ namespace HotChocolate.Types.Filters
         [Fact]
         public void FilterInputType_DynamicName_NonGeneric()
         {
-
             // arrange
             // act
             var schema = CreateSchema(s => s.AddType(new FilterInputType<Foo>(
@@ -69,7 +67,6 @@ namespace HotChocolate.Types.Filters
                      )
                 )
             );
-
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -120,15 +117,11 @@ namespace HotChocolate.Types.Filters
             // arrange
             // act
             var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
-             .AddType(new FilterInputType<Foo>(
-                 d => d
-                     .Directive(new FooDirective())
-                     .Filter(x => x.Bar)
-                     .BindFiltersExplicitly()
-                     .AllowEquals()
-                     )
-                )
-            );
+                .AddType(new FilterInputType<Foo>(d => d
+                    .Directive(new FooDirective())
+                    .Filter(x => x.Bar)
+                    .BindFiltersExplicitly()
+                    .AllowEquals())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -140,15 +133,11 @@ namespace HotChocolate.Types.Filters
             // arrange
             // act
             var schema = CreateSchema(s => s.AddDirectiveType<FooDirectiveType>()
-             .AddType(new FilterInputType<Foo>(
-                d => d
-                .Directive<FooDirective>()
-                 .Filter(x => x.Bar)
-                 .BindFiltersExplicitly()
-                 .AllowEquals()
-                 )
-                )
-             );
+                .AddType(new FilterInputType<Foo>(d => d
+                    .Directive<FooDirective>()
+                    .Filter(x => x.Bar)
+                    .BindFiltersExplicitly()
+                    .AllowEquals())));
 
             // assert
             schema.ToString().MatchSnapshot();
@@ -191,7 +180,7 @@ namespace HotChocolate.Types.Filters
         }
 
         private class FooDirectiveType
-          : DirectiveType<FooDirective>
+            : DirectiveType<FooDirective>
         {
             protected override void Configure(
                 IDirectiveTypeDescriptor<FooDirective> descriptor)
@@ -201,6 +190,7 @@ namespace HotChocolate.Types.Filters
                     .Location(DirectiveLocation.InputFieldDefinition);
             }
         }
+
         private class FooDirective { }
 
         private class Foo

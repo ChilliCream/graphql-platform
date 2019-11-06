@@ -11,7 +11,7 @@ var sonarLogin = Argument("sonarLogin", default(string));
 var sonarPrKey = Argument("sonarPrKey", default(string));
 var sonarBranch = Argument("sonarBranch", default(string));
 var sonarBranchBase = Argument("sonarBranch", default(string));
-var packageVersion = Argument("packageVersion", default(string));
+var sonarVersion = Argument("sonarVersion", default(string));
 
 //////////////////////////////////////////////////////////////////////
 // PREPARATION
@@ -25,18 +25,18 @@ var publishOutputDir = Directory("./artifacts");
 Task("EnvironmentSetup")
     .Does(() =>
 {
-    if(string.IsNullOrEmpty(packageVersion))
+    if(string.IsNullOrEmpty(sonarVersion))
     {
-        packageVersion = EnvironmentVariable("Version");
+        sonarVersion = EnvironmentVariable("SONAR_VERSION");
     }
-    Environment.SetEnvironmentVariable("Version", packageVersion);
 
     if(string.IsNullOrEmpty(sonarPrKey))
     {
-        sonarPrKey = EnvironmentVariable("PullRequestKey");
-        sonarBranch = EnvironmentVariable("PullRequestBranch");
-        sonarBranchBase = EnvironmentVariable("TargetBranch");
+        sonarPrKey = EnvironmentVariable("PR_NUMBER");
+        sonarBranch = EnvironmentVariable("PR_SOURCE_BRANCH");
+        sonarBranchBase = EnvironmentVariable("PR_TARGET_BRANCH");
         sonarBranchBase = "master";
+        System.Console.WriteLine("PrKey" + sonarPrKey);
     }
 
     if(string.IsNullOrEmpty(sonarLogin))
@@ -85,10 +85,42 @@ Task("Tests")
 
     foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
     {
-        if(!file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
+        if(!file.FullPath.Contains("Classic") && !file.FullPath.Contains("Redis") && !file.FullPath.Contains("Mongo"))
         {
             DotNetCoreTest(file.FullPath, testSettings);
         }
+    }
+});
+
+Task("AllTests")
+    .IsDependentOn("EnvironmentSetup")
+    .Does(() =>
+{
+    var buildSettings = new DotNetCoreBuildSettings
+    {
+        Configuration = "Debug"
+    };
+
+    int i = 0;
+    var testSettings = new DotNetCoreTestSettings
+    {
+        Configuration = "Debug",
+        ResultsDirectory = $"./{testOutputDir}",
+        Logger = "trx",
+        NoRestore = true,
+        NoBuild = true,
+        ArgumentCustomization = args => args
+            .Append("/p:CollectCoverage=true")
+            .Append("/p:Exclude=[xunit.*]*")
+            .Append("/p:CoverletOutputFormat=opencover")
+            .Append($"/p:CoverletOutput=\"../../{testOutputDir}/full_{i++}\" --blame")
+    };
+
+    DotNetCoreBuild("./tools/Build.sln", buildSettings);
+
+    foreach(var file in GetFiles("./src/**/*.Tests.csproj"))
+    {
+        DotNetCoreTest(file.FullPath, testSettings);
     }
 });
 
@@ -107,7 +139,7 @@ Task("SonarBegin")
         OpenCoverReportsPath = "**/*.opencover.xml",
         Exclusions = "**/*.js,**/*.html,**/*.css,**/examples/**/*.*,**/StarWars/**/*.*,**/benchmarks/**/*.*,**/src/Templates/**/*.*",
         Verbose = false,
-        Version = packageVersion,
+        Version = sonarVersion,
         ArgumentCustomization = a => {
             if(!string.IsNullOrEmpty(sonarPrKey))
             {
@@ -116,7 +148,6 @@ Task("SonarBegin")
                 a = a.Append($"/d:sonar.pullrequest.base=\"{sonarBranchBase}\"");
                 a = a.Append($"/d:sonar.pullrequest.provider=\"github\"");
                 a = a.Append($"/d:sonar.pullrequest.github.repository=\"ChilliCream/hotchocolate\"");
-                // a = a.Append($"/d:sonar.pullrequest.github.endpoint=\"https://api.github.com/\"");
             }
             return a;
         }
@@ -141,7 +172,7 @@ Task("Default")
 
 Task("Sonar")
     .IsDependentOn("SonarBegin")
-    .IsDependentOn("Tests")
+    .IsDependentOn("AllTests")
     .IsDependentOn("SonarEnd");
 
 //////////////////////////////////////////////////////////////////////

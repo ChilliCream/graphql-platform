@@ -100,7 +100,7 @@ namespace StrawberryShake.Tools
 
             if (!string.IsNullOrEmpty(config.ClientName))
             {
-                generator.SetClientName(config.ClientName);
+                generator.SetClientName(config.ClientName!);
             }
 
             var errors = new List<HCError>();
@@ -213,7 +213,9 @@ namespace StrawberryShake.Tools
                     if (document.Definitions.Count > 0)
                     {
                         DocumentKind kind =
-                            document.Definitions.Any(t => t is ITypeSystemDefinitionNode)
+                            document.Definitions.Any(t =>
+                                t is ITypeSystemDefinitionNode
+                                ||t is ITypeSystemExtensionNode)
                                 ? DocumentKind.Schema
                                 : DocumentKind.Query;
 

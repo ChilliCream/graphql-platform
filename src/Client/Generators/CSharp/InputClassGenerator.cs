@@ -41,22 +41,13 @@ namespace StrawberryShake.Generators.CSharp
                     }
 
                     await writer.WriteIndentAsync().ConfigureAwait(false);
-                    await writer.WriteAsync("public ").ConfigureAwait(false);
-                    await writer.WriteAsync(typeName).ConfigureAwait(false);
+                    await writer.WriteAsync($"public Optional<{typeName}>")
+                        .ConfigureAwait(false);
                     await writer.WriteSpaceAsync().ConfigureAwait(false);
                     await writer.WriteAsync(GetPropertyName(fieldDescriptor.Name))
                         .ConfigureAwait(false);
                     await writer.WriteSpaceAsync().ConfigureAwait(false);
                     await writer.WriteAsync("{ get; set; }").ConfigureAwait(false);
-
-                    if (fieldDescriptor.Type.IsListType())
-                    {
-                        await writer.WriteSpaceAsync().ConfigureAwait(false);
-                        await writer.WriteAsync(" = new ").ConfigureAwait(false);
-                        await writer.WriteAsync(typeName).ConfigureAwait(false);
-                        await writer.WriteAsync("();").ConfigureAwait(false);
-                    }
-
                     await writer.WriteLineAsync().ConfigureAwait(false);
                 }
             }

@@ -1,0 +1,22 @@
+﻿{
+  "Data": {},
+  "Extensions": {},
+  "Errors": [
+    {
+      "Message": "The value of $value has a wrong structure.",
+      "Code": "EXEC_INVALID_TYPE",
+      "Path": null,
+      "Locations": [
+        {
+          "Line": 1,
+          "Column": 15
+        }
+      ],
+      "Exception": null,
+      "Extensions": {
+        "code": "EXEC_INVALID_TYPE"
+      }
+    }
+  ],
+  "ContextData": {}
+}

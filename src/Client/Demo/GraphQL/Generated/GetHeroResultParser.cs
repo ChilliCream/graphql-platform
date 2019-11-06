@@ -5,7 +5,7 @@ using System.Text.Json;
 using StrawberryShake;
 using StrawberryShake.Http;
 
-namespace  StrawberryShake.Client.GraphQL
+namespace StrawberryShake.Client.GraphQL
 {
     public class GetHeroResultParser
         : JsonResultParserBase<IGetHero>
@@ -13,25 +13,14 @@ namespace  StrawberryShake.Client.GraphQL
         private readonly IValueSerializer _stringSerializer;
         private readonly IValueSerializer _floatSerializer;
 
-        public GetHeroResultParser(IEnumerable<IValueSerializer> serializers)
+        public GetHeroResultParser(IValueSerializerResolver serializerResolver)
         {
-            IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
-
-            if (!map.TryGetValue("String", out IValueSerializer? serializer))
+            if(serializerResolver is null)
             {
-                throw new ArgumentException(
-                    "There is no serializer specified for `String`.",
-                    nameof(serializers));
+                throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _stringSerializer = serializer;
-
-            if (!map.TryGetValue("Float", out  serializer))
-            {
-                throw new ArgumentException(
-                    "There is no serializer specified for `Float`.",
-                    nameof(serializers));
-            }
-            _floatSerializer = serializer;
+            _stringSerializer = serializerResolver.GetValueSerializer("String");
+            _floatSerializer = serializerResolver.GetValueSerializer("Float");
         }
 
         protected override IGetHero ParserData(JsonElement data)
