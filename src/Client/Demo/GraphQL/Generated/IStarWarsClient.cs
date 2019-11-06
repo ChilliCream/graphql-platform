@@ -25,14 +25,6 @@ namespace StrawberryShake.Client.GraphQL
             GetHumanOperation operation,
             CancellationToken cancellationToken = default);
 
-        Task<IOperationResult<IGetCharacter>> GetCharacterAsync(
-            Optional<IReadOnlyList<string?>> ids = default,
-            CancellationToken cancellationToken = default);
-
-        Task<IOperationResult<IGetCharacter>> GetCharacterAsync(
-            GetCharacterOperation operation,
-            CancellationToken cancellationToken = default);
-
         Task<IOperationResult<ISearch>> SearchAsync(
             Optional<string> text = default,
             CancellationToken cancellationToken = default);
