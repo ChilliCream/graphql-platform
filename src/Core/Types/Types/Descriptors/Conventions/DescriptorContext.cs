@@ -1,31 +1,94 @@
 using System;
 using System.Collections.Generic;
 using HotChocolate.Configuration;
+using HotChocolate.Utilities;
 
 namespace HotChocolate.Types.Descriptors
 {
     public sealed class DescriptorContext
         : IDescriptorContext
     {
+        private readonly IServiceProvider _services;
+        public readonly Dictionary<Type, IConvention> _conventions;
+        private INamingConventions _naming;
+        private ITypeInspector _inspector;
+
         private DescriptorContext(
             IReadOnlySchemaOptions options,
-            INamingConventions naming,
-            ITypeInspector inspector,
-            IReadOnlyDictionary<Type, IConvention> conventions)
+            IReadOnlyDictionary<Type, IConvention> conventions,
+            IServiceProvider services)
         {
             Options = options;
-            Naming = naming;
-            Inspector = inspector;
-            _conventions = conventions;
+            _conventions = new Dictionary<Type, IConvention>(conventions);
+            _services = services;
         }
 
         public IReadOnlySchemaOptions Options { get; }
 
-        public INamingConventions Naming { get; }
+        public INamingConventions Naming
+        {
+            get
+            {
+                if (_naming is null)
+                {
+                    _naming = GetConventionOrDefault<INamingConventions>(
+                        () => new DefaultNamingConventions(Options.UseXmlDocumentation));
+                }
+                return _naming;
+            }
+        }
 
-        public ITypeInspector Inspector { get; }
+        public ITypeInspector Inspector
+        {
+            get
+            {
+                if (_inspector is null)
+                {
+                    _inspector = GetConventionOrDefault<ITypeInspector>(
+                        DefaultTypeInspector.Default);
+                }
+                return _inspector;
+            }
+        }
 
-        public readonly IReadOnlyDictionary<Type, IConvention> _conventions;
+        public T GetConventionOrDefault<T>(T defaultConvention)
+            where T : class, IConvention =>
+            GetConventionOrDefault<T>(() => defaultConvention);
+
+        public T GetConventionOrDefault<T>(Func<T> defaultConvention)
+            where T : class, IConvention
+        {
+            if (defaultConvention is null)
+            {
+                throw new ArgumentNullException(nameof(defaultConvention));
+            }
+
+            if (!TryGetConvention<T>(out T convention))
+            {
+                convention = _services.GetService(typeof(T)) as T;
+            }
+
+            if (convention is null)
+            {
+                convention = defaultConvention();
+                _conventions[typeof(T)] = convention;
+            }
+
+            return convention;
+        }
+
+        private bool TryGetConvention<T>(out T convention)
+            where T : IConvention
+        {
+            if (_conventions.TryGetValue(typeof(T), out IConvention outConvetion)
+                && outConvetion is T conventionOfT)
+            {
+                convention = conventionOfT;
+                return true;
+            }
+            convention = default;
+            return false;
+        }
 
         public static DescriptorContext Create(
             IReadOnlySchemaOptions options,
@@ -47,66 +110,18 @@ namespace HotChocolate.Types.Descriptors
                 throw new ArgumentNullException(nameof(conventions));
             }
 
-
-            var naming =
-                (INamingConventions)services.GetService(
-                    typeof(INamingConventions));
-
-            if (naming == null &&
-                conventions.TryGetValue(
-                    typeof(INamingConventions),
-                    out IConvention convention) &&
-               convention is INamingConventions namingConvention)
-            {
-                naming = namingConvention;
-            }
-
-            if (naming == null)
-            {
-                naming = options.UseXmlDocumentation
-                    ? new DefaultNamingConventions(
-                        new XmlDocumentationProvider(
-                            new XmlDocumentationFileResolver()))
-                    : new DefaultNamingConventions(
-                        new NoopDocumentationProvider());
-            }
-
-            var inspector =
-                (ITypeInspector)services.GetService(
-                    typeof(ITypeInspector));
-            if (inspector == null)
-            {
-                inspector = new DefaultTypeInspector();
-            }
-
-            return new DescriptorContext(options, naming, inspector, conventions);
+            return new DescriptorContext(
+                options,
+                conventions,
+                services);
         }
 
         public static DescriptorContext Create()
         {
             return new DescriptorContext(
                 new SchemaOptions(),
-                new DefaultNamingConventions(),
-                new DefaultTypeInspector(),
-                new Dictionary<Type, IConvention>());
-        }
-
-        public T GetConvention<T>() where T : IConvention
-        {
-            TryGetConvention<T>(out T convention);
-            return convention;
-        }
-
-        public bool TryGetConvention<T>(out T convention) where T : IConvention
-        {
-            if (_conventions.TryGetValue(typeof(T), out IConvention outConvetion)
-                && outConvetion is T conventionOfT)
-            {
-                convention = conventionOfT;
-                return true;
-            }
-            convention = default;
-            return false;
+                new Dictionary<Type, IConvention>(),
+                new EmptyServiceProvider());
         }
     }
 }
