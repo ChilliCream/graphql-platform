@@ -24,7 +24,7 @@ namespace HotChocolate.AspNetCore.Tests.Utilities
                     configureServices?.Invoke(services);
                 });
 
-            var server = new TestServer(builder);
+            var server = new TestServer(builder) {AllowSynchronousIO = true};
             _instances.Add(server);
             return server;
         }

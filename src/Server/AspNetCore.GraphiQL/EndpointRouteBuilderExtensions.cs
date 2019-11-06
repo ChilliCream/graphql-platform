@@ -16,7 +16,7 @@ namespace HotChocolate.AspNetCore
             MapGraphiQL(endpoints, new GraphiQLOptions
             {
                 QueryPath = queryPath,
-                Path = queryPath + new PathString("/GraphiQL")
+                Path = queryPath + new PathString("/graphiql")
             });
 
         public static IEndpointConventionBuilder MapGraphiQL(this IEndpointRouteBuilder endpoints, PathString queryPath, PathString uiPath) =>
