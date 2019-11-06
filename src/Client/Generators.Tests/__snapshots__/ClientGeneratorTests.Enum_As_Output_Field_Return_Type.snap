@@ -204,9 +204,10 @@ namespace StrawberryShake.Client
                 }
                 else
                 {
-                    list[i] = (Bar?)_barSerializer.Deserialize(element.GetString())!;
+                    listList[i] = (Bar?)_barSerializer.Deserialize(element.GetString())!;
                 }
             }
+            return listList;
         }
 
         private IReadOnlyList<Bar?> DeserializeListOfNullableBar(JsonElement obj, string fieldName)
@@ -224,9 +225,10 @@ namespace StrawberryShake.Client
                 }
                 else
                 {
-                    list[i] = (Bar?)_barSerializer.Deserialize(element.GetString())!;
+                    listList[i] = (Bar?)_barSerializer.Deserialize(element.GetString())!;
                 }
             }
+            return listList;
         }
 
         private IReadOnlyList<Bar>? DeserializeNullableListOfBar(JsonElement obj, string fieldName)
@@ -247,8 +249,9 @@ namespace StrawberryShake.Client
             for (int i = 0; i < listLength; i++)
             {
                 JsonElement element = list[i];
-                    list[i] = (Bar)_barSerializer.Deserialize(element.GetString())!;
+                listList[i] = (Bar)_barSerializer.Deserialize(element.GetString())!;
             }
+            return listList;
         }
 
         private IReadOnlyList<Bar> DeserializeListOfBar(JsonElement obj, string fieldName)
@@ -260,8 +263,9 @@ namespace StrawberryShake.Client
             for (int i = 0; i < listLength; i++)
             {
                 JsonElement element = list[i];
-                    list[i] = (Bar)_barSerializer.Deserialize(element.GetString())!;
+                listList[i] = (Bar)_barSerializer.Deserialize(element.GetString())!;
             }
+            return listList;
         }
     }
 }

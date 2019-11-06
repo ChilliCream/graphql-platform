@@ -18,13 +18,7 @@ namespace StrawberryShake.Demo
         public StarWarsClientTests(TestServerFactory serverFactory)
         {
             ServerFactory = serverFactory;
-        }
 
-        protected TestServerFactory ServerFactory { get; set; }
-
-        [Fact]
-        public async Task GetHero_By_Episode()
-        {
             // arrange
             TestServer httpServer = ServerFactory.Create(
                 services => services.AddStarWars(),
@@ -42,11 +36,35 @@ namespace StrawberryShake.Demo
             serviceCollection.AddDefaultScalarSerializers();
             serviceCollection.AddStarWarsClient();
 
-            var services = serviceCollection.BuildServiceProvider();
+            Services = serviceCollection.BuildServiceProvider();
+
+        }
+
+        protected TestServerFactory ServerFactory { get; set; }
+        protected ServiceProvider Services { get; set; }
+
+        [Fact]
+        public async Task GetHero_By_Episode()
+        {
+            // arrange 
+            IStarWarsClient client = Services.GetRequiredService<IStarWarsClient>();
 
             // act
-            IStarWarsClient client = services.GetRequiredService<IStarWarsClient>();
             IOperationResult<IGetHero> result = await client.GetHeroAsync(Episode.Empire);
+
+            // assert
+            result.MatchSnapshot();
+        }
+
+        [Fact]
+        public async Task CreateReview_By_Episode()
+        {
+            // arrange
+            IStarWarsClient client = Services.GetRequiredService<IStarWarsClient>();
+            IValueSerializerResolver serializerResolver = Services.GetRequiredService<IValueSerializerResolver>();
+
+            // act 
+            var result = await client.CreateReviewAsync(Episode.Empire, new ReviewInput() { Commentary = "You", Stars = 4 });
 
             // assert
             result.MatchSnapshot();
