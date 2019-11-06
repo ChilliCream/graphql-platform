@@ -65,6 +65,32 @@ namespace StrawberryShake.Client.GraphQL
             return _executor.ExecuteAsync(operation, cancellationToken);
         }
 
+        public Task<IOperationResult<IGetCharacter>> GetCharacterAsync(
+            Optional<IReadOnlyList<string?>> ids = default,
+            CancellationToken cancellationToken = default)
+        {
+            if (ids.HasValue && ids.Value is null)
+            {
+                throw new ArgumentNullException(nameof(ids));
+            }
+
+            return _executor.ExecuteAsync(
+                new GetCharacterOperation { Ids = ids },
+                cancellationToken);
+        }
+
+        public Task<IOperationResult<IGetCharacter>> GetCharacterAsync(
+            GetCharacterOperation operation,
+            CancellationToken cancellationToken = default)
+        {
+            if(operation is null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            return _executor.ExecuteAsync(operation, cancellationToken);
+        }
+
         public Task<IOperationResult<ISearch>> SearchAsync(
             Optional<string> text = default,
             CancellationToken cancellationToken = default)

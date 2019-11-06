@@ -10,6 +10,12 @@ query getHuman($id: String!) {
   }
 }
 
+query getCharacter($ids:  [String]!) {
+  character(characterIds:$ids) {
+    ...Hero
+  }
+}
+
 query search($text: String!) {
   search(text: $text) {
     ...Hero

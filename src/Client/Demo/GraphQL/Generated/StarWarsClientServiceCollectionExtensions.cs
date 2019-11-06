@@ -79,6 +79,7 @@ namespace StrawberryShake.Client.GraphQL
             serviceCollection.AddSingleton<IResultParserResolver, ResultParserResolver>();
             serviceCollection.AddSingleton<IResultParser, GetHeroResultParser>();
             serviceCollection.AddSingleton<IResultParser, GetHumanResultParser>();
+            serviceCollection.AddSingleton<IResultParser, GetCharacterResultParser>();
             serviceCollection.AddSingleton<IResultParser, SearchResultParser>();
             serviceCollection.AddSingleton<IResultParser, CreateReviewResultParser>();
             return serviceCollection;
