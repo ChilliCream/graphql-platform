@@ -10,12 +10,6 @@ query getHuman($id: String!) {
   }
 }
 
-query getCharacter($ids:  [String]!) {
-  character(characterIds:$ids) {
-    ...Hero
-  }
-}
-
 query search($text: String!) {
   search(text: $text) {
     ...Hero
@@ -23,8 +17,8 @@ query search($text: String!) {
   }
 }
 
-mutation createReview($episode: Episode! $review: ReviewInput!) {
-  createReview(episode: $episode review: $review) {
+mutation createReview($episode: Episode!, $review: ReviewInput!) {
+  createReview(episode: $episode, review: $review) {
     commentary
   }
 }

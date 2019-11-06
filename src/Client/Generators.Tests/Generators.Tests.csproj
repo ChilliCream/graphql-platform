@@ -18,12 +18,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="__snapshots__\__mismatch__\**" />
-    <EmbeddedResource Remove="__snapshots__\__mismatch__\**" />
-    <None Remove="__snapshots__\__mismatch__\**" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Generators\Generators.csproj" />
   </ItemGroup>
 

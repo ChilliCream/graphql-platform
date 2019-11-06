@@ -91,7 +91,6 @@ type Query {
   "Gets a human by Id."
   human("The Id of the human to retrieve." id: String): Human
   search(text: String): [SearchResult] @authorize(policy: "HasCountry", roles: [  ])
-  episodes() [Episode]
 }
 
 "A review of a particular movie."
