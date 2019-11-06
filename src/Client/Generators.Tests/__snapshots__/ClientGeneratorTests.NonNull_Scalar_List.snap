@@ -81,9 +81,12 @@ namespace StrawberryShake.Client
         : JsonResultParserBase<IGetBars>
     {
 
-        public GetBarsResultParser(IEnumerable<IValueSerializer> serializers)
+        public GetBarsResultParser(IValueSerializerResolver serializerResolver)
         {
-            IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
+            if(serializerResolver is null)
+            {
+                throw new ArgumentNullException(nameof(serializerResolver));
+            }
         }
 
         protected override IGetBars ParserData(JsonElement data)
