@@ -126,55 +126,6 @@ namespace HotChocolate.Types.Descriptors
             Assert.NotNull(context.Inspector);
         }
 
-        [Fact]
-        public void Create_Without_ServicesAndRegisteringConventions()
-        {
-            // arrange
-            // act
-            DescriptorContext context = DescriptorContext.Create();
-
-            // assert
-            Assert.False(context.TryGetConvention(out Convention convention));
-            Assert.Null(convention);
-            Assert.Null(context.GetConvention<Convention>());
-        }
-
-        [Fact]
-        public void Create_Without_RegisteringConventions()
-        {
-            // arrange
-            var options = new SchemaOptions();
-            var conventions = new Dictionary<Type, IConvention>();
-            var services = new DictionaryServiceProvider();
-            // act
-            DescriptorContext context =
-                DescriptorContext.Create(options, services, conventions);
-
-            // assert
-            Assert.False(context.TryGetConvention(out Convention convention));
-            Assert.Null(convention);
-            Assert.Null(context.GetConvention<Convention>());
-        }
-
-        [Fact]
-        public void Create_With_RegisteringConventions()
-        {
-            // arrange
-            var options = new SchemaOptions();
-            var conventions = new Dictionary<Type, IConvention>();
-            conventions.Add(typeof(Convention), Convention.Default);
-            var services = new DictionaryServiceProvider();
-
-            // act
-            DescriptorContext context =
-                DescriptorContext.Create(options, services, conventions);
-
-            // assert
-            Assert.True(context.TryGetConvention(out Convention convention));
-            Assert.Equal(Convention.Default, convention);
-            Assert.Equal(Convention.Default, context.GetConvention<Convention>());
-        }
-
         private class Convention : IConvention
         {
             public static Convention Default { get; } = new Convention();

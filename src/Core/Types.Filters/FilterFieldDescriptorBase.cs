@@ -13,15 +13,14 @@ namespace HotChocolate.Types.Filters
         : DescriptorBase<FilterFieldDefintion>
     {
         private readonly IFilterNamingConvention _namingConvention;
+
         protected FilterFieldDescriptorBase(
             IDescriptorContext context,
             PropertyInfo property)
             : base(context)
         {
-            if (!context.TryGetConvention(out _namingConvention))
-            {
-                _namingConvention = FilterNamingConventionSnakeCase.Default;
-            }
+            _namingConvention = context.GetConventionOrDefault<IFilterNamingConvention>(
+                FilterNamingConventionSnakeCase.Default);
             Definition.Property = property
                 ?? throw new ArgumentNullException(nameof(property));
             Definition.Name = context.Naming.GetMemberName(
@@ -33,7 +32,7 @@ namespace HotChocolate.Types.Filters
                 context.Options.DefaultBindingBehavior;
         }
 
-        protected override FilterFieldDefintion Definition { get; } =
+        protected sealed override FilterFieldDefintion Definition { get; } =
             new FilterFieldDefintion();
 
         protected ICollection<FilterOperationDescriptorBase> Filters { get; } =
