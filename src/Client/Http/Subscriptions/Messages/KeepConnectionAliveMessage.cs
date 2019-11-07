@@ -3,7 +3,7 @@ namespace StrawberryShake.Http.Subscriptions.Messages
     public sealed class KeepConnectionAliveMessage
         : OperationMessage
     {
-        public KeepConnectionAliveMessage()
+        private KeepConnectionAliveMessage()
             : base(MessageTypes.Connection.KeepAlive)
         {
         }

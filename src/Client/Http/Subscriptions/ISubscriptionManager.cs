@@ -7,6 +7,8 @@ namespace StrawberryShake.Http.Subscriptions
         : IEnumerable<ISubscription>
         , IDisposable
     {
+        bool TryGetSubscription(string subscriptionId, out ISubscription subscription);
+
         void Register(ISubscription subscription);
 
         void Unregister(string subscriptionId);

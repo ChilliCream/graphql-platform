@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Server;
+using StrawberryShake.Http.Subscriptions.Messages;
 
 namespace StrawberryShake.Http.Subscriptions
 {
@@ -13,6 +13,4 @@ namespace StrawberryShake.Http.Subscriptions
 
         bool CanHandle(OperationMessage message);
     }
-
-
 }
