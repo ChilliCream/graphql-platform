@@ -9,8 +9,8 @@ namespace StrawberryShake.Http.Subscriptions
     {
         bool TryGetSubscription(string subscriptionId, out ISubscription subscription);
 
-        void Register(ISubscription subscription);
+        void RegisterAsync(ISubscription subscription, ISocketConnection connection);
 
-        void Unregister(string subscriptionId);
+        void UnregisterAsync(string subscriptionId);
     }
 }

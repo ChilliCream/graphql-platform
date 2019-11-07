@@ -8,6 +8,7 @@ namespace StrawberryShake.Http.Subscriptions
 {
     internal sealed class MessageProcessor
     {
+        internal const byte Delimiter = 0x07;
         private readonly ISocketConnection _connection;
         private readonly PipeReader _reader;
         private readonly IMessagePipeline _pipeline;
@@ -45,7 +46,7 @@ namespace StrawberryShake.Http.Subscriptions
 
                 do
                 {
-                    position = buffer.PositionOf(Subscription._delimiter);
+                    position = buffer.PositionOf(Delimiter);
 
                     if (position != null)
                     {

@@ -8,21 +8,24 @@ namespace StrawberryShake.Http.Subscriptions
     public interface ISocketConnection
         : IDisposable
     {
+        event EventHandler Disposed;
+
         bool Closed { get; }
 
-        Task<bool> TryOpenAsync();
+        Task OpenAsync(
+            CancellationToken cancellationToken = default);
 
         Task SendAsync(
             ReadOnlyMemory<byte> message,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
 
         Task ReceiveAsync(
             PipeWriter writer,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
 
         Task CloseAsync(
             string message,
             SocketCloseStatus closeStatus,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken = default);
     }
 }

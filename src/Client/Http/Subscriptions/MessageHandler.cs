@@ -1,8 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.AspNetCore.Subscriptions.Messages;
-using HotChocolate.Server;
+using StrawberryShake.Http.Subscriptions.Messages;
 
 namespace StrawberryShake.Http.Subscriptions
 {
@@ -22,14 +21,23 @@ namespace StrawberryShake.Http.Subscriptions
             OperationMessage message,
             CancellationToken cancellationToken)
         {
+            if (connection is null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+
+            if (message is null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
             if (message is T m)
             {
                 return HandleAsync(connection, m, cancellationToken);
             }
             else
             {
-                throw new NotSupportedException(
-                    "The specifed message type is not supported.");
+                throw new NotSupportedException("The specified message type is not supported.");
             }
         }
 

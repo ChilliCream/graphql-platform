@@ -1,9 +1,7 @@
-using System.Net.Http;
-using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.Http
+namespace StrawberryShake.Http.Subscriptions
 {
     public class WebSocketOperationStreamExecutor
         : IOperationStreamExecutor

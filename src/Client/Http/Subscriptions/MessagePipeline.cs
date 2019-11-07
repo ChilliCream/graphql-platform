@@ -33,9 +33,9 @@ namespace StrawberryShake.Http.Subscriptions
             ReadOnlySequence<byte> slice,
             CancellationToken cancellationToken)
         {
-            if (TryParseMessage(slice, out OperationMessage message))
+            if (TryParseMessage(slice, out OperationMessage? message))
             {
-                await HandleMessageAsync(connection, message, cancellationToken)
+                await HandleMessageAsync(connection, message!, cancellationToken)
                     .ConfigureAwait(false);
             }
             else
@@ -115,8 +115,6 @@ namespace StrawberryShake.Http.Subscriptions
                 }
             }
         }
-
-
 
         private async Task HandleMessageAsync(
             ISocketConnection connection,

@@ -1,8 +1,9 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
+using HotChocolate.Language;
 
 namespace StrawberryShake.Http.Subscriptions
 {
@@ -16,8 +17,24 @@ namespace StrawberryShake.Http.Subscriptions
 
         public SubscriptionManager(ISocketConnection connection)
         {
-            _connection = connection
-                ?? throw new ArgumentNullException(nameof(connection));
+            _connection = connection ?? throw new ArgumentNullException(nameof(connection));
+        }
+
+        public bool TryGetSubscription(string subscriptionId, out ISubscription? subscription) =>
+            _subs.TryGetValue(subscriptionId, out subscription);
+
+
+        public void RegisterAsync(ISubscription subscription, ISocketConnection connection, )
+        {
+            connection.Disposed += (sender, args) => UnregisterInternal(subscription.Id);
+            subscription.Disposed += (sender, args) => UnregisterInternal(subscription.Id);
+
+            var operation = new GraphQLRequest()
+        }
+
+        public void UnregisterAsync(string subscriptionId)
+        {
+            throw new NotImplementedException();
         }
 
         public void Register(ISubscription subscription)
@@ -62,6 +79,14 @@ namespace StrawberryShake.Http.Subscriptions
             }
         }
 
+        private void UnregisterInternal(string subscriptionId)
+        {
+            if (_subs.TryRemove(subscriptionId, out ISubscription? subscription))
+            {
+                subscription.Dispose();
+            }
+        }
+
         public void Dispose()
         {
             Dispose(true);
@@ -94,5 +119,6 @@ namespace StrawberryShake.Http.Subscriptions
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
     }
 }
