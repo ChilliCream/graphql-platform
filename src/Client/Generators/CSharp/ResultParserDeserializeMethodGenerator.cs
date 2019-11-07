@@ -236,10 +236,7 @@ namespace StrawberryShake.Generators.CSharp
 
                 if (isElementNonNull)
                 {
-                    using (writer.IncreaseIndent())
-                    {
-                        await body().ConfigureAwait(false);
-                    }
+                    await body().ConfigureAwait(false);
                 }
                 else
                 {
@@ -273,6 +270,8 @@ namespace StrawberryShake.Generators.CSharp
                 }
             }
             await writer.WriteIndentedLineAsync("}").ConfigureAwait(false);
+            await writer.WriteIndentedLineAsync($"return {listName}List;")
+                .ConfigureAwait(false);
         }
 
         private async Task WriteNullHandlingAsync(
@@ -332,7 +331,7 @@ namespace StrawberryShake.Generators.CSharp
             string serializerMethod)
         {
             await writer.WriteIndentAsync().ConfigureAwait(false);
-            await writer.WriteAsync($"{listName}[{listIndex}] = ").ConfigureAwait(false);
+            await writer.WriteAsync($"{listName}List[{listIndex}] = ").ConfigureAwait(false);
             await WriteSerializerAsync(
                 writer, clrTypeName, schemaTypeName,
                 elementName, serializerMethod)

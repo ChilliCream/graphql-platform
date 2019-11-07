@@ -46,9 +46,12 @@ namespace StrawberryShake.Client
         : JsonResultParserBase<IGetEpisode>
     {
 
-        public GetEpisodeResultParser(IEnumerable<IValueSerializer> serializers)
+        public GetEpisodeResultParser(IValueSerializerResolver serializerResolver)
         {
-            IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
+            if(serializerResolver is null)
+            {
+                throw new ArgumentNullException(nameof(serializerResolver));
+            }
         }
 
         protected override IGetEpisode ParserData(JsonElement data)
@@ -84,9 +87,10 @@ namespace StrawberryShake.Client
                 }
                 else
                 {
-                    list[i] = (Episode?)_episodeSerializer.Deserialize(element.GetString())!;
+                    listList[i] = (Episode?)_episodeSerializer.Deserialize(element.GetString())!;
                 }
             }
+            return listList;
         }
     }
 }

@@ -28,6 +28,8 @@ namespace HotChocolate
             new Dictionary<OperationType, ITypeReference>();
         private readonly Dictionary<FieldReference, FieldResolver> _resolvers =
             new Dictionary<FieldReference, FieldResolver>();
+        private readonly Dictionary<Type, CreateConvention> _conventions =
+            new Dictionary<Type, CreateConvention>();
         private readonly Dictionary<ITypeReference, ITypeReference> _clrTypes =
             new Dictionary<ITypeReference, ITypeReference>();
         private readonly List<Type> _interceptors = new List<Type>();
@@ -149,6 +151,23 @@ namespace HotChocolate
                     SchemaTypeReference.InferTypeContext(type)));
             }
 
+            return this;
+        }
+
+
+        public ISchemaBuilder AddConvention(Type convention, CreateConvention factory)
+        {
+            if (convention is null)
+            {
+                throw new ArgumentNullException(nameof(convention));
+            }
+
+            if (factory is null)
+            {
+                throw new ArgumentNullException(nameof(factory));
+            }
+
+            _conventions[convention] = factory;
             return this;
         }
 
@@ -379,7 +398,7 @@ namespace HotChocolate
                 throw new ArgumentNullException(nameof(interceptor));
             }
 
-            if(!typeof(ITypeInitializationInterceptor).IsAssignableFrom(interceptor))
+            if (!typeof(ITypeInitializationInterceptor).IsAssignableFrom(interceptor))
             {
                 throw new ArgumentException(
                     TypeResources.SchemaBuilder_Interceptor_NotSuppported,
@@ -391,5 +410,6 @@ namespace HotChocolate
         }
 
         public static SchemaBuilder New() => new SchemaBuilder();
+
     }
 }

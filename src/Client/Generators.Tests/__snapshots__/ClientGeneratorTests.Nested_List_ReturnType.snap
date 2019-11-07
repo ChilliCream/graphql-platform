@@ -9,58 +9,12 @@ namespace StrawberryShake.Client
         : IGetBars
     {
         public GetBars(
-            IFoo a, 
-            IFoo1 b)
+            IReadOnlyList<string> foo)
         {
-            A = a;
-            B = b;
+            Foo = foo;
         }
 
-        public IFoo A { get; }
-
-        public IFoo1 B { get; }
-    }
-}
-
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using StrawberryShake;
-
-namespace StrawberryShake.Client
-{
-    public class Foo
-        : IFoo
-    {
-        public Foo(
-            string? bar)
-        {
-            Bar = bar;
-        }
-
-        public string? Bar { get; }
-    }
-}
-
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using StrawberryShake;
-
-namespace StrawberryShake.Client
-{
-    public class Foo1
-        : IFoo1
-    {
-        public Foo1(
-            string? bar)
-        {
-            Bar = bar;
-        }
-
-        public string? Bar { get; }
+        public IReadOnlyList<string> Foo { get; }
     }
 }
 
@@ -74,37 +28,7 @@ namespace StrawberryShake.Client
 {
     public interface IGetBars
     {
-        IFoo A { get; }
-
-        IFoo1 B { get; }
-    }
-}
-
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using StrawberryShake;
-
-namespace StrawberryShake.Client
-{
-    public interface IFoo
-    {
-        string? Bar { get; }
-    }
-}
-
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using StrawberryShake;
-
-namespace StrawberryShake.Client
-{
-    public interface IFoo1
-    {
-        string? Bar { get; }
+        IReadOnlyList<string> Foo { get; }
     }
 }
 
@@ -121,7 +45,6 @@ namespace StrawberryShake.Client
     public class GetBarsResultParser
         : JsonResultParserBase<IGetBars>
     {
-        private readonly IValueSerializer _stringSerializer;
 
         public GetBarsResultParser(IValueSerializerResolver serializerResolver)
         {
@@ -129,56 +52,29 @@ namespace StrawberryShake.Client
             {
                 throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _stringSerializer = serializerResolver.GetValueSerializer("String");
         }
 
         protected override IGetBars ParserData(JsonElement data)
         {
             return new GetBars
             (
-                ParseGetBarsA(data, "a"),
-                ParseGetBarsB(data, "b")
+                DeserializeListOfString(data, "foo")
             );
 
         }
 
-        private IFoo ParseGetBarsA(
-            JsonElement parent,
-            string field)
+        private IReadOnlyList<string> DeserializeListOfString(JsonElement obj, string fieldName)
         {
-            JsonElement obj = parent.GetProperty(field);
+            JsonElement list = obj.GetProperty(fieldName);
+            int listLength = list.GetArrayLength();
+            var listList = new string[listLength];
 
-            return new Foo
-            (
-                DeserializeNullableString(obj, "bar")
-            );
-        }
-
-        private IFoo1 ParseGetBarsB(
-            JsonElement parent,
-            string field)
-        {
-            JsonElement obj = parent.GetProperty(field);
-
-            return new Foo1
-            (
-                DeserializeNullableString(obj, "bar")
-            );
-        }
-
-        private string? DeserializeNullableString(JsonElement obj, string fieldName)
-        {
-            if (!obj.TryGetProperty(fieldName, out JsonElement value))
+            for (int i = 0; i < listLength; i++)
             {
-                return null;
+                JsonElement element = list[i];
+                listList[i] = (string)_stringSerializer.Deserialize(element.GetString())!;
             }
-
-            if (value.ValueKind == JsonValueKind.Null)
-            {
-                return null;
-            }
-
-            return (string?)_stringSerializer.Deserialize(value.GetString())!;
+            return listList;
         }
     }
 }
@@ -200,9 +96,18 @@ namespace StrawberryShake.Client
 
         public Type ResultType => typeof(IGetBars);
 
+        public Optional<string?> A { get; set; }
+
         public IReadOnlyList<VariableValue> GetVariableValues()
         {
-            return Array.Empty<VariableValue>();
+            var variables = new List<VariableValue>();
+
+            if(A.HasValue)
+            {
+                variables.Add(new VariableValue("a", "String", A.Value));
+            }
+
+            return variables;
         }
     }
 }
@@ -220,6 +125,7 @@ namespace StrawberryShake.Client
     public interface ISchemaClient
     {
         Task<IOperationResult<IGetBars>> GetBarsAsync(
+            Optional<string?> a = default,
             CancellationToken cancellationToken = default);
 
         Task<IOperationResult<IGetBars>> GetBarsAsync(
@@ -249,11 +155,12 @@ namespace StrawberryShake.Client
         }
 
         public Task<IOperationResult<IGetBars>> GetBarsAsync(
+            Optional<string?> a = default,
             CancellationToken cancellationToken = default)
         {
 
             return _executor.ExecuteAsync(
-                new GetBarsOperation(),
+                new GetBarsOperation { A = a },
                 cancellationToken);
         }
 

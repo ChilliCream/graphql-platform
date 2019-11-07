@@ -18,13 +18,7 @@ namespace StrawberryShake.Demo
         public StarWarsClientTests(TestServerFactory serverFactory)
         {
             ServerFactory = serverFactory;
-        }
 
-        protected TestServerFactory ServerFactory { get; set; }
-
-        [Fact]
-        public async Task GetHero_By_Episode()
-        {
             // arrange
             TestServer httpServer = ServerFactory.Create(
                 services => services.AddStarWars(),
@@ -42,46 +36,35 @@ namespace StrawberryShake.Demo
             serviceCollection.AddDefaultScalarSerializers();
             serviceCollection.AddStarWarsClient();
 
-            var services = serviceCollection.BuildServiceProvider();
+            Services = serviceCollection.BuildServiceProvider();
+
+        }
+
+        protected TestServerFactory ServerFactory { get; set; }
+        protected ServiceProvider Services { get; set; }
+
+        [Fact]
+        public async Task GetHero_By_Episode()
+        {
+            // arrange
+            IStarWarsClient client = Services.GetRequiredService<IStarWarsClient>();
 
             // act
-            IStarWarsClient client = services.GetRequiredService<IStarWarsClient>();
             IOperationResult<IGetHero> result = await client.GetHeroAsync(Episode.Empire);
 
             // assert
             result.MatchSnapshot();
         }
 
-        // [Fact]
-        public async Task OnReview_By_Episode()
+        [Fact]
+        public async Task CreateReview_By_Episode()
         {
             // arrange
-            TestServer httpServer = ServerFactory.Create(
-                services => services.AddStarWars(),
-                app => app.UseGraphQL());
-
-            HttpClient httpClient = httpServer.CreateClient();
-            httpClient.BaseAddress = new Uri("http://localhost:5000");
-
-            var clientFactory = new Mock<IHttpClientFactory>();
-            clientFactory.Setup(t => t.CreateClient(It.IsAny<string>())).Returns(httpClient);
-
-            var serviceCollection = new ServiceCollection();
-
-            serviceCollection.AddSingleton<IHttpClientFactory>(clientFactory.Object);
-            serviceCollection.AddDefaultScalarSerializers();
-            serviceCollection.AddStarWarsClient();
-
-            var services = serviceCollection.BuildServiceProvider();
+            IStarWarsClient client = Services.GetRequiredService<IStarWarsClient>();
+            IValueSerializerResolver serializerResolver = Services.GetRequiredService<IValueSerializerResolver>();
 
             // act
-            IStarWarsClient client = services.GetRequiredService<IStarWarsClient>();
-            IResponseStream<IOnReview> result = await client.OnReviewAsync(Episode.Empire);
-
-            await foreach (IOnReview review in result)
-            {
-
-            }
+            var result = await client.CreateReviewAsync(Episode.Empire, new ReviewInput() { Commentary = "You", Stars = 4 });
 
             // assert
             result.MatchSnapshot();

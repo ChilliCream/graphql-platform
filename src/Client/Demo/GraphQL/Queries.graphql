@@ -17,15 +17,9 @@ query search($text: String!) {
   }
 }
 
-mutation createReview($episode: Episode! $review: ReviewInput!) {
-  createReview(episode: $episode review: $review) {
-    ... Review
-  }
-}
-
-subscription onReview($episode: Episode!) {
-  onReview(episode: $episode) {
-    ... Review
+mutation createReview($episode: Episode!, $review: ReviewInput!) {
+  createReview(episode: $episode, review: $review) {
+    commentary
   }
 }
 

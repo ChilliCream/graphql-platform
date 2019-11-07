@@ -33,7 +33,7 @@ namespace StrawberryShake.Client.GraphQL
 
         public object? Serialize(object? value)
         {
-            if (!_needsInitialization)
+            if (_needsInitialization)
             {
                 throw new InvalidOperationException(
                     $"The serializer for type `{Name}` has not been initialized.");

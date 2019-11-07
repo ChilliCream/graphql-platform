@@ -12,17 +12,13 @@ namespace StrawberryShake.Client.GraphQL
     {
         private readonly IValueSerializer _stringSerializer;
 
-        public CreateReviewResultParser(IEnumerable<IValueSerializer> serializers)
+        public CreateReviewResultParser(IValueSerializerResolver serializerResolver)
         {
-            IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
-
-            if (!map.TryGetValue("String", out IValueSerializer? serializer))
+            if(serializerResolver is null)
             {
-                throw new ArgumentException(
-                    "There is no serializer specified for `String`.",
-                    nameof(serializers));
+                throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _stringSerializer = serializer;
+            _stringSerializer = serializerResolver.GetValueSerializer("String");
         }
 
         protected override ICreateReview ParserData(JsonElement data)
