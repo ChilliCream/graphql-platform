@@ -13,21 +13,26 @@ namespace StrawberryShake.Http.Subscriptions
     {
         private readonly SemaphoreSlim _initSemaphore = new SemaphoreSlim(0, 1);
         private readonly SemaphoreSlim _resultSemaphore = new SemaphoreSlim(0, 1);
-        private TaskCompletionSource<IOperationResult<T>>? _nextResult;
+        private TaskCompletionSource<IOperationResult<T>?>? _nextResult;
         private bool _disposed;
 
-        public event EventHandler Disposed;
+        public event EventHandler? Disposed;
 
-        public Subscription(IResultParser resultParser)
-            : this(Guid.NewGuid().ToString("N"), resultParser)
+        public Subscription(IOperation operation, IResultParser resultParser)
+            : this(Guid.NewGuid().ToString("N"), operation, resultParser)
         {
         }
 
-        public Subscription(string id, IResultParser resultParser)
+        public Subscription(string id, IOperation operation, IResultParser resultParser)
         {
             if (string.IsNullOrEmpty(id))
             {
                 throw new ArgumentException("id cannot be null or empty.", nameof(id));
+            }
+
+            if (operation is null)
+            {
+                throw new ArgumentNullException(nameof(resultParser));
             }
 
             if (resultParser is null)
@@ -36,10 +41,13 @@ namespace StrawberryShake.Http.Subscriptions
             }
 
             Id = id;
+            Operation = operation;
             ResultParser = resultParser;
         }
 
         public string Id { get; }
+
+        public IOperation Operation { get; }
 
         public IResultParser ResultParser { get; }
 
@@ -57,14 +65,13 @@ namespace StrawberryShake.Http.Subscriptions
             var completed = false;
 
             await InitializeResultTask(
-                () => new TaskCompletionSource<IOperationResult<T>>(cancellationToken),
+                () => new TaskCompletionSource<IOperationResult<T>?>(cancellationToken),
                 cancellationToken)
                 .ConfigureAwait(false);
 
             try
             {
-                TaskCompletionSource<IOperationResult<T>> current = _nextResult;
-                IOperationResult<T> result = await _nextResult.Task.ConfigureAwait(false);
+                IOperationResult<T>? result = await _nextResult!.Task.ConfigureAwait(false);
                 if (result is { })
                 {
                     yield return result;
@@ -78,7 +85,7 @@ namespace StrawberryShake.Http.Subscriptions
             {
                 if (!completed)
                 {
-                    _nextResult = new TaskCompletionSource<IOperationResult<T>>(cancellationToken);
+                    _nextResult = new TaskCompletionSource<IOperationResult<T>?>(cancellationToken);
                     _resultSemaphore.Release();
                 }
             }
@@ -106,7 +113,7 @@ namespace StrawberryShake.Http.Subscriptions
             }
 
             await InitializeResultTask(
-                () => new TaskCompletionSource<IOperationResult<T>>(),
+                () => new TaskCompletionSource<IOperationResult<T>?>(),
                 cancellationToken)
                 .ConfigureAwait(false);
 
@@ -116,16 +123,16 @@ namespace StrawberryShake.Http.Subscriptions
             {
                 await InvokeSubscriptionMiddleware(message.Payload).ConfigureAwait(false);
                 var result = (OperationResult<T>)message.Payload.Build();
-                _nextResult.SetResult(result);
+                _nextResult!.SetResult(result);
             }
             catch (Exception ex)
             {
-                _nextResult.SetException(ex);
+                _nextResult!.SetException(ex);
             }
         }
 
         private async Task InitializeResultTask(
-            Func<TaskCompletionSource<IOperationResult<T>>> factory,
+            Func<TaskCompletionSource<IOperationResult<T>?>> factory,
             CancellationToken cancellationToken)
         {
             if (_nextResult is null)
@@ -154,10 +161,10 @@ namespace StrawberryShake.Http.Subscriptions
             }
 
             await InitializeResultTask(
-                () => new TaskCompletionSource<IOperationResult<T>>(),
+                () => new TaskCompletionSource<IOperationResult<T>?>(),
                 cancellationToken)
                 .ConfigureAwait(false);
-            _nextResult.SetResult(null);
+            _nextResult!.SetResult(null);
 
             Dispose();
         }

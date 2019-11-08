@@ -1,8 +1,10 @@
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace StrawberryShake.Http
@@ -25,21 +27,83 @@ namespace StrawberryShake.Http
 
         public Task SerializeAsync(
             IOperation operation,
-            IReadOnlyDictionary<string, object?>? extensions,
-            bool includeDocument,
-            Stream requestStream)
+            Stream stream,
+            IReadOnlyDictionary<string, object?>? extensions = null,
+            bool? includeDocument = null,
+            CancellationToken cancellationToken = default)
         {
             if (operation is null)
             {
                 throw new ArgumentNullException(nameof(operation));
             }
 
-            if (requestStream is null)
+            if (stream is null)
             {
-                throw new ArgumentNullException(nameof(requestStream));
+                throw new ArgumentNullException(nameof(stream));
             }
 
-            var writer = new Utf8JsonWriter(requestStream);
+            return SerializeInternalAsync(
+                operation, stream, extensions,
+                includeDocument ?? true, cancellationToken);
+        }
+
+        private async Task SerializeInternalAsync(
+            IOperation operation,
+            Stream stream,
+            IReadOnlyDictionary<string, object?>? extensions,
+            bool includeDocument,
+            CancellationToken cancellationToken = default)
+        {
+            using var jsonWriter = new Utf8JsonWriter(stream);
+            await WriteJsonRequestAsync(
+                operation, jsonWriter, extensions,
+                includeDocument, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        public Task SerializeAsync(
+            IOperation operation,
+            IBufferWriter<byte> writer,
+            IReadOnlyDictionary<string, object?>? extensions = null,
+            bool? includeDocument = null,
+            CancellationToken cancellationToken = default)
+        {
+            if (operation is null)
+            {
+                throw new ArgumentNullException(nameof(operation));
+            }
+
+            if (writer is null)
+            {
+                throw new ArgumentNullException(nameof(writer));
+            }
+
+            return SerializeInternalAsync(
+                operation, writer, extensions,
+                includeDocument ?? true, cancellationToken);
+        }
+
+        private async Task SerializeInternalAsync(
+            IOperation operation,
+            IBufferWriter<byte> writer,
+            IReadOnlyDictionary<string, object?>? extensions,
+            bool includeDocument,
+            CancellationToken cancellationToken = default)
+        {
+            using var jsonWriter = new Utf8JsonWriter(writer);
+            await WriteJsonRequestAsync(
+                operation, jsonWriter, extensions,
+                includeDocument, cancellationToken)
+                .ConfigureAwait(false);
+        }
+
+        private Task WriteJsonRequestAsync(
+            IOperation operation,
+            Utf8JsonWriter writer,
+            IReadOnlyDictionary<string, object?>? extensions,
+            bool includeDocument,
+            CancellationToken cancellationToken)
+        {
             writer.WriteStartObject();
 
             writer.WritePropertyName("id");
@@ -70,7 +134,7 @@ namespace StrawberryShake.Http
 
             writer.WriteEndObject();
 
-            return writer.FlushAsync();
+            return writer.FlushAsync(cancellationToken);
         }
 
         private IReadOnlyDictionary<string, object?>? SerializeVariables(

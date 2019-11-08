@@ -24,7 +24,7 @@ namespace StrawberryShake.Http.Subscriptions
             _subs.TryGetValue(subscriptionId, out subscription);
 
 
-        public void RegisterAsync(ISubscription subscription, ISocketConnection connection, )
+        public void RegisterAsync(ISubscription subscription, ISocketConnection connection)
         {
             connection.Disposed += (sender, args) => UnregisterInternal(subscription.Id);
             subscription.Disposed += (sender, args) => UnregisterInternal(subscription.Id);

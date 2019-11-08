@@ -12,6 +12,8 @@ namespace StrawberryShake.Http.Subscriptions
 
         string Id { get; }
 
+        IOperation Operation { get; }
+
         IResultParser ResultParser { get; }
 
         Task OnReceiveResultAsync(DataResultMessage message, CancellationToken cancellationToken);
