@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
@@ -7,6 +8,8 @@ namespace StrawberryShake.Http.Pipelines
 {
     public class CreateStandardRequestMiddleware
     {
+        private static readonly OperationSerializerOptions _options =
+            OperationSerializerOptions.Default;
         private readonly OperationDelegate _next;
         private readonly IOperationSerializer _serializer;
 
@@ -25,16 +28,12 @@ namespace StrawberryShake.Http.Pipelines
                 context.HttpRequest = new HttpRequestMessage(
                     HttpMethod.Post, context.Client.BaseAddress);
 
-                using (var stream = new MemoryStream())
-                {
-                    await _serializer.SerializeAsync(
-                        context.Operation, null, true, stream)
-                        .ConfigureAwait(false);
-                    context.HttpRequest.Content = new ByteArrayContent(
-                        stream.ToArray());
-                    context.HttpRequest.Content.Headers.Add(
-                        "Content-Type", "application/json");
-                }
+                _serializer.Serialize(context.Operation, context.MessageWriter, _options);
+
+                context.HttpRequest.Content = context.MessageWriter.ToByteArrayContent();
+                context.HttpRequest.Content.Headers.Add(
+                    WellKnownHeaders.ContentTypeJson.Name,
+                    WellKnownHeaders.ContentTypeJson.Value);
             }
 
             await _next(context);

@@ -7,8 +7,10 @@ namespace StrawberryShake.Http
 {
     public class HttpOperationContext
         : IHttpOperationContext
+        , IDisposable
     {
         private Dictionary<string, object>? _contextData;
+        private bool _disposed;
 
         public HttpOperationContext(
             IOperation operation,
@@ -22,6 +24,7 @@ namespace StrawberryShake.Http
             Services = services ?? throw new ArgumentNullException(nameof(services));
             Result = result;
             RequestAborted = requestAborted;
+            MessageWriter = new MessageWriter();
         }
 
         public IOperation Operation { get; }
@@ -32,15 +35,13 @@ namespace StrawberryShake.Http
 
         public HttpResponseMessage? HttpResponse { get; set; }
 
+        public IMessageWriter MessageWriter { get; }
+
         public IDictionary<string, object> ContextData
         {
             get
             {
-                if (_contextData is null)
-                {
-                    _contextData = new Dictionary<string, object>();
-                }
-                return _contextData;
+                return _contextData ??= new Dictionary<string, object>();
             }
         }
 
@@ -49,5 +50,19 @@ namespace StrawberryShake.Http
         public IServiceProvider Services { get; }
 
         public CancellationToken RequestAborted { get; }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed && disposing)
+            {
+                MessageWriter.Dispose();
+                _disposed = true;
+            }
+        }
     }
 }

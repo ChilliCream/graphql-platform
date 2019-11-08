@@ -11,6 +11,7 @@ namespace StrawberryShake.Http
         IOperationResultBuilder Result { get; }
         HttpRequestMessage? HttpRequest { get; set; }
         HttpResponseMessage? HttpResponse { get; set; }
+        IMessageWriter MessageWriter { get; }
         IDictionary<string, object> ContextData { get; }
         HttpClient Client { get; }
         IServiceProvider Services { get; }

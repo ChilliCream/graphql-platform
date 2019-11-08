@@ -6,7 +6,6 @@ using StrawberryShake.Http.Subscriptions.Messages;
 namespace StrawberryShake.Http.Subscriptions
 {
     public interface ISubscription
-        : IDisposable
     {
         event EventHandler Disposed;
 

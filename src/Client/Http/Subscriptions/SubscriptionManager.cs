@@ -3,33 +3,50 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using HotChocolate.Language;
+using StrawberryShake.Http.Subscriptions.Messages;
 
 namespace StrawberryShake.Http.Subscriptions
 {
     public class SubscriptionManager
         : ISubscriptionManager
     {
-        private readonly ConcurrentDictionary<string, ISubscription> _subs =
-            new ConcurrentDictionary<string, ISubscription>();
-        private readonly ISocketConnection _connection;
+        private readonly ConcurrentDictionary<string, Sub> _subs =
+            new ConcurrentDictionary<string, Sub>();
+        private readonly IOperationSerializer _operationSerializer;
         private bool _disposed;
 
-        public SubscriptionManager(ISocketConnection connection)
+        public SubscriptionManager(IOperationSerializer operationSerializer)
         {
-            _connection = connection ?? throw new ArgumentNullException(nameof(connection));
+            // _connection = connection ?? throw new ArgumentNullException(nameof(connection));
         }
 
-        public bool TryGetSubscription(string subscriptionId, out ISubscription? subscription) =>
-            _subs.TryGetValue(subscriptionId, out subscription);
-
-
-        public void RegisterAsync(ISubscription subscription, ISocketConnection connection)
+        public bool TryGetSubscription(string subscriptionId, out ISubscription? subscription)
         {
-            connection.Disposed += (sender, args) => UnregisterInternal(subscription.Id);
-            subscription.Disposed += (sender, args) => UnregisterInternal(subscription.Id);
+            throw new NotImplementedException();
+        }
 
-            var operation = new GraphQLRequest()
+        public Task RegisterAsync(ISubscription subscription, ISocketConnection connection)
+        {
+            return RegisterInternalAsync(subscription, connection);
+        }
+
+        private async Task RegisterInternalAsync(ISubscription subscription, ISocketConnection connection)
+        {
+            if (_subs.TryAdd(subscription.Id, new Sub(subscription, connection)))
+            {
+                connection.Disposed += (sender, args) => UnregisterInternal(subscription.Id);
+                subscription.Disposed += (sender, args) => UnregisterInternal(subscription.Id);
+
+                var startMessage = new RawSocketMessage();
+                startMessage.WriteStartObject();
+                startMessage.WriteType(MessageTypes.Subscription.Start);
+                startMessage.WriteId(subscription.Id);
+                startMessage.WriteStartPayload();
+
+                await _operationSerializer.SerializeAsync(subscription.Operation, startMessage);
+            }
         }
 
         public void UnregisterAsync(string subscriptionId)
@@ -120,5 +137,17 @@ namespace StrawberryShake.Http.Subscriptions
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
+        private sealed class Sub
+        {
+            public Sub(ISubscription subscription, ISocketConnection connection)
+            {
+                Subscription = subscription;
+                Connection = connection;
+            }
+
+            public ISubscription Subscription { get; }
+
+            public ISocketConnection Connection { get; }
+        }
     }
 }

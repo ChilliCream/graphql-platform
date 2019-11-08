@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace StrawberryShake.Http.Subscriptions
 {
@@ -9,8 +10,8 @@ namespace StrawberryShake.Http.Subscriptions
     {
         bool TryGetSubscription(string subscriptionId, out ISubscription subscription);
 
-        void RegisterAsync(ISubscription subscription, ISocketConnection connection);
+        Task RegisterAsync(ISubscription subscription, ISocketConnection connection);
 
-        void UnregisterAsync(string subscriptionId);
+        Task UnregisterAsync(string subscriptionId);
     }
 }

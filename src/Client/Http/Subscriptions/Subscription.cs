@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake.Http.Subscriptions.Messages;
+using static StrawberryShake.Http.Subscriptions.Messages.MessageTypes;
 
 namespace StrawberryShake.Http.Subscriptions
 {
     public sealed class Subscription<T>
         : IResponseStream<T>
         , ISubscription
+        , IAsyncDisposable
         where T : class
     {
         private readonly SemaphoreSlim _initSemaphore = new SemaphoreSlim(0, 1);
@@ -18,12 +20,7 @@ namespace StrawberryShake.Http.Subscriptions
 
         public event EventHandler? Disposed;
 
-        public Subscription(IOperation operation, IResultParser resultParser)
-            : this(Guid.NewGuid().ToString("N"), operation, resultParser)
-        {
-        }
-
-        public Subscription(string id, IOperation operation, IResultParser resultParser)
+        private Subscription(string id, IOperation operation, IResultParser resultParser)
         {
             if (string.IsNullOrEmpty(id))
             {
@@ -44,6 +41,15 @@ namespace StrawberryShake.Http.Subscriptions
             Operation = operation;
             ResultParser = resultParser;
         }
+
+        public async Task<Subscription> StartAsync(
+            IOperation operation,
+            IResultParser resultParser,
+            ISocketConnection connection)
+        {
+
+        }
+
 
         public string Id { get; }
 
@@ -166,10 +172,20 @@ namespace StrawberryShake.Http.Subscriptions
                 .ConfigureAwait(false);
             _nextResult!.SetResult(null);
 
-            Dispose();
+            await DisposeAsync(false);
         }
 
-        public void Dispose()
+        private async Task SendStopMessageAsync()
+        {
+
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await DisposeAsync(true);
+        }
+
+        private async ValueTask DisposeAsync(bool release)
         {
             if (!_disposed)
             {
