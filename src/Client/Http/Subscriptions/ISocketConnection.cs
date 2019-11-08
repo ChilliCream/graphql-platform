@@ -12,8 +12,6 @@ namespace StrawberryShake.Http.Subscriptions
 
         bool IsClosed { get; }
 
-        bool IsDisposed { get; }
-
         Task OpenAsync(
             CancellationToken cancellationToken = default);
 

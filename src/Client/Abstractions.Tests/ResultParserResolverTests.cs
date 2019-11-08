@@ -71,6 +71,12 @@ namespace StrawberryShake
             {
                 return Task.CompletedTask;
             }
+
+            public void Parse(
+                ReadOnlySpan<byte> result,
+                IOperationResultBuilder resultBuilder)
+            {
+            }
         }
     }
 }

@@ -12,10 +12,10 @@ namespace StrawberryShake.Http.Subscriptions
     {
         private const string _protocol = "graphql-ws";
         private const int _maxMessageSize = 1024 * 4;
-        private ClientWebSocket _webSocket;
+        private ClientWebSocket? _webSocket;
         private bool _disposed;
 
-        public event EventHandler Disposed;
+        public event EventHandler? Disposed;
 
         public WebSocketConnection(Uri uri)
         {
@@ -25,7 +25,8 @@ namespace StrawberryShake.Http.Subscriptions
         public Uri Uri { get; }
 
         public bool IsClosed =>
-            _webSocket == null
+            _disposed
+            || _webSocket == null
             || _webSocket.CloseStatus.HasValue;
 
         public async Task OpenAsync(CancellationToken cancellationToken = default)
@@ -50,12 +51,14 @@ namespace StrawberryShake.Http.Subscriptions
         {
             try
             {
-                if (_disposed || IsClosed)
+                WebSocket? webSocket = _webSocket;
+
+                if (IsClosed || webSocket is null)
                 {
                     return;
                 }
 
-                await _webSocket.CloseOutputAsync(
+                await webSocket.CloseOutputAsync(
                         MapCloseStatus(closeStatus),
                         message,
                         cancellationToken)
@@ -73,9 +76,9 @@ namespace StrawberryShake.Http.Subscriptions
             ReadOnlyMemory<byte> message,
             CancellationToken cancellationToken = default)
         {
-            WebSocket webSocket = _webSocket;
+            WebSocket? webSocket = _webSocket;
 
-            if (_disposed || webSocket == null)
+            if (IsClosed || webSocket is null)
             {
                 return Task.CompletedTask;
             }
@@ -96,16 +99,16 @@ namespace StrawberryShake.Http.Subscriptions
             PipeWriter writer,
             CancellationToken cancellationToken = default)
         {
-            WebSocket webSocket = _webSocket;
+            WebSocket? webSocket = _webSocket;
 
-            if (_disposed || webSocket == null)
+            if (IsClosed || webSocket is null)
             {
                 return;
             }
 
             try
             {
-                WebSocketReceiveResult socketResult = null;
+                WebSocketReceiveResult? socketResult = null;
                 do
                 {
                     Memory<byte> memory = writer.GetMemory(_maxMessageSize);
