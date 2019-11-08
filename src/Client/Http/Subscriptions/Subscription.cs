@@ -9,47 +9,20 @@ namespace StrawberryShake.Http.Subscriptions
 {
     public sealed class Subscription<T>
         : IResponseStream<T>
-        , ISubscription
-        , IAsyncDisposable
-        where T : class
+        , ISubscription where T : class
     {
         private readonly SemaphoreSlim _initSemaphore = new SemaphoreSlim(0, 1);
         private readonly SemaphoreSlim _resultSemaphore = new SemaphoreSlim(0, 1);
         private TaskCompletionSource<IOperationResult<T>?>? _nextResult;
+        private Func<Task>? _unregister;
         private bool _disposed;
 
-        public event EventHandler? Disposed;
-
-        private Subscription(string id, IOperation operation, IResultParser resultParser)
+        public Subscription(IOperation operation, IResultParser resultParser)
         {
-            if (string.IsNullOrEmpty(id))
-            {
-                throw new ArgumentException("id cannot be null or empty.", nameof(id));
-            }
-
-            if (operation is null)
-            {
-                throw new ArgumentNullException(nameof(resultParser));
-            }
-
-            if (resultParser is null)
-            {
-                throw new ArgumentNullException(nameof(resultParser));
-            }
-
-            Id = id;
-            Operation = operation;
-            ResultParser = resultParser;
+            Id = Guid.NewGuid().ToString("N");
+            Operation = operation ?? throw new ArgumentNullException(nameof(operation));
+            ResultParser = resultParser ?? throw new ArgumentNullException(nameof(resultParser));
         }
-
-        public async Task<Subscription> StartAsync(
-            IOperation operation,
-            IResultParser resultParser,
-            ISocketConnection connection)
-        {
-
-        }
-
 
         public string Id { get; }
 
@@ -95,6 +68,11 @@ namespace StrawberryShake.Http.Subscriptions
                     _resultSemaphore.Release();
                 }
             }
+        }
+
+        public void OnRegister(Func<Task> unregister)
+        {
+            _unregister = unregister ?? throw new ArgumentNullException(nameof(unregister));
         }
 
         public Task OnReceiveResultAsync(
@@ -172,28 +150,23 @@ namespace StrawberryShake.Http.Subscriptions
                 .ConfigureAwait(false);
             _nextResult!.SetResult(null);
 
-            await DisposeAsync(false);
-        }
-
-        private async Task SendStopMessageAsync()
-        {
-
+            await DisposeAsync();
         }
 
         public async ValueTask DisposeAsync()
-        {
-            await DisposeAsync(true);
-        }
-
-        private async ValueTask DisposeAsync(bool release)
         {
             if (!_disposed)
             {
                 _initSemaphore.Dispose();
                 _resultSemaphore.Dispose();
-                _disposed = true;
 
-                Disposed?.Invoke(this, EventArgs.Empty);
+                if (_unregister is { })
+                {
+                    await _unregister().ConfigureAwait(false);
+                    _unregister = null;
+                }
+
+                _disposed = true;
             }
         }
     }

@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake.Http
 {
-    public class JsonOperationSerializer
-        : IOperationSerializer
+    public class JsonOperationFormatter
+        : IOperationFormatter
     {
         private IReadOnlyDictionary<string, IValueSerializer> _serializers;
 
-        public JsonOperationSerializer(
+        public JsonOperationFormatter(
             IEnumerable<IValueSerializer> serializers)
         {
             if (serializers is null)
@@ -28,7 +28,7 @@ namespace StrawberryShake.Http
         public Task SerializeAsync(
             IOperation operation,
             Stream stream,
-            OperationSerializerOptions? options = null,
+            OperationFormatterOptions? options = null,
             CancellationToken cancellationToken = default)
         {
             if (operation is null)
@@ -41,7 +41,7 @@ namespace StrawberryShake.Http
                 throw new ArgumentNullException(nameof(stream));
             }
 
-            OperationSerializerOptions opt = options ?? OperationSerializerOptions.Default;
+            OperationFormatterOptions opt = options ?? OperationFormatterOptions.Default;
 
             return SerializeInternalAsync(
                 operation, stream, opt.Extensions,
@@ -64,7 +64,7 @@ namespace StrawberryShake.Http
         public void Serialize(
             IOperation operation,
             IBufferWriter<byte> writer,
-            OperationSerializerOptions? options = null,
+            OperationFormatterOptions? options = null,
             CancellationToken cancellationToken = default)
         {
             if (operation is null)
@@ -77,7 +77,7 @@ namespace StrawberryShake.Http
                 throw new ArgumentNullException(nameof(writer));
             }
 
-            var opt = options ?? OperationSerializerOptions.Default;
+            var opt = options ?? OperationFormatterOptions.Default;
 
             SerializeInternal(
                 operation, writer, opt.Extensions,

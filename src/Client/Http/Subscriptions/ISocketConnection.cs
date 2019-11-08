@@ -10,7 +10,9 @@ namespace StrawberryShake.Http.Subscriptions
     {
         event EventHandler Disposed;
 
-        bool Closed { get; }
+        bool IsClosed { get; }
+
+        bool IsDisposed { get; }
 
         Task OpenAsync(
             CancellationToken cancellationToken = default);

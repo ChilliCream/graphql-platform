@@ -2,9 +2,9 @@ using System.Collections.Generic;
 
 namespace StrawberryShake
 {
-    public class OperationSerializerOptions
+    public class OperationFormatterOptions
     {
-        public OperationSerializerOptions(
+        public OperationFormatterOptions(
             IReadOnlyDictionary<string, object?>? extensions = null,
             bool? includeDocument = null)
         {
@@ -16,7 +16,7 @@ namespace StrawberryShake
 
         public bool IncludeDocument { get; }
 
-        public static OperationSerializerOptions Default { get; } =
-            new OperationSerializerOptions();
+        public static OperationFormatterOptions Default { get; } =
+            new OperationFormatterOptions();
     }
 }

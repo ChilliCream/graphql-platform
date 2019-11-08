@@ -7,13 +7,13 @@ namespace StrawberryShake.Http.Subscriptions
 {
     public interface ISubscription
     {
-        event EventHandler Disposed;
-
         string Id { get; }
 
         IOperation Operation { get; }
 
         IResultParser ResultParser { get; }
+
+        void OnRegister(Func<Task> unregister);
 
         Task OnReceiveResultAsync(DataResultMessage message, CancellationToken cancellationToken);
 

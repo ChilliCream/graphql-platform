@@ -5,18 +5,18 @@ using System.Threading.Tasks;
 
 namespace StrawberryShake
 {
-    public interface IOperationSerializer
+    public interface IOperationFormatter
     {
         Task SerializeAsync(
             IOperation operation,
             Stream stream,
-            OperationSerializerOptions? options = null,
+            OperationFormatterOptions? options = null,
             CancellationToken cancellationToken = default);
 
         void Serialize(
             IOperation operation,
             IBufferWriter<byte> writer,
-            OperationSerializerOptions? options = null,
+            OperationFormatterOptions? options = null,
             CancellationToken cancellationToken = default);
     }
 }

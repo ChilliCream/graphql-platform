@@ -4,31 +4,47 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using HotChocolate.Language;
 using StrawberryShake.Http.Subscriptions.Messages;
 
 namespace StrawberryShake.Http.Subscriptions
 {
-    public class SubscriptionManager
+    public sealed class SubscriptionManager
         : ISubscriptionManager
     {
         private readonly ConcurrentDictionary<string, Sub> _subs =
             new ConcurrentDictionary<string, Sub>();
-        private readonly IOperationSerializer _operationSerializer;
+        private readonly IOperationFormatter _operationFormatter;
         private bool _disposed;
 
-        public SubscriptionManager(IOperationSerializer operationSerializer)
+        public SubscriptionManager(IOperationFormatter operationFormatter)
         {
-            // _connection = connection ?? throw new ArgumentNullException(nameof(connection));
+            _operationFormatter = operationFormatter;
         }
 
         public bool TryGetSubscription(string subscriptionId, out ISubscription? subscription)
         {
-            throw new NotImplementedException();
+            if (_subs.TryGetValue(subscriptionId, out Sub? sub))
+            {
+                subscription = sub.Subscription;
+                return true;
+            }
+
+            subscription = null;
+            return false;
         }
 
         public Task RegisterAsync(ISubscription subscription, ISocketConnection connection)
         {
+            if (subscription == null)
+            {
+                throw new ArgumentNullException(nameof(subscription));
+            }
+
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+
             return RegisterInternalAsync(subscription, connection);
         }
 
@@ -36,103 +52,83 @@ namespace StrawberryShake.Http.Subscriptions
         {
             if (_subs.TryAdd(subscription.Id, new Sub(subscription, connection)))
             {
-                connection.Disposed += (sender, args) => UnregisterInternal(subscription.Id);
-                subscription.Disposed += (sender, args) => UnregisterInternal(subscription.Id);
+                connection.Disposed += (sender, args) => RemoveSubscription(subscription.Id);
 
-                var startMessage = new RawSocketMessage();
-                startMessage.WriteStartObject();
-                startMessage.WriteType(MessageTypes.Subscription.Start);
-                startMessage.WriteId(subscription.Id);
-                startMessage.WriteStartPayload();
-
-                await _operationSerializer.SerializeAsync(subscription.Operation, startMessage);
-            }
-        }
-
-        public void UnregisterAsync(string subscriptionId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Register(ISubscription subscription)
-        {
-            if (subscription == null)
-            {
-                throw new ArgumentNullException(nameof(subscription));
-            }
-
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(
-                    nameof(SubscriptionManager));
-            }
-
-            if (_subs.TryAdd(subscription.Id, subscription))
-            {
-                subscription.Completed += (sender, eventArgs) =>
+                if (connection.IsClosed)
                 {
-                    Unregister(subscription.Id);
-                };
+                    _subs.TryRemove(subscription.Id, out _);
+                    return;
+                }
+
+                subscription.OnRegister(() => UnregisterAsync(subscription.Id));
+
+                var writer = new SocketMessageWriter();
+
+                writer.WriteStartObject();
+                writer.WriteType(MessageTypes.Subscription.Start);
+                writer.WriteId(subscription.Id);
+                writer.WriteStartPayload();
+                _operationFormatter.Serialize(subscription.Operation, writer);
+                writer.WriteEndObject();
+
+                await connection.SendAsync(writer.GetMemory());
             }
         }
 
-        public void Unregister(string subscriptionId)
+        public async Task UnregisterAsync(string subscriptionId)
         {
-            if (subscriptionId == null)
+            if (_subs.TryRemove(subscriptionId, out Sub? sub))
             {
-                throw new ArgumentNullException(nameof(subscriptionId));
-            }
+                var writer = new SocketMessageWriter();
 
-            if (_disposed)
-            {
-                throw new ObjectDisposedException(
-                    nameof(SubscriptionManager));
-            }
+                writer.WriteStartObject();
+                writer.WriteType(MessageTypes.Subscription.Stop);
+                writer.WriteId(subscriptionId);
+                writer.WriteEndObject();
 
-            if (_subs.TryRemove(subscriptionId,
-                out ISubscription? subscription))
-            {
-                subscription.Dispose();
+                await sub.Connection.SendAsync(writer.GetMemory());
             }
         }
 
-        private void UnregisterInternal(string subscriptionId)
+        private void RemoveSubscription(string subscriptionId)
         {
-            if (_subs.TryRemove(subscriptionId, out ISubscription? subscription))
+            if (_subs.TryRemove(subscriptionId, out Sub? sub))
             {
-                subscription.Dispose();
+                BeginDisposeSubscription(sub.Subscription);
             }
+        }
+
+        private void BeginDisposeSubscription(ISubscription subscription)
+        {
+            Task.Run(async () =>
+            {
+                if (subscription is IAsyncDisposable d)
+                {
+                    await d.DisposeAsync().ConfigureAwait((false));
+                }
+            });
         }
 
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
+            if (!_disposed && _subs.Count > 0)
             {
-                if (disposing && _subs.Count > 0)
+                Sub?[] subs = _subs.Values.ToArray();
+
+                for (var i = 0; i < subs.Length; i++)
                 {
-                    ISubscription?[] subs = _subs.Values.ToArray();
-
-                    for (int i = 0; i < subs.Length; i++)
-                    {
-                        subs[i]!.Dispose();
-                        subs[i] = null;
-                    }
-
-                    _subs.Clear();
+                    BeginDisposeSubscription(subs[i]!.Subscription);
+                    subs[i] = null;
                 }
+
+                _subs.Clear();
                 _disposed = true;
             }
         }
 
         public IEnumerator<ISubscription> GetEnumerator()
         {
-            return _subs.Values.GetEnumerator();
+            return _subs.Values.Select(t => t.Subscription).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

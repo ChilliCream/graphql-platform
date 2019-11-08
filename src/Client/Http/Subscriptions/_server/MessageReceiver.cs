@@ -21,7 +21,7 @@ namespace StrawberryShake.Http.Subscriptions
 
         public async Task ReceiveAsync(CancellationToken cancellationToken)
         {
-            while (!_connection.Closed
+            while (!_connection.IsClosed
                 && !cancellationToken.IsCancellationRequested)
             {
                 await _connection

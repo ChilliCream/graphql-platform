@@ -87,7 +87,7 @@ namespace StrawberryShake.Client.GraphQL
         private static IServiceCollection TryAddDefaultOperationSerializer(
             this IServiceCollection serviceCollection)
         {
-            serviceCollection.TryAddSingleton<IOperationSerializer, JsonOperationSerializer>();
+            serviceCollection.TryAddSingleton<IOperationFormatter, JsonOperationFormatter>();
             return serviceCollection;
         }
 

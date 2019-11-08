@@ -24,7 +24,7 @@ namespace StrawberryShake.Http.Subscriptions
 
         public Uri Uri { get; }
 
-        public bool Closed =>
+        public bool IsClosed =>
             _webSocket == null
             || _webSocket.CloseStatus.HasValue;
 
@@ -50,7 +50,7 @@ namespace StrawberryShake.Http.Subscriptions
         {
             try
             {
-                if (_disposed || Closed)
+                if (_disposed || IsClosed)
                 {
                     return;
                 }
