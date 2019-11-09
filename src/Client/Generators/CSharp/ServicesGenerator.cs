@@ -251,7 +251,7 @@ namespace StrawberryShake.Generators.CSharp
                 {
                     await writer.WriteIndentedLineAsync(
                         "serviceCollection.TryAddSingleton<" +
-                        "IOperationSerializer, JsonOperationSerializer>();")
+                        "IOperationFormatter, JsonOperationFormatter>();")
                         .ConfigureAwait(false);
                 })
                 .ConfigureAwait(false);

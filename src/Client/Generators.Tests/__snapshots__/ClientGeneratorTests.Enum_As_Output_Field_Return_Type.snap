@@ -30,11 +30,11 @@ namespace StrawberryShake.Client
         : IFoo
     {
         public Foo(
-            Bar bar1, 
-            Bar? bar2, 
-            IReadOnlyList<Bar?>? bar3, 
-            IReadOnlyList<Bar?> bar4, 
-            IReadOnlyList<Bar>? bar5, 
+            Bar bar1,
+            Bar? bar2,
+            IReadOnlyList<Bar?>? bar3,
+            IReadOnlyList<Bar?> bar4,
+            IReadOnlyList<Bar>? bar5,
             IReadOnlyList<Bar> bar6)
         {
             Bar1 = bar1;
@@ -505,7 +505,7 @@ namespace StrawberryShake.Client
         private static IServiceCollection TryAddDefaultOperationSerializer(
             this IServiceCollection serviceCollection)
         {
-            serviceCollection.TryAddSingleton<IOperationSerializer, JsonOperationSerializer>();
+            serviceCollection.TryAddSingleton<IOperationFormatter, JsonOperationFormatter>();
             return serviceCollection;
         }
 

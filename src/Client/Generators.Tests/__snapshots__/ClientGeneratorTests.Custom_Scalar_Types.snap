@@ -9,7 +9,7 @@ namespace StrawberryShake.Client
         : IGetFoo
     {
         public GetFoo(
-            string? foo, 
+            string? foo,
             int? baz)
         {
             Foo = foo;
@@ -266,7 +266,7 @@ namespace StrawberryShake.Client
         private static IServiceCollection TryAddDefaultOperationSerializer(
             this IServiceCollection serviceCollection)
         {
-            serviceCollection.TryAddSingleton<IOperationSerializer, JsonOperationSerializer>();
+            serviceCollection.TryAddSingleton<IOperationFormatter, JsonOperationFormatter>();
             return serviceCollection;
         }
 

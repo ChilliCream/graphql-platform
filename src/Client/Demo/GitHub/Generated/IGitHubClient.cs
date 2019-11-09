@@ -5,15 +5,16 @@ using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake;
 
-namespace  StrawberryShake.Client.GitHub
+namespace StrawberryShake.Client.GitHub
 {
     public interface IGitHubClient
     {
         Task<IOperationResult<IGetUser>> GetUserAsync(
-            string login);
+            Optional<string> login = default,
+            CancellationToken cancellationToken = default);
 
         Task<IOperationResult<IGetUser>> GetUserAsync(
-            string login,
-            CancellationToken cancellationToken);
+            GetUserOperation operation,
+            CancellationToken cancellationToken = default);
     }
 }
