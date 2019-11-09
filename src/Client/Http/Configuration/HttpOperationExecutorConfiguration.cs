@@ -1,21 +1,48 @@
-using System.Net.Http;
 using System;
+using System.Net.Http;
+using StrawberryShake.Configuration;
 using StrawberryShake.Http.Pipelines;
-using System.Collections.Generic;
 
 namespace StrawberryShake.Http
 {
-    public interface IHttpOperationExecutorBuilder
+    public class HttpOperationExecutorConfiguration
+        : IOperationExecutionConfiguration
     {
-        IHttpOperationExecutorBuilder SetClient(Func<IServiceProvider, Func<HttpClient>> clientFactory);
+        private Func<IServiceProvider, HttpClient>? _clientFactory;
+        private Func<IServiceProvider, OperationDelegate>? _pipelineFactory;
 
-        IHttpOperationExecutorBuilder SetPipeline(Func<IServiceProvider, OperationDelegate> pipelineFactory);
+        public HttpOperationExecutorConfiguration WithHttpClient(
+            Func<IServiceProvider, HttpClient> clientFactory)
+        {
+            if (clientFactory is null)
+            {
+                throw new ArgumentNullException(nameof(clientFactory));
+            }
 
-        IHttpOperationExecutorBuilder AddServices(IServiceProvider services);
+            _clientFactory = clientFactory;
+            return this;
+        }
 
-        IHttpOperationExecutorBuilder AddService(Type serviceType, object serviceInstance);
+        public HttpOperationExecutorConfiguration UsePipeline(
+            Func<IServiceProvider, OperationDelegate> pipelineFactory)
+        {
+            if (pipelineFactory is null)
+            {
+                throw new ArgumentNullException(nameof(pipelineFactory));
+            }
 
-        IOperationExecutor Build();
+            _pipelineFactory = pipelineFactory;
+            return this;
+        }
+
+        ExecutorKind IOperationExecutionConfiguration.Kind => ExecutorKind.Default;
+
+        void IOperationExecutionConfiguration.Apply(
+            IServiceConfiguration services,
+            string schemaName)
+        {
+
+        }
     }
 
 
