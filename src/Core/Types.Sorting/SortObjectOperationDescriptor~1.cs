@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -15,8 +13,8 @@ namespace HotChocolate.Types.Sorting
             IDescriptorContext context,
             NameString name,
             ITypeReference type,
-            SortOperation operation
-            ) : base(context, name, type, operation)
+            SortOperation operation)
+            : base(context, name, type, operation)
         {
         }
 
@@ -31,6 +29,7 @@ namespace HotChocolate.Types.Sorting
             base.Ignore();
             return this;
         }
+
         public new ISortObjectOperationDescriptor<TObject> Description(string value)
         {
             base.Description(value);
@@ -59,7 +58,8 @@ namespace HotChocolate.Types.Sorting
             return this;
         }
 
-        public ISortObjectOperationDescriptor<TObject> Type(Action<ISortInputTypeDescriptor<TObject>> descriptor)
+        public ISortObjectOperationDescriptor<TObject> Type(
+            Action<ISortInputTypeDescriptor<TObject>> descriptor)
         {
             var type = new SortInputType<TObject>(descriptor);
             base.Type(type);
@@ -80,14 +80,12 @@ namespace HotChocolate.Types.Sorting
             SortOperation operation) =>
             new SortObjectOperationDescriptor<TObject>(context, name, type, operation);
 
-
         public new static SortObjectOperationDescriptor<TObject> CreateOperation(
-           PropertyInfo property,
-           IDescriptorContext context)
+            PropertyInfo property,
+            IDescriptorContext context)
         {
             var operation = new SortOperation(property, true);
-            var name = context.Naming.GetMemberName(
-               property, MemberKind.InputObjectField);
+            var name = context.Naming.GetMemberName(property, MemberKind.InputObjectField);
             var typeReference = new ClrTypeReference(
                 typeof(SortInputType<>).MakeGenericType(typeof(TObject)),
                 TypeContext.Input);
@@ -98,6 +96,5 @@ namespace HotChocolate.Types.Sorting
                 typeReference,
                 operation);
         }
-
     }
 }
