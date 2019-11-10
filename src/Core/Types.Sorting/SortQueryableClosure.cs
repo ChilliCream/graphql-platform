@@ -15,7 +15,9 @@ namespace HotChocolate.Types.Sorting
 
             Instance.Push(Parameter);
         }
-        public ParameterExpression Parameter;
+
+        public ParameterExpression Parameter { get; }
+
         public Stack<Expression> Instance { get; }
 
         public SortOperationInvocation CreateSortOperation(SortOperationKind kind)
@@ -25,10 +27,9 @@ namespace HotChocolate.Types.Sorting
 
         public void EnqueueProperty(PropertyInfo property)
         {
-            var nestedProperty = Expression.Property(
-                Instance.Peek(), property
-            );
-            Instance.Push(nestedProperty);
+            Instance.Push(Expression.Property(
+                Instance.Peek(),
+                property));
         }
     }
 }
