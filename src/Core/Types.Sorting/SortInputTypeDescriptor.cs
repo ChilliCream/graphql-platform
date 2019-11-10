@@ -52,7 +52,8 @@ namespace HotChocolate.Types.Sorting
             return this;
         }
 
-        public ISortInputTypeDescriptor<T> Directive<TDirective>(TDirective directiveInstance)
+        public ISortInputTypeDescriptor<T> Directive<TDirective>(
+            TDirective directiveInstance)
             where TDirective : class
         {
             Definition.AddDirective(directiveInstance);
@@ -104,7 +105,9 @@ namespace HotChocolate.Types.Sorting
                 nameof(property));
         }
 
-        public ISortObjectOperationDescriptor<TObject> SortableObject<TObject>(Expression<Func<T, TObject>> property) where TObject : class
+        public ISortObjectOperationDescriptor<TObject> SortableObject<TObject>(
+            Expression<Func<T, TObject>> property)
+            where TObject : class
         {
             if (property.ExtractMember() is PropertyInfo p)
             {
@@ -198,8 +201,8 @@ namespace HotChocolate.Types.Sorting
         }
 
         public static SortInputTypeDescriptor<T> New(
-            IDescriptorContext context, Type entityType) =>
+            IDescriptorContext context,
+            Type entityType) =>
             new SortInputTypeDescriptor<T>(context, entityType);
-
     }
 }
