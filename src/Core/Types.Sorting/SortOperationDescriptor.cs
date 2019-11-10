@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using HotChocolate.Language;
 using HotChocolate.Types.Descriptors;
@@ -12,11 +10,11 @@ namespace HotChocolate.Types.Sorting
         , ISortOperationDescriptor
     {
         protected SortOperationDescriptor(
-         IDescriptorContext context,
-         NameString name,
-         ITypeReference type,
-         SortOperation operation)
-         : base(context)
+            IDescriptorContext context,
+            NameString name,
+            ITypeReference type,
+            SortOperation operation)
+            : base(context)
         {
             Definition.Name = name.EnsureNotEmpty(nameof(name));
             Definition.Type = type
@@ -27,7 +25,6 @@ namespace HotChocolate.Types.Sorting
 
         protected sealed override SortOperationDefintion Definition { get; } =
             new SortOperationDefintion();
-
 
         public ISortOperationDescriptor Ignore()
         {
@@ -40,7 +37,6 @@ namespace HotChocolate.Types.Sorting
             Definition.Name = value.EnsureNotEmpty(nameof(value));
             return this;
         }
-
 
         public new ISortOperationDescriptor Description(string value)
         {
@@ -62,7 +58,9 @@ namespace HotChocolate.Types.Sorting
             return this;
         }
 
-        public new ISortOperationDescriptor Directive(NameString name, params ArgumentNode[] arguments)
+        public new ISortOperationDescriptor Directive(
+            NameString name,
+            params ArgumentNode[] arguments)
         {
             base.Directive(name, arguments);
             return this;
@@ -73,23 +71,18 @@ namespace HotChocolate.Types.Sorting
             NameString name,
             ITypeReference type,
             SortOperation operation) =>
-            new SortOperationDescriptor(
-          context, name, type, operation);
+            new SortOperationDescriptor(context, name, type, operation);
 
         public static SortOperationDescriptor CreateOperation(
             PropertyInfo property,
             IDescriptorContext context)
         {
-
             var operation = new SortOperation(property);
-
             var typeReference = new ClrTypeReference(
                 typeof(SortOperationKindType),
-                TypeContext.Input
-            );
-
+                TypeContext.Input);
             var name = context.Naming.GetMemberName(
-               property, MemberKind.InputObjectField);
+                property, MemberKind.InputObjectField);
 
             return SortOperationDescriptor.New(
                 context,

@@ -7,7 +7,7 @@ using HotChocolate.Types.Sorting.Properties;
 namespace HotChocolate.Types.Sorting
 {
     public class SortVisitorBase
-           : SyntaxNodeVisitor
+        : SyntaxNodeVisitor
     {
         protected SortVisitorBase(InputObjectType initialType)
         {
@@ -15,6 +15,7 @@ namespace HotChocolate.Types.Sorting
             {
                 throw new ArgumentNullException(nameof(initialType));
             }
+
             Types.Push(initialType);
         }
 
@@ -41,14 +42,12 @@ namespace HotChocolate.Types.Sorting
                 }
 
                 throw new InvalidOperationException(
-                                SortingResources.SortObjectTypeFieldVisitor_InvalidType
-                );
+                    SortingResources.SortObjectTypeFieldVisitor_InvalidType);
             }
             else
             {
                 throw new InvalidOperationException(
-                                SortingResources.SortObjectTypeVisitor_InvalidType
-                );
+                    SortingResources.SortObjectTypeVisitor_InvalidType);
             }
         }
 
@@ -64,4 +63,3 @@ namespace HotChocolate.Types.Sorting
         }
     }
 }
-

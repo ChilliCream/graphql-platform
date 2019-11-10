@@ -1,12 +1,11 @@
-using System;
-using MongoDB.Driver;
-using MongoDB.Bson;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using HotChocolate.Execution;
-using Xunit;
-using System.Threading.Tasks;
-using Snapshooter.Xunit;
 using HotChocolate.Types.Relay;
+using MongoDB.Driver;
+using MongoDB.Bson;
+using Xunit;
+using Snapshooter.Xunit;
 using Squadron;
 
 namespace HotChocolate.Types.Sorting
@@ -29,13 +28,11 @@ namespace HotChocolate.Types.Sorting
             serviceCollection.AddSingleton(sp =>
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
-
-                IMongoCollection<Parent> collection
-                    = database.GetCollection<Parent>("col");
+                IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
                 collection.InsertMany(new[]
                 {
-                    new Parent {Model = new Model { Foo = "abc", Bar = 1, Baz = true } },
-                    new Parent {Model = new Model { Foo = "def", Bar = 2, Baz = false }},
+                    new Parent { Model = new Model { Foo = "abc", Bar = 1, Baz = true } },
+                    new Parent { Model = new Model { Foo = "def", Bar = 2, Baz = false } }
                 });
                 return collection;
             });
@@ -48,7 +45,7 @@ namespace HotChocolate.Types.Sorting
             IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ items { model {foo} } }")
+                .SetQuery("{ items { model { foo } } }")
                 .Create();
 
             // act
@@ -67,12 +64,11 @@ namespace HotChocolate.Types.Sorting
             serviceCollection.AddSingleton(sp =>
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
-
                 IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
                 collection.InsertMany(new[]
                 {
-                    new Parent {Model = new Model { Foo = "abc", Bar = 1, Baz = true } },
-                    new Parent {Model = new Model { Foo = "def", Bar = 2, Baz = false }},
+                    new Parent { Model = new Model { Foo = "abc", Bar = 1, Baz = true } },
+                    new Parent { Model = new Model { Foo = "def", Bar = 2, Baz = false } }
                 });
                 return collection;
             });
@@ -85,7 +81,7 @@ namespace HotChocolate.Types.Sorting
             IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ items(order_by: { model: {foo: DESC }}) { model {foo }} }")
+                .SetQuery("{ items(order_by: { model: { foo: DESC } }) { model { foo } } }")
                 .Create();
 
             // act
@@ -104,12 +100,11 @@ namespace HotChocolate.Types.Sorting
             serviceCollection.AddSingleton(sp =>
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
-
                 IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
                 collection.InsertMany(new[]
                 {
-                    new Parent {Model = new Model { Foo = "abc", Bar = 1, Baz = true } },
-                    new Parent {Model = new Model { Foo = "def", Bar = 2, Baz = false }},
+                    new Parent { Model = new Model { Foo = "abc", Bar = 1, Baz = true } },
+                    new Parent { Model = new Model { Foo = "def", Bar = 2, Baz = false } }
                 });
                 return collection;
             });
@@ -122,7 +117,9 @@ namespace HotChocolate.Types.Sorting
             IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ paging(order_by: { model: {foo: DESC } }) { nodes { model {foo } } } }")
+                .SetQuery(
+                    "{ paging(order_by: { model: { foo: DESC } }) " +
+                    "{ nodes { model { foo } } } }")
                 .Create();
 
             // act
@@ -142,12 +139,11 @@ namespace HotChocolate.Types.Sorting
             serviceCollection.AddSingleton(sp =>
             {
                 IMongoDatabase database = _mongoResource.CreateDatabase();
-
                 IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
                 collection.InsertMany(new[]
                 {
-                    new Parent {Model = new Model { Foo = "abc", Bar = 1, Baz = true } },
-                    new Parent {Model = new Model { Foo = "def", Bar = 2, Baz = false } },
+                    new Parent { Model = new Model { Foo = "abc", Bar = 1, Baz = true } },
+                    new Parent { Model = new Model { Foo = "def", Bar = 2, Baz = false } }
                 });
                 return collection;
             });
@@ -160,7 +156,7 @@ namespace HotChocolate.Types.Sorting
             IQueryExecutor executor = schema.MakeExecutable();
 
             IReadOnlyQueryRequest request = QueryRequestBuilder.New()
-                .SetQuery("{ items(order_by: { model:{ qux: DESC }}) { model{bar }} }")
+                .SetQuery("{ items(order_by: { model: { qux: DESC } }) { model { bar } } }")
                 .Create();
 
             // act
@@ -179,14 +175,12 @@ namespace HotChocolate.Types.Sorting
                 descriptor.Field("items")
                     .Type<ListType<ParentType>>()
                     .UseSorting<ParentSortInputType>()
-                    .Resolver(ctx =>
-                        ctx.Service<IMongoCollection<Parent>>().AsQueryable());
+                    .Resolver(ctx => ctx.Service<IMongoCollection<Parent>>().AsQueryable());
 
                 descriptor.Field("paging")
                     .UsePaging<ParentType>()
                     .UseSorting<ParentSortInputType>()
-                    .Resolver(ctx =>
-                        ctx.Service<IMongoCollection<Parent>>().AsQueryable());
+                    .Resolver(ctx => ctx.Service<IMongoCollection<Parent>>().AsQueryable());
             }
         }
 
