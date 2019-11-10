@@ -165,12 +165,11 @@ namespace HotChocolate.Types.Sorting
                 {
                     continue;
                 }
-                if (TryCreateImplicitSorting(property, out SortOperationDefintion definition))
+
+                if (TryCreateImplicitSorting(property, out SortOperationDefintion definition)
+                    && !fields.ContainsKey(definition.Name))
                 {
-                    if (!fields.ContainsKey(definition.Name))
-                    {
-                        fields[definition.Name] = definition;
-                    }
+                    fields[definition.Name] = definition;
                 }
             }
         }
