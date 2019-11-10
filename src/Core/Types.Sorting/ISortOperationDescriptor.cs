@@ -4,7 +4,6 @@ namespace HotChocolate.Types.Sorting
 {
     public interface ISortOperationDescriptor
     {
-
         /// <summary>
         /// Specify the name of the sort operation.
         /// </summary>
@@ -17,10 +16,7 @@ namespace HotChocolate.Types.Sorting
         /// Ignore the specified property.
         /// </summary>
         /// <param name="property">The property that shall be ignored.</param>
-
         ISortOperationDescriptor Ignore();
-
-
 
         /// <summary>
         /// Specify the description of the filter operation.

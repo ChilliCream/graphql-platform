@@ -19,10 +19,7 @@ namespace HotChocolate.Types.Sorting
         /// Ignore the specified property.
         /// </summary>
         /// <param name="property">The property that shall be ignored.</param>
-
         ISortObjectOperationDescriptor<TObject> Ignore();
-
-
 
         /// <summary>
         /// Specifies the type of the filter operation
@@ -32,13 +29,11 @@ namespace HotChocolate.Types.Sorting
         ISortObjectOperationDescriptor<TObject> Type(
             Action<ISortInputTypeDescriptor<TObject>> descriptor);
 
-
         /// <summary>
         /// Specifies the type of the filter operation
         /// </summary>
         ISortObjectOperationDescriptor<TObject> Type<TFilter>()
             where TFilter : SortInputType<TObject>;
-
 
         /// <summary>
         /// Specify the description of the filter operation.
@@ -81,6 +76,5 @@ namespace HotChocolate.Types.Sorting
         ISortObjectOperationDescriptor<TObject> Directive(
             NameString name,
             params ArgumentNode[] arguments);
-
     }
 }
