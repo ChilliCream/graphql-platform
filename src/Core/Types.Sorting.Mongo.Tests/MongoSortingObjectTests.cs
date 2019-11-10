@@ -7,11 +7,20 @@ using Xunit;
 using System.Threading.Tasks;
 using Snapshooter.Xunit;
 using HotChocolate.Types.Relay;
+using Squadron;
 
 namespace HotChocolate.Types.Sorting
 {
     public class MongoSortingObjectTests
+        : IClassFixture<MongoResource>
     {
+        private readonly MongoResource _mongoResource;
+
+        public MongoSortingObjectTests(MongoResource mongoResource)
+        {
+            _mongoResource = mongoResource;
+        }
+
         [Fact]
         public async Task GetItems_NoSorting_AllItems_Are_Returned_Unsorted()
         {
@@ -19,9 +28,7 @@ namespace HotChocolate.Types.Sorting
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton(sp =>
             {
-                var client = new MongoClient();
-                IMongoDatabase database = client.GetDatabase(
-                    "db_" + Guid.NewGuid().ToString("N"));
+                IMongoDatabase database = _mongoResource.CreateDatabase();
 
                 IMongoCollection<Parent> collection
                     = database.GetCollection<Parent>("col");
@@ -59,9 +66,7 @@ namespace HotChocolate.Types.Sorting
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton(sp =>
             {
-                var client = new MongoClient();
-                IMongoDatabase database = client.GetDatabase(
-                    "db_" + Guid.NewGuid().ToString("N"));
+                IMongoDatabase database = _mongoResource.CreateDatabase();
 
                 IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
                 collection.InsertMany(new[]
@@ -98,9 +103,7 @@ namespace HotChocolate.Types.Sorting
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton(sp =>
             {
-                var client = new MongoClient();
-                IMongoDatabase database = client.GetDatabase(
-                    "db_" + Guid.NewGuid().ToString("N"));
+                IMongoDatabase database = _mongoResource.CreateDatabase();
 
                 IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
                 collection.InsertMany(new[]
@@ -138,9 +141,7 @@ namespace HotChocolate.Types.Sorting
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton(sp =>
             {
-                var client = new MongoClient();
-                IMongoDatabase database = client.GetDatabase(
-                    "db_" + Guid.NewGuid().ToString("N"));
+                IMongoDatabase database = _mongoResource.CreateDatabase();
 
                 IMongoCollection<Parent> collection = database.GetCollection<Parent>("col");
                 collection.InsertMany(new[]
