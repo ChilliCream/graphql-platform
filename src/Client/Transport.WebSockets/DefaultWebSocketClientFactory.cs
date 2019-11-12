@@ -1,5 +1,4 @@
 using System;
-using System.Net.WebSockets;
 using Microsoft.Extensions.Options;
 
 namespace StrawberryShake.Transport.WebSockets

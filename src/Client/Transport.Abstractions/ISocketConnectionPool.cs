@@ -8,7 +8,7 @@ namespace StrawberryShake.Transport
         : IDisposable
     {
         Task<ISocketConnection> RentAsync(
-            Uri uri,
+            string name,
             CancellationToken cancellationToken = default);
 
         Task ReturnAsync(

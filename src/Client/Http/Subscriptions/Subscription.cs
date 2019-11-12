@@ -11,8 +11,8 @@ namespace StrawberryShake.Http.Subscriptions
         : IResponseStream<T>
         , ISubscription where T : class
     {
-        private readonly SemaphoreSlim _initSemaphore = new SemaphoreSlim(0, 1);
-        private readonly SemaphoreSlim _resultSemaphore = new SemaphoreSlim(0, 1);
+        private readonly SemaphoreSlim _initSemaphore = new SemaphoreSlim(1, 1);
+        private readonly SemaphoreSlim _resultSemaphore = new SemaphoreSlim(1, 1);
         private TaskCompletionSource<IOperationResult<T>?>? _nextResult;
         private Func<Task>? _unregister;
         private bool _disposed;
