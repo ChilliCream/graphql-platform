@@ -6,25 +6,25 @@ using Microsoft.Extensions.Options;
 namespace StrawberryShake.Transport.WebSockets
 {
     /// <summary>
-    /// Extension methods for configuring an <see cref="IClientWebSocketBuilder"/>
+    /// Extension methods for configuring an <see cref="IWebSocketClientBuilder"/>
     /// </summary>
-    public static class ClientWebSocketBuilderExtensions
+    public static class WebSocketClientBuilderExtensions
     {
         /// <summary>
-        /// Adds a delegate that will be used to configure a named <see cref="ClientWebSocket"/>.
+        /// Adds a delegate that will be used to configure a named <see cref="WebSocketClient"/>.
         /// </summary>
         /// <param name="builder">
         /// The <see cref="IServiceCollection"/>.
         /// </param>
         /// <param name="configureClient">
-        /// A delegate that is used to configure an <see cref="ClientWebSocket"/>.
+        /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
         /// </param>
         /// <returns>
-        /// An <see cref="IClientWebSocketBuilder"/> that can be used to configure the client.
+        /// An <see cref="IWebSocketClientBuilder"/> that can be used to configure the client.
         /// </returns>
-        public static IClientWebSocketBuilder ConfigureClientWebSocket(
-            this IClientWebSocketBuilder builder,
-            Action<ClientWebSocket> configureClient)
+        public static IWebSocketClientBuilder ConfigureWebSocketClient(
+            this IWebSocketClientBuilder builder,
+            Action<WebSocketClient> configureClient)
         {
             if (builder == null)
             {
@@ -36,32 +36,32 @@ namespace StrawberryShake.Transport.WebSockets
                 throw new ArgumentNullException(nameof(configureClient));
             }
 
-            builder.Services.Configure<ClientWebSocketFactoryOptions>(
+            builder.Services.Configure<WebSocketClientFactoryOptions>(
                 builder.Name,
-                options => options.ClientWebSocketActions.Add(configureClient));
+                options => options.WebSocketClientActions.Add(configureClient));
 
             return builder;
         }
 
         /// <summary>
-        /// Adds a delegate that will be used to configure a named <see cref="ClientWebSocket"/>.
+        /// Adds a delegate that will be used to configure a named <see cref="WebSocketClient"/>.
         /// </summary>
         /// <param name="builder">
         /// The <see cref="IServiceCollection"/>.
         /// </param>
         /// <param name="configureClient">
-        /// A delegate that is used to configure an <see cref="ClientWebSocket"/>.
+        /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
         /// </param>
         /// <returns>
-        /// An <see cref="IClientWebSocketBuilder"/> that can be used to configure the client.
+        /// An <see cref="IWebSocketClientBuilder"/> that can be used to configure the client.
         /// </returns>
         /// <remarks>
         /// The <see cref="IServiceProvider"/> provided to <paramref name="configureClient"/>
         /// will be the application's root service provider instance.
         /// </remarks>
-        public static IClientWebSocketBuilder ConfigureHttpClient(
-            this IClientWebSocketBuilder builder,
-            Action<IServiceProvider, ClientWebSocket> configureClient)
+        public static IWebSocketClientBuilder ConfigureWebSocketClient(
+            this IWebSocketClientBuilder builder,
+            Action<IServiceProvider, WebSocketClient> configureClient)
         {
             if (builder == null)
             {
@@ -73,13 +73,11 @@ namespace StrawberryShake.Transport.WebSockets
                 throw new ArgumentNullException(nameof(configureClient));
             }
 
-            builder.Services.AddTransient<IConfigureOptions<ClientWebSocketFactoryOptions>>(sp =>
-            {
-                return new ConfigureNamedOptions<ClientWebSocketFactoryOptions>(
+            builder.Services.AddTransient<IConfigureOptions<WebSocketClientFactoryOptions>>(sp =>
+                new ConfigureNamedOptions<WebSocketClientFactoryOptions>(
                     builder.Name,
-                    options => options.ClientWebSocketActions.Add(
-                        client => configureClient(sp, client)));
-            });
+                    options => options.WebSocketClientActions.Add(
+                        client => configureClient(sp, client))));
 
             return builder;
         }

@@ -7,15 +7,15 @@ namespace StrawberryShake.Transport.WebSockets
     public class DefaultWebSocketClientFactory
         : IWebSocketClientFactory
     {
-        private readonly IOptionsMonitor<ClientWebSocketFactoryOptions> _optionsMonitor;
+        private readonly IOptionsMonitor<WebSocketClientFactoryOptions> _optionsMonitor;
 
         public DefaultWebSocketClientFactory(
-            IOptionsMonitor<ClientWebSocketFactoryOptions> optionsMonitor)
+            IOptionsMonitor<WebSocketClientFactoryOptions> optionsMonitor)
         {
             _optionsMonitor = optionsMonitor;
         }
 
-        public ClientWebSocket CreateClient(string name)
+        public WebSocketClient CreateClient(string name)
         {
             if (string.IsNullOrEmpty(name))
             {
@@ -24,15 +24,15 @@ namespace StrawberryShake.Transport.WebSockets
                     nameof(name));
             }
 
-            var webSocket = new ClientWebSocket();
-            ClientWebSocketFactoryOptions options = _optionsMonitor.Get(name);
+            var client = new WebSocketClient();
+            WebSocketClientFactoryOptions options = _optionsMonitor.Get(name);
 
-            for (var i = 0; i < options.ClientWebSocketActions.Count; i++)
+            for (var i = 0; i < options.WebSocketClientActions.Count; i++)
             {
-                options.ClientWebSocketActions[i](webSocket);
+                options.WebSocketClientActions[i](client);
             }
 
-            return webSocket;
+            return client;
         }
     }
 }

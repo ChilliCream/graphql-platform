@@ -12,36 +12,29 @@ namespace StrawberryShake.Transport.WebSockets
     {
         private const string _protocol = "graphql-ws";
         private const int _maxMessageSize = 1024 * 4;
-        private ClientWebSocket? _webSocket;
+        private readonly IWebSocketClient _socketClient;
         private bool _disposed;
 
         public event EventHandler? Disposed;
 
-        public WebSocketConnection(Uri uri)
+        public WebSocketConnection(IWebSocketClient socketClient)
         {
-            Uri = uri ?? throw new ArgumentNullException(nameof(uri));
+            _socketClient = socketClient ?? throw new ArgumentNullException(nameof(socketClient));
+            _socketClient.Socket.Options.AddSubProtocol(_protocol);
         }
-
-        public Uri Uri { get; }
 
         public bool IsClosed =>
             _disposed
-            || _webSocket == null
-            || _webSocket.CloseStatus.HasValue;
+            || _socketClient.Socket.CloseStatus.HasValue;
 
-        public async Task OpenAsync(CancellationToken cancellationToken = default)
+        public Task OpenAsync(CancellationToken cancellationToken = default)
         {
             if (_disposed)
             {
                 throw new ObjectDisposedException(nameof(WebSocketConnection));
             }
 
-            // TODO : we need a factory for the socket that can be customized.
-            _webSocket = new ClientWebSocket();
-            _webSocket.Options.AddSubProtocol(_protocol);
-
-            // TODO : should we introduce a abstract exception here if we cannot connect?
-            await _webSocket.ConnectAsync(Uri, cancellationToken).ConfigureAwait(false);
+            return _socketClient.ConnectAsync(cancellationToken: cancellationToken);
         }
 
         public async Task CloseAsync(
@@ -51,17 +44,15 @@ namespace StrawberryShake.Transport.WebSockets
         {
             try
             {
-                WebSocket? webSocket = _webSocket;
-
-                if (IsClosed || webSocket is null)
+                if (IsClosed)
                 {
                     return;
                 }
 
-                await webSocket.CloseOutputAsync(
-                        MapCloseStatus(closeStatus),
-                        message,
-                        cancellationToken)
+                await _socketClient.Socket.CloseOutputAsync(
+                    MapCloseStatus(closeStatus),
+                    message,
+                    cancellationToken)
                     .ConfigureAwait(false);
 
                 Dispose();
@@ -76,16 +67,14 @@ namespace StrawberryShake.Transport.WebSockets
             ReadOnlyMemory<byte> message,
             CancellationToken cancellationToken = default)
         {
-            WebSocket? webSocket = _webSocket;
-
-            if (IsClosed || webSocket is null)
+            if (IsClosed)
             {
                 return Task.CompletedTask;
             }
 
             if (MemoryMarshal.TryGetArray(message, out ArraySegment<byte> buffer))
             {
-                return webSocket.SendAsync(
+                return _socketClient.Socket.SendAsync(
                     buffer,
                     WebSocketMessageType.Text,
                     true,
@@ -99,9 +88,7 @@ namespace StrawberryShake.Transport.WebSockets
             PipeWriter writer,
             CancellationToken cancellationToken = default)
         {
-            WebSocket? webSocket = _webSocket;
-
-            if (IsClosed || webSocket is null)
+            if (IsClosed)
             {
                 return;
             }
@@ -116,7 +103,7 @@ namespace StrawberryShake.Transport.WebSockets
                     {
                         try
                         {
-                            socketResult = await webSocket
+                            socketResult = await _socketClient.Socket
                                 .ReceiveAsync(buffer, cancellationToken)
                                 .ConfigureAwait(false);
 
@@ -181,8 +168,7 @@ namespace StrawberryShake.Transport.WebSockets
         {
             if (!_disposed)
             {
-                _webSocket?.Dispose();
-                _webSocket = null;
+                _socketClient.Dispose();
                 _disposed = true;
 
                 Disposed?.Invoke(this, EventArgs.Empty);

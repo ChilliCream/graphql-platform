@@ -4,12 +4,12 @@ using System.Net.WebSockets;
 
 namespace StrawberryShake.Transport.WebSockets
 {
-    public class ClientWebSocketFactoryOptions
+    public class WebSocketClientFactoryOptions
     {
         /// <summary>
         /// Gets a list of operations used to configure an <see cref="ClientWebSocket"/>.
         /// </summary>
-        public IList<Action<ClientWebSocket>> ClientWebSocketActions { get; } =
-            new List<Action<ClientWebSocket>>();
+        public IList<Action<WebSocketClient>> WebSocketClientActions { get; } =
+            new List<Action<WebSocketClient>>();
     }
 }

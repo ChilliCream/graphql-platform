@@ -2,6 +2,7 @@ using System;
 using System.Net.WebSockets;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace StrawberryShake.Transport.WebSockets
 {
@@ -35,29 +36,29 @@ namespace StrawberryShake.Transport.WebSockets
         /// <summary>
         /// Adds the <see cref="IWebSocketClientFactory"/> and related services
         /// to the <see cref="IServiceCollection"/> and configures a named
-        /// <see cref="ClientWebSocket"/>.
+        /// <see cref="WebSocketClient"/>.
         /// </summary>
         /// <param name="services">
         /// The <see cref="IServiceCollection"/>.
         /// </param>
         /// <param name="name">
-        /// The logical name of the <see cref="ClientWebSocket"/> to configure.
+        /// The logical name of the <see cref="WebSocketClient"/> to configure.
         /// </param>
         /// <returns>
-        /// An <see cref="IClientWebSocketBuilder"/> that can be used to configure the client.
+        /// An <see cref="IWebSocketClientBuilder"/> that can be used to configure the client.
         /// </returns>
         /// <remarks>
         /// <para>
-        /// <see cref="ClientWebSocket"/> instances that apply the provided configuration can
+        /// <see cref="WebSocketClient"/> instances that apply the provided configuration can
         /// be retrieved using <see cref="IWebSocketClientFactory.CreateClient(string)"/>
         /// and providing the matching name.
         /// </para>
         /// <para>
-        /// Use <see cref="Options.Options.DefaultName"/> as the name to configure the
+        /// Use <see cref="Options.DefaultName"/> as the name to configure the
         /// default client.
         /// </para>
         /// </remarks>
-        public static IClientWebSocketBuilder AddWebSocketClient(
+        public static IWebSocketClientBuilder AddWebSocketClient(
             this IServiceCollection services,
             string name)
         {
@@ -73,42 +74,42 @@ namespace StrawberryShake.Transport.WebSockets
 
             AddWebSocketClient(services);
 
-            return new DefaultClientWebSocketBuilder(services, name);
+            return new DefaultWebSocketClientBuilder(services, name);
         }
 
         /// <summary>
         /// Adds the <see cref="IWebSocketClientFactory"/> and related services
         /// to the <see cref="IServiceCollection"/> and configures a named
-        /// <see cref="ClientWebSocket"/>.
+        /// <see cref="WebSocketClient"/>.
         /// </summary>
         /// <param name="services">
         /// The <see cref="IServiceCollection"/>.
         /// </param>
         /// <param name="name">
-        /// The logical name of the <see cref="ClientWebSocket"/> to configure.
+        /// The logical name of the <see cref="WebSocketClient"/> to configure.
         /// </param>
         /// <param name="configureClient">
-        /// A delegate that is used to configure an <see cref="ClientWebSocket"/>.
+        /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
         /// </param>
         /// <returns>
         /// An <see cref="IWebSocketClientFactory"/> that can be used to configure the client.
         /// </returns>
         /// <remarks>
         /// <para>
-        /// <see cref="ClientWebSocket"/> instances that apply the provided
+        /// <see cref="WebSocketClient"/> instances that apply the provided
         /// configuration can be retrieved using
         /// <see cref="IWebSocketClientFactory.CreateClient(string)"/> and providing
         /// the matching name.
         /// </para>
         /// <para>
-        /// Use <see cref="Options.Options.DefaultName"/> as the name to configure
+        /// Use <see cref="Options.DefaultName"/> as the name to configure
         /// the default client.
         /// </para>
         /// </remarks>
-        public static IClientWebSocketBuilder AddWebSocketClient(
+        public static IWebSocketClientBuilder AddWebSocketClient(
             this IServiceCollection services,
             string name,
-            Action<ClientWebSocket> configureClient)
+            Action<WebSocketClient> configureClient)
         {
             if (services == null)
             {
@@ -127,44 +128,44 @@ namespace StrawberryShake.Transport.WebSockets
 
             AddWebSocketClient(services);
 
-            var builder = new DefaultClientWebSocketBuilder(services, name);
-            builder.ConfigureClientWebSocket(configureClient);
+            var builder = new DefaultWebSocketClientBuilder(services, name);
+            builder.ConfigureWebSocketClient(configureClient);
             return builder;
         }
 
         /// <summary>
         /// Adds the <see cref="IWebSocketClientFactory"/> and related services
         /// to the <see cref="IServiceCollection"/> and configures a named
-        /// <see cref="ClientWebSocket"/>.
+        /// <see cref="WebSocketClient"/>.
         /// </summary>
         /// <param name="services">
         /// The <see cref="IServiceCollection"/>.
         /// </param>
         /// <param name="name">
-        /// The logical name of the <see cref="ClientWebSocket"/> to configure.
+        /// The logical name of the <see cref="WebSocketClient"/> to configure.
         /// </param>
         /// <param name="configureClient">
-        /// A delegate that is used to configure an <see cref="ClientWebSocket"/>.
+        /// A delegate that is used to configure an <see cref="WebSocketClient"/>.
         /// </param>
         /// <returns>
         /// An <see cref="IWebSocketClientFactory"/> that can be used to configure the client.
         /// </returns>
         /// <remarks>
         /// <para>
-        /// <see cref="ClientWebSocket"/> instances that apply the provided
+        /// <see cref="WebSocketClient"/> instances that apply the provided
         /// configuration can be retrieved using
         /// <see cref="IWebSocketClientFactory.CreateClient(string)"/> and providing
         /// the matching name.
         /// </para>
         /// <para>
-        /// Use <see cref="Options.Options.DefaultName"/> as the name to configure
+        /// Use <see cref="Options.DefaultName"/> as the name to configure
         /// the default client.
         /// </para>
         /// </remarks>
-        public static IClientWebSocketBuilder AddWebSocketClient(
+        public static IWebSocketClientBuilder AddWebSocketClient(
             this IServiceCollection services,
             string name,
-            Action<IServiceProvider, ClientWebSocket> configureClient)
+            Action<IServiceProvider, WebSocketClient> configureClient)
         {
             if (services == null)
             {
@@ -183,8 +184,8 @@ namespace StrawberryShake.Transport.WebSockets
 
             AddWebSocketClient(services);
 
-            var builder = new DefaultClientWebSocketBuilder(services, name);
-            builder.ConfigureHttpClient(configureClient);
+            var builder = new DefaultWebSocketClientBuilder(services, name);
+            builder.ConfigureWebSocketClient(configureClient);
             return builder;
         }
     }

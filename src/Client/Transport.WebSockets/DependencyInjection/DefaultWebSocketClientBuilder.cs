@@ -2,10 +2,10 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace StrawberryShake.Transport.WebSockets
 {
-    internal class DefaultClientWebSocketBuilder
-        : IClientWebSocketBuilder
+    internal class DefaultWebSocketClientBuilder
+        : IWebSocketClientBuilder
     {
-        public DefaultClientWebSocketBuilder(IServiceCollection services, string name)
+        public DefaultWebSocketClientBuilder(IServiceCollection services, string name)
         {
             Services = services;
             Name = name;
