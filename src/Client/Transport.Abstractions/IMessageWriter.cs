@@ -1,11 +1,11 @@
 using System;
 using System.Buffers;
 
-namespace StrawberryShake.Http
+namespace StrawberryShake.Transport
 {
     public interface IMessageWriter
         : IBufferWriter<byte>
-            , IDisposable
+        , IDisposable
     {
         int Length { get; }
 

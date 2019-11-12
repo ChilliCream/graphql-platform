@@ -10,6 +10,8 @@ namespace StrawberryShake.Transport
     {
         event EventHandler Disposed;
 
+        string Name { get; }
+
         bool IsClosed { get; }
 
         Task OpenAsync(

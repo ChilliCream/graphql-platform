@@ -1,13 +1,13 @@
 using System.Text.Json;
 
-namespace StrawberryShake.Http
+namespace StrawberryShake.Transport
 {
-    internal sealed class SocketMessageWriter
+    public sealed class SocketMessageWriter
         : MessageWriter
     {
         private static readonly JsonWriterOptions _options =
             new JsonWriterOptions { SkipValidation = true };
-        private Utf8JsonWriter _writer;
+        private readonly Utf8JsonWriter _writer;
 
         public SocketMessageWriter()
         {

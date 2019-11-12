@@ -1,9 +1,9 @@
 using System;
 using System.Buffers;
 
-namespace StrawberryShake.Http
+namespace StrawberryShake.Transport
 {
-    internal class MessageWriter
+    public class MessageWriter
         : IMessageWriter
     {
         private byte[] _buffer;

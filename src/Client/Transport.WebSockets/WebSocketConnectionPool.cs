@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -9,8 +10,8 @@ namespace StrawberryShake.Transport.WebSockets
         : ISocketConnectionPool
     {
         private readonly SemaphoreSlim _semaphoreSlim = new SemaphoreSlim(1, 1);
-        private readonly ConcurrentDictionary<string, WebSocketConnection> _connections =
-            new ConcurrentDictionary<string, WebSocketConnection>();
+        private readonly Dictionary<string, ConnectionInfo> _connections =
+            new  Dictionary<string, ConnectionInfo>();
         private readonly IWebSocketClientFactory _webSocketClientFactory;
 
         public WebSocketConnectionPool(IWebSocketClientFactory webSocketClientFactory)
@@ -23,36 +24,106 @@ namespace StrawberryShake.Transport.WebSockets
             string name,
             CancellationToken cancellationToken = default)
         {
-            if (!_connections.TryGetValue(name, out WebSocketConnection? connection))
-            {
-                await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
+            await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
 
-                try
+            try
+            {
+                if (_connections.TryGetValue(name, out ConnectionInfo connectionInfo))
                 {
-                    if (!_connections.TryGetValue(name, out connection))
-                    {
-                        IWebSocketClient webSocketClient =
-                            _webSocketClientFactory.CreateClient(name);
-                        connection = new WebSocketConnection(webSocketClient);
-                        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-                        //_connections.TR(name, n =>  connection);
-                    }
+                    connectionInfo.Rentals++;
                 }
-                finally
+                else
                 {
-                    _semaphoreSlim.Release();
+                    IWebSocketClient webSocketClient = _webSocketClientFactory.CreateClient(name);
+                    connectionInfo = new ConnectionInfo(new WebSocketConnection(webSocketClient));
+
+                    await connectionInfo.Connection.OpenAsync(cancellationToken)
+                        .ConfigureAwait(false);
+
+                    await InitializeConnectionAsync(connectionInfo.Connection, cancellationToken)
+                        .ConfigureAwait(false);
                 }
+
+                return connectionInfo.Connection;
+            }
+            finally
+            {
+                _semaphoreSlim.Release();
             }
         }
 
-        public Task ReturnAsync(ISocketConnection connection, CancellationToken cancellationToken = default)
+        public async Task ReturnAsync(
+            ISocketConnection connection,
+            CancellationToken cancellationToken = default)
         {
-            throw new System.NotImplementedException();
+            await _semaphoreSlim.WaitAsync(cancellationToken).ConfigureAwait(false);
+
+            try
+            {
+                if (_connections.TryGetValue(connection.Name, out ConnectionInfo connectionInfo))
+                {
+                    connectionInfo.Rentals--;
+                }
+                else
+                {
+                    throw new ArgumentException(
+                        "The specified connection does not belong to this pool.",
+                        nameof(connection));
+                }
+
+                if (connectionInfo.Rentals < 1)
+                {
+                    await TerminateConnectionAsync(connection, cancellationToken)
+                        .ConfigureAwait(false);
+                    _connections.Remove(connection.Name);
+                }
+            }
+            finally
+            {
+                _semaphoreSlim.Release();
+            }
+        }
+
+        private Task InitializeConnectionAsync(
+            ISocketConnection connection,
+            CancellationToken cancellationToken = default)
+        {
+            var messageWriter = new SocketMessageWriter();
+            messageWriter.WriteStartObject();
+            messageWriter.WriteType(MessageTypes.Connection.Initialize);
+            messageWriter.WriteEndObject();
+
+            return connection.SendAsync(messageWriter.Body, cancellationToken);
+        }
+
+        private Task TerminateConnectionAsync(
+            ISocketConnection connection,
+            CancellationToken cancellationToken = default)
+        {
+            var messageWriter = new SocketMessageWriter();
+            messageWriter.WriteStartObject();
+            messageWriter.WriteType(MessageTypes.Connection.Terminate);
+            messageWriter.WriteEndObject();
+
+            return connection.SendAsync(messageWriter.Body, cancellationToken);
         }
 
         public void Dispose()
         {
             throw new System.NotImplementedException();
+        }
+
+        private sealed class ConnectionInfo
+        {
+            public ConnectionInfo(ISocketConnection connection)
+            {
+                Connection = connection;
+                Rentals = 1;
+            }
+
+            public ISocketConnection Connection { get; }
+
+            public int Rentals { get; set; }
         }
     }
 }

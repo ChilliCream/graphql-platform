@@ -1,6 +1,6 @@
 using System.Net.Http;
 
-namespace StrawberryShake.Http
+namespace StrawberryShake.Transport
 {
     internal static class MessageWriterExtensions
     {
