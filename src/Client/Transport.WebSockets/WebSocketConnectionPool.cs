@@ -1,4 +1,4 @@
-namespace StrawberryShake.Http.Subscriptions
+namespace StrawberryShake.Transport.WebSockets
 {
     internal sealed class WebSocketConnectionPool
     {

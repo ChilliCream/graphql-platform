@@ -3,7 +3,7 @@ using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace StrawberryShake.Http.Subscriptions
+namespace StrawberryShake.Transport
 {
     public interface ISocketConnection
         : IDisposable
