@@ -2,6 +2,7 @@ using System;
 using System.Text;
 using System.Text.Json;
 using StrawberryShake.Http.Subscriptions.Messages;
+using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Http.Subscriptions
 {

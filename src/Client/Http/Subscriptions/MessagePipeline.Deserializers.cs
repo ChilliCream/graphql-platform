@@ -1,6 +1,7 @@
 using System;
 using HotChocolate.Language;
 using StrawberryShake.Http.Subscriptions.Messages;
+using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Http.Subscriptions
 {

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using StrawberryShake.Http.Subscriptions.Messages;
+using StrawberryShake.Transport;
 
 namespace StrawberryShake.Http.Subscriptions
 {

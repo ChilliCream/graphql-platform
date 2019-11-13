@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
+using StrawberryShake.Transport;
 
 namespace StrawberryShake.Http
 {

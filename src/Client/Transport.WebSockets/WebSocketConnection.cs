@@ -17,11 +17,14 @@ namespace StrawberryShake.Transport.WebSockets
 
         public event EventHandler? Disposed;
 
-        public WebSocketConnection(IWebSocketClient socketClient)
+        public WebSocketConnection(string name, IWebSocketClient socketClient)
         {
+            Name = name ?? throw new ArgumentNullException(nameof(name));
             _socketClient = socketClient ?? throw new ArgumentNullException(nameof(socketClient));
             _socketClient.Socket.Options.AddSubProtocol(_protocol);
         }
+
+        public string Name { get; }
 
         public bool IsClosed =>
             _disposed

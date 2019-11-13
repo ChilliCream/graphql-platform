@@ -1,6 +1,7 @@
 using System.Buffers;
 using System.Threading;
 using System.Threading.Tasks;
+using StrawberryShake.Transport;
 
 namespace StrawberryShake.Http.Subscriptions
 {

@@ -13,6 +13,7 @@ namespace StrawberryShake.Transport.WebSockets
         private readonly Dictionary<string, ConnectionInfo> _connections =
             new  Dictionary<string, ConnectionInfo>();
         private readonly IWebSocketClientFactory _webSocketClientFactory;
+        private bool _disposed;
 
         public WebSocketConnectionPool(IWebSocketClientFactory webSocketClientFactory)
         {
@@ -34,14 +35,18 @@ namespace StrawberryShake.Transport.WebSockets
                 }
                 else
                 {
-                    IWebSocketClient webSocketClient = _webSocketClientFactory.CreateClient(name);
-                    connectionInfo = new ConnectionInfo(new WebSocketConnection(webSocketClient));
+                    connectionInfo = new ConnectionInfo(
+                        new WebSocketConnection(
+                            name,
+                            _webSocketClientFactory.CreateClient(name)));
 
                     await connectionInfo.Connection.OpenAsync(cancellationToken)
                         .ConfigureAwait(false);
 
                     await InitializeConnectionAsync(connectionInfo.Connection, cancellationToken)
                         .ConfigureAwait(false);
+
+                    _connections.Add(name, connectionInfo);
                 }
 
                 return connectionInfo.Connection;
@@ -73,9 +78,25 @@ namespace StrawberryShake.Transport.WebSockets
 
                 if (connectionInfo.Rentals < 1)
                 {
-                    await TerminateConnectionAsync(connection, cancellationToken)
-                        .ConfigureAwait(false);
-                    _connections.Remove(connection.Name);
+                    try
+                    {
+                        await TerminateConnectionAsync(connection, cancellationToken)
+                            .ConfigureAwait(false);
+                        _connections.Remove(connection.Name);
+                        await connection.CloseAsync(
+                                "All subscriptions closed.",
+                                SocketCloseStatus.NormalClosure,
+                                cancellationToken)
+                            .ConfigureAwait(false);
+                    }
+                    catch
+                    {
+                        // we ignore errors here
+                    }
+                    finally
+                    {
+                        connection.Dispose();
+                    }
                 }
             }
             finally
@@ -110,7 +131,15 @@ namespace StrawberryShake.Transport.WebSockets
 
         public void Dispose()
         {
-            throw new System.NotImplementedException();
+            if (!_disposed)
+            {
+                foreach (ConnectionInfo connection in _connections.Values)
+                {
+                    connection.Connection.Dispose();
+                }
+                _connections.Clear();
+                _disposed = true;
+            }
         }
 
         private sealed class ConnectionInfo

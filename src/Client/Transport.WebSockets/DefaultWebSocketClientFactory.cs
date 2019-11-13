@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Extensions.Options;
 
-.Messagtsmdk.mnsnlgndngndflngkldfnklgjndjgjklfklhdgflökghf
+namespace StrawberryShake.Transport.WebSockets
 {
     public class DefaultWebSocketClientFactory
         : IWebSocketClientFactory
