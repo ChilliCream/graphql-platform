@@ -5,9 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.TestHost;
 using Moq;
 using Xunit;
-using Snapshooter.Xunit;
 using HotChocolate.AspNetCore;
-using StrawberryShake.Client;
 using StrawberryShake.Client.GraphQL;
 
 namespace StrawberryShake.Demo
@@ -41,6 +39,7 @@ namespace StrawberryShake.Demo
         }
 
         protected TestServerFactory ServerFactory { get; set; }
+
         protected ServiceProvider Services { get; set; }
 
         [Fact]
