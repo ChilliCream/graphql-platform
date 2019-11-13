@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.IO.Pipelines;
 using System.Net.Http;
 using System.Text;
@@ -78,17 +77,26 @@ namespace StrawberryShake.Http
                 client.BaseAddress = new Uri("http://localhost:" + port);
                 await client.SendAsync(request);
 
-                messageProcessor.Begin(CancellationToken.None);
-                await messageReceiver.ReceiveAsync(CancellationToken.None);
-
-                using (var cts = new CancellationTokenSource(10000))
+                try
                 {
-                    await using (IAsyncEnumerator<IOperationResult<OnReview>> enumerator =
-                        subscription.GetAsyncEnumerator(CancellationToken.None))
+                    messageProcessor.Begin(CancellationToken.None);
+                    Task.Run(async () => await messageReceiver.ReceiveAsync(CancellationToken.None));
+
+                    using (var cts = new CancellationTokenSource(10000))
                     {
-                        await enumerator.MoveNextAsync();
-                        enumerator.Current.MatchSnapshot();
+                        await using (IAsyncEnumerator<IOperationResult<OnReview>> enumerator =
+                            subscription.GetAsyncEnumerator(CancellationToken.None))
+                        {
+                            await enumerator.MoveNextAsync();
+                            enumerator.Current.MatchSnapshot(o =>o.IgnoreField("ResultType"));
+                        }
                     }
+                }
+                finally
+                {
+                    await connection.CloseAsync(
+                        "Ciao",
+                        SocketCloseStatus.NormalClosure);
                 }
             }
         }
@@ -115,7 +123,7 @@ namespace StrawberryShake.Http
             public ReadOnlySpan<byte> Hash => Encoding.UTF8.GetBytes("ABC");
 
             public ReadOnlySpan<byte> Content => Encoding.UTF8.GetBytes(
-                "subscription { onReview(episode: NEWHOPE) { starts } }");
+                "subscription abc { onReview(episode: NEWHOPE) { stars } }");
         }
 
         public class OnReview
@@ -128,9 +136,11 @@ namespace StrawberryShake.Http
         {
             protected override OnReview ParserData(JsonElement parent)
             {
+                JsonElement onReview = parent.GetProperty("onReview");
+
                 return new OnReview
                 {
-                    Stars = parent.GetProperty("stars").GetInt32()
+                    Stars = onReview.GetProperty("stars").GetInt32()
                 };
             }
         }
