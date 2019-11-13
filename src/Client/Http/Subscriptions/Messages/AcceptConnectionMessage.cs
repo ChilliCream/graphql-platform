@@ -1,3 +1,5 @@
+using StrawberryShake.Transport.WebSockets.Messages;
+
 namespace StrawberryShake.Http.Subscriptions.Messages
 {
     public sealed class AcceptConnectionMessage

@@ -17,10 +17,11 @@ namespace StrawberryShake.Http.Subscriptions
     {
 
         private readonly ISubscriptionManager _subscriptionManager;
-        private readonly IResultParserResolver _parserResolver;
         private readonly IMessageHandler[] _messageHandlers;
 
-        public MessagePipeline(IEnumerable<IMessageHandler> messageHandlers)
+        public MessagePipeline(
+            ISubscriptionManager subscriptionManager,
+            IEnumerable<IMessageHandler> messageHandlers)
         {
             if (messageHandlers is null)
             {
@@ -28,6 +29,8 @@ namespace StrawberryShake.Http.Subscriptions
             }
 
             _messageHandlers = messageHandlers.ToArray();
+            _subscriptionManager = subscriptionManager
+                ?? throw new ArgumentNullException(nameof(subscriptionManager));
         }
 
         public async Task ProcessAsync(

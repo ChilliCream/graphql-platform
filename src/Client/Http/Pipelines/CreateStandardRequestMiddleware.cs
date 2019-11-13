@@ -1,8 +1,7 @@
 using System;
-using System.Buffers;
-using System.IO;
 using System.Net.Http;
 using System.Threading.Tasks;
+using StrawberryShake.Transport;
 
 namespace StrawberryShake.Http.Pipelines
 {

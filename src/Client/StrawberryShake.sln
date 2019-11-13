@@ -41,6 +41,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Transport.Http", "Transport
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Transport.WebSockets", "Transport.WebSockets\Transport.WebSockets.csproj", "{B0991603-B9E8-497F-A1DC-EF3B1B485D44}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Http.Tests", "Http.Tests\Http.Tests.csproj", "{A74D504E-17AD-406B-8529-8BE5E8BB9ECD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -267,6 +269,18 @@ Global
 		{B0991603-B9E8-497F-A1DC-EF3B1B485D44}.Release|x64.Build.0 = Release|Any CPU
 		{B0991603-B9E8-497F-A1DC-EF3B1B485D44}.Release|x86.ActiveCfg = Release|Any CPU
 		{B0991603-B9E8-497F-A1DC-EF3B1B485D44}.Release|x86.Build.0 = Release|Any CPU
+		{A74D504E-17AD-406B-8529-8BE5E8BB9ECD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A74D504E-17AD-406B-8529-8BE5E8BB9ECD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A74D504E-17AD-406B-8529-8BE5E8BB9ECD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A74D504E-17AD-406B-8529-8BE5E8BB9ECD}.Debug|x64.Build.0 = Debug|Any CPU
+		{A74D504E-17AD-406B-8529-8BE5E8BB9ECD}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{A74D504E-17AD-406B-8529-8BE5E8BB9ECD}.Debug|x86.Build.0 = Debug|Any CPU
+		{A74D504E-17AD-406B-8529-8BE5E8BB9ECD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A74D504E-17AD-406B-8529-8BE5E8BB9ECD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A74D504E-17AD-406B-8529-8BE5E8BB9ECD}.Release|x64.ActiveCfg = Release|Any CPU
+		{A74D504E-17AD-406B-8529-8BE5E8BB9ECD}.Release|x64.Build.0 = Release|Any CPU
+		{A74D504E-17AD-406B-8529-8BE5E8BB9ECD}.Release|x86.ActiveCfg = Release|Any CPU
+		{A74D504E-17AD-406B-8529-8BE5E8BB9ECD}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

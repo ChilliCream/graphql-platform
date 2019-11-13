@@ -2,7 +2,7 @@ using System.Net.Http;
 
 namespace StrawberryShake.Transport
 {
-    internal static class MessageWriterExtensions
+    public static class MessageWriterExtensions
     {
         public static ByteArrayContent ToByteArrayContent(this IMessageWriter writer)
         {
