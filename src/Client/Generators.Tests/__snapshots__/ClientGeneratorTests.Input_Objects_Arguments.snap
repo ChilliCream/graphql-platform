@@ -80,7 +80,7 @@ namespace StrawberryShake.Client
 
         public object? Serialize(object? value)
         {
-            if (!_needsInitialization)
+            if (_needsInitialization)
             {
                 throw new InvalidOperationException(
                     $"The serializer for type `{Name}` has not been initialized.");
@@ -155,7 +155,7 @@ namespace StrawberryShake.Client
 
         public object? Serialize(object? value)
         {
-            if (!_needsInitialization)
+            if (_needsInitialization)
             {
                 throw new InvalidOperationException(
                     $"The serializer for type `{Name}` has not been initialized.");
@@ -225,17 +225,13 @@ namespace StrawberryShake.Client
     {
         private readonly IValueSerializer _stringSerializer;
 
-        public GetFooResultParser(IEnumerable<IValueSerializer> serializers)
+        public GetFooResultParser(IValueSerializerResolver serializerResolver)
         {
-            IReadOnlyDictionary<string, IValueSerializer> map = serializers.ToDictionary();
-
-            if (!map.TryGetValue("String", out IValueSerializer? serializer))
+            if(serializerResolver is null)
             {
-                throw new ArgumentException(
-                    "There is no serializer specified for `String`.",
-                    nameof(serializers));
+                throw new ArgumentNullException(nameof(serializerResolver));
             }
-            _stringSerializer = serializer;
+            _stringSerializer = serializerResolver.GetValueSerializer("String");
         }
 
         protected override IGetFoo ParserData(JsonElement data)

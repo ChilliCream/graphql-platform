@@ -17,11 +17,11 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.App" />
-    <PackageReference Include="HotChocolate.AspNetCore" Version="10.0.1" />
-    <PackageReference Include="HotChocolate.AspNetCore.GraphiQL" Version="10.0.1" />
-    <PackageReference Include="HotChocolate.AspNetCore.Playground" Version="10.0.1" />
-    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="10.0.1" />
-    <PackageReference Include="HotChocolate.Subscriptions.InMemory" Version="10.0.1" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="10.2.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.GraphiQL" Version="10.2.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.Playground" Version="10.2.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="10.2.0" />
+    <PackageReference Include="HotChocolate.Subscriptions.InMemory" Version="10.2.0" />
   </ItemGroup>
 
 </Project>

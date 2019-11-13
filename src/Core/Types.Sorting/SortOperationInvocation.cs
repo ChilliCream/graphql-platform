@@ -1,4 +1,5 @@
 using System;
+using System.Linq.Expressions;
 using System.Reflection;
 
 namespace HotChocolate.Types.Sorting
@@ -7,15 +8,20 @@ namespace HotChocolate.Types.Sorting
     {
         public SortOperationInvocation(
             SortOperationKind kind,
-            PropertyInfo property)
+            ParameterExpression parameterExpression,
+            Expression expressionBody
+        )
         {
             Kind = kind;
-            Property = property
-                ?? throw new ArgumentNullException(nameof(property));
+            Parameter = parameterExpression
+                ?? throw new ArgumentNullException(nameof(parameterExpression));
+            ExpressionBody = expressionBody
+                ?? throw new ArgumentNullException(nameof(expressionBody));
         }
 
         public SortOperationKind Kind { get; }
 
-        public PropertyInfo Property { get; }
+        public Expression ExpressionBody { get; }
+        public ParameterExpression Parameter { get; }
     }
 }

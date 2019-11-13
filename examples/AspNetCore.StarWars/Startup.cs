@@ -40,12 +40,7 @@ namespace StarWars
                 .AddType<HumanType>()
                 .AddType<DroidType>()
                 .AddType<EpisodeType>()
-                .Create(),
-                new QueryExecutionOptions
-                {
-                    MaxOperationComplexity = 10,
-                    UseComplexityMultipliers = true
-                });
+                .Create());
 
 
             // Add Authorization Policy

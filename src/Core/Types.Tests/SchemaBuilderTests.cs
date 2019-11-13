@@ -11,6 +11,7 @@ using HotChocolate.Configuration;
 using HotChocolate.Types.Descriptors.Definitions;
 using System.Collections.Generic;
 using Microsoft.Extensions.DependencyInjection;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate
 {
@@ -1184,6 +1185,360 @@ namespace HotChocolate
                 item => Assert.Equal("touched", item.Key));
         }
 
+
+        [Fact]
+        public void AddConvention_TypeIsNullConcreteIsSet_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddConvention(null, new TestConvention());
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddConvention_ConventionIsNull_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddConvention(typeof(IConvention), default(TestConvention));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddConvention_ConventionTypeIsNull_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddConvention(null, typeof(IConvention));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+        [Fact]
+        public void AddConvention_ConcreteConventionTypeIsNull_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddConvention(typeof(IConvention), default(Type));
+
+            // assert
+            Assert.Throws<ArgumentNullException>(action);
+        }
+
+
+
+        [Fact]
+        public void AddConvention_ConventionHasInvalidTypeConcrete_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddConvention(typeof(IInvalidTestConvention), new TestConvention());
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void AddConvention_ConventionTypeHasInvalidType_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddConvention(typeof(IInvalidTestConvention), typeof(IConvention));
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void AddConvention_ConventionHasInvalidType_ArgumentException()
+        {
+            // arrange
+            // act
+            Action action = () => SchemaBuilder.New()
+                .AddConvention(typeof(IConvention), typeof(IInvalidTestConvention));
+
+            // assert
+            Assert.Throws<ArgumentException>(action);
+        }
+
+        [Fact]
+        public void AddConvention_WithImplementation_Generic()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddConvention<ITestConvention>(TestConvention.Default)
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention());
+            Assert.Equal(TestConvention.Default, convention);
+        }
+
+        [Fact]
+        public void AddConvention_WithImplementation()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddConvention(typeof(ITestConvention), TestConvention.Default)
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention2());
+            Assert.NotNull(convention);
+            Assert.Equal(TestConvention.Default, convention);
+        }
+
+        [Fact]
+        public void AddConvention_NoImplementation_Generic()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddConvention<ITestConvention, TestConvention>()
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention2());
+            Assert.NotNull(convention);
+            Assert.IsType<TestConvention>(convention);
+        }
+
+        [Fact]
+        public void AddConvention_NoImplementation()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddConvention(typeof(ITestConvention), typeof(TestConvention))
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention2());
+            Assert.NotNull(convention);
+            Assert.IsType<TestConvention>(convention);
+        }
+
+
+        [Fact]
+        public void AddConvention_Override_TypeOverType()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddConvention(typeof(ITestConvention), typeof(TestConvention))
+                .AddConvention(typeof(ITestConvention), typeof(TestConvention2))
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention());
+            Assert.NotNull(convention);
+            Assert.IsType<TestConvention2>(convention);
+        }
+
+
+        [Fact]
+        public void AddConvention_ServiceDependency()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            var provider = services.AddSingleton<MyInterceptor, MyInterceptor>()
+                .BuildServiceProvider();
+            var dependencyOfConvention = provider.GetService<MyInterceptor>();
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(provider)
+                .AddConvention(
+                    typeof(ITestConvention),
+                    typeof(TestConventionServiceDependency))
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention());
+            Assert.IsType<TestConventionServiceDependency>(convention);
+            Assert.Equal(
+                dependencyOfConvention,
+                ((TestConventionServiceDependency)convention).Dependency);
+        }
+
+        [Fact]
+        public void AddConvention_Through_ServiceCollection()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            services.AddTransient<ITestConvention, TestConvention>();
+            ServiceProvider provider = services.BuildServiceProvider();
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(provider)
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention2());
+            Assert.IsType<TestConvention>(convention);
+        }
+
+        [Fact]
+        public void AddConvention_Through_ServiceCollection_ProvideImplementation()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            var conventionImpl = new TestConvention();
+            services.AddSingleton<ITestConvention>(conventionImpl);
+            var provider = services.BuildServiceProvider();
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(provider)
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention2());
+            Assert.IsType<TestConvention>(convention);
+            Assert.Equal(convention, conventionImpl);
+        }
+
+        [Fact]
+        public void AddConvention_Through_ServiceCollection_And_SchemaBuilderOverrides()
+        {
+            // arrange
+            var services = new ServiceCollection();
+            services.AddSingleton<IConvention, TestConvention>();
+            var provider = services.BuildServiceProvider();
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddServices(provider)
+                .AddConvention(typeof(IConvention), typeof(TestConvention2))
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention2());
+            Assert.IsType<TestConvention2>(convention);
+        }
+
+        [Fact]
+        public void AddConvention_NamingConvention()
+        {
+            // arrange
+            var myNamingConvention = new DefaultNamingConventions();
+
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddConvention<INamingConventions>(myNamingConvention)
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
+            var convention = testType.Context.GetConventionOrDefault<INamingConventions>(
+                new DefaultNamingConventions());
+            Assert.IsType<DefaultNamingConventions>(convention);
+            Assert.Equal(convention, myNamingConvention);
+            Assert.Equal(testType.Context.Naming, myNamingConvention);
+        }
+
+        [Fact]
+        public void UseDefaultConvention()
+        {
+            // arrange
+            // act
+            ISchema schema = SchemaBuilder.New()
+                .AddType<ConventionTestType>()
+                .AddQueryType(d => d
+                    .Name("Query")
+                    .Field("foo")
+                    .Resolver("bar"))
+                .Create();
+
+            // assert
+            var testType = schema.GetType<ConventionTestType>("ConventionTestType");
+            var convention = testType.Context.GetConventionOrDefault<ITestConvention>(
+                new TestConvention2());
+            Assert.IsType<TestConvention2>(convention);
+        }
+
         public class DynamicFooType
             : ObjectType
         {
@@ -1198,6 +1553,48 @@ namespace HotChocolate
             {
                 descriptor.Name(_typeName);
                 descriptor.Field("bar").Resolver("baz");
+            }
+        }
+
+        public interface IInvalidTestConvention
+        {
+
+        }
+        public interface ITestConvention : IConvention
+        {
+
+        }
+        public class TestConvention2 : ITestConvention
+        {
+        }
+        public class TestConvention : ITestConvention
+        {
+
+            public static TestConvention Default = new TestConvention();
+        }
+        public class TestConventionServiceDependency : ITestConvention
+        {
+            public TestConventionServiceDependency(MyInterceptor dependency)
+            {
+                Dependency = dependency;
+            }
+
+            public MyInterceptor Dependency { get; }
+        }
+
+        public class ConventionTestType : ObjectType<Foo>
+        {
+            public IDescriptorContext Context { get; private set; }
+
+            protected override void Configure(IObjectTypeDescriptor<Foo> descriptor)
+            {
+                descriptor.Name("ConventionTestType");
+                base.Configure(descriptor);
+            }
+            protected override void OnCompleteName(ICompletionContext context, ObjectTypeDefinition definition)
+            {
+                base.OnCompleteName(context, definition);
+                Context = context.DescriptorContext;
             }
         }
 

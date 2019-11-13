@@ -4,10 +4,13 @@ using HotChocolate.Configuration.Bindings;
 using HotChocolate.Language;
 using HotChocolate.Resolvers;
 using HotChocolate.Types;
+using HotChocolate.Types.Descriptors;
 
 namespace HotChocolate
 {
     public delegate DocumentNode LoadSchemaDocument(IServiceProvider services);
+
+    public delegate IConvention CreateConvention(IServiceProvider services);
 
     public interface ISchemaBuilder
     {
@@ -56,6 +59,8 @@ namespace HotChocolate
         ISchemaBuilder ClearContextData();
 
         ISchemaBuilder AddTypeInterceptor(Type interceptor);
+
+        ISchemaBuilder AddConvention(Type convention, CreateConvention factory);
 
         ISchema Create();
     }

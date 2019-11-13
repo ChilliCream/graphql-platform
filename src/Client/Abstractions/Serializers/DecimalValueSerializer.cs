@@ -3,7 +3,7 @@ using System;
 namespace StrawberryShake.Serializers
 {
     public class DecimalValueSerializer
-        : FloatValueSerializerBase<Decimal>
+        : FloatValueSerializerBase<decimal>
     {
         public override string Name => WellKnownScalars.Decimal;
     }
