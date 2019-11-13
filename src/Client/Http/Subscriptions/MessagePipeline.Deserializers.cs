@@ -5,7 +5,7 @@ using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Http.Subscriptions
 {
-    internal partial class MessagePipeline
+    public partial class MessagePipeline
     {
         private OperationMessage DeserializeMessage(
             GraphQLSocketMessage parsedMessage)
@@ -52,9 +52,9 @@ namespace StrawberryShake.Http.Subscriptions
 
             if (_subscriptionManager.TryGetSubscription(
                 parsedMessage.Id,
-                out ISubscription subscription))
+                out ISubscription? subscription))
             {
-                IResultParser parser = subscription.ResultParser;
+                IResultParser parser = subscription!.ResultParser;
                 OperationResultBuilder resultBuilder =
                         OperationResultBuilder.New(parser.ResultType);
                 parser.Parse(parsedMessage.Payload, resultBuilder);

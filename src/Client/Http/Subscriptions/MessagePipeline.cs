@@ -2,7 +2,6 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using HotChocolate.Language;
@@ -12,10 +11,9 @@ using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Http.Subscriptions
 {
-    internal partial class MessagePipeline
+    public partial class MessagePipeline
         : IMessagePipeline
     {
-
         private readonly ISubscriptionManager _subscriptionManager;
         private readonly IMessageHandler[] _messageHandlers;
 
@@ -126,6 +124,11 @@ namespace StrawberryShake.Http.Subscriptions
             OperationMessage message,
             CancellationToken cancellationToken)
         {
+            if (message.Type == "ka")
+            {
+                return;
+            }
+
             for (var i = 0; i < _messageHandlers.Length; i++)
             {
                 IMessageHandler handler = _messageHandlers[i];
@@ -143,9 +146,11 @@ namespace StrawberryShake.Http.Subscriptions
                 }
             }
 
+            return;
+
             // TODO : resources
-            throw new NotSupportedException(
-                "The specified message type is not supported.");
+            // throw new NotSupportedException(
+            //    "The specified message type is not supported.");
         }
     }
 }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using StrawberryShake.Http.Subscriptions.Messages;
-using static StrawberryShake.Http.Subscriptions.Messages.MessageTypes;
 
 namespace StrawberryShake.Http.Subscriptions
 {

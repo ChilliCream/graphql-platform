@@ -9,7 +9,7 @@ namespace StrawberryShake.Http.Subscriptions
         : IEnumerable<ISubscription>
         , IDisposable
     {
-        bool TryGetSubscription(string subscriptionId, out ISubscription subscription);
+        bool TryGetSubscription(string subscriptionId, out ISubscription? subscription);
 
         Task RegisterAsync(ISubscription subscription, ISocketConnection connection);
 

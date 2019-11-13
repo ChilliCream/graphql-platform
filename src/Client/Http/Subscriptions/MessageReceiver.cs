@@ -2,11 +2,11 @@ using System;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Server;
+using StrawberryShake.Transport;
 
 namespace StrawberryShake.Http.Subscriptions
 {
-    internal sealed class MessageReceiver
+    public sealed class MessageReceiver
     {
         private readonly ISocketConnection _connection;
         private readonly PipeWriter _writer;
@@ -40,7 +40,7 @@ namespace StrawberryShake.Http.Subscriptions
         {
             Memory<byte> memory = _writer.GetMemory(1);
 
-            memory.Span[0] = Subscription._delimiter;
+            memory.Span[0] = MessageProcessor.Delimiter;
 
             _writer.Advance(1);
 

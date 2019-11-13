@@ -7,7 +7,7 @@ using StrawberryShake.Transport;
 
 namespace StrawberryShake.Http.Subscriptions
 {
-    internal sealed class MessageProcessor
+    public sealed class MessageProcessor
     {
         internal const byte Delimiter = 0x07;
         private readonly ISocketConnection _connection;

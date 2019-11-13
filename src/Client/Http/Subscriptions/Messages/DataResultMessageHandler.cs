@@ -22,9 +22,9 @@ namespace StrawberryShake.Http.Subscriptions.Messages
         {
             if (_subscriptionManager.TryGetSubscription(
                 message.Id!,
-                out ISubscription subscription))
+                out ISubscription? subscription))
             {
-                return subscription.OnReceiveResultAsync(message, cancellationToken);
+                return subscription!.OnReceiveResultAsync(message, cancellationToken);
             }
 
             return Task.CompletedTask;

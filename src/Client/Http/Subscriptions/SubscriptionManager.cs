@@ -72,7 +72,7 @@ namespace StrawberryShake.Http.Subscriptions
                 _operationFormatter.Serialize(subscription.Operation, writer);
                 writer.WriteEndObject();
 
-                await connection.SendAsync(writer.GetMemory());
+                await connection.SendAsync(writer.Body);
             }
         }
 
@@ -87,7 +87,7 @@ namespace StrawberryShake.Http.Subscriptions
                 writer.WriteId(subscriptionId);
                 writer.WriteEndObject();
 
-                await sub.Connection.SendAsync(writer.GetMemory());
+                await sub.Connection.SendAsync(writer.Body);
             }
         }
 

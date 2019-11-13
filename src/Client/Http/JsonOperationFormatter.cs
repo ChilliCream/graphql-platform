@@ -12,17 +12,17 @@ namespace StrawberryShake.Http
     public class JsonOperationFormatter
         : IOperationFormatter
     {
-        private IReadOnlyDictionary<string, IValueSerializer> _serializers;
+        private IValueSerializerResolver _valueSerializerResolver;
 
         public JsonOperationFormatter(
-            IEnumerable<IValueSerializer> serializers)
+            IValueSerializerResolver valueSerializerResolver)
         {
-            if (serializers is null)
+            if (valueSerializerResolver is null)
             {
-                throw new ArgumentNullException(nameof(serializers));
+                throw new ArgumentNullException(nameof(valueSerializerResolver));
             }
 
-            _serializers = serializers.ToDictionary();
+            _valueSerializerResolver = valueSerializerResolver;
         }
 
         public Task SerializeAsync(
@@ -147,13 +147,8 @@ namespace StrawberryShake.Http
 
                 foreach (VariableValue variableValue in variableValues)
                 {
-                    if (!_serializers.TryGetValue(
-                        variableValue.TypeName,
-                        out IValueSerializer? serializer))
-                    {
-                        throw new SerializerNotFoundException(
-                            variableValue.TypeName);
-                    }
+                    IValueSerializer serializer =
+                        _valueSerializerResolver.GetValueSerializer(variableValue.TypeName);
 
                     map.Add(
                         variableValue.Name,
