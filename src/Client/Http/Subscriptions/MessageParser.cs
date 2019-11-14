@@ -1,6 +1,5 @@
 using System;
 using System.Buffers;
-using System.Collections.Generic;
 using HotChocolate.Language;
 using StrawberryShake.Http.Subscriptions.Messages;
 using StrawberryShake.Transport.WebSockets.Messages;
@@ -9,7 +8,7 @@ using static StrawberryShake.Http.Subscriptions.Messages.MessageTypes;
 
 namespace StrawberryShake.Http.Subscriptions
 {
-    public class MessageParser
+    internal sealed class MessageParser
     {
         private const int _initialBufferSize = 1024;
 
@@ -18,17 +17,11 @@ namespace StrawberryShake.Http.Subscriptions
         public MessageParser(
             ISubscriptionManager subscriptionManager)
         {
-            if (messageHandlers is null)
-            {
-                throw new ArgumentNullException(nameof(messageHandlers));
-            }
-
-            _messageHandlers = messageHandlers.ToArray();
             _subscriptionManager = subscriptionManager
                 ?? throw new ArgumentNullException(nameof(subscriptionManager));
         }
 
-        private bool TryParseMessage(
+        public bool TryParseMessage(
             ReadOnlySequence<byte> slice,
             out OperationMessage? message)
         {

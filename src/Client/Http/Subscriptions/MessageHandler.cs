@@ -1,7 +1,6 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using StrawberryShake.Http.Subscriptions.Messages;
 using StrawberryShake.Transport;
 using StrawberryShake.Transport.WebSockets.Messages;
 

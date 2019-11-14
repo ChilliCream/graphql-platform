@@ -1,88 +1,53 @@
-using System;
-using System.Buffers;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
-using HotChocolate.Language;
-using StrawberryShake.Http.Subscriptions.Messages;
 using StrawberryShake.Transport;
-using StrawberryShake.Transport.WebSockets.Messages;
 
 namespace StrawberryShake.Http.Subscriptions
 {
-    public partial class MessagePipeline
+    internal sealed class MessagePipeline
         : IMessagePipeline
     {
-        private readonly ISubscriptionManager _subscriptionManager;
-        private readonly IMessageHandler[] _messageHandlers;
+        private readonly Pipe _input = new Pipe();
+        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+        private readonly MessageReceiver _receiver;
+        private readonly MessageProcessor _processor;
 
         public MessagePipeline(
+            ISocketConnection connection,
             ISubscriptionManager subscriptionManager,
             IEnumerable<IMessageHandler> messageHandlers)
         {
-            if (messageHandlers is null)
-            {
-                throw new ArgumentNullException(nameof(messageHandlers));
-            }
-
-            _messageHandlers = messageHandlers.ToArray();
-            _subscriptionManager = subscriptionManager
-                ?? throw new ArgumentNullException(nameof(subscriptionManager));
+            _receiver = new MessageReceiver(connection, _input.Writer);
+            _processor = new MessageProcessor(
+                connection,
+                new MessageParser(subscriptionManager),
+                messageHandlers,
+                _input.Reader);
         }
 
-        public async Task ProcessAsync(
-            ISocketConnection connection,
-            ReadOnlySequence<byte> slice,
-            CancellationToken cancellationToken)
+        public void Start()
         {
-            if (TryParseMessage(slice, out OperationMessage? message))
-            {
-                await HandleMessageAsync(connection, message!, cancellationToken)
-                    .ConfigureAwait(false);
-            }
-            else
-            {
-                await connection.SendAsync(
-                    KeepConnectionAliveMessage.Default.Serialize(),
-                    CancellationToken.None)
-                    .ConfigureAwait(false);
-            }
+            _receiver.Start(_cts.Token);
+            _processor.Start(_cts.Token);
         }
 
-
-        private async Task HandleMessageAsync(
-            ISocketConnection connection,
-            OperationMessage message,
-            CancellationToken cancellationToken)
+        public async ValueTask DisposeAsync()
         {
-            if (message.Type == "ka")
+            _cts.Cancel();
+
+            if (_processor.InnerTask is { })
             {
-                return;
+                await _processor.InnerTask.ConfigureAwait(false);
             }
 
-            for (var i = 0; i < _messageHandlers.Length; i++)
+            if (_receiver.InnerTask is { })
             {
-                IMessageHandler handler = _messageHandlers[i];
-
-                if (handler.CanHandle(message))
-                {
-                    await handler.HandleAsync(
-                            connection,
-                            message,
-                            cancellationToken)
-                        .ConfigureAwait(false);
-
-                    // the message is handled and we are done.
-                    return;
-                }
+                await _receiver.InnerTask.ConfigureAwait(false);
             }
 
-            return;
-
-            // TODO : resources
-            // throw new NotSupportedException(
-            //    "The specified message type is not supported.");
+            _cts.Dispose();
         }
     }
 }

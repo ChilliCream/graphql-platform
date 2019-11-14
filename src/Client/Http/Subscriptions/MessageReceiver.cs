@@ -6,7 +6,7 @@ using StrawberryShake.Transport;
 
 namespace StrawberryShake.Http.Subscriptions
 {
-    public sealed class MessageReceiver
+    internal sealed class MessageReceiver
     {
         private readonly ISocketConnection _connection;
         private readonly PipeWriter _writer;
@@ -19,20 +19,42 @@ namespace StrawberryShake.Http.Subscriptions
             _writer = writer;
         }
 
-        public async Task ReceiveAsync(CancellationToken cancellationToken)
-        {
-            while (!_connection.IsClosed
-                && !cancellationToken.IsCancellationRequested)
-            {
-                await _connection
-                    .ReceiveAsync(_writer, cancellationToken)
-                    .ConfigureAwait(false);
+        public Task? InnerTask { get; private set; }
 
-                await WriteMessageDelimiterAsync(cancellationToken)
-                    .ConfigureAwait(false);
+        public void Start(CancellationToken cancellationToken)
+        {
+            if (InnerTask is { })
+            {
+                return;
             }
 
-            _writer.Complete();
+            InnerTask = Task.Factory.StartNew(
+                () => ReceiveAsync(cancellationToken),
+                cancellationToken,
+                TaskCreationOptions.LongRunning,
+                TaskScheduler.Default);
+        }
+
+        private async Task ReceiveAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                while (!_connection.IsClosed
+                    && !cancellationToken.IsCancellationRequested)
+                {
+                    await _connection
+                        .ReceiveAsync(_writer, cancellationToken)
+                        .ConfigureAwait(false);
+
+                    await WriteMessageDelimiterAsync(cancellationToken)
+                        .ConfigureAwait(false);
+                }
+            }
+            catch (TaskCanceledException) { }
+            finally
+            {
+                _writer.Complete();
+            }
         }
 
         private async Task WriteMessageDelimiterAsync(

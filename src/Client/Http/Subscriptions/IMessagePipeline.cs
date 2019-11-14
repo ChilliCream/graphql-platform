@@ -1,15 +1,11 @@
-using System.Buffers;
-using System.Threading;
-using System.Threading.Tasks;
-using StrawberryShake.Transport;
+using System;
+using System.Linq;
 
 namespace StrawberryShake.Http.Subscriptions
 {
     public interface IMessagePipeline
+        : IAsyncDisposable
     {
-        Task ProcessAsync(
-            ISocketConnection connection,
-            ReadOnlySequence<byte> slice,
-            CancellationToken cancellationToken);
+        void Start();
     }
 }

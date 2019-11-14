@@ -45,18 +45,13 @@ namespace StrawberryShake.Http
                 var subscriptionManager = new SubscriptionManager(
                     operationFormater);
 
-                var pipe = new Pipe();
                 var messagePipeline = new MessagePipeline(
+                    connection,
                     subscriptionManager,
                     new IMessageHandler[]
                     {
                         new DataResultMessageHandler(subscriptionManager)
                     });
-                var messageProcessor = new MessageProcessor(
-                    connection,
-                    messagePipeline,
-                    pipe.Reader);
-                var messageReceiver = new MessageReceiver(connection, pipe.Writer);
 
                 var operation = new Operation();
                 var resultParser = new OnReviewResultParser();
@@ -79,8 +74,7 @@ namespace StrawberryShake.Http
 
                 try
                 {
-                    messageProcessor.Begin(CancellationToken.None);
-                    Task.Run(async () => await messageReceiver.ReceiveAsync(CancellationToken.None));
+                    messagePipeline.Start();
 
                     using (var cts = new CancellationTokenSource(10000))
                     {
@@ -88,12 +82,13 @@ namespace StrawberryShake.Http
                             subscription.GetAsyncEnumerator(CancellationToken.None))
                         {
                             await enumerator.MoveNextAsync();
-                            enumerator.Current.MatchSnapshot(o =>o.IgnoreField("ResultType"));
+                            enumerator.Current.MatchSnapshot(o => o.IgnoreField("ResultType"));
                         }
                     }
                 }
                 finally
                 {
+                    await messagePipeline.DisposeAsync();
                     await connection.CloseAsync(
                         "Ciao",
                         SocketCloseStatus.NormalClosure);
