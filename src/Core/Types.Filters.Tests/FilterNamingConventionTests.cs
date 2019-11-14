@@ -48,19 +48,6 @@ namespace HotChocolate.Types.Filters
             schema.ToString().MatchSnapshot();
         }
 
-        [Fact]
-        public void Convention_CamelCase()
-        {
-            // arrange
-            // act
-            var schema = CreateSchema(
-                x => x.AddType<FilterInputType<Foo>>()
-                    .AddConvention<IFilterNamingConvention, FilterNamingConventionCamelCase>());
-
-            // assert
-            schema.ToString().MatchSnapshot();
-        }
-
         public class Foo
         {
             public short Comparable { get; set; }
