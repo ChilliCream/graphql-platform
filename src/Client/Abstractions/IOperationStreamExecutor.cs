@@ -5,10 +5,9 @@ namespace StrawberryShake
 {
     public interface IOperationStreamExecutor
     {
-        Task<IResponseStream> ExecuteAsync<T>(
+        Task<IResponseStream> ExecuteAsync(
             IOperation operation,
-            CancellationToken cancellationToken)
-            where T : class;
+            CancellationToken cancellationToken);
 
         Task<IResponseStream<T>> ExecuteAsync<T>(
             IOperation<T> operation,

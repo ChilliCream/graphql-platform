@@ -49,7 +49,9 @@ namespace StrawberryShake.Http.Subscriptions
             return RegisterInternalAsync(subscription, connection);
         }
 
-        private async Task RegisterInternalAsync(ISubscription subscription, ISocketConnection connection)
+        private async Task RegisterInternalAsync(
+            ISubscription subscription,
+            ISocketConnection connection)
         {
             if (_subs.TryAdd(subscription.Id, new Sub(subscription, connection)))
             {
