@@ -1,5 +1,6 @@
 using System.Linq;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -124,7 +125,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
 
             var handler = new DataStartMessageHandler(
                 executor,
-                interceptor.Object);
+                new List<ISocketQueryRequestInterceptor> { interceptor.Object } );
 
             var message = new DataStartMessage(
                 "123",

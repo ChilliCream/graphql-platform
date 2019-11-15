@@ -12,7 +12,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         : MessageHandler<DataStartMessage>
     {
         private readonly IQueryExecutor _queryExecutor;
-        private readonly IList<ISocketQueryRequestInterceptor> _requestInterceptors;
+        private readonly ISocketQueryRequestInterceptor[] _requestInterceptors;
 
         public DataStartMessageHandler(
             IQueryExecutor queryExecutor,
@@ -20,7 +20,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
         {
             _queryExecutor = queryExecutor
                 ?? throw new ArgumentNullException(nameof(queryExecutor));
-            _requestInterceptors = queryRequestInterceptors.ToList();
+            _requestInterceptors = queryRequestInterceptors.ToArray();
         }
 
         protected override async Task HandleAsync(
@@ -37,7 +37,7 @@ namespace HotChocolate.AspNetCore.Subscriptions.Messages
                     .SetProperties(message.Payload.Extensions)
                     .SetServices(connection.RequestServices);
 
-            for (var i = 0; i < _requestInterceptors.Count; i++)
+            for (var i = 0; i < _requestInterceptors.Length; i++)
             {
                 await _requestInterceptors[i].OnCreateAsync(
                         connection,
